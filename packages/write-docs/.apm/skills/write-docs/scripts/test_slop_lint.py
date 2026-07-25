@@ -50,6 +50,11 @@ def test_wip_and_tbd(tmp_path):
     assert len([f for f in found if f[1] == "E1"]) == 2
 
 
+def test_draft_is_status_language(tmp_path):
+    found = run(tmp_path, "# Draft API\n\nThis is a Draft proposal.\n")
+    assert "E1" in codes(found)
+
+
 # --- E2 slop lexicon --------------------------------------------------------
 
 

@@ -12,7 +12,9 @@ All genres:
 MUST State what the artifact does — never effort, intent, process, or journey.
 MUST Delete any adjective you cannot back with a number, benchmark, or feature list.
 MUST One idea per sentence; lists and tables over prose paragraphs.
-NOT Status language: "under construction", "WIP", "coming soon", "currently", "for now", "planned", "being specified".
+MUST Greenfield has no history: state the current design as the design; don't narrate change ("revised", "previously Y now Z", "we dropped X").
+MUST Justify a library/tool/dependency choice only when the reason is load-bearing (a real constraint or tradeoff), then in one line; drop filler ("popular", "standard", "battle-tested").
+NOT Status language: "under construction", "WIP", "coming soon", "currently", "for now", "planned", "being specified", "Draft".
 NOT Slop lexicon: "seamlessly", "robust", "powerful", "comprehensive", "leverage", "blazingly fast", "battle-tested", emoji headings.
 
 Consumer surfaces (README, docs/ — read by users of the artifact):

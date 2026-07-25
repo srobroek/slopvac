@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 STATUS_LANGUAGE = re.compile(
-    r"\b(under construction|work[- ]in[- ]progress|WIP|coming soon|"
+    r"\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft|"
     r"being (specified|designed|implemented|built)|not yet (implemented|supported|available)|"
     r"will (eventually|later|soon)\b|to be (implemented|defined|determined)|TBD|TODO|"
     r"for now|at the moment|"
