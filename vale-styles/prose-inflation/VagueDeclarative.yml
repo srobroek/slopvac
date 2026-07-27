@@ -6,7 +6,7 @@
 extends: existence
 message: "vague declarative: %s — name the specific thing"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\bthe (?:reasons?|causes?|implications?|consequences?|stakes|risks?|tradeoffs?|'

@@ -7,7 +7,7 @@
 extends: existence
 message: "narrator-from-a-distance: %s — put the reader in the scene, or name who acted"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 raw:
   - '(?m)^\s*(?:[-*]\s+|>\s+)?(?:[Ll]ook,|[Ss]ee,|[Ll]isten,)\s|'
   - '\b(?:[Pp]eople|[Ee]ngineers|[Dd]evelopers|[Tt]eams|[Uu]sers|[Mm]ost folks)'

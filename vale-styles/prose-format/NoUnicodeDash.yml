@@ -17,7 +17,7 @@
 extends: existence
 message: "em/en dash: %s — write `--` instead, or a comma, colon, or two sentences"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 nonword: true
 scope: raw
 raw:

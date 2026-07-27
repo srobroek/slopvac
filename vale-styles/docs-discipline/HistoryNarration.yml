@@ -3,7 +3,7 @@
 extends: existence
 message: "history narration: %s — deltas belong in change comms, not a doc body"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\b(previously|formerly|used to (be|do|have)|has been (refactored|migrated|renamed|rewritten)|'

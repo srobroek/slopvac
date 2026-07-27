@@ -17,12 +17,12 @@ StylesPath = .vale-styles
 MinAlertLevel = warning
 
 Packages = https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tells.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/ai-residue.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/prose-agency.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/prose-inflation.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/prose-scope.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/docs-discipline.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/prose-format.zip
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/ai-residue.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-agency.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-inflation.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-scope.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/docs-discipline.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-format.zip
 
 # `.mdx` has no parser: without this alias Vale fails with "mdx2vast not found".
 # Do NOT alias tsx/jsx -- `tsx = html` errors and `tsx = md` reports zero findings

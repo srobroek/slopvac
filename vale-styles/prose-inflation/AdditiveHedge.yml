@@ -3,7 +3,7 @@
 extends: existence
 message: "additive hedge: %s — keep the claim that carries load"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\bnot (?:just|only|merely|simply)\b[^.!?]{1,60}\bbut (?:also|even)\b'

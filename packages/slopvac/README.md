@@ -9,16 +9,16 @@ The gate needs `vale` on `PATH` (`mise use -g vale`, or `brew install vale`).
 `ast-grep` is optional and extends the gate to JSX text nodes.
 
 ```sh
-apm marketplace add srobroek/agentic-packages --name srobroek-agentic
+apm marketplace add srobroek/slopvac --name slopvac
 apm install slopvac@slopvac --target claude,codex
-vale --config=.claude/skills/write-docs/vale/.vale.ini sync
+vale --config=.claude/skills/review-docs/vale/.vale.ini sync
 ```
 
 For Kiro, install and sync; there is no compile step:
 
 ```sh
 apm install slopvac@slopvac --target kiro
-vale --config=.kiro/skills/write-docs/vale/.vale.ini sync
+vale --config=.kiro/skills/review-docs/vale/.vale.ini sync
 ```
 
 Kiro receives the skill at `.kiro/skills/`, the steering at `.kiro/steering/`, and

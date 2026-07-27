@@ -12,8 +12,8 @@ Add the styles you want to `.vale.ini`, then sync:
 StylesPath = styles
 MinAlertLevel = warning
 
-Packages = https://github.com/srobroek/agentic-packages/releases/download/vale-styles/prose-agency.zip, \
-  https://github.com/srobroek/agentic-packages/releases/download/vale-styles/prose-inflation.zip
+Packages = https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-agency.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-inflation.zip
 
 [*.md]
 BasedOnStyles = prose-agency, prose-inflation

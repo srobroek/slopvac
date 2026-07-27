@@ -22,7 +22,7 @@
 extends: existence
 message: "rejected alternative: %s — state what it does; the decision belongs in an ADR, spec, or commit"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\b(?:rather than|instead of) [^.!?]{3,60}\bbecause\b|'

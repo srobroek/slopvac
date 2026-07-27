@@ -3,7 +3,7 @@
 extends: existence
 message: "status language: %s — state what the artifact does at HEAD"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft|'

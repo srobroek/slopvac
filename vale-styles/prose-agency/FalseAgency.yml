@@ -6,7 +6,7 @@
 extends: existence
 message: "false agency: %s — name who acted"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   # An abstraction transforming into an outcome by itself.

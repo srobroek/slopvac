@@ -10,7 +10,7 @@
 extends: existence
 message: "internal reference: %s — consumer docs describe the released artifact only"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '(\bspecs?/|\.specify/|\bADRs?\b|\bADR[- ]?\d+|\bconstitution\b|'

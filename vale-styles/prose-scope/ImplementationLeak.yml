@@ -29,7 +29,7 @@ extends: existence
 scope: paragraph
 message: "implementation leak: %s — the reader cannot act on this; move it to the commit, ADR, or spec"
 level: error
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '(?<!<dd>)(?<![Tt]imeout of )(?<![Bb]udget of )(?<![Dd]eadline of )(?<![Ll]imit of )(?<![Ww]ithin )(?<![Aa]fter )(?<![Ee]very )\b\d+(?:\.\d+)?\s?(?:ms|milliseconds?|µs|microseconds?|ns|nanoseconds?)\b(?![^.!?]{0,30}\b(?:timeout|budget|deadline|limit|allowance|before (?:giving up|falling back))\b)|'

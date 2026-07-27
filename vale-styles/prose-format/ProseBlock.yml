@@ -5,7 +5,7 @@
 extends: occurrence
 message: "prose block of %d words > 80 — convert to a list or table"
 level: warning
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 scope: paragraph
 max: 80
 token: '\b(\w+)\b'

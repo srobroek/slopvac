@@ -3,7 +3,7 @@
 extends: existence
 message: "borderline hype: %s — keep it only if a number or example backs it"
 level: warning
-link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\b(simply|just works|easy to use|easily|intuitive(ly)?|flexible|'
