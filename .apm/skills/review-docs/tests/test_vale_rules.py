@@ -870,12 +870,13 @@ def test_redundancy_and_misnomer_are_separate_rules(tmp_path):
     assert "prose-craft.Redundancy" not in found
 
 
-def test_density_uses_the_product_not_a_syllable_metric(tmp_path):
-    """The rule multiplies sentence length by long-word share. A doc of long
-    TECHNICAL nouns in SHORT sentences must stay clean -- that is the case every
-    syllable-based metric gets wrong, and the reason this one replaced Flesch."""
+def test_density_rules_are_the_published_metrics(tmp_path):
+    """RIX (Anderson 1983) for density, average sentence length for load.
+
+    A doc of long TECHNICAL nouns in SHORT sentences must stay clean -- that is the
+    case every syllable-based metric gets wrong, and the reason Flesch was dropped:
+    the paragraph below scores Flesch-Kincaid 19.5 at 3.5 words per sentence."""
     doc = tmp_path / "case.md"
-    # 3.5 words per sentence, syllables/word 2.86: Flesch-Kincaid scores this 19.5.
     doc.write_text(
         "Initialization happens asynchronously. The orchestration layer waits. "
         "Configuration parameters live in the environment. The deployment manifest "
@@ -883,9 +884,31 @@ def test_density_uses_the_product_not_a_syllable_metric(tmp_path):
         "is measured per region. Authentication middleware validates credentials.\n",
         encoding="utf-8",
     )
-    assert "prose-density.Overwritten" not in rules(doc)
+    found = rules(doc)
+    assert "prose-density.Overwritten" not in found
+    assert "prose-density.SentenceLoad" not in found
 
-    # Long sentences AND heavy nominalisation: the conjunction is the defect.
+
+def test_the_two_density_rules_catch_disjoint_defects(tmp_path):
+    """Neither rule alone is sufficient, which is why there are two.
+
+    RIX counts long words per sentence, so it misses a rambling sentence built from
+    short words. Average sentence length misses dense nominalisation in sentences
+    that happen to be short."""
+    doc = tmp_path / "case.md"
+
+    # Long sentences, plain vocabulary: sentence load only.
+    doc.write_text(
+        "The loader will read the file and then it will try again and then it will "
+        "give up and log the error to the file that you set in the config that you "
+        "passed on the command line when you ran it there.\n",
+        encoding="utf-8",
+    )
+    found = rules(doc)
+    assert "prose-density.SentenceLoad" in found
+    assert "prose-density.Overwritten" not in found
+
+    # Nominalised and long: density fires.
     doc.write_text(
         "The utilization of the aforementioned methodology facilitates the "
         "optimization of operational efficiency in a manner that is both effective "

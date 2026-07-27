@@ -36,7 +36,7 @@ publish, so the URLs above always serve the current rules.
 | `docs-discipline` | slop | `HistoryNarration`, `InternalRefs`, `StatusLanguage` | Documentation describing something other than the released artifact |
 | `prose-agency` | slop | `AgentlessPassive`, `Anthropomorphism`, `FalseAgency`, `NarratorDistance`, `UnattributedRecommendation` | Prose with the actor deleted |
 | `prose-craft` | craft | `AcronymPeriods`, `Ambiguity`, `Annotations`, `Articles`, `CommandPrompt`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `Misnomer`, `NegativeRequirement`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Politeness`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
-| `prose-density` | craft | `Overwritten` | Prose too dense to read in one pass |
+| `prose-density` | craft | `Overwritten`, `SentenceLoad` | Prose too dense to read in one pass |
 | `prose-format` | slop | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells |
 | `prose-inclusive` | craft | `Ableist`, `DeviceAssumption`, `Exclusive` | Language that excludes a reader who could otherwise use the doc |
 | `prose-inflation` | slop | `AdditiveHedge`, `Apologizing`, `BorderlineHype`, `BusinessJargon`, `DocumentPreamble`, `HedgeStack`, `Intensifier`, `NominalizedVerb`, `SlopLexicon`, `Uncomparables`, `VagueDeclarative`, `VagueQuantifier` | Claims inflated past their evidence |
@@ -44,7 +44,7 @@ publish, so the URLs above always serve the current rules.
 <!-- END GENERATED: styles-table -->
 
 <!-- BEGIN GENERATED: rule-counts -->
-61 rules across 9 styles. 28 sit on the slop axis and gate at error. 33 sit on the craft axis and warn.
+62 rules across 9 styles. 28 sit on the slop axis and gate at error. 34 sit on the craft axis and warn.
 <!-- END GENERATED: rule-counts -->
 
 The two axes carry different weight. A slop-axis match is evidence about how the
@@ -104,7 +104,8 @@ Generated from the rule files by `gen-rule-table.py`; CI fails when it drifts.
 | `prose-craft.UndefinedAcronym` | warning | conditional | An initialism used before it is expanded. |
 | `prose-craft.Versions` | warning | substitution | A version comparison stated as magnitude instead of order. |
 | `prose-craft.Wordiness` | warning | substitution | A long phrase where a short word does the same work. |
-| `prose-density.Overwritten` | warning | metric | Prose that is both long-winded and latinate at the same time. |
+| `prose-density.Overwritten` | warning | metric | RIX (Anderson 1983): long words per sentence. |
+| `prose-density.SentenceLoad` | warning | metric | Average sentence length across a document. |
 | `prose-format.EmojiHeading` | warning | existence (heading) | W2 in the retired slop-lint.py. `scope: heading` replaces the old manual |
 | `prose-format.NoUnicodeDash` | error | existence (raw) | House ban: no em-dash (U+2014) or en-dash (U+2013) anywhere in a file, prose |
 | `prose-format.ProseBlock` | warning | occurrence (paragraph) | W1 in the retired slop-lint.py. `%d`, not `%s`: occurrence populates an int and |

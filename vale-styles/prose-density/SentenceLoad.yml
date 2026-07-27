@@ -1,0 +1,48 @@
+# Average sentence length across a document.
+#
+#   words / sentences
+#
+# The oldest and least glamorous readability variable, and it appears in every
+# formula from Flesch (1948) onward. Here it is used ALONE and unweighted, because
+# every attempt to combine it with a vocabulary term reintroduces the confound
+# documented in Overwritten.yml.
+#
+# --- Why not McAlpine EFLAW, which scored best ---------------------------------
+#
+# McAlpine EFLAW (2006) is `(words + words_of_3_letters_or_fewer) / sentences`. It
+# counts short words twice, on the reasoning that a pile-up of prepositions and
+# pronouns is what makes a long sentence hard rather than the vocabulary in it. It
+# scored best of every metric benchmarked: a signal-to-confound ratio of 288 against
+# 6.2 for RIX, and r = -0.12 with syllables-per-word against 0.89 for
+# Flesch-Kincaid.
+#
+# It cannot be implemented here. Vale's `metric` check exposes exactly eight
+# variables -- words, sentences, characters, syllables, complex_words, long_words,
+# polysyllabic_words, paragraphs -- and there is no count of SHORT words. Verified by
+# probing each name against the Tengo evaluator: `short_words` fails with
+# "unresolved reference". The 4-to-6-letter band is unaccounted for by
+# `words - long_words`, and that approximation correlates only r=0.53 with real
+# EFLAW, which is too weak to carry the name.
+#
+# Plain `words / sentences` correlates r=0.57 with EFLAW -- no worse than the
+# approximation -- and it catches the case this rule exists for. RIX measures
+# density and misses a rambling sentence built from short words; on
+# "The loader will read the file and then it will try again and then it will give up
+# and log the error to the file that you set in the config" RIX scores 1.0 while this
+# rule scores 38. The two rules together cover length and density; neither alone
+# does. Kept as two rules rather than a combined formula so a finding says WHICH.
+#
+# If Vale ever exposes a short-word count, replace this with real EFLAW at 34.
+#
+# Threshold 33 is p95 of 179 human-written technical documents from the upstream Vale
+# style repos (p75 = 25.7, p90 = 30.0). Deliberately loose: a long sentence is a
+# weaker defect than a dense one, and prose-craft.SentenceLength already flags the
+# individual sentence at 34 words. This rule catches a document where the AVERAGE is
+# that high, which is a different finding.
+extends: metric
+message: "sentence load: %s words per sentence on average (over 33) — split the long ones"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+formula: |
+  words / sentences
+condition: "> 33"
