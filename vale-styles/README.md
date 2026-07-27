@@ -107,9 +107,12 @@ These need a workaround:
 
 - `.mdx` has no parser. Without `[formats]` `mdx = md` Vale fails with
   `mdx2vast not found` and exit 1.
-- `.tsx` and `.jsx` have no parser and no working alias. Vale reports **zero
-  findings and exits 0**, which reads as a pass. `tsx = html` errors out;
-  `tsx = md` is silent. Extract JSX text nodes with a separate tool.
+- `.tsx` and `.jsx` have no parser, and no `[formats]` alias fixes it: `tsx = html`
+  errors out and `tsx = md` reports **zero findings and exits 0**, which reads as a
+  pass. Extract the JSX text nodes and lint those instead. slopvac ships
+  `extract-prose.sh` for this, which uses `ast-grep` to pull `jsx_text` and
+  copy-bearing attributes into a line-preserving shadow file, so findings still
+  report against the real `.tsx` line.
 
 Any extension you add to a section needs a fixture proving it produces findings.
 
