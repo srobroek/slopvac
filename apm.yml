@@ -1,10 +1,10 @@
 name: slopvac
-version: 0.1.0
+version: 1.0.0
 description: >-
   Remove AI writing patterns from prose. Two skills -- write-docs authors a
   document against its genre's rules, review-docs gates the result and returns a
-  verdict -- over a deterministic Vale gate, plus hooks that carry the same rules
-  into every subagent and every edit. Requires the vale binary on PATH.
+  verdict -- over a deterministic Vale gate, plus hooks that carry the same
+  rules into every subagent and every edit. Requires the vale binary on PATH.
 author: Sjors Robroek
 license: Apache-2.0
 type: hybrid
