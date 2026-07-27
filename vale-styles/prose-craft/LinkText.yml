@@ -12,6 +12,12 @@ level: warning
 link: https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context
 scope: raw
 ignorecase: true
+#
+# The label set is the union of Datadog's links, Canonical's
+# 027-non-descriptive-link-text, and Krystal's MeaningfulLinkWords. Canonical also
+# matches reStructuredText and MyST roles; those are absent here because Vale has
+# no parser for either without an external converter.
 raw:
-  - '\[\s*(?:here|this|this link|click here|read more|more|link|'
-  - 'see here|learn more|find out more|this page|the docs|documentation)\s*\]\('
+  - '\[[^\]]*\b(?:here|this|this link|this page|this document|click here|'
+  - 'read more|learn more|find out more|see (?:here|more)|more|link|page|'
+  - 'the docs?|documentation|website|site)\b[^\]]*\]\('

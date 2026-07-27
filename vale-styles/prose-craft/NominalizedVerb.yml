@@ -13,10 +13,14 @@ message: "nominalisation: %s — use the verb ('validate', not 'perform validati
 level: warning
 link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
+# `run`, `do`, and `make` are NOT light verbs here. "run the migration" and "make a
+# backup" name a real action on a real object -- the noun is the thing, not a verb in
+# disguise. Only verbs whose own meaning is empty in this construction are matched,
+# which is what keeps the rule at a usable false-positive rate.
 raw:
-  - '\b(?:perform|performs|performed|conduct|conducts|carry out|carries out|'
-  - 'undertake|undertakes|do|does|run|runs|make|makes|made|provide|provides|'
-  - 'give|gives|take|takes|achieve|achieves|effect|effects)\s+'
+  - '\b(?:perform|performs|performed|conduct|conducts|conducted|'
+  - 'carry out|carries out|carried out|undertake|undertakes|undertook|'
+  - 'effect|effects|effected|achieve|achieves|achieved)\s+'
   - '(?:a|an|the|any|some)?\s*'
   - '\w*(?:ation|ations|ment|ments|ance|ence|sion|sions|ysis|yses)\b|'
   # The fixed light-verb idioms, where the noun is not -ation shaped.

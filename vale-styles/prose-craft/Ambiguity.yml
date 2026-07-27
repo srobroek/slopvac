@@ -1,0 +1,25 @@
+# A construction with two readings and no way to pick one.
+#
+# "and/or" is the canonical case: it means "a and b", "a or b", or "a, b, or both",
+# and the writer had one of those in mind. Red Hat's DoNotUseTerms spells out all
+# three replacements, which is what makes this actionable rather than a taste call.
+#
+# OpenStack's DangPrep -- a sentence ending on a preposition -- was tried and
+# REJECTED. Measured on this repo it fired three times, every one correct English
+# where the preposition belongs to a phrasal verb or an idiom: "the section it calls
+# for.", "rather than the reader having to.", "and so on.". Distinguishing a
+# stranded preposition from a phrasal one needs parsing that a regex cannot do.
+extends: existence
+message: "ambiguous: %s — pick the reading you meant"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  # Two readings offered, neither chosen.
+  - '\b(?:and/or|or/and)\b|'
+  - '\bhis/her\b|'
+  # A time expression that means different things in different places.
+  - '\b(?:bi[- ]?weekly|bi[- ]?monthly|bi[- ]?annual(?:ly)?)\b|'
+  - '\b12\s?(?:am|pm|a\.m\.|p\.m\.)\b|'
+  # A relative comparator that stops sorting once versions go double-digit.
+  - '\b(?:last|next)\s+version\b'

@@ -12,7 +12,12 @@ message: "self-reference: %s — the heading already says this; start with the f
 level: warning
 link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
+# `page` and `document` are deliberately absent from the noun list. Vale's `text`
+# scope hands over the PARSED text node, so a markdown link label arrives with its
+# brackets already stripped and no lookbehind can distinguish `[this page](...)`
+# from prose. prose-craft.LinkText owns the link case, and dropping the two nouns
+# here is cheaper than re-implementing markdown skipping under `scope: raw`.
 raw:
   - '\b(?:this|the (?:following|preceding|current|next|previous))\s+'
-  - '(?:section|chapter|subsection|topic|module|assembly|page|part)\b|'
+  - '(?:section|chapter|subsection|topic|module|assembly|part)\b|'
   - '\bin the (?:sections?|chapters?) that follows?\b'

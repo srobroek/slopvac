@@ -1,0 +1,22 @@
+# Courtesy words in an instruction. "Please run the migration first."
+#
+# An instruction is not a request, so "please" adds a syllable and implies the
+# reader could decline. Every major guide bans it -- Red Hat, OpenStack, Splunk,
+# Krystal -- and the reason each gives is the same: politeness in a procedure reads
+# as uncertainty about whether the step is required.
+#
+# `sorry` and `unfortunately` are here too. Both narrate the author's feelings about
+# a limitation rather than stating the limitation, and both are a common shape in
+# generated apologia.
+extends: existence
+message: "politeness: %s — an instruction is not a request; state the step"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\bplease\b|'
+  - '\bthank(?:s| you)\b|'
+  - '\bkindly\s+(?=\w)|'
+  - '\b(?:sorry|we(?:''re| are) sorry|apologies)\b|'
+  - '\bunfortunately\b|'
+  - '\bfeel free to\b'

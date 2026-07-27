@@ -728,3 +728,78 @@ def test_link_text_fires_on_empty_labels_and_not_on_named_ones(tmp_path):
 
     doc.write_text("Read the [Vale docs](https://vale.sh) for detail.\n", encoding="utf-8")
     assert "prose-craft.LinkText" not in rules(doc)
+
+
+# --- Second survey pass: the remaining 28 vale-linter-style repos --------------
+# The first pass covered 8 of the 36 repos on the topic page. These rules come
+# from the other 28, deduplicated by pattern payload rather than by rule name.
+
+
+@pytest.mark.parametrize(
+    "text,rule",
+    [
+        ("It is recommended that you rotate keys.",
+         "prose-agency.UnattributedRecommendation"),
+        ("Rotation is recommended.", "prose-agency.UnattributedRecommendation"),
+        ("Set the flag and/or the env var.", "prose-craft.Ambiguity"),
+        ("The job runs bi-weekly.", "prose-craft.Ambiguity"),
+        ("Please run the migration.", "prose-craft.Politeness"),
+        ("Unfortunately the sync fails.", "prose-craft.Politeness"),
+        ("This document describes the loader.", "prose-craft.DocumentPreamble"),
+        ("The purpose of this guide is to explain the gate.",
+         "prose-craft.DocumentPreamble"),
+        ("See [read more](https://example.com).", "prose-craft.LinkText"),
+    ],
+)
+def test_second_survey_rules_fire(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text,rule",
+    [
+        # An attributed recommendation is exactly the fix the rule asks for.
+        ("The maintainers recommend rotating keys.",
+         "prose-agency.UnattributedRecommendation"),
+        ("Rotate keys every 90 days.", "prose-agency.UnattributedRecommendation"),
+        # `run` and `make` are real verbs with real objects, not light verbs. An
+        # earlier revision flagged both and had to be narrowed.
+        ("Run the migration before deploying.", "prose-craft.NominalizedVerb"),
+        ("Make a backup first.", "prose-craft.NominalizedVerb"),
+        ("Do the comparison by hand.", "prose-craft.NominalizedVerb"),
+        # A weekly schedule is unambiguous; only bi-weekly is not.
+        ("The job runs weekly.", "prose-craft.Ambiguity"),
+        # Not a trailing preposition: the sentence has its object.
+        ("Read the config from disk.", "prose-craft.Ambiguity"),
+        # A named link.
+        ("Read the [Vale docs](https://vale.sh).", "prose-craft.LinkText"),
+    ],
+)
+def test_second_survey_rules_stay_quiet(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule not in rules(doc), text
+
+
+def test_command_prompt_is_caught_inside_a_fence(tmp_path):
+    """`scope: raw`: a pasted prompt lives inside a code fence, which the prose
+    parser skips entirely."""
+    doc = tmp_path / "case.md"
+    doc.write_text("```sh\n$ npm install\nnpm test\n```\n", encoding="utf-8")
+    assert rules(doc).get("prose-craft.CommandPrompt") == 1
+
+
+def test_self_reference_does_not_double_report_a_link_label(tmp_path):
+    """Vale's `text` scope strips the brackets, so `[this page](...)` reaches the
+    rule as bare prose. LinkText owns that case; SelfReference must not also claim
+    it, which is why `page` is absent from its noun list."""
+    doc = tmp_path / "case.md"
+    doc.write_text("See [this page](https://example.com).\n", encoding="utf-8")
+    found = rules(doc)
+    assert "prose-craft.LinkText" in found
+    assert "prose-craft.SelfReference" not in found
+    # The prose case still fires.
+    doc.write_text("This section explains the loader.\n", encoding="utf-8")
+    assert "prose-craft.SelfReference" in rules(doc)

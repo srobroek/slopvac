@@ -34,8 +34,8 @@ publish, so the URLs above always serve the current rules.
 |---|---|---|---|
 | `ai-residue` | slop | `ChatLeakage` | Assistant output pasted into a shipped document |
 | `docs-discipline` | slop | `HistoryNarration`, `InternalRefs`, `StatusLanguage` | Documentation describing something other than the released artifact |
-| `prose-agency` | slop | `AgentlessPassive`, `Anthropomorphism`, `FalseAgency`, `NarratorDistance` | Prose with the actor deleted |
-| `prose-craft` | craft | `AcronymPeriods`, `Annotations`, `Articles`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `NegativeRequirement`, `NominalizedVerb`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
+| `prose-agency` | slop | `AgentlessPassive`, `Anthropomorphism`, `FalseAgency`, `NarratorDistance`, `UnattributedRecommendation` | Prose with the actor deleted |
+| `prose-craft` | craft | `AcronymPeriods`, `Ambiguity`, `Annotations`, `Articles`, `CommandPrompt`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `DocumentPreamble`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `NegativeRequirement`, `NominalizedVerb`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Politeness`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
 | `prose-density` | craft | `Overwritten` | Prose too dense to read in one pass |
 | `prose-format` | slop | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells |
 | `prose-inclusive` | craft | `Ableist`, `DeviceAssumption`, `Exclusive` | Language that excludes a reader who could otherwise use the doc |
@@ -44,7 +44,7 @@ publish, so the URLs above always serve the current rules.
 <!-- END GENERATED: styles-table -->
 
 <!-- BEGIN GENERATED: rule-counts -->
-55 rules across 9 styles. 25 sit on the slop axis and gate at error. 30 sit on the craft axis and warn.
+60 rules across 9 styles. 26 sit on the slop axis and gate at error. 34 sit on the craft axis and warn.
 <!-- END GENERATED: rule-counts -->
 
 The two axes carry different weight. A slop-axis match is evidence about how the
@@ -74,12 +74,16 @@ Generated from the rule files by `gen-rule-table.py`; CI fails when it drifts.
 | `prose-agency.Anthropomorphism` | error | existence | Software granted a mind. "The parser knows the schema", "the CI thinks it failed". |
 | `prose-agency.FalseAgency` | error | existence | An abstraction promoted to actor, so no human has to be named. |
 | `prose-agency.NarratorDistance` | error | existence | The lecturer voice: observations delivered from above the scene, with nobody |
+| `prose-agency.UnattributedRecommendation` | error | existence | A recommendation with nobody behind it. "It is recommended that you rotate keys." |
 | `prose-craft.AcronymPeriods` | warning | existence | Periods inside an initialism. "A.P.I.", "U.R.L." |
+| `prose-craft.Ambiguity` | warning | existence | A construction with two readings and no way to pick one. |
 | `prose-craft.Annotations` | warning | existence | A code annotation left in shipped prose. TODO, FIXME, XXX, HACK. |
 | `prose-craft.Articles` | warning | substitution | The article before an initialism follows pronunciation, not spelling. |
+| `prose-craft.CommandPrompt` | warning | existence (raw) | A shell prompt pasted into a code block. "$ npm install", "> Get-Item". |
 | `prose-craft.ConflictMarkers` | error | existence (raw) | A Git merge conflict marker committed into prose. |
 | `prose-craft.DeadOpener` | warning | existence | A sentence opening on a placeholder subject. |
 | `prose-craft.DirectionalRef` | warning | substitution | A cross-reference that depends on where the text landed on the page. |
+| `prose-craft.DocumentPreamble` | warning | existence | A document announcing what it is about to do. |
 | `prose-craft.FirstPersonPlural` | warning | existence | The document speaking as a company. "our platform empowers your team". |
 | `prose-craft.FutureTense` | warning | existence | Documentation in the future tense. "The loader will retry twice." |
 | `prose-craft.GerundHeading` | warning | existence (heading) | A task heading in the -ing form. |
@@ -91,6 +95,7 @@ Generated from the rule files by `gen-rule-table.py`; CI fails when it drifts.
 | `prose-craft.OptionalPlural` | warning | existence | A plural offered in parentheses. "Select the file(s)." |
 | `prose-craft.Ordinals` | warning | existence | An ordinal in the wrong form. |
 | `prose-craft.PluralAbbreviation` | warning | sequence | An apostrophe making an initialism plural. "API's" for more than one API. |
+| `prose-craft.Politeness` | warning | existence | Courtesy words in an instruction. "Please run the migration first." |
 | `prose-craft.Redundancy` | warning | existence | A phrase that says the same thing twice. |
 | `prose-craft.RelativeDate` | warning | existence | A date the reader cannot resolve. "recently", "last month", "as of this year". |
 | `prose-craft.SelfReference` | warning | existence | A document narrating its own structure. |
