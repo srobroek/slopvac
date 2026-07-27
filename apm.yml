@@ -1,5 +1,5 @@
 name: slopvac
-version: 1.0.0
+version: 1.0.1
 description: >-
   Remove AI writing patterns from prose. Two skills -- write-docs authors a
   document against its genre's rules, review-docs gates the result and returns a
