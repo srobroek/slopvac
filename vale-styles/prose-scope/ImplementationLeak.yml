@@ -1,0 +1,25 @@
+# Over-writing: internal implementation facts the reader of this document cannot
+# act on -- measured timings, process counts, and the cost of the machinery.
+#
+# A configuration default, a documented limit, and a stated performance guarantee
+# are all actionable, and none of them match here. What matters is the frame: a
+# measurement presented as prose about how the code performs is a benchmark
+# result, and a benchmark result in a document ages into a false claim. It belongs
+# in the commit that made it true.
+#
+# A unit must sit next to the number, so version strings, ports, exit codes, and
+# byte sizes in a configuration table stay clean. A stated ceiling is a documented
+# limit, not a benchmark, so "at most five subprocesses" and "five subprocesses run
+# concurrently" are both excluded.
+extends: existence
+message: "implementation leak: %s — the reader cannot act on this; move it to the commit, ADR, or spec"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b\d+(?:\.\d+)?\s?(?:ms|milliseconds?|µs|microseconds?|ns|nanoseconds?)\b|'
+  - '\b\d+(?:\.\d+)?\s?(?:s|sec|seconds?)\s+(?:per|each|faster|slower)\b|'
+  - '\b\d+(?:\.\d+)?x\s+(?:faster|slower|speedup|the (?:speed|cost))\b|'
+  - '(?<!at most )(?<!maximum of )(?<!up to )\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(?:process(?:es)?|spawns?|subprocess(?:es)?|forks?|syscalls?|round[- ]trips?|invocations?|shell[- ]outs?)\b(?![^.!?]{0,25}\b(?:limit|maximum|concurrently|at a time)\b)|'
+  - '\bcosts? (?:one|two|three|a single|only) \w+ (?:startup|spawn|call|process)\b|'
+  - '\bzero (?:spawns?|subprocess(?:es)?|allocations?)\b'

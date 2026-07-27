@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${PLUGIN_ROOT}/scripts/prose-gate-advisory.sh",
+            "command": "${PLUGIN_ROOT}/scripts/prose-gate-advisory.py",
             "timeout": 20
           }
         ]

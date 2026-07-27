@@ -21,13 +21,10 @@ apm install write-docs@srobroek-agentic --target kiro
 vale --config=.kiro/skills/write-docs/vale/.vale.ini sync
 ```
 
-Kiro receives the skill at `.kiro/skills/`, the steering at `.kiro/steering/`
-with `inclusion: fileMatch` frontmatter, and a Kiro-shaped hook manifest at
-`.kiro/hooks/`. Running `apm compile --target kiro` is wrong here: it writes the
-steering again into a root `AGENTS.md`, which Kiro does not read as steering, and
-overwrites an existing `AGENTS.md`.
+Kiro receives the skill at `.kiro/skills/`, the steering at `.kiro/steering/`, and
+a hook manifest at `.kiro/hooks/`.
 
-The sync is required before the first run, on every target: no style is committed.
+The sync is required before the first run on every target; no style is committed.
 
 ## Skills
 
@@ -60,13 +57,14 @@ Exit 0 clean or warnings only, 1 on any error, 2 on a usage error or a missing
 tool. Vale itself exits non-zero on warnings; this script reads the JSON and maps
 severities so warnings alone do not fail a run.
 
-Rules come from five Vale styles authored in `vale-styles/` at the repo root and
+Rules come from six Vale styles authored in `vale-styles/` at the repo root and
 one vendored style, all fetched by `vale sync`:
 
 | Style | Catches |
 | --- | --- |
 | `prose-agency` | The actor deleted: an abstraction acting, an agentless passive, narration from outside the scene |
 | `prose-inflation` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
+| `prose-scope` | Over-writing: a rejected alternative defended in place, an implementation cost the reader cannot act on |
 | `ai-residue` | Assistant output pasted into a shipped document |
 | `docs-discipline` | Text describing something other than the released artifact |
 | `prose-format` | Emoji headings, Unicode dashes, paragraphs that should be a list |
@@ -82,14 +80,9 @@ ruleset. Source files get a reduced allowlist: Vale lints their comments and
 docstrings and skips identifiers and string literals, so a field named `robust`
 does not trip the lexicon, while the doc comment above it does.
 
-The full ruleset on source files produced 214 findings across 55 files in this
-repo, almost all false -- code-comment register is terse and legitimately negative.
-The allowlist produces 8. Widen it only with a corpus measurement.
-
-`.tsx` and `.jsx` have no Vale parser and no working format alias: Vale reports
-zero findings and exits 0, which reads as a pass. Their JSX text nodes are
-extracted by `scripts/extract-prose.sh`, which needs `ast-grep` and is skipped
-with a hint when it is absent.
+`.tsx` and `.jsx` have no Vale parser. Their JSX text nodes are extracted by
+`scripts/extract-prose.sh`, which needs `ast-grep` and is skipped with a hint when
+it is absent.
 
 ## Hooks
 
@@ -100,29 +93,24 @@ main-session steering weakly, so without this its only trigger signal is a
 one-line skill description. The digest opens with its own condition, so a
 code-only subagent ignores it.
 
-### `PostToolUse` -- `prose-gate-advisory.sh`
+### `PostToolUse` -- `prose-gate-advisory.py`
 
 Runs the prose gate on files an edit just touched and returns the findings to the
 agent. Step by step:
 
-1. Reads the tool payload and collects every file path the call wrote.
+1. Parses the tool payload and collects every file path the call wrote.
 2. Keeps the ones the gate covers: `.md`, `.mdx`, `.html`, `.json`, `.yaml`,
-   `.tsx`, `.jsx`. Skips `node_modules/`, `apm_modules/`, `dist/`, `.venv/`.
+   `.tsx`, `.jsx`. Drops vendored and generated trees, then drops anything
+   `git check-ignore` reports, in one batched call.
 3. Adds the changed-line and file counts to a per-repo counter and returns
    silently until they cross a threshold, then applies a cooldown. A long editing
    run produces one advisory, not one per keystroke.
 4. Runs `slop-lint.sh` and returns `file:line` findings, plus a pointer to
    `review-docs` for the register judgement the linter cannot make.
 
-It reports findings rather than asking the agent to run the skill, because a hook
-cannot invoke a skill -- only request one, which is the unreliable path the hook
-replaces.
-
-Missing tools are loud. A silent skip would leave prose ungated while the hook
-reports success, so an absent `vale`, an unsynced `styles/` directory, or a
-JSX edit without `ast-grep` returns a `PROSE GATE UNAVAILABLE` block naming what
-went unchecked and the command that fixes it. The hook still exits 0: a
-`PreToolUse` guard may block, a `PostToolUse` advisory must not.
+An absent `vale`, an unsynced `styles/` directory, or a JSX edit without
+`ast-grep` returns a `PROSE GATE UNAVAILABLE` block naming what went unchecked and
+the command that fixes it. The hook always exits 0 and never blocks the edit.
 
 Both hooks run on Claude Code, Codex, and Kiro from one manifest. The matcher
 covers each harness's file-writing tools, and the payload parser reads

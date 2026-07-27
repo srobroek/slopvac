@@ -26,9 +26,12 @@ other's rules.
    `scripts/slop-lint.sh --genre <consumer|change|internal> <file>...`
    Fix every ERROR. Fix or justify each WARN in one line. Paths are relative to
    this skill, so they resolve wherever the package installed.
-3. LOAD `references/ai-tells.md` and judge what patterns cannot reach: register,
-   structural symmetry, and the counter-signals in its last section. The linter
-   finds tokens; the tells catalog finds voice.
+3. LOAD `references/ai-tells.md` -- an index -- then the section files the text
+   calls for. Judge what patterns cannot reach: register, structural symmetry,
+   and the counter-signals. The linter finds tokens; the catalog finds voice.
+   Start with `ai-tells/register.md` and `ai-tells/structure.md`; load
+   `ai-tells/content-shape.md` when the text makes factual claims or cites
+   sources. Skip `ai-tells/lexical-eras.md` unless dating older text.
 4. Verify the claims. Every sentence checks against code at HEAD; every consumer
    example has a runnable test under `examples/`; no sentence describes unbuilt
    behavior in the present tense.

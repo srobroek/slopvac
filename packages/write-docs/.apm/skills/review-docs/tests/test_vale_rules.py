@@ -304,3 +304,74 @@ def test_source_files_are_gated_on_unicode_dashes(tmp_path):
     )
     found = rules(doc)
     assert found.get("prose-format.NoUnicodeDash") == 1, "one Unicode dash, not the `--`"
+
+
+# --- Over-writing (prose-scope) ----------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "rule"),
+    [
+        (
+            "It reports findings rather than asking the agent, because a hook cannot.",
+            "prose-scope.RejectedAlternative",
+        ),
+        ("For the same reason it does not run detached.", "prose-scope.RejectedAlternative"),
+        ("We chose Python for the hook.", "prose-scope.RejectedAlternative"),
+        (
+            "The earlier implementation spawned a shell for every check.",
+            "prose-scope.RejectedAlternative",
+        ),
+        ("It deliberately does not cache the result.", "prose-scope.RejectedAlternative"),
+        ("A shell version cost 212ms per edit.", "prose-scope.ImplementationLeak"),
+        ("The check is 4x faster than the shell version.", "prose-scope.ImplementationLeak"),
+        ("An ordinary edit costs one Python startup.", "prose-scope.ImplementationLeak"),
+        ("The parser makes three subprocess calls.", "prose-scope.ImplementationLeak"),
+    ],
+)
+def test_over_writing_fires(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule in rules(doc), f"{rule} did not fire on: {text}"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Ordinary substitution, with no rejected alternative behind it.
+        "Run the wrapper instead of the raw binary.",
+        "Use a table rather than a list when the data has columns.",
+        # A changelog states the delta; that is the genre's job.
+        "Removed the legacy flag in favor of the config key.",
+        # Actionable configuration and limits, not benchmark prose.
+        "The default timeout is 30 seconds.",
+        "Set the port to 8080 in the config.",
+        "At most five subprocesses run concurrently.",
+        "Requires Python 3.14 or newer.",
+    ],
+)
+def test_over_writing_stays_quiet(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    fired = {"prose-scope.RejectedAlternative", "prose-scope.ImplementationLeak"} & set(rules(doc))
+    assert not fired, f"{fired} fired on acceptable prose: {text}"
+
+
+def test_over_writing_is_off_for_decision_records(tmp_path, monkeypatch):
+    # An ADR exists to record the decision and its measurement.
+    adr = tmp_path / "docs" / "adr"
+    adr.mkdir(parents=True)
+    doc = adr / "0001-hook-language.md"
+    doc.write_text(
+        "We chose Python because the shell version cost 212ms per edit.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    proc = subprocess.run(
+        ["vale", f"--config={CONFIG}", "--output=JSON", "--no-exit",
+         "docs/adr/0001-hook-language.md"],
+        capture_output=True, text=True, check=False,
+    )
+    checks = {a["Check"] for alerts in json.loads(proc.stdout or "{}").values() for a in alerts}
+    assert "prose-scope.RejectedAlternative" not in checks
+    assert "prose-scope.ImplementationLeak" not in checks

@@ -1,0 +1,36 @@
+# Over-writing: text defending a decision inside a document whose job is to
+# describe something else.
+#
+# Why it does this instead of that, what it deliberately does not do, and what
+# the discarded approach would have cost are all decision records. They belong in
+# an ADR, a spec, or the commit that made the decision -- one place, where a
+# reader looking for the decision will find it. Carried anywhere else the prose
+# reads as a defence of the implementation, and it goes stale silently, because
+# nobody updates a rationale when the code changes.
+#
+# Applies to every genre. An ADR or a spec IS the place for this content, so the
+# gate turns the rule off for those paths by section glob rather than by trying
+# to detect the genre from the prose.
+#
+# Anchored to constructions that announce a comparison against a road not taken,
+# never to "instead" or "rather" alone -- those do ordinary work ("run this
+# instead of the wrapper"). Every alternative needs a negated or deliberative
+# frame around it.
+#
+# "in favour of" needs a `because` clause: a changelog line ("dropped X in favour
+# of Y") states the delta, which is that genre's whole job.
+extends: existence
+message: "rejected alternative: %s — state what it does; the decision belongs in an ADR, spec, or commit"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:rather than|instead of) [^.!?]{3,60}\bbecause\b|'
+  - '\bwe (?:chose|picked|selected|went with|settled on|opted for)\b|'
+  - '\bchosen over\b|'
+  - '\b(?:in favou?r of) [^.!?]{3,60}\bbecause\b|'
+  - '\b(?:deliberately|intentionally|on purpose) (?:does not|doesn''t|omits|avoids|skips)\b|'
+  - '\b(?:does not|doesn''t) (?:run|use|do|call|spawn) [^.!?]{0,40}\bbecause\b|'
+  - '\bfor the same reason\b|'
+  - '\bthe (?:earlier|first|original|previous|old|naive) (?:implementation|version|approach|design)\b|'
+  - '\bwould (?:have (?:been|required|meant|cost)|discard|break|force) [^.!?]{0,50}\b(?:instead|so|which)\b'
