@@ -18,7 +18,6 @@ the review needs; nothing here requires reading all of it.
 | [ai-tells/formatting.md](ai-tells/formatting.md) | Punctuation and markup: dash density, emoji headings, bold spray, heading hierarchy | Slowly |
 | [ai-tells/content-shape.md](ai-tells/content-shape.md) | Fabricated citations, chat leakage, fake specificity, vaporware description | Slowly |
 | [ai-tells/counter-signals.md](ai-tells/counter-signals.md) | What expert prose has that generated prose lacks, and what detectors measure | Slowly |
-| [ai-tells/lexical-eras.md](ai-tells/lexical-eras.md) | Historical marker-word bands | Every generation; unreliable for current models |
 
 ## Why structure outranks vocabulary
 
@@ -32,7 +31,9 @@ instruction-following em-dash suppression in late-2025 frontier models
 a Washington Post analysis of 328,744 ChatGPT messages found the cliché
 palette rotates each generation
 (<https://decrypt.co/348923/5-biggest-tells-something-written-ai>). Any
-memorized word list is perishable (see the appendix).
+memorized word list is perishable: the 2023-24 band (delve, tapestry, intricate)
+was patched or mocked out of the next generation, which is why
+`ai-tells.OverusedVocabulary` ships disabled.
 
 Structural and register tells endure because preference training produces
 them: raters reward length, markdown, bulleted symmetry, and confident
@@ -55,5 +56,5 @@ generation (~12 months) old:
   writing-community threads) for the newest generation's register.
 - Check for new lexical-frequency corpus studies (Kobak/Liang-style) and
   for vendor steerability changes that retire a formatting tell.
-- Rotate the era-band appendix; leave the structural, register, stylometric,
-  and counter-signal sections unless a source shows a generation broke them.
+- Leave the structural, register, stylometric, and counter-signal sections unless
+  a source shows a generation broke them.

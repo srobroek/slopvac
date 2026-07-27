@@ -31,7 +31,7 @@ other's rules.
    and the counter-signals. The linter finds tokens; the catalog finds voice.
    Start with `ai-tells/register.md` and `ai-tells/structure.md`; load
    `ai-tells/content-shape.md` when the text makes factual claims or cites
-   sources. Skip `ai-tells/lexical-eras.md` unless dating older text.
+   sources.
 4. Verify the claims. Every sentence checks against code at HEAD; every consumer
    example has a runnable test under `examples/`; no sentence describes unbuilt
    behavior in the present tense.

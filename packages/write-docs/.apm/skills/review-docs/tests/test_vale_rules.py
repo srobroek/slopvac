@@ -375,3 +375,35 @@ def test_over_writing_is_off_for_decision_records(tmp_path, monkeypatch):
     checks = {a["Check"] for alerts in json.loads(proc.stdout or "{}").values() for a in alerts}
     assert "prose-scope.RejectedAlternative" not in checks
     assert "prose-scope.ImplementationLeak" not in checks
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # A duration that names configuration the reader sets or relies on.
+        "A timeout of 50 ms applies to each call.",
+        "The adapter gives the daemon 50 ms before falling back.",
+        "Retries happen every 200 ms.",
+        "The request must complete within 30 ms.",
+    ],
+)
+def test_configured_durations_are_not_implementation_leaks(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-scope.ImplementationLeak" not in rules(doc), text
+
+
+def test_published_figures_in_tables_and_lists_are_not_leaks(tmp_path):
+    # `scope: paragraph`. A benchmarks page publishing figures as structured data
+    # is a deliverable; the rule is for a timing asserted mid-sentence.
+    doc = tmp_path / "benchmarks.md"
+    doc.write_text(
+        "| Step | Cost |\n|---|---|\n| Rule evaluation | 2.5 ms |\n"
+        "\n- Wall clock per hook: 90 ms\n",
+        encoding="utf-8",
+    )
+    assert "prose-scope.ImplementationLeak" not in rules(doc)
+
+    prose = tmp_path / "readme.md"
+    prose.write_text("The parser takes 212 ms per call.\n", encoding="utf-8")
+    assert "prose-scope.ImplementationLeak" in rules(prose)
