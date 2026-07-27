@@ -32,8 +32,6 @@ Cross-harness: Claude Code (file_path), Codex (apply_patch patch body), and Kiro
 hookSpecificOutput.additionalContext.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 import os

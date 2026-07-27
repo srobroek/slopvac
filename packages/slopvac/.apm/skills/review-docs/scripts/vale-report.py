@@ -13,8 +13,6 @@ prose came from. JSX text nodes are linted through a shadow .txt (see
 extract-prose.sh), and a finding must name the .tsx a reader can open.
 """
 
-from __future__ import annotations
-
 import json
 import sys
 
