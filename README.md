@@ -150,7 +150,7 @@ into every subagent, because a subagent inherits main-session steering weakly.
 `PostToolUse` gates prose files after an edit, accumulating changes and returning
 `file:line` findings once they cross a threshold.
 
-## What it solves
+## Patterns it catches
 
 Two layers, because half of this resists mechanization.
 
