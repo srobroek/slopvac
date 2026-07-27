@@ -1,0 +1,108 @@
+# The share of sentences in the passive voice, measured across the whole document.
+#
+# Not a readability formula, and not expressible as one: Vale's `metric` check
+# exposes eight counting variables and none of them counts passive constructions, so
+# this uses `extends: script` and counts them in Tengo.
+#
+# Of 32 measures benchmarked against a graded corpus of human-written technical
+# documentation -- CPython, Django, git, MDN, Kubernetes, and two HTTP RFCs, ordered
+# tutorial -> explanation -> reference -> specification by intended audience --
+# passive rate is the only one that both ranks the gradient well and survives a
+# confound test:
+#
+#   measure                     rho vs audience   leave-one-out
+#   avg syllables per word                 0.78     0.73 - 0.81
+#   passive rate (this rule)               0.77     0.70 - 0.89
+#   Dale-Chall v2                          0.77     0.70 - 0.84
+#   Flesch Reading Ease                    0.75     0.71 - 0.81
+#   Flesch-Kincaid                         0.53     0.41 - 0.64
+#   lexical density (Ure, Halliday)   0.08, 0.01
+#   words per sentence                    -0.13
+#
+# Passive rate rises to 0.84 when the two undersized samples are dropped -- the only
+# leader that improves. Syllables-per-word ranks marginally higher and is unusable:
+# it scores GOOD technical prose at 2.61 against BAD nominalised prose at 2.50, so it
+# measures domain vocabulary. Passive rate scores both good cases at 0.
+#
+# Observed distribution, counted BY THIS RULE's own splitter rather than by the
+# reference regex -- the two differ by a few points, and the threshold has to be
+# calibrated against what actually runs:
+#
+#   git tutorial                8%      MDN Promise reference    40%
+#   Django tutorial             9%      RFC 7231                 37%
+#   MDN what-is-JS             26%      RFC 2616                 33%
+#   CPython tutorial           27%      CPython lang reference   31%
+#   k8s Deployment concept     29%
+#
+# Threshold 35 is just above p95 of a wider 123-document human corpus (p50 = 7,
+# p75 = 13, p90 = 23, p95 = 31, max = 46) and flags 3 of those 123. Note this sits
+# BELOW two of the specification samples: an RFC at 37% will fire, which is correct
+# for consumer docs and wrong for a spec, so the packaged config turns this rule off
+# for internal-genre paths.
+#
+# This measures the DOCUMENT. prose-agency.AgentlessPassive measures the SENTENCE and
+# fires only where the actor is deleted outright ("it was decided that"). A document
+# can pass that rule on every sentence and still be 60% passive. Neither subsumes the
+# other.
+extends: script
+message: "%s"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+scope: raw
+script: |
+  text := import("text")
+  fmt := import("fmt")
+  matches := []
+
+  // Split on terminal punctuation. Crude -- an abbreviation ends a sentence here --
+  // but the threshold above was calibrated with this exact splitter replicated in
+  // Python, so the number and the rule agree.
+  body := text.replace(scope, "!", ".", -1)
+  body = text.replace(body, "?", ".", -1)
+  sentences := text.split(body, ".")
+
+  // A copula followed by a past participle. `\w+ly` is skipped so "is correctly
+  // handled" still counts, and the participle test accepts -ed and -en.
+  aux := ["is", "are", "was", "were", "be", "been", "being"]
+
+  total := 0
+  passive := 0
+  for s in sentences {
+    words := text.fields(text.to_lower(s))
+    if len(words) < 4 { continue }
+    total = total + 1
+    hit := false
+    for i, w in words {
+      clean := text.trim(w, ",;:()[]\"'`")
+      is_aux := false
+      for a in aux {
+        if clean == a { is_aux = true }
+      }
+      if !is_aux { continue }
+      // Look at the next word, skipping one adverb.
+      for off in [1, 2] {
+        if i + off >= len(words) { continue }
+        nxt := text.trim(words[i + off], ",;:()[]\"'`")
+        if off == 2 {
+          prev := text.trim(words[i + 1], ",;:()[]\"'`")
+          if !text.has_suffix(prev, "ly") { continue }
+        }
+        if len(nxt) > 4 && (text.has_suffix(nxt, "ed") || text.has_suffix(nxt, "en")) {
+          hit = true
+        }
+      }
+    }
+    if hit { passive = passive + 1 }
+  }
+
+  // Below 10 sentences the share is too noisy to act on -- one passive in six is 17%.
+  if total >= 10 {
+    pct := (passive * 100) / total
+    if pct > 35 {
+      matches = append(matches, {
+        begin: 0,
+        end: 1,
+        message: fmt.sprintf("passive density: %d of %d sentences are passive (%d percent, over 35) -- name the actor in the ones that matter", passive, total, pct)
+      })
+    }
+  }

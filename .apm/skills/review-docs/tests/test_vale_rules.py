@@ -917,3 +917,88 @@ def test_the_two_density_rules_catch_disjoint_defects(tmp_path):
         encoding="utf-8",
     )
     assert "prose-density.Overwritten" in rules(doc)
+
+
+# --- Passive density ----------------------------------------------------------
+# Document-level, and the only measure of 32 benchmarked against a graded corpus of
+# human technical docs that both ranked the audience gradient (rho 0.77) and showed
+# no vocabulary confound.
+
+
+def test_passive_density_fires_above_the_threshold(tmp_path):
+    doc = tmp_path / "case.md"
+    doc.write_text(
+        "The file is read by the loader. "
+        "The retry is attempted twice. "
+        "The error is written to stderr. "
+        "The exit code is returned to the caller. "
+        "The state is retained between runs. "
+        "The config is parsed at startup. "
+        "The token is refreshed automatically. "
+        "The result is cached for an hour. "
+        "The connection is closed on failure. "
+        "The log is rotated each day. "
+        "The schema is validated on load. "
+        "The report is generated nightly.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.PassiveDensity" in rules(doc)
+
+
+def test_passive_density_stays_quiet_on_active_prose(tmp_path):
+    doc = tmp_path / "case.md"
+    doc.write_text(
+        "The loader reads the file. "
+        "It retries twice, then fails. "
+        "It writes the error to stderr. "
+        "It returns exit code two. "
+        "It keeps no state between runs. "
+        "The parser reads the config at startup. "
+        "The client refreshes the token. "
+        "The cache holds the result for an hour. "
+        "The server closes the connection on failure. "
+        "A cron job rotates the log each day. "
+        "The loader validates the schema. "
+        "A nightly job generates the report.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.PassiveDensity" not in rules(doc)
+
+
+def test_passive_density_needs_ten_sentences(tmp_path):
+    """Below the floor the share is noise: one passive in four reads as 25%."""
+    doc = tmp_path / "case.md"
+    doc.write_text(
+        "The file is read by the loader. "
+        "The retry is attempted twice. "
+        "The error is written to stderr.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.PassiveDensity" not in rules(doc)
+
+
+def test_passive_density_is_off_for_internal_docs(tmp_path):
+    """A specification written in the passive is conventional. Two of the RFC samples
+    in the reference corpus score 37% and 33%, above the 35 threshold."""
+    spec = tmp_path / "specs"
+    spec.mkdir()
+    body = (
+        "The file is read by the loader. "
+        "The retry is attempted twice. "
+        "The error is written to stderr. "
+        "The exit code is returned to the caller. "
+        "The state is retained between runs. "
+        "The config is parsed at startup. "
+        "The token is refreshed automatically. "
+        "The result is cached for an hour. "
+        "The connection is closed on failure. "
+        "The log is rotated each day. "
+        "The schema is validated on load. "
+        "The report is generated nightly.\n"
+    )
+    (spec / "loader.md").write_text(body, encoding="utf-8")
+    assert "prose-density.PassiveDensity" not in rules(spec / "loader.md")
+
+    consumer = tmp_path / "README.md"
+    consumer.write_text(body, encoding="utf-8")
+    assert "prose-density.PassiveDensity" in rules(consumer)

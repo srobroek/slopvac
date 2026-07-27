@@ -105,6 +105,7 @@ BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-dis
 prose-craft.SentenceLength = NO
 prose-craft.GerundHeading = NO
 prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 prose-craft.SelfReference = NO
 
 # --- Source files: comments and docstrings -----------------------------------
@@ -161,6 +162,7 @@ prose-craft.FirstPersonPlural = NO
 prose-craft.NegativeRequirement = NO
 prose-craft.SelfReference = NO
 prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 
 [**/{adr,ADR,rfc,RFC}/**/*.md]
 docs-discipline.InternalRefs = NO
@@ -170,6 +172,7 @@ prose-craft.FirstPersonPlural = NO
 prose-craft.NegativeRequirement = NO
 prose-craft.SelfReference = NO
 prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 
 [**/{CONTRIBUTING,constitution,ARCHITECTURE,DESIGN}*.md]
 docs-discipline.InternalRefs = NO
@@ -179,6 +182,7 @@ prose-craft.FirstPersonPlural = NO
 prose-craft.NegativeRequirement = NO
 prose-craft.SelfReference = NO
 prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 
 # --- Project overrides -------------------------------------------------------
 # A rule line belongs to the section ABOVE it, so put an override directly under

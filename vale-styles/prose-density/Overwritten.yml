@@ -29,27 +29,27 @@
 #
 # Every metric was benchmarked on a matched pair: a GOOD technical paragraph and a
 # GOOD plain-English one, same quality, different domain. The gap a metric opens
-# between them is its confound; the gap to a genuinely over-written paragraph is its
-# signal. Ratio of signal to confound, and correlation with vocabulary:
+# between them is its confound.
 #
-#   metric              ratio   r(vocab)
-#   McAlpine EFLAW     288.00      -0.12   <- see SentenceLoad.yml
-#   Linsear Write       12.12       0.12
-#   RIX                  6.18       0.25   <- this rule
-#   SMOG                 1.56       0.39
-#   Gulpease             1.25      -0.87
-#   Flesch-Kincaid       0.85       0.89
-#   ARI                  0.77       0.89
-#   Gunning Fog          0.68       0.46
-#   LIX                  0.53       0.40
-#   Flesch Reading Ease  0.31      -0.98
-#   Coleman-Liau         0.04       0.97
-#   Dale-Chall          -0.12              <- inverted: scores the BAD text easier
+# Coleman-Liau and Flesch Reading Ease are near-pure vocabulary measures (r 0.97 and
+# -0.98 against syllables-per-word) and cannot be used at any threshold. Dale-Chall
+# scores the over-written paragraph as EASIER than the good ones, because its
+# 3,000-word familiarity list contains `utilization` and `implementation` but not
+# `stderr`.
 #
-# Coleman-Liau and Flesch Reading Ease are near-pure vocabulary measures (|r| 0.97
-# and 0.98) and cannot be used here at any threshold. Dale-Chall scores the
-# over-written paragraph as EASIER than the good ones, because its 3,000-word
-# familiarity list contains `utilization` and `implementation` but not `stderr`.
+# --- What this rule is, and is not --------------------------------------------
+#
+# 32 measures were later benchmarked against a GRADED corpus of human technical
+# documentation -- CPython, Django, git, MDN, Kubernetes, two HTTP RFCs, ordered
+# tutorial -> explanation -> reference -> specification by intended audience. Against
+# that ordering RIX ranks rho = 0.58, ahead of Flesch-Kincaid (0.53) but behind
+# syllables-per-word (0.78), passive rate (0.77), and Dale-Chall v2 (0.77).
+#
+# So this is NOT a difficulty measure. No readability formula is, on technical prose:
+# the best reaches rho 0.78 and does so by measuring domain vocabulary, which is the
+# confound. This rule is an OUTLIER CATCH with a near-zero false-positive rate -- it
+# fires on 0 of the 11 graded samples and 0 of this repo's own docs, while catching
+# the nominalised paragraph above. Earlier revisions of this file implied more.
 #
 # Threshold 9 is p90 of the human corpus. Recalibrate against your own before
 # changing it: the number is measured, not chosen.
