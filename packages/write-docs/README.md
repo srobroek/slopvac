@@ -5,9 +5,26 @@ READMEs, consumer docs, PR and release text, specs, ADRs, and CONTRIBUTING. It
 ships two skills, a Vale prose gate, and a hook that carries the same rules into
 every subagent.
 
-Install the APM package `write-docs@srobroek-agentic`. The gate needs `vale` on
-`PATH` (`mise use -g vale`, or `brew install vale`). `ast-grep` is optional and
-extends the gate to JSX text nodes.
+The gate needs `vale` on `PATH` (`mise use -g vale`, or `brew install vale`).
+`ast-grep` is optional and extends the gate to JSX text nodes.
+
+```sh
+apm marketplace add srobroek/agentic-packages --name srobroek-agentic
+apm install write-docs@srobroek-agentic --target claude,codex
+vale --config=.claude/skills/write-docs/vale/.vale.ini sync
+```
+
+For Kiro, target it directly and compile the steering into `AGENTS.md`:
+
+```sh
+apm install write-docs@srobroek-agentic --target kiro
+apm compile --target kiro --no-constitution
+vale --config=.kiro/skills/write-docs/vale/.vale.ini sync
+```
+
+Kiro receives the skills at `.kiro/skills/`, the steering at `.kiro/steering/`,
+and a Kiro-shaped hook manifest at `.kiro/hooks/`. The sync is required before
+the first run: no style is committed.
 
 ## Skills
 
