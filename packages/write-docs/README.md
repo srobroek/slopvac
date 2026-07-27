@@ -93,12 +93,40 @@ with a hint when it is absent.
 
 ## Hooks
 
-| Event | Effect |
-| --- | --- |
-| `SubagentStart` | Injects the documentation discipline into every subagent. A subagent inherits main-session steering weakly, so its only trigger signal would otherwise be a one-line skill description. The digest opens with its own condition, so a code-only subagent ignores it. |
-| `PostToolUse` | After edits to prose files, runs the gate and reports findings with the `review-docs` pointer. Accumulates across edits and applies a cooldown, so it fires on a body of work rather than every write. |
+### `SubagentStart` -- `inject-doc-discipline.sh`
 
-Both fail open: a missing `jq` or `vale` never blocks a spawn or an edit.
+Injects the documentation rules into every subagent. A subagent inherits
+main-session steering weakly, so without this its only trigger signal is a
+one-line skill description. The digest opens with its own condition, so a
+code-only subagent ignores it.
+
+### `PostToolUse` -- `prose-gate-advisory.sh`
+
+Runs the prose gate on files an edit just touched and returns the findings to the
+agent. Step by step:
+
+1. Reads the tool payload and collects every file path the call wrote.
+2. Keeps the ones the gate covers: `.md`, `.mdx`, `.html`, `.json`, `.yaml`,
+   `.tsx`, `.jsx`. Skips `node_modules/`, `apm_modules/`, `dist/`, `.venv/`.
+3. Adds the changed-line and file counts to a per-repo counter and returns
+   silently until they cross a threshold, then applies a cooldown. A long editing
+   run produces one advisory, not one per keystroke.
+4. Runs `slop-lint.sh` and returns `file:line` findings, plus a pointer to
+   `review-docs` for the register judgement the linter cannot make.
+
+It reports findings rather than asking the agent to run the skill, because a hook
+cannot invoke a skill -- only request one, which is the unreliable path the hook
+replaces.
+
+Missing tools are loud. A silent skip would leave prose ungated while the hook
+reports success, so an absent `vale`, an unsynced `styles/` directory, or a
+JSX edit without `ast-grep` returns a `PROSE GATE UNAVAILABLE` block naming what
+went unchecked and the command that fixes it. The hook still exits 0: a
+`PreToolUse` guard may block, a `PostToolUse` advisory must not.
+
+Both hooks run on Claude Code, Codex, and Kiro from one manifest. The matcher
+covers each harness's file-writing tools, and the payload parser reads
+`file_path` (Claude), a patch body (Codex `apply_patch`), and `path` (Kiro).
 
 ## Configuration
 

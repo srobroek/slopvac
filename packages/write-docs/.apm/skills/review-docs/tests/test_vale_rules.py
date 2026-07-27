@@ -269,3 +269,38 @@ def test_source_files_use_the_reduced_ruleset(tmp_path):
     # terse comments are legitimately negative and dash-heavy.
     assert "ai-tells.ContrastiveNegation" not in found
     assert "prose-format.NoUnicodeDash" not in found
+
+
+# --- Unicode dashes reach into code -----------------------------------------
+
+
+def test_unicode_dash_is_caught_in_code_as_well_as_prose(tmp_path):
+    # `scope: raw` on the rule. Vale's default scope skips code, which is where a
+    # pasted Unicode dash is most harmful: invisible in review, and it breaks the
+    # command or identifier it lands in. One dash in each of the four positions.
+    doc = tmp_path / "dash.md"
+    doc.write_text(
+        "Body prose with an em dash — here.\n"
+        "\n"
+        "```sh\n"
+        'echo "fenced — dash"\n'
+        "```\n"
+        "\n"
+        "    indented code — dash\n"
+        "\n"
+        "Inline `code — dash` here.\n",
+        encoding="utf-8",
+    )
+    assert rules(doc).get("prose-format.NoUnicodeDash") == 4
+
+
+def test_source_files_are_gated_on_unicode_dashes(tmp_path):
+    doc = tmp_path / "guard.sh"
+    doc.write_text(
+        "#!/usr/bin/env bash\n"
+        "# A comment with an em dash — here.\n"
+        "# A flag written the house way -- stays clean.\n",
+        encoding="utf-8",
+    )
+    found = rules(doc)
+    assert found.get("prose-format.NoUnicodeDash") == 1, "one Unicode dash, not the `--`"

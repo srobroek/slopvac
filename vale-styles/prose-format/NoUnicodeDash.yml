@@ -1,5 +1,5 @@
-# House ban: no em-dash (U+2014) or en-dash (U+2013) anywhere. Replaces
-# ai-tells.EmDashUsage, which is disabled.
+# House ban: no em-dash (U+2014) or en-dash (U+2013) anywhere in a file, prose
+# and code alike. Replaces ai-tells.EmDashUsage, which is disabled.
 #
 # The difference that makes this usable: it matches ONLY the real Unicode
 # characters, not the literal `--` this repo writes instead (measured: 6,743 uses
@@ -8,10 +8,17 @@
 #
 # `--` is the sanctioned form. For ranges use `to`, or an en-dash-free
 # construction.
+#
+# `scope: raw` is load-bearing. Vale's default scope skips code fences, indented
+# code, and inline code -- which is exactly where a pasted Unicode dash does the
+# most damage, because it is invisible in review and breaks the command or
+# identifier it lands in. Measured on a fixture carrying one dash in each
+# position: the default scope found 1 of 4, `raw` found all 4.
 extends: existence
 message: "em/en dash: %s — write `--` instead, or a comma, colon, or two sentences"
 level: error
 link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
 nonword: true
+scope: raw
 raw:
   - '[\x{2014}\x{2013}]'
