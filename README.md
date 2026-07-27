@@ -208,8 +208,15 @@ Packages = https://github.com/srobroek/slopvac/releases/download/vale-styles/pro
 BasedOnStyles = prose-agency
 ```
 
-See [vale-styles/README.md](vale-styles/README.md) for the full set, the file
-formats Vale handles, and the two extensions that need care.
+Vale parses Markdown, MDX, HTML, JSON, and YAML, and it is syntax-aware for source
+files: it lints comments and docstrings while skipping identifiers and string
+literals, so a field named `robust` stays clean. `.mdx` needs `[formats]`
+`mdx = md`, or Vale fails with `mdx2vast not found`.
+`.tsx` and `.jsx` have no parser and no working alias, and Vale reports zero
+findings and exits 0 for them, which reads as a pass -- the skill extracts their JSX
+text with `ast-grep` instead.
+
+See [vale-styles/README.md](vale-styles/README.md) for the full rule set.
 
 ## License
 
