@@ -1,0 +1,17 @@
+# A sentence that asserts significance without naming the thing. The tell is an
+# abstract plural subject plus a bare significance predicate.
+#
+# The closing `\b` on each adjective keeps "the implications are documented in
+# ADR-4" clean: a predicate that continues into a specific is not this tell.
+extends: existence
+message: "vague declarative: %s — name the specific thing"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\bthe (?:reasons?|causes?|implications?|consequences?|stakes|risks?|tradeoffs?|'
+  - 'problems?|challenges?|issues?|differences?|benefits?)\s+(?:are|is)\s+'
+  - '(?:structural|significant|substantial|profound|real|clear|high|serious|'
+  - 'considerable|non[- ]trivial|manifold|obvious|stark|striking)\b|'
+  - '\bthis is the (?:deepest|hardest|real|core|fundamental|central) '
+  - '(?:problem|issue|question|challenge|tension)\b'

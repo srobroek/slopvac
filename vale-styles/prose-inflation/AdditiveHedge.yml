@@ -1,0 +1,9 @@
+# "not just X but also Y" -- the additive hedge. Both halves are claimed, and the
+# negation exists only to inflate the second.
+extends: existence
+message: "additive hedge: %s — keep the claim that carries load"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\bnot (?:just|only|merely|simply)\b[^.!?]{1,60}\bbut (?:also|even)\b'

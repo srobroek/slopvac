@@ -70,13 +70,54 @@ if [ ! -f "$config" ]; then
   exit 2
 fi
 
-# The house style is committed; the packaged style is fetched by `vale sync`.
-# Fail with an actionable message rather than silently linting half a config.
-if [ ! -d "$vale_dir/styles/ai-tells" ]; then
-  echo "slop-lint: packaged styles missing. Run:" >&2
+# Every style is fetched by `vale sync`; none is committed. A missing sync leaves
+# Vale with rules it cannot resolve, which it reports as a clean file, so check
+# for each expected style directory rather than trusting a zero exit.
+missing=()
+for style in ai-tells ai-residue prose-agency prose-inflation docs-discipline prose-format; do
+  [ -d "$vale_dir/styles/$style" ] || missing+=("$style")
+done
+if [ "${#missing[@]}" -gt 0 ]; then
+  echo "slop-lint: styles not synced (${missing[*]}). Run:" >&2
   echo "  vale --config='$config' sync" >&2
   exit 2
 fi
 
-vale --config="$config" --output=JSON --no-exit "${files[@]}" 2>/dev/null |
-  python3 "$here/vale-report.py"
+# JSX and TSX have no Vale parser, so their text nodes are extracted to shadow
+# files first and linted in place of the source. The shadow keeps each string on
+# its original line, and vale-report.py rewrites the shadow path back to the
+# source path, so reported positions match the real file.
+#
+# Missing ast-grep is not fatal: every other file still lints, and
+# extract-prose.sh has already printed the install hint on stderr.
+lint_files=()
+shadow_map=()
+jsx_files=()
+for file in "${files[@]}"; do
+  case "$file" in
+    *.tsx | *.jsx) jsx_files+=("$file") ;;
+    *) lint_files+=("$file") ;;
+  esac
+done
+
+if [ "${#jsx_files[@]}" -gt 0 ]; then
+  while read -r src shadow; do
+    [ -n "${shadow:-}" ] || continue
+    lint_files+=("$shadow")
+    shadow_map+=("$shadow=$src")
+  done < <("$here/extract-prose.sh" "${jsx_files[@]}" || true)
+fi
+
+if [ "${#lint_files[@]}" -eq 0 ]; then
+  exit 0
+fi
+
+vale --config="$config" --output=JSON --no-exit "${lint_files[@]}" 2>/dev/null |
+  python3 "$here/vale-report.py" ${shadow_map[@]+"${shadow_map[@]}"}
+rc=$?
+
+for entry in ${shadow_map[@]+"${shadow_map[@]}"}; do
+  rm -f "${entry%%=*}"
+done
+
+exit "$rc"

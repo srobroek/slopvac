@@ -1,26 +1,38 @@
 # Vale styles
 
-Two styles, both committed so the prose gate runs offline and deterministically.
+This directory is a sync target. Every style in it is fetched by `vale sync` from
+the `Packages` URLs in `../.vale.ini`, and none of it is committed.
 
-## `WriteDocs/` -- house style, ours
+```sh
+vale --config=../.vale.ini sync
+```
 
-The seven rules ported from the retired `slop-lint.py`, plus `NoUnicodeDash`.
-Edit these freely. `vale sync` does not touch this directory: it removes only the
-asset directory of a package it is installing, and no package is named
-`WriteDocs`.
+`scripts/slop-lint.sh` exits 2 with this command when the directory is empty, so
+a missing sync fails loudly instead of linting against half a config.
 
-## `ai-tells/` -- vendored, MIT
+## What gets fetched
 
-[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) v1.25.0, fetched by
-`vale sync` from the `Packages` URL pinned in `../.vale.ini`, then committed.
-Copyright the vale-ai-tells authors, MIT licence; the release zip ships no
-LICENSE file, so the attribution lives here.
+| Style | Source | Licence |
+|---|---|---|
+| `ai-residue`, `prose-agency`, `prose-inflation`, `docs-discipline`, `prose-format` | `vale-styles/` in this repo, published as release assets | Apache-2.0 |
+| `ai-tells` | [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) | MIT, (c) the vale-ai-tells authors |
 
-**Do not hand-edit these files.** `vale sync` overwrites this directory wholesale.
-Rule levels and disables are configured in `../.vale.ini` instead, which survives
-a sync. Four rules are disabled and four demoted there, each with the measured
-reason -- read those comments before re-enabling anything.
+The ai-tells release zip ships no LICENSE file, so its attribution lives here.
 
-To take a newer upstream version: bump the pinned URL in `../.vale.ini`, run
-`vale sync`, re-run the corpus calibration (`apm run slop-lint`), and re-check
-the disable list against the new rule set.
+## Editing rules
+
+Do not edit anything a sync writes here; a sync overwrites each style directory
+wholesale. Rule levels and disables belong in `../.vale.ini`, which survives a
+sync. Four ai-tells rules are disabled and four demoted there, each with the
+measured reason -- read those comments before re-enabling anything.
+
+Our own rules are authored in `vale-styles/` at the repo root, one directory per
+published package. Change a rule there, run `vale-styles/build.sh` to rebuild the
+zips, and re-run the corpus calibration.
+
+## Upstream version
+
+Every `Packages` URL uses GitHub's `releases/latest/download/` redirect, so a
+sync takes the newest release of each style. When an ai-tells sync changes
+behavior, re-run the corpus calibration (`apm run slop-lint`) and re-check the
+disable list in `../.vale.ini` against the new rule set.

@@ -1,0 +1,28 @@
+# An abstraction promoted to actor, so no human has to be named.
+#
+# Subject-anchored, not verb-anchored: "the data tells us" is a tell, "tells"
+# alone is not. Each pattern needs an abstract-noun subject, which keeps "the
+# loader resolves paths" -- a real actor doing a real thing -- clean.
+extends: existence
+message: "false agency: %s — name who acted"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  # An abstraction transforming into an outcome by itself.
+  - '\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?'
+  - '\s+(becomes?|turns? into|grows? into|evolves? into)\b|'
+  # Abstractions granted a lifespan or a verdict.
+  - '\b(the )?(bet|decision|project|initiative|effort|strategy)s?\s+'
+  - '(lives? or dies?|takes? on a life|makes? itself)\b|'
+  # Abstractions granted cognition or speech.
+  - '\b(the )?(data|metrics?|numbers?|evidence|research|code)\s+'
+  - '(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\b|'
+  # Collectives moving without anyone moving them.
+  - '\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\s+'
+  - '(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\b|'
+  # Decisions and consensus arriving unattended.
+  - '\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+'
+  - '(emerges?|arrives?|presents? itself|reveals? itself)\b|'
+  # The false transformation arc.
+  - '\bstops? being\b[^.!?]{1,40}\band starts? being\b'

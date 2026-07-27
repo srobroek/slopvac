@@ -1,0 +1,14 @@
+# Meeting-register verbs that survive into written docs. The fix is the plain
+# verb they dress up: "double down" -> "commit", "circle back" -> "return to".
+extends: existence
+message: "business jargon: %s — use the plain verb"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(double down|circle back|touch base|move the needle|'
+  - 'lean in(to)?|take a step back|on the same page|'
+  - 'moving forward|going forward|at the end of the day|'
+  - 'low[- ]hanging fruit|boil the ocean|table stakes|'
+  - 'deep[- ]dive|drill down into|level[- ]set|'
+  - 'best[- ]of[- ]breed|synerg(y|ies|istic))\b'

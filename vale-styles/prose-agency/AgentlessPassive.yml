@@ -1,0 +1,23 @@
+# Passive voice with the actor deleted.
+#
+# Only the two shapes where the deletion is the point: a dummy or abstract
+# subject carrying the verb, and the stock agentless confessions. Passives that
+# name their agent ("the record was created by the importer") stay clean, as do
+# state descriptions ("internal references are allowed", "the rule is disabled").
+extends: existence
+message: "agentless passive: %s — name who acted"
+level: error
+link: https://github.com/srobroek/agentic-packages/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  # Dummy-subject attribution: the belief has no believer.
+  - '\bit (?:is|was) (?:believed|thought|felt|assumed|expected|understood|'
+  - 'considered|argued|reported|hoped|suggested|recognized|recognised)\s+that\b|'
+  # Stock agentless confessions.
+  - '\b(?:mistakes|errors|choices|assumptions|concessions|compromises)\s+'
+  - 'were made\b|'
+  - '\bthe (?:decision|conclusion|agreement|consensus|determination)\s+'
+  - 'was (?:reached|made|taken|arrived at)\b|'
+  - '\b(?:it|this|that) was (?:decided|agreed|determined|concluded|resolved)\b|'
+  # "steps were taken" -- the actor is the whole content.
+  - '\b(?:steps?|actions?|measures?)\s+(?:was|were) taken\b'
