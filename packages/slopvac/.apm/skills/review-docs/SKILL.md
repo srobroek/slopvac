@@ -34,7 +34,7 @@ other's rules.
    `.vale.ini` wins over the packaged config; `SLOP_LINT_CONFIG` overrides both.
 3. LOAD `references/ai-tells.md` -- an index -- then the section files the text
    calls for. Judge what patterns cannot reach: register, structural symmetry,
-   and the counter-signals. The linter finds tokens; the catalog finds voice.
+   and the counter-signals.
    Start with `ai-tells/register.md` and `ai-tells/structure.md`; load
    `ai-tells/content-shape.md` when the text makes factual claims or cites
    sources.
@@ -60,6 +60,33 @@ Read for these directly; none is mechanizable.
 | Sections padded to match a sibling's length | Let the short section stay short |
 | A claim with no number, path, version, or named failure behind it | Add the specific, or cut the claim |
 | Present-tense description of unbuilt behavior | Cut the passage; a hedge is not a fix |
+| A balanced pair or maxim closing a section that already concluded | Delete it |
+| A heading promising something the section withholds | Name the thing in the heading |
+
+## Read it adversarially
+
+MUST Default to REVISE. A document that produced no gate errors has cleared the
+mechanical bar and nothing else. Look for a reason to cut before looking for a
+reason to pass.
+
+Take these positions rather than summarising:
+
+MUST Delete every sentence a reader would act identically without. Ask it of each
+sentence individually, not of the paragraph.
+MUST Name the weakest claim in the document and say so, even when the document is
+good. A review that finds nothing has usually not read for truth.
+MUST Check every command, path, flag, and version against the repo. A command
+nobody has run is an unverified claim, and this is where real defects concentrate --
+more than in the register.
+MUST Read the headings alone, in order. They should read as an outline of what the
+artifact does; if two say the same thing or one promises what its section withholds,
+the structure is wrong, not the prose.
+MUST Cut the longest paragraph by a third and see what was lost. Usually nothing.
+
+DEFAULT Say what you would delete, in the verdict, as a specific line rather than a
+category. "Cut lines 33-36" beats "tighten the intro".
+NOT Praising the document. The author asked for a review.
+NOT Softening a finding to be agreeable, then listing it anyway.
 
 ## Changing a rule
 
@@ -98,8 +125,12 @@ Action:   <the single highest-value change, or "none">
 ```
 
 `REVISE` when the gate errors, when three or more register tells cluster in one
-passage, or when any claim fails against HEAD. The threshold sits at three
-because no single tell proves anything -- humans wrote the training data -- but
-tells cluster.
+passage, when any claim fails against HEAD, or when a section would survive being
+cut. The threshold sits at three because no single tell proves anything -- humans
+wrote the training data -- but tells cluster.
+
+`PASS` requires all of: gate clean, every command executed, every claim checked
+against code, and no paragraph you would delete. State in `Action` what you checked
+rather than that you checked.
 
 NOT Keyword prefixes (MUST/NOT/DEFAULT) in the verdict: it is user-facing text.

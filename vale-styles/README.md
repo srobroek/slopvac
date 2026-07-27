@@ -33,7 +33,7 @@ publish, so the URLs above always serve the current rules.
 |---|---|---|
 | `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | Prose with the actor deleted: an abstraction doing the acting, a passive with no agent, observation from outside the scene |
 | `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims inflated past their evidence: marketing adjectives, significance asserted without a specific, meeting-register verbs |
-| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance` | Over-writing: a decision defended where it does not belong, a cost the reader cannot act on, an answer to a worry never raised |
+| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance`, `Epigram` | Over-writing: a decision defended where it does not belong, a cost the reader cannot act on, an answer to a worry never raised, an epigram closing a section that already concluded |
 | `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document: cutoff disclaimers, refusal fragments, placeholder text, citation artifacts |
 | `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Documentation describing something other than the released artifact: roadmap status, change narration, links to internal specs |
 | `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells: emoji headings, Unicode dashes, paragraphs that should be a list |

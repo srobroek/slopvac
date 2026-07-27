@@ -1,0 +1,109 @@
+name: Lint
+
+# Workflow, YAML, and shell hygiene, plus this repo's own prose gate run against its
+# own documentation.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflow-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.14"
+
+      - name: Install actionlint
+        run: |
+          set -euo pipefail
+          version=1.7.7
+          curl -sSfL -o actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v${version}/actionlint_${version}_linux_amd64.tar.gz"
+          tar -xzf actionlint.tar.gz actionlint
+          sudo install -m 0755 actionlint /usr/local/bin/actionlint
+
+      - name: actionlint
+        run: actionlint .github/workflows/*.yml
+
+      - name: Install zizmor
+        run: pip install "zizmor==1.6.0"
+
+      - name: zizmor
+        run: zizmor .github/workflows/*.yml
+
+      - name: Install yamllint
+        run: pip install "yamllint==1.37.1"
+
+      - name: yamllint
+        run: |
+          yamllint -d "{extends: default, rules: {line-length: {max: 120}, \
+            truthy: {check-keys: false}, comments: {min-spaces-from-content: 1}, \
+            document-start: disable}}" \
+            .github/workflows/ apm.yml packages/*/apm.yml vale-styles/*/*.yml
+
+  shell-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: shellcheck
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          find . -name '*.sh' -not -path './.git/*' -print0 |
+            xargs -0 shellcheck --severity=warning
+
+  prose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Install vale
+        run: |
+          set -euo pipefail
+          version=3.15.2
+          curl -sSfL -o vale.tar.gz \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          tar -xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+
+      - name: Gate this repo's own docs
+        run: |
+          set -euo pipefail
+          ./vale-styles/build.sh
+          python3 -m http.server 8899 --directory vale-styles/dist &
+          for _ in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
+            sleep 0.5
+          done
+          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          sed -i 's|https://github.com/srobroek/slopvac/releases/download/vale-styles/|http://localhost:8899/|g' "$config"
+          vale --config="$config" sync
+          bash packages/slopvac/.apm/skills/review-docs/scripts/slop-lint.sh \
+            --genre consumer \
+            README.md vale-styles/README.md packages/slopvac/README.md

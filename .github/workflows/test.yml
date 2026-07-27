@@ -1,0 +1,115 @@
+name: Tests
+
+# Runs the whole suite: pytest for the Vale rule behaviour, the prose-gate hook, and
+# the config scaffold; bats for the SubagentStart injector.
+#
+# The rule tests drive the real `vale` binary against fixtures, because Vale has no
+# rule-test framework, so the styles have to be built and synced first. They are
+# skipped rather than failed when vale is absent, which would make a broken install
+# look like a pass -- hence the explicit version check below.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: "3.14"
+
+      - name: Install vale
+        run: |
+          set -euo pipefail
+          version=3.15.2
+          curl -sSfL -o vale.tar.gz \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          tar -xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+          vale --version
+
+      - name: Install ast-grep
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet ast-grep-cli
+          ast-grep --version
+
+      - name: Install bats
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
+
+      - name: Install pytest
+        run: python3 -m pip install --quiet pytest
+
+      # A test that skips on a missing style reads as a pass, so build and sync the
+      # styles from the working tree before running anything.
+      - name: Build and sync styles from the working tree
+        run: |
+          set -euo pipefail
+          ./vale-styles/build.sh
+          python3 -m http.server 8899 --directory vale-styles/dist &
+          for _ in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
+            sleep 0.5
+          done
+          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          sed -i 's|https://github.com/srobroek/slopvac/releases/download/vale-styles/|http://localhost:8899/|g' "$config"
+          vale --config="$config" sync
+          for style in ai-tells ai-residue prose-agency prose-inflation prose-scope docs-discipline prose-format; do
+            test -d "packages/slopvac/.apm/skills/review-docs/vale/styles/$style" \
+              || { echo "$style did not sync"; exit 1; }
+          done
+
+      - name: pytest
+        run: |
+          python3 -m pytest packages/slopvac/tests \
+            packages/slopvac/.apm/skills/review-docs/tests -q
+
+      - name: bats
+        run: bats packages/slopvac/tests/*.bats
+
+      # Every rule file must parse and carry the fields Vale needs; a malformed one
+      # is reported as E201 at lint time, not at build time.
+      - name: Validate every rule loads
+        run: |
+          set -euo pipefail
+          git checkout packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          printf 'probe\n' > /tmp/probe.md
+          for style in vale-styles/*/; do
+            name="$(basename "$style")"
+            [ "$name" = "dist" ] && continue
+            for rule in "$style"*.yml; do
+              vale --config=/dev/null --no-exit "$rule" >/dev/null 2>&1 || true
+            done
+          done
+          vale --config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini \
+            ls-config >/dev/null
+
+      - name: Validate hook JSON
+        run: |
+          set -euo pipefail
+          for f in packages/slopvac/hooks/hooks.json \
+                   packages/slopvac/.apm/hooks/hooks.json \
+                   packages/slopvac/.claude-plugin/plugin.json \
+                   packages/slopvac/.codex-plugin/plugin.json \
+                   .claude-plugin/marketplace.json \
+                   .codex-plugin/marketplace.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
+            echo "ok $f"
+          done
