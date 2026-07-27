@@ -2,22 +2,16 @@
 
 Remove AI writing patterns from prose.
 
-Generated documentation has a texture: contrastive inversions, marketing adjectives
-nothing measures, rationale that belongs in a decision record, roadmap language in a
-README describing something that does not ship yet. Every model generation swaps the
-vocabulary and keeps the shapes, so a word list goes stale while the structures
-persist.
+Generated documentation has a texture: contrastive inversions, adjectives nothing
+measures, rationale that belongs in a decision record, roadmap language for something
+that does not ship yet. Each model generation swaps the vocabulary and keeps the
+shapes, so a word list goes stale while the structures persist.
 
-slopvac provides two skills that work together. `write-docs` classifies a document
-by genre -- consumer, change, or internal -- loads the rules that genre answers to,
-and authors against them. `review-docs` gates the result: it runs a deterministic
-[Vale](https://vale.sh) pass over seven style packages, then reads a catalog of
-tells no regex reaches and judges the register, and returns a verdict naming the one
-change worth making. Either skill runs alone, so text you did not write can go
-straight to review.
-
-Hooks keep it honest without being asked: one carries the rules into every subagent,
-another gates prose files as they are edited.
+Two skills. `write-docs` classifies a document by genre and authors against that
+genre's rules. `review-docs` gates the result with a deterministic
+[Vale](https://vale.sh) pass, judges the register against a catalog of tells no regex
+reaches, and returns a verdict. Either runs alone. Hooks carry the same rules into
+every subagent and gate prose files as they are edited.
 
 Works with Claude Code, Codex, and Kiro.
 
@@ -199,6 +193,32 @@ uvx --from apm-cli apm install slopvac@slopvac --target kiro --global
 `--global` installs to `~/.claude`, `~/.codex`, or `~/.kiro`. Drop it to install
 into the current project, which is what you want when the config belongs in version
 control with the code. Target several at once with `--target claude,codex,kiro`.
+
+## Dependencies
+
+| What | Needed for | Without it |
+| --- | --- | --- |
+| [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | The gate refuses to run and names the install command; the skill still applies its judgement rules by reading |
+| `python3` 3.7+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
+| `jq` | The `SubagentStart` hook, to build its JSON payload | That hook warns on stderr and skips, so a spawn is never blocked |
+| [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
+| `bash` 3.2+ | The gate and scaffold scripts. Stock macOS bash is the floor, so no `mapfile` | -- |
+| `git` | Resolving the repo root and honouring `.gitignore` | Ignored files get linted too |
+
+The skills need none of this to be installed by APM; the gate needs `vale` at the
+point it runs.
+
+### Rule sources
+
+`vale sync` fetches the style packages listed under
+[What it catches](#what-it-catches). All but one are built from `vale-styles/` in
+this repo; `ai-tells` comes from
+[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) (MIT), whose 76 rules
+arrive with the exclusions a software corpus needs already applied. The lexical rules in `prose-inflation` were harvested from
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) (MIT).
+
+Development adds `pytest`, `bats`, `actionlint`, `zizmor`, `yamllint`, and
+`shellcheck`, all pinned in the workflows.
 
 ## Configuration
 
