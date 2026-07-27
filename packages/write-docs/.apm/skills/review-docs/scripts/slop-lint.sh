@@ -60,9 +60,39 @@ if ! command -v vale >/dev/null 2>&1; then
   exit 2
 fi
 
-config="$vale_dir/.vale.ini"
-if [ "$genre" = "change" ] && [ -f "$vale_dir/.vale-change.ini" ]; then
-  config="$vale_dir/.vale-change.ini"
+# Project override. A repo that wants a different rule set puts a `.vale.ini` at
+# its root (or sets SLOP_LINT_CONFIG) and it wins outright. Without this the
+# packaged config below is passed with --config, which suppresses Vale's own
+# upward search, so a project file would sit there being ignored.
+#
+# The project config is the whole configuration, not a patch: Vale has no include
+# or extends directive, verified. `scripts/init-vale.sh` scaffolds one carrying
+# every measured exclusion, so a project changes one line rather than authoring
+# 140. The packaged config below is the fallback for a repo that has not run it.
+config=""
+if [ -n "${SLOP_LINT_CONFIG:-}" ]; then
+  if [ ! -f "$SLOP_LINT_CONFIG" ]; then
+    echo "slop-lint: SLOP_LINT_CONFIG is set but not a file: $SLOP_LINT_CONFIG" >&2
+    exit 2
+  fi
+  config="$SLOP_LINT_CONFIG"
+else
+  # Walk up from the first target, the way Vale would.
+  probe="$(cd "$(dirname "${files[0]}")" 2>/dev/null && pwd || echo "$PWD")"
+  while [ -n "$probe" ] && [ "$probe" != "/" ]; do
+    if [ -f "$probe/.vale.ini" ]; then
+      config="$probe/.vale.ini"
+      break
+    fi
+    probe="$(dirname "$probe")"
+  done
+fi
+
+if [ -z "$config" ]; then
+  config="$vale_dir/.vale.ini"
+  if [ "$genre" = "change" ] && [ -f "$vale_dir/.vale-change.ini" ]; then
+    config="$vale_dir/.vale-change.ini"
+  fi
 fi
 
 if [ ! -f "$config" ]; then
@@ -70,12 +100,19 @@ if [ ! -f "$config" ]; then
   exit 2
 fi
 
-# Every style is fetched by `vale sync`; none is committed. A missing sync leaves
-# Vale with rules it cannot resolve, which it reports as a clean file, so check
-# for each expected style directory rather than trusting a zero exit.
+# Every style is fetched by `vale sync`; none is committed. Vale reports a clean
+# file for a style it cannot resolve, so a missing or partial sync looks exactly
+# like a passing run. Check each style the RESOLVED config asks for, against that
+# config's own StylesPath, which a project config may point elsewhere.
+styles_path="$(sed -n 's/^StylesPath *= *//p' "$config" | head -1)"
+styles_path="${styles_path:-styles}"
+case "$styles_path" in
+  /*) ;;
+  *) styles_path="$(dirname "$config")/$styles_path" ;;
+esac
 missing=()
-for style in ai-tells ai-residue prose-agency prose-inflation docs-discipline prose-format; do
-  [ -d "$vale_dir/styles/$style" ] || missing+=("$style")
+for style in $(sed -n 's/^BasedOnStyles *= *//p' "$config" | tr ',' ' ' | sort -u); do
+  [ -d "$styles_path/$style" ] || missing+=("$style")
 done
 if [ "${#missing[@]}" -gt 0 ]; then
   echo "slop-lint: styles not synced (${missing[*]}). Run:" >&2

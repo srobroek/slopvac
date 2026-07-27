@@ -223,3 +223,63 @@ def test_finds_the_gate_in_the_installed_layout(repo, tmp_path):
     out = json.loads(proc.stdout)["hookSpecificOutput"]["additionalContext"]
     assert "UNAVAILABLE" not in out, f"gate not found from installed layout: {out}"
     assert "stub ERROR finding" in out
+
+
+# --- Project config discovery and overrides ----------------------------------
+
+INIT = HOOK.parent.parent / ".apm" / "skills" / "review-docs" / "scripts" / "init-vale.sh"
+LINT = HOOK.parent.parent / ".apm" / "skills" / "review-docs" / "scripts" / "slop-lint.sh"
+TEMPLATE = INIT.parent.parent / "vale" / "vale.ini.template"
+
+
+def test_init_check_reports_a_missing_config(tmp_path):
+    proc = subprocess.run(["bash", str(INIT), "--check", str(tmp_path)],
+                          capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 2
+    assert ".vale.ini" in proc.stdout
+
+
+def test_init_does_not_overwrite_an_existing_config(tmp_path):
+    config = tmp_path / ".vale.ini"
+    config.write_text("# mine\n", encoding="utf-8")
+    subprocess.run(["bash", str(INIT), str(tmp_path)],
+                   capture_output=True, text=True, timeout=60)
+    assert config.read_text() == "# mine\n"
+
+
+def test_init_check_detects_a_partial_sync(tmp_path):
+    # Vale reports a clean file for a style it cannot resolve, so a sync that
+    # failed partway looks exactly like a passing run.
+    shutil.copy(TEMPLATE, tmp_path / ".vale.ini")
+    (tmp_path / ".vale-styles" / "ai-tells").mkdir(parents=True)
+    proc = subprocess.run(["bash", str(INIT), "--check", str(tmp_path)],
+                          capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 1
+    assert "prose-agency" in proc.stdout, proc.stdout
+
+
+@needs_vale
+def test_a_project_config_overrides_the_packaged_one(tmp_path):
+    """A rule turned off in the project config must stop firing.
+
+    Regression: slop-lint.sh passes --config, which suppresses Vale's own upward
+    search, so a project .vale.ini sat there being ignored.
+    """
+    packaged_styles = LINT.parent.parent / "vale" / "styles"
+    if not (packaged_styles / "prose-scope").is_dir():
+        pytest.skip("styles not synced")
+
+    doc = tmp_path / "doc.md"
+    doc.write_text("The parser takes 212 ms per call.\n", encoding="utf-8")
+    (tmp_path / ".vale.ini").write_text(
+        f"StylesPath = {packaged_styles}\n"
+        "MinAlertLevel = warning\n"
+        "[*.md]\n"
+        "BasedOnStyles = prose-scope\n"
+        "prose-scope.ImplementationLeak = NO\n",
+        encoding="utf-8",
+    )
+    proc = subprocess.run(["bash", str(LINT), "--genre", "consumer", str(doc)],
+                          capture_output=True, text=True, timeout=60)
+    assert "ImplementationLeak" not in proc.stdout, proc.stdout
+    assert proc.returncode == 0

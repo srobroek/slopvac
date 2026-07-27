@@ -70,8 +70,51 @@ one vendored style, all fetched by `vale sync`:
 | `prose-format` | Emoji headings, Unicode dashes, paragraphs that should be a list |
 | `ai-tells` | 76 upstream rules from [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells); four disabled and four demoted here, each with the measured reason |
 
-Run `vale --config=<skill>/vale/.vale.ini sync` before the first run. The script
-exits 2 and names the missing styles when a sync has not happened.
+### Project configuration
+
+The gate reads one config file, and the project owns it. Scaffold it once:
+
+```sh
+scripts/init-vale.sh          # writes .vale.ini, fetches the styles
+scripts/init-vale.sh --check  # 0 ready, 1 needs a sync, 2 no config
+```
+
+`.vale.ini` is committed and yours to edit; `init-vale.sh` never overwrites it.
+`.vale-styles/` is fetched and added to `.gitignore`. Take new upstream rules with
+`vale --config=.vale.ini sync`, because every URL in the file points at a rolling
+release tag.
+
+`slop-lint.sh` prefers the nearest project `.vale.ini`, walking up from the file
+being linted, and falls back to the packaged config. `SLOP_LINT_CONFIG` overrides
+both.
+
+### Overriding a rule
+
+Edit the project `.vale.ini`. Put the line inside the section it applies to,
+normally `[*.{md,mdx}]`: a rule line binds to the section above it, so one
+appended at the end of the file attaches to the last section instead and the rule
+keeps firing everywhere else.
+
+```ini
+[*.{md,mdx}]
+BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-discipline, prose-format, ai-tells
+
+prose-scope.ImplementationLeak = NO        # latency is the product; we publish it
+prose-format.NoUnicodeDash = NO            # house style uses real em dashes
+prose-inflation.BusinessJargon = warning   # advisory, not a gate
+```
+
+| Scope | Change |
+| --- | --- |
+| One rule off | `rule = NO` |
+| Advisory only | `rule = warning` |
+| A whole style | drop it from that section's `BasedOnStyles` |
+| One path | `[**/generated/**]` then `BasedOnStyles =` |
+| One passage | `<!-- vale rule = NO -->` ... `<!-- vale rule = YES -->`, each on its own line |
+
+Vale has no `include` or `extends` directive, so the scaffolded file is the whole
+configuration. It ships with every measured exclusion already in place, so a
+project changes one line rather than authoring the file.
 
 ### Which files
 

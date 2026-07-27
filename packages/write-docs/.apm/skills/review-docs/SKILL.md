@@ -19,13 +19,19 @@ other's rules.
 
 ## Workflow
 
+0. First run in a repo: `scripts/init-vale.sh --check`. Exit 2 means no project
+   config; ASK before scaffolding, then run `scripts/init-vale.sh`, which writes a
+   committed `.vale.ini` and fetches the styles. Exit 1 means the styles need
+   `vale --config=.vale.ini sync`. Take new upstream rules the same way: every
+   URL is a rolling tag.
 1. Identify the genre, because it selects the config: `consumer` (README, docs/),
    `change` (commit message, PR body, release notes), or `internal` (spec, ADR,
    CONTRIBUTING, runbook). If `write-docs` already classified it, take that.
 2. Run the gate:
    `scripts/slop-lint.sh --genre <consumer|change|internal> <file>...`
    Fix every ERROR. Fix or justify each WARN in one line. Paths are relative to
-   this skill, so they resolve wherever the package installed.
+   this skill, so they resolve wherever the package installed. A project
+   `.vale.ini` wins over the packaged config; `SLOP_LINT_CONFIG` overrides both.
 3. LOAD `references/ai-tells.md` -- an index -- then the section files the text
    calls for. Judge what patterns cannot reach: register, structural symmetry,
    and the counter-signals. The linter finds tokens; the catalog finds voice.
@@ -54,6 +60,30 @@ Read for these directly; none is mechanizable.
 | Sections padded to match a sibling's length | Let the short section stay short |
 | A claim with no number, path, version, or named failure behind it | Add the specific, or cut the claim |
 | Present-tense description of unbuilt behavior | Cut the passage; a hedge is not a fix |
+
+## Changing a rule
+
+A finding that is wrong for this project is a config change, not a suppression to
+sprinkle. Fix the prose first; reach for these only when the rule is wrong here.
+
+MUST Put the line inside the section it applies to -- normally `[*.{md,mdx}]`.
+A rule line binds to the section ABOVE it, so one appended at the end of the file
+silently attaches to the last section and the rule keeps firing everywhere else.
+MUST Give every override a one-line reason in a trailing comment; the next reader
+needs to know whether it still holds.
+NOT Editing the packaged config under the skill directory: a reinstall overwrites
+it. Edit the project `.vale.ini`.
+
+| Situation | Change |
+|---|---|
+| Rule is wrong for this project | `rule = NO` under the right section |
+| Worth seeing, not worth gating | `rule = warning` |
+| Whole style does not apply | drop it from that section's `BasedOnStyles` |
+| One path is generated or vendored | `[**/generated/**]` then `BasedOnStyles =` |
+| One passage is a deliberate exception | `<!-- vale rule = NO -->` / `= YES -->` around it, each on its own line |
+
+A doc that needs more than two or three overrides is usually the wrong genre:
+check the routing table before widening the config.
 
 ## Verdict
 
