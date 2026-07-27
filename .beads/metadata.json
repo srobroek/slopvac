@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "slopvac",
+  "project_id": "99009615-1a9a-4044-b63d-a0985f566fc9"
+}
