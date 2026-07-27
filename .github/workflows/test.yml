@@ -69,7 +69,8 @@ jobs:
             sleep 0.5
           done
           config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
-          sed -i 's|https://github.com/srobroek/slopvac/releases/download/vale-styles/|http://localhost:8899/|g' "$config"
+          base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
+          sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
           for style in ai-tells ai-residue prose-agency prose-inflation prose-scope docs-discipline prose-format; do
             test -d "packages/slopvac/.apm/skills/review-docs/vale/styles/$style" \
@@ -84,22 +85,23 @@ jobs:
       - name: bats
         run: bats packages/slopvac/tests/*.bats
 
-      # Every rule file must parse and carry the fields Vale needs; a malformed one
-      # is reported as E201 at lint time, not at build time.
+      # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
+      # loads but resolves nothing reports every file as clean. Lint a probe file
+      # with every style enabled: E201 fails the step, and the rule count proves the
+      # styles actually resolved.
       - name: Validate every rule loads
         run: |
           set -euo pipefail
-          git checkout packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
-          printf 'probe\n' > /tmp/probe.md
-          for style in vale-styles/*/; do
-            name="$(basename "$style")"
-            [ "$name" = "dist" ] && continue
-            for rule in "$style"*.yml; do
-              vale --config=/dev/null --no-exit "$rule" >/dev/null 2>&1 || true
-            done
-          done
-          vale --config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini \
-            ls-config >/dev/null
+          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          printf 'The library leverages a robust parser.\n' > /tmp/probe.md
+          out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
+          printf '%s\n' "$out"
+          printf '%s' "$out" | grep -q 'E201' && { echo 'a rule failed to load'; exit 1; }
+          printf '%s' "$out" | grep -q 'prose-inflation.SlopLexicon' \
+            || { echo 'styles did not resolve'; exit 1; }
+          expected="$(find vale-styles -name '*.yml' -not -path '*/dist/*' | wc -l)"
+          echo "$expected rules shipped"
+          vale --config="$config" ls-config >/dev/null
 
       - name: Validate hook JSON
         run: |

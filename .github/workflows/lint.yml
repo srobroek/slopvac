@@ -52,11 +52,7 @@ jobs:
         run: pip install "yamllint==1.37.1"
 
       - name: yamllint
-        run: |
-          yamllint -d "{extends: default, rules: {line-length: {max: 120}, \
-            truthy: {check-keys: false}, comments: {min-spaces-from-content: 1}, \
-            document-start: disable}}" \
-            .github/workflows/ apm.yml packages/*/apm.yml vale-styles/*/*.yml
+        run: yamllint -c .yamllint.yml .github/workflows/ apm.yml packages/*/apm.yml
 
   shell-lint:
     runs-on: ubuntu-latest
@@ -102,7 +98,8 @@ jobs:
             sleep 0.5
           done
           config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
-          sed -i 's|https://github.com/srobroek/slopvac/releases/download/vale-styles/|http://localhost:8899/|g' "$config"
+          base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
+          sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
           bash packages/slopvac/.apm/skills/review-docs/scripts/slop-lint.sh \
             --genre consumer \

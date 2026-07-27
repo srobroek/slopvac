@@ -1,0 +1,18 @@
+# yamllint configuration.
+#
+# Vale rule files carry long single-line regexes. A regex cannot be wrapped without
+# changing what it matches, so line-length is disabled for the style directory and
+# enforced everywhere else.
+extends: default
+
+rules:
+  line-length:
+    max: 120
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable
+
+ignore: |
+  vale-styles/*/*.yml
