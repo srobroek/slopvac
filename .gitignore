@@ -7,3 +7,5 @@ packages/slopvac/.apm/skills/review-docs/vale/styles/*/
 
 __pycache__/
 *.pyc
+
+.pytest_cache/

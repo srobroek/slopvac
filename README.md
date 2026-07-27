@@ -20,15 +20,28 @@ Works with Claude Code, Codex, and Kiro.
 Needs [`vale`](https://vale.sh) on `PATH` (`brew install vale`, or
 `mise use -g vale`).
 
-```sh
-apm marketplace add srobroek/slopvac --name slopvac
-apm install slopvac@slopvac --target claude --global   # or codex, or kiro
+**Claude Code**
+
+```
+/plugin marketplace add srobroek/slopvac
 ```
 
-No APM installed? `uvx --from apm-cli apm ...` runs the same two commands. Claude
-Code and Codex can also load this repo natively with
-`/plugin marketplace add srobroek/slopvac`. Per-harness options, global against
-project scope, and installing by hand are all under [Install](#install).
+**Codex**
+
+```
+plugin marketplace add srobroek/slopvac
+```
+
+**Kiro, or anywhere you already use [APM](https://microsoft.github.io/apm/)**
+
+```sh
+apm marketplace add srobroek/slopvac --name slopvac
+apm install slopvac@slopvac --target kiro --global   # or claude, or codex
+```
+
+No APM installed? `uvx --from apm-cli apm ...` runs those two commands from PyPI.
+Project scope, installing by hand, and the per-harness detail are under
+[Install](#install).
 
 Then ask the agent: *"write the README for this package"*, or *"review this
 README"*. It scaffolds a `.vale.ini` on first use and asks before writing.
@@ -132,11 +145,11 @@ By hand, into `~/.claude` for every project or `.claude` for one:
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
 mkdir -p .claude/skills .claude/hooks
-cp -R /tmp/slopvac/packages/slopvac/.apm/skills/* .claude/skills/
-cp -R /tmp/slopvac/packages/slopvac/scripts .claude/hooks/slopvac/
+cp -R /tmp/slopvac/.apm/skills/* .claude/skills/
+cp -R /tmp/slopvac/scripts .claude/hooks/slopvac/
 ```
 
-Then copy the events and matcher from `packages/slopvac/hooks/hooks.json` into
+Then copy the events and matcher from `hooks/hooks.json` into
 `.claude/settings.json`.
 
 ### Codex
@@ -174,12 +187,12 @@ By hand, into `~/.kiro` for every project or `.kiro` for one:
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
 mkdir -p .kiro/skills .kiro/hooks
-cp -R /tmp/slopvac/packages/slopvac/.apm/skills/* .kiro/skills/
-cp -R /tmp/slopvac/packages/slopvac/scripts .kiro/hooks/slopvac/
+cp -R /tmp/slopvac/.apm/skills/* .kiro/skills/
+cp -R /tmp/slopvac/scripts .kiro/hooks/slopvac/
 ```
 
 Kiro reads one file per hook under `.kiro/hooks/`; copy the events and matcher from
-`packages/slopvac/hooks/hooks.json`.
+`hooks/hooks.json`.
 
 ### Any harness, without installing APM
 
