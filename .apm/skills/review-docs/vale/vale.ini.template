@@ -22,16 +22,35 @@ Packages = https://github.com/tbhb/vale-ai-tells/releases/latest/download/ai-tel
   https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-inflation.zip, \
   https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-scope.zip, \
   https://github.com/srobroek/slopvac/releases/download/vale-styles/docs-discipline.zip, \
-  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-format.zip
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-format.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-craft.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-inclusive.zip, \
+  https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-density.zip
 
-# `.mdx` has no parser: without this alias Vale fails with "mdx2vast not found".
+# `.mdx` is aliased for COVERAGE, not because no parser exists. Vale can parse MDX
+# natively by shelling out to `mdx2vast` (npm), but native parsing skips JSX
+# children -- and in a component-driven docs site most prose lives inside
+# `<Callout>` and `<Note>`. Measured on a fixture: native found 1 finding where
+# the alias found 5. Native also aborts the whole run with exit 1 when the binary
+# is absent, and again on `# Heading {#anchor}` ("Could not parse expression with
+# acorn"). The alias costs false positives on `export const` string values and JSX
+# attributes; that trade is the cheaper one.
+#
 # Do NOT alias tsx/jsx -- `tsx = html` errors and `tsx = md` reports zero findings
 # silently. JSX text is extracted by the skill's scripts/extract-prose.sh.
 [formats]
 mdx = md
 
 [*.{md,mdx}]
-BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-discipline, prose-format, ai-tells
+BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-discipline, prose-format, prose-craft, prose-inclusive, prose-density, ai-tells
+
+# Duplicate coverage: Vale's built-in repetition check ("the the") is free and
+# needs no package.
+Vale.Repetition = error
+
+# MDX anchor syntax (`# Heading {#slug}`) is markup, not prose. Lifted from the
+# upstream `MDX` config package, which is these two lines and nothing else.
+TokenIgnores = '({#[^\n}]+})(?!`)'
 
 # --- Upstream ai-tells rules that are wrong for a software repo ---------------
 # ai-tells ships 75 of its 76 rules at error. These are measured exclusions, not
@@ -78,7 +97,16 @@ ai-tells.ParallelStaccato = warning
 # UI copy lives. `.rst` and `.adoc` are absent on purpose: both need an external
 # converter (rst2html, asciidoctor) and abort the whole run without it.
 [*.{html,json,yaml,yml}]
-BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-discipline, prose-format, ai-tells
+BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-discipline, prose-format, prose-craft, prose-inclusive, ai-tells
+
+# A locale file has no sentences to average, so the metric divides by near-zero
+# and every file scores as unreadable. Headings and acronym-definition rules need
+# document structure these formats do not carry.
+prose-craft.SentenceLength = NO
+prose-craft.GerundHeading = NO
+prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
+prose-craft.SelfReference = NO
 
 # --- Source files: comments and docstrings -----------------------------------
 # Vale is syntax-aware here with no alias and no extractor: it lints comments and
@@ -97,6 +125,8 @@ prose-inflation.VagueDeclarative = error
 prose-inflation.AdditiveHedge = error
 prose-agency.FalseAgency = error
 prose-agency.AgentlessPassive = error
+prose-agency.Anthropomorphism = error
+prose-agency.UnattributedRecommendation = error
 prose-format.NoUnicodeDash = error
 ai-residue.ChatLeakage = error
 docs-discipline.StatusLanguage = error
@@ -104,25 +134,55 @@ ai-tells.AffirmativeFormulas = error
 ai-tells.Metacommentary = error
 ai-tells.UrgencyInflation = error
 ai-tells.VagueAttributions = error
+prose-craft.ConflictMarkers = error
+prose-craft.Redundancy = error
+prose-craft.Misnomer = error
+prose-inflation.NominalizedVerb = error
+prose-inflation.DocumentPreamble = error
+prose-inflation.Uncomparables = error
+prose-inflation.Intensifier = error
+prose-inflation.HedgeStack = error
+prose-inclusive.Exclusive = error
+prose-inclusive.Ableist = error
 
 # --- Genre routing -----------------------------------------------------------
 # A decision record exists to hold a decision and the measurement behind it, so
 # the rules that ban that content elsewhere invert here. Internal references are
 # what these documents are for.
-[{specs,.specify,docs/adr,docs/decisions}/**/*.md]
+# Four craft rules invert for internal docs, for reasons specific to the genre:
+#   FirstPersonPlural  an ADR records what WE decided; that is the document's job
+#   NegativeRequirement a spec states constraints as prohibitions on purpose
+#   SelfReference      a long spec legitimately cross-references its own sections
+#   UndefinedAcronym   the audience is the team that owns the vocabulary
+[**/{specs,.specify,docs/adr,docs/decisions}/**/*.md]
 docs-discipline.InternalRefs = NO
 prose-scope.RejectedAlternative = NO
 prose-scope.ImplementationLeak = NO
+prose-craft.FirstPersonPlural = NO
+prose-craft.NegativeRequirement = NO
+prose-craft.SelfReference = NO
+prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 
 [**/{adr,ADR,rfc,RFC}/**/*.md]
 docs-discipline.InternalRefs = NO
 prose-scope.RejectedAlternative = NO
 prose-scope.ImplementationLeak = NO
+prose-craft.FirstPersonPlural = NO
+prose-craft.NegativeRequirement = NO
+prose-craft.SelfReference = NO
+prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 
 [**/{CONTRIBUTING,constitution,ARCHITECTURE,DESIGN}*.md]
 docs-discipline.InternalRefs = NO
 prose-scope.RejectedAlternative = NO
 prose-scope.ImplementationLeak = NO
+prose-craft.FirstPersonPlural = NO
+prose-craft.NegativeRequirement = NO
+prose-craft.SelfReference = NO
+prose-craft.UndefinedAcronym = NO
+prose-density.PassiveDensity = NO
 
 # --- Project overrides -------------------------------------------------------
 # A rule line belongs to the section ABOVE it, so put an override directly under
@@ -145,3 +205,68 @@ prose-scope.ImplementationLeak = NO
 #                                ...text...
 #                                <!-- vale prose-scope.ImplementationLeak = YES -->
 #                                (the comment must be on its own line)
+
+# The rule reference in vale-styles/README.md is GENERATED from the rule files, and
+# each rule's summary quotes the pattern it bans -- so the table trips the rules it
+# documents. Same reason the ai-tells catalogue files are excluded: this is
+# normative source for the gate, not prose the gate should judge.
+[**/vale-styles/README.md]
+BasedOnStyles =
+
+# --- Normative source for the gate itself ------------------------------------
+# A rule's own documentation quotes the pattern it bans, so the file teaching a
+# rule trips it. Every file matched here is normative source, not prose the gate
+# should judge. Add your own paths if you document your rules in prose.
+[**/{SKILL,consumer-docs,change-comms,internal-docs}.md]
+docs-discipline.StatusLanguage = NO
+docs-discipline.HistoryNarration = NO
+docs-discipline.InternalRefs = NO
+prose-inflation.SlopLexicon = NO
+prose-inflation.BusinessJargon = NO
+prose-inflation.VagueDeclarative = NO
+prose-inflation.AdditiveHedge = NO
+prose-inflation.VagueQuantifier = NO
+prose-inflation.Intensifier = NO
+prose-inflation.Apologizing = NO
+prose-inflation.HedgeStack = NO
+prose-inflation.Uncomparables = NO
+prose-agency.FalseAgency = NO
+prose-agency.AgentlessPassive = NO
+prose-agency.NarratorDistance = NO
+prose-inclusive.Exclusive = NO
+prose-inclusive.Ableist = NO
+prose-inclusive.DeviceAssumption = NO
+prose-craft.Annotations = NO
+prose-craft.Redundancy = NO
+prose-craft.Latinisms = NO
+prose-craft.DirectionalRef = NO
+prose-craft.Politeness = NO
+prose-inflation.DocumentPreamble = NO
+prose-inflation.NominalizedVerb = NO
+prose-scope.RejectedAlternative = NO
+prose-scope.ImplementationLeak = NO
+prose-scope.UnrequestedReassurance = NO
+prose-scope.Epigram = NO
+ai-residue.ChatLeakage = NO
+ai-tells.ContrastiveNegation = NO
+
+# --- Generated by other tools ------------------------------------------------
+# `bd init` writes and rewrites these on every upgrade, so a fix here is undone
+# by the next `bd` release. Exclude them rather than editing a file this project
+# does not own.
+[**/{AGENTS,CLAUDE,GEMINI}.md]
+BasedOnStyles =
+
+[**/.beads/**]
+BasedOnStyles =
+
+[**/.agents/**]
+BasedOnStyles =
+
+# --- Agent routing files -----------------------------------------------------
+# An `*.instructions.md` file exists to tell an agent WHICH genres route here, so
+# it enumerates document types by name -- "spec", "ADR", "constitution". That is
+# the trigger list, not a link to an internal document, and InternalRefs cannot
+# tell the two apart.
+[**/*.instructions.md]
+docs-discipline.InternalRefs = NO

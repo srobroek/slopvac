@@ -1,0 +1,24 @@
+# Deferring the claim instead of making or cutting it.
+#
+# "More research is needed", "further investigation is required", "this warrants
+# additional study". The academic register's version of a hedge: the sentence
+# announces that the document will not answer its own question. In a doc, the fix
+# is to answer it or delete the passage.
+#
+# Distinct from ai-residue.ChatLeakage, which catches assistant self-reference
+# ("I apologize", "I hope this helps"). This is third-person deferral, and it
+# survives a careless copy-edit that strips the first person.
+extends: existence
+message: "deferred claim: %s — answer it, or cut the passage that raises it"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:more|further|additional)\s+(?:research|investigation|study|work|'
+  - 'analysis|testing|benchmarking|measurement)\s+(?:is|are|will be|would be|'
+  - 'may be|might be|remains?)\s+(?:needed|required|necessary|warranted|'
+  - 'left as|outside)\b|'
+  - '\b(?:warrants?|merits?|deserves?)\s+(?:further|additional|more)\s+'
+  - '(?:research|investigation|study|attention|analysis)\b|'
+  - '\bleft as an exercise\b|'
+  - '\b(?:beyond|outside) the scope of this\s+\w+\b'

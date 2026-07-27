@@ -1,0 +1,51 @@
+# The article before an initialism follows pronunciation, not spelling.
+#
+# "an HTML file" because H is said "aitch"; "a URL" because U is said "you".
+# Purely mechanical -- there is no house-style position to take -- and a reliable
+# marker of text assembled rather than read aloud.
+extends: substitution
+message: "article: use '%s' instead of '%s' (the article follows pronunciation)"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: false
+swap:
+  # Vowel-sounding consonants: F, H, L, M, N, R, S, X take "an".
+  '\ba FAQ\b': 'an FAQ'
+  '\ba FTP\b': 'an FTP'
+  '\ba HTML\b': 'an HTML'
+  '\ba HTTP\b': 'an HTTP'
+  '\ba HTTPS\b': 'an HTTPS'
+  '\ba LLM\b': 'an LLM'
+  '\ba LTS\b': 'an LTS'
+  '\ba MP3\b': 'an MP3'
+  '\ba NDA\b': 'an NDA'
+  '\ba RFC\b': 'an RFC'
+  '\ba RSS\b': 'an RSS'
+  '\ba RPC\b': 'an RPC'
+  '\ba SDK\b': 'an SDK'
+  '\ba SQL\b': 'an SQL'
+  '\ba SSH\b': 'an SSH'
+  '\ba SSL\b': 'an SSL'
+  '\ba SVG\b': 'an SVG'
+  '\ba SSD\b': 'an SSD'
+  '\ba API\b': 'an API'
+  '\ba IDE\b': 'an IDE'
+  '\ba XML\b': 'an XML'
+  '\ba XSS\b': 'an XSS'
+  # Consonant-sounding vowels: U said "you", plus one-sounding O.
+  '\ban URL\b': 'a URL'
+  '\ban URI\b': 'a URI'
+  '\ban UUID\b': 'a UUID'
+  '\ban USB\b': 'a USB'
+  '\ban UI\b': 'a UI'
+  '\ban UX\b': 'a UX'
+  '\ban UTF\b': 'a UTF'
+  '\ban GUI\b': 'a GUI'
+  '\ban GPU\b': 'a GPU'
+  '\ban PDF\b': 'a PDF'
+  '\ban CPU\b': 'a CPU'
+  '\ban CSV\b': 'a CSV'
+  '\ban JSON\b': 'a JSON'
+  '\ban RAM\b': 'a RAM'
+  '\ban YAML\b': 'a YAML'
+  '\ban one[- ]?time\b': 'a one-time'

@@ -1,0 +1,22 @@
+# The document speaking as a company. "our platform empowers your team".
+#
+# In consumer docs there is no "we": the reader wants to know what the artifact
+# does, and a first-person plural subject is where marketing voice enters. The
+# fix is to name the artifact -- "slopvac reads one config file" beats "we read
+# one config file".
+#
+# GENRE-SCOPED, and the exclusions matter more than the rule. A commit message
+# legitimately says "we dropped X"; an ADR says "we chose Postgres"; a
+# CONTRIBUTING says "we review within a week". This is off for change comms and
+# internal docs, and the packaged config turns it off for those paths.
+#
+# `us` is absent -- "let us know" and "tells us" are too common in correct use --
+# and `I`/`me`/`my` are absent because a personal blog voice is not this defect.
+extends: existence
+message: "first-person plural: %s — name the artifact instead of the vendor"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+raw:
+  - '\b(?:[Ww]e|[Ww]e''(?:ve|re|ll|d))\s+(?=\w)|'
+  - '\b[Oo]ur\s+(?=\w)|'
+  - "\\b[Ll]et's\\b"

@@ -1,0 +1,16 @@
+# A sentence boundary with the wrong number of spaces.
+#
+# One space after a terminal period, and at least one. The zero-space form
+# ("Word.Next") is a paste artifact; the two-space form is a typewriter habit that
+# markdown renderers collapse anyway, so it survives only in the source diff.
+#
+# The lookbehind excludes a version or decimal, and the `nonword` flag keeps the
+# match off word boundaries so a filename does not trip it.
+extends: existence
+message: "sentence spacing: %s — use exactly one space after the period"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+nonword: true
+tokens:
+  - '(?<!\d)[a-z][.?!] {2,}[A-Z]'
+  - '(?<!\d)[a-z][.?!][A-Z][a-z]'

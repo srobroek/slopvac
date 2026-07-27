@@ -1,0 +1,20 @@
+# A shell prompt pasted into a code block. "$ npm install", "> Get-Item".
+#
+# The reader copies the whole line, prompt and all, and the command fails. It also
+# breaks a copy button, which copies literally. Show the command alone; if the shell
+# matters, say which shell in the fence's language tag.
+#
+# `scope: raw` because the prompt lives inside a fence, which the prose parser skips.
+# Canonical's 015-No-prompts-in-comments and Krystal's CommandLinePrompts both
+# implement this; Krystal uses a Tengo script to find fences, but a line-anchored
+# regex over raw text reaches the same lines without the dependency.
+extends: existence
+message: "shell prompt: %s — drop the prompt so the command can be copied"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+scope: raw
+nonword: true
+raw:
+  # A line starting with a prompt character then a command. `#` is excluded: in a
+  # fenced block it is far more often a comment than a root prompt.
+  - '(?m)^[ \t]*(?:\$|>|❯|PS[ \t]*[A-Za-z]:\\[^\n>]*>)[ \t]+[A-Za-z_./~-]'

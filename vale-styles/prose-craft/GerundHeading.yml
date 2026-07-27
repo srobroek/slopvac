@@ -1,0 +1,51 @@
+# A task heading in the -ing form.
+#
+# "Installing the plugin" describes an activity; "Install the plugin" tells the
+# reader what to do. Imperative headings scan faster in a table of contents and
+# match the shape of every other instruction in the document.
+#
+# Exceptions cover nouns that happen to end in -ing and the concept headings
+# where the gerund is the subject, not a task ("Logging", "Caching").
+extends: existence
+message: "gerund heading: %s — use the imperative ('Install', not 'Installing')"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+scope: heading
+tokens:
+  # A gerund with a direct object is a task heading ("Installing the plugin").
+  # A bare gerund is a topic heading ("Logging", "Troubleshooting") and stays
+  # clean, which is why this needs the object rather than `^\w+ing\b`.
+  - '^\w+ing\s+(?:a|an|the|your|this|these)\s+\w+'
+exceptions:
+  # Nouns and concepts, not tasks.
+  - Logging
+  - Caching
+  - Testing
+  - Linting
+  - Versioning
+  - Licensing
+  - Tracing
+  - Profiling
+  - Debugging
+  - Formatting
+  - Packaging
+  - Onboarding
+  - Troubleshooting
+  # Words that merely end in -ing.
+  - String
+  - Spring
+  - Ring
+  - Bring
+  - Thing
+  - Swing
+  - Ping
+  - King
+  - Wing
+  - Sting
+  - Everything
+  - Something
+  - Nothing
+  - Anything
+  - During
+  - Existing
+  - Using

@@ -1,0 +1,26 @@
+# A recommendation with nobody behind it. "It is recommended that you rotate keys."
+#
+# Who recommends it? The passive hides the answer, and the reader cannot weigh
+# advice whose source is missing. Either name the recommender ("Datadog
+# recommends", "the maintainers recommend") or drop the frame and give the
+# instruction: "Rotate keys every 90 days."
+#
+# Harvested from Splunk's Recommendations and Datadog's recommendations, which
+# take opposite positions on the fix -- Splunk bans the recommendation outright and
+# directs the reader, Datadog rewrites it to name the company. Both agree the
+# agentless form is the defect, which is the part that generalises.
+#
+# `we recommend` is absent: prose-craft.FirstPersonPlural owns the first-person
+# plural, and in an ADR or a CONTRIBUTING "we recommend" is the correct voice.
+extends: existence
+message: "unattributed recommendation: %s — name who recommends it, or give the instruction"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\bit(?:\s+is|''s|\s+was)\s+(?:(?:not|highly|strongly|generally)\s+)?'
+  - '(?:recommended|advised|suggested|encouraged|considered good practice|'
+  - 'best practice|preferable|advisable)\b|'
+  - '\b(?:is|are)\s+(?:not\s+)?recommended\b|'
+  - '\bthe recommended (?:approach|way|method|practice|option) is\b|'
+  - '\b(?:best|common) practice (?:is|dictates|suggests)\b'

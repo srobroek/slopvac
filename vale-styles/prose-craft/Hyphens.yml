@@ -1,0 +1,11 @@
+# An adverb hyphenated to the word it modifies. "newly-added", "only-but".
+#
+# An -ly adverb can only modify the adjective after it, so the hyphen adds no
+# information a reader needs. One correct answer, no house-style position.
+extends: existence
+message: "adverb hyphen: %s — an -ly adverb takes no hyphen"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+nonword: true
+tokens:
+  - '\b[^\s-]+ly-\w+\b'

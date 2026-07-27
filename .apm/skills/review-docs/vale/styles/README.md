@@ -8,7 +8,7 @@ vale --config=../.vale.ini sync
 ```
 
 `scripts/slop-lint.sh` exits 2 with this command when the directory is empty, so
-a missing sync fails loudly instead of linting against half a config.
+a missing sync stops the run instead of linting against half a config.
 
 ## What gets fetched
 

@@ -1,0 +1,30 @@
+# Software granted a mind. "The parser knows the schema", "the CI thinks it failed".
+#
+# Subject-anchored the same way FalseAgency is: a cognition verb alone is fine
+# ("the reviewer knows the schema"), and the tell is a machine subject in front of
+# it. A program does not know, want, assume, or decide; it matches, requires,
+# selects, or branches. Naming the actual mechanism is always shorter.
+#
+# From Openly's Anthropomorphism, with the subject list extended to the nouns this
+# corpus actually uses (parser, linter, gate, hook, agent, model) and `behaves`
+# dropped -- "the loader behaves the same way" is ordinary correct English.
+#
+# Distinct from FalseAgency, which covers ABSTRACTIONS acting (the data tells us,
+# the culture shifts). This one covers MACHINES thinking.
+extends: existence
+message: "anthropomorphism: %s — name the mechanism, not a mind"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:the )?(?:PC|computer|machine|program|script|parser|linter|compiler|'
+  - 'gate|hook|loader|server|client|daemon|process|database|engine|object|'
+  - 'software|hardware|system|tool|binary|agent|model|API|CLI|runtime|'
+  - 'framework|library|module|function|algorithm)s?\s+'
+  - '(?:just |simply |already |also |never |always )?'
+  - '(?:sees|saw|tells|told|thinks|thought|wants|wanted|cares|realises|'
+  - 'realizes|realised|realized|assumes|assumed|knows|knew|remembers|'
+  - 'remembered|decides|decided|refuses|refused|demands|demanded|'
+  - 'understands|understood|believes|believed|hopes|hoped|prefers|preferred|'
+  - 'expects|expected|feels|felt|guesses|guessed|worries|worried|'
+  - 'is happy|is confused|gets confused|is smart enough)\b'

@@ -1,0 +1,19 @@
+# Documentation in the future tense. "The loader will retry twice."
+#
+# A doc describes what the artifact does now, so "retries twice" is both shorter
+# and true at read time. "Will" also hides the roadmap case: "the flag will support
+# globs" reads as documentation and is a promise.
+#
+# docs-discipline.StatusLanguage owns the explicit roadmap forms ("will eventually",
+# "in a future release"). This rule owns the bare future tense, which is a tense
+# choice rather than a status claim. From Openly's FutureTense, minus its `[\w][ll]`
+# token -- that matches any word containing "ll", including "will" itself, "all",
+# and "install".
+extends: existence
+message: "future tense: %s — describe what it does now"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+raw:
+  - '\b(?:will|shall)\s+(?:not\s+)?(?=[a-z])|'
+  - "\\b(?:we|it|this|that|you|they)'ll\\b|"
+  - '\b(?:is|are) going to\s+(?=[a-z])'

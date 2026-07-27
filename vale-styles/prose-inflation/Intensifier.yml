@@ -1,0 +1,21 @@
+# Degree adverbs that add emphasis and no information.
+#
+# "very fast" is slower to read than "fast" and says less than "12 ms". Every
+# token here is a word whose only job is to inflate the adjective after it, and
+# none has a technical sense that a measurement could not state better.
+#
+# Deliberately EXCLUDED, because each carries real meaning in this corpus:
+#   significantly, substantially, considerably -- statistical and load-bearing
+#     ("significantly faster" next to a p-value is a claim, not a flourish)
+#   relatively, comparatively -- express an actual comparison
+#   largely, mostly, generally -- scope qualifiers; see VagueQuantifier
+#   completely, entirely, fully -- often the precise word ("fully qualified name")
+extends: existence
+message: "intensifier: %s — delete it, or replace the adjective with a number"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:very|extremely|exceedingly|remarkably|surprisingly|incredibly|'
+  - 'unbelievably|tremendously|immensely|enormously|vastly|hugely|terribly|'
+  - 'awfully|wildly|insanely|ridiculously|super)\s+(?=\w)'

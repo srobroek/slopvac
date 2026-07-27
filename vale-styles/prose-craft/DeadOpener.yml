@@ -1,0 +1,24 @@
+# A sentence opening on a placeholder subject.
+#
+# "There is a flag that controls this" buries the subject behind an existential
+# there-is; "It is important to note that X" spends six words before reaching X.
+# Both are the same defect: the real subject arrives late or not at all.
+#
+# write-good ships this as ThereIs at error and So at error. `So` is not here:
+# a sentence-initial "So" is a legitimate connective in this register, and it
+# fired twice on correct prose in calibration.
+extends: existence
+message: "dead opener: %s — start the sentence with its real subject"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+raw:
+  # Existential there, sentence- or clause-initial only. "there is no way to know"
+  # mid-sentence stays clean, as does "check whether there is a lockfile".
+  - '(?m)(?:^|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))\s*[Tt]here\s+'
+  - '(?:is|are|was|were|will be|has been|have been)\b|'
+  # Anticipatory it with a stock evaluative predicate.
+  - '(?m)(?:^|(?<=[.!?;]\s))\s*[Ii]t\s+(?:is|was)\s+'
+  - '(?:important|worth|essential|critical|necessary|useful|helpful|possible|'
+  - 'interesting|notable|clear|obvious|apparent|recommended|advisable)\s+'
+  - '(?:to\s+)?(?:note|mention|remember|point out|observe|understand|see|say)?'
+  - '\b'

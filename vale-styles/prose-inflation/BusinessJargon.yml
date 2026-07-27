@@ -1,5 +1,12 @@
 # Meeting-register verbs that survive into written docs. The fix is the plain
 # verb they dress up: "double down" -> "commit", "circle back" -> "return to".
+#
+# The second and third groups add the idiom band. An idiom is a second defect on
+# top of the register one: a reader who learned English elsewhere has to look it
+# up, and the literal meaning is never the intended one. Harvested from
+# neighbor's EnglishIdiom, proselint's CorporateSpeak, and Joblint's Visionary,
+# minus the entries already above and minus `greenfield`, which names a real
+# project condition rather than dressing one up.
 extends: existence
 message: "business jargon: %s — use the plain verb"
 level: error
@@ -11,4 +18,20 @@ raw:
   - 'moving forward|going forward|at the end of the day|'
   - 'low[- ]hanging fruit|boil the ocean|table stakes|'
   - 'deep[- ]dive|drill down into|level[- ]set|'
-  - 'best[- ]of[- ]breed|synerg(y|ies|istic))\b'
+  - 'best[- ]of[- ]breed|synerg(y|ies|istic))\b|'
+  # Idioms whose literal reading is not the intended one.
+  - '\b(hit the ground running|move the goal ?posts?|shift the goal ?posts?|'
+  - 'peel (back )?the onion|drink the kool[- ]?aid|blue[- ]?sky thinking|'
+  - 'apples to apples|par for the course|bang for (your|the) buck|'
+  - 'no[- ]brainer|elephant in the room|all hands on deck|'
+  - 'take (this|it) offline|on my (plate|radar)|ping me|'
+  - 'thrown? under the bus|think outside the box|get the ball rolling|'
+  - 'back to the drawing board|win[- ]win|move fast and break things|'
+  - 'eat (our|your) own dog ?food|rubber (meets|hits) the road|'
+  - 'the ball is in your court|reinvent the wheel|'
+  - 'boots on the ground|north star|force multiplier|'
+  - 'raise the bar|swim ?lane|paradigm shift)\b|'
+  # Verbed nouns and vision vocabulary.
+  - '\b(incentivi[sz]\w+|productiz\w+|operationaliz\w+|solutioniz\w+|'
+  - 'ideat\w+|architect(ed|ing)|visionar(y|ies)|thought leader\w*|'
+  - 'value[- ]add(ed)?|mission[- ]critical|holistic(ally)?)\b'

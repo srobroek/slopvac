@@ -1,0 +1,38 @@
+# A verb buried in a noun, propped up by a light verb.
+#
+# "perform validation" is "validate"; "provide support for" is "supports"; "make a
+# decision" is "decide". The noun form costs a word and moves the action out of the
+# verb slot, which is the mechanism behind most dense technical prose -- and it is
+# what prose-density.Overwritten measures the aggregate of.
+#
+# From Openly's VerbingNouns, widened past its perform/do/run trio to the full
+# light-verb set, and anchored so a real noun phrase ("the validation step") stays
+# clean.
+# SLOP AXIS, on a measured base rate: 0.9 hits per 10k words across 147,473 words
+# of human-written technical documentation, against a slop-axis median of 0.8.
+#
+# This is the register prose-density.Overwritten measures in aggregate, caught one
+# phrase at a time. A model reaching for `perform validation` over `validate` is
+# reproducing the formal-report register its training rewards; a human writing
+# documentation for other engineers usually just writes the verb.
+extends: existence
+message: "nominalisation: %s — use the verb ('validate', not 'perform validation')"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+# `run`, `do`, and `make` are NOT light verbs here. "run the migration" and "make a
+# backup" name a real action on a real object -- the noun is the thing, not a verb in
+# disguise. Only verbs whose own meaning is empty in this construction are matched,
+# which is what keeps the rule at a usable false-positive rate.
+raw:
+  - '\b(?:perform|performs|performed|conduct|conducts|conducted|'
+  - 'carry out|carries out|carried out|undertake|undertakes|undertook|'
+  - 'effect|effects|effected|achieve|achieves|achieved)\s+'
+  - '(?:a|an|the|any|some)?\s*'
+  - '\w*(?:ation|ations|ment|ments|ance|ence|sion|sions|ysis|yses)\b|'
+  # The fixed light-verb idioms, where the noun is not -ation shaped.
+  - '\b(?:make|makes|made) (?:a|the) (?:decision|choice|selection|'
+  - 'determination|comparison|attempt|request|change)\b|'
+  - '\b(?:take|takes|took) (?:a|the) (?:look|decision|measurement)\b|'
+  - '\b(?:provide|provides|provided) support for\b|'
+  - '\b(?:is|are|was|were) (?:responsible for|in charge of) \w+ing\b'

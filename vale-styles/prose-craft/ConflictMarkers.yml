@@ -1,0 +1,15 @@
+# A Git merge conflict marker committed into prose.
+#
+# Always a defect, never a style question, and it survives review more often than
+# it should because a rendered markdown view hides it inside the diff noise.
+#
+# `scope: raw` so it reaches inside code fences, where a botched merge usually
+# lands.
+extends: existence
+message: "merge conflict marker: %s — resolve the conflict"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+scope: raw
+nonword: true
+raw:
+  - '(?m)^(?:<{7}(?:\s|$)|={7}$|>{7}(?:\s|$))'

@@ -1,0 +1,12 @@
+# A plural offered in parentheses. "Select the file(s)."
+#
+# The reader has to resolve it and the resolution never matters: write the plural.
+# Also covers "(es)" and the slashed form, which Google's rule misses.
+extends: existence
+message: "optional plural: %s — use the plural"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+nonword: true
+tokens:
+  - '\b\w+\((?:s|es)\)'
+  - '\b\w+/s\b'

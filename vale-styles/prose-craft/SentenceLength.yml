@@ -1,0 +1,17 @@
+# A sentence past the point where a reader holds it in one pass.
+#
+# Threshold is 34 words, above Microsoft's 30 and Red Hat's 32. Measured on this
+# repo's tracked prose: 30 flagged 12 sentences, most of them correct
+# enumerations; 34 flags the ones that are genuinely two sentences. Raise it
+# rather than disable it if your corpus disagrees.
+#
+# Complements prose-format.ProseBlock, which measures the paragraph. A document
+# can pass one and fail the other, and the fixes are different: split the
+# sentence, or convert the paragraph to a list.
+extends: occurrence
+message: "sentence of %d words > 34 — split it, or convert the enumeration to a list"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+scope: sentence
+token: '\b(\w+)\b'
+max: 34

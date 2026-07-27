@@ -1,0 +1,25 @@
+# A Latin abbreviation where an English phrase reads faster.
+#
+# "e.g." and "i.e." are routinely swapped for each other, and a screen reader says
+# "ee gee". Every major style guide -- Google, Microsoft, IBM, Elastic -- replaces
+# them, which is as close to settled as documentation style gets.
+#
+# `etc.` is included: it means the writer had a list and stopped. Name the rest or
+# say "and so on".
+extends: substitution
+message: "Latin abbreviation: use '%s' instead of '%s'"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+nonword: true
+swap:
+  '\b(?:e\.g\.|eg\.|e\.g)(?=[\s,])': 'for example'
+  '\b(?:i\.e\.|ie\.|i\.e)(?=[\s,])': 'that is'
+  '\betc\.?(?=[\s,)]|$)': 'and so on'
+  '\bviz\.': 'namely'
+  '\bvs\.?(?=\s)': 'versus'
+  '\bcf\.': 'compare'
+  '\bN\.B\.': 'note'
+  '\bad hoc\b': 'as needed'
+  '\bper se\b': 'in itself'
+  '\bvia\b': 'through, using'

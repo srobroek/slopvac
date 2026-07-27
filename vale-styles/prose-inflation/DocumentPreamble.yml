@@ -1,0 +1,31 @@
+# A document announcing what it is about to do.
+#
+# "This document describes the loader", "The purpose of this page is to explain".
+# The title already said it, and the sentence spends a clause on navigation. Delete
+# it and the document starts on its first fact, which is where a reader wants it.
+#
+# From Splunk's UserFocus, which pairs this with the `allows you to` band. That half
+# lives in prose-agency.FalseAgency; this is the document-preamble half.
+#
+# prose-craft.SelfReference covers "this section" mid-document. This rule covers the
+# opening frame, which is a different defect with the same cure.
+#
+# SLOP AXIS, on a measured base rate. Across 147,473 words of human-written
+# technical documentation (the upstream Vale style repos) this fires 0.7 times per
+# 10k words, against a slop-axis median of 0.8. On a synthetic generated-slop
+# fixture it fires at 177 per 10k -- a ratio of roughly 250x. Announcing the
+# document's own subject before stating any of it is the canonical opening move of
+# generated prose, and a human writing a README rarely reaches for it.
+extends: existence
+message: "preamble: %s — the title already says this; start with the first fact"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\bthe (?:purpose|aim|goal|intent|objective) of this\s+'
+  - '(?:document|page|guide|topic|article|section|README|readme)\b|'
+  - '\bthis (?:document|page|guide|topic|article|README|readme)\s+'
+  - '(?:describes|explains|shows|covers|outlines|details|introduces|'
+  - 'walks you through|will (?:describe|explain|show|cover))\b|'
+  - '\bin this (?:document|page|guide|topic|article|post)\b|'
+  - '\bby the end of this\s+(?:document|page|guide|topic|article|tutorial)\b'

@@ -1,0 +1,17 @@
+# A sentence opening on a bare demonstrative. "This is why it fails."
+#
+# "This" carries a referent forward, but a sentence-initial "This is" leaves the
+# reader to guess which of the preceding clause's three nouns it points at. The fix
+# is one word: "This behaviour is why it fails."
+#
+# From Openly's UnclearAntecedent, tightened. Openly matches only `This is|are`;
+# `That`, `These`, and `It` have the same failure, and requiring a copula keeps
+# "This flag controls retries" -- a demonstrative WITH its noun -- clean.
+extends: existence
+message: "unclear antecedent: %s — name the noun the demonstrative points at"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+raw:
+  - '(?m)(?:^\s*|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))'
+  - '(?:This|That|These|Those)\s+(?:is|are|was|were|means?|makes?|gives?|'
+  - 'lets?|causes?|happens?|works?|matters?|helps?)\b'

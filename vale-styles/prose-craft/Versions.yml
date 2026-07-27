@@ -1,0 +1,16 @@
+# A version comparison stated as magnitude instead of order.
+#
+# "3.2 and higher" is ambiguous once versions stop sorting numerically: is 3.10
+# higher than 3.9? "3.2 and later" states the ordering the reader needs.
+extends: substitution
+message: "version comparison: use '%s' instead of '%s'"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+swap:
+  '(?:and|or) higher': 'and later'
+  '(?:and|or) newer': 'and later'
+  '(?:and|or) lower': 'and earlier'
+  '(?:and|or) older': 'and earlier'
+  '(?:higher|newer) versions?': 'later version'
+  '(?:lower|older) versions?': 'earlier version'

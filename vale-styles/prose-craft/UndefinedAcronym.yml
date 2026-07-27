@@ -1,0 +1,137 @@
+# An initialism used before it is expanded.
+#
+# A consumer document is read by people who do not already know the vocabulary,
+# so the first use spells the term out and puts the initialism in parentheses.
+#
+# Runs on CONSUMER paths only. On agent-facing and internal docs the same regex
+# matches the directive vocabulary -- MUST, NOT, LOAD, HEAD, JSON keys -- and
+# produced 111 findings on this repo, none of them real. That measurement is why
+# the exception list below covers the directive and toolchain words rather than
+# only the domain acronyms.
+extends: conditional
+message: "undefined initialism: %s — spell it out on first use"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+scope: text
+# `first` must appear only after `second` has established it.
+first: '\b([A-Z]{3,5})\b'
+second: '(?:\b[A-Z][a-z]+ )+\(([A-Z]{3,5})\)'
+# `\b[A-Z]{3,5}\b` also matches an ordinary English word written in caps for
+# emphasis, which the exception list cannot enumerate. Requiring at least one
+# non-vowel-initial consonant cluster would drop real acronyms, so the list below
+# carries the emphasis words this corpus actually produced (ASK, ERROR, ABOVE,
+# CLAIM) alongside the directive vocabulary.
+exceptions:
+  # Directive vocabulary used by agent-facing docs and RFC-2119 prose.
+  - MUST
+  - NOT
+  - LOAD
+  - DEFAULT
+  - TRIGGER
+  - NOTE
+  - WARN
+  - INFO
+  - THIS
+  - HEAD
+  - ONLY
+  - ALL
+  - ANY
+  - AND
+  - THE
+  - YES
+  - PASS
+  - FAIL
+  - SKIP
+  - STOP
+  - ASK
+  - ERROR
+  - WARNING
+  - ABOVE
+  - BELOW
+  - CLAIM
+  - NEVER
+  - ALWAYS
+  - EVERY
+  - EACH
+  - BOTH
+  - WHEN
+  - THEN
+  - ELSE
+  - WITH
+  - FROM
+  - INTO
+  - OVER
+  - ONE
+  - TWO
+  - NEW
+  - OLD
+  - GOOD
+  - BAD
+  - YOUR
+  - THAT
+  - WHAT
+  - WHY
+  - HOW
+  - RLHF
+  # Toolchain and format names a technical reader already holds.
+  - API
+  - CLI
+  - CPU
+  - CSS
+  - CSV
+  - CVE
+  - DNS
+  - DOM
+  - ENV
+  - FAQ
+  - GPU
+  - GUI
+  - HTML
+  - HTTP
+  - HTTPS
+  - IDE
+  - JSON
+  - JSX
+  - LLM
+  - MDX
+  - NPM
+  - PATH
+  - PDF
+  - RAM
+  - REST
+  - RFC
+  - RPC
+  - SDK
+  - SQL
+  - SSH
+  - SSL
+  - SVG
+  - TCP
+  - TLS
+  - TSX
+  - URI
+  - URL
+  - USB
+  - UTF
+  - UUID
+  - XML
+  - YAML
+  - ZIP
+  # SPDX licence identifiers. Expanding one is wrong, not helpful: "MIT" IS the
+  # identifier, and "Massachusetts Institute of Technology licence" is not.
+  - MIT
+  - BSD
+  - GPL
+  - AGPL
+  - LGPL
+  - MPL
+  - EPL
+  - CDDL
+  - CC0
+  - ISC
+  # This project's own vocabulary.
+  - ADR
+  - APM
+  - MCP
+  - PR
+  - CI

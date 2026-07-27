@@ -1,0 +1,23 @@
+# A link whose text says nothing. "[here](...)", "[click here](...)", "[link](...)".
+#
+# A screen reader can list a page's links out of context, so "here" becomes an
+# entry with no destination. Every reader loses too: link text is what a scanning
+# eye lands on, and "here" carries none of the target's meaning.
+#
+# `scope: raw` because the pattern is markdown syntax, not prose, and the parsed
+# text node would give only the label without the surrounding brackets.
+extends: existence
+message: "link text: %s — name the destination in the link text"
+level: warning
+link: https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context
+scope: raw
+ignorecase: true
+#
+# The label set is the union of Datadog's links, Canonical's
+# 027-non-descriptive-link-text, and Krystal's MeaningfulLinkWords. Canonical also
+# matches reStructuredText and MyST roles; those are absent here because Vale has
+# no parser for either without an external converter.
+raw:
+  - '\[[^\]]*\b(?:here|this|this link|this page|this document|click here|'
+  - 'read more|learn more|find out more|see (?:here|more)|more|link|page|'
+  - 'the docs?|documentation|website|site)\b[^\]]*\]\('

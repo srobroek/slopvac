@@ -1,6 +1,6 @@
 ---
 name: review-docs
-description: Review written text for AI tells, slop, and genre defects, and return a verdict. Use after drafting any significant prose, or to review text you did not write. Triggers on "review this README", "deslop this", "does this read like AI".
+description: Review written text for AI tells, slop, writing craft, and genre defects, and return a verdict. Use after drafting any significant prose, or to review text you did not write. Triggers on "review this README", "deslop this", "does this read like AI", "is this well written".
 ---
 
 # Review Docs
@@ -17,6 +17,17 @@ This skill owns the gate and the verdict. `write-docs` owns genre routing and th
 authoring rules, and finishes by handing off here. Neither carries a copy of the
 other's rules.
 
+The gate runs two axes, and the distinction decides what a finding means:
+
+| Axis | Level | A match says |
+|---|---|---|
+| Slop | error | Something about how the text was produced |
+| Craft | warning | The writing is worse, whoever wrote it |
+
+Fix every slop ERROR. Fix or justify each craft WARN in one line. A craft warning
+never moves the verdict on its own: wordiness is not evidence of generation, and
+treating it that way is what makes a gate get switched off.
+
 ## Workflow
 
 0. First run in a repo: `scripts/init-vale.sh --check`. Exit 2 means no project
@@ -29,7 +40,9 @@ other's rules.
    CONTRIBUTING, runbook). If `write-docs` already classified it, take that.
 2. Run the gate:
    `scripts/slop-lint.sh --genre <consumer|change|internal> <file>...`
-   Fix every ERROR. Fix or justify each WARN in one line. Paths are relative to
+   Fix every ERROR. Fix or justify each WARN in one line. The genre selects which
+   craft rules apply: first-person plural is a defect in a README and the point of
+   a commit message, so the config inverts it rather than the reader having to. Paths are relative to
    this skill, so they resolve wherever the package installed. A project
    `.vale.ini` wins over the packaged config; `SLOP_LINT_CONFIG` overrides both.
 3. LOAD `references/ai-tells.md` -- an index -- then the section files the text

@@ -1,0 +1,18 @@
+# A code annotation left in shipped prose. TODO, FIXME, XXX, HACK.
+#
+# A marker in a released document is a note to the author that reached the reader.
+# It belongs in an issue, a spec, or a code comment.
+#
+# docs-discipline.StatusLanguage already bans TODO and WIP in the CONSUMER genre.
+# This rule exists to reach change comms, where StatusLanguage is switched off
+# because a commit message legitimately says "not yet implemented" -- but never
+# legitimately ships a "TODO: write this" in a PR body.
+#
+# `NOTE` is absent: proselint bans it, and "NOTE:" is a sanctioned admonition
+# prefix in every docs toolchain.
+extends: existence
+message: "annotation: %s — move it to an issue or a code comment"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+raw:
+  - '\b(?:TODO|FIXME|XXX|HACK|TBD|WIP)\b(?=[\s:)\]]|$)'

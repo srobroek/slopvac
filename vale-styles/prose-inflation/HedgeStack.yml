@@ -1,0 +1,35 @@
+# Two or more hedges on one claim. "can help to potentially reduce".
+#
+# A single hedge is often correct: "the loader may retry" is a true statement about
+# optional behaviour. Two stacked on the same verb is the tell -- each one shaves
+# the claim until nothing is asserted, which is what a model does when it does not
+# know.
+#
+# This is why the rule is COMBINATORIAL rather than a token list. hedgeclipper
+# ships 400+ bare tokens including `can`, `about`, `always`, and `certain`; on any
+# technical corpus that flags most sentences. ai-tells.HedgingPhrases and
+# ai-tells.DefensiveHedges own the fixed idioms ("it should be noted that").
+extends: existence
+message: "stacked hedge: %s — one hedge or none; commit to the claim or cut it"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  # Modal + hedging verb: "may help to", "could potentially".
+  - '\b(?:may|might|could|can|would|should)\s+'
+  - '(?:possibly|potentially|perhaps|maybe|probably|likely|conceivably|'
+  - 'arguably|presumably|generally|typically|sometimes|often|usually)\b|'
+  # Hedging verb + modal: "potentially could".
+  - '\b(?:possibly|potentially|perhaps|maybe|probably|arguably|presumably)\s+'
+  - '(?:may|might|could|can|would|should)\b|'
+  # Modal + help/tend/seem, which are themselves hedges.
+  - '\b(?:may|might|could|can|would|should)\s+'
+  - '(?:help(?:s)? to|tend(?:s)? to|seem(?:s)? to|appear(?:s)? to)\b|'
+  # Double modal or double approximation.
+  - '\b(?:might|may)\s+(?:possibly\s+)?(?:be able to|want to)\s+'
+  - '(?:try to|attempt to)\b|'
+  - '\b(?:roughly|approximately|about|around)\s+'
+  - '(?:approximately|about|around|some)\s+\d|'
+  # Attribution + hedge: "it is thought that it might".
+  - '\bit (?:is|was) (?:thought|believed|assumed|expected|suggested)\s+that\s+'
+  - '[^.!?]{0,30}\b(?:may|might|could|possibly|potentially)\b'

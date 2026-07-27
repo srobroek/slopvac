@@ -11,6 +11,7 @@ on:
   pull_request:
     paths:
       - "vale-styles/**"
+      - "README.md"
       - ".github/workflows/check-vale-styles.yml"
 
 permissions:
@@ -40,6 +41,16 @@ jobs:
           sudo install -m 0755 vale /usr/local/bin/vale
           vale --version
 
+      # The rule tables in both READMEs are generated from the rule files. This
+      # fails when a rule was added, renamed, or re-levelled without regenerating,
+      # which is the only way the published docs can disagree with the shipped
+      # rules.
+      - name: Check the rule tables are current
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml
+          ./vale-styles/gen-rule-table.py --check
+
       - name: Build packages
         run: ./vale-styles/build.sh
 
@@ -68,13 +79,19 @@ jobs:
             printf '%s/prose-agency.zip, ' "$base"
             printf '%s/prose-inflation.zip, ' "$base"
             printf '%s/docs-discipline.zip, ' "$base"
-            printf '%s/prose-format.zip\n' "$base"
+            printf '%s/prose-format.zip, ' "$base"
+            printf '%s/prose-craft.zip, ' "$base"
+            printf '%s/prose-inclusive.zip, ' "$base"
+            printf '%s/prose-density.zip\n' "$base"
             echo "[*.md]"
-            echo "BasedOnStyles = ai-residue, prose-agency, prose-inflation, docs-discipline, prose-format"
+            printf 'BasedOnStyles = ai-residue, prose-agency, '
+            printf 'prose-inflation, docs-discipline, prose-format, '
+            printf 'prose-craft, prose-inclusive, prose-density\n'
           } > .vale.ini
           vale sync
 
-          for style in ai-residue prose-agency prose-inflation docs-discipline prose-format; do
+          for style in ai-residue prose-agency prose-inflation docs-discipline \
+            prose-format prose-craft prose-inclusive prose-density; do
             test -d "styles/$style" || { echo "$style did not sync"; exit 1; }
           done
 
@@ -84,9 +101,23 @@ jobs:
           The complaint becomes a fix once the decision emerges.
           The library leverages a robust parser and the reasons are structural.
           This module is under construction; previously we used X.
+          In order to configure it, utilize a HTML file. There is a flag for this.
+          The blacklist uses a master/slave setup with dummy data.
+          In order to configure it, utilize a HTML file and select the file(s).
           PROBE
-          vale --output=JSON --no-exit probe.md > out.json
-          for style in ai-residue prose-agency prose-inflation docs-discipline; do
+
+          # prose-density scores the WHOLE FILE, not a line, so it needs a probe of
+          # its own: mixed with the plain lines above, the aggregate reading ease
+          # lands above the threshold and the rule reports nothing.
+          cat > dense.md <<'DENSE'
+          The utilization of the aforementioned methodology facilitates the
+          optimization of operational efficiency in a manner that is both effective
+          and efficacious, thereby enabling the achievement of the desired
+          organizational outcomes within the requisite implementation timeframe.
+          DENSE
+          vale --output=JSON --no-exit probe.md dense.md > out.json
+          for style in ai-residue prose-agency prose-inflation docs-discipline \
+            prose-craft prose-inclusive prose-density; do
             grep -q "\"$style\." out.json || {
               echo "$style produced no findings on its probe line"
               cat out.json

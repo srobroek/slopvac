@@ -1,0 +1,23 @@
+# A document narrating its own structure.
+#
+# "This section explains", "in this chapter", "the following topic covers". The
+# heading already said it, and the sentence spends a clause on navigation the
+# reader did not need. Deleting it always leaves a shorter, clearer sentence.
+#
+# `this document` and `this guide` are absent: a README legitimately says "this
+# document describes the released package" in its own first line, and one such
+# sentence per document is not a defect.
+extends: existence
+message: "self-reference: %s — the heading already says this; start with the first new fact"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+# `page` and `document` are deliberately absent from the noun list. Vale's `text`
+# scope hands over the PARSED text node, so a markdown link label arrives with its
+# brackets already stripped and no lookbehind can distinguish `[this page](...)`
+# from prose. prose-craft.LinkText owns the link case, and dropping the two nouns
+# here is cheaper than re-implementing markdown skipping under `scope: raw`.
+raw:
+  - '\b(?:this|the (?:following|preceding|current|next|previous))\s+'
+  - '(?:section|chapter|subsection|topic|module|assembly|part)\b|'
+  - '\bin the (?:sections?|chapters?) that follows?\b'
