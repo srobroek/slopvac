@@ -407,3 +407,41 @@ def test_published_figures_in_tables_and_lists_are_not_leaks(tmp_path):
     prose = tmp_path / "readme.md"
     prose.write_text("The parser takes 212 ms per call.\n", encoding="utf-8")
     assert "prose-scope.ImplementationLeak" in rules(prose)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Nothing here needs a package manager.",
+        "The skills work as soon as they are on disk.",
+        "uvx leaves nothing behind.",
+        "No configuration required.",
+        "It just works, out of the box.",
+        "You do not have to install anything.",
+        "Don't worry, rest assured this is safe.",
+    ],
+)
+def test_unrequested_reassurance_fires(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-scope.UnrequestedReassurance" in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Factual scope notes, not reassurance. Narrowing to the setup/config band
+        # cut these from 16 to 3 on an external corpus.
+        "No signing needed for this path.",
+        "No spec change needed.",
+        "Nothing is committed under styles; a sync fetches it.",
+        # An instruction the reader must act on.
+        "You need vale on PATH before the first run.",
+        "The parser requires Python 3.14 or newer.",
+        "No files were changed.",
+    ],
+)
+def test_unrequested_reassurance_stays_quiet(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-scope.UnrequestedReassurance" not in rules(doc), text

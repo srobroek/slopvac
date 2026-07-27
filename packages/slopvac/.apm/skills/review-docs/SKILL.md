@@ -63,8 +63,8 @@ Read for these directly; none is mechanizable.
 
 ## Changing a rule
 
-A finding that is wrong for this project is a config change, not a suppression to
-sprinkle. Fix the prose first; reach for these only when the rule is wrong here.
+Fix the prose first. When the rule is genuinely wrong for this project, change the
+config; scattered inline suppressions hide the decision.
 
 MUST Put the line inside the section it applies to -- normally `[*.{md,mdx}]`.
 A rule line binds to the section ABOVE it, so one appended at the end of the file

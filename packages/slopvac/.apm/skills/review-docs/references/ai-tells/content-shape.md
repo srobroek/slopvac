@@ -52,3 +52,11 @@
   behavior, and move the decision to an ADR, a spec, or the commit that made it.
   The test is whether a reader of THIS document acts differently for having read
   the sentence.
+- Unrequested reassurance: a sentence answering a worry nobody raised -- "nothing
+  here needs a package manager", "the skills work as soon as they are on disk",
+  "leaves nothing behind", "no configuration required", "it just works". Each
+  reassures about the absence of a problem, so it carries no instruction and no
+  fact. Sales register in a reference document. Fix: state the positive alone, or
+  say nothing -- a step with no setup simply has no setup step. Mechanised as
+  `prose-scope.UnrequestedReassurance`. Distinct from the two above: those defend a
+  choice or state a cost; this pre-empts a doubt.

@@ -44,3 +44,8 @@ MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixe
 NOT Status language: "under construction", "WIP", "coming soon", "currently", "for now", "planned", "being specified".
 NOT Slop lexicon -- the prose-inflation Vale style owns the banned list; prose never restates it.
 NOT History narration in a doc body ("previously", "we changed X to Y") -- deltas belong to the change-comms genre only.
+NOT Over-writing -- real content in the wrong document:
+  · a rejected alternative defended in place -> move the decision to an ADR, spec, or commit
+  · an implementation cost the reader cannot act on (timing, process count) -> move it to the commit that measured it
+  · reassurance answering a worry never raised ("no configuration required", "it just works") -> state the positive alone, or say nothing
+  Ask whether a reader of THIS document acts differently for having read the sentence.

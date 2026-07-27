@@ -33,7 +33,7 @@ publish, so the URLs above always serve the current rules.
 |---|---|---|
 | `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | Prose with the actor deleted: an abstraction doing the acting, a passive with no agent, observation from outside the scene |
 | `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims inflated past their evidence: marketing adjectives, significance asserted without a specific, meeting-register verbs |
-| `prose-scope` | `RejectedAlternative`, `ImplementationLeak` | Over-writing: a decision defended where it does not belong, and an implementation cost the reader cannot act on |
+| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance` | Over-writing: a decision defended where it does not belong, a cost the reader cannot act on, an answer to a worry never raised |
 | `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document: cutoff disclaimers, refusal fragments, placeholder text, citation artifacts |
 | `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Documentation describing something other than the released artifact: roadmap status, change narration, links to internal specs |
 | `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells: emoji headings, Unicode dashes, paragraphs that should be a list |
@@ -44,6 +44,41 @@ measurement are the point.
 `docs-discipline` encodes one house position -- that a doc describes what ships
 today -- so read the rules before adopting it. `prose-format` is a house
 convention, including a `--` preference over em dashes.
+
+## prose-scope by example
+
+These rules catch text that is correct and useful, sitting in a document whose job
+is something else. Each row is a real finding from calibration.
+
+| Flagged | Why | Instead |
+| --- | --- | --- |
+| "It reports findings rather than asking the agent, because a hook cannot invoke a skill." | Defends a choice against the alternative | "It reports findings." Put the reasoning in an ADR. |
+| "For the same reason it does not run detached." | Same, by back-reference | Drop the sentence, or state what it does do. |
+| "We chose Python for the hook." | Names the decision, not the behavior | Say what the hook does; the commit records why. |
+| "The earlier implementation spawned a shell per check." | Lineage of the code | Describe the current behavior only. |
+| "A shell version cost 212 ms per edit, against 52 ms here." | A benchmark result in prose; it ages into a false claim | Move it to the commit, or publish it as a table on a benchmarks page. |
+| "An ordinary edit costs one Python startup." | A cost the reader cannot act on | Say nothing, or state the guarantee you will hold. |
+| "Nothing here needs a package manager." | Answers a worry nobody raised | "Clone the repo and copy two directories." |
+| "The skills work as soon as they are on disk." | Reassurance, no instruction | Delete; the install step above already said it. |
+| "No configuration required." | Sales register | Delete; a step with no setup has no setup step. |
+
+These stay clean, because the reader acts on them:
+
+| Kept | Why |
+| --- | --- |
+| "A timeout of 50 ms applies to each call." | Configuration |
+| "At most five subprocesses run concurrently." | A documented limit |
+| "\| Rule evaluation \| 2.5 µs \|" | A published figure as structured data |
+| "No signing needed for this path." | A factual scope note |
+| "You need vale on PATH before the first run." | An instruction |
+| "Removed the legacy flag in favor of the config key." | A changelog stating its delta |
+
+`ImplementationLeak` uses `scope: paragraph`, so a figure in a table row or a list
+item never fires. A benchmarks page is a deliverable. The rule is for a timing
+asserted mid-sentence about how the implementation performs.
+
+Decision records invert all three: point the section glob for your specs and design
+records at `prose-scope.* = NO`, which the scaffolded config does already.
 
 ## Rule levels
 

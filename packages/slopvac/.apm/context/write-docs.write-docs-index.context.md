@@ -15,9 +15,16 @@ MUST State what the artifact does -- never effort, intent, process, or journey.
 MUST Delete any adjective you cannot back with a number, benchmark, or feature list.
 MUST One idea per sentence; lists and tables over prose paragraphs.
 MUST Greenfield has no history: state the current design as the design; don't narrate change ("revised", "previously Y now Z", "we dropped X").
-MUST Justify a library/tool/dependency choice only when the reason is load-bearing (a real constraint or tradeoff), then in one line; drop filler ("popular", "standard", "battle-tested").
+MUST Justify a library/tool/dependency choice only when a real constraint or tradeoff drove it, then in one line; drop filler ("popular", "standard", "battle-tested").
 NOT Status language: "under construction", "WIP", "coming soon", "currently", "for now", "planned", "being specified", "Draft".
 NOT Slop lexicon: "seamlessly", "robust", "powerful", "comprehensive", "leverage", "blazingly fast", "battle-tested", emoji headings.
+MUST Name who acted: an abstraction is not an actor. "The team fixed it that week", never "the complaint becomes a fix"; if no person fits, use "you".
+MUST Cut the claim, not the hedge: a doc describing unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".
+NOT Over-writing -- three shapes, all of them real content in the wrong document:
+  · a rejected alternative defended in place ("X rather than Y, because...", "for the same reason it does not...", "the earlier implementation") -> the decision belongs in an ADR, spec, or commit
+  · an implementation cost the reader cannot act on (a timing, a speedup ratio, a process count) -> belongs in the commit that measured it; a published benchmark page or a table cell is fine
+  · reassurance answering a worry never raised ("nothing here needs a package manager", "works as soon as it is on disk", "no configuration required", "it just works") -> state the positive alone, or say nothing
+DEFAULT Ask of any sentence whether a reader of THIS document acts differently for having read it.
 
 Consumer surfaces (README, docs/ -- read by users of the artifact):
 

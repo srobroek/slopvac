@@ -3,11 +3,67 @@
 Remove AI writing patterns from prose.
 
 `write-docs` authors a document against its genre's rules. `review-docs` gates the
-result and returns a verdict. The gate is
-[Vale](https://vale.sh) over six style packages, and two hooks carry the same rules
-into every subagent and every edit.
+result and returns a verdict. The gate is [Vale](https://vale.sh) over seven style
+packages, and two hooks carry the same rules into every subagent and every edit.
 
 Works with Claude Code, Codex, and Kiro.
+
+## How it works
+
+You ask the agent for a document, or to review one. The agent runs the gate and the
+judgement pass; the scripts are its tools, not yours.
+
+```
+you: "write the README for this package"
+        │
+        ▼
+  write-docs skill ──── classifies the genre (consumer | change | internal)
+                        loads that genre's rules, authors against them
+        │
+        ▼
+  review-docs skill ─── scaffolds .vale.ini on first use (asks first)
+                        runs the Vale gate      → deterministic findings
+                        reads the tells catalog → register judgement
+                        checks every claim against code at HEAD
+        │
+        ▼
+  VERDICT: PASS | REVISE, with the one change worth making
+```
+
+The hooks close the loop without being asked. `SubagentStart` injects the rules
+into every subagent, because a subagent inherits main-session steering weakly.
+`PostToolUse` gates prose files after an edit, accumulating changes and returning
+`file:line` findings once they cross a threshold.
+
+## What it catches
+
+Two layers, because half of this resists mechanization.
+
+**Deterministic** -- 22 Vale rules across seven packages, each one regex over parsed
+prose, tested and calibrated against a real corpus.
+
+| Package | Rules | Catches |
+| --- | --- | --- |
+| `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | The actor deleted: an abstraction acting, a passive with no agent, narration from outside the scene |
+| `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
+| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance` | Over-writing: a decision defended in place, a cost the reader cannot act on, an answer to a worry never raised |
+| `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document |
+| `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Text describing something other than the released artifact |
+| `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Emoji headings, Unicode dashes, paragraphs that should be a list |
+| `ai-tells` | 76 upstream | [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells), with the exclusions a software corpus needs applied |
+
+**Agentic** -- the skill reads a catalog of tells no regex reaches, and applies them
+by judgement:
+
+| Category | Examples |
+| --- | --- |
+| Register | Faux-candor pivots, punchy-fragment cadence, corporate-analytic filler, figurative-verb verdicts, sycophantic residue |
+| Structure | Contrastive inversion, tricolon abuse, false-suspense transitions, meta-narration, heading echo |
+| Formatting | Em-dash density, bold spray, inline-header lists, tables wrapping one sentence |
+| Content shape | Fabricated citations, fake specificity, one-point dilution, padded symmetry, vaporware description |
+| Counter-signals | What expert prose has and generated prose lacks: non-round numbers, named specifics, an unhedged stance, asymmetric structure |
+
+The gate finds tokens. The catalog finds voice. A document passes when both agree.
 
 ## Install
 
@@ -19,108 +75,103 @@ mise use -g vale     # or: brew install vale
 
 `ast-grep` is optional and extends the gate to JSX text nodes.
 
-### With APM
+### Claude Code
+
+Native plugin:
+
+```
+/plugin marketplace add srobroek/slopvac
+```
+
+With APM:
 
 ```sh
 apm marketplace add srobroek/slopvac --name slopvac
-apm install slopvac@slopvac --target claude,codex
+apm install slopvac@slopvac --target claude --global   # every project
+apm install slopvac@slopvac --target claude            # this project only
 ```
 
-For Kiro, target it directly:
-
-```sh
-apm install slopvac@slopvac --target kiro
-```
-
-### Without installing APM
-
-`uvx` runs it from PyPI and leaves nothing behind:
-
-```sh
-uvx --from apm-cli apm marketplace add srobroek/slopvac --name slopvac
-uvx --from apm-cli apm install slopvac@slopvac --target kiro
-```
-
-### By hand
-
-Nothing here needs a package manager. Clone the repo and copy the two directories
-your agent reads:
+By hand, into `~/.claude` for every project or `.claude` for one:
 
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
-
-# Kiro
-mkdir -p .kiro/skills .kiro/hooks
-cp -R /tmp/slopvac/packages/slopvac/.apm/skills/* .kiro/skills/
-cp -R /tmp/slopvac/packages/slopvac/scripts .kiro/hooks/slopvac/
-
-# Claude Code
 mkdir -p .claude/skills .claude/hooks
 cp -R /tmp/slopvac/packages/slopvac/.apm/skills/* .claude/skills/
 cp -R /tmp/slopvac/packages/slopvac/scripts .claude/hooks/slopvac/
 ```
 
-The skills work as soon as they are on disk. To wire the hooks, copy the events and
-the matcher from `packages/slopvac/hooks/hooks.json` into your agent's config: Kiro
-reads one file per hook under `.kiro/hooks/`, Claude Code reads
+Then copy the events and matcher from `packages/slopvac/hooks/hooks.json` into
 `.claude/settings.json`.
 
-### As a native plugin
+### Codex
 
-The repo is a plugin marketplace for both Claude Code and Codex, so neither needs
-APM:
+Native plugin:
 
 ```
-/plugin marketplace add srobroek/slopvac      # Claude Code
-plugin marketplace add srobroek/slopvac       # Codex
+plugin marketplace add srobroek/slopvac
 ```
 
-## First run
-
-Scaffold the project config, which fetches the styles:
+With APM:
 
 ```sh
-<skills>/review-docs/scripts/init-vale.sh
+apm marketplace add srobroek/slopvac --name slopvac
+apm install slopvac@slopvac --target codex --global
 ```
 
-That writes a committed `.vale.ini` you own, and `.vale-styles/`, which it adds to
-`.gitignore`. `--check` reports what is missing: exit 0 ready, 1 needs a sync, 2 no
-config. `review-docs` runs the check itself on first use and asks before writing.
+By hand: as above, replacing `.claude` with `.codex`.
 
-Take new rules with `vale --config=.vale.ini sync`. Every URL in the config points
-at a rolling release tag, so a sync is the whole update.
+### Kiro
 
-## Use
+With APM:
 
 ```sh
-<skills>/review-docs/scripts/slop-lint.sh --genre <consumer|change|internal> <file>...
+apm marketplace add srobroek/slopvac --name slopvac
+apm install slopvac@slopvac --target kiro --global
 ```
 
-Exit 0 clean or warnings only, 1 on any error, 2 on a missing tool or unsynced
-styles. Or ask the agent: "review this README", "deslop this".
+Install writes the skills, the steering, and the hook manifests Kiro reads
+natively. Do not run `apm compile --target kiro`: it additionally writes a root
+`AGENTS.md` that Kiro does not read as steering, and overwrites one already there.
 
-## Styles
+By hand, into `~/.kiro` for every project or `.kiro` for one:
 
-| Style | Catches |
-| --- | --- |
-| `prose-agency` | The actor deleted: an abstraction acting, an agentless passive, narration from outside the scene |
-| `prose-inflation` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
-| `prose-scope` | Over-writing: a rejected alternative defended in place, an implementation cost the reader cannot act on |
-| `ai-residue` | Assistant output pasted into a shipped document |
-| `docs-discipline` | Text describing something other than the released artifact |
-| `prose-format` | Emoji headings, Unicode dashes, paragraphs that should be a list |
+```sh
+git clone https://github.com/srobroek/slopvac /tmp/slopvac
+mkdir -p .kiro/skills .kiro/hooks
+cp -R /tmp/slopvac/packages/slopvac/.apm/skills/* .kiro/skills/
+cp -R /tmp/slopvac/packages/slopvac/scripts .kiro/hooks/slopvac/
+```
 
-Each installs on its own, so a project can take `prose-agency` and leave the house
-genre rules. See [vale-styles/README.md](vale-styles/README.md) to use them with
-plain Vale. The gate also pulls
-[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells), with the exclusions
-that a software corpus needs already applied.
+Kiro reads one file per hook under `.kiro/hooks/`; copy the events and matcher from
+`packages/slopvac/hooks/hooks.json`.
 
-## Overriding a rule
+### Any harness, without installing APM
 
-Edit the project `.vale.ini`. Put the line inside the section it applies to,
-normally `[*.{md,mdx}]`: a rule line binds to the section above it, so one appended
-at the end of the file attaches to the last section instead.
+`uvx` runs APM from PyPI:
+
+```sh
+uvx --from apm-cli apm marketplace add srobroek/slopvac --name slopvac
+uvx --from apm-cli apm install slopvac@slopvac --target kiro --global
+```
+
+`--global` installs to `~/.claude`, `~/.codex`, or `~/.kiro`. Drop it to install
+into the current project, which is what you want when the config belongs in version
+control with the code. Target several at once with `--target claude,codex,kiro`.
+
+## Configuration
+
+The gate reads one file, `.vale.ini` at your project root, and the project owns it.
+The agent scaffolds it on first use and asks before writing. It is committed; the
+fetched `.vale-styles/` directory is not.
+
+Take new upstream rules with `vale --config=.vale.ini sync`. Every URL in the file
+points at a rolling release tag, so a sync is the whole update.
+
+### Overriding a rule
+
+Put the line inside the section it applies to, normally `[*.{md,mdx}]`: a rule line
+binds to the section above it, so one appended at the end of the file attaches to
+the last section instead.
 
 ```ini
 [*.{md,mdx}]
@@ -138,6 +189,27 @@ prose-inflation.BusinessJargon = warning   # advisory, not a gate
 | A whole style | drop it from that section's `BasedOnStyles` |
 | One path | `[**/generated/**]` then `BasedOnStyles =` |
 | One passage | `<!-- vale rule = NO -->` ... `<!-- vale rule = YES -->`, each on its own line |
+
+Decision records invert some rules: a spec, a design record, or CONTRIBUTING is
+where a rationale and its measurement belong, so those paths already exempt
+`prose-scope` and the internal-reference rule.
+
+## Using the styles without an agent
+
+Every package is a plain Vale style that installs on its own. A project that wants
+`prose-agency` and none of the house genre rules takes just that one:
+
+```ini
+StylesPath = .vale-styles
+MinAlertLevel = warning
+Packages = https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-agency.zip
+
+[*.md]
+BasedOnStyles = prose-agency
+```
+
+See [vale-styles/README.md](vale-styles/README.md) for the full set, the file
+formats Vale handles, and the two extensions that need care.
 
 ## License
 

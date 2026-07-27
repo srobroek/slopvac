@@ -38,6 +38,8 @@ CTX+="MUST One idea per sentence; lists and tables over prose paragraphs.${NL}"
 CTX+="MUST Consumer docs (README, docs/): write for the released artifact — every sentence verifiable against code at HEAD, no roadmap or target states, no internal references (specs, ADRs, tickets).${NL}"
 CTX+="NOT Status language (under construction, WIP, coming soon, currently, for now, planned) or history narration in a doc body.${NL}"
 CTX+="NOT Slop lexicon (seamless, robust, powerful, comprehensive, leverage, blazingly fast, battle-tested, and similar) or emoji headings.${NL}"
+CTX+="MUST Name who acted -- an abstraction is not an actor: \"the team fixed it\", never \"the complaint becomes a fix\".${NL}"
+CTX+="NOT Over-writing: a rejected alternative defended in place, an implementation cost the reader cannot act on (a timing, a process count), or reassurance answering a worry never raised (\"no configuration required\", \"it just works\"). Each is real content in the wrong document -- the decision goes in an ADR or the commit. Test: does a reader of THIS document act differently for having read the sentence?${NL}"
 
 jq -n --arg ctx "$CTX" '{
   hookSpecificOutput: {
