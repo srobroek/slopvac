@@ -634,28 +634,6 @@ def test_harvested_inflation_rules_stay_quiet(tmp_path, text, rule):
 # --- prose-density -----------------------------------------------------------
 
 
-def test_density_flags_nominalised_prose_and_not_plain_prose(tmp_path):
-    """Reading ease under 30. The threshold is measured against this repo: the
-    READMEs score 64-70 and the reference material 41-53, so 30 reaches only prose
-    that has stopped being long and started being nested."""
-    doc = tmp_path / "case.md"
-    doc.write_text(
-        "The utilization of the aforementioned methodology facilitates the "
-        "optimization of operational efficiency in a manner that is both effective "
-        "and efficacious, thereby enabling the achievement of desired outcomes "
-        "within the requisite timeframe.\n",
-        encoding="utf-8",
-    )
-    assert "prose-density.Overwritten" in rules(doc)
-
-    doc.write_text(
-        "The loader reads one file. It retries twice, then fails. "
-        "Each retry waits one second.\n",
-        encoding="utf-8",
-    )
-    assert "prose-density.Overwritten" not in rules(doc)
-
-
 # --- Genre routing for the craft rules ---------------------------------------
 
 
@@ -868,55 +846,6 @@ def test_redundancy_and_misnomer_are_separate_rules(tmp_path):
     found = rules(doc)
     assert "prose-craft.Misnomer" in found
     assert "prose-craft.Redundancy" not in found
-
-
-def test_density_rules_are_the_published_metrics(tmp_path):
-    """RIX (Anderson 1983) for density, average sentence length for load.
-
-    A doc of long TECHNICAL nouns in SHORT sentences must stay clean -- that is the
-    case every syllable-based metric gets wrong, and the reason Flesch was dropped:
-    the paragraph below scores Flesch-Kincaid 19.5 at 3.5 words per sentence."""
-    doc = tmp_path / "case.md"
-    doc.write_text(
-        "Initialization happens asynchronously. The orchestration layer waits. "
-        "Configuration parameters live in the environment. The deployment manifest "
-        "lists dependencies. Serialization uses the standard encoder. Availability "
-        "is measured per region. Authentication middleware validates credentials.\n",
-        encoding="utf-8",
-    )
-    found = rules(doc)
-    assert "prose-density.Overwritten" not in found
-    assert "prose-density.SentenceLoad" not in found
-
-
-def test_the_two_density_rules_catch_disjoint_defects(tmp_path):
-    """Neither rule alone is sufficient, which is why there are two.
-
-    RIX counts long words per sentence, so it misses a rambling sentence built from
-    short words. Average sentence length misses dense nominalisation in sentences
-    that happen to be short."""
-    doc = tmp_path / "case.md"
-
-    # Long sentences, plain vocabulary: sentence load only.
-    doc.write_text(
-        "The loader will read the file and then it will try again and then it will "
-        "give up and log the error to the file that you set in the config that you "
-        "passed on the command line when you ran it there.\n",
-        encoding="utf-8",
-    )
-    found = rules(doc)
-    assert "prose-density.SentenceLoad" in found
-    assert "prose-density.Overwritten" not in found
-
-    # Nominalised and long: density fires.
-    doc.write_text(
-        "The utilization of the aforementioned methodology facilitates the "
-        "optimization of operational efficiency in a manner that is both effective "
-        "and efficacious, thereby enabling the achievement of the desired "
-        "organizational outcomes within the requisite implementation timeframe.\n",
-        encoding="utf-8",
-    )
-    assert "prose-density.Overwritten" in rules(doc)
 
 
 # --- Passive density ----------------------------------------------------------

@@ -40,7 +40,7 @@ BLURBS = {
     "prose-format": "Formatting tells",
     "prose-craft": "Writing craft: wordiness, structure, and mechanics, in any register",
     "prose-inclusive": "Language that excludes a reader who could otherwise use the doc",
-    "prose-density": "Prose too dense to read in one pass",
+    "prose-density": "Document-level measures of an authorial choice, counted not fitted",
 }
 
 # Which axis each style sits on. A gate that treats craft as evidence of

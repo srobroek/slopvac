@@ -44,6 +44,39 @@
 # fires only where the actor is deleted outright ("it was decided that"). A document
 # can pass that rule on every sentence and still be 60% passive. Neither subsumes the
 # other.
+#
+# --- Why this style holds no readability formula -------------------------------
+#
+# Two earlier rules lived here and were removed. Keeping the reasons so the next
+# audit does not re-derive them.
+#
+# `Overwritten` was RIX (Anderson 1983), `long_words / sentences`. It is a genuine
+# two-factor measure -- r 0.835 with sentence length and 0.812 with long-word share,
+# both varying (CV 0.25 and 0.23) -- and it ranked rho 0.58 against a graded corpus of
+# human technical docs, ahead of Flesch-Kincaid's 0.53. It was still removed as
+# REDUNDANT: across 117 human documents it fired on 12, and on every one of those 12 a
+# lexical rule fired too. `prose-craft.Wordiness` and
+# `prose-inflation.NominalizedVerb` name the actual phrase; RIX only reported that the
+# document contained some. It never once fired alone.
+#
+# `SentenceLoad` was `words / sentences`. It ranked rho -0.13 against the same corpus
+# -- the git tutorial has longer sentences than RFC 7231 -- so it measured nothing
+# about difficulty. It existed to cover a rambling sentence built from short words,
+# which `prose-craft.SentenceLength` already flags per sentence.
+#
+# The wider finding, from benchmarking 32 measures: no readability formula is usable
+# as a gate on technical prose. The best predictor of audience level was
+# syllables-per-word (rho 0.78), and it scores GOOD technical prose harder than BAD
+# nominalised prose, so ranking well and gating well are opposite properties here.
+# Most published formulas are also the same formula renamed -- Szigriszt-Pazos
+# correlates r=0.997 with Flesch Reading Ease, Fernandez-Huerta 0.995, Crawford
+# -0.999 -- and several invert outright: McAlpine EFLAW scores AUC 0.000 on a
+# good-long versus bad-short control, and Dale-Chall rates an over-written paragraph
+# EASIER than a clean one, because its familiarity list holds `utilization` but not
+# `stderr`.
+#
+# A count of an authorial choice survived where every fitted formula failed. Prefer
+# that shape for anything added here.
 extends: script
 message: "%s"
 level: warning
