@@ -4,8 +4,6 @@ Drives the real script with real payloads from each supported harness. The hook
 shells out to slop-lint.sh, so tests that assert on findings skip without vale.
 """
 
-from __future__ import annotations
-
 import json
 import os
 import shutil

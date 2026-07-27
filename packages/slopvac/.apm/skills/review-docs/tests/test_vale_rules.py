@@ -6,8 +6,6 @@ real binary over fixtures and assert on rule names and the exit contract.
 Skipped when `vale` is absent so a checkout without it still collects.
 """
 
-from __future__ import annotations
-
 import json
 import shutil
 import subprocess

@@ -199,7 +199,7 @@ control with the code. Target several at once with `--target claude,codex,kiro`.
 | What | Needed for | Without it |
 | --- | --- | --- |
 | [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | The gate refuses to run and names the install command; the skill still applies its judgement rules by reading |
-| `python3` 3.7+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
+| `python3` 3.12+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
 | `jq` | The `SubagentStart` hook, to build its JSON payload | That hook warns on stderr and skips, so a spawn is never blocked |
 | [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
 | `bash` 3.2+ | The gate and scaffold scripts. Stock macOS bash is the floor, so no `mapfile` | -- |
