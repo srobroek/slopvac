@@ -37,9 +37,9 @@ def run_hook(payload: dict, *, env: dict | None = None) -> str:
     environ = {
         **os.environ,
         # Fire on the first edit; accumulation is tested separately.
-        "WRITE_DOCS_ADVISORY_LINES": "1",
-        "WRITE_DOCS_ADVISORY_FILES": "1",
-        "WRITE_DOCS_ADVISORY_COOLDOWN_SECONDS": "0",
+        "SLOPVAC_ADVISORY_LINES": "1",
+        "SLOPVAC_ADVISORY_FILES": "1",
+        "SLOPVAC_ADVISORY_COOLDOWN_SECONDS": "0",
         **(env or {}),
     }
     proc = subprocess.run(
@@ -169,9 +169,9 @@ def test_small_edit_is_throttled_at_default_thresholds(repo):
     out = run_hook(
         {"cwd": str(repo), "tool_name": "Write",
          "tool_input": {"file_path": str(repo / "doc.md"), "content": "one line"}},
-        env={"WRITE_DOCS_ADVISORY_LINES": "120",
-             "WRITE_DOCS_ADVISORY_FILES": "5",
-             "WRITE_DOCS_ADVISORY_COOLDOWN_SECONDS": "300"},
+        env={"SLOPVAC_ADVISORY_LINES": "120",
+             "SLOPVAC_ADVISORY_FILES": "5",
+             "SLOPVAC_ADVISORY_COOLDOWN_SECONDS": "300"},
     )
     assert out == ""
 
@@ -180,8 +180,8 @@ def test_small_edit_is_throttled_at_default_thresholds(repo):
 def test_cooldown_suppresses_the_second_advisory(repo):
     payload = {"cwd": str(repo), "tool_name": "Write", "tool_input": {
         "file_path": str(repo / "doc.md"), "content": "line\n" * 200}}
-    env = {"WRITE_DOCS_ADVISORY_LINES": "120", "WRITE_DOCS_ADVISORY_FILES": "5",
-           "WRITE_DOCS_ADVISORY_COOLDOWN_SECONDS": "300"}
+    env = {"SLOPVAC_ADVISORY_LINES": "120", "SLOPVAC_ADVISORY_FILES": "5",
+           "SLOPVAC_ADVISORY_COOLDOWN_SECONDS": "300"}
     assert "PROSE GATE" in run_hook(payload, env=env)
     assert run_hook(payload, env=env) == "", "cooldown did not suppress"
 
@@ -194,10 +194,10 @@ def test_finds_the_gate_in_the_installed_layout(repo, tmp_path):
 
     Regression: the first implementation guessed a fixed set of `..` hops and
     reported PROSE GATE UNAVAILABLE on every real install, because the deployed
-    shape is <root>/hooks/write-docs/scripts -> <root>/skills/review-docs/scripts.
+    shape is <root>/hooks/slopvac/scripts -> <root>/skills/review-docs/scripts.
     """
     root = tmp_path / "deployed"
-    hook_dir = root / "hooks" / "write-docs" / "scripts"
+    hook_dir = root / "hooks" / "slopvac" / "scripts"
     skill_dir = root / "skills" / "review-docs" / "scripts"
     hook_dir.mkdir(parents=True)
     skill_dir.mkdir(parents=True)
@@ -215,9 +215,9 @@ def test_finds_the_gate_in_the_installed_layout(repo, tmp_path):
         input=json.dumps({"cwd": str(repo), "tool_name": "Write", "tool_input": {
             "file_path": str(repo / "doc.md"), "content": "x"}}),
         capture_output=True, text=True, timeout=60,
-        env={**os.environ, "WRITE_DOCS_ADVISORY_LINES": "1",
-             "WRITE_DOCS_ADVISORY_FILES": "1",
-             "WRITE_DOCS_ADVISORY_COOLDOWN_SECONDS": "0"},
+        env={**os.environ, "SLOPVAC_ADVISORY_LINES": "1",
+             "SLOPVAC_ADVISORY_FILES": "1",
+             "SLOPVAC_ADVISORY_COOLDOWN_SECONDS": "0"},
     )
     assert proc.returncode == 0
     out = json.loads(proc.stdout)["hookSpecificOutput"]["additionalContext"]

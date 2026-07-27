@@ -163,8 +163,8 @@ def main() -> int:
 
     # Locate the gate. The hook and the skill land in different trees depending
     # on how the package was deployed, and the two are not siblings:
-    #   installed:  <root>/hooks/write-docs/scripts/  ->  <root>/skills/review-docs/...
-    #   source:     packages/write-docs/scripts/      ->  .../.apm/skills/review-docs/...
+    #   installed:  <root>/hooks/slopvac/scripts/  ->  <root>/skills/review-docs/...
+    #   source:     packages/slopvac/scripts/      ->  .../.apm/skills/review-docs/...
     # So walk up from this script and look for either shape at each level, rather
     # than guessing a fixed number of `..` hops.
     here = Path(__file__).resolve().parent
@@ -180,7 +180,7 @@ def main() -> int:
     if lint is None:
         emit("PROSE GATE UNAVAILABLE: the review-docs slop-lint.sh script was not "
              "found next to this hook, so edited prose is NOT being checked. "
-             "Reinstall: `apm install write-docs@srobroek-agentic`.")
+             "Reinstall: `apm install slopvac@slopvac`.")
     lint = lint.resolve()
     vale_dir = lint.parent.parent / "vale"
 
@@ -209,7 +209,7 @@ def main() -> int:
     # --- Throttle ------------------------------------------------------------
     # The gate is cheap (~0.3s) but an advisory per keystroke-sized edit is noise.
     digest = hashlib.md5(repo_root.encode()).hexdigest()  # noqa: S324 - cache key
-    state = Path(tempfile.gettempdir()) / f"write-docs-prose-{digest}"
+    state = Path(tempfile.gettempdir()) / f"slopvac-prose-{digest}"
     try:
         state.mkdir(parents=True, exist_ok=True)
     except OSError:
@@ -237,9 +237,9 @@ def main() -> int:
     except OSError:
         return 0
 
-    line_threshold = int(os.environ.get("WRITE_DOCS_ADVISORY_LINES", "120"))
-    file_threshold = int(os.environ.get("WRITE_DOCS_ADVISORY_FILES", "5"))
-    cooldown = int(os.environ.get("WRITE_DOCS_ADVISORY_COOLDOWN_SECONDS", "300"))
+    line_threshold = int(os.environ.get("SLOPVAC_ADVISORY_LINES", "120"))
+    file_threshold = int(os.environ.get("SLOPVAC_ADVISORY_FILES", "5"))
+    cooldown = int(os.environ.get("SLOPVAC_ADVISORY_COOLDOWN_SECONDS", "300"))
 
     if total < line_threshold and len(seen) < file_threshold:
         return 0

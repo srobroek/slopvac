@@ -10,14 +10,14 @@ The gate needs `vale` on `PATH` (`mise use -g vale`, or `brew install vale`).
 
 ```sh
 apm marketplace add srobroek/agentic-packages --name srobroek-agentic
-apm install write-docs@srobroek-agentic --target claude,codex
+apm install slopvac@slopvac --target claude,codex
 vale --config=.claude/skills/write-docs/vale/.vale.ini sync
 ```
 
 For Kiro, install and sync; there is no compile step:
 
 ```sh
-apm install write-docs@srobroek-agentic --target kiro
+apm install slopvac@slopvac --target kiro
 vale --config=.kiro/skills/write-docs/vale/.vale.ini sync
 ```
 
@@ -163,9 +163,9 @@ covers each harness's file-writing tools, and the payload parser reads
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `WRITE_DOCS_ADVISORY_LINES` | `120` | Changed prose lines that accumulate before the PostToolUse advisory fires |
-| `WRITE_DOCS_ADVISORY_FILES` | `5` | Prose files touched before the advisory fires |
-| `WRITE_DOCS_ADVISORY_COOLDOWN_SECONDS` | `300` | Minimum interval between advisories |
+| `SLOPVAC_ADVISORY_LINES` | `120` | Changed prose lines that accumulate before the PostToolUse advisory fires |
+| `SLOPVAC_ADVISORY_FILES` | `5` | Prose files touched before the advisory fires |
+| `SLOPVAC_ADVISORY_COOLDOWN_SECONDS` | `300` | Minimum interval between advisories |
 
 Rule levels are overridden in the consuming `.vale.ini`, which survives a sync:
 

@@ -1,0 +1,31 @@
+name: slopvac
+version: 0.1.0
+description: >-
+  Remove AI writing patterns from prose. A deterministic Vale gate over six
+  granular style packages, plus two skills that author and review documentation
+  against genre rules, and hooks that carry the same discipline into every
+  subagent and every edit.
+author: Sjors Robroek
+license: Apache-2.0
+type: hybrid
+targets:
+  - claude
+  - codex
+includes: auto
+scripts:
+  build-styles: ./vale-styles/build.sh
+  build-marketplace: apm pack
+  slop-lint: >-
+    bash packages/slopvac/.apm/skills/review-docs/scripts/slop-lint.sh
+  init-vale: bash packages/slopvac/.apm/skills/review-docs/scripts/init-vale.sh
+  test: >-
+    python3 -m pytest packages/slopvac/tests
+    packages/slopvac/.apm/skills/review-docs/tests -q
+marketplace:
+  outputs:
+    claude: {}
+    codex: {}
+  versioning:
+    strategy: tag_pattern
+  build:
+    tagPattern: '{name}--v{version}'

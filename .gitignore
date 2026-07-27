@@ -1,0 +1,9 @@
+# Built by vale-styles/build.sh and published as release assets.
+vale-styles/dist/
+
+# Fetched by `vale sync`, never committed.
+.vale-styles/
+packages/slopvac/.apm/skills/review-docs/vale/styles/*/
+
+__pycache__/
+*.pyc
