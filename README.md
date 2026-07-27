@@ -4,7 +4,7 @@ Remove AI writing patterns from prose.
 
 AI generated documentation has a clear fingerprint: contrastive inversions, adjectives nothing
 measures, rationale that belongs in a decision record, roadmap language for something
-that does not ship yet, excessive hedging, etc. 
+that does not ship yet, excessive hedging, and so on. 
 
 This package ships two skills. 
 
@@ -57,7 +57,7 @@ README"*. It scaffolds a `.vale.ini` on first use and asks before writing.
 You ask the agent for a document, or to review one. The agent runs the gate and the
 judgement pass.
 
-### Writing a document
+### Write a document
 
 ```mermaid
 flowchart TD
@@ -95,7 +95,7 @@ it does, name who acted,<br/>one idea per sentence, no over-writing"]
     class HANDOFF out
 ```
 
-### Reviewing a document
+### Review a document
 
 ```mermaid
 flowchart TD
@@ -154,18 +154,38 @@ into every subagent, because a subagent inherits main-session steering weakly.
 
 Two layers, because half of this resists mechanization.
 
-**Deterministic** -- 23 Vale rules across seven packages, each one regex over parsed
-prose, tested and calibrated against a real corpus.
+**Deterministic** -- Vale rules over parsed prose, each one tested and calibrated
+against a real corpus.
 
-| Package | Rules | Catches |
-| --- | --- | --- |
-| `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | The actor deleted: an abstraction acting, a passive with no agent, narration from outside the scene |
-| `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
-| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance`, `Epigram` | Over-writing: a decision defended in place, a cost the reader cannot act on, an answer to a worry never raised, an epigram closing a section that already concluded |
-| `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document |
-| `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Text describing something other than the released artifact |
-| `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Emoji headings, Unicode dashes, paragraphs that should be a list |
-| `ai-tells` | 76 upstream | [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells), with the exclusions a software corpus needs applied |
+<!-- BEGIN GENERATED: rule-counts -->
+55 rules across 9 styles. 25 sit on the slop axis and gate at error. 30 sit on the craft axis and warn.
+<!-- END GENERATED: rule-counts -->
+
+Plus `ai-tells`: 76 upstream rules from
+[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells), with the exclusions a
+software corpus needs applied. Vale's built-in `Vale.Repetition` covers "the the".
+
+<!-- BEGIN GENERATED: styles-table -->
+| Style | Axis | Rules | Catches |
+|---|---|---|---|
+| `ai-residue` | slop | `ChatLeakage` | Assistant output pasted into a shipped document |
+| `docs-discipline` | slop | `HistoryNarration`, `InternalRefs`, `StatusLanguage` | Documentation describing something other than the released artifact |
+| `prose-agency` | slop | `AgentlessPassive`, `Anthropomorphism`, `FalseAgency`, `NarratorDistance` | Prose with the actor deleted |
+| `prose-craft` | craft | `AcronymPeriods`, `Annotations`, `Articles`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `NegativeRequirement`, `NominalizedVerb`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
+| `prose-density` | craft | `Overwritten` | Prose too dense to read in one pass |
+| `prose-format` | slop | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells |
+| `prose-inclusive` | craft | `Ableist`, `DeviceAssumption`, `Exclusive` | Language that excludes a reader who could otherwise use the doc |
+| `prose-inflation` | slop | `AdditiveHedge`, `Apologizing`, `BorderlineHype`, `BusinessJargon`, `HedgeStack`, `Intensifier`, `SlopLexicon`, `Uncomparables`, `VagueDeclarative`, `VagueQuantifier` | Claims inflated past their evidence |
+| `prose-scope` | slop | `Epigram`, `ImplementationLeak`, `RejectedAlternative`, `UnrequestedReassurance` | Over-writing: real content in the wrong document |
+<!-- END GENERATED: styles-table -->
+
+Slop-axis rules gate at error, because a match says something about how the text
+was produced. Craft-axis rules warn instead. The writing is worse either way, but a
+wordy sentence should not block a release.
+
+The full rule reference lists every rule with its level and check type:
+[vale-styles/README.md](vale-styles/README.md#every-rule). It is generated from the
+rule files, so it cannot go stale.
 
 **Agentic** -- the skill reads a catalog of tells no regex reaches, and applies them
 by judgement:
@@ -183,9 +203,8 @@ A document passes when both layers agree.
 ## Limits
 
 A clean run means the checked patterns are absent, and nothing more. Neither layer
-reads for truth: a sentence can pass every rule and still be wrong, name a function
-that is absent from the code, describe a flag that never shipped, or contradict the paragraph
-above it. Judgement of the register is a model reading a catalog, so it misses tells
+reads for truth. A sentence can pass every rule and still name a function absent
+from the code, or describe a flag that never shipped. Judgement of the register is a model reading a catalog, so it misses tells
 and occasionally objects to prose that is fine.
 
 Read the text before you ship it. The gate removes the patterns you would otherwise
@@ -256,7 +275,7 @@ apm install slopvac@slopvac --target kiro --global
 ```
 
 Install writes the skills, the steering, and the hook manifests Kiro reads
-natively. Do not run `apm compile --target kiro`: it additionally writes a root
+natively. Do not run `apm compile --target kiro`: it also writes a root
 `AGENTS.md` that Kiro does not read as steering, and overwrites one already there.
 
 By hand, into `~/.kiro` for every project or `.kiro` for one:
@@ -282,13 +301,13 @@ uvx --from apm-cli apm install slopvac@slopvac --target kiro --global
 
 `--global` installs to `~/.claude`, `~/.codex`, or `~/.kiro`. Drop it to install
 into the current project, which is what you want when the config belongs in version
-control with the code. Target several at once with `--target claude,codex,kiro`.
+control with the code. Install for more than one harness at once with `--target claude,codex,kiro`.
 
 ## Dependencies
 
 | What | Needed for | Without it |
 | --- | --- | --- |
-| [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | The gate refuses to run and names the install command; the skill still applies its judgement rules by reading |
+| [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | The gate exits 2 and names the install command; the skill still applies its judgement rules by reading |
 | `python3` 3.12+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
 | `jq` | The `SubagentStart` hook, to build its JSON payload | That hook warns on stderr and skips, so a spawn is never blocked |
 | [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
@@ -319,10 +338,10 @@ fetched `.vale-styles/` directory is not.
 Take new upstream rules with `vale --config=.vale.ini sync`. Every URL in the file
 points at a rolling release tag, so a sync is the whole update.
 
-### Overriding a rule
+### Override a rule
 
 Put the line inside the section it applies to, normally `[*.{md,mdx}]`: a rule line
-binds to the section above it, so one appended at the end of the file attaches to
+binds to that section it, so one appended at the end of the file attaches to
 the last section instead.
 
 ```ini

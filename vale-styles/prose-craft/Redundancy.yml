@@ -1,0 +1,44 @@
+# A phrase that says the same thing twice.
+#
+# Two shapes. RAS syndrome, where the expansion repeats the initialism's own last
+# word ("ATM machine" -- the M is "machine"), and the contradiction in terms
+# ("generally always", "exact estimate"), where the modifier cancels the noun.
+#
+# Both are marks of assembled text: a writer who read the sentence aloud would
+# hear it.
+extends: existence
+message: "redundant: %s — cut the repeated half"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  # The expansion repeats the initialism.
+  - '\b(?:ATM machine|PIN number|GUI interface|CLI interface|API interface|'
+  - 'HIV virus|LCD display|LED display|PDF format|ISBN number|RPC call|'
+  - 'SQL language|IP protocol|DNS server system|SSL layer|TLS layer|'
+  - 'CSS stylesheet|HTTP protocol|URL locator|RAM memory|CPU unit|'
+  - 'SIM card module|UUID identifier|JSON notation|YAML language)\b|'
+  # The modifier cancels the noun.
+  - '\b(?:generally|usually|normally|often) always\b|'
+  - '\b(?:exact|precise|accurate) estimate\b|'
+  - '\bincreasingly less\b|'
+  - '\bfound missing\b|'
+  - '\bconspicuous(?:ly)? absen(?:t|ce)\b|'
+  - '\bmandatory (?:choice|option)\b|'
+  - '\bcompletely obsolescent\b|'
+  # Ordinary tautology.
+  - '\b(?:advance )?planning ahead\b|'
+  - '\bfree gift\b|'
+  - '\bpast history\b|'
+  - '\bfuture plans?\b|'
+  - '\bend result\b|'
+  - '\bnew innovation\b|'
+  - '\babsolutely (?:essential|necessary)\b|'
+  - '\bcompletely (?:eliminate|destroy|finish)\b|'
+  - '\bcomponent parts?\b|'
+  - '\breason why\b|'
+  - '\brefer back\b|'
+  - '\brevert back\b|'
+  - '\bcollaborate together\b|'
+  - '\bmerge together\b|'
+  - '\bcombine together\b'

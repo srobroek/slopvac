@@ -1,0 +1,141 @@
+# A long phrase where a short word does the same work.
+#
+# Merged from three upstream maps that overlap heavily -- Microsoft's Wordiness
+# (119 entries), Red Hat's SimpleWords (107), and write-good's TooWordy (216
+# bare tokens with no replacement). This rule keeps the SUBSTITUTION form: a
+# finding that names the replacement is actionable, one that says "too wordy" is
+# not, and 122 of write-good's tokens ship without a replacement at all.
+#
+# Trimmed against the three sources on three grounds:
+#   - Technical homographs. `implement`, `monitor`, `validate`, `evaluate`,
+#     `terminate`, `maximum`, `minimum`, `objective`, `requirement`, `indicate`,
+#     `retain` are the correct words in a software corpus. write-good flags all
+#     of them.
+#   - Connectives. `however`, `therefore`, `nevertheless`, `regarding`,
+#     `similar to`, `on the other hand` are ordinary English, not padding.
+#   - Register-neutral verbs. `provide`, `contains`, `maintain`, `permit`,
+#     `determine`, `notify`, `encounter` read the same as their "plain"
+#     replacements; swapping them is taste, not clarity.
+extends: substitution
+message: "wordy: use '%s' instead of '%s'"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+swap:
+  # --- Multi-word padding: the highest-value entries. Every one is a phrase
+  # whose meaning survives complete replacement by one or two words.
+  'a (?:large |small |good |fair )?(?:number|amount) of': many
+  'a (?:large )?majority of': most
+  'a myriad of': myriad
+  'a variety of': several kinds of
+  'along the lines of': like
+  'an adequate number of': enough
+  'an appreciable number of': many
+  'any and all': all
+  'are in agreement': agree
+  'as a matter of fact': in fact
+  'as a means (?:of|to)': to
+  'as a result of': because of
+  'as of yet': yet
+  'at a later date': later
+  'at all times': always
+  'at the present time': now
+  'at this (?:point in )?time': now
+  'by means of': by
+  'by virtue of the fact that': because
+  'by virtue of': through
+  'despite the fact that': although
+  'due to the fact that': because
+  'during the (?:course|period) of': during
+  'each and every': every
+  'for all intents and purposes': effectively
+  'for the purpose of': to
+  'for the reason that': because
+  'give consideration to': consider
+  'has the ability to': can
+  'have a tendency to': tend to
+  'in a manner of speaking': effectively
+  'in accordance with': under
+  'in advance of': before
+  'in all likelihood': probably
+  'in an effort to': to
+  'in close proximity to': near
+  'in conjunction with': with
+  'in excess of': 'more than'
+  'in light of the fact that': because
+  'in order to': to
+  'in regard to': about
+  'in some instances': sometimes
+  'in spite of the fact that': although
+  'in terms of': for
+  'in the (?:course|process) of': during
+  'in the absence of': without
+  'in the case of': for
+  'in the event that': if
+  'in the final analysis': finally
+  'in the majority of instances': usually
+  'in the near future': soon
+  'in the neighborhood of': about
+  'in the vicinity of': near
+  'is able to': can
+  'is applicable to': applies to
+  'is authorized to': may
+  'is capable of': can
+  'is in a position to': can
+  'is unable to': cannot
+  'it is essential that': must
+  'it is necessary that': must
+  'null and void': void
+  'on a (?:daily|weekly|monthly|yearly) basis': 'daily|weekly|monthly|yearly'
+  'on the grounds that': because
+  'owing to the fact that': because
+  'point in time': time
+  'prior to': before
+  'provided that': if
+  'pursuant to': under
+  'subsequent to': after
+  'take into consideration': consider
+  'the (?:manner|way) in which': how
+  'the majority of': most
+  'the question as to whether': whether
+  'this day and age': now
+  'under the provisions of': under
+  'until such time as': until
+  'various different': different
+  'whether or not': whether
+  'with regard to': about
+  'with respect to': about
+  'with the exception of': 'except for'
+  'with the result that': so
+
+  # --- Single-word latinate inflation. Restricted to words with no distinct
+  # technical sense, so `validate`, `implement`, and `evaluate` are absent.
+  'accentuate(?:s|d)?': stress
+  'accomplish(?:es|ed)?': 'do|carry out'
+  'acquiesce': agree
+  'additionally': also
+  'adversely impact': hurt
+  'ameliorate': improve
+  'ascertain(?:s|ed)?': 'find out'
+  'attributable to': 'caused by'
+  'cognizant of': 'aware of'
+  'commence(?:s|d)?': start
+  'component part': component
+  'demonstrate(?:s|d)?': show
+  'disseminate(?:s|d)?': 'send|share'
+  'endeavor to': 'try to'
+  'expend': spend
+  'expedite(?:s|d)?': 'speed up'
+  'facilitate(?:s|d)?': 'help|ease'
+  'finaliz(?:e|es|ed)': finish
+  'incumbent upon': 'up to'
+  'initiate(?:s|d)?': start
+  'necessitate(?:s|d)?': 'need|require'
+  'promulgate': publish
+  'remuneration': pay
+  'strategiz(?:e|es|ed)': plan
+  'subsequently': later
+  'transpire(?:s|d)?': happen
+  'utilizations?': use
+  'utiliz(?:e|es|ed)': use
+  'utilizing': using

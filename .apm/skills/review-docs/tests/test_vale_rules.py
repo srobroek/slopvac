@@ -475,3 +475,256 @@ def test_epigram_stays_quiet(tmp_path, text):
     doc = tmp_path / "case.md"
     doc.write_text(text + "\n", encoding="utf-8")
     assert "prose-scope.Epigram" not in rules(doc), text
+
+
+# --- prose-craft: writing craft, warning level -------------------------------
+# These fire on prose a human wrote badly, not on generated prose, so each case
+# pairs a positive with the near-miss that must stay clean. The near-misses are
+# where a craft rule earns or loses its place: a rule that flags correct prose
+# gets the whole style switched off.
+
+
+@pytest.mark.parametrize(
+    "text,rule",
+    [
+        ("There is a flag that controls retries.", "prose-craft.DeadOpener"),
+        ("It is important to note that the loader caches.", "prose-craft.DeadOpener"),
+        ("In order to configure it, edit the file.", "prose-craft.Wordiness"),
+        ("The parser utilizes a lookahead.", "prose-craft.Wordiness"),
+        ("Open a HTML file.", "prose-craft.Articles"),
+        ("Fetch an URL.", "prose-craft.Articles"),
+        ("Three API's are exposed.", "prose-craft.PluralAbbreviation"),
+        ("See the table above for the list.", "prose-craft.DirectionalRef"),
+        ("This section explains the loader.", "prose-craft.SelfReference"),
+        ("Select the file(s) you want.", "prose-craft.OptionalPlural"),
+        ("A newly-added flag controls this.", "prose-craft.Hyphens"),
+        ("The ATM machine failed.", "prose-craft.Redundancy"),
+        ("The output is generally always correct.", "prose-craft.Redundancy"),
+        ("Firstly, install the binary.", "prose-craft.Ordinals"),
+        ("Read the A.P.I. reference.", "prose-craft.AcronymPeriods"),
+        ("Requires version 3 and higher.", "prose-craft.Versions"),
+        ("You cannot deploy without a token.", "prose-craft.NegativeRequirement"),
+        ("TODO: document the flag.", "prose-craft.Annotations"),
+        ("The loader was rewritten recently.", "prose-craft.RelativeDate"),
+        ("The gate will reject the file.", "prose-craft.FutureTense"),
+        ("Use the flag, e.g. --json, to change the output.", "prose-craft.Latinisms"),
+        ("This is why the sync fails.", "prose-craft.UnclearAntecedent"),
+        ("The script performs validation of the token.", "prose-craft.NominalizedVerb"),
+        ("Our tool reads one config file.", "prose-craft.FirstPersonPlural"),
+    ],
+)
+def test_craft_rules_fire(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text,rule",
+    [
+        # Existential "there" mid-sentence is not a dead opener.
+        ("Check whether there is a lockfile before syncing.", "prose-craft.DeadOpener"),
+        # A possessive apostrophe on an initialism is correct.
+        ("The API's rate limit is 60 per minute.", "prose-craft.PluralAbbreviation"),
+        # A demonstrative WITH its noun names its own antecedent.
+        ("This flag controls retries.", "prose-craft.UnclearAntecedent"),
+        # A real noun phrase, not a light-verb construction.
+        ("The validation step runs after parsing.", "prose-craft.NominalizedVerb"),
+        # `master boot record` and `master branch` are fixed technical terms; the
+        # negative lookaheads in prose-inclusive.Exclusive exist for exactly this.
+        ("Write the master boot record first.", "prose-inclusive.Exclusive"),
+        ("Merge into the master branch.", "prose-inclusive.Exclusive"),
+        # A config state, not a person. Microsoft's rule flags this; ours must not.
+        ("The rule is disabled for generated files.", "prose-inclusive.Ableist"),
+        # A click event is a noun, not an instruction.
+        ("The handler fires on a click event.", "prose-inclusive.DeviceAssumption"),
+        # Directional words with no cross-reference sense.
+        ("Left-shift the value by two bits.", "prose-craft.DirectionalRef"),
+        # An -ly adverb NOT hyphenated.
+        ("A newly added flag controls this.", "prose-craft.Hyphens"),
+        # Bare gerund headings are topics, not tasks.
+        ("## Logging\n\nText.", "prose-craft.GerundHeading"),
+        ("## Troubleshooting\n\nText.", "prose-craft.GerundHeading"),
+        # An SPDX identifier is not an initialism awaiting expansion.
+        ("Licensed under MIT and Apache-2.0.", "prose-craft.UndefinedAcronym"),
+        # Directive vocabulary in agent-facing prose.
+        ("MUST name who acted. NOT status language.", "prose-craft.UndefinedAcronym"),
+    ],
+)
+def test_craft_rules_stay_quiet(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule not in rules(doc), text
+
+
+def test_gerund_heading_fires_on_a_task_heading(tmp_path):
+    doc = tmp_path / "case.md"
+    doc.write_text("## Installing the plugin\n\nText.\n", encoding="utf-8")
+    assert "prose-craft.GerundHeading" in rules(doc)
+
+
+def test_sentence_length_threshold(tmp_path):
+    """34 words, measured: Microsoft's 30 and Red Hat's 32 both flagged correct
+    enumerations in this repo's prose."""
+    doc = tmp_path / "case.md"
+    short = " ".join(["word"] * 30) + ".\n"
+    long = " ".join(["word"] * 40) + ".\n"
+    doc.write_text(short, encoding="utf-8")
+    assert "prose-craft.SentenceLength" not in rules(doc)
+    doc.write_text(long, encoding="utf-8")
+    assert "prose-craft.SentenceLength" in rules(doc)
+
+
+def test_conflict_markers_are_caught_inside_code_fences(tmp_path):
+    """`scope: raw`, because a botched merge usually lands inside a fence."""
+    doc = tmp_path / "case.md"
+    doc.write_text("```\n<<<<<<< HEAD\nx = 1\n>>>>>>> other\n```\n", encoding="utf-8")
+    assert rules(doc).get("prose-craft.ConflictMarkers", 0) >= 2
+
+
+# --- prose-inflation: the harvested slop-axis additions ----------------------
+
+
+@pytest.mark.parametrize(
+    "text,rule",
+    [
+        ("The design is very unique.", "prose-inflation.Uncomparables"),
+        ("A more complete rewrite landed.", "prose-inflation.Uncomparables"),
+        ("The parser is very fast.", "prose-inflation.Intensifier"),
+        ("Several options control this.", "prose-inflation.VagueQuantifier"),
+        ("The loader usually retries.", "prose-inflation.VagueQuantifier"),
+        ("More research is needed here.", "prose-inflation.Apologizing"),
+        ("This may help to potentially reduce latency.", "prose-inflation.HedgeStack"),
+        ("Obviously the flag is required.", "prose-inflation.BorderlineHype"),
+        ("We productized the north star.", "prose-inflation.BusinessJargon"),
+        ("The team hit the ground running.", "prose-inflation.BusinessJargon"),
+        ("The tool allows you to filter.", "prose-agency.FalseAgency"),
+    ],
+)
+def test_harvested_inflation_rules_fire(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text,rule",
+    [
+        # A single hedge is often the correct, true statement.
+        ("The loader may retry once.", "prose-inflation.HedgeStack"),
+        # Load-bearing next to a figure, so deliberately not in the token list.
+        ("The parser is significantly faster: 12 ms against 84 ms.",
+         "prose-inflation.Intensifier"),
+        # A real capability with a real object, not a grant of permission.
+        ("The config allows two retries.", "prose-agency.FalseAgency"),
+        # An exact quantity.
+        ("All three styles sync from one tag.", "prose-inflation.VagueQuantifier"),
+        # `greenfield` names a real project condition; it is not vision vocabulary.
+        ("Greenfield repos have no history to narrate.",
+         "prose-inflation.BusinessJargon"),
+    ],
+)
+def test_harvested_inflation_rules_stay_quiet(tmp_path, text, rule):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert rule not in rules(doc), text
+
+
+# --- prose-density -----------------------------------------------------------
+
+
+def test_density_flags_nominalised_prose_and_not_plain_prose(tmp_path):
+    """Reading ease under 30. The threshold is measured against this repo: the
+    READMEs score 64-70 and the reference material 41-53, so 30 reaches only prose
+    that has stopped being long and started being nested."""
+    doc = tmp_path / "case.md"
+    doc.write_text(
+        "The utilization of the aforementioned methodology facilitates the "
+        "optimization of operational efficiency in a manner that is both effective "
+        "and efficacious, thereby enabling the achievement of desired outcomes "
+        "within the requisite timeframe.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.Overwritten" in rules(doc)
+
+    doc.write_text(
+        "The loader reads one file. It retries twice, then fails. "
+        "Each retry waits one second.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.Overwritten" not in rules(doc)
+
+
+# --- Genre routing for the craft rules ---------------------------------------
+
+
+def test_first_person_plural_is_off_for_decision_records(tmp_path, monkeypatch):
+    """An ADR records what WE decided; that is the document's job. Same inversion
+    the over-writing rules already get for these paths."""
+    adr = tmp_path / "docs" / "adr"
+    adr.mkdir(parents=True)
+    doc = adr / "0001-choose-vale.md"
+    doc.write_text("We chose Vale over a bespoke linter.\n", encoding="utf-8")
+    assert "prose-craft.FirstPersonPlural" not in rules(doc)
+
+    consumer = tmp_path / "README.md"
+    consumer.write_text("We chose Vale over a bespoke linter.\n", encoding="utf-8")
+    assert "prose-craft.FirstPersonPlural" in rules(consumer)
+
+
+def test_negative_requirement_is_off_for_specs(tmp_path):
+    spec = tmp_path / "specs"
+    spec.mkdir()
+    doc = spec / "loader.md"
+    doc.write_text("The loader cannot start without a config.\n", encoding="utf-8")
+    assert "prose-craft.NegativeRequirement" not in rules(doc)
+
+
+# --- Late additions from the topic-page survey --------------------------------
+# Openly's Anthropomorphism and Link, the two rules the first pass over
+# github.com/topics/vale-linter-style missed.
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The parser knows the schema.",
+        "The linter thinks it failed.",
+        "The gate decides which rules apply.",
+        "The agent wants a config file.",
+    ],
+)
+def test_anthropomorphism_fires(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-agency.Anthropomorphism" in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # A person is allowed a mind. The rule is subject-anchored for this reason.
+        "The reviewer knows the schema.",
+        "The maintainer decided to drop the flag.",
+        # Ordinary correct English about a program.
+        "The loader behaves the same way on Windows.",
+        "The parser requires a schema.",
+        "The gate reports six findings.",
+    ],
+)
+def test_anthropomorphism_stays_quiet(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-agency.Anthropomorphism" not in rules(doc), text
+
+
+def test_link_text_fires_on_empty_labels_and_not_on_named_ones(tmp_path):
+    doc = tmp_path / "case.md"
+    doc.write_text(
+        "See [here](https://example.com) and [click here](https://example.com).\n",
+        encoding="utf-8",
+    )
+    assert rules(doc).get("prose-craft.LinkText") == 2
+
+    doc.write_text("Read the [Vale docs](https://vale.sh) for detail.\n", encoding="utf-8")
+    assert "prose-craft.LinkText" not in rules(doc)

@@ -1,0 +1,16 @@
+# An apostrophe making an initialism plural. "API's" for more than one API.
+#
+# The apostrophe marks possession, never a plural, so "the API's rate limit" is
+# correct and "three API's" is not. Distinguishing them needs part-of-speech
+# tagging: the `sequence` check negates on a following noun, which is what a
+# genuine possessive has.
+extends: sequence
+message: "plural initialism: %s — drop the apostrophe"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+tokens:
+  - pattern: '\b[A-Z]{2,}'
+  - pattern: "'s"
+  # A noun here means the apostrophe is possessive, which is correct.
+  - tag: NN|NNS|NNP|NNPS
+    negate: true

@@ -1,0 +1,14 @@
+# An ordinal in the wrong form.
+#
+# Two shapes. "firstly" adds -ly to a word that is already the ordinal, and the
+# numeric form ("1st", "2nd") reads as a date fragment in running prose. In a
+# list, the list marker is the ordinal and neither is needed.
+extends: existence
+message: "ordinal: %s — use 'first', or let the list carry the order"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:firstly|secondly|thirdly|fourthly|fifthly|lastly)\b|'
+  # Numeric ordinal in prose, excluding a bare year-like number.
+  - '(?<!\w)\d{1,2}(?:st|nd|rd|th)\b'

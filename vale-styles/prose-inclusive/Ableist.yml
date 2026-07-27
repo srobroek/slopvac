@@ -1,0 +1,45 @@
+# Disability used as an insult or a metaphor.
+#
+# Two shapes, one rule. A slur applied to a person ("crippled", "retarded") and a
+# disability standing in for a shortcoming ("blind spot", "tone-deaf", "falling
+# on deaf ears"). The second is the one that reaches technical prose, and it is
+# always replaceable by the plainer word that was meant.
+#
+# `disabled` is deliberately ABSENT. Microsoft's Accessibility rule includes it
+# and fired twice on this repo, both times on a config state ("the rule is
+# disabled"). Elastic dropped it for the same reason.
+extends: substitution
+message: "ableist: consider %s instead of '%s'"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+swap:
+  # Disability as metaphor -- the entries that appear in software prose.
+  '\bblind spots?\b': 'gap, oversight'
+  '\bturn(?:ing|ed)? a blind eye\b': 'ignoring, overlooking'
+  '\bblind to\b': 'unaware of'
+  '\btone[- ]deaf\b': 'out of touch, insensitive'
+  '\bfall(?:ing|s)? on deaf ears\b': 'going unheard'
+  '\bdeaf ears\b': 'unheard'
+  '\bparaly[sz]ed (?:with|by)\b': 'unable to act because of'
+  '\bcrippl(?:ing|es|ed) (?:debt|fear|blow|anxiety|performance|latency)\b': 'severe, crushing'
+  '\bschizophrenic\b': 'contradictory, inconsistent'
+  '\bbasket[- ]case\b': 'overwhelmed'
+  '\bstands? on its own two feet\b': 'self-sufficient, independent'
+  '\bcrazy\b': 'surprising, unexpected'
+  '\binsane\b': 'extreme, unreasonable'
+  '\blame\b': 'weak, unconvincing'
+  '\bdumb\b': 'silent, unresponsive'
+  '\bidiot(?:ic)?\b': 'unwise'
+  '\bmoronic\b': 'unwise'
+  # Slurs applied to people.
+  '\bcrippled?\b': 'person with a mobility disability'
+  '\bretard(?:ed|s)?\b': 'person with an intellectual disability'
+  '\bimbeciles?\b': 'person with an intellectual disability'
+  '\bhandicapped\b': 'person with a disability'
+  '\bsuffers? from\b': 'has'
+  '\bafflicted with\b': 'has'
+  '\bconfined to a wheelchair\b': 'uses a wheelchair'
+  '\bwheelchair[- ]bound\b': 'uses a wheelchair'
+  '\bnormal person\b': 'person without a disability'
+  '\bable[- ]bodied\b': 'person without a disability'

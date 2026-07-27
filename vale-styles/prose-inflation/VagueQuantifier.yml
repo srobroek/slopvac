@@ -1,0 +1,27 @@
+# A quantity word standing in for a number nobody counted.
+#
+# "several files", "various options", "a number of cases". Each one is a place the
+# writer had the count and declined to give it, and generated prose defaults to
+# them because the model does not have the count either.
+#
+# Deliberately EXCLUDED:
+#   significantly, substantially, considerably -- load-bearing next to a figure
+#   relatively, comparatively -- state an actual comparison
+#   all, none, every, each -- exact
+#   some -- too common in correct generic use ("some shells do not support this")
+extends: existence
+message: "vague quantifier: %s — give the count, or name the cases"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:several|various|numerous|myriad|a (?:number|variety|handful) of|'
+  - 'a (?:large|small|good|fair) (?:number|amount) of|'
+  - 'countless|innumerable|plenty of|lots of|a lot of)\b|'
+  # Frequency hedges: "usually", "often", "typically" describe a distribution the
+  # writer has not measured. `generally` and `mostly` are here; `always`/`never`
+  # are not, being exact claims.
+  - '\b(?:usually|typically|oftentimes|frequently|generally speaking|'
+  - 'more often than not|in most cases|for the most part)\b|'
+  # Magnitude adjectives with no scale.
+  - '\b(?:huge|vast|tiny|massive|enormous)\b'

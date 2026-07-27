@@ -1,0 +1,11 @@
+# Periods inside an initialism. "A.P.I.", "U.R.L."
+#
+# Modern technical style writes initialisms unpunctuated. The dotted form also
+# breaks sentence splitting in every tool downstream, including this linter.
+extends: existence
+message: "initialism periods: %s — write it unpunctuated"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+nonword: true
+tokens:
+  - '\b(?:[A-Z]\.){3,5}'

@@ -1,0 +1,17 @@
+# A link whose text says nothing. "[here](...)", "[click here](...)", "[link](...)".
+#
+# A screen reader can list a page's links out of context, so "here" becomes an
+# entry with no destination. Every reader loses too: link text is what a scanning
+# eye lands on, and "here" carries none of the target's meaning.
+#
+# `scope: raw` because the pattern is markdown syntax, not prose, and the parsed
+# text node would give only the label without the surrounding brackets.
+extends: existence
+message: "link text: %s — name the destination in the link text"
+level: warning
+link: https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context
+scope: raw
+ignorecase: true
+raw:
+  - '\[\s*(?:here|this|this link|click here|read more|more|link|'
+  - 'see here|learn more|find out more|this page|the docs|documentation)\s*\]\('

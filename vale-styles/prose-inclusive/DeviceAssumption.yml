@@ -1,0 +1,23 @@
+# An instruction that assumes the reader's input device.
+#
+# "Click the button" excludes keyboard, touch, and screen-reader users; "Select
+# the button" covers all of them and is no longer. The same applies to hover,
+# which has no touch equivalent at all.
+#
+# Bare `click` is not matched -- "a click event" and "click-through rate" are
+# nouns. The pattern needs the instruction shape (click + on/the/this).
+extends: substitution
+message: "device assumption: use %s instead of '%s'"
+level: warning
+link: https://www.w3.org/WAI/WCAG22/Understanding/
+ignorecase: true
+swap:
+  '\bclick(?:ing|ed)? (?:on |the |this )': 'select, choose'
+  '\btap(?:ping|ped)? (?:on |the |this )': 'select, choose'
+  '\bswipe (?:the |this )': 'select, navigate to'
+  '\bhover over\b': 'point to, focus'
+  '\bdouble[- ]click (?:on |the )': 'select, open'
+  '\bright[- ]click (?:on |the )': 'open the context menu for'
+  '\blong[- ]press\b': 'select and hold'
+  '\bdrag and drop\b': 'move (name a keyboard path too)'
+  '\bsee the\b(?= (?:icon|button|badge|indicator))': 'find the'

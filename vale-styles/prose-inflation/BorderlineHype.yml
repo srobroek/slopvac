@@ -1,5 +1,11 @@
 # W3 in the retired slop-lint.py. Warning, not error: each of these has a
 # legitimate use, so the finding is a prompt to check, not a defect.
+#
+# The second group is the condescension band: a word that tells the reader the
+# thing is easy tells them nothing, and tells the reader for whom it was not easy
+# that they are the problem. Named in MediaWiki's FreeOfFrustration and alex's
+# Condescending, both of which include `simple`/`easy` -- already covered above,
+# so only the assertion-of-obviousness half is added here.
 extends: existence
 message: "borderline hype: %s — keep it only if a number or example backs it"
 level: warning
@@ -7,4 +13,7 @@ link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
   - '\b(simply|just works|easy to use|easily|intuitive(ly)?|flexible|'
-  - 'hassle[- ]free|out of the box|plug[- ]and[- ]play)\b'
+  - 'hassle[- ]free|out of the box|plug[- ]and[- ]play)\b|'
+  - '\b(obvious(ly)?|of course|clearly|needless to say|everyone knows|'
+  - 'as (?:you|we) (?:all )?know|it goes without saying|trivial(ly)?|'
+  - 'straightforward(ly)?)\b'

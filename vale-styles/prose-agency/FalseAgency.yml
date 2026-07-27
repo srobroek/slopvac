@@ -25,4 +25,14 @@ raw:
   - '\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+'
   - '(emerges?|arrives?|presents? itself|reveals? itself)\b|'
   # The false transformation arc.
-  - '\bstops? being\b[^.!?]{1,40}\band starts? being\b'
+  - '\bstops? being\b[^.!?]{1,40}\band starts? being\b|'
+  # Product-centric agency: an inanimate subject granting the reader an ability.
+  # "The tool allows you to filter" -- the reader filters; the tool has a filter
+  # flag. This is the mirror of the patterns above, where an abstraction acts;
+  # here it hands out permission. Say what the thing has, or what the reader does.
+  #
+  # Anchored on the pronoun so "the config allows two retries" -- a real
+  # capability with a real object -- stays clean.
+  - '\b(?:allows?|enables?|lets?|permits?|empowers?|helps?)\s+'
+  - '(?:you|users?|the user|developers?|the developer|teams?|the reader|clients?|'
+  - 'customers?|consumers?|callers?|the caller|agents?|the agent)\b'

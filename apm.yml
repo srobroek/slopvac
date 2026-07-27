@@ -19,6 +19,7 @@ tags:
   - prose
 scripts:
   build-styles: ./vale-styles/build.sh
+  gen-rule-table: ./vale-styles/gen-rule-table.py
   slop-lint: bash .apm/skills/review-docs/scripts/slop-lint.sh
   init-vale: bash .apm/skills/review-docs/scripts/init-vale.sh
   test: python3 -m pytest tests .apm/skills/review-docs/tests -q

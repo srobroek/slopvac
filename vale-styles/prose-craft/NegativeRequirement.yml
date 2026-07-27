@@ -1,0 +1,18 @@
+# A requirement stated as a prohibition. "You cannot deploy without a token."
+#
+# The reader has to invert the sentence to learn what to do. "Deploying requires
+# a token" carries the same constraint and needs no inversion. Double negatives
+# cost every reader a pass, and non-native readers more than one.
+#
+# Off for internal docs by default: a spec states constraints negatively on
+# purpose ("the loader MUST NOT retry without a backoff") and that is the genre's
+# job, not a defect.
+extends: existence
+message: "negative requirement: %s — state what is required, not what is forbidden"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - "\\b(?:cannot|can't|will not|won't|do not|don't|does not|doesn't|"
+  - 'unable to|not possible|not available|not accessible|no way)\b'
+  - '[^.!?\n]{1,60}\b(?:without|unless|until you)\b'

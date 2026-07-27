@@ -1,0 +1,23 @@
+# Prose too dense to read in one pass.
+#
+# Flesch reading ease, at a threshold far below the score any style guide would
+# ask for. Google and Microsoft target 60-70 (grade 8); this rule fires at 30,
+# which is where sentences have stopped being long and started being nested.
+#
+# The threshold is measured, not inherited. Across this repo's tracked prose the
+# scores run 64-70 for the READMEs, 41-53 for the reference material, and 10 to
+# -37 for two files that are almost entirely markdown tables -- the formula
+# divides by sentence count, and a table has none, so a reference table scores as
+# unreadable prose. Exclude those paths rather than raising the threshold.
+#
+# What this catches that no pattern can: the latinate-nominalisation register a
+# model defaults to. "The utilization of the aforementioned methodology
+# facilitates the optimization of operational efficiency" trips no lexical rule
+# and scores 3.
+extends: metric
+message: "dense prose: reading ease %s is under 30 — shorten sentences, or replace the nominalisations with verbs"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+formula: |
+  206.835 - (1.015 * (words / sentences)) - (84.6 * (syllables / words))
+condition: "< 30"

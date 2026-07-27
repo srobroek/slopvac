@@ -1,0 +1,30 @@
+# A date the reader cannot resolve. "recently", "last month", "as of this year".
+#
+# A relative date is correct on the day it is written and wrong every day after.
+# The document does not carry its own write date, so the reader has no way to
+# resolve the offset -- and neither does a model reading the doc later.
+#
+# Modelled on MediaWiki's RelativeDates, whose own regex matches any month name
+# not followed by a digit. This one matches the relative expressions instead,
+# which is the actual defect.
+#
+# docs-discipline.StatusLanguage owns "currently", "for now", "as of now", "soon",
+# and "in a future release" as STATUS words -- text that describes a roadmap. This
+# rule owns the time OFFSETS it does not cover: a date the reader has to compute
+# against a write date the document does not carry. `soon` and `shortly` are
+# deliberately absent here so a roadmap phrase reports once, under StatusLanguage,
+# rather than twice.
+extends: existence
+message: "relative date: %s — give the absolute date or version"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:recently|lately|nowadays|these days|of late|historically)\b|'
+  - '\b(?:last|this|next|past|coming|previous|upcoming)\s+'
+  - '(?:week|month|quarter|year|release|version|sprint)\b|'
+  - '\b(?:a|one|two|three|several|few)\s+(?:days?|weeks?|months?|years?)\s+ago\b|'
+  - '\b(?:in|since|as of)\s+(?:the\s+)?(?:last|past|recent|coming)\s+'
+  - '(?:few\s+)?(?:days?|weeks?|months?|years?)\b|'
+  - '\b(?:yesterday|today|tomorrow)\b|'
+  - '\bthe other (?:day|week)\b'

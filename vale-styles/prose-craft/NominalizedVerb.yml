@@ -1,0 +1,27 @@
+# A verb buried in a noun, propped up by a light verb.
+#
+# "perform validation" is "validate"; "provide support for" is "supports"; "make a
+# decision" is "decide". The noun form costs a word and moves the action out of the
+# verb slot, which is the mechanism behind most dense technical prose -- and it is
+# what prose-density.Overwritten measures the aggregate of.
+#
+# From Openly's VerbingNouns, widened past its perform/do/run trio to the full
+# light-verb set, and anchored so a real noun phrase ("the validation step") stays
+# clean.
+extends: existence
+message: "nominalisation: %s — use the verb ('validate', not 'perform validation')"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:perform|performs|performed|conduct|conducts|carry out|carries out|'
+  - 'undertake|undertakes|do|does|run|runs|make|makes|made|provide|provides|'
+  - 'give|gives|take|takes|achieve|achieves|effect|effects)\s+'
+  - '(?:a|an|the|any|some)?\s*'
+  - '\w*(?:ation|ations|ment|ments|ance|ence|sion|sions|ysis|yses)\b|'
+  # The fixed light-verb idioms, where the noun is not -ation shaped.
+  - '\b(?:make|makes|made) (?:a|the) (?:decision|choice|selection|'
+  - 'determination|comparison|attempt|request|change)\b|'
+  - '\b(?:take|takes|took) (?:a|the) (?:look|decision|measurement)\b|'
+  - '\b(?:provide|provides|provided) support for\b|'
+  - '\b(?:is|are|was|were) (?:responsible for|in charge of) \w+ing\b'

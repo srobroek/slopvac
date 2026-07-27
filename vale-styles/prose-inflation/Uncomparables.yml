@@ -1,0 +1,44 @@
+# An absolute modified by degree. "very unique", "more complete", "most perfect".
+#
+# The tell is over-commitment: the adjective already means the maximum, so the
+# intensifier adds nothing but emphasis the writer cannot justify. Generated prose
+# reaches for it constantly.
+#
+# `raw` carries the intensifier and consumes the trailing space, so the match spans
+# both words and the message quotes the whole phrase.
+extends: existence
+message: "not comparable: %s — the adjective is already absolute; drop the intensifier"
+level: error
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:absolutely|most|more|less|least|very|quite|largely|extremely|'
+  - 'increasingly|hardly|greatly|somewhat|rather|fairly)\s+'
+tokens:
+  # Absolutes with no ordinary comparative sense in technical prose. "correct",
+  # "possible", and "sufficient" are deliberately absent: "more correct" and
+  # "least possible" are contested, and "more sufficient" is rare enough not to
+  # earn the false positives on "most possible configurations".
+  - absolute
+  - complete
+  - devoid
+  - entire
+  - fatal
+  - final
+  - ideal
+  - impossible
+  - inevitable
+  - infinite
+  - irreversible
+  - irrevocable
+  - perfect
+  - permanent
+  - perpetual
+  - simultaneous
+  - unanimous
+  - unavoidable
+  - unbroken
+  - uniform
+  - unique
+  - universal
+  - void

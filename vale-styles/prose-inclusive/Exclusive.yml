@@ -1,0 +1,54 @@
+# Terms with an exclusionary history that have a settled plain replacement.
+#
+# The bar for inclusion is a documented industry replacement, not a contested
+# etymology: `master`/`slave`, `blacklist`/`whitelist`, and the hire-title
+# metaphors are all in the Linux kernel, IETF, or Google style guidance.
+#
+# The lookaheads on `master` and `slave` come from Red Hat's ConsciousLanguage,
+# which engineers them properly. neighbor's version is a bare `\bmaster\b` and
+# would flag `master boot record` and `master branch of a Git repository being
+# quoted` -- both correct technical terms. Keeping the negative lookaheads is the
+# difference between a rule people leave on and one they switch off.
+#
+# `stakeholder`, `target audience`, `combat`, and `tackle` are deliberately
+# ABSENT. neighbor flags all four; they have no settled replacement, they fired
+# twice on ordinary prose here, and a rule a reader disagrees with gets the whole
+# style disabled.
+extends: substitution
+message: "exclusionary term: use %s instead of '%s'"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+swap:
+  # Access lists.
+  '\bblack[- ]?lists?\b': 'blocklist, denylist'
+  '\bblack[- ]?listed\b': 'blocklisted'
+  '\bblack[- ]?listing\b': 'blocklisting'
+  '\bwhite[- ]?lists?\b': 'allowlist, safelist'
+  '\bwhite[- ]?listed\b': 'allowlisted'
+  '\bwhite[- ]?listing\b': 'allowlisting'
+  '\bgrey[- ]?list\b': 'greylist (rename to a neutral term)'
+  # Replication and control. Lookaheads preserve the fixed technical terms.
+  '\bmaster(?! branch| boot record| broker| key| password| node)\b': 'primary, main, source, controller'
+  '\bslave(?! broker)\b': 'replica, secondary, worker, follower'
+  '\bmaster/slave\b': 'primary/replica'
+  # Placeholder data.
+  '\bdummy (?:data|value|file|object|variable)\b': 'placeholder, mock, sample'
+  # Hire-title metaphors and appropriated terms.
+  '\bninjas?\b': 'expert, specialist'
+  '\bgurus?\b': 'expert, specialist'
+  '\brock[- ]?stars?\b': 'expert, specialist'
+  '\b(?:code )?wizards?\b': 'expert, specialist'
+  '\bspirit animal\b': 'favorite, inspiration'
+  '\bpow[- ]?wow\b': 'meeting, discussion'
+  '\btribal knowledge\b': 'undocumented knowledge, team knowledge'
+  '\bsanity[- ]check\b': 'quick check, confidence check'
+  '\bgrandfather(?:ed|ing)?\b': 'legacy, exempt, pre-existing'
+  '\bman[- ]hours?\b': 'person-hours, engineer-hours'
+  '\bmanpower\b': 'staffing, workforce'
+  '\bmankind\b': 'humanity, people'
+  # Gendered generics with a settled neutral form.
+  '\b(?:he/she|s/he|\(s\)he|he or she)\b': 'they'
+  '\b(?:his/her|his or her)\b': 'their'
+  '\b(?:chair|spokes|business|police|fire|mail|sales)m[ae]n\b': 'the -person or role form'
+  '\bguys\b': 'everyone, folks, team'
