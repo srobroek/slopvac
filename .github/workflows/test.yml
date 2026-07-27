@@ -68,22 +68,22 @@ jobs:
             curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
             sleep 0.5
           done
-          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          config=.apm/skills/review-docs/vale/.vale.ini
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
           for style in ai-tells ai-residue prose-agency prose-inflation prose-scope docs-discipline prose-format; do
-            test -d "packages/slopvac/.apm/skills/review-docs/vale/styles/$style" \
+            test -d ".apm/skills/review-docs/vale/styles/$style" \
               || { echo "$style did not sync"; exit 1; }
           done
 
       - name: pytest
         run: |
-          python3 -m pytest packages/slopvac/tests \
-            packages/slopvac/.apm/skills/review-docs/tests -q
+          python3 -m pytest tests \
+            .apm/skills/review-docs/tests -q
 
       - name: bats
-        run: bats packages/slopvac/tests/*.bats
+        run: bats tests/*.bats
 
       # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
       # loads but resolves nothing reports every file as clean. Lint a probe file
@@ -92,7 +92,7 @@ jobs:
       - name: Validate every rule loads
         run: |
           set -euo pipefail
-          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          config=.apm/skills/review-docs/vale/.vale.ini
           printf 'The library leverages a robust parser.\n' > /tmp/probe.md
           out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
           printf '%s\n' "$out"
@@ -106,10 +106,10 @@ jobs:
       - name: Validate hook JSON
         run: |
           set -euo pipefail
-          for f in packages/slopvac/hooks/hooks.json \
-                   packages/slopvac/.apm/hooks/hooks.json \
-                   packages/slopvac/.claude-plugin/plugin.json \
-                   packages/slopvac/.codex-plugin/plugin.json \
+          for f in hooks/hooks.json \
+                   .apm/hooks/hooks.json \
+                   .claude-plugin/plugin.json \
+                   .codex-plugin/plugin.json \
                    .claude-plugin/marketplace.json \
                    .codex-plugin/marketplace.json; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"

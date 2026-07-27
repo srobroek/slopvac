@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Tests for the write-docs SubagentStart doc-discipline injector.
 # Portability floor: bash 3.2.57 + BSD coreutils (stock macOS).
-# Run with: bats packages/slopvac/tests/inject-doc-discipline.bats
+# Run with: bats tests/inject-doc-discipline.bats
 
 setup() {
   SCRIPT="${BATS_TEST_DIRNAME}/../scripts/inject-doc-discipline.sh"
