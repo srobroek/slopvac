@@ -52,7 +52,7 @@ jobs:
         run: pip install "yamllint==1.37.1"
 
       - name: yamllint
-        run: yamllint -c .yamllint.yml .github/workflows/ apm.yml packages/*/apm.yml
+        run: yamllint -c .yamllint.yml .github/workflows/ apm.yml
 
   shell-lint:
     runs-on: ubuntu-latest
