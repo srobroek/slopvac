@@ -8,6 +8,8 @@ MUST Every sentence is verifiable against the code at HEAD of the branch being m
 MUST A sentence that stops making sense once git history, specs, and this conversation vanish gets deleted.
 MUST Feature flags: document behavior that is on by default, or document the flag as opt-in configuration -- never the roadmap.
 NOT Target states, milestones, completion percentages, "phase 2", section names like "Planned API".
+MUST Cut the claim, not the hedge: deleting "coming soon" from a sentence about an unbuilt feature makes the doc assert the feature ships. Delete the passage, or move it to an issue or spec.
+DEFAULT A genuinely pre-release artifact says so once, as structured metadata (a status field, a version column) -- never as body prose that leaves the rest reading as shipped.
 
 ## Structure (README skeleton -- omit empty sections, never pad)
 

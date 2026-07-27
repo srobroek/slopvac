@@ -114,6 +114,15 @@ voice, not a word -- synonym-swapping does not remove it.
   "a natural consequence of" -- presenting a designed decision as something that
   happened by itself, which erases the agent who chose it. Fix: say the choice
   was made, and why.
+- False agency: an abstraction promoted to actor so no human is named -- "the
+  complaint becomes a fix", "the culture shifts", "the data tells us the market
+  rewards speed", "a bet lives or dies in days", "X stops being a helper and
+  starts being a framework". Distinct from the two entries around it: those grant
+  a component desert ("earns its keep") or self-causation ("falls out
+  naturally"); this promotes the object into the subject slot. Fix: name the
+  human. "The team fixed it that week" beats "the complaint becomes a fix"; if no
+  specific person fits, use "you" and put the reader in the seat. Mechanised as
+  `prose-agency.FalseAgency`.
 - Anthropomorphised justification: "earns its keep", "pulls its weight",
   "load-bearing", "deserves a closer look", "settles the debate" -- a component
   granted intent so its value needs no argument. Fix: state the measured
@@ -160,6 +169,17 @@ Source: Wikipedia catalog style/markup sections; em-dash suppression in
   that is never a style judgement, so it errors in every genre.
 - Fake specificity: "over 100+", "countless", "numerous", "a wide range of".
   Give the number or drop the quantifier.
+- Vaporware description: a doc that describes unbuilt behavior in the present
+  tense. `docs-discipline.StatusLanguage` bans the hedge ("coming soon", "not yet
+  implemented", "planned"), and deleting the hedge alone converts an honest
+  roadmap note into a false claim -- the lint passes and the document now lies.
+  The rule is a prompt to cut the CLAIM, not the qualifier. Fix, in order:
+  delete the whole passage if the feature does not exist; move it to an issue or
+  a spec if the plan matters; keep it only as a documented opt-in flag if the
+  code is there behind one. Where a genuinely unreleased state must be stated,
+  say it once as structured metadata (a version column, a status field), never as
+  body prose. The tell is not the honesty -- it is the mixture, a page that reads
+  as shipped and hedges in the margins.
 - Adjective-per-noun spray: every noun wears a modifier. Keep adjectives
   that carry load ("destructive", "reversible"); cut decoration.
 - Anthropomorphism: "the app understands your workflow". The app detects,
@@ -219,6 +239,10 @@ human author, and injecting them is the strongest de-slopping move
 - Non-round numbers from real measurement: "open rate fell from 31% to 22%
   in three weeks", not "results varied".
 - Named specifics: the actual client, tool version, file path, failure.
+- The reader placed in the scene: second person doing something concrete, where a
+  model writes an abstract noun as subject. "You hit this when the cache key
+  changes mid-deploy" beats "this situation arises during deployment". The same
+  move that fixes false agency above, applied before the sentence is written.
 - A stance without hedges: "Subject lines over eight words tank open rates.
   Keep them short."
 - An opinionated cut: "We don't support X. Use Y." -- models pad; experts

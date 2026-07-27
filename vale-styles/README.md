@@ -65,7 +65,7 @@ It is also syntax-aware for source files -- it lints comments and docstrings whi
 skipping identifiers and string literals, so a variable named `robust` does not
 trip `SlopLexicon`.
 
-Two extensions need care:
+These two need care:
 
 - `.mdx` has no parser. Without `[formats]` `mdx = md` Vale fails with
   `mdx2vast not found` and exit 1.

@@ -1,7 +1,7 @@
 # Change Communication (PR bodies, commit messages, release notes)
 
-The one genre that describes a delta, not a steady state. Past tense about the
-change belongs here -- and only here.
+The one genre that describes a delta. Past tense about the change belongs here,
+and only here.
 
 ## PR body
 

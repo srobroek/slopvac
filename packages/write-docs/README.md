@@ -14,17 +14,20 @@ apm install write-docs@srobroek-agentic --target claude,codex
 vale --config=.claude/skills/write-docs/vale/.vale.ini sync
 ```
 
-For Kiro, target it directly and compile the steering into `AGENTS.md`:
+For Kiro, install and sync; there is no compile step:
 
 ```sh
 apm install write-docs@srobroek-agentic --target kiro
-apm compile --target kiro --no-constitution
 vale --config=.kiro/skills/write-docs/vale/.vale.ini sync
 ```
 
-Kiro receives the skills at `.kiro/skills/`, the steering at `.kiro/steering/`,
-and a Kiro-shaped hook manifest at `.kiro/hooks/`. The sync is required before
-the first run: no style is committed.
+Kiro receives the skill at `.kiro/skills/`, the steering at `.kiro/steering/`
+with `inclusion: fileMatch` frontmatter, and a Kiro-shaped hook manifest at
+`.kiro/hooks/`. Running `apm compile --target kiro` is wrong here: it writes the
+steering again into a root `AGENTS.md`, which Kiro does not read as steering, and
+overwrites an existing `AGENTS.md`.
+
+The sync is required before the first run, on every target: no style is committed.
 
 ## Skills
 
