@@ -35,16 +35,16 @@ publish, so the URLs above always serve the current rules.
 | `ai-residue` | slop | `ChatLeakage` | Assistant output pasted into a shipped document |
 | `docs-discipline` | slop | `HistoryNarration`, `InternalRefs`, `StatusLanguage` | Documentation describing something other than the released artifact |
 | `prose-agency` | slop | `AgentlessPassive`, `Anthropomorphism`, `FalseAgency`, `NarratorDistance`, `UnattributedRecommendation` | Prose with the actor deleted |
-| `prose-craft` | craft | `AcronymPeriods`, `Ambiguity`, `Annotations`, `Articles`, `CommandPrompt`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `DocumentPreamble`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `NegativeRequirement`, `NominalizedVerb`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Politeness`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
+| `prose-craft` | craft | `AcronymPeriods`, `Ambiguity`, `Annotations`, `Articles`, `CommandPrompt`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `Misnomer`, `NegativeRequirement`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Politeness`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
 | `prose-density` | craft | `Overwritten` | Prose too dense to read in one pass |
 | `prose-format` | slop | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells |
 | `prose-inclusive` | craft | `Ableist`, `DeviceAssumption`, `Exclusive` | Language that excludes a reader who could otherwise use the doc |
-| `prose-inflation` | slop | `AdditiveHedge`, `Apologizing`, `BorderlineHype`, `BusinessJargon`, `HedgeStack`, `Intensifier`, `SlopLexicon`, `Uncomparables`, `VagueDeclarative`, `VagueQuantifier` | Claims inflated past their evidence |
+| `prose-inflation` | slop | `AdditiveHedge`, `Apologizing`, `BorderlineHype`, `BusinessJargon`, `DocumentPreamble`, `HedgeStack`, `Intensifier`, `NominalizedVerb`, `SlopLexicon`, `Uncomparables`, `VagueDeclarative`, `VagueQuantifier` | Claims inflated past their evidence |
 | `prose-scope` | slop | `Epigram`, `ImplementationLeak`, `RejectedAlternative`, `UnrequestedReassurance` | Over-writing: real content in the wrong document |
 <!-- END GENERATED: styles-table -->
 
 <!-- BEGIN GENERATED: rule-counts -->
-60 rules across 9 styles. 26 sit on the slop axis and gate at error. 34 sit on the craft axis and warn.
+61 rules across 9 styles. 28 sit on the slop axis and gate at error. 33 sit on the craft axis and warn.
 <!-- END GENERATED: rule-counts -->
 
 The two axes carry different weight. A slop-axis match is evidence about how the
@@ -83,20 +83,19 @@ Generated from the rule files by `gen-rule-table.py`; CI fails when it drifts.
 | `prose-craft.ConflictMarkers` | error | existence (raw) | A Git merge conflict marker committed into prose. |
 | `prose-craft.DeadOpener` | warning | existence | A sentence opening on a placeholder subject. |
 | `prose-craft.DirectionalRef` | warning | substitution | A cross-reference that depends on where the text landed on the page. |
-| `prose-craft.DocumentPreamble` | warning | existence | A document announcing what it is about to do. |
 | `prose-craft.FirstPersonPlural` | warning | existence | The document speaking as a company. "our platform empowers your team". |
 | `prose-craft.FutureTense` | warning | existence | Documentation in the future tense. "The loader will retry twice." |
 | `prose-craft.GerundHeading` | warning | existence (heading) | A task heading in the -ing form. |
 | `prose-craft.Hyphens` | warning | existence | An adverb hyphenated to the word it modifies. "newly-added", "only-but". |
 | `prose-craft.Latinisms` | warning | substitution | A Latin abbreviation where an English phrase reads faster. |
 | `prose-craft.LinkText` | warning | existence (raw) | A link whose text says nothing. "[here](...)", "[click here](...)", "[link](...)". |
+| `prose-craft.Misnomer` | warning | existence | An initialism followed by the word its own last letter stands for. |
 | `prose-craft.NegativeRequirement` | warning | existence | A requirement stated as a prohibition. "You cannot deploy without a token." |
-| `prose-craft.NominalizedVerb` | warning | existence | A verb buried in a noun, propped up by a light verb. |
 | `prose-craft.OptionalPlural` | warning | existence | A plural offered in parentheses. "Select the file(s)." |
 | `prose-craft.Ordinals` | warning | existence | An ordinal in the wrong form. |
 | `prose-craft.PluralAbbreviation` | warning | sequence | An apostrophe making an initialism plural. "API's" for more than one API. |
 | `prose-craft.Politeness` | warning | existence | Courtesy words in an instruction. "Please run the migration first." |
-| `prose-craft.Redundancy` | warning | existence | A phrase that says the same thing twice. |
+| `prose-craft.Redundancy` | warning | existence | A phrase that says the same thing twice in its own grammar. |
 | `prose-craft.RelativeDate` | warning | existence | A date the reader cannot resolve. "recently", "last month", "as of this year". |
 | `prose-craft.SelfReference` | warning | existence | A document narrating its own structure. |
 | `prose-craft.SentenceLength` | warning | occurrence (sentence) | A sentence past the point where a reader holds it in one pass. |
@@ -105,7 +104,7 @@ Generated from the rule files by `gen-rule-table.py`; CI fails when it drifts.
 | `prose-craft.UndefinedAcronym` | warning | conditional | An initialism used before it is expanded. |
 | `prose-craft.Versions` | warning | substitution | A version comparison stated as magnitude instead of order. |
 | `prose-craft.Wordiness` | warning | substitution | A long phrase where a short word does the same work. |
-| `prose-density.Overwritten` | warning | metric | Prose too dense to read in one pass. |
+| `prose-density.Overwritten` | warning | metric | Prose that is both long-winded and latinate at the same time. |
 | `prose-format.EmojiHeading` | warning | existence (heading) | W2 in the retired slop-lint.py. `scope: heading` replaces the old manual |
 | `prose-format.NoUnicodeDash` | error | existence (raw) | House ban: no em-dash (U+2014) or en-dash (U+2013) anywhere in a file, prose |
 | `prose-format.ProseBlock` | warning | occurrence (paragraph) | W1 in the retired slop-lint.py. `%d`, not `%s`: occurrence populates an int and |
@@ -116,12 +115,14 @@ Generated from the rule files by `gen-rule-table.py`; CI fails when it drifts.
 | `prose-inflation.Apologizing` | error | existence | Deferring the claim instead of making or cutting it. |
 | `prose-inflation.BorderlineHype` | warning | existence | W3 in the retired slop-lint.py. Warning, not error: each of these has a |
 | `prose-inflation.BusinessJargon` | error | existence | Meeting-register verbs that survive into written docs. The fix is the plain |
+| `prose-inflation.DocumentPreamble` | error | existence | A document announcing what it is about to do. |
 | `prose-inflation.HedgeStack` | error | existence | Two or more hedges on one claim. "can help to potentially reduce". |
 | `prose-inflation.Intensifier` | error | existence | Degree adverbs that add emphasis and no information. |
+| `prose-inflation.NominalizedVerb` | error | existence | A verb buried in a noun, propped up by a light verb. |
 | `prose-inflation.SlopLexicon` | error | existence | E2 in the retired slop-lint.py. |
 | `prose-inflation.Uncomparables` | error | existence | An absolute modified by degree. "very unique", "more complete", "most perfect". |
 | `prose-inflation.VagueDeclarative` | error | existence | A sentence that asserts significance without naming the thing. The tell is an |
-| `prose-inflation.VagueQuantifier` | error | existence | A quantity word standing in for a number nobody counted. |
+| `prose-inflation.VagueQuantifier` | warning | existence | A quantity word standing in for a number nobody counted. |
 | `prose-scope.Epigram` | warning | existence (paragraph) | Over-writing: a closing line that restates the section as an aphorism. |
 | `prose-scope.ImplementationLeak` | error | existence (paragraph) | Over-writing: internal implementation facts the reader of this document cannot |
 | `prose-scope.RejectedAlternative` | error | existence | Over-writing: text defending a decision inside a document whose job is to |

@@ -1,44 +1,41 @@
-# A phrase that says the same thing twice.
+# A phrase that says the same thing twice in its own grammar.
 #
-# Two shapes. RAS syndrome, where the expansion repeats the initialism's own last
-# word ("ATM machine" -- the M is "machine"), and the contradiction in terms
-# ("generally always", "exact estimate"), where the modifier cancels the noun.
+# "past history", "future plans", "merge together", "reason why". The modifier or
+# particle repeats what the head word already means, so deleting it changes nothing
+# but the length. Grammatical redundancy, not a naming error -- see Misnomer.yml for
+# "ATM machine", which is a different defect with a different cause.
 #
-# Both are marks of assembled text: a writer who read the sentence aloud would
-# hear it.
+# Craft axis. Measured on 147k words of human-written technical docs: 0.1 hits per
+# 10k. Rare, but rare because it is a slip anyone makes and most editors catch, not
+# because a model produces it more often.
 extends: existence
 message: "redundant: %s — cut the repeated half"
 level: warning
 link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:
-  # The expansion repeats the initialism.
-  - '\b(?:ATM machine|PIN number|GUI interface|CLI interface|API interface|'
-  - 'HIV virus|LCD display|LED display|PDF format|ISBN number|RPC call|'
-  - 'SQL language|IP protocol|DNS server system|SSL layer|TLS layer|'
-  - 'CSS stylesheet|HTTP protocol|URL locator|RAM memory|CPU unit|'
-  - 'SIM card module|UUID identifier|JSON notation|YAML language)\b|'
-  # The modifier cancels the noun.
-  - '\b(?:generally|usually|normally|often) always\b|'
-  - '\b(?:exact|precise|accurate) estimate\b|'
-  - '\bincreasingly less\b|'
-  - '\bfound missing\b|'
-  - '\bconspicuous(?:ly)? absen(?:t|ce)\b|'
-  - '\bmandatory (?:choice|option)\b|'
-  - '\bcompletely obsolescent\b|'
-  # Ordinary tautology.
-  - '\b(?:advance )?planning ahead\b|'
-  - '\bfree gift\b|'
-  - '\bpast history\b|'
-  - '\bfuture plans?\b|'
-  - '\bend result\b|'
-  - '\bnew innovation\b|'
-  - '\babsolutely (?:essential|necessary)\b|'
-  - '\bcompletely (?:eliminate|destroy|finish)\b|'
-  - '\bcomponent parts?\b|'
-  - '\breason why\b|'
-  - '\brefer back\b|'
-  - '\brevert back\b|'
-  - '\bcollaborate together\b|'
-  - '\bmerge together\b|'
-  - '\bcombine together\b'
+  # A modifier that cancels or repeats the noun.
+  - '\b(?:past history|future plans?|end result|final outcome|new innovations?|'
+  - 'free gifts?|added bonus|component parts?|basic fundamentals?|'
+  - 'close proximity|advance (?:warning|planning)|unexpected surprise|'
+  - 'personal opinion|brief summary|final conclusion|empty space)\b|'
+  # A particle that repeats the verb's own direction.
+  - '\b(?:merge|combine|collaborate|join|link|connect|assemble|group|'
+  - 'aggregate|consolidate)\s+together\b|'
+  - '\b(?:revert|refer|return|reply|recall|repeat|retreat)\s+back\b|'
+  - '\bplan(?:ning|ned)?\s+ahead\b|'
+  - '\brise\s+up\b|'
+  - '\bdescend\s+down\b|'
+  # A tautological connective.
+  - '\bthe reasons? why\b|'
+  - '\bin order to be able to\b|'
+  # A modifier that cancels an absolute the noun already carries.
+  - '\b(?:generally|usually|normally|often)\s+always\b|'
+  - '\b(?:exact|precise|accurate)\s+estimate\b|'
+  - '\bincreasingly\s+less\b|'
+  - '\bfound\s+missing\b|'
+  - '\bconspicuous(?:ly)?\s+absen(?:t|ce)\b|'
+  - '\bmandatory\s+(?:choice|option)\b|'
+  - '\bcompletely\s+obsolescent\b|'
+  - '\babsolutely\s+(?:essential|necessary)\b|'
+  - '\bcompletely\s+(?:eliminate|destroy|finish)\b'

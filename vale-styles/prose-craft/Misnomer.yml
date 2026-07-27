@@ -1,0 +1,32 @@
+# An initialism followed by the word its own last letter stands for.
+#
+# "ATM machine" -- the M is "machine". "PIN number" -- the N is "number". "GUI
+# interface", "SQL language", "RAM memory". Known as RAS syndrome, after the
+# self-describing "RAS syndrome" itself.
+#
+# Split from Redundancy.yml because the cause is different and so is the fix. A
+# grammatical redundancy ("past history") is a slip in the sentence; a misnomer is a
+# gap in what the writer knows the initialism expands to. The fix is to drop the
+# trailing noun, and knowing WHY tells you whether to check the surrounding text for
+# more of the same.
+#
+# This is also why it sits on the craft axis and not the slop axis despite a very
+# low human base rate (0.1 per 10k words): a model that has seen the expansion is
+# less likely to make this error than a human writing quickly, so if anything the
+# signal points the wrong way.
+extends: existence
+message: "misnomer: %s — the initialism already contains that word"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+ignorecase: true
+raw:
+  - '\b(?:ATM machine|PIN number|GUI interface|CLI interface|API interface|'
+  - 'HIV virus|LCD display|LED display|PDF format|ISBN number|RPC call|'
+  - 'SQL language|IP protocol|DNS server system|SSL layer|TLS layer|'
+  - 'CSS stylesheet|HTTP protocol|HTTPS protocol|URL locator|URI identifier|'
+  - 'RAM memory|ROM memory|CPU unit|GPU unit|SIM card module|UUID identifier|'
+  - 'JSON notation|YAML language|HTML language|XML language|CSV values|'
+  - 'SaaS service|IDE environment|VM machine|SSH shell|TCP protocol|'
+  - 'UTC time|DST time|RSS feed syndication|OTP password|MFA authentication|'
+  - '2FA authentication|SDK kit|LAN network|WAN network|VPN network|'
+  - 'NIC card|BIOS system|RAS syndrome)\b'

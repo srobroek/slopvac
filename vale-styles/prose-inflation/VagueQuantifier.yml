@@ -9,9 +9,19 @@
 #   relatively, comparatively -- state an actual comparison
 #   all, none, every, each -- exact
 #   some -- too common in correct generic use ("some shells do not support this")
+# WARNING, not error, on a measured base rate. This fires 9.9 times per 10k words
+# across 147,473 words of human-written technical documentation -- the highest rate
+# of any rule on the slop axis, against a median of 0.8. Humans reach for "several"
+# and "usually" constantly, so a match is a prompt to supply the count rather than
+# evidence about who wrote the sentence.
+#
+# It stays in prose-inflation because the DEFECT is inflation -- a claim standing in
+# for a number nobody counted -- and grouping it with the other count-and-degree
+# rules is where a reader will look for it. The level carries the epistemic weight,
+# not the style name.
 extends: existence
 message: "vague quantifier: %s — give the count, or name the cases"
-level: error
+level: warning
 link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 raw:

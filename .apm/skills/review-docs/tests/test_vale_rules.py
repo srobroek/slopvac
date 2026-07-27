@@ -498,7 +498,7 @@ def test_epigram_stays_quiet(tmp_path, text):
         ("This section explains the loader.", "prose-craft.SelfReference"),
         ("Select the file(s) you want.", "prose-craft.OptionalPlural"),
         ("A newly-added flag controls this.", "prose-craft.Hyphens"),
-        ("The ATM machine failed.", "prose-craft.Redundancy"),
+        ("The ATM machine failed.", "prose-craft.Misnomer"),
         ("The output is generally always correct.", "prose-craft.Redundancy"),
         ("Firstly, install the binary.", "prose-craft.Ordinals"),
         ("Read the A.P.I. reference.", "prose-craft.AcronymPeriods"),
@@ -509,7 +509,8 @@ def test_epigram_stays_quiet(tmp_path, text):
         ("The gate will reject the file.", "prose-craft.FutureTense"),
         ("Use the flag, e.g. --json, to change the output.", "prose-craft.Latinisms"),
         ("This is why the sync fails.", "prose-craft.UnclearAntecedent"),
-        ("The script performs validation of the token.", "prose-craft.NominalizedVerb"),
+        ("The script performs validation of the token.",
+         "prose-inflation.NominalizedVerb"),
         ("Our tool reads one config file.", "prose-craft.FirstPersonPlural"),
     ],
 )
@@ -745,9 +746,9 @@ def test_link_text_fires_on_empty_labels_and_not_on_named_ones(tmp_path):
         ("The job runs bi-weekly.", "prose-craft.Ambiguity"),
         ("Please run the migration.", "prose-craft.Politeness"),
         ("Unfortunately the sync fails.", "prose-craft.Politeness"),
-        ("This document describes the loader.", "prose-craft.DocumentPreamble"),
+        ("This document describes the loader.", "prose-inflation.DocumentPreamble"),
         ("The purpose of this guide is to explain the gate.",
-         "prose-craft.DocumentPreamble"),
+         "prose-inflation.DocumentPreamble"),
         ("See [read more](https://example.com).", "prose-craft.LinkText"),
     ],
 )
@@ -766,9 +767,9 @@ def test_second_survey_rules_fire(tmp_path, text, rule):
         ("Rotate keys every 90 days.", "prose-agency.UnattributedRecommendation"),
         # `run` and `make` are real verbs with real objects, not light verbs. An
         # earlier revision flagged both and had to be narrowed.
-        ("Run the migration before deploying.", "prose-craft.NominalizedVerb"),
-        ("Make a backup first.", "prose-craft.NominalizedVerb"),
-        ("Do the comparison by hand.", "prose-craft.NominalizedVerb"),
+        ("Run the migration before deploying.", "prose-inflation.NominalizedVerb"),
+        ("Make a backup first.", "prose-inflation.NominalizedVerb"),
+        ("Do the comparison by hand.", "prose-inflation.NominalizedVerb"),
         # A weekly schedule is unambiguous; only bi-weekly is not.
         ("The job runs weekly.", "prose-craft.Ambiguity"),
         # Not a trailing preposition: the sentence has its object.
@@ -803,3 +804,93 @@ def test_self_reference_does_not_double_report_a_link_label(tmp_path):
     # The prose case still fires.
     doc.write_text("This section explains the loader.\n", encoding="utf-8")
     assert "prose-craft.SelfReference" in rules(doc)
+
+
+# --- Axis placement, decided by measured base rate ----------------------------
+# A rule belongs on the slop axis when a match is evidence about how the text was
+# produced. That is an empirical claim, so it was measured: each rule was run over
+# 147,473 words of human-written technical documentation (the upstream Vale style
+# repos) and compared against the median rate of the rules already accepted as
+# provenance evidence, 0.8 hits per 10k words.
+
+
+def test_promoted_rules_error_on_the_slop_axis(tmp_path):
+    """DocumentPreamble (0.7 per 10k human) and NominalizedVerb (0.9) sit at or
+    below the slop-axis median, so both gate at error."""
+    doc = tmp_path / "case.md"
+    doc.write_text(
+        "This document describes the loader.\n\n"
+        "The script performs validation of the token.\n",
+        encoding="utf-8",
+    )
+    proc = subprocess.run(
+        ["vale", f"--config={CONFIG}", "--output=JSON", "--no-exit", str(doc)],
+        capture_output=True, text=True, check=False,
+    )
+    levels = {
+        a["Check"]: a["Severity"]
+        for alerts in json.loads(proc.stdout or "{}").values()
+        for a in alerts
+    }
+    assert levels.get("prose-inflation.DocumentPreamble") == "error"
+    assert levels.get("prose-inflation.NominalizedVerb") == "error"
+
+
+def test_vague_quantifier_warns_despite_living_in_prose_inflation(tmp_path):
+    """9.9 hits per 10k on human prose -- the highest of any slop-axis rule, and 12x
+    the median. It keeps its home in prose-inflation because the defect IS inflation,
+    but the level carries the epistemic weight and it must not gate."""
+    doc = tmp_path / "case.md"
+    doc.write_text("Several options control this.\n", encoding="utf-8")
+    proc = subprocess.run(
+        ["vale", f"--config={CONFIG}", "--output=JSON", "--no-exit", str(doc)],
+        capture_output=True, text=True, check=False,
+    )
+    levels = {
+        a["Check"]: a["Severity"]
+        for alerts in json.loads(proc.stdout or "{}").values()
+        for a in alerts
+    }
+    assert levels.get("prose-inflation.VagueQuantifier") == "warning"
+
+
+def test_redundancy_and_misnomer_are_separate_rules(tmp_path):
+    """Grammatical redundancy and RAS syndrome have different causes, so they report
+    under different names: 'past history' is a slip in the sentence, 'ATM machine' is
+    a gap in what the writer knows the initialism expands to."""
+    doc = tmp_path / "case.md"
+    doc.write_text("The past history is here.\n", encoding="utf-8")
+    found = rules(doc)
+    assert "prose-craft.Redundancy" in found
+    assert "prose-craft.Misnomer" not in found
+
+    doc.write_text("The ATM machine failed.\n", encoding="utf-8")
+    found = rules(doc)
+    assert "prose-craft.Misnomer" in found
+    assert "prose-craft.Redundancy" not in found
+
+
+def test_density_uses_the_product_not_a_syllable_metric(tmp_path):
+    """The rule multiplies sentence length by long-word share. A doc of long
+    TECHNICAL nouns in SHORT sentences must stay clean -- that is the case every
+    syllable-based metric gets wrong, and the reason this one replaced Flesch."""
+    doc = tmp_path / "case.md"
+    # 3.5 words per sentence, syllables/word 2.86: Flesch-Kincaid scores this 19.5.
+    doc.write_text(
+        "Initialization happens asynchronously. The orchestration layer waits. "
+        "Configuration parameters live in the environment. The deployment manifest "
+        "lists dependencies. Serialization uses the standard encoder. Availability "
+        "is measured per region. Authentication middleware validates credentials.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.Overwritten" not in rules(doc)
+
+    # Long sentences AND heavy nominalisation: the conjunction is the defect.
+    doc.write_text(
+        "The utilization of the aforementioned methodology facilitates the "
+        "optimization of operational efficiency in a manner that is both effective "
+        "and efficacious, thereby enabling the achievement of the desired "
+        "organizational outcomes within the requisite implementation timeframe.\n",
+        encoding="utf-8",
+    )
+    assert "prose-density.Overwritten" in rules(doc)

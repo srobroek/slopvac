@@ -8,9 +8,16 @@
 # From Openly's VerbingNouns, widened past its perform/do/run trio to the full
 # light-verb set, and anchored so a real noun phrase ("the validation step") stays
 # clean.
+# SLOP AXIS, on a measured base rate: 0.9 hits per 10k words across 147,473 words
+# of human-written technical documentation, against a slop-axis median of 0.8.
+#
+# This is the register prose-density.Overwritten measures in aggregate, caught one
+# phrase at a time. A model reaching for `perform validation` over `validate` is
+# reproducing the formal-report register its training rewards; a human writing
+# documentation for other engineers usually just writes the verb.
 extends: existence
 message: "nominalisation: %s — use the verb ('validate', not 'perform validation')"
-level: warning
+level: error
 link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 ignorecase: true
 # `run`, `do`, and `make` are NOT light verbs here. "run the migration" and "make a

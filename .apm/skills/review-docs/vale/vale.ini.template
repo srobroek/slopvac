@@ -135,6 +135,9 @@ ai-tells.UrgencyInflation = error
 ai-tells.VagueAttributions = error
 prose-craft.ConflictMarkers = error
 prose-craft.Redundancy = error
+prose-craft.Misnomer = error
+prose-inflation.NominalizedVerb = error
+prose-inflation.DocumentPreamble = error
 prose-inflation.Uncomparables = error
 prose-inflation.Intensifier = error
 prose-inflation.HedgeStack = error
@@ -176,12 +179,6 @@ prose-craft.FirstPersonPlural = NO
 prose-craft.NegativeRequirement = NO
 prose-craft.SelfReference = NO
 prose-craft.UndefinedAcronym = NO
-
-# A reference table has no sentences, so the reading-ease formula divides by
-# near-zero and scores a correct table as unreadable prose. Measured: two
-# table-heavy files here scored 10.6 and -36.8.
-[**/references/**/*.md]
-prose-density.Overwritten = NO
 
 # --- Project overrides -------------------------------------------------------
 # A rule line belongs to the section ABOVE it, so put an override directly under
@@ -240,7 +237,8 @@ prose-craft.Redundancy = NO
 prose-craft.Latinisms = NO
 prose-craft.DirectionalRef = NO
 prose-craft.Politeness = NO
-prose-craft.DocumentPreamble = NO
+prose-inflation.DocumentPreamble = NO
+prose-inflation.NominalizedVerb = NO
 prose-scope.RejectedAlternative = NO
 prose-scope.ImplementationLeak = NO
 prose-scope.UnrequestedReassurance = NO

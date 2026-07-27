@@ -158,7 +158,7 @@ Two layers, because half of this resists mechanization.
 against a real corpus.
 
 <!-- BEGIN GENERATED: rule-counts -->
-60 rules across 9 styles. 26 sit on the slop axis and gate at error. 34 sit on the craft axis and warn.
+61 rules across 9 styles. 28 sit on the slop axis and gate at error. 33 sit on the craft axis and warn.
 <!-- END GENERATED: rule-counts -->
 
 Plus `ai-tells`: 76 upstream rules from
@@ -171,11 +171,11 @@ software corpus needs applied. Vale's built-in `Vale.Repetition` covers "the the
 | `ai-residue` | slop | `ChatLeakage` | Assistant output pasted into a shipped document |
 | `docs-discipline` | slop | `HistoryNarration`, `InternalRefs`, `StatusLanguage` | Documentation describing something other than the released artifact |
 | `prose-agency` | slop | `AgentlessPassive`, `Anthropomorphism`, `FalseAgency`, `NarratorDistance`, `UnattributedRecommendation` | Prose with the actor deleted |
-| `prose-craft` | craft | `AcronymPeriods`, `Ambiguity`, `Annotations`, `Articles`, `CommandPrompt`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `DocumentPreamble`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `NegativeRequirement`, `NominalizedVerb`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Politeness`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
+| `prose-craft` | craft | `AcronymPeriods`, `Ambiguity`, `Annotations`, `Articles`, `CommandPrompt`, `ConflictMarkers`, `DeadOpener`, `DirectionalRef`, `FirstPersonPlural`, `FutureTense`, `GerundHeading`, `Hyphens`, `Latinisms`, `LinkText`, `Misnomer`, `NegativeRequirement`, `OptionalPlural`, `Ordinals`, `PluralAbbreviation`, `Politeness`, `Redundancy`, `RelativeDate`, `SelfReference`, `SentenceLength`, `Spacing`, `UnclearAntecedent`, `UndefinedAcronym`, `Versions`, `Wordiness` | Writing craft: wordiness, structure, and mechanics, in any register |
 | `prose-density` | craft | `Overwritten` | Prose too dense to read in one pass |
 | `prose-format` | slop | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Formatting tells |
 | `prose-inclusive` | craft | `Ableist`, `DeviceAssumption`, `Exclusive` | Language that excludes a reader who could otherwise use the doc |
-| `prose-inflation` | slop | `AdditiveHedge`, `Apologizing`, `BorderlineHype`, `BusinessJargon`, `HedgeStack`, `Intensifier`, `SlopLexicon`, `Uncomparables`, `VagueDeclarative`, `VagueQuantifier` | Claims inflated past their evidence |
+| `prose-inflation` | slop | `AdditiveHedge`, `Apologizing`, `BorderlineHype`, `BusinessJargon`, `DocumentPreamble`, `HedgeStack`, `Intensifier`, `NominalizedVerb`, `SlopLexicon`, `Uncomparables`, `VagueDeclarative`, `VagueQuantifier` | Claims inflated past their evidence |
 | `prose-scope` | slop | `Epigram`, `ImplementationLeak`, `RejectedAlternative`, `UnrequestedReassurance` | Over-writing: real content in the wrong document |
 <!-- END GENERATED: styles-table -->
 

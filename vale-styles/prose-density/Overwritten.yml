@@ -1,23 +1,47 @@
-# Prose too dense to read in one pass.
+# Prose that is both long-winded and latinate at the same time.
 #
-# Flesch reading ease, at a threshold far below the score any style guide would
-# ask for. Google and Microsoft target 60-70 (grade 8); this rule fires at 30,
-# which is where sentences have stopped being long and started being nested.
+# `(words / sentences) * (long_words% )` -- sentence length MULTIPLIED by the share
+# of words over six letters, not added to it. The product is the point: either
+# factor alone is innocent, and only their conjunction is over-writing.
 #
-# The threshold is measured, not inherited. Across this repo's tracked prose the
-# scores run 64-70 for the READMEs, 41-53 for the reference material, and 10 to
-# -37 for two files that are almost entirely markdown tables -- the formula
-# divides by sentence count, and a table has none, so a reference table scores as
-# unreadable prose. Exclude those paths rather than raising the threshold.
+# Threshold 1200, which is p90 on a 182-document corpus of human-written technical
+# docs (the upstream Vale style repos: Google, Red Hat, Elastic, Splunk, IBM,
+# Canonical). It flags 10% of them. Recalibrate against your own corpus before
+# changing it; the number is measured, not chosen.
 #
-# What this catches that no pattern can: the latinate-nominalisation register a
-# model defaults to. "The utilization of the aforementioned methodology
-# facilitates the optimization of operational efficiency" trips no lexical rule
-# and scores 3.
+# --- Why not Flesch-Kincaid, which every style guide ships -------------------
+#
+# FK is `0.39*(w/s) + 11.8*(syllables/word) - 15.59`. The syllable term carries 30x
+# the weight of the sentence term, and syllables-per-word is close to a domain
+# constant: across the same corpus its coefficient of variation is 0.11 against
+# 0.98 for sentence length. So FK largely measures VOCABULARY, and technical
+# vocabulary has no shorter synonym -- `configuration` (5 syllables),
+# `authentication` (5), `initialization` (6). Measured consequences:
+#
+#   "Initialization happens asynchronously. The orchestration layer waits."
+#     3.5 words/sentence, as short and active as English gets -> FK 19.5
+#   FK < 8, the threshold Readability ships, flags 93% of the corpus.
+#
+# Every syllable-based metric inherits this. On a hand-built pair of a GOOD
+# technical paragraph and a GOOD plain-English one -- same quality, different
+# domain -- the spread each metric puts between them is the confound, and smaller
+# is better:
+#
+#   metric        good-tech vs good-plain gap
+#   FRE                      98.8
+#   LIX                      40.2
+#   ColemanLiau              16.2
+#   FK                       13.8
+#   this rule                 0.1   (w/s is near-identical; only the BAD case moves)
+#
+# `long_words` (over six letters) replaces syllables because length is what
+# correlates with nominalisation -- `utilization`, `determination` -- while the
+# multiplication means a doc full of long technical nouns in SHORT sentences
+# scores low, which is the case FK gets wrong.
 extends: metric
-message: "dense prose: reading ease %s is under 30 — shorten sentences, or replace the nominalisations with verbs"
+message: "over-written: density score %s is above 1200 — shorten the sentences, or replace the nominalisations with verbs"
 level: warning
 link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
 formula: |
-  206.835 - (1.015 * (words / sentences)) - (84.6 * (syllables / words))
-condition: "< 30"
+  (words / sentences) * ((long_words * 100.0) / words)
+condition: "> 1200"
