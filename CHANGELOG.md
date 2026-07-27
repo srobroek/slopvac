@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/srobroek/slopvac/compare/slopvac--v1.0.0...slopvac--v1.0.1) (2026-07-27)
+
+
+### Documentation
+
+* rename the heading the gate flagged ([5217a3b](https://github.com/srobroek/slopvac/commit/5217a3b0d9dfba4d75804930be9443f67d44195d))
+
 ## [1.0.0](https://github.com/srobroek/slopvac/compare/slopvac--v0.1.0...slopvac--v1.0.0) (2026-07-27)
 
 
