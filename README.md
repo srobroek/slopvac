@@ -2,15 +2,18 @@
 
 Remove AI writing patterns from prose.
 
-Generated documentation has a texture: contrastive inversions, adjectives nothing
+AI generated documentation has a clear fingerprint: contrastive inversions, adjectives nothing
 measures, rationale that belongs in a decision record, roadmap language for something
-that does not ship yet. Each model generation swaps the vocabulary and keeps the
-shapes, so a word list goes stale while the structures persist.
+that does not ship yet, excessive hedging, etc. 
 
-Two skills. `write-docs` classifies a document by genre and authors against that
-genre's rules. `review-docs` gates the result with a deterministic
+This package ships two skills. 
+
+`write-docs` classifies a document by genre and authors against that
+genre's rules. 
+
+`review-docs` gates a document with a deterministic
 [Vale](https://vale.sh) pass, judges the register against a catalog of tells no regex
-reaches, and returns a verdict. Either runs alone. Hooks carry the same rules into
+reaches, and returns a verdict. Either can alone. Hooks carry the same rules into
 every subagent and gate prose files as they are edited.
 
 Works with Claude Code, Codex, and Kiro.
@@ -23,19 +26,22 @@ Needs [`vale`](https://vale.sh) on `PATH` (`brew install vale`, or
 **Claude Code**
 
 ```
-/plugin marketplace add srobroek/slopvac
+claude plugins marketplace add srobroek/slopvac --scope user
+claude plugins install slopvac@slopvac --scope user
 ```
 
 **Codex**
 
 ```
-plugin marketplace add srobroek/slopvac
+codex plugin marketplace add srobroek/slopvac
+codex plugin add slopvac@slopvac
 ```
+
 
 **Kiro, or anywhere you already use [APM](https://microsoft.github.io/apm/)**
 
 ```sh
-apm marketplace add srobroek/slopvac --name slopvac
+apm marketplace add srobroek/slopvac --name slopvac --global
 apm install slopvac@slopvac --target kiro --global   # or claude, or codex
 ```
 
@@ -51,29 +57,100 @@ README"*. It scaffolds a `.vale.ini` on first use and asks before writing.
 You ask the agent for a document, or to review one. The agent runs the gate and the
 judgement pass.
 
-```
-you: "write the README for this package"
-        │
-        ▼
-  write-docs skill ──── classifies the genre (consumer | change | internal)
-                        loads that genre's rules, authors against them
-        │
-        ▼
-  review-docs skill ─── scaffolds .vale.ini on first use (asks first)
-                        runs the Vale gate      → deterministic findings
-                        reads the tells catalog → register judgement
-                        checks every claim against code at HEAD
-        │
-        ▼
-  VERDICT: PASS | REVISE, with the one change worth making
+### Writing a document
+
+```mermaid
+flowchart TD
+    ASK["You ask for a document"]
+
+    ASK --> CLASS{"Identifies document type"}
+
+    CLASS -->|"README, docs/"| CONS["<b>consumer</b><br/>verifiable against code at HEAD<br/>no roadmap,
+ no internal refs<br/>every example runnable"]
+    CLASS -->|"commit, PR, release notes"| CHG["<b>change</b><br/>describes a delta<br/>every claim maps
+ to a hunk<br/>history narration allowed here"]
+    CLASS -->|"spec, ADR, CONTRIBUTING"| INT["<b>internal</b><br/>contributor audience<br/>internal refs
+ allowed<br/>rationale belongs here"]
+
+    CONS --> AUTHOR
+    CHG --> AUTHOR
+    INT --> AUTHOR
+
+    AUTHOR["<b>Author against the genre rules</b><br/>plus the rules every genre shares:<br/>state what
+it does, name who acted,<br/>one idea per sentence, no over-writing"]
+
+    AUTHOR --> VERIFY["Run every command,<br/>check every path and version"]
+    VERIFY --> HANDOFF(["Hand off to <b>review-docs</b>"])
+
+    HANDOFF -.->|REVISE| AUTHOR
+
+    classDef you fill:#e8eaf6,stroke:#5c6bc0,color:#1a237e
+    classDef genre fill:#fff8e1,stroke:#ffa726,color:#e65100
+    classDef work fill:#eceff1,stroke:#78909c,color:#263238
+    classDef out fill:#e8f5e9,stroke:#66bb6a,color:#1b5e20
+
+    class ASK you
+    class CONS,CHG,INT genre
+    class AUTHOR,VERIFY,CLASS work
+    class HANDOFF out
 ```
 
-The hooks close the loop without being asked. `SubagentStart` injects the rules
+### Reviewing a document
+
+```mermaid
+flowchart TD
+    IN["From <b>write-docs</b>, or you asking<br/>directly, or a PostToolUse hook<br/>after a prose file
+ is edited"]
+
+    IN --> SETUP{"Project<br/>.vale.ini?"}
+    SETUP -->|absent| SCAFFOLD["Scaffold it, asking first,<br/>then fetch the styles"]
+    SETUP -->|present| GATE
+    SCAFFOLD --> GATE
+
+    GATE["<b>1. Deterministic gate</b><br/>Vale, 23 rules over 7 packages<br/>deleted actors, claims pas
+t evidence,<br/>over-writing, status language, formatting"]
+
+    GATE --> REG["<b>2. Register judgement</b><br/>read the tells catalog and apply it:<br/>voice, struc
+tural symmetry, dilution,<br/>and the counter-signals expert prose has"]
+
+    REG --> CLAIMS["<b>3. Claims</b><br/>every command executed, every path,<br/>flag, and version check
+ed against code;<br/>nothing describing unbuilt behavior"]
+
+    CLAIMS --> CUT["<b>4. Adversarial read</b><br/>default to REVISE, name the weakest claim,<br/>read t
+he headings alone as an outline,<br/>cut the longest paragraph and see what was lost"]
+
+    CUT --> V{"Verdict"}
+
+    V -->|"gate errors · 3+ tells clustered<br/>· a claim fails · a section is cuttable"| REVISE["<b>REV
+ISE</b><br/>the one change worth making,<br/>named as specific lines"]
+    V -->|"all four clean"| PASS["<b>PASS</b>"]
+
+    REVISE -.->|back to the author| IN
+    PASS --> SHIP["Read it yourself before shipping:<br/>a clean run means the checked<br/>patterns are
+absent, nothing more"]
+
+    classDef you fill:#e8eaf6,stroke:#5c6bc0,color:#1a237e
+    classDef det fill:#e0f2f1,stroke:#26a69a,color:#004d40
+    classDef jud fill:#fff8e1,stroke:#ffa726,color:#e65100
+    classDef work fill:#eceff1,stroke:#78909c,color:#263238
+    classDef bad fill:#ffebee,stroke:#ef5350,color:#b71c1c
+    classDef good fill:#e8f5e9,stroke:#66bb6a,color:#1b5e20
+
+    class IN you
+    class GATE det
+    class REG,CUT jud
+    class CLAIMS,SETUP,SCAFFOLD,V work
+    class REVISE bad
+    class PASS,SHIP good
+```
+
+
+The `SubagentStart` hook injects the rules
 into every subagent, because a subagent inherits main-session steering weakly.
 `PostToolUse` gates prose files after an edit, accumulating changes and returning
 `file:line` findings once they cross a threshold.
 
-## What it catches
+## What it solves
 
 Two layers, because half of this resists mechanization.
 
