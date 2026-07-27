@@ -445,3 +445,35 @@ def test_unrequested_reassurance_stays_quiet(tmp_path, text):
     doc = tmp_path / "case.md"
     doc.write_text(text + "\n", encoding="utf-8")
     assert "prose-scope.UnrequestedReassurance" not in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The gate finds tokens. The catalog finds voice.",
+        "The linter is deterministic. The reviewer is not.",
+        "The agent runs the pass; the scripts are its tools, not yours.",
+    ],
+)
+def test_epigram_fires(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-scope.Epigram" in rules(doc), text
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Two sentences about different things, with no mirrored shape.
+        "The parser rejects malformed input. Callers see a 400 with the field named.",
+        # A real contrast that names the alternative.
+        "Run the wrapper instead of the raw binary, not the other script there.",
+        # Ordinary reporting.
+        "The gate reports six findings across two files, all in the install section.",
+        "The cache stores 4,096 entries and evicts by least-recent use.",
+    ],
+)
+def test_epigram_stays_quiet(tmp_path, text):
+    doc = tmp_path / "case.md"
+    doc.write_text(text + "\n", encoding="utf-8")
+    assert "prose-scope.Epigram" not in rules(doc), text

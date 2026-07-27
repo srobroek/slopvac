@@ -64,7 +64,7 @@ one vendored style, all fetched by `vale sync`:
 | --- | --- |
 | `prose-agency` | The actor deleted: an abstraction acting, an agentless passive, narration from outside the scene |
 | `prose-inflation` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
-| `prose-scope` | Over-writing: a rejected alternative defended in place, an implementation cost the reader cannot act on, an answer to a worry never raised |
+| `prose-scope` | Over-writing: a rejected alternative defended in place, an implementation cost the reader cannot act on, an answer to a worry never raised, an epigram closing a section that already concluded |
 | `ai-residue` | Assistant output pasted into a shipped document |
 | `docs-discipline` | Text describing something other than the released artifact |
 | `prose-format` | Emoji headings, Unicode dashes, paragraphs that should be a list |

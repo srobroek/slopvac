@@ -1,0 +1,35 @@
+# Over-writing: a closing line that restates the section as an aphorism.
+#
+# "The gate finds tokens. The catalog finds voice." "The scripts are its tools, not
+# yours." "Format only when the data has columns." The shape is a balanced pair or a
+# terse maxim, placed where a section has already made its point, and it adds no
+# fact -- it performs having concluded. A reward-model favourite: it reads quotable,
+# which is what makes it survive editing.
+#
+# Two matched forms:
+#   parallel pair    N V O. N V O.        with the same verb or a mirrored one
+#   negated maxim    ... X, not Y.        as a standalone sentence, no clause after
+#
+# `scope: paragraph`, not sentence: sentence scope splits a parallel pair into its
+# halves before the pattern can see both, so the rule silently matched nothing.
+# Verified by fixture. The full stop inside each pattern is what distinguishes an
+# epigram from an ordinary two-clause sentence.
+#
+# Table cells are exempt through the ProseBlock convention: a rule table pairing
+# "Names the decision, not the behavior" with a fix is documentation of this very
+# pattern, not an instance of it.
+extends: existence
+scope: paragraph
+message: "epigram: %s — the section already made this point; cut the flourish"
+level: warning
+link: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+nonword: true
+raw:
+  # "The gate finds tokens. The catalog finds voice."
+  # Same verb, both halves short, article-led subjects.
+  - '\b[Tt]he \w+ (\w+s) [\w'']+\. [Tt]he \w+ \1 [\w'']+\.|'
+  # "X does A. Y does B." with a mirrored auxiliary.
+  - '\b[Tt]he \w+ (?:is|are|does|has) [\w'' ]{2,20}\. [Tt]he \w+ (?:is|are|does|has) [\w'' ]{2,20}\.|'
+  # "..., not yours." / "..., not the other." -- a possessive or deictic reversal
+  # closing a sentence, where the contrast names no new thing.
+  - '[,;] not (?:yours|mine|theirs|ours|his|hers|its|the other way(?: round| around)?)\.'

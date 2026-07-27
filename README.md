@@ -2,16 +2,47 @@
 
 Remove AI writing patterns from prose.
 
-`write-docs` authors a document against its genre's rules. `review-docs` gates the
-result and returns a verdict. The gate is [Vale](https://vale.sh) over seven style
-packages, and two hooks carry the same rules into every subagent and every edit.
+Generated documentation has a texture: contrastive inversions, marketing adjectives
+nothing measures, rationale that belongs in a decision record, roadmap language in a
+README describing something that does not ship yet. Every model generation swaps the
+vocabulary and keeps the shapes, so a word list goes stale while the structures
+persist.
+
+slopvac provides two skills that work together. `write-docs` classifies a document
+by genre -- consumer, change, or internal -- loads the rules that genre answers to,
+and authors against them. `review-docs` gates the result: it runs a deterministic
+[Vale](https://vale.sh) pass over seven style packages, then reads a catalog of
+tells no regex reaches and judges the register, and returns a verdict naming the one
+change worth making. Either skill runs alone, so text you did not write can go
+straight to review.
+
+Hooks keep it honest without being asked: one carries the rules into every subagent,
+another gates prose files as they are edited.
 
 Works with Claude Code, Codex, and Kiro.
+
+## Quick start
+
+Needs [`vale`](https://vale.sh) on `PATH` (`brew install vale`, or
+`mise use -g vale`).
+
+```sh
+apm marketplace add srobroek/slopvac --name slopvac
+apm install slopvac@slopvac --target claude --global   # or codex, or kiro
+```
+
+No APM installed? `uvx --from apm-cli apm ...` runs the same two commands. Claude
+Code and Codex can also load this repo natively with
+`/plugin marketplace add srobroek/slopvac`. Per-harness options, global against
+project scope, and installing by hand are all under [Install](#install).
+
+Then ask the agent: *"write the README for this package"*, or *"review this
+README"*. It scaffolds a `.vale.ini` on first use and asks before writing.
 
 ## How it works
 
 You ask the agent for a document, or to review one. The agent runs the gate and the
-judgement pass; the scripts are its tools, not yours.
+judgement pass.
 
 ```
 you: "write the README for this package"
@@ -39,14 +70,14 @@ into every subagent, because a subagent inherits main-session steering weakly.
 
 Two layers, because half of this resists mechanization.
 
-**Deterministic** -- 22 Vale rules across seven packages, each one regex over parsed
+**Deterministic** -- 23 Vale rules across seven packages, each one regex over parsed
 prose, tested and calibrated against a real corpus.
 
 | Package | Rules | Catches |
 | --- | --- | --- |
 | `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | The actor deleted: an abstraction acting, a passive with no agent, narration from outside the scene |
 | `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
-| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance` | Over-writing: a decision defended in place, a cost the reader cannot act on, an answer to a worry never raised |
+| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance`, `Epigram` | Over-writing: a decision defended in place, a cost the reader cannot act on, an answer to a worry never raised, an epigram closing a section that already concluded |
 | `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document |
 | `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Text describing something other than the released artifact |
 | `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Emoji headings, Unicode dashes, paragraphs that should be a list |
@@ -63,7 +94,18 @@ by judgement:
 | Content shape | Fabricated citations, fake specificity, one-point dilution, padded symmetry, vaporware description |
 | Counter-signals | What expert prose has and generated prose lacks: non-round numbers, named specifics, an unhedged stance, asymmetric structure |
 
-The gate finds tokens. The catalog finds voice. A document passes when both agree.
+A document passes when both layers agree.
+
+## Limits
+
+A clean run means the checked patterns are absent, and nothing more. Neither layer
+reads for truth: a sentence can pass every rule and still be wrong, name a function
+that is absent from the code, describe a flag that never shipped, or contradict the paragraph
+above it. Judgement of the register is a model reading a catalog, so it misses tells
+and occasionally objects to prose that is fine.
+
+Read the text before you ship it. The gate removes the patterns you would otherwise
+spend attention on, so that the attention goes to whether the document is correct.
 
 ## Install
 

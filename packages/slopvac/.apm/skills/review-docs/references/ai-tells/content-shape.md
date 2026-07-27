@@ -60,3 +60,11 @@
   say nothing -- a step with no setup simply has no setup step. Mechanised as
   `prose-scope.UnrequestedReassurance`. Distinct from the two above: those defend a
   choice or state a cost; this pre-empts a doubt.
+- Epigram closer: a balanced declarative pair or a terse maxim dropped where a
+  section has already made its point -- "The gate finds tokens. The catalog finds
+  voice.", "The linter is deterministic. The reviewer is not.", "the scripts are its
+  tools, not yours." It adds no fact; it performs having concluded, and it survives
+  editing because it reads quotable. A reward-model favourite. Fix: delete it -- the
+  paragraph or table above already carried the content. Mechanised as
+  `prose-scope.Epigram`, at warning, because the same shape occasionally states a
+  real contrast.

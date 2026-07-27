@@ -1,0 +1,86 @@
+name: Release Please
+
+# Maintains a release PR from Conventional Commits, updates CHANGELOG.md and every
+# version-carrying file, and tags a release on merge. On release it publishes the
+# Vale style packages to the rolling `vale-styles` tag the scaffolded .vale.ini
+# points at, so a released rule change reaches consumers on their next `vale sync`.
+#
+# Version fan-out: release-please owns apm.yml, packages/slopvac/apm.yml, both
+# plugin.json files, and both marketplace.json files, declared as extra-files in
+# release-please-config.json. Those are what a native `/plugin marketplace add`
+# resolves, so a stale version there is a user-visible defect.
+#
+# TOKEN: the release PR is authored with a GitHub App token
+# (RELEASE_APP_CLIENT_ID + RELEASE_APP_PRIVATE_KEY), not the default GITHUB_TOKEN.
+# GitHub does not trigger workflows from GITHUB_TOKEN commits, so required PR checks
+# would sit as no-ops and the release PR would stay blocked. Falls back to
+# GITHUB_TOKEN when the App is not configured, which still opens a release PR --
+# its checks then need a manual re-run.
+# App permissions required: Contents RW + Pull requests RW.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Mint release-app token
+        id: app-token
+        if: ${{ vars.RELEASE_APP_CLIENT_ID != '' }}
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5
+        with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Checkout
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      # The styles publish on release rather than on every push to vale-styles/, so
+      # the rolling tag only ever carries reviewed rules.
+      - name: Publish Vale styles
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ./vale-styles/build.sh
+          if gh release view vale-styles >/dev/null 2>&1; then
+            gh release upload vale-styles vale-styles/dist/*.zip --clobber
+          else
+            gh release create vale-styles vale-styles/dist/*.zip \
+              --title "Vale styles" \
+              --notes "Rolling release. Assets are replaced on every publish; see vale-styles/README.md." \
+              --latest=false
+          fi
+
+      # Attach the same zips to the version tag, so a consumer can pin an exact
+      # rule set instead of tracking the rolling tag.
+      - name: Attach styles to the version release
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag_name }}
+        run: gh release upload "$TAG" vale-styles/dist/*.zip --clobber
