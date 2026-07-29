@@ -2,9 +2,9 @@
 
 Remove AI writing patterns from prose.
 
-AI generated documentation has a clear fingerprint: contrastive inversions, adjectives nothing
-measures, rationale that belongs in a decision record, roadmap language for something
-that does not ship yet, excessive hedging, etc. 
+AI generated documentation has a clear fingerprint. Contrastive inversions.
+Adjectives nothing measures. Rationale that belongs in a decision record, roadmap
+language for something that does not ship yet, and hedging on every claim.
 
 This package ships two skills. 
 
@@ -159,9 +159,9 @@ prose, tested and calibrated against a real corpus.
 
 | Package | Rules | Catches |
 | --- | --- | --- |
-| `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | The actor deleted: an abstraction acting, a passive with no agent, narration from outside the scene |
+| `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | The actor deleted: an abstraction acting, a passive with no agent, or narration from outside the scene |
 | `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
-| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance`, `Epigram` | Over-writing: a decision defended in place, a cost the reader cannot act on, an answer to a worry never raised, an epigram closing a section that already concluded |
+| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance`, `Epigram` | Over-writing: a decision defended in place, a cost the reader cannot act on, an unraised worry answered, or an epigram closing a section that already concluded |
 | `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document |
 | `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Text describing something other than the released artifact |
 | `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Emoji headings, Unicode dashes, paragraphs that should be a list |
@@ -183,10 +183,11 @@ A document passes when both layers agree.
 ## Limits
 
 A clean run means the checked patterns are absent, and nothing more. Neither layer
-reads for truth: a sentence can pass every rule and still be wrong, name a function
-that is absent from the code, describe a flag that never shipped, or contradict the paragraph
-above it. Judgement of the register is a model reading a catalog, so it misses tells
-and occasionally objects to prose that is fine.
+reads for truth. A sentence can pass every rule and still be wrong: it may name a
+function absent from the code, describe a flag that never shipped, contradict the
+paragraph above it, or cite a source that does not exist. Judgement of the register
+is a model reading a catalog, so it misses tells and occasionally objects to prose
+that is fine.
 
 Read the text before you ship it. The gate removes the patterns you would otherwise
 spend attention on, so that the attention goes to whether the document is correct.
@@ -282,13 +283,13 @@ uvx --from apm-cli apm install slopvac@slopvac --target kiro --global
 
 `--global` installs to `~/.claude`, `~/.codex`, or `~/.kiro`. Drop it to install
 into the current project, which is what you want when the config belongs in version
-control with the code. Target several at once with `--target claude,codex,kiro`.
+control with the code. Target all three at once with `--target claude,codex,kiro`.
 
 ## Dependencies
 
 | What | Needed for | Without it |
 | --- | --- | --- |
-| [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | The gate refuses to run and names the install command; the skill still applies its judgement rules by reading |
+| [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | Without it the gate exits with the install command printed; the skill still applies its judgement rules by reading |
 | `python3` 3.12+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
 | `jq` | The `SubagentStart` hook, to build its JSON payload | That hook warns on stderr and skips, so a spawn is never blocked |
 | [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
