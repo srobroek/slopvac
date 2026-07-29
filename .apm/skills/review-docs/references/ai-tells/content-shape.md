@@ -60,6 +60,28 @@
   say nothing -- a step with no setup simply has no setup step. Mechanised as
   `prose-scope.UnrequestedReassurance`. Distinct from the two above: those defend a
   choice or state a cost; this pre-empts a doubt.
+- Unasked-for rationale: the text explains WHY it is the way it is when nothing
+  asked. Not the same tell as a rejected alternative, which names a road not taken
+  and is caught by `prose-scope.RejectedAlternative` -- this one names no
+  alternative and so no pattern reaches it. "This keeps the logic in one place",
+  "the helper is separate for clarity", "the threshold is 2 KB to balance recall
+  and noise", a docstring paragraph on why the class is structured as it is. It
+  reads as the author arguing with a reviewer who is not in the room, and it goes
+  stale silently, because nobody updates a reason when the code changes.
+
+  Judge it, do not pattern-match it. Three things make a rationale legitimate, and
+  all three are context the reader has and a regex does not:
+
+  · the reader cannot recover the reason from the text -- a constraint, an
+    invariant, a gotcha, or a measured number that decided a threshold
+  · the genre exists to record decisions -- an ADR, a spec, a commit message, a
+    PR body
+  · the user asked for the reasoning
+
+  Fix: delete the clause and keep the behavior, or move the reason to the commit.
+  The test is whether a reader who disagrees with the choice would act differently
+  for having read the defence. Usually they would not; they would just know the
+  author expected the argument.
 - Epigram closer: a balanced declarative pair or a terse maxim dropped where a
   section has already made its point -- "The gate finds tokens. The catalog finds
   voice.", "The linter is deterministic. The reviewer is not.", "the scripts are its
