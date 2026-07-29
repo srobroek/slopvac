@@ -154,7 +154,7 @@ into every subagent, because a subagent inherits main-session steering weakly.
 
 Two layers, because half of this resists mechanization.
 
-**Deterministic** -- 23 Vale rules across seven packages, each one regex over parsed
+**Deterministic.** 23 Vale rules across seven packages, each one regex over parsed
 prose, tested and calibrated against a real corpus.
 
 | Package | Rules | Catches |
@@ -167,7 +167,7 @@ prose, tested and calibrated against a real corpus.
 | `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Emoji headings, Unicode dashes, paragraphs that should be a list |
 | `ai-tells` | 76 upstream | [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells), with the exclusions a software corpus needs applied |
 
-**Agentic** -- the skill reads a catalog of tells no regex reaches, and applies them
+**Agentic.** The skill reads a catalog of tells no regex reaches, and applies them
 by judgement:
 
 | Category | Examples |
@@ -293,7 +293,7 @@ control with the code. Target all three at once with `--target claude,codex,kiro
 | `python3` 3.12+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
 | `jq` | The `SubagentStart` hook, to build its JSON payload | That hook warns on stderr and skips, so a spawn is never blocked |
 | [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
-| `bash` 3.2+ | The gate and scaffold scripts. Stock macOS bash is the floor, so no `mapfile` | -- |
+| `bash` 3.2+ | The gate and scaffold scripts. Stock macOS bash is the floor, so no `mapfile` | none |
 | `git` | Resolving the repo root and honouring `.gitignore` | Ignored files get linted too |
 
 The skills need none of this to be installed by APM; the gate needs `vale` at the
@@ -366,7 +366,7 @@ files: it lints comments and docstrings while skipping identifiers and string
 literals, so a field named `robust` stays clean. `.mdx` needs `[formats]`
 `mdx = md`, or Vale fails with `mdx2vast not found`.
 `.tsx` and `.jsx` have no parser and no working alias, and Vale reports zero
-findings and exits 0 for them, which reads as a pass -- the skill extracts their JSX
+findings and exits 0 for them, which reads as a pass, so the skill extracts their JSX
 text with `ast-grep` instead.
 
 See [vale-styles/README.md](vale-styles/README.md) for the full rule set.
