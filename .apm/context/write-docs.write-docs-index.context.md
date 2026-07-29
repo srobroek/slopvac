@@ -20,6 +20,7 @@ NOT Status language: "under construction", "WIP", "coming soon", "currently", "f
 NOT Slop lexicon: "seamlessly", "robust", "powerful", "comprehensive", "leverage", "blazingly fast", "battle-tested", emoji headings.
 MUST Name who acted: an abstraction is not an actor. "The team fixed it that week", never "the complaint becomes a fix"; if no person fits, use "you".
 MUST Cut the claim, not the hedge: a doc describing unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".
+NOT Justify a choice inside the artifact. The doc states what IS; the reason it is that way belongs in the commit or an ADR. Write the rationale only when the reader cannot recover it from the text (a constraint, an invariant, a measured number that decided a threshold), when the genre exists to record a decision (ADR, spec, commit message, PR body), or when the user asked for it.
 NOT Over-writing -- three shapes, all of them real content in the wrong document:
   · a rejected alternative defended in place ("X rather than Y, because...", "for the same reason it does not...", "the earlier implementation") -> the decision belongs in an ADR, spec, or commit
   · an implementation cost the reader cannot act on (a timing, a speedup ratio, a process count) -> belongs in the commit that measured it; a published benchmark page or a table cell is fine

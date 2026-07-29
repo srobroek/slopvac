@@ -44,6 +44,11 @@ MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixe
 NOT Status language: "under construction", "WIP", "coming soon", "currently", "for now", "planned", "being specified".
 NOT Slop lexicon -- the prose-inflation Vale style owns the banned list; prose never restates it.
 NOT History narration in a doc body ("previously", "we changed X to Y") -- deltas belong to the change-comms genre only.
+NOT Justify a choice inside the artifact. The doc states what IS; the reason it is
+  that way belongs in the commit or an ADR. Write the rationale only when the
+  reader cannot recover it from the text (a constraint, an invariant, a measured
+  number that decided a threshold), when the genre exists to record a decision
+  (ADR, spec, commit message, PR body), or when the user asked for it.
 NOT Over-writing -- real content in the wrong document:
   · a rejected alternative defended in place -> move the decision to an ADR, spec, or commit
   · an implementation cost the reader cannot act on (timing, process count) -> move it to the commit that measured it
