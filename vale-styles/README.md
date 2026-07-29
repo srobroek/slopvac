@@ -41,8 +41,8 @@ publish, so the URLs above always serve the current rules.
 `prose-agency`, `prose-inflation`, `prose-scope`, and `ai-residue` apply to any
 prose. Turn `prose-scope` off for decision records, where the rationale and its
 measurement are the point.
-`docs-discipline` encodes one house position -- that a doc describes what ships
-today -- so read the rules before adopting it. `prose-format` is a house
+`docs-discipline` encodes one house position, that a doc describes what ships
+today, so read the rules before adopting it. `prose-format` is a house
 convention, including a `--` preference over em dashes.
 
 ## prose-scope by example
@@ -99,7 +99,7 @@ prose-inflation.BusinessJargon = warning
 ## Which files to lint
 
 Vale parses Markdown, HTML, reStructuredText, AsciiDoc, JSON, and YAML natively.
-It is also syntax-aware for source files -- it lints comments and docstrings while
+It is also syntax-aware for source files: it lints comments and docstrings while
 skipping identifiers and string literals, so a variable named `robust` does not
 trip `SlopLexicon`.
 
