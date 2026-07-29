@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/srobroek/slopvac/compare/slopvac--v1.0.1...slopvac--v1.1.0) (2026-07-29)
+
+
+### Features
+
+* flag unasked-for rationale when reviewing prose ([#6](https://github.com/srobroek/slopvac/issues/6)) ([65a5c1c](https://github.com/srobroek/slopvac/commit/65a5c1ce8b148fe95b3c3f215f76c86a98ebcbcb))
+
 ## [1.0.1](https://github.com/srobroek/slopvac/compare/slopvac--v1.0.0...slopvac--v1.0.1) (2026-07-27)
 
 
