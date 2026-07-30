@@ -130,6 +130,32 @@ class Thresholds(BaseModel):
     )
 
 
+class LocaleSettings(BaseModel):
+    """Spelling target.
+
+    Separate from the rules because the correct spelling depends on the project,
+    not the prose: `colour` is a defect in a `en-US` document and correct in a
+    `en-GB` one. The spelling rule is generated per run from this setting, so one
+    variant table serves every direction.
+
+    `und` disables the spelling check without disabling the rest of its category.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    default: str = Field(
+        default="en-US",
+        description="Locale tag: en-US, en-GB, or und to disable. ASD-STE100 "
+        "rule 1.14 asks for American spelling, which is why en-US is the "
+        "default rather than a rule a British English project cannot turn off.",
+    )
+    allow: list[str] = Field(
+        default_factory=list,
+        description="Words this project spells its own way regardless of locale. "
+        "Added to the identifier allowlist.",
+    )
+
+
 class ValeSettings(BaseModel):
     """The Vale sub-gate. Vale owns the regex layer for the styles already
     published from this repo; slopvac-lint owns scoring, tiers, and the rules Vale
@@ -169,6 +195,7 @@ class Override(BaseModel):
     rules: dict[str, RuleSettings] = Field(default_factory=dict)
     thresholds: Thresholds | None = None
     vale: ValeSettings | None = None
+    locale: LocaleSettings | None = None
 
     @model_validator(mode="after")
     def _compile_spec(self) -> Override:
@@ -200,6 +227,7 @@ class Config(BaseModel):
     rules: dict[str, RuleSettings] = Field(default_factory=dict)
     thresholds: Thresholds = Field(default_factory=Thresholds)
     vale: ValeSettings = Field(default_factory=ValeSettings)
+    locale: LocaleSettings = Field(default_factory=LocaleSettings)
     overrides: list[Override] = Field(default_factory=list)
 
     exclude: list[str] = Field(
@@ -247,6 +275,7 @@ class ResolvedConfig(BaseModel):
     rules: dict[str, RuleSettings]
     thresholds: Thresholds
     vale: ValeSettings
+    locale: LocaleSettings
     applied_overrides: list[str] = Field(
         default_factory=list,
         description="Which override globs matched, in order. Reported by "
@@ -386,6 +415,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     rules: dict[str, RuleSettings] = {}
     thresholds = _merge_thresholds(profile_thresholds(profile), config.thresholds)
     vale = config.vale.model_copy()
+    locale = config.locale.model_copy()
 
     # Layer 2: the top-level tables.
     for name, patch in config.categories.items():
@@ -402,6 +432,12 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         for name, patch in override.rules.items():
             rules[name] = _merge_rule(rules.get(name), patch)
         thresholds = _merge_thresholds(thresholds, override.thresholds)
+        if override.locale is not None:
+            merged_locale = locale.model_dump()
+            for key, value in override.locale.model_dump().items():
+                if value:
+                    merged_locale[key] = value
+            locale = LocaleSettings.model_validate(merged_locale)
         if override.vale is not None:
             merged = vale.model_dump()
             for key, value in override.vale.model_dump().items():
@@ -416,6 +452,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         rules=rules,
         thresholds=thresholds,
         vale=vale,
+        locale=locale,
         applied_overrides=applied,
     )
 

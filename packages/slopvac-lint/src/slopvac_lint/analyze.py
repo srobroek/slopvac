@@ -51,9 +51,27 @@ BOLD_ITALIC = re.compile(r"(\*{1,3}|_{1,3})(?=\S)(.+?)(?<=\S)\1")
 # A number, optionally signed, with decimals, thousands separators, ranges, or a
 # version-like dotted form. One word.
 NUMBER = r"[+-]?\d+(?:[.,]\d+)*(?:\.\d+)*"
-# A unit glued to or following a number. Kept deliberately broad: the rule counts
-# "number together with a unit of measurement" as one word regardless of unit.
-UNIT = r"(?:°?[A-Za-zµΩ%/]{1,12}(?:\^?-?\d)?)"
+# A unit that follows a number. This list is CLOSED on purpose. An open pattern
+# like `[A-Za-z]{1,12}` treats any short word as a unit, so "13 thru 16" collapsed
+# "thru" into "13" and the specification's own worked example came out at 8 words
+# instead of 10. A missed exotic unit over-counts by one; a permissive pattern
+# under-counts every sentence that has a number in it.
+UNIT = (
+    r"(?:"
+    r"°[CF]?|K|"
+    r"[numkKMGTP]?(?:m|g|s|A|V|W|J|N|Pa|Hz|B|bps|bit|byte|bytes|"
+    r"[bB]|[iI]?B)|"
+    r"ms|us|ns|ps|min|mins|h|hr|hrs|d|days?|wk|wks|mo|yr|yrs|"
+    r"%|px|em|rem|pt|dpi|rpm|"
+    r"KiB|MiB|GiB|TiB|PiB|kB|MB|GB|TB|PB|"
+    r"mm|cm|km|in|ft|yd|mi|"
+    r"mg|kg|lb|lbs|oz|"
+    r"mL|L|gal|"
+    r"deg|degC|degF|rad|"
+    r"req/s|ops/s|qps|rps|"
+    r"USD|EUR|GBP"
+    r")(?:\^?-?\d)?"
+)
 NUMBER_UNIT = re.compile(rf"^{NUMBER}\s*{UNIT}?$")
 SPELLED_COMPOUND_NUMBER = re.compile(
     r"^(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"

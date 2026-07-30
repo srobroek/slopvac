@@ -13,37 +13,60 @@ TRIGGER
 - authoring skills, steering, or agent definitions → write-agentic
 - code comments and docstrings → language conventions
 
-This skill authors. The `review-docs` skill gates: it owns the linter, the AI-tells
-catalog, and the verdict. Step 4 below hands off to it, and it is not optional --
+This skill authors. `slopvac-lint` gates mechanically; the `review-docs` skill
+judges what no pattern reaches. Steps 4 and 5 run both, and neither is optional --
 a document is not finished until it has passed.
 
 ## Genre → reference
 
-| Surface | LOAD |
-|---|---|
-| README.md, docs/**, anything a user of the artifact reads | references/consumer-docs.md |
-| PR bodies, commit messages, hand-written release notes | references/change-comms.md |
-| specs/, ADRs, constitutions, CONTRIBUTING, contributor/internal docs | references/internal-docs.md |
+| Surface | LOAD | Lint profile |
+|---|---|---|
+| README.md, docs/**, anything a user of the artifact reads | references/consumer-docs.md | `normal` |
+| PR bodies, commit messages, hand-written release notes | references/change-comms.md | `normal` |
+| specs/, ADRs, constitutions, CONTRIBUTING, contributor docs | references/internal-docs.md | `normal` |
+| reference material, API docs, runbooks, procedures, safety text | references/internal-docs.md | `strict` |
 
 ## Workflow
 
 1. Classify the doc with the genre table; LOAD that reference before writing.
-2. Author or rewrite against the genre rules plus the shared rules below.
+2. Author or rewrite against the sentence rules below plus the genre reference.
 3. Verify every claim against code at HEAD, and give every consumer example a
    runnable test under `examples/`.
-4. MUST Invoke the `review-docs` skill, passing the genre from step 1. It runs
-   the gate and judges the register the gate cannot see. Fix what it returns.
+4. Run the linter and fix what it reports:
 
-## Rules (all genres)
+   ```sh
+   uvx slopvac-lint <file>                    # or --profile strict
+   ```
 
-MUST State what the artifact does -- never effort, intent, process, or journey.
+   Fix every ERROR. Fix or justify each WARNING in one line. The linter names the
+   replacement for every substitution, so never guess one from memory.
+   MUST Exit 2 means nothing was checked. Report that rather than treating it as
+   a pass.
+5. MUST Invoke the `review-docs` skill, passing the genre from step 1. It judges
+   register, structural symmetry, and claims with nothing behind them. Fix what it
+   returns.
+
+## Sentence rules
+
+The linter owns the word lists and the exact limits. These are the rules that
+change how you form a sentence in the first place, so they belong in your head
+before you draft.
+
+MUST One idea per sentence. One instruction per sentence, unless two actions happen at the same time.
+MUST About 20 words for an instruction or a warning; about 25 for descriptive text.
+MUST Active voice with the actor named. Use the passive only when the actor is unknown, is any conforming implementation, or is the reader.
+MUST One word, one meaning. One name, one thing: never call the same thing by two names in one document.
+MUST Use a verb for an action: "analyze the log", not "perform an analysis of the log".
+MUST Put a condition before the command it governs.
+MUST Six sentences per paragraph at most, one topic each. Steps go in a vertical list, one action per item, imperative.
+MUST Every claim names a checkable particular: a number, a path, a command, a version, a named event.
 MUST Delete any adjective you cannot back with a number, benchmark, or feature list.
-MUST One idea per sentence; lists and tables over prose paragraphs.
+MUST Delete every span whose removal changes no proposition, obligation, or referent.
 MUST Name who acted: an abstraction is not an actor ("the team fixed it", never "the complaint becomes a fix").
+MUST State what the artifact does -- never effort, intent, process, or journey.
 MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".
-NOT Status language: "under construction", "WIP", "coming soon", "currently", "for now", "planned", "being specified".
-NOT Slop lexicon -- the prose-inflation Vale style owns the banned list; prose never restates it.
-NOT History narration in a doc body ("previously", "we changed X to Y") -- deltas belong to the change-comms genre only.
+NOT A figure of speech you are used to seeing in print.
+NOT Status language, or history narration in a doc body -- deltas belong to the change-comms genre only.
 NOT Justify a choice inside the artifact. The doc states what IS; the reason it is
   that way belongs in the commit or an ADR. Write the rationale only when the
   reader cannot recover it from the text (a constraint, an invariant, a measured
@@ -54,3 +77,17 @@ NOT Over-writing -- real content in the wrong document:
   · an implementation cost the reader cannot act on (timing, process count) -> move it to the commit that measured it
   · reassurance answering a worry never raised ("no configuration required", "it just works") -> state the positive alone, or say nothing
   Ask whether a reader of THIS document acts differently for having read the sentence.
+
+## Configuring the gate
+
+A project owns its thresholds in `slopvac.toml`; `uvx slopvac-lint init` writes a
+starter file.
+
+MUST Fix the prose before changing a rule. When a rule is genuinely wrong for this
+project, change the config and give the override a one-line reason.
+MUST Suppress a single finding by naming an exception from that rule's own closed
+list: `<!-- slopvac-allow: rule=<id> reason=<name> -->`. Run
+`uvx slopvac-lint explain <id>` for the valid reasons. A reason that is not on the
+list is reported rather than honoured.
+NOT Editing the packaged rules: a reinstall overwrites them. Add a house rule with
+`--rules-dir`, or set the severity in `slopvac.toml`.

@@ -1,0 +1,404 @@
+id: prose-discipline
+title: Prose discipline
+description: Referential consistency, sentence load, and constructions that hide the verb or the claim.
+weight: 1.5
+recommended_for: [readme, guide, reference, api-docs, runbook, adr]
+max_per_100_words:
+  strict: 0.4
+  normal: 0.8
+  relaxed: 2.0
+rules:
+  # --- Synonym rotation -----------------------------------------------------
+  # Mechanically this can only detect that two competing terms BOTH appear; it
+  # cannot tell a deliberate distinction ("the user authenticates, the client
+  # retries") from careless rotation. So the pattern rule reports co-occurrence
+  # and the judgement rule decides.
+  - id: competing-actor-terms
+    name: Pick one term for one subject
+    kind: judgement
+    message: >-
+      Two or more terms name what may be the same subject. Pick one and use it
+      everywhere, or state the distinction at first use.
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      List every term this document uses for a person or system that acts:
+      user, customer, client, consumer, caller, requester, tenant, account,
+      operator, admin, developer, integrator, subscriber, end user. For each
+      pair, do they name the same subject? If yes, that is rotation and one term
+      must win. If no, does the document define the difference at first use?
+    exceptions:
+      - defined-distinction
+      - quotation
+      - api-name
+      - glossary-entry
+    examples:
+      - bad: >-
+          The user submits a job. The customer receives a token. The client then
+          polls for the result.
+        good: >-
+          The user submits a job, receives a token, and polls for the result.
+        note: >-
+          Three terms, one actor. The fix is one term, not three synonyms.
+      - bad: >-
+          The caller opens a connection. The consumer must close it.
+        good: >-
+          The caller opens the connection and must close it.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.11'
+      note: >-
+        The specification requires one name for one thing. Software prose breaks
+        this most often across actor nouns, because each one reads as a
+        legitimate synonym in isolation. Kept as judgement because
+        co-occurrence alone does not prove rotation: a document may
+        legitimately distinguish a user from the client library that acts for
+        them.
+    fix: >-
+      Choose the narrowest accurate term, replace every other, and define the
+      distinction at first use only when two subjects genuinely differ.
+
+  - id: term-rotation-signal
+    name: Competing actor terms appear together
+    kind: pattern
+    severity: suggestion
+    message: >-
+      "{match}" appears alongside another actor term in this document. Confirm
+      they name different subjects.
+    scope: prose
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    # Advisory only, and deliberately so. This fires on the presence of a term,
+    # not on a proven defect, so it is a prompt to check rather than a finding to
+    # fix. Its value is pointing the reviewer at the judgement rule above.
+    pattern: '(?<![\w-])(?:end[- ]users?|customers?|consumers?|requesters?|subscribers?)(?![\w-])'
+    ignore_case: true
+    exceptions:
+      - defined-distinction
+      - quotation
+      - api-name
+      - glossary-entry
+    examples:
+      - bad: The customer receives a token.
+        good: The user receives a token.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.11'
+      note: >-
+        Paired with competing-actor-terms, which carries the judgement. This
+        half only surfaces the candidate terms; it cannot know which is correct
+        for the document.
+    fix: Use the document's one chosen actor term.
+
+  # --- Frozen verbs ---------------------------------------------------------
+  # Overlaps the passive-voice rule at the surface but is a different defect: the
+  # action has been turned into a noun and bolted onto a general-purpose verb.
+  # "An analysis was performed" is both; "we perform an analysis" is only this.
+  - id: frozen-verb
+    name: Put the action in the verb
+    kind: pattern
+    severity: error
+    message: >-
+      "{match}" freezes the action in a noun. Use the plain verb.
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    # A general-purpose verb followed by an optional article and a nominalized
+    # action noun. The suffix list is what makes this precise: without it the
+    # pattern fires on every "make a copy" and "take a branch".
+    pattern: '(?<![\w-])(?:perform|conduct|carry out|undertake|execute|make|do|give|provide|effect|achieve|obtain|initiate|facilitate|implement)(?:s|ed|ing)?\s+(?:a|an|the)?\s*\w{4,}(?:tion|sion|ment|ance|ence|ysis|ision|ation)(?![\w-])'
+    ignore_case: true
+    exceptions:
+      - identifier-fidelity
+      - quotation
+      - code-span
+      - legal-force
+      - api-name
+    allowlist:
+      - make a decision about
+      - implementation
+    examples:
+      - bad: The runner performs an analysis of the coverage report.
+        good: The runner analyzes the coverage report.
+      - bad: Conduct an investigation of the failing shard.
+        good: Investigate the failing shard.
+      - bad: The hook provides validation of the payload.
+        good: The hook validates the payload.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.7'
+      orwell_ref: cut-what-cuts
+      note: >-
+        Both sources name this. Orwell's operators-or-verbal-false-limbs
+        paragraph calls the pattern "the elimination of simple verbs"; the
+        specification requires a verb for an action. Overlaps
+        orwell-voice.passive-voice on sentences that are both passive and
+        frozen, which is correct: they carry two defects and the fix differs.
+    fix: >-
+      Promote the noun to a finite verb and delete the general-purpose verb and
+      its article.
+
+  # --- Run-on sentences -----------------------------------------------------
+  # Distinct from the word-count cap: a 24-word sentence can be four ideas and a
+  # 30-word one can be a single clean list. This counts CLAUSE BOUNDARIES, which
+  # is what a reader actually pays for.
+  - id: run-on
+    name: Split the run-on
+    kind: metric
+    severity: warning
+    message: >-
+      This sentence stitches {match} independent ideas together; the limit is
+      {replacement}. Split it.
+    scope: sentence
+    metric: clause_boundaries
+    threshold: 3
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - quotation
+      - code-span
+      - vertical-list
+      - legal-force
+    examples:
+      - bad: >-
+          The parser reads the file, and it normalizes the paths; then it emits
+          the report, but it skips any entry that fails validation, which the
+          caller must handle separately.
+        good: >-
+          The parser reads the file and normalizes the paths. It emits the
+          report and skips any entry that fails validation. The caller handles
+          those separately.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.1'
+      note: >-
+        Counts coordinating conjunctions, semicolons, dashes used as clause
+        joins, and non-restrictive "which" clauses, rather than words. A
+        sentence under the word cap can still carry four ideas, and that is the
+        defect a reader feels. Threshold 3 permits a compound sentence with a
+        trailing qualifier and rejects the fourth stitch.
+    fix: Split at the clause boundary that carries the least shared context.
+
+  # --- Phrasal verbs --------------------------------------------------------
+  # A closed list of the ones that are pure register, each with the plain verb.
+  # Deliberately NOT a general -up/-out/-into pattern: "set up", "log in", and
+  # "check out" are the correct names of real operations, and a general pattern
+  # would fire on all of them.
+  - id: phrasal-verb
+    name: Use the plain verb
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    substitutions:
+      '\bspin(?:s|ning)? up\b': start
+      '\bspun up\b': started
+      '\bspin(?:s|ning)? down\b': stop
+      '\bstand(?:s|ing)? up\b': deploy
+      '\bstood up\b': deployed
+      '\breach(?:es|ing)? out\b': ask
+      '\breached out\b': asked
+      '\bdive(?:s|d)? into\b': examine
+      '\bdiving into\b': examining
+      '\bdig(?:s|ging)? into\b': examine
+      '\bkick(?:s|ing)? off\b': start
+      '\bkicked off\b': started
+      '\bcircle back\b': return to this
+      '\bcircling back\b': returning to this
+      '\bdrill(?:s|ing)? down\b': examine in detail
+      '\bramp(?:s|ing)? up\b': increase
+      '\bramped up\b': increased
+      '\bsurface(?:s|d)? up\b': report
+      '\bbubble(?:s|d)? up\b': propagate
+      '\bloop(?:s|ing)? in\b': include
+      '\blooped in\b': included
+      '\btouch base\b': speak
+      '\bdouble(?:s|d)? down on\b': commit to
+      '\bunpack(?:s|ing)?\b': explain
+      '\blean(?:s|ing)? into\b': prioritize
+      '\blevel(?:s|ling|ing)? up\b': improve
+      '\bwind(?:s|ing)? down\b': stop
+      '\bsun ?set(?:s|ting)?\b': withdraw
+    ignore_case: true
+    exceptions:
+      - identifier-fidelity
+      - quotation
+      - code-span
+      - api-name
+      - ui-label
+    allowlist:
+      - set up
+      - sets up
+      - setup
+      - log in
+      - logs in
+      - login
+      - check out
+      - checks out
+      - checkout
+      - roll back
+      - rolls back
+      - rollback
+      - fall back
+      - falls back
+      - fallback
+      - back up
+      - backs up
+      - backup
+      - clean up
+      - cleans up
+      - cleanup
+      - shut down
+      - shuts down
+      - shutdown
+      - opt in
+      - opts in
+      - opt out
+      - build up
+      - tear down
+      - teardown
+    examples:
+      - bad: Spin up a replica before you migrate.
+        good: Start a replica before you migrate.
+      - bad: We reached out to the maintainers.
+        good: We asked the maintainers.
+      - bad: This section unpacks the retry logic.
+        good: This section explains the retry logic.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.5'
+      note: >-
+        A closed list, not a general -up/-out pattern. `set up`, `log in`,
+        `check out`, `roll back`, and `shut down` are the correct names of real
+        operations, and a suffix pattern would report every one of them. The
+        allowlist is the load-bearing half of this rule.
+    fix: Replace with the plain verb the list names.
+
+  # --- Marketing register ---------------------------------------------------
+  # The mechanical half is a token list. The judgement half is what the tokens
+  # cannot reach: a document with no banned adjective can still be marketing
+  # copy, because the register lives in the claim shape, not the word.
+  - id: marketing-register
+    name: Describe, do not sell
+    kind: judgement
+    message: >-
+      This passage sells rather than describes. State what the artifact does and
+      what a reader can measure.
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      For each evaluative claim in this passage, is there a number, a benchmark,
+      a named limit, a version, or a citation within the same sentence or the
+      next one? And would the claim's opposite be recognized as a disagreement
+      about fact rather than a difference of opinion? A claim that fails both is
+      marketing.
+    exceptions:
+      - quantified
+      - quotation
+      - defined-term-of-art
+      - landing-page
+    examples:
+      - bad: >-
+          Built for teams who care about quality, our approach gives you
+          confidence at every step of the pipeline.
+        good: >-
+          The gate blocks a merge when coverage drops below 80%.
+        note: >-
+          No banned adjective appears in the first version. The defect is the
+          claim shape: nothing in it can be checked.
+      - bad: Designed from the ground up for the modern developer workflow.
+        good: Runs as a pre-commit hook and a GitHub Action.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: empty-evaluative-word
+      note: >-
+        Paired with orwell.unsupported-evaluative, which owns the token list.
+        This half exists because the token list is perishable and incomplete: a
+        passage can carry the marketing register with no listed word in it, and
+        that is the commoner failure in generated prose.
+    fix: >-
+      Replace each unmeasurable claim with the fact that motivated it, or delete
+      the sentence.
+
+  - id: marketing-lexicon
+    name: Cut the marketing adjective
+    kind: tokens
+    severity: warning
+    message: '"{match}" is sales register. State the measurable fact instead.'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    # Kept separate from orwell.unsupported-evaluative: that rule holds the
+    # words that evaluate WITHOUT evidence, these are the words that belong to
+    # advertising whatever evidence exists. `blazing fast` with a benchmark is
+    # still the wrong register for reference material.
+    tokens:
+      - effortless
+      - effortlessly
+      - turnkey
+      - best-in-class
+      - game-changing
+      - revolutionary
+      - next-generation
+      - supercharge
+      - supercharged
+      - unleash
+      - unleashes
+      - empower
+      - empowers
+      - delightful
+      - magical
+      - beautifully
+      - stunning
+      - unparalleled
+      - unmatched
+      - premier
+      - first-class
+      - top-tier
+      - hassle-free
+      - pain-free
+      - zero-effort
+      - future-proof
+      - bulletproof
+      - rock-solid
+      - blazing
+      - buttery smooth
+      - dead simple
+      - insanely fast
+      - ridiculously easy
+    ignore_case: true
+    exceptions:
+      - quotation
+      - identifier-fidelity
+      - landing-page
+      - api-name
+    examples:
+      - bad: A turnkey, future-proof deployment story.
+        good: Deploys with one command; supported on Kubernetes 1.28 and later.
+    provenance:
+      source: prose-inflation
+      note: >-
+        Distinct from orwell.unsupported-evaluative by test rather than by
+        taste: that rule asks whether evidence is present, this one asks whether
+        the word belongs to advertising at all. `bulletproof` fails even with a
+        benchmark beside it.
+    fix: Delete the adjective and state what the reader can measure.

@@ -35,6 +35,25 @@ max_errors = 0
 # max_total_per_100_words = 3.0
 # min_score = 70
 
+# --- Spelling ----------------------------------------------------------------
+# The spelling check is generated from this setting, so one variant table serves
+# every direction and en-US -> en-GB cannot disagree with en-GB -> en-US.
+#
+# ASD-STE100 asks for American spelling, which is why en-US is the default rather
+# than a rule a British English project cannot turn off. `und` disables the
+# spelling check and leaves the rest of its category running.
+[locale]
+default = "en-US"        # en-US | en-GB | und
+# Words this project spells its own way whatever the locale. CSS and web platform
+# identifiers are already protected, so this is for your own API surface.
+# allow = ["Colour", "OrganisationId"]
+
+# A locale can be set per path, which is what a translated docs tree needs.
+# [[overrides]]
+# files = ["docs/en-gb/**/*.md"]
+# [overrides.locale]
+# default = "en-GB"
+
 # --- Categories --------------------------------------------------------------
 # Turn one off, or demote it to advisory. A category cap LOWERS a rule's
 # severity and never raises it, so setting `severity = "error"` here will not

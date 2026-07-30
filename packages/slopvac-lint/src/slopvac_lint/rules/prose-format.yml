@@ -1,0 +1,95 @@
+id: prose-format
+title: Prose format
+description: >-
+  Markup and typography defects. Two are house bans with one correct answer; one
+  measures paragraph mass.
+weight: 0.8
+recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+rules:
+  - id: no-unicode-dash
+    name: Write ASCII double-hyphen instead of an em or en dash
+    kind: pattern
+    severity: error
+    message: 'em/en dash: {match} -- write `--` instead, or a comma, colon, or two sentences'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '[—–]'
+    ignore_case: false
+    fix: Replace with `--`, a comma, a colon, or two sentences. For a range, write "to".
+    examples:
+      - bad: "The loader retries — twice."
+        good: The loader retries -- twice.
+    provenance:
+      source: vale-styles/prose-format/NoUnicodeDash.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Replaces the disabled ai-tells.EmDashUsage. The difference that makes it
+        usable: it matches ONLY the real Unicode characters, not the literal `--`
+        this house style writes (measured 6,743 uses of `--` against 2,124 real
+        dashes, so the upstream rule fired ~40 times per document on the house
+        convention and buried every other finding). `scope: raw` is load-bearing:
+        Vale's default scope skips code fences, indented code, and inline code,
+        which is where a pasted Unicode dash does the most damage. Measured on a
+        fixture carrying one dash in each position, the default scope found 1 of 4
+        and raw found all 4. Also measured for source comments: 172 hits, all real
+        U+2014/U+2013 (206 Unicode dashes against 2,591 ASCII `--` across the same
+        55 files), which is why .vale.ini puts it in the source allowlist at error.
+        Go->Python: Vale's `\x{2014}` hex-brace form is rewritten as `—`.
+
+  - id: emoji-heading
+    name: Delete emoji from a heading
+    kind: pattern
+    severity: warning
+    message: 'emoji in heading: {match} -- delete it'
+    scope: heading
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '[\U0001F300-\U0001FAFF☀-➿⬀-⯿️]'
+    ignore_case: false
+    fix: Delete the emoji; the heading text carries the meaning.
+    examples:
+      - bad: "## \U0001F680 Install"
+        good: '## Install'
+    provenance:
+      source: vale-styles/prose-format/EmojiHeading.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        W2 in the retired slop-lint.py. Vale's `scope: heading` replaced the
+        original manual leading-`#` test. Also the mechanised half of the
+        formatting catalog's "Emoji as list markers or in headings" entry -- the
+        list-marker half needs judgement, see
+        ai-tells-formatting.emoji-list-markers.
+        Go->Python: `\x{1F300}` becomes `\U0001F300`.
+
+  - id: prose-block
+    name: Convert a long paragraph to a list or table
+    kind: metric
+    severity: warning
+    message: 'prose block of {match} words > 80 -- convert to a list or table'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    metric: paragraph_words
+    threshold: 80
+    comparison: gt
+    fix: Split the paragraph, or turn the enumeration into a list or a table.
+    provenance:
+      source: vale-styles/prose-format/ProseBlock.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        W1 in the retired slop-lint.py, converted from Vale `extends: occurrence`
+        with `max: 80`, `token: \b(\w+)\b`, `scope: paragraph`. Vale's paragraph
+        scope replaced the original line-prefix heuristic, which miscounted wrapped
+        list-item continuations and markdown syntax as prose words. The Vale message
+        needed `%d` and not `%s`, because occurrence populates an int and `%s`
+        renders it as `%!s(int=N)`; our schema interpolates `{match}` with no format
+        verb, so the trap does not carry over. Advisory at relaxed: an essay or a
+        spec legitimately carries a long paragraph.
+        Complements prose-craft.sentence-length, which measures the sentence.

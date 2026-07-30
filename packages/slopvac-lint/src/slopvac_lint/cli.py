@@ -28,7 +28,7 @@ from .analyze import parse
 from .config import Config, ConfigError, Profile, Severity, find_config, load_config, resolve_for
 from .engine import Engine
 from .model import DocumentScore, RuleKind
-from .rules import RuleLoadError, RuleSet, load_ruleset
+from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .score import aggregate, score_document
 from .vale import ValeResult, run_vale
 
@@ -231,6 +231,11 @@ def main(context: click.Context) -> None:
     "--max-per-100-words", type=float, help="Fail above this finding density."
 )
 @click.option(
+    "--locale",
+    "locale_tag",
+    help="Spelling target: en-US, en-GB, or und to disable. Overrides slopvac.toml.",
+)
+@click.option(
     "--no-vale", is_flag=True, help="Skip the Vale sub-gate even when configured."
 )
 @click.option("--no-color", is_flag=True, help="Plain output.")
@@ -250,6 +255,7 @@ def lint(
     output_format: str,
     min_score: float | None,
     max_per_100_words: float | None,
+    locale_tag: str | None,
     no_vale: bool,
     no_color: bool,
     verbose: bool,
@@ -272,6 +278,8 @@ def lint(
         config.thresholds.min_score = min_score
     if max_per_100_words is not None:
         config.thresholds.max_total_per_100_words = max_per_100_words
+    if locale_tag:
+        config.locale.default = locale_tag
 
     # CLI disables are the last word, applied as config so the normal
     # precedence chain still reports them under --explain-config.
@@ -288,6 +296,13 @@ def lint(
     except RuleLoadError as exc:
         console.print(f"[red]ruleset error[/]: {exc}")
         raise SystemExit(EXIT_ERROR)
+
+    # The spelling rule is generated from the locale, so it is added after the
+    # YAML loads. A bad tag becomes an `unchecked` note rather than an exception:
+    # a typo here must not stop the other 200 rules from running.
+    locale_note = inject_locale_rule(
+        ruleset, config.locale.default, config.locale.allow
+    )
 
     if only_categories:
         keep = set(only_categories)
@@ -330,6 +345,9 @@ def lint(
         vale_result = run_vale(paths, config)
 
     scores = [_lint_one(p, config, ruleset, vale_result) for p in paths]
+    if locale_note:
+        for score in scores:
+            score.unchecked.append(locale_note)
 
     if output_format == "json":
         payload = {

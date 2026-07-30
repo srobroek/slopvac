@@ -55,6 +55,110 @@ class Suppression:
     line: int
 
 
+# A substitution key is a REGEX, not a literal, matching Vale's `swap` semantics:
+# `\bblind spots?\b`, `(?:and|or) higher`, and `\ba HTML\b` are all real keys in the
+# shipped ruleset. Escaping them would make each one match only its own literal
+# text and never fire -- which is how 16 rules failed their own examples.
+#
+# A key that carries no regex metacharacter still needs boundaries, because a bare
+# word must not match inside a longer one. A key that carries its own `\b` or
+# lookaround must be left alone, since wrapping it would double the boundary and
+# break the match.
+_HAS_OWN_BOUNDARY = re.compile(r"\\b|\\B|\(\?<|\(\?=|\(\?!|^\^|\$$")
+_METACHARACTER = re.compile(r"[\\(){}\[\]|?*+^$]")
+
+
+# A clause boundary is where a reader has to start holding a second idea. Counted
+# rather than word-counted, because sentence length and idea count are different
+# defects: "Read the file, parse it, and emit the report" is 9 words and one idea.
+#
+# Excluded on purpose: a comma before a restrictive clause, a comma in a list of
+# nouns, and a subordinating conjunction that opens the sentence (the
+# condition-before-command form the STE rules require).
+_CLAUSE_JOIN = re.compile(
+    r"""
+      ;                                   # a semicolon always joins clauses
+    | \s+(?:--|—|–)\s+                    # a dash used as a clause join
+    | ,\s*(?:and|but|or|so|yet|then|while|whereas|although)\s+(?=\w+\s+\w)
+    | ,\s*which\b                         # non-restrictive relative clause
+    | ,\s*(?:however|therefore|meanwhile|nevertheless|consequently)\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+def count_clause_boundaries(text: str) -> int:
+    """How many times this sentence starts a new independent idea."""
+    return len(_CLAUSE_JOIN.findall(text))
+
+
+def build_substitution_pattern(substitutions: dict[str, str]) -> str:
+    """One alternation over every key, longest first.
+
+    Longest-first matters: with `in order to` and `order` both present, the shorter
+    key would otherwise win and report the wrong replacement.
+    """
+    parts: list[str] = []
+    for key in sorted(substitutions, key=len, reverse=True):
+        if _HAS_OWN_BOUNDARY.search(key):
+            parts.append(f"(?:{key})")
+        elif _METACHARACTER.search(key):
+            # Regex, but unanchored. Bound it without assuming a word edge, since
+            # a key may begin or end with punctuation.
+            parts.append(rf"(?<![\w-])(?:{key})(?![\w-])")
+        else:
+            parts.append(rf"(?<![\w-])(?:{re.escape(key)})(?![\w-])")
+    return "|".join(parts)
+
+
+# A trailing lookahead cannot be satisfied by the matched span alone: the key
+# `\b(?:e\.g\.)(?=[\s,])` matches "e.g." inside a sentence, but re-testing it
+# against the bare string "e.g." fails, because the space it looks ahead for is
+# outside the span. Stripping the assertions is what makes the reverse lookup work.
+_TRAILING_ASSERTION = re.compile(r"\((?:\?=|\?!|\?<=|\?<!)[^)]*\)$")
+_LEADING_ASSERTION = re.compile(r"^\((?:\?=|\?!|\?<=|\?<!)[^)]*\)")
+
+
+def match_substitution(substitutions: dict[str, str], matched: str) -> str | None:
+    """Find the replacement for a matched span.
+
+    A direct dict lookup fails whenever the key was a regex, so fall back to
+    re-testing each key against the matched text, longest key first. Every
+    substitution rule must be able to name the fix for anything it matched: a
+    finding that reports no replacement tells the writer nothing.
+    """
+    direct = {k.lower(): v for k, v in substitutions.items()}
+    replacement = direct.get(matched.lower())
+    if replacement is not None:
+        return replacement
+
+    ordered = sorted(substitutions, key=len, reverse=True)
+    for strip_assertions in (False, True):
+        for key in ordered:
+            probe = key
+            if strip_assertions:
+                probe = _TRAILING_ASSERTION.sub("", probe)
+                probe = _LEADING_ASSERTION.sub("", probe)
+                if probe == key:
+                    continue
+            try:
+                if re.fullmatch(probe, matched, re.IGNORECASE):
+                    return substitutions[key]
+            except re.error:
+                continue
+
+    # Last resort: a key that matches somewhere inside the span. Only reached for
+    # keys whose alternation is wider than the span the engine reported.
+    for key in ordered:
+        probe = _LEADING_ASSERTION.sub("", _TRAILING_ASSERTION.sub("", key))
+        try:
+            if re.search(probe, matched, re.IGNORECASE):
+                return substitutions[key]
+        except re.error:
+            continue
+    return None
+
+
 class Engine:
     """Runs one ruleset against one document."""
 
@@ -221,10 +325,7 @@ class Engine:
             # because many tokens are multi-word phrases with punctuation.
             source = rf"(?<![\w-])(?:{alternatives})(?![\w-])"
         elif rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
-            alternatives = "|".join(
-                re.escape(k) for k in sorted(rule.substitutions, key=len, reverse=True)
-            )
-            source = rf"(?<![\w-])(?:{alternatives})(?![\w-])"
+            source = build_substitution_pattern(rule.substitutions)
         elif rule.kind is RuleKind.PATTERN and rule.pattern:
             source = rule.pattern
         else:
@@ -302,8 +403,7 @@ class Engine:
 
                 replacement = None
                 if rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
-                    lookup = {k.lower(): v for k, v in rule.substitutions.items()}
-                    replacement = lookup.get(matched.lower())
+                    replacement = match_substitution(rule.substitutions, matched)
 
                 message = rule.message.format(
                     match=matched, replacement=replacement or ""
@@ -363,6 +463,25 @@ class Engine:
                         rule, document, sentence.line, severity,
                         rule.message.format(
                             match=str(sentence.word_count), replacement=str(int(cap))
+                        ),
+                    )
+                )
+
+        elif metric == "clause_boundaries":
+            # Counts IDEAS, not words. A 24-word sentence can carry four ideas and
+            # a 30-word one can be a single clean list, so the word cap and this
+            # are separate checks.
+            for sentence in document.sentences:
+                count = count_clause_boundaries(sentence.text)
+                if not exceeds(count, threshold):
+                    continue
+                if self._suppressed(rule, sentence.line, suppressions, disabled):
+                    continue
+                results.append(
+                    self._metric_finding(
+                        rule, document, sentence.line, severity,
+                        rule.message.format(
+                            match=str(count + 1), replacement=str(int(threshold) + 1)
                         ),
                     )
                 )

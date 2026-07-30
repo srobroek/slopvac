@@ -99,10 +99,10 @@ def _verify_examples(category: Category, origin: str) -> list[str]:
             joined = "|".join(re.escape(t) for t in sorted(rule.tokens, key=len, reverse=True))
             source = rf"(?<![\w-])(?:{joined})(?![\w-])"
         elif rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
-            joined = "|".join(
-                re.escape(k) for k in sorted(rule.substitutions, key=len, reverse=True)
-            )
-            source = rf"(?<![\w-])(?:{joined})(?![\w-])"
+            # Substitution keys are regex; see engine.build_substitution_pattern.
+            from .engine import build_substitution_pattern
+
+            source = build_substitution_pattern(rule.substitutions)
         else:
             problems.append(f"{origin}: {rule.qualified_id} has no payload to compile")
             continue
@@ -126,6 +126,51 @@ def _verify_examples(category: Category, origin: str) -> list[str]:
                     f"{example.good!r}"
                 )
     return problems
+
+
+def inject_locale_rule(ruleset: RuleSet, tag: str, allow: list[str] | None = None) -> str | None:
+    """Add the generated spelling rule for `tag` to the ste-words category.
+
+    Generated rather than shipped as YAML because the correct spelling depends on
+    the project: one variant table serves en-US and en-GB, so the two directions
+    cannot disagree. Returns a note when the locale is unusable, so the caller can
+    report it as unchecked rather than passing it silently.
+    """
+    from .locale import LOCALES, build_spelling_rule
+
+    if tag not in LOCALES:
+        return (
+            f"locale \"{tag}\" is not known, so spelling was NOT checked. "
+            f"Known: {', '.join(LOCALES)}."
+        )
+
+    data = build_spelling_rule(tag)
+    if data is None:
+        return None  # `und`: deliberately disabled, not a failure.
+
+    if allow:
+        data["allowlist"] = [*data["allowlist"], *allow]
+        allowed = {w.lower() for w in allow}
+        data["substitutions"] = {
+            k: v for k, v in data["substitutions"].items() if k.lower() not in allowed
+        }
+
+    category = ruleset.categories.get("ste-words")
+    if category is None:
+        return "the ste-words category is missing, so spelling was NOT checked."
+
+    # Validated on the same path as a YAML rule: a generated rule that skips
+    # validation is a rule nobody checked.
+    rule = Rule.model_validate(data)
+    object.__setattr__(rule, "category", category.id)
+    category.rules = [r for r in category.rules if r.id != rule.id]
+    category.rules.append(rule)
+
+    problems = _verify_examples(category, f"<generated locale {tag}>")
+    if problems:
+        category.rules = [r for r in category.rules if r.id != rule.id]
+        return f"the generated {tag} spelling rule failed verification: {problems[0]}"
+    return None
 
 
 def load_ruleset(

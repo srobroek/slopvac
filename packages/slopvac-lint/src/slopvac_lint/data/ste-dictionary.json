@@ -2,8 +2,15 @@
  "source": "ASD-STE100 Issue 9 (2025-01-15)",
  "source_note": "Word, part-of-speech, and approved-status triples from the ASD-STE100 Issue 9 dictionary. ASD-STE100 is copyright Aerospace, Security and Defence Industries Association of Europe (ASD) and is an EU registered trademark. This file holds reference data only: no rule text, no definitions, no examples from the specification. Deviations for software documentation live in vocabulary-overlay.yml, never in this file.",
  "extracted": "2026-07-30",
+ "build_assertions": {
+  "csv_rows_with_known_pos": 2089,
+  "unique_keys": 2087,
+  "same_pos_collisions_resolved": 2,
+  "words_with_multiple_pos": 189,
+  "words_with_status_differing_by_pos": 69
+ },
  "entry_count": 2087,
- "approved_count": 800,
+ "approved_count": 798,
  "entries": [
   {
    "word": "a",
@@ -33,7 +40,8 @@
   {
    "word": "able",
    "pos": "adjective",
-   "status": "approved"
+   "status": "unapproved",
+   "note": "Listed twice in Issue 9: approved in one sense, refused in another ('able to' -> use 'can'). One key cannot hold both, so the stricter status wins and the writer checks the sense."
   },
   {
    "word": "abnormal",
@@ -4108,7 +4116,8 @@
   {
    "word": "get",
    "pos": "verb",
-   "status": "approved"
+   "status": "unapproved",
+   "note": "Listed twice in Issue 9: approved as 'to obtain', refused as 'become' and in phrasal forms. Resolved to unapproved so the writer picks the specific verb."
   },
   {
    "word": "get away",

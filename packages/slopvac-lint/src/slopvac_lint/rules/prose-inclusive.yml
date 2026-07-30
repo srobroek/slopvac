@@ -1,0 +1,169 @@
+id: prose-inclusive
+title: Prose inclusive
+description: >-
+  Terms that exclude a reader and have a settled plain replacement. The bar for
+  inclusion is a documented industry replacement, not a contested etymology.
+weight: 0.8
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: ableist
+    name: Replace a disability metaphor with the plainer word
+    kind: substitution
+    severity: warning
+    message: "ableist: consider {replacement} instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    ignore_case: true
+    substitutions:
+      '\bblind spots?\b': gap, oversight
+      '\bturn(?:ing|ed)? a blind eye\b': ignoring, overlooking
+      '\bblind to\b': unaware of
+      '\btone[- ]deaf\b': out of touch, insensitive
+      '\bfall(?:ing|s)? on deaf ears\b': going unheard
+      '\bdeaf ears\b': unheard
+      '\bparaly[sz]ed (?:with|by)\b': unable to act because of
+      '\bcrippl(?:ing|es|ed) (?:debt|fear|blow|anxiety|performance|latency)\b': severe, crushing
+      '\bschizophrenic\b': contradictory, inconsistent
+      '\bbasket[- ]case\b': overwhelmed
+      '\bstands? on its own two feet\b': self-sufficient, independent
+      '\bcrazy\b': surprising, unexpected
+      '\binsane\b': extreme, unreasonable
+      '\blame\b': weak, unconvincing
+      '\bdumb\b': silent, unresponsive
+      '\bidiot(?:ic)?\b': unwise
+      '\bmoronic\b': unwise
+      '\bcrippled?\b': person with a mobility disability
+      '\bretard(?:ed|s)?\b': person with an intellectual disability
+      '\bimbeciles?\b': person with an intellectual disability
+      '\bhandicapped\b': person with a disability
+      '\bsuffers? from\b': has
+      '\bafflicted with\b': has
+      '\bconfined to a wheelchair\b': uses a wheelchair
+      '\bwheelchair[- ]bound\b': uses a wheelchair
+      '\bnormal person\b': person without a disability
+      '\bable[- ]bodied\b': person without a disability
+    fix: Use the plainer word that was meant.
+    examples:
+      - bad: The audit found a blind spot in the coverage.
+        good: The audit found a gap in the coverage.
+      - bad: The complaint fell on deaf ears.
+        good: Nobody answered the complaint.
+    provenance:
+      source: vale-styles/prose-inclusive/Ableist.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Two shapes in one rule: a slur applied to a person, and a disability
+        standing in for a shortcoming. The second is the one that reaches technical
+        prose, and it is always replaceable by the plainer word that was meant, which
+        is why the rule is enforced at every tier. `disabled` is deliberately ABSENT:
+        Microsoft's Accessibility rule includes it and fired twice on the source
+        corpus, both times on a config state ("the rule is disabled"); Elastic
+        dropped it for the same reason.
+
+  - id: device-assumption
+    name: Do not assume the reader's input device
+    kind: substitution
+    severity: warning
+    message: "device assumption: use {replacement} instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    ignore_case: true
+    substitutions:
+      '\bclick(?:ing|ed)? (?:on |the |this )': select, choose
+      '\btap(?:ping|ped)? (?:on |the |this )': select, choose
+      '\bswipe (?:the |this )': select, navigate to
+      '\bhover over\b': point to, focus
+      '\bdouble[- ]click (?:on |the )': select, open
+      '\bright[- ]click (?:on |the )': open the context menu for
+      '\blong[- ]press\b': select and hold
+      '\bdrag and drop\b': move (name a keyboard path too)
+      '\bsee the\b(?= (?:icon|button|badge|indicator))': find the
+    fix: Use the device-neutral verb.
+    examples:
+      - bad: Click the Save button.
+        good: Select Save.
+      - bad: Hover over the badge.
+        good: Point to the badge.
+    provenance:
+      source: vale-styles/prose-inclusive/DeviceAssumption.yml
+      url: https://www.w3.org/WAI/WCAG22/Understanding/
+      note: >-
+        "Click the button" excludes keyboard, touch, and screen-reader users;
+        "Select the button" covers all of them and is no longer. Hover has no touch
+        equivalent at all. Enforced at every tier as an accessibility defect, the
+        same disposition as prose-craft.link-text and prose-craft.directional-ref.
+        Bare `click` is deliberately NOT matched: "a click event" and "click-through
+        rate" are nouns, so the pattern requires the instruction shape (click +
+        on/the/this).
+
+  - id: exclusive
+    name: Replace an exclusionary term with its settled form
+    kind: substitution
+    severity: warning
+    message: "exclusionary term: use {replacement} instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    ignore_case: true
+    substitutions:
+      '\bblack[- ]?lists?\b': blocklist, denylist
+      '\bblack[- ]?listed\b': blocklisted
+      '\bblack[- ]?listing\b': blocklisting
+      '\bwhite[- ]?lists?\b': allowlist, safelist
+      '\bwhite[- ]?listed\b': allowlisted
+      '\bwhite[- ]?listing\b': allowlisting
+      '\bgrey[- ]?list\b': greylist (rename to a neutral term)
+      '\bmaster(?! branch| boot record| broker| key| password| node)\b': primary, main, source, controller
+      '\bslave(?! broker)\b': replica, secondary, worker, follower
+      '\bmaster/slave\b': primary/replica
+      '\bdummy (?:data|value|file|object|variable)\b': placeholder, mock, sample
+      '\bninjas?\b': expert, specialist
+      '\bgurus?\b': expert, specialist
+      '\brock[- ]?stars?\b': expert, specialist
+      '\b(?:code )?wizards?\b': expert, specialist
+      '\bspirit animal\b': favorite, inspiration
+      '\bpow[- ]?wow\b': meeting, discussion
+      '\btribal knowledge\b': undocumented knowledge, team knowledge
+      '\bsanity[- ]check\b': quick check, confidence check
+      '\bgrandfather(?:ed|ing)?\b': legacy, exempt, pre-existing
+      '\bman[- ]hours?\b': person-hours, engineer-hours
+      '\bmanpower\b': staffing, workforce
+      '\bmankind\b': humanity, people
+      '\b(?:he/she|s/he|\(s\)he|he or she)\b': they
+      '\b(?:his/her|his or her)\b': their
+      '\b(?:chair|spokes|business|police|fire|mail|sales)m[ae]n\b': the -person or role form
+      '\bguys\b': everyone, folks, team
+    fix: Use the settled replacement.
+    examples:
+      - bad: Add the host to the whitelist.
+        good: Add the host to the allowlist.
+      - bad: Promote the slave to master.
+        good: Promote the replica to primary.
+        note: '"master branch" and "master boot record" are exempt by lookahead.'
+    provenance:
+      source: vale-styles/prose-inclusive/Exclusive.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        The bar is a documented industry replacement, not a contested etymology:
+        master/slave, blacklist/whitelist, and the hire-title metaphors are all in
+        Linux kernel, IETF, or Google style guidance. The lookaheads on `master` and
+        `slave` come from Red Hat's ConsciousLanguage; neighbor's version is a bare
+        `\bmaster\b` and would flag "master boot record" and a quoted "master branch
+        of a Git repository", both correct technical terms. Keeping the negative
+        lookaheads is the difference between a rule people leave on and one they
+        switch off. `stakeholder`, `target audience`, `combat`, and `tackle` are
+        deliberately ABSENT: neighbor flags all four, they have no settled
+        replacement, they fired twice on ordinary prose in the source corpus, and a
+        rule a reader disagrees with gets the whole style disabled.
+        GO->PYTHON REGEX NOTE: the `master`/`slave` exemptions are negative
+        LOOKAHEADS, which Go RE2 also lacks -- verify the Vale original actually
+        enforces them before trusting the false-positive claim. Python `regex`
+        supports them, so the port is exact.

@@ -1,0 +1,353 @@
+id: prose-inflation
+title: Prose inflation
+description: >-
+  Claims larger than the evidence: marketing lexicon, stacked hedges, degree
+  adverbs, nominalisations, and quantity words standing in for a number nobody
+  counted.
+weight: 1.2
+recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+rules:
+  - id: slop-lexicon
+    name: Replace a marketing adjective with a measurable claim
+    kind: pattern
+    severity: error
+    message: 'slop lexicon: {match} -- delete it or replace it with a measurable claim'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(seamless(ly)?|effortless(ly)?|blazing(ly)?([- ]fast)?|cutting[- ]edge|state[- ]of[- ]the[- ]art|game[- ]chang\w+|revolutioni[sz]\w+|supercharg\w+|unleash\w*|empower\w*|delve\w*|elevat(e|ing) your|robust|powerful|comprehensive|best[- ]in[- ]class|world[- ]class|battle[- ]tested|production[- ]grade|feature[- ]rich|rich set of|leverag(e|es|ed|ing)|elegant(ly)?|streamlin\w+|turbocharg\w+|next[- ]generation|next[- ]gen)\b'
+    ignore_case: true
+    fix: Delete the adjective, or replace it with the number, benchmark, or feature list that backs it.
+    examples:
+      - bad: A robust, comprehensive linter.
+        good: A linter with 61 rules across 9 categories.
+    provenance:
+      source: vale-styles/prose-inflation/SlopLexicon.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        E2 in the retired slop-lint.py. This is the maintained mechanical ban list,
+        and it is why ai-tells.OverusedVocabulary ships disabled: that rule carries
+        ~190 tokens of the retired 2023-mid-2024 era band plus a creative-writing
+        tail and words with ordinary technical uses. Enforced at every tier and kept
+        at error for source comments in .vale.ini -- a marketing adjective is a
+        defect in any register.
+
+  - id: business-jargon
+    name: Use the plain verb
+    kind: pattern
+    severity: error
+    message: 'business jargon: {match} -- use the plain verb'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(double down|circle back|touch base|move the needle|lean in(to)?|take a step back|on the same page|moving forward|going forward|at the end of the day|low[- ]hanging fruit|boil the ocean|table stakes|deep[- ]dive|drill down into|level[- ]set|best[- ]of[- ]breed|synerg(y|ies|istic))\b|\b(hit the ground running|move the goal ?posts?|shift the goal ?posts?|peel (back )?the onion|drink the kool[- ]?aid|blue[- ]?sky thinking|apples to apples|par for the course|bang for (your|the) buck|no[- ]brainer|elephant in the room|all hands on deck|take (this|it) offline|on my (plate|radar)|ping me|thrown? under the bus|think outside the box|get the ball rolling|back to the drawing board|win[- ]win|move fast and break things|eat (our|your) own dog ?food|rubber (meets|hits) the road|the ball is in your court|reinvent the wheel|boots on the ground|north star|force multiplier|raise the bar|swim ?lane|paradigm shift)\b|\b(incentivi[sz]\w+|productiz\w+|operationaliz\w+|solutioniz\w+|ideat\w+|architect(ed|ing)|visionar(y|ies)|thought leader\w*|value[- ]add(ed)?|mission[- ]critical|holistic(ally)?)\b'
+    ignore_case: true
+    fix: Use the plain verb -- "double down" is "commit", "circle back" is "return to".
+    examples:
+      - bad: We will circle back on the low-hanging fruit.
+        good: The maintainers will return to the two open bugs.
+    provenance:
+      source: vale-styles/prose-inflation/BusinessJargon.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Three bands: meeting-register verbs, idioms whose literal reading is not the
+        intended one, and verbed nouns plus vision vocabulary. The idiom band is a
+        second defect on top of the register one: a reader who learned English
+        elsewhere has to look it up. Harvested from neighbor's EnglishIdiom,
+        proselint's CorporateSpeak, and Joblint's Visionary, minus entries already
+        present and minus `greenfield`, which names a real project condition.
+        Enforced at every tier and kept at error for source comments in .vale.ini.
+
+  - id: vague-declarative
+    name: Name the specific thing
+    kind: pattern
+    severity: error
+    message: 'vague declarative: {match} -- name the specific thing'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\bthe (?:reasons?|causes?|implications?|consequences?|stakes|risks?|tradeoffs?|problems?|challenges?|issues?|differences?|benefits?)\s+(?:are|is)\s+(?:structural|significant|substantial|profound|real|clear|high|serious|considerable|non[- ]trivial|manifold|obvious|stark|striking)\b|\bthis is the (?:deepest|hardest|real|core|fundamental|central) (?:problem|issue|question|challenge|tension)\b'
+    ignore_case: true
+    fix: Replace the significance claim with the specific thing it refers to.
+    examples:
+      - bad: The tradeoffs are significant.
+        good: The lockfile adds 40 KB and removes one network round trip.
+    provenance:
+      source: vale-styles/prose-inflation/VagueDeclarative.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        The tell is an abstract plural subject plus a bare significance predicate.
+        The closing `\b` on each adjective keeps "the implications are documented in
+        ADR-4" clean: a predicate that continues into a specific is not this tell.
+        Kept at error for source comments in .vale.ini.
+
+  - id: additive-hedge
+    name: Keep the claim that carries load
+    kind: pattern
+    severity: error
+    message: 'additive hedge: {match} -- keep the claim that carries load'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\bnot (?:just|only|merely|simply)\b[^.!?]{1,60}\bbut (?:also|even)\b'
+    ignore_case: true
+    fix: Keep the half that carries the claim; delete the negation.
+    examples:
+      - bad: Not only fast but also safe.
+        good: The parser validates every field.
+    provenance:
+      source: vale-styles/prose-inflation/AdditiveHedge.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Both halves are claimed, and the negation exists only to inflate the
+        second. Kept at error for source comments in .vale.ini. This is the
+        mechanised form of the structure catalog's "Not-only-but-also" tell; the
+        broader contrastive-inversion family is
+        ai-tells-structure.contrastive-inversion.
+
+  - id: hedge-stack
+    name: One hedge or none
+    kind: pattern
+    severity: error
+    message: 'stacked hedge: {match} -- one hedge or none; commit to the claim or cut it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:may|might|could|can|would|should)\s+(?:possibly|potentially|perhaps|maybe|probably|likely|conceivably|arguably|presumably|generally|typically|sometimes|often|usually)\b|\b(?:possibly|potentially|perhaps|maybe|probably|arguably|presumably)\s+(?:may|might|could|can|would|should)\b|\b(?:may|might|could|can|would|should)\s+(?:help(?:s)? to|tend(?:s)? to|seem(?:s)? to|appear(?:s)? to)\b|\b(?:might|may)\s+(?:possibly\s+)?(?:be able to|want to)\s+(?:try to|attempt to)\b|\b(?:roughly|approximately|about|around)\s+(?:approximately|about|around|some)\s+\d|\bit (?:is|was) (?:thought|believed|assumed|expected|suggested)\s+that\s+[^.!?]{0,30}\b(?:may|might|could|possibly|potentially)\b'
+    ignore_case: true
+    fix: Keep one hedge or none; commit to the claim or cut it.
+    examples:
+      - bad: This can help to potentially reduce noise.
+        good: This drops 40 findings on the same corpus.
+    provenance:
+      source: vale-styles/prose-inflation/HedgeStack.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Deliberately COMBINATORIAL rather than a token list. hedgeclipper ships
+        400+ bare tokens including `can`, `about`, `always`, and `certain`; on any
+        technical corpus that flags most sentences. A single hedge is often correct
+        ("the loader may retry"); two stacked on the same verb is the tell.
+        ai-tells.HedgingPhrases and ai-tells.DefensiveHedges own the fixed idioms
+        ("it should be noted that") and stay in Vale. Advisory at relaxed: an essay
+        hedges by genre.
+
+  - id: intensifier
+    name: Delete the degree adverb
+    kind: pattern
+    severity: error
+    message: 'intensifier: {match} -- delete it, or replace the adjective with a number'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:very|extremely|exceedingly|remarkably|surprisingly|incredibly|unbelievably|tremendously|immensely|enormously|vastly|hugely|terribly|awfully|wildly|insanely|ridiculously|super)\s+(?=\w)'
+    ignore_case: true
+    fix: Delete the adverb, or replace the adjective with a measurement.
+    examples:
+      - bad: The loader is very fast.
+        good: The loader reads 488 files in 0.4 s.
+    provenance:
+      source: vale-styles/prose-inflation/Intensifier.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Deliberately EXCLUDED because each carries real meaning in a technical
+        corpus: significantly/substantially/considerably (statistical and
+        load-bearing next to a p-value), relatively/comparatively (express an actual
+        comparison), largely/mostly/generally (scope qualifiers, see
+        vague-quantifier), completely/entirely/fully (often the precise word, as in
+        "fully qualified name"). Advisory at relaxed: an essay uses emphasis by
+        genre.
+
+  - id: uncomparables
+    name: Drop the intensifier from an absolute
+    kind: pattern
+    severity: error
+    message: 'not comparable: {match} -- the adjective is already absolute; drop the intensifier'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:absolutely|most|more|less|least|very|quite|largely|extremely|increasingly|hardly|greatly|somewhat|rather|fairly)\s+(?:absolute|complete|devoid|entire|fatal|final|ideal|impossible|inevitable|infinite|irreversible|irrevocable|perfect|permanent|perpetual|simultaneous|unanimous|unavoidable|unbroken|uniform|unique|universal|void)\b'
+    ignore_case: true
+    fix: Delete the intensifier; the adjective already means the maximum.
+    examples:
+      - bad: A very unique approach.
+        good: A unique approach.
+    provenance:
+      source: vale-styles/prose-inflation/Uncomparables.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        The Vale rule is an `existence` check carrying BOTH `raw` (the intensifier,
+        consuming the trailing space so the message quotes the whole phrase) and
+        `tokens` (the absolutes). Converted to one pattern with the 23-token list
+        inlined as an alternation, which reproduces Vale's raw+tokens semantics
+        exactly. `correct`, `possible`, and `sufficient` are deliberately absent
+        from the token list: "more correct" and "least possible" are contested, and
+        "more sufficient" is rare enough not to earn the false positives on "most
+        possible configurations".
+
+  - id: vague-quantifier
+    name: Give the count
+    kind: pattern
+    severity: warning
+    message: 'vague quantifier: {match} -- give the count, or name the cases'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(?:several|various|numerous|myriad|a (?:number|variety|handful) of|a (?:large|small|good|fair) (?:number|amount) of|countless|innumerable|plenty of|lots of|a lot of)\b|\b(?:usually|typically|oftentimes|frequently|generally speaking|more often than not|in most cases|for the most part)\b|\b(?:huge|vast|tiny|massive|enormous)\b'
+    ignore_case: true
+    fix: Supply the count, or name the cases.
+    examples:
+      - bad: Several files failed.
+        good: Three files failed.
+    provenance:
+      source: vale-styles/prose-inflation/VagueQuantifier.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        WARNING, not error, on a MEASURED base rate: 9.9 hits per 10k words across
+        147,473 words of human-written technical documentation -- the highest rate of
+        any rule on the slop axis, against a median of 0.8. Humans reach for
+        "several" and "usually" constantly, so a match prompts for the count rather
+        than evidencing who wrote the sentence. That measurement is why normal is
+        advisory and relaxed excluded. Deliberately EXCLUDED:
+        significantly/substantially/considerably (load-bearing next to a figure),
+        relatively/comparatively (state an actual comparison), all/none/every/each
+        (exact), and `some` (too common in correct generic use). It stays in
+        prose-inflation because the DEFECT is inflation; the level carries the
+        epistemic weight, not the category name.
+        Also the mechanised half of the content-shape catalog's "Fake specificity"
+        entry -- see ai-tells-content-shape.fake-specificity for the remainder.
+
+  - id: nominalized-verb
+    name: Use the verb, not the noun
+    kind: pattern
+    severity: error
+    message: 'nominalisation: {match} -- use the verb (''validate'', not ''perform validation'')'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:perform|performs|performed|conduct|conducts|conducted|carry out|carries out|carried out|undertake|undertakes|undertook|effect|effects|effected|achieve|achieves|achieved)\s+(?:a|an|the|any|some)?\s*\w*(?:ation|ations|ment|ments|ance|ence|sion|sions|ysis|yses)\b|\b(?:make|makes|made) (?:a|the) (?:decision|choice|selection|determination|comparison|attempt|request|change)\b|\b(?:take|takes|took) (?:a|the) (?:look|decision|measurement)\b|\b(?:provide|provides|provided) support for\b|\b(?:is|are|was|were) (?:responsible for|in charge of) \w+ing\b'
+    ignore_case: true
+    fix: Move the action back into the verb slot.
+    examples:
+      - bad: The gate performs validation of each field.
+        good: The gate validates each field.
+      - bad: The loader provides support for globs.
+        good: The loader supports globs.
+    provenance:
+      source: vale-styles/prose-inflation/NominalizedVerb.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        SLOP AXIS on a measured base rate: 0.9 hits per 10k words across 147,473
+        words of human-written technical documentation, against a slop-axis median
+        of 0.8. From Openly's VerbingNouns, widened past its perform/do/run trio to
+        the full light-verb set and anchored so a real noun phrase ("the validation
+        step") stays clean. `run`, `do`, and `make` are NOT treated as light verbs:
+        "run the migration" and "make a backup" name a real action on a real object,
+        and excluding them is what keeps the false-positive rate usable. This is the
+        register prose-density.passive-density measures in aggregate, caught one
+        phrase at a time. Advisory at relaxed: formal-report register is a genre.
+
+  - id: document-preamble
+    name: Start with the first fact
+    kind: pattern
+    severity: error
+    message: 'preamble: {match} -- the title already says this; start with the first fact'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\bthe (?:purpose|aim|goal|intent|objective) of this\s+(?:document|page|guide|topic|article|section|README|readme)\b|\bthis (?:document|page|guide|topic|article|README|readme)\s+(?:describes|explains|shows|covers|outlines|details|introduces|walks you through|will (?:describe|explain|show|cover))\b|\bin this (?:document|page|guide|topic|article|post)\b|\bby the end of this\s+(?:document|page|guide|topic|article|tutorial)\b'
+    ignore_case: true
+    fix: Delete the sentence; the document starts on its first fact.
+    examples:
+      - bad: This document describes the loader.
+        good: The loader resolves every path in the manifest.
+    provenance:
+      source: vale-styles/prose-inflation/DocumentPreamble.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        SLOP AXIS on a measured base rate, and the strongest ratio in the set:
+        0.7 hits per 10k words across 147,473 words of human-written technical
+        documentation (slop-axis median 0.8), against 177 per 10k on a synthetic
+        generated-slop fixture -- roughly 250x. Announcing the document's own
+        subject before stating any of it is the canonical opening move of generated
+        prose, which is why it is enforced at every tier. From Splunk's UserFocus;
+        the `allows you to` half of that rule lives in prose-agency.false-agency.
+        prose-craft.self-reference covers "this section" mid-document.
+        Mechanised half of the structure catalog's "Meta-narration" tell.
+
+  - id: apologizing
+    name: Answer the question or cut the passage
+    kind: pattern
+    severity: error
+    message: 'deferred claim: {match} -- answer it, or cut the passage that raises it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(?:more|further|additional)\s+(?:research|investigation|study|work|analysis|testing|benchmarking|measurement)\s+(?:is|are|will be|would be|may be|might be|remains?)\s+(?:needed|required|necessary|warranted|left as|outside)\b|\b(?:warrants?|merits?|deserves?)\s+(?:further|additional|more)\s+(?:research|investigation|study|attention|analysis)\b|\bleft as an exercise\b|\b(?:beyond|outside) the scope of this\s+\w+\b'
+    ignore_case: true
+    fix: Answer the question, or delete the passage that raises it.
+    examples:
+      - bad: Further benchmarking is needed.
+        good: The loader reads 488 files in 0.4 s on the reference machine.
+    provenance:
+      source: vale-styles/prose-inflation/Apologizing.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        The academic register's hedge: the sentence announces that the document will
+        not answer its own question. Distinct from ai-residue.chat-leakage, which
+        catches assistant self-reference ("I apologize"); this is third-person
+        deferral and survives a copy-edit that strips the first person. Excluded at
+        relaxed because it encodes a genre assumption -- a research note or a
+        spec's open-questions section legitimately defers, and "outside the scope of
+        this document" is a correct scope statement there.
+        Mechanised half of the structure catalog's "Hollow acknowledgment" tell.
+
+  - id: borderline-hype
+    name: Back the claim with a number or example
+    kind: pattern
+    severity: warning
+    message: 'borderline hype: {match} -- keep it only if a number or example backs it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(simply|just works|easy to use|easily|intuitive(ly)?|flexible|hassle[- ]free|out of the box|plug[- ]and[- ]play)\b|\b(obvious(ly)?|of course|clearly|needless to say|everyone knows|as (?:you|we) (?:all )?know|it goes without saying|trivial(ly)?|straightforward(ly)?)\b'
+    ignore_case: true
+    fix: Delete the word, or add the number or example that justifies it.
+    examples:
+      - bad: Obviously, the flag is easy to use.
+        good: The flag takes one argument, a glob.
+    provenance:
+      source: vale-styles/prose-inflation/BorderlineHype.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Warning, not error: each token has a legitimate use, so the finding is a
+        prompt to check rather than a defect -- hence advisory at normal and excluded
+        at relaxed. The second band is the condescension band: a word telling the
+        reader the thing is easy tells them nothing, and tells the reader for whom
+        it was not easy that they are the problem. Named in MediaWiki's
+        FreeOfFrustration and alex's Condescending, both of which include
+        `simple`/`easy`, already covered by the first band, so only the
+        assertion-of-obviousness half is added.

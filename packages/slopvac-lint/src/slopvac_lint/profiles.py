@@ -57,6 +57,8 @@ _STRICT: dict[str, CategorySettings] = {
     "orwell": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.4, weight=1.5),
     # Inversion 1: see the module docstring.
     "orwell-voice": CategorySettings(severity=Severity.WARNING, max_per_100_words=None, weight=0.5),
+    # --- Referential consistency, sentence load, frozen verbs, register -------
+    "prose-discipline": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.4, weight=1.5),
     # Inversion 2: the audit contract, enforced everywhere.
     "meta": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.0, weight=1.0),
 }
@@ -92,6 +94,7 @@ _NORMAL: dict[str, CategorySettings] = {
     "ste-vocabulary": CategorySettings(enabled=False, weight=0.0),
     "orwell": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.8, weight=1.5),
     "orwell-voice": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.5, weight=1.0),
+    "prose-discipline": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.8, weight=1.5),
     "meta": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.0, weight=1.0),
 }
 
@@ -126,6 +129,7 @@ _RELAXED: dict[str, CategorySettings] = {
     "ste-vocabulary": CategorySettings(enabled=False, weight=0.0),
     "orwell": CategorySettings(severity=Severity.WARNING, max_per_100_words=2.0, weight=1.0),
     "orwell-voice": CategorySettings(enabled=False, weight=0.0),
+    "prose-discipline": CategorySettings(severity=Severity.WARNING, max_per_100_words=2.0, weight=1.0),
     "meta": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.0, weight=1.0),
 }
 

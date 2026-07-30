@@ -1,0 +1,269 @@
+name: slopvac
+description: Score prose against AI-slop, Simplified Technical English, and Orwell rulesets.
+author: Sjors Robroek
+
+branding:
+  icon: filter
+  color: purple
+
+inputs:
+  paths:
+    description: >-
+      Files or directories to lint, space separated. Ignored when
+      changed-files-only is true.
+    required: false
+    default: "."
+  profile:
+    description: "Strictness tier: strict, normal, or relaxed. Overrides slopvac.toml."
+    required: false
+    default: ""
+  config:
+    description: Path to slopvac.toml. Defaults to the nearest one found.
+    required: false
+    default: ""
+  changed-files-only:
+    description: >-
+      Lint only the prose files this pull request touches. Needs
+      fetch-depth other than 1 on the checkout step.
+    required: false
+    default: "false"
+  min-score:
+    description: Fail below this 0-100 score. Empty uses the profile default.
+    required: false
+    default: ""
+  max-per-100-words:
+    description: Fail above this finding density. Empty uses the profile default.
+    required: false
+    default: ""
+  fail-on-findings:
+    description: >-
+      Fail the job when a threshold fails. Set false to annotate the diff
+      without blocking the merge.
+    required: false
+    default: "true"
+  annotate:
+    description: Emit workflow annotations on the diff.
+    required: false
+    default: "true"
+  sarif:
+    description: >-
+      Also write SARIF to sarif-file, for upload to GitHub code scanning.
+    required: false
+    default: "false"
+  sarif-file:
+    description: Where to write SARIF.
+    required: false
+    default: slopvac.sarif
+  vale:
+    description: >-
+      Install Vale and run the upstream ai-tells rules as well. Without it those
+      rules report as UNCHECKED rather than passing silently.
+    required: false
+    default: "true"
+  vale-version:
+    description: Vale release to install.
+    required: false
+    default: "3.15.2"
+  version:
+    description: >-
+      slopvac-lint version specifier, e.g. "0.1.0" or ">=0.1,<0.2". Empty
+      installs the newest release. Pin it to keep CI reproducible.
+    required: false
+    default: ""
+  rules-dir:
+    description: Extra rule directory layered over the packaged rules.
+    required: false
+    default: ""
+
+outputs:
+  score:
+    description: Overall 0-100 score.
+    value: ${{ steps.lint.outputs.score }}
+  findings:
+    description: Total finding count.
+    value: ${{ steps.lint.outputs.findings }}
+  errors:
+    description: Error-severity finding count.
+    value: ${{ steps.lint.outputs.errors }}
+  per-100-words:
+    description: Finding density per 100 words.
+    value: ${{ steps.lint.outputs.per-100-words }}
+  passed:
+    description: '"true" when every threshold was met.'
+    value: ${{ steps.lint.outputs.passed }}
+  json:
+    description: Path to the full JSON report.
+    value: ${{ steps.lint.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@e92bab6b3d1a03bf9dee9e7f0f9a89b9b70bfb63 # v7.1.1
+      with:
+        enable-cache: true
+
+    - name: Install Vale
+      if: inputs.vale == 'true'
+      shell: bash
+      env:
+        VALE_VERSION: ${{ inputs.vale-version }}
+      run: |
+        set -euo pipefail
+        curl -sSfL -o /tmp/vale.tar.gz \
+          "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+        tar -xzf /tmp/vale.tar.gz -C /tmp vale
+        sudo install -m 0755 /tmp/vale /usr/local/bin/vale
+        vale --version
+
+    # A shallow clone has no merge base, so the diff would silently return every
+    # file. Detect that and say so rather than linting the whole repo under a
+    # changed-files-only label.
+    - name: Resolve target paths
+      id: targets
+      shell: bash
+      env:
+        CHANGED_ONLY: ${{ inputs.changed-files-only }}
+        INPUT_PATHS: ${{ inputs.paths }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      run: |
+        set -euo pipefail
+        if [ "$CHANGED_ONLY" != "true" ]; then
+          echo "paths=$INPUT_PATHS" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if [ -z "${BASE_SHA:-}" ]; then
+          echo "::warning title=slopvac::changed-files-only needs a pull_request event; linting ${INPUT_PATHS} instead"
+          echo "paths=$INPUT_PATHS" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+          echo "::error title=slopvac::the merge base is not in this clone. Set fetch-depth: 0 on actions/checkout, or set changed-files-only: false."
+          exit 1
+        fi
+        mapfile -t files < <(
+          git diff --name-only --diff-filter=d "$BASE_SHA"...HEAD -- \
+            '*.md' '*.mdx' '*.markdown' '*.txt' '*.rst' '*.html'
+        )
+        if [ "${#files[@]}" -eq 0 ]; then
+          echo "::notice title=slopvac::no prose files changed"
+          echo "paths=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        printf '%s\n' "${files[@]}"
+        echo "paths=${files[*]}" >> "$GITHUB_OUTPUT"
+
+    - name: Lint
+      id: lint
+      shell: bash
+      env:
+        PATHS: ${{ steps.targets.outputs.paths }}
+        PROFILE: ${{ inputs.profile }}
+        CONFIG: ${{ inputs.config }}
+        MIN_SCORE: ${{ inputs.min-score }}
+        MAX_PER_100: ${{ inputs.max-per-100-words }}
+        RULES_DIR: ${{ inputs.rules-dir }}
+        ANNOTATE: ${{ inputs.annotate }}
+        SARIF: ${{ inputs.sarif }}
+        SARIF_FILE: ${{ inputs.sarif-file }}
+        FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        set -uo pipefail
+
+        if [ -z "${PATHS// /}" ]; then
+          {
+            echo "score=100"
+            echo "findings=0"
+            echo "errors=0"
+            echo "per-100-words=0"
+            echo "passed=true"
+            echo "json="
+          } >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        spec="slopvac-lint"
+        [ -n "$VERSION" ] && spec="slopvac-lint${VERSION}"
+        case "$VERSION" in
+          [0-9]*) spec="slopvac-lint==${VERSION}" ;;
+        esac
+
+        args=()
+        [ -n "$PROFILE" ] && args+=(--profile "$PROFILE")
+        [ -n "$CONFIG" ] && args+=(--config "$CONFIG")
+        [ -n "$MIN_SCORE" ] && args+=(--min-score "$MIN_SCORE")
+        [ -n "$MAX_PER_100" ] && args+=(--max-per-100-words "$MAX_PER_100")
+        [ -n "$RULES_DIR" ] && args+=(--rules-dir "$RULES_DIR")
+
+        read -r -a targets <<< "$PATHS"
+
+        # JSON is the source of truth for the outputs; the other formats are
+        # rendered from the same run so the numbers cannot disagree.
+        uvx --from "$spec" slopvac-lint lint \
+          "${args[@]}" --format json "${targets[@]}" > /tmp/slopvac.json
+        status=$?
+
+        # Exit 2 means the run itself failed. Never report that as a score.
+        if [ "$status" -ge 2 ]; then
+          echo "::error title=slopvac::the linter could not run (exit ${status}). Prose was NOT checked."
+          cat /tmp/slopvac.json 2>/dev/null || true
+          exit "$status"
+        fi
+
+        python3 - <<'PY' >> "$GITHUB_OUTPUT"
+        import json, os
+        with open("/tmp/slopvac.json") as handle:
+            data = json.load(handle)
+        summary = data["summary"]
+        print(f"score={summary['score']}")
+        print(f"findings={summary['findings']}")
+        print(f"errors={summary['errors']}")
+        print(f"per-100-words={summary['per_100_words']}")
+        print(f"passed={'true' if summary['passed'] else 'false'}")
+        print("json=/tmp/slopvac.json")
+        PY
+
+        python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        import json
+        with open("/tmp/slopvac.json") as handle:
+            data = json.load(handle)
+        summary = data["summary"]
+        verdict = "PASS" if summary["passed"] else "FAIL"
+        print(f"## slopvac: {verdict} - score {summary['score']}/100\n")
+        print(
+            f"{summary['findings']} finding(s) across {summary['documents']} file(s), "
+            f"{summary['words']} words = {summary['per_100_words']:.2f} per 100 words\n"
+        )
+        rows = [c for c in summary["categories"] if c["findings"]]
+        if rows:
+            print("| category | findings | errors | warnings | per 100 words | score |")
+            print("| --- | --- | --- | --- | --- | --- |")
+            for row in rows:
+                print(
+                    f"| {row['category']} | {row['findings']} | {row['errors']} | "
+                    f"{row['warnings']} | {row['per_100_words']:.2f} | {row['score']:.0f} |"
+                )
+            print()
+        for document in data["documents"]:
+            for reason in document.get("failure_reasons", []):
+                print(f"- `{document['path']}`: {reason}")
+            for note in document.get("unchecked", []):
+                print(f"- UNCHECKED `{document['path']}`: {note}")
+        PY
+
+        if [ "$ANNOTATE" = "true" ]; then
+          uvx --from "$spec" slopvac-lint lint \
+            "${args[@]}" --format github "${targets[@]}" || true
+        fi
+
+        if [ "$SARIF" = "true" ]; then
+          uvx --from "$spec" slopvac-lint lint \
+            "${args[@]}" --format sarif "${targets[@]}" > "$SARIF_FILE" || true
+          echo "wrote $SARIF_FILE"
+        fi
+
+        if [ "$FAIL_ON_FINDINGS" = "true" ]; then
+          exit "$status"
+        fi
+        exit 0

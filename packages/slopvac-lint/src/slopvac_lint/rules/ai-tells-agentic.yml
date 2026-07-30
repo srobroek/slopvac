@@ -1,0 +1,2118 @@
+# Four categories in one multi-document YAML file, one document per catalog file.
+#
+# Source: packages/slopvac/.apm/skills/review-docs/references/ai-tells/*.md
+# Index and the "why structure outranks vocabulary" argument:
+#   references/ai-tells.md
+#
+# Every rule traces to one catalog entry. Where an entry has a mechanizable core
+# and a judgement remainder, TWO rules carry the same catalog row and
+# cross-reference each other in provenance.note.
+#
+# The index states the decision procedure this file cannot encode per-rule: no
+# single tell proves anything, and three or more in one passage is the rewrite
+# signal. Rewrite the fact densely; delete only where the sentence carries no fact.
+---
+id: ai-tells-structure
+title: AI tells -- rhetorical structure
+description: >-
+  Structure tells endure across model generations because preference training
+  produces them: raters reward length, markdown, bulleted symmetry, and confident
+  even-handedness, so every generation reconverges on the same shapes even as the
+  vocabulary changes. Weight these above any word list.
+weight: 1.5
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: contrastive-inversion-frames
+    name: Cut the strawman half of a contrastive frame
+    kind: pattern
+    severity: error
+    message: 'contrastive inversion: {match} -- state what the thing is; cut the strawman'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b'
+    ignore_case: true
+    fix: Delete the negated half and state what the thing is.
+    examples:
+      - bad: It's not a linter, it's a review partner.
+        good: The linter reports 61 rules and scores the document.
+      - bad: It's less about speed and more about determinism.
+        good: The gate produces the same findings on every run.
+    provenance:
+      source: references/ai-tells/structure.md ("Contrastive inversion")
+      url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
+      note: >-
+        The mechanizable core of the single most-cited current tell. Judgement
+        remainder in ai-tells-structure.contrastive-inversion-remainder, which
+        covers the forms that carry no fixed frame. Upstream Vale
+        ai-tells.ContrastiveNegation and ai-tells.ContrastiveFormulas cover
+        overlapping ground and stay enabled, so expect duplicate findings until one
+        side is disabled.
+
+  - id: contrastive-inversion-remainder
+    name: Judge whether a contrast names a real alternative
+    kind: judgement
+    severity: suggestion
+    message: 'contrastive inversion: state what the thing is; cut the strawman'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the negated half of this contrast name a position someone actually
+      holds, or was it invented so the affirmed half sounds larger?
+    fix: Delete the invented alternative and state the affirmed claim alone.
+    examples:
+      - bad: Where other gates check words, this one reads the shape of the argument.
+        good: The gate scores paragraph symmetry and passive density.
+    provenance:
+      source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
+      url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
+      note: >-
+        Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The
+        remainder needs a reader who knows whether the alternative exists, which no
+        pattern can supply. Also absorbs the catalog's "Strawman antithesis" row,
+        whose "While other tools struggle, X ..." shape is the same defect.
+
+  - id: staccato-negative-parallel-frames
+    name: Replace a staccato negative run with one sentence
+    kind: pattern
+    severity: warning
+    message: 'staccato negative parallel: {match} -- one plain sentence naming the thing'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '(?:\b[Nn]o(?:t)?\s+[^.!?\n]{1,30}\.\s+){2,}'
+    ignore_case: false
+    fix: Write one declarative sentence naming what the thing is.
+    examples:
+      - bad: Not a bug. Not a feature. A design flaw.
+        good: The loader drops the last row, which is a design flaw.
+    provenance:
+      source: references/ai-tells/structure.md ("Staccato negative parallel")
+      url: https://tropes.fyi/
+      note: >-
+        Mechanizable core. Upstream ai-tells.ParallelStaccato covers this and is
+        DEMOTED to warning in .vale.ini because its own rule comments concede the
+        pattern is over-broad; this port inherits that level. Judgement remainder in
+        ai-tells-structure.staccato-negative-parallel-remainder.
+
+  - id: staccato-negative-parallel-remainder
+    name: Judge whether a fragment run carries content
+    kind: judgement
+    severity: suggestion
+    message: 'fragment cadence: rejoin the fragments and let the fact carry the weight'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Do the consecutive fragments in this passage each add a fact, or does the
+      run exist to build rhythm toward the last one?
+    fix: Rejoin the fragments into one or two sentences.
+    examples:
+      - bad: Fast. Deterministic. Auditable.
+        good: The gate is deterministic and writes an audit line per finding.
+    provenance:
+      source: references/ai-tells/structure.md ("Staccato negative parallel", "One-sentence emphasis paragraph")
+      url: https://tropes.fyi/
+      note: >-
+        Judgement remainder of ai-tells-structure.staccato-negative-parallel-frames.
+        Also covers register.md's "Punchy-fragment cadence" bullet at the
+        paragraph level.
+
+  - id: tricolon-abuse-core
+    name: Cut a three-item list to the items that carry load
+    kind: pattern
+    severity: warning
+    message: 'tricolon: {match} -- cut to the one or two that carry load; break the symmetry'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(\w+),\s+(\w+),\s+and\s+(\w+)\b(?=[\s.,;:]|$)'
+    ignore_case: true
+    fix: Keep the one or two items that carry load and break the symmetry.
+    examples:
+      - bad: fast, reliable, and secure
+        good: The gate reports every finding with a line number.
+        note: >-
+          A three-item technical enumeration ("create, update, and delete") is
+          legitimate and this pattern cannot tell it apart -- see the measurement in
+          exclusions.md for ai-tells.VerbTricolon (149 hits).
+    provenance:
+      source: references/ai-tells/structure.md ("Rule of three / tricolon abuse")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core, at warning for the same measured reason
+        ai-tells.VerbTricolon was demoted: 149 hits on the source corpus and the
+        rule cannot distinguish a rhetorical tricolon from a three-item technical
+        enumeration. Judgement remainder in
+        ai-tells-structure.tricolon-abuse-remainder covers the bullet-symmetry and
+        back-to-back-tricolon forms no single-sentence pattern reaches. Upstream
+        ai-tells.VerbTricolon and VerbTricolonDensity stay enabled.
+
+  - id: tricolon-abuse-remainder
+    name: Judge whether parallel bullets carry distinct substance
+    kind: judgement
+    severity: suggestion
+    message: 'parallel symmetry: keep only the items with distinct substance'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Do the parallel items -- three identical-shape bullets, or two tricolons in
+      consecutive sentences -- each state a fact the others do not?
+    fix: Merge into prose, or keep only the items with distinct substance.
+    examples:
+      - bad: "- **Speed:** it is fast.\n- **Safety:** it is safe.\n- **Scale:** it scales."
+        good: The gate reads 488 files in 0.4 s and refuses an unresolvable style.
+    provenance:
+      source: references/ai-tells/structure.md ("Rule of three / tricolon abuse", "Bold-lead-in bullet symmetry")
+      url: https://rlhfbook.com/c/18-style
+      note: >-
+        Judgement remainder of ai-tells-structure.tricolon-abuse-core. Absorbs the
+        catalog's "Bold-lead-in bullet symmetry" row: `**Speed:** one sentence` x 6
+        with near-zero content. The bullet SHAPE is mechanizable and lives in
+        ai-tells-formatting.inline-header-list; the "near-zero content" test is
+        this rule.
+
+  - id: emphasis-paragraph-metric
+    name: Rejoin a one-fragment paragraph
+    kind: metric
+    severity: warning
+    message: 'emphasis paragraph of {match} words -- rejoin the sentence; let the fact carry the weight'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    metric: paragraph_words
+    threshold: 8
+    comparison: lte
+    fix: Rejoin the fragment to the paragraph before or after it.
+    provenance:
+      source: references/ai-tells/structure.md ("One-sentence emphasis paragraph")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core: a lone paragraph of eight words or fewer. The threshold
+        is INFERRED from the catalog's example ("Openly. In a book." = four words),
+        not measured, so it must be calibrated against a corpus before it is
+        enforced anywhere but strict. Judgement remainder in
+        ai-tells-structure.staccato-negative-parallel-remainder. A short paragraph
+        can also be a legitimate admonition or a table caption.
+
+  - id: false-suspense-frames
+    name: Delete the drumroll
+    kind: tokens
+    severity: error
+    message: 'false suspense: {match} -- delete the drumroll; state the point'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - here's the thing
+      - here is the thing
+      - here's the kicker
+      - here's what most people miss
+      - here's what nobody tells you
+      - here's the catch
+      - here's where it gets interesting
+      - but here's the problem
+      - and here's why
+    ignore_case: true
+    fix: Delete the phrase and state the point.
+    examples:
+      - bad: "Here's the thing: the loader reads the lockfile."
+        good: The loader reads the lockfile.
+    provenance:
+      source: references/ai-tells/structure.md ("False-suspense transition")
+      url: https://tropes.fyi/
+      note: >-
+        Mechanizable core, as a literal token list. Judgement remainder in
+        ai-tells-structure.false-suspense-remainder, because the shape outlives any
+        fixed phrase -- the index records that the cliche palette rotates each model
+        generation (Washington Post analysis of 328,744 ChatGPT messages). Overlaps
+        upstream ai-tells.NarrativePivots and ai-tells.OpeningCliches, which stay
+        enabled.
+
+  - id: false-suspense-remainder
+    name: Judge whether a transition withholds the point
+    kind: judgement
+    severity: suggestion
+    message: 'false suspense: delete the drumroll; state the point'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this transition announce that something important follows without
+      stating any part of it?
+    fix: Delete the transition and open on the point.
+    examples:
+      - bad: What follows is the part that changes how you read the rest of this page.
+        good: The gate exits 1 when the score falls below 80.
+    provenance:
+      source: references/ai-tells/structure.md ("False-suspense transition")
+      url: https://tropes.fyi/
+      note: >-
+        Judgement remainder of ai-tells-structure.false-suspense-frames. The token
+        list decays per model generation; this question does not.
+
+  - id: fragment-question-pivot
+    name: Replace a question-answer fragment pair with a declarative
+    kind: pattern
+    severity: warning
+    message: 'fragment-question pivot: {match} -- one declarative sentence'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b[A-Z][a-z]*(?:\s+\w+){0,3}\?\s+[A-Z]\w*(?:\s+\w+){0,2}\.'
+    ignore_case: false
+    fix: Write one declarative sentence.
+    examples:
+      - bad: The result? Devastating.
+        good: The migration dropped two rows.
+    provenance:
+      source: references/ai-tells/structure.md ("Fragment-question pivot")
+      url: https://tropes.fyi/
+      note: >-
+        Fully mechanizable as a shape, so no judgement partner. Warning rather than
+        error because a short question followed by a short answer is also a
+        legitimate FAQ form -- calibrate before enforcing outside strict.
+
+  - id: rhetorical-question-transition
+    name: Answer directly instead of asking
+    kind: pattern
+    severity: warning
+    message: 'rhetorical question: {match} -- answer directly; delete the question'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '(?m)^\s*(?:#{1,6}\s*)?(?:So|But|Now|And)?\s*(?:why|what|how|who)\b[^.!?\n]{0,60}\?\s*$'
+    ignore_case: true
+    fix: Delete the question and state the answer.
+    examples:
+      - bad: So why does this matter?
+        good: A false status claim ships a document that lies.
+    provenance:
+      source: references/ai-tells/structure.md ("Rhetorical-question transition")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Anchored to a question that occupies a whole line or heading, which is the
+        transition position; a question inside a paragraph is often a real one.
+        Overlaps upstream ai-tells.RhetoricalSelfAnswer and
+        ai-tells.RhetoricalDevices, which stay enabled. Fully mechanizable at this
+        anchor, so no judgement partner.
+
+  - id: meta-narration-frames
+    name: Delete the navigation announcement
+    kind: tokens
+    severity: error
+    message: 'meta-narration: {match} -- delete it; navigation is the TOC''s job'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - let's dive in
+      - let's dive into
+      - let's unpack
+      - let's explore
+      - let's take a look at
+      - let's break this down
+      - we'll explore
+      - we'll walk through
+      - in this guide
+      - buckle up
+    ignore_case: true
+    fix: Delete the sentence; the table of contents carries navigation.
+    examples:
+      - bad: In this guide, we'll explore the loader.
+        good: The loader resolves every path in the manifest.
+    provenance:
+      source: references/ai-tells/structure.md ("Meta-narration")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core. The document-opening frame is already mechanised as
+        prose-inflation.document-preamble at a MEASURED 250x slop ratio; this token
+        list reaches the mid-document and imperative forms that rule's anchors miss.
+        Judgement remainder in ai-tells-structure.meta-narration-remainder. Overlaps
+        upstream ai-tells.Metacommentary, ai-tells.UnpackExplore, and
+        ai-tells.StructureAnnouncements, all of which stay enabled.
+
+  - id: meta-narration-remainder
+    name: Judge whether a sentence spends itself on navigation
+    kind: judgement
+    severity: suggestion
+    message: 'meta-narration: delete it; navigation is the TOC''s job'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this sentence describe what the document is doing rather than state a
+      fact about the subject?
+    fix: Delete the sentence.
+    examples:
+      - bad: Before getting to the flags, some background on why the loader exists.
+        good: The loader reads the lockfile, then falls back to the manifest.
+    provenance:
+      source: references/ai-tells/structure.md ("Meta-narration")
+      note: >-
+        Judgement remainder of ai-tells-structure.meta-narration-frames and of
+        prose-inflation.document-preamble.
+
+  - id: heading-echo
+    name: Start with the first new fact after a heading
+    kind: judgement
+    severity: suggestion
+    message: 'heading echo: start with the first new fact'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does the first sentence under this heading state any fact the heading did
+      not already state?
+    fix: Delete the restatement and open on the first new fact.
+    examples:
+      - bad: "## Install the plugin\n\nThis section covers installing the plugin."
+        good: "## Install the plugin\n\nRun `apm install slopvac`."
+    provenance:
+      source: references/ai-tells/structure.md ("Heading echo")
+      note: >-
+        Judgement, not pattern: deciding it requires comparing the sentence's
+        content against the heading's, and paraphrase defeats any string test.
+        prose-craft.self-reference catches the subset that names the section
+        explicitly ("This section explains"), and
+        prose-inflation.document-preamble catches the document-level form.
+
+  - id: summary-closer-frames
+    name: End on the last fact
+    kind: tokens
+    severity: error
+    message: 'summary closer: {match} -- end on the last fact'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - in conclusion
+      - to wrap up
+      - to wrap things up
+      - to sum up
+      - in summary
+      - to summarize
+      - to summarise
+      - wrapping up
+      - the bottom line is
+      - all in all
+      - at the end of the day
+    ignore_case: true
+    fix: Delete the closer; the last fact ends the section.
+    examples:
+      - bad: In conclusion, the gate reads one config file.
+        good: The gate reads one config file.
+    provenance:
+      source: references/ai-tells/structure.md ("Summary closer")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core. Judgement remainder in
+        ai-tells-structure.summary-closer-remainder covers the re-listing form,
+        which carries no marker phrase. Overlaps upstream
+        ai-tells.ConclusionMarkers and ai-tells.WrapUpHeadings, which stay enabled.
+        "at the end of the day" also appears in prose-inflation.business-jargon;
+        that duplicate is acceptable because the two rules name different fixes.
+
+  - id: summary-closer-remainder
+    name: Judge whether a closing section adds a fact
+    kind: judgement
+    severity: suggestion
+    message: 'summary closer: end on the last fact'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the final section state anything the sections above did not, or does it
+      re-list them?
+    fix: Delete the section.
+    examples:
+      - bad: 'The gate has three parts, described above: the loader, the checkers, and the scorer.'
+        good: ''
+        note: The document ends on the scorer section.
+    provenance:
+      source: references/ai-tells/structure.md ("Summary closer", "Outline conclusion")
+      note: >-
+        Judgement remainder of ai-tells-structure.summary-closer-frames. Also
+        absorbs the catalog's "Outline conclusion" row ("Challenges and Future
+        Outlook", "Despite these challenges ... remains"), whose heading forms are
+        covered upstream by ai-tells.DespiteChallenges and
+        ai-tells.WrapUpHeadings.
+
+  - id: listicle-in-a-trench-coat
+    name: Make it a real list or real prose
+    kind: judgement
+    severity: suggestion
+    message: 'listicle in prose: either a real list, or prose with connective logic'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Do consecutive paragraphs enumerate positions in a sequence ("The first X
+      is ... The second X is ...") without any of them depending on the one before?
+    fix: Convert to a list, or rewrite as prose where each paragraph follows from the last.
+    examples:
+      - bad: The first wall is latency. The second wall is memory. The third wall is cost.
+        good: "Three limits apply:\n\n- latency\n- memory\n- cost"
+    provenance:
+      source: references/ai-tells/structure.md ("Listicle in a trench coat")
+      note: >-
+        No pattern reaches it: the defect is that prose form carries list content,
+        which needs the reader to test whether each paragraph depends on the last.
+        Upstream ai-tells.SequencingMarkers and ai-tells.ListIntroductions catch
+        the marker phrases, not the shape.
+
+  - id: anaphora-abuse
+    name: Say it once and merge the objects
+    kind: judgement
+    severity: suggestion
+    message: 'anaphora: say it once; merge the objects'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Do three or more consecutive sentences open on the same subject-verb pair,
+      with only the object changing?
+    fix: Write the subject-verb once and list the objects.
+    examples:
+      - bad: They assume a lockfile. They assume a network. They assume a token.
+        good: They assume a lockfile, a network, and a token.
+    provenance:
+      source: references/ai-tells/structure.md ("Anaphora abuse")
+      note: >-
+        Upstream ai-tells.StackedAnaphora attempts the mechanical form and stays
+        enabled; this judgement rule carries the case where the repeated opener is
+        paraphrased rather than identical, which no regex reaches.
+
+  - id: analogy-stack-authority
+    name: Keep one apt comparison, or none
+    kind: judgement
+    severity: suggestion
+    message: 'analogy stack: one apt comparison, or none'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this passage borrow authority by naming well-known companies or products
+      that have no causal connection to the claim?
+    fix: Keep the one comparison that shares a mechanism with the subject, or cut all of them.
+    examples:
+      - bad: Apple didn't build Uber. Facebook didn't build Spotify.
+        good: The plugin runs in the host process, so it cannot outlive the session.
+    provenance:
+      source: references/ai-tells/structure.md ("Analogy-stack authority")
+      url: https://www.oliviacal.com/post/ai-writing-tells
+      note: >-
+        Deciding it needs domain knowledge about whether the comparison shares a
+        mechanism, which is exactly what a pattern cannot hold.
+
+  - id: invented-concept-label
+    name: Coin nothing
+    kind: judgement
+    severity: suggestion
+    message: 'invented concept label: use the plain description; coin nothing'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this document name a concept in title-case or quoted form ("the
+      supervision paradox", "workload creep") without defining it and without
+      citing a source that uses the term?
+    fix: Replace the coinage with the plain description.
+    examples:
+      - bad: This is the supervision paradox.
+        good: A reviewer who approves faster than they read approves more defects.
+    provenance:
+      source: references/ai-tells/structure.md ("Invented concept label")
+      note: >-
+        Distinguishing a coinage from established domain vocabulary requires knowing
+        the field, so it cannot be a token list -- the list would have to enumerate
+        every legitimate term instead.
+
+  - id: cataphoric-lead-in-core
+    name: Cut the count forecast
+    kind: pattern
+    severity: warning
+    message: 'cataphoric lead-in: {match} -- let the list carry its own length; cut the forecast'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(?:there are |falls? into |breaks? down into |comes? down to |divides? into |consists? of |has )?(?:two|three|four|five|six|seven)\s+(?:pillars|categories|kinds|types|reasons|things|ways|factors|areas|themes|buckets|dimensions|principles|steps)\b'
+    ignore_case: true
+    fix: Delete the count and let the list carry its own length.
+    examples:
+      - bad: 'Three pillars support this: speed, safety, and cost.'
+        good: "The gate is fast, refuses an unresolvable style, and runs in CI."
+    provenance:
+      source: references/ai-tells/structure.md ("Cataphoric numbered lead-in")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core. Judgement remainder in
+        ai-tells-structure.cataphoric-lead-in-remainder covers the paraphrased
+        forecast. Upstream ai-tells.CataphoricForecasting covers this and stays
+        enabled. NOTE the conflict: a numbered forecast is CORRECT in a spec or a
+        procedure where the reader needs to know how many steps remain, which is why
+        relaxed excludes it.
+
+  - id: cataphoric-lead-in-remainder
+    name: Judge whether a forecast tells the reader anything
+    kind: judgement
+    severity: suggestion
+    message: 'cataphoric lead-in: cut the forecast'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does announcing the count change what the reader does, or does the list
+      immediately below already show its own length?
+    fix: Delete the forecast unless the reader must budget effort before reading.
+    examples:
+      - bad: A handful of considerations apply here.
+        good: "Two limits apply:"
+    provenance:
+      source: references/ai-tells/structure.md ("Cataphoric numbered lead-in")
+      note: Judgement remainder of ai-tells-structure.cataphoric-lead-in-core.
+
+  - id: hollow-acknowledgment
+    name: Solve it, or cut the paragraph that raises it
+    kind: judgement
+    severity: suggestion
+    message: 'hollow acknowledgment: solve it, or cut the paragraph that raises it'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does this passage name a risk, limitation, or problem and then give the
+      reader no action, no measurement, and no pointer to where it is handled?
+    fix: State the action, or delete the paragraph.
+    examples:
+      - bad: Rate limits are a real concern here.
+        good: The client retries twice, then returns 429 to the caller.
+    provenance:
+      source: references/ai-tells/structure.md ("Hollow acknowledgment")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        prose-inflation.apologizing mechanises the subset that DEFERS explicitly
+        ("further research is needed"); this rule covers all diagnosis with no
+        treatment, which carries no marker phrase. Upstream
+        ai-tells.HollowAcknowledgment attempts the phrase forms and stays enabled.
+
+  - id: absolute-assertion-core
+    name: State the claim with its actual scope
+    kind: tokens
+    severity: warning
+    message: 'absolute assertion: {match} -- state the claim with its actual scope'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - the only way to
+      - the single most important
+      - make no mistake
+      - there is no substitute for
+      - the one thing you need
+      - without exception the
+      - always the right
+      - never the right
+    ignore_case: true
+    fix: Replace the absolute with the claim's actual scope.
+    examples:
+      - bad: The only way to fix this is to re-run the sync.
+        good: Re-running the sync fixes it when the cache is stale.
+    provenance:
+      source: references/ai-tells/structure.md ("Absolute assertion")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core. The catalog calls this the MIRROR of hedge stacking:
+        over-commitment reads as generated too, which is why
+        prose-inflation.hedge-stack and this rule are complements, not duplicates.
+        Judgement remainder in ai-tells-structure.absolute-assertion-remainder.
+        Upstream ai-tells.AbsoluteAssertions and ai-tells.FalseExclusivity stay
+        enabled.
+
+  - id: absolute-assertion-remainder
+    name: Judge whether an absolute claim survives one counterexample
+    kind: judgement
+    severity: suggestion
+    message: 'absolute assertion: state the claim with its actual scope'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Can you name one case in which this claim is false? If yes, the claim is
+      stated at the wrong scope.
+    fix: Narrow the claim to the scope the evidence supports.
+    examples:
+      - bad: Every project needs a lockfile.
+        good: A project with more than one direct dependency needs a lockfile.
+    provenance:
+      source: references/ai-tells/structure.md ("Absolute assertion")
+      note: >-
+        Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable
+        by construction: the reviewer either produces a counterexample or does not.
+
+  - id: think-of-it-as-core
+    name: Explain the mechanism instead of the metaphor
+    kind: pattern
+    severity: warning
+    message: 'teacher voice: {match} -- explain the actual mechanism once; cut the teacher voice'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(?:think of (?:it|this|them) (?:as|like)|imagine (?:it|this|a)|picture (?:it|this|a)|it''s (?:kind of |sort of )?like a?)\b'
+    ignore_case: true
+    fix: State the mechanism once and delete the analogy.
+    examples:
+      - bad: Think of it like a highway system for data.
+        good: The bus fans one message out to every registered handler.
+    provenance:
+      source: references/ai-tells/structure.md ("Think-of-it-as reflex")
+      url: https://medium.com/@tdoherty_96508/a-field-guide-to-terrible-ai-writing-6a83ddb6a141
+      note: >-
+        Mechanizable core. Judgement remainder in
+        ai-tells-structure.think-of-it-as-remainder, because an analogy can be
+        introduced with no frame at all.
+
+  - id: think-of-it-as-remainder
+    name: Judge whether an analogy replaces the mechanism
+    kind: judgement
+    severity: suggestion
+    message: 'teacher voice: explain the actual mechanism once'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Is the mechanism stated anywhere in this passage, or does the analogy stand
+      in place of it?
+    fix: State the mechanism; keep the analogy only if it shortens the explanation.
+    examples:
+      - bad: The scheduler is the traffic warden of the cluster.
+        good: The scheduler assigns each pod to the node with the most free memory.
+    provenance:
+      source: references/ai-tells/structure.md ("Think-of-it-as reflex")
+      note: Judgement remainder of ai-tells-structure.think-of-it-as-core.
+
+  - id: false-range
+    name: List the actual items or name the real dimension
+    kind: judgement
+    severity: suggestion
+    message: 'false range: list the actual items, or name the real dimension'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Do the two endpoints of this "from X to Y" construction sit on a real scale,
+      or are they two unordered members of a set?
+    fix: List the items, or name the dimension that actually varies.
+    examples:
+      - bad: from beef to chicken
+        good: beef, chicken, and pork
+      - bad: from startups to enterprises
+        good: teams of 3 to 3,000 engineers
+    provenance:
+      source: references/ai-tells/structure.md ("False range")
+      note: >-
+        A pattern for "from X to Y" would fire on every legitimate range, so this is
+        judgement-only: the test is whether the endpoints are ordered, which needs
+        the reader to know the domain.
+
+  - id: vague-attribution-core
+    name: Name the source or own the claim
+    kind: pattern
+    severity: error
+    message: 'vague attribution: {match} -- name the source or own the claim'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:experts?|researchers?|analysts?|observers?|critics?|studies|surveys?|reports?|sources?|some|many|most)\s+(?:agree|say|note|suggest|argue|believe|report|found|indicate|point out|warn)\b|\b(?:industry|market|recent)\s+(?:reports?|studies|research|analysis|data)\s+(?:shows?|suggests?|indicates?|finds?)\b|\bit is (?:widely|generally|commonly) (?:known|believed|accepted|understood|reported)\b'
+    ignore_case: true
+    fix: Name the source with a citation, or state the claim in your own voice.
+    examples:
+      - bad: Experts agree that lockfiles reduce drift.
+        good: The npm RFC 0012 measured a 40% drop in resolution variance with a lockfile.
+    provenance:
+      source: references/ai-tells/structure.md ("Vague attribution")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core, enforced at every tier: an unsourced appeal to authority
+        is a factual defect in any register, and .vale.ini already keeps upstream
+        ai-tells.VagueAttributions at error even for source comments. Judgement
+        remainder in ai-tells-structure.vague-attribution-remainder. This is the
+        one structure rule the source config already trusted enough to gate code
+        comments on.
+
+  - id: vague-attribution-remainder
+    name: Judge whether a cited source is checkable
+    kind: judgement
+    severity: suggestion
+    message: 'vague attribution: name the source or own the claim'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Could a reader locate the source behind this claim from what the sentence
+      gives them?
+    fix: Add the citation, or restate the claim as your own.
+    examples:
+      - bad: The literature is clear on this.
+        good: RFC 7231 section 6.5.1 defines the status code.
+    provenance:
+      source: references/ai-tells/structure.md ("Vague attribution")
+      note: >-
+        Judgement remainder of ai-tells-structure.vague-attribution-core. Also the
+        checkability half of content-shape's fabricated-citation entry -- see
+        ai-tells-content-shape.fabricated-citations-remainder.
+
+  - id: audience-straddle-core
+    name: Write for the one audience the doc has
+    kind: pattern
+    severity: warning
+    message: 'audience straddle: {match} -- write for the one audience the doc has'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\bwhether you(?:''re| are)\s+a\b[^.!?]{1,60}\bor\b[^.!?]{1,40}|\b(?:beginners? and (?:experts?|professionals?|veterans?)|novices? and (?:experts?|professionals?))\b|\bseasoned (?:pro|professional|veteran|developer)s?\b'
+    ignore_case: true
+    fix: Pick the audience the document has and write for it.
+    examples:
+      - bad: Whether you're a beginner or a seasoned pro, this guide has something for you.
+        good: This guide assumes you have run `apm install` once.
+    provenance:
+      source: references/ai-tells/structure.md ("Audience straddle")
+      note: >-
+        Mechanizable core. Judgement remainder in
+        ai-tells-structure.audience-straddle-remainder covers the case where the
+        straddle is implicit -- a page that defines `git commit` and then discusses
+        rebase strategy.
+
+  - id: audience-straddle-remainder
+    name: Judge whether the document holds one audience
+    kind: judgement
+    severity: suggestion
+    message: 'audience straddle: write for the one audience the doc has'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this document explain a term in one section that it assumes without
+      explanation in another?
+    fix: Pick the audience and cut whichever half does not serve it.
+    examples:
+      - bad: 'A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG.'
+        good: Rebase onto the upstream to linearise the history.
+    provenance:
+      source: references/ai-tells/structure.md ("Audience straddle")
+      note: Judgement remainder of ai-tells-structure.audience-straddle-core.
+---
+id: ai-tells-register
+title: AI tells -- the chat-assistant register
+description: >-
+  The chat-assistant voice that survived lexical patching. Each entry is a voice,
+  not a word: synonym-swapping does not remove it. Per-model fingerprints inside
+  this register drift fast, so treat model attributions as snapshots.
+weight: 1.5
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: faux-candor-core
+    name: Cut the intimacy performance
+    kind: tokens
+    severity: error
+    message: 'faux candor: {match} -- cut the intimacy performance; candor is the unhedged claim'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - let's be real
+      - let's be honest
+      - honestly?
+      - to be honest
+      - i'll be honest
+      - real talk
+      - if we're being honest
+      - the truth is
+    ignore_case: true
+    fix: Delete the frame and make the claim it was protecting.
+    examples:
+      - bad: "Let's be real: the gate is slow on a cold cache."
+        good: The gate takes 12 s on a cold cache.
+    provenance:
+      source: references/ai-tells/register.md ("Faux-candor pivot")
+      url: https://tropes.fyi/
+      note: >-
+        Mechanizable core. tropes.fyi files this as "False Vulnerability". Judgement
+        remainder in ai-tells-register.faux-candor-remainder, because the catalog's
+        actual test is whether the vulnerability is risk-free, which no token
+        carries. The structure catalog's "Here's the thing" overlaps -- that form is
+        in ai-tells-structure.false-suspense-frames.
+
+  - id: faux-candor-remainder
+    name: Judge whether an admission carries risk
+    kind: judgement
+    severity: suggestion
+    message: 'faux candor: candor is the unhedged claim itself'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this admission cost the author anything -- a named mistake, a measured
+      failure, a refused feature -- or is it performed vulnerability with no exposure?
+    fix: Replace the performance with the specific admission and its cost.
+    examples:
+      - bad: We're not perfect, and we're always learning.
+        good: The 3.0 release shipped with a broken lockfile path for six days.
+    provenance:
+      source: references/ai-tells/register.md ("Faux-candor pivot")
+      note: >-
+        Judgement remainder of ai-tells-register.faux-candor-core. The counter-signal
+        catalog names the positive form: "a concrete anecdote or a mistake admitted
+        with its cost".
+
+  - id: intensifier-tics-core
+    name: Drop the unearned intensifier
+    kind: tokens
+    severity: error
+    message: 'intensifier tic: {match} -- drop it; add the specific claim that would justify it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - genuinely
+      - quietly excellent
+      - deeply
+      - fundamentally
+      - remarkably
+      - refreshingly
+      - surprisingly good
+      - genuinely useful
+      - deeply satisfying
+    ignore_case: true
+    fix: Delete the adverb and add the claim that would have justified it.
+    examples:
+      - bad: The API is genuinely well designed.
+        good: The API has four endpoints and one auth mode.
+    provenance:
+      source: references/ai-tells/register.md ("Intensifier tics")
+      url: https://github.com/conorbronsdon/avoid-ai-writing
+      note: >-
+        Mechanizable core. tropes.fyi files these as "magic adverbs". `actually` is
+        deliberately OMITTED from the token list despite the catalog naming it: it is
+        a correct contrastive adverb in technical prose ("the flag actually reads the
+        parent"), and prose-inflation.intensifier already owns the measured degree
+        adverbs on the same reasoning. Judgement remainder in
+        ai-tells-register.intensifier-tics-remainder.
+
+  - id: intensifier-tics-remainder
+    name: Judge whether emotion is announced or earned
+    kind: judgement
+    severity: suggestion
+    message: 'unearned emotion: add the specific claim, or drop the adverb'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Is the reaction this adverb announces supported anywhere in the passage by a
+      measurement, an example, or a named consequence?
+    fix: Supply the support, or delete the adverb.
+    examples:
+      - bad: The rewrite is remarkably clean.
+        good: The rewrite deletes 400 lines and adds one function.
+    provenance:
+      source: references/ai-tells/register.md ("Intensifier tics")
+      note: Judgement remainder of ai-tells-register.intensifier-tics-core.
+
+  - id: corporate-analytic-filler-core
+    name: Delete the analysis wrapper and keep the noun
+    kind: tokens
+    severity: error
+    message: 'analytic filler: {match} -- delete the wrapper; keep the noun'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - at its core
+      - it's worth noting
+      - it is worth noting
+      - worth noting that
+      - importantly
+      - more importantly
+      - nuanced
+      - lean into
+      - lean in
+      - at a high level
+      - the key insight is
+    ignore_case: true
+    fix: Delete the wrapper and keep the noun it packaged.
+    examples:
+      - bad: "It's worth noting that, at its core, the loader is a cache."
+        good: The loader caches resolved paths.
+    provenance:
+      source: references/ai-tells/register.md ("Corporate-analytic filler")
+      note: >-
+        Mechanizable core. `granular` is deliberately OMITTED even though the catalog
+        names it: exclusions.md records that upstream ai-tells.OverusedVocabulary was
+        disabled partly for flagging `granular`, which has an ordinary technical use.
+        Judgement remainder in
+        ai-tells-register.corporate-analytic-filler-remainder. Overlaps upstream
+        ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked, ai-tells.FillerPhrases,
+        and ai-tells.LabelAndExplain, all of which stay enabled.
+
+  - id: corporate-analytic-filler-remainder
+    name: Judge whether an analysis frame contains analysis
+    kind: judgement
+    severity: suggestion
+    message: 'analytic filler: analysis-flavored packaging around no analysis'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the sentence inside this analysis frame state a fact, a measurement, or
+      a consequence, or only that the topic is important?
+    fix: Delete the paragraph, or replace it with the fact it was framing.
+    examples:
+      - bad: The nuance here is that caching is a tradeoff worth understanding.
+        good: The cache serves a stale entry for up to 60 s after an upstream change.
+    provenance:
+      source: references/ai-tells/register.md ("Corporate-analytic filler")
+      note: Judgement remainder of ai-tells-register.corporate-analytic-filler-core.
+
+  - id: over-formatting-reflex
+    name: Format only when the data has columns
+    kind: judgement
+    severity: suggestion
+    message: 'over-formatting: format only when the data has columns or the items are parallel and independent'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does each table, heading, and bold-colon bullet in this document carry data
+      with real columns or items that are parallel AND independent, or would two
+      sentences of prose say the same thing?
+    fix: Unwrap the structure into prose where the items are neither columnar nor independent.
+    examples:
+      - bad: "| Field | Value |\n|---|---|\n| Purpose | It loads things |"
+        good: The loader reads the lockfile.
+    provenance:
+      source: references/ai-tells/register.md ("Over-formatting reflex")
+      url: https://rlhfbook.com/c/18-style
+      note: >-
+        A direct reward-model artifact, with per-model formatting fingerprints
+        measured in https://arxiv.org/abs/2502.12150. Judgement-only at document
+        scope: a table is correct or not depending on whether the data has columns,
+        which is exactly the thing a pattern cannot see. The mechanizable slice of
+        this entry is ai-tells-formatting.inline-header-list, which counts the
+        bullet SHAPE. prose-format.prose-block is the inverse metric -- prose that
+        should have been a table.
+
+  - id: uniform-paragraph-mass
+    name: Vary paragraph length deliberately
+    kind: metric
+    severity: warning
+    message: 'uniform paragraph mass: stdev of paragraph word count is {match} -- vary length deliberately'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    metric: paragraph_words_stdev
+    threshold: 12
+    comparison: lt
+    fix: Let one point take three paragraphs and the next one clause.
+    provenance:
+      source: references/ai-tells/register.md ("Uniform paragraph mass")
+      url: https://gptzero.me/news/perplexity-and-burstiness-what-is-it/
+      note: >-
+        The catalog states the shape numerically -- "every paragraph three sentences
+        of 15-20 words" -- which makes it the one register tell that mechanises as a
+        document metric. Threshold 12 is INFERRED from that range (a corpus of
+        45-60-word paragraphs has a stdev near zero) and is NOT measured; calibrate
+        before enforcing outside strict. This is the burstiness counter-signal, and
+        it is also proposed in counter-signals.md as
+        paragraph-length-dispersion -- the two are the same measurement, so ship one.
+
+  - id: hedged-symmetry
+    name: Take the position the evidence supports
+    kind: judgement
+    severity: suggestion
+    message: 'hedged symmetry: take the position the evidence supports; cut the ballast'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Is each counter-claim in this passage one somebody actually makes, or was it
+      added so the passage reads even-handed?
+    fix: Delete the invented counter-claim and state the position the evidence supports.
+    examples:
+      - bad: Lockfiles help reproducibility, though some argue they add friction.
+        good: The lockfile pins every transitive dependency.
+    provenance:
+      source: references/ai-tells/register.md ("Hedged symmetry")
+      url: https://rlhfbook.com/c/18-style
+      note: >-
+        Upstream ai-tells.FalseBalance attempts the phrase forms and stays enabled.
+        The judgement is whether the counter-claim has a holder, which needs domain
+        knowledge. Related to but distinct from prose-inflation.hedge-stack, which
+        counts hedges on ONE claim; this counts claims balanced against each other.
+        Note the catalog file carries a `write-docs:allow E2` suppression on this
+        bullet, because describing the tell requires the word it bans.
+
+  - id: sycophantic-meta-residue
+    name: Delete the approval residue and audit the surrounding text
+    kind: tokens
+    severity: error
+    message: 'sycophancy residue: {match} -- delete it, then audit the surrounding text'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    tokens:
+      - great question
+      - you're absolutely right
+      - you are absolutely right
+      - that's a great point
+      - excellent question
+      - i'd be happy to
+      - happy to help
+      - certainly! here
+      - absolutely! here
+    ignore_case: true
+    fix: Delete the phrase, then re-read the surrounding prose, which came from the same session.
+    examples:
+      - bad: Great question! The loader reads the lockfile.
+        good: The loader reads the lockfile.
+    provenance:
+      source: references/ai-tells/register.md ("Sycophantic meta-residue")
+      note: >-
+        Enforced at every tier for the same reason ai-residue.chat-leakage is: it is
+        session residue, never a register choice. Fully mechanizable as a token list,
+        so no judgement partner; the catalog's own fix names the audit step, which is
+        carried in `fix`. Overlaps upstream ai-tells.SycophancyMarkers,
+        ai-tells.AffirmativeFormulas (kept at error even for source comments in
+        .vale.ini), and ai-tells.ClosingPleasantries.
+
+  - id: figurative-verb-verdict-core
+    name: State the judgement literally
+    kind: tokens
+    severity: error
+    message: 'figurative verdict: {match} -- state the judgement literally, with the observation that supports it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - the point lands
+      - the argument holds
+      - stays quiet about
+      - punches above its weight
+      - earns its keep
+      - the criticism sticks
+      - the analogy holds
+      - carries the weight
+      - does the heavy lifting
+      - the claim survives
+    ignore_case: true
+    fix: State the judgement as a claim, with the observation that supports it.
+    examples:
+      - bad: The abstraction earns its keep.
+        good: The abstraction removes three near-duplicate functions.
+    provenance:
+      source: references/ai-tells/register.md ("Figurative-verb verdict")
+      note: >-
+        Mechanizable core, as a literal token list. Distinctly 2026 register: the
+        catalog records that it SURVIVED the lexical patching that killed the
+        2023-24 adjective bands, which is why it is worth a token list even though
+        token lists decay. Upstream ships one rule per figurative verb --
+        ai-tells.FigurativeLands, FigurativeHolds, FigurativeQuiet, FigurativeCarries
+        and twelve more -- all of which stay enabled, so expect duplicates.
+        Judgement remainder in ai-tells-register.figurative-verb-verdict-remainder.
+
+  - id: figurative-verb-verdict-remainder
+    name: Judge whether a metaphor carries a verdict with no evidence
+    kind: judgement
+    severity: suggestion
+    message: 'figurative verdict: the construction carries the verdict so no evidence has to'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does this sentence deliver a judgement through a metaphor while stating no
+      observation that would let a reader disagree?
+    fix: Replace the metaphor with the observation and the judgement it supports.
+    examples:
+      - bad: The design pays for itself.
+        good: The design removes the second config file, so there is one place to look.
+    provenance:
+      source: references/ai-tells/register.md ("Figurative-verb verdict")
+      note: >-
+        Judgement remainder of ai-tells-register.figurative-verb-verdict-core, and
+        the durable form: the catalog warns the specific verbs drift per model
+        generation while the construction does not.
+
+  - id: urgency-inflation-core
+    name: Name what breaks, or drop the framing
+    kind: tokens
+    severity: error
+    message: 'urgency inflation: {match} -- name what breaks if the reader ignores it, or drop the framing'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    tokens:
+      - cannot be overstated
+      - can't be overstated
+      - more important than ever
+      - at an inflection point
+      - in an increasingly complex world
+      - in today's fast-paced
+      - now more than ever
+      - the stakes have never been higher
+      - a critical juncture
+    ignore_case: true
+    fix: Name the consequence, or delete the framing.
+    examples:
+      - bad: The importance of the lockfile cannot be overstated.
+        good: Without the lockfile, a transitive minor bump breaks the build.
+    provenance:
+      source: references/ai-tells/register.md ("Urgency inflation")
+      note: >-
+        Mechanizable core, enforced at every tier: .vale.ini already keeps upstream
+        ai-tells.UrgencyInflation at error even for source comments, so this port
+        inherits that disposition. Stakes asserted to substitute for consequence.
+        Judgement remainder in ai-tells-register.urgency-inflation-remainder.
+
+  - id: urgency-inflation-remainder
+    name: Judge whether stakes name a consequence
+    kind: judgement
+    severity: suggestion
+    message: 'urgency inflation: name what breaks if the reader ignores it'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this passage name what breaks if the reader ignores it, or only that the
+      matter is urgent?
+    fix: State the failure mode, or delete the urgency.
+    examples:
+      - bad: Getting this right is critical.
+        good: A wrong value here silently skips every file.
+    provenance:
+      source: references/ai-tells/register.md ("Urgency inflation")
+      note: Judgement remainder of ai-tells-register.urgency-inflation-core.
+
+  - id: organic-consequence-core
+    name: Say the choice was made, and why
+    kind: tokens
+    severity: error
+    message: 'organic-consequence framing: {match} -- say the choice was made, and who made it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    tokens:
+      - falls out naturally
+      - falls out of
+      - emerges organically
+      - emerges naturally
+      - a natural consequence of
+      - naturally follows from
+      - comes for free
+      - happens by itself
+    ignore_case: true
+    fix: Name the person who chose it and the constraint that drove the choice.
+    examples:
+      - bad: The single-config design falls out naturally.
+        good: The maintainers chose one config file so there is one place to look.
+    provenance:
+      source: references/ai-tells/register.md ("Organic-consequence framing")
+      note: >-
+        Mechanizable core, enforced at every tier because it erases the agent who
+        chose -- the same defect prose-agency.false-agency and
+        prose-agency.agentless-passive gate at error in every register. Upstream
+        ai-tells.OrganicConsequence covers this and stays enabled. Judgement
+        remainder in ai-tells-register.organic-consequence-remainder.
+
+  - id: organic-consequence-remainder
+    name: Judge whether a design is presented as self-caused
+    kind: judgement
+    severity: suggestion
+    message: 'organic-consequence framing: a designed decision presented as something that happened'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Did a person choose the thing this sentence describes as arising on its own?
+    fix: Name the chooser and the reason.
+    examples:
+      - bad: The threshold settles at 34 words.
+        good: The maintainers set the threshold at 34 words after measuring 30 and 32.
+    provenance:
+      source: references/ai-tells/register.md ("Organic-consequence framing")
+      note: Judgement remainder of ai-tells-register.organic-consequence-core.
+
+  - id: false-agency-remainder
+    name: Judge whether an abstraction occupies the subject slot
+    kind: judgement
+    severity: suggestion
+    message: 'false agency: name the human, or use "you" and put the reader in the seat'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      Is the subject of this sentence a thing that can act? If not, who acted?
+    fix: Name the human. Where no specific person fits, use "you" and put the reader in the seat.
+    examples:
+      - bad: The complaint becomes a fix.
+        good: The team fixed it that week.
+      - bad: A bet lives or dies in days.
+        good: You learn within a week whether the bet paid.
+    provenance:
+      source: references/ai-tells/register.md ("False agency")
+      note: >-
+        Judgement remainder of prose-agency.false-agency, which mechanises the seven
+        named subject-verb bands. This rule carries the open case, because the
+        catalog's own definition -- "an abstraction promoted to actor" -- is
+        productive: any abstract noun can occupy the subject slot, so no closed list
+        finishes the job. The catalog distinguishes it from the two entries around
+        it: those grant a component desert ("earns its keep",
+        ai-tells-register.anthropomorphised-justification-core) or self-causation
+        ("falls out naturally", ai-tells-register.organic-consequence-core).
+
+  - id: anthropomorphised-justification-core
+    name: State the measured property, not the desert
+    kind: tokens
+    severity: error
+    message: 'anthropomorphised justification: {match} -- state the measured property'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - earns its keep
+      - pulls its weight
+      - load-bearing
+      - deserves a closer look
+      - settles the debate
+      - deserves better
+      - has earned
+      - proves its worth
+      - justifies itself
+    ignore_case: true
+    fix: State the measured property that would justify the claim.
+    examples:
+      - bad: The lookbehind is load-bearing.
+        good: Removing the lookbehind adds five false positives per README.
+    provenance:
+      source: references/ai-tells/register.md ("Anthropomorphised justification")
+      note: >-
+        Mechanizable core. Upstream ai-tells.AnthropomorphicJustification covers
+        this and stays enabled. BROADER than the content-shape anthropomorphism
+        entry, which covers subjects ACTING and is mechanised as
+        prose-agency.anthropomorphism; this covers subjects DESERVING. Judgement
+        remainder in
+        ai-tells-register.anthropomorphised-justification-remainder.
+
+  - id: anthropomorphised-justification-remainder
+    name: Judge whether a component is granted intent
+    kind: judgement
+    severity: suggestion
+    message: 'anthropomorphised justification: a component granted intent so its value needs no argument'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this sentence assert a component's value by granting it merit rather
+      than by naming a property a reader could check?
+    fix: Replace the merit claim with the checkable property.
+    examples:
+      - bad: The cache more than repays its complexity.
+        good: The cache removes one network round trip per run.
+    provenance:
+      source: references/ai-tells/register.md ("Anthropomorphised justification")
+      note: Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
+---
+id: ai-tells-formatting
+title: AI tells -- formatting and punctuation
+description: >-
+  Markup and punctuation tells. These decay slowly, but em-dash suppression
+  shipped in late-2025 frontier models, so ABSENCE proves nothing while density
+  still signals.
+weight: 1.0
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: em-dash-density
+    name: Keep only the em dashes that mark a real aside
+    kind: metric
+    severity: warning
+    message: 'dash density: {match} dashes per 1000 words -- most become commas, colons, or two sentences'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    metric: dash_per_1000_words
+    threshold: 6
+    comparison: gt
+    fix: Convert each dash that is not marking a real aside into a comma, a colon, or two sentences.
+    provenance:
+      source: references/ai-tells/formatting.md ("Em-dash density", "Hyphen-swap")
+      url: https://techcrunch.com/2025/11/14/openai-says-its-fixed-chatgpts-em-dash-problem/
+      note: >-
+        The catalog's tell is DENSITY, not presence, and this is the metric form of
+        it. Deliberately counts the ASCII `--` form as well as U+2014/U+2013, which is
+        what makes it usable in a repo whose house style writes `--`: the catalog's
+        "Hyphen-swap" row says a find-and-replace on a tell is still the tell, and
+        the measured `--`-to-dash ratio in the source corpus is 6,743 to 2,124.
+        Threshold 6 per 1000 words is INFERRED from the catalog's "several dramatic
+        pivots per page" and is NOT measured -- calibrate before enforcing outside
+        strict. prose-format.no-unicode-dash bans the Unicode characters outright and
+        is the presence rule; this is the density rule, and they are complements.
+        exclusions.md records why upstream ai-tells.EmDashUsage is disabled.
+
+  - id: curly-quotes
+    name: Normalise curly quotes to straight ones
+    kind: pattern
+    severity: warning
+    message: 'curly quote: {match} -- normalise to a straight quote'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '[‘’“”]'
+    ignore_case: false
+    fix: Replace with the straight ASCII quote or apostrophe.
+    examples:
+      - bad: "the loader’s cache"
+        good: the loader's cache
+    provenance:
+      source: references/ai-tells/formatting.md ("Curly quotes/apostrophes")
+      note: >-
+        Fully mechanizable, so no judgement partner. The tell is conditional on
+        house style -- "in a repo that types straight ones" -- so relaxed excludes
+        it, and a project whose style is curly quotes must disable it rather than
+        fight it. Same shape as prose-format.no-unicode-dash, which the source repo
+        already gates at error, and `scope: raw` for the same reason: a pasted curly
+        apostrophe inside a code fence breaks the command it lands in.
+
+  - id: title-case-heading
+    name: Use sentence case in headings
+    kind: pattern
+    severity: warning
+    message: 'title-case heading: {match} -- use sentence case unless house style says otherwise'
+    scope: heading
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    pattern: '^(?:[A-Z][a-z]+\s+){2,}[A-Z][a-z]+$'
+    ignore_case: false
+    fix: Lower-case every word but the first and any proper noun.
+    examples:
+      - bad: Install The Plugin From Source
+        good: Install the plugin from source
+    provenance:
+      source: references/ai-tells/formatting.md ("Title Case In Every Heading")
+      note: >-
+        The catalog itself concedes the house-style escape ("unless house style says
+        otherwise"), so this is advisory everywhere and excluded at relaxed. The
+        pattern cannot distinguish a title-cased heading from one that is mostly
+        proper nouns ("Install Docker Desktop On Windows"), which is why it never
+        reaches enforced. Upstream ships ai-tells.AnnouncementHeadings,
+        ExplainerHeadings, MarketingHeadings, MicDropHeadings, and WrapUpHeadings for
+        heading CONTENT; none of them checks case, so there is no duplicate.
+
+  - id: bold-spray
+    name: Bold at most the first definitional use
+    kind: metric
+    severity: warning
+    message: 'bold spray: {match} bold spans per 1000 words -- bold at most first definitional use'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    metric: bold_spans_per_1000_words
+    threshold: 10
+    comparison: gt
+    fix: Keep bold on the first definitional use of a term and delete the rest.
+    provenance:
+      source: references/ai-tells/formatting.md ("Bold spray")
+      note: >-
+        Density metric, matching the catalog's shape ("every occurrence of chosen
+        terms bolded"). Threshold 10 per 1000 words is INFERRED, not measured;
+        calibrate before enforcing outside strict. The catalog's "key takeaway"
+        styling half is a heading-content tell that upstream
+        ai-tells.MicDropHeadings covers.
+
+  - id: inline-header-list
+    name: Convert a repeated bold-colon bullet run to prose or a table
+    kind: metric
+    severity: warning
+    message: 'inline-header list: {match} consecutive bold-colon bullets -- prose, or a table with real columns'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    metric: consecutive_bold_colon_bullets
+    threshold: 4
+    comparison: gte
+    fix: Rewrite as prose, or as a table when there are real columns.
+    provenance:
+      source: references/ai-tells/formatting.md ("Inline-header list")
+      note: >-
+        This is the mechanizable SHAPE half of two catalog entries: formatting.md's
+        "Inline-header list" and structure.md's "Bold-lead-in bullet symmetry". The
+        content half -- whether the bullets carry distinct substance -- is
+        ai-tells-structure.tricolon-abuse-remainder, and the document-level framing
+        judgement is ai-tells-register.over-formatting-reflex. Threshold 4 is
+        INFERRED from the structure catalog's "x 6" illustration; calibrate.
+
+  - id: heading-hierarchy
+    name: Fix a skipped heading level
+    kind: structure
+    severity: warning
+    message: 'heading hierarchy: {match} -- fix the level; delete the rule before it'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    fix: Use the next level down, and delete any horizontal rule immediately before a heading.
+    provenance:
+      source: references/ai-tells/formatting.md ("Skipped heading levels; horizontal rules before headings")
+      note: >-
+        kind=structure, because the check is block-level shape over the heading
+        sequence, not a regex over text: it needs the previous heading's level. Two
+        defects in one rule, matching the catalog row -- an H2 followed by an H4, and
+        a horizontal rule immediately preceding a heading. Enforced at every tier: a
+        skipped level breaks screen-reader navigation and every TOC generator, which
+        makes it an accessibility defect rather than a register preference. No
+        existing Vale rule covers it, ours or upstream.
+
+  - id: table-wrapping-one-sentence
+    name: Unwrap a table that holds one sentence
+    kind: judgement
+    severity: suggestion
+    message: 'table wrapping prose: unwrap it'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does each table in this document have at least two rows whose cells vary in
+      the same dimension, or is it one sentence in a grid?
+    fix: Unwrap the table into the sentence it holds.
+    examples:
+      - bad: "| Note |\n|---|\n| The loader reads the lockfile. |"
+        good: The loader reads the lockfile.
+    provenance:
+      source: references/ai-tells/formatting.md ("Tables wrapping what is actually one sentence of prose")
+      note: >-
+        Judgement, because a one-row table is legitimate as a header-only reference
+        stub and the test is whether the cells vary in a shared dimension. Inverse of
+        prose-format.prose-block, which flags prose that should have been a table.
+
+  - id: italicised-copula
+    name: Delete manufactured emphasis
+    kind: pattern
+    severity: warning
+    message: 'italicised copula: {match} -- delete the emphasis; let word order carry the contrast'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '(?<![\w*])\*(?:is|are|was|were|not|the|do|does|did|can|will)\*(?![\w*])|(?<![\w_])_(?:is|are|was|were|not|the|do|does|did|can|will)_(?![\w_])'
+    ignore_case: true
+    fix: Delete the emphasis; rewrite so word order carries the contrast if it is real.
+    examples:
+      - bad: The loader *is* the cache.
+        good: The loader caches every resolved path.
+    provenance:
+      source: references/ai-tells/formatting.md ("Italicised copula for manufactured profundity")
+      note: >-
+        Fully mechanizable: the tell is a closed set of function words under
+        emphasis. `scope: raw` because the marker characters are markdown syntax that
+        the prose parser strips. Upstream ai-tells.EmphaticCopula covers this and
+        stays enabled, so expect duplicates.
+        GO->PYTHON REGEX NOTE: uses two lookbehinds, unsupported by Go RE2; the
+        upstream rule must reach the same lines another way.
+
+  - id: cross-reference-signposting
+    name: Delete the cross-reference signpost
+    kind: tokens
+    severity: warning
+    message: 'cross-reference signposting: {match} -- delete it; a doc with a TOC is not read linearly'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - as mentioned above
+      - as mentioned earlier
+      - as we'll see
+      - as we will see
+      - as noted earlier
+      - recall that
+      - as discussed earlier
+      - as stated previously
+      - we saw earlier
+    ignore_case: true
+    fix: Delete the signpost, or link the named section.
+    examples:
+      - bad: As mentioned above, the loader caches.
+        good: The loader caches every resolved path.
+    provenance:
+      source: references/ai-tells/formatting.md ("Cross-reference signposting")
+      note: >-
+        Mechanizable as a token list, so no judgement partner. Complements
+        prose-craft.directional-ref, which owns the POSITION-dependent forms ("see
+        below", "the table above") as substitutions with named replacements; these are
+        the READING-ORDER forms, whose fix is deletion, not substitution. Upstream
+        ai-tells.RestatementMarkers and ai-tells.SelfReference overlap.
+
+  - id: emoji-list-markers
+    name: Delete emoji used as list markers
+    kind: pattern
+    severity: warning
+    message: 'emoji list marker: {match} -- delete it; the list marker carries the structure'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '(?m)^\s*(?:[-*+]\s+)?[\U0001F300-\U0001FAFF☀-➿⬀-⯿]️?\s'
+    ignore_case: false
+    fix: Delete the emoji; use a plain list marker.
+    examples:
+      - bad: "- \U0001F680 Install the plugin"
+        good: '- Install the plugin'
+    provenance:
+      source: references/ai-tells/formatting.md ("Emoji as list markers or in headings")
+      note: >-
+        The list-marker half of the catalog row. The heading half is already
+        mechanised as prose-format.emoji-heading, which the source repo gates at
+        warning; this rule reaches the list position that `scope: heading` cannot
+        see. Same codepoint ranges, `scope: raw` because a list marker is markdown
+        syntax.
+        GO->PYTHON: `\x{1F300}` rewritten as `\U0001F300`.
+---
+id: ai-tells-content-shape
+title: AI tells -- content shape
+description: >-
+  Defects in what the prose contains rather than how it is arranged: fabricated
+  citations, fake specificity, vaporware description, dilution, and rationale
+  nobody asked for.
+weight: 1.5
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: fabricated-citations-core
+    name: Strip citation junk
+    kind: pattern
+    severity: error
+    message: 'damaged citation: {match} -- verify the reference and strip the tracking junk'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: 'utm_source=|utm_medium=|utm_campaign=|[?&]fbclid=|[?&]gclid='
+    ignore_case: true
+    fix: Strip the tracking parameters from the URL.
+    examples:
+      - bad: https://example.com/docs?utm_source=chatgpt.com
+        good: https://example.com/docs
+    provenance:
+      source: references/ai-tells/content-shape.md ("Fabricated or damaged citations")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Mechanizable core, narrowed to the ONE checkable slice: tracking junk in a
+        pasted URL. The assistant-artifact half of the same catalog row (`oaicite`,
+        `contentReference`, `[cite: 1]`, `grok_card`) is already mechanised inside
+        ai-residue.chat-leakage, so it is not duplicated here. Judgement remainder in
+        ai-tells-content-shape.fabricated-citations-remainder covers what a pattern
+        can never do -- resolve the DOI.
+
+  - id: fabricated-citations-remainder
+    name: Verify every reference you did not fetch yourself
+    kind: judgement
+    severity: suggestion
+    message: 'unverified citation: verify every reference you did not fetch yourself'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      For each reference in this document, did you fetch it yourself and confirm it
+      says what the sentence claims?
+    fix: Fetch each reference, or delete the claim that rests on it.
+    examples:
+      - bad: Smith (2019) reports a 40% reduction, doi:10.1000/182.
+        good: The npm RFC 0012 measured a 40% drop in resolution variance.
+        note: >-
+          The catalog's failure modes: DOIs that resolve to unrelated papers,
+          invented ISBNs, dead URLs, and book cites with no page numbers.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Fabricated or damaged citations")
+      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
+      note: >-
+        Judgement remainder of ai-tells-content-shape.fabricated-citations-core, and
+        enforced at every tier: a fabricated citation is a factual defect in any
+        register. Decidable, not taste -- the reviewer either fetched it or did not.
+        Related to ai-tells-structure.vague-attribution-remainder, which asks whether
+        a source is NAMED; this asks whether a named source is REAL.
+
+  - id: fake-specificity
+    name: Give the number or drop the quantifier
+    kind: pattern
+    severity: error
+    message: 'fake specificity: {match} -- give the number or drop the quantifier'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:over|more than|upwards of|nearly|almost)\s+\d+\+|\b\d+\+\s+(?:different\s+)?\w+|\ba wide range of\b|\ba broad range of\b|\ba host of\b'
+    ignore_case: true
+    fix: Give the count, or delete the quantifier.
+    examples:
+      - bad: over 100+ integrations
+        good: 137 integrations
+      - bad: a wide range of formats
+        good: Markdown, MDX, and reStructuredText
+    provenance:
+      source: references/ai-tells/content-shape.md ("Fake specificity")
+      note: >-
+        The catalog names four forms: "over 100+", "countless", "numerous", "a wide
+        range of". The middle two are already mechanised in
+        prose-inflation.vague-quantifier at WARNING on a measured base rate of 9.9
+        hits per 10k human-written words, so they are deliberately NOT repeated here.
+        This rule carries only the forms that rule does not reach, and it is at error
+        because "over 100+" is a self-contradicting construction rather than a
+        register choice. Split as core-only: the residual judgement is
+        prose-inflation.vague-quantifier's own message ("give the count").
+
+  - id: vaporware-description
+    name: Cut the claim, not the qualifier
+    kind: judgement
+    severity: suggestion
+    message: 'vaporware: cut the CLAIM, not the qualifier'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      For each behaviour this document describes in the present tense, does code at
+      HEAD do it?
+    fix: >-
+      In order: delete the whole passage if the feature does not exist; move it to
+      an issue or a spec if the plan matters; keep it only as a documented opt-in
+      flag if the code is there behind one. Where a genuinely unreleased state must
+      be stated, say it once as structured metadata -- a version column, a status
+      field -- never as body prose.
+    examples:
+      - bad: The loader supports globs (coming soon).
+        good: The loader accepts a literal path.
+        note: >-
+          Deleting the hedge alone converts an honest roadmap note into a false
+          claim: the lint passes and the document now lies.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Vaporware description")
+      note: >-
+        JUDGEMENT-ONLY BY DESIGN, and enforced at every tier. The catalog is explicit
+        that the mechanical rule is a TRAP: docs-discipline.status-language bans the
+        hedge ("coming soon", "not yet implemented", "planned"), and a writer who
+        deletes only the hedge to pass the gate ships a document that lies. The tell
+        is not the honesty -- it is the MIXTURE, a page that reads as shipped and
+        hedges in the margins. So this rule deliberately does NOT carry a pattern:
+        it exists to make the status-language finding decidable, and any engine that
+        fires them independently reproduces the trap. The `fix` field carries the
+        catalog's ordered procedure verbatim in substance.
+
+  - id: adjective-per-noun-spray
+    name: Cut decorative modifiers
+    kind: metric
+    severity: warning
+    message: 'adjective spray: {match} adjectives per noun -- keep the ones that carry load'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    metric: adjectives_per_noun
+    threshold: 0.5
+    comparison: gt
+    fix: Keep adjectives that change what the reader does; cut decoration.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Adjective-per-noun spray")
+      note: >-
+        The catalog states this as a RATIO ("every noun wears a modifier"), which is
+        why it converts to a metric rather than a pattern. Threshold 0.5 is INFERRED
+        from that phrasing (one adjective per two nouns) and is NOT measured;
+        calibrate before enforcing outside strict. Needs a POS tagger, which the
+        engine does not yet have -- the same gap that blocks
+        prose-craft.plural-abbreviation. The catalog's own guidance names the keep
+        test: "destructive" and "reversible" carry load.
+
+  - id: elegant-variation
+    name: Repeat the noun
+    kind: judgement
+    severity: suggestion
+    message: 'elegant variation: repeat the noun; precision beats variety'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does this document refer to one thing by two or more different names without
+      saying they are the same thing?
+    fix: Pick one name and use it every time.
+    examples:
+      - bad: The loader reads it. The resolver caches it. The component then exits.
+        good: The loader reads it, caches it, then exits.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Elegant variation")
+      note: >-
+        A repetition-penalty artifact of the decoder. Judgement-only: deciding it
+        requires knowing that two nouns denote the same referent, which is the
+        coreference problem. The catalog file carries a `write-docs:allow E2`
+        suppression on this bullet.
+
+  - id: one-point-dilution
+    name: Say it once and stop
+    kind: judgement
+    severity: suggestion
+    message: 'one-point dilution: say it once; stop'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does any section of this document restate an argument already made, in a
+      fresh metaphor, without adding a fact?
+    fix: Delete every restatement after the first.
+    examples:
+      - bad: Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
+        good: The gate produces the same findings on every run.
+    provenance:
+      source: references/ai-tells/content-shape.md ("One-point dilution")
+      note: >-
+        Judgement-only: detecting it requires recognising two passages as the same
+        argument in different words. Overlaps
+        ai-tells-structure.think-of-it-as-core, whose frames are one common vehicle
+        for a restatement.
+
+  - id: padded-symmetry
+    name: Let a section be two sentences
+    kind: judgement
+    severity: suggestion
+    message: 'padded symmetry: two sentences is a fine section'
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does any section exist to match a sibling's length, or does any
+      FAQ/Tips/Troubleshooting section answer a question nobody asked?
+    fix: Delete the padding and let the section be short.
+    examples:
+      - bad: "## Troubleshooting\n\nIf the loader fails, check the logs."
+        good: ''
+        note: A troubleshooting section for problems that do not exist.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Padded symmetry")
+      note: >-
+        Judgement-only. Related to counter-signals.md's "Asymmetric structure", whose
+        positive form is proposed as a document metric -- see counter-signals.md in
+        this directory, metric `section-length-dispersion`. That metric is the
+        mechanizable proxy; this rule is the decidable question.
+
+  - id: superficial-ing-analysis
+    name: State the analysis as a fact or delete it
+    kind: pattern
+    severity: error
+    message: 'superficial -ing analysis: {match} -- state it as a fact, or delete it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: ',\s+(?:highlighting|underscoring|emphasi[sz]ing|ensuring|showcasing|demonstrating|reflecting|illustrating|reinforcing|signalling|signaling|making it|allowing for|paving the way|cementing|solidifying)\b'
+    ignore_case: true
+    fix: State the claim as its own sentence, or delete the clause.
+    examples:
+      - bad: The gate reads one config file, ensuring reliability.
+        good: The gate reads one config file. A second file is ignored.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Superficial -ing analysis")
+      note: >-
+        Fully mechanizable as a trailing-participle frame, so no judgement partner:
+        the catalog's own test -- "either the analysis is a fact (state it as one) or
+        it is air" -- is answered by making the writer promote the clause to a
+        sentence. Upstream ai-tells.ParticipialPadding covers this and stays enabled.
+
+  - id: durable-vocabulary-habits
+    name: Use the concrete verb
+    kind: substitution
+    severity: error
+    message: "copula avoidance: use '{replacement}' instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    ignore_case: true
+    substitutions:
+      '\bserves as\b': is
+      '\bstands as\b': is
+      '\brepresents\b': is
+      '\bacts as\b': is
+      '\bboasts\b': has
+      '\boffers\b': has
+      '\bfeatures\b': has
+      '\bis designed to\b': (write what it does)
+      '\bplays a (?:vital|key|crucial|critical|central|pivotal) role\b': (name the effect)
+      '\ba testament to\b': (state the measurement)
+      '\bunderscores the importance of\b': (state the consequence)
+    fix: Replace with the concrete verb or noun.
+    examples:
+      - bad: The loader serves as the cache.
+        good: The loader is the cache.
+      - bad: The flag is designed to skip fences.
+        good: The flag skips fences.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Durable vocabulary habits")
+      note: >-
+        The catalog groups four SHAPES, not marker words, and three of them convert
+        as substitutions: copula avoidance, ability framing, and significance
+        inflation. The fourth -- textbook connectors opening consecutive sentences
+        (`moreover`, `furthermore`) -- is a POSITION-and-adjacency claim, so it is
+        carried separately as ai-tells-content-shape.textbook-connector-runs. The
+        `allows you to` half of ability framing is already mechanised in
+        prose-agency.false-agency and is deliberately not repeated. Three
+        replacement values are parenthetical instructions rather than literal
+        swaps, because the catalog's fix names an operation, not a word.
+        Upstream ai-tells.ServesAsDodge overlaps the copula band and stays enabled.
+
+  - id: textbook-connector-runs
+    name: Do not open consecutive sentences on a textbook connector
+    kind: judgement
+    severity: suggestion
+    message: 'textbook connectors: replace with the concrete relation, or delete'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Do two consecutive sentences in this paragraph open on a textbook connector
+      (moreover, furthermore, additionally, consequently)?
+    fix: Delete the connectors; if the relation is real, rewrite so the sentences carry it.
+    examples:
+      - bad: Moreover, the cache is warm. Furthermore, the lockfile is present.
+        good: The cache is warm and the lockfile is present.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Durable vocabulary habits")
+      note: >-
+        Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the
+        catalog's claim is about consecutive OPENINGS, which is an adjacency
+        property, not a token match. exclusions.md records that upstream
+        ai-tells.FormalTransitions was DISABLED for flagging these same connectives
+        as bare tokens ("these are ordinary English connectives and this corpus uses
+        them correctly"), so the adjacency form is deliberately the only one carried
+        and prose-craft.wordiness maps `additionally` to `also` as a substitution
+        without a position claim.
+
+  - id: over-writing-remainder
+    name: Judge whether the reader acts differently for having read it
+    kind: judgement
+    severity: suggestion
+    message: 'over-writing: cut it to the behavior; move the decision to an ADR, spec, or commit'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    judgement_question: >-
+      Does a reader of THIS document act differently for having read this sentence?
+    fix: Cut to the behaviour; move the decision to an ADR, a spec, or the commit that made it.
+    examples:
+      - bad: A paragraph of loosely related reasoning appended to a section that had already finished.
+        good: ''
+    provenance:
+      source: references/ai-tells/content-shape.md ("Over-writing")
+      note: >-
+        Judgement remainder of the prose-scope category. The catalog names three
+        shapes: a rejected alternative defended in place
+        (prose-scope.rejected-alternative), an implementation cost the reader cannot
+        act on (prose-scope.implementation-leak), and a paragraph of loosely related
+        reasoning appended to a finished section -- the third has NO pattern and is
+        what this rule carries. Excluded at relaxed for the same genre reason the
+        prose-scope rules are: an ADR or a spec exists to hold this content.
+
+  - id: unasked-for-rationale
+    name: Delete the clause and keep the behavior
+    kind: judgement
+    severity: suggestion
+    message: 'unasked-for rationale: delete the clause and keep the behavior, or move the reason to the commit'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    judgement_question: >-
+      Would a reader who DISAGREES with this choice act differently for having read
+      the defence? A rationale is legitimate only if one of three holds: the reader
+      cannot recover the reason from the text (a constraint, an invariant, a gotcha,
+      or a measured number that decided a threshold); the genre exists to record
+      decisions (an ADR, a spec, a commit message, a PR body); or the user asked for
+      the reasoning.
+    fix: Delete the clause and keep the behavior, or move the reason to the commit.
+    examples:
+      - bad: This keeps the logic in one place.
+        good: ''
+      - bad: The helper is separate for clarity.
+        good: ''
+      - bad: The threshold is 2 KB to balance recall and noise.
+        good: The threshold is 2 KB.
+        note: >-
+          A measured number that decided a threshold is one of the three legitimate
+          cases, so this example is a judgement call, not a defect by construction.
+    provenance:
+      source: references/ai-tells/content-shape.md ("Unasked-for rationale")
+      note: >-
+        JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not
+        pattern-match it." Distinct from prose-scope.rejected-alternative, which
+        needs a NAMED alternative to anchor on; this one names no alternative, so no
+        pattern reaches it. The three legitimacy tests are carried inside
+        judgement_question because all three are context the reader has and a regex
+        does not. Excluded at relaxed on the same genre grounds as prose-scope.
+
+  - id: epigram-closer-remainder
+    name: Judge whether a closing line adds a fact
+    kind: judgement
+    severity: suggestion
+    message: 'epigram closer: the paragraph or table above already carried the content'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this closing line state a fact the paragraph or table above did not, or
+      does it perform having concluded?
+    fix: Delete it.
+    examples:
+      - bad: The linter is deterministic. The reviewer is not.
+        good: ''
+    provenance:
+      source: references/ai-tells/content-shape.md ("Epigram closer")
+      note: >-
+        Judgement remainder of prose-scope.epigram, which mechanises two shapes -- a
+        parallel pair and a negated maxim -- at warning, because the same shape
+        occasionally states a real contrast. That warning level IS the judgement gap,
+        and this rule names it. A reward-model favourite: it survives editing because
+        it reads quotable.

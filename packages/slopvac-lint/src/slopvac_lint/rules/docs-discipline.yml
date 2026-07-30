@@ -1,0 +1,91 @@
+id: docs-discipline
+title: Docs discipline
+description: >-
+  House genre rules for consumer documentation: describe the released artifact at
+  HEAD, with no status claims, no delta narration, and no internal references.
+weight: 1.0
+recommended_for: [consumer-docs]
+rules:
+  - id: status-language
+    name: State what the artifact does at HEAD
+    kind: pattern
+    severity: error
+    message: 'status language: {match} -- state what the artifact does at HEAD'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft|being (specified|designed|implemented|built)|not yet (implemented|supported|available)|will (eventually|later|soon)\b|to be (implemented|defined|determined)|TBD|TODO|for now|at the moment|currently(?! (running|active|open|connected|executing|loaded|mounted))|as of (now|writing|today)|planned( for)?|on the roadmap|in (a )?future (release|version)|stay tuned)\b'
+    ignore_case: true
+    fix: Delete the passage, or state the behaviour the code has now.
+    examples:
+      - bad: The globbing flag is coming soon.
+        good: The flag accepts a literal path.
+      - bad: Support for MDX is not yet implemented.
+        good: The parser reads Markdown.
+    provenance:
+      source: vale-styles/docs-discipline/StatusLanguage.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        E1 in the retired slop-lint.py. The negative lookahead on `currently`
+        exempts runtime-state description (currently running/active/...), which is
+        legitimate present tense, not doc status. Relaxed is advisory rather than
+        excluded because a false status claim is a factual defect, not a register
+        preference. .vale.ini turns it off for the package's own normative source
+        files, which quote the ban list they enforce.
+        Go->Python: the lookahead `(?!...)` is RE2-safe and ports unchanged.
+
+  - id: history-narration
+    name: Keep deltas out of a doc body
+    kind: pattern
+    severity: error
+    message: 'history narration: {match} -- deltas belong in change comms, not a doc body'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(previously|formerly|used to (be|do|have)|has been (refactored|migrated|renamed|rewritten)|was (refactored|migrated|renamed|rewritten|extracted)|renamed from|moved (over )?from|we (dropped|removed|changed|switched|migrated)|no longer\b|instead of the old)\b'
+    ignore_case: true
+    fix: Delete the delta; a changelog or release note carries it.
+    examples:
+      - bad: The loader was previously named the resolver.
+        good: The loader resolves paths.
+    provenance:
+      source: vale-styles/docs-discipline/HistoryNarration.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        E4 in the retired slop-lint.py. Excluded at relaxed because it encodes a
+        genre assumption: a changelog, release note, or migration guide exists to
+        narrate the delta, so the rule is wrong for the change-comms genre by
+        construction.
+
+  - id: internal-refs
+    name: Keep internal references out of consumer docs
+    kind: pattern
+    severity: error
+    message: 'internal reference: {match} -- consumer docs describe the released artifact only'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '(\bspecs?/|\.specify/|\bADRs?\b|\bADR[- ]?\d+|\bconstitution\b|\bdesign doc(ument)?\b|per the spec\b|as specified in\b|extracted from\b|mirrors (the )?\w+ (package|repo)|aligned with\b)'
+    ignore_case: true
+    fix: State the behaviour; drop the pointer to internal process.
+    examples:
+      - bad: The threshold is set per the spec in specs/004.
+        good: The threshold is 34 words.
+    provenance:
+      source: vale-styles/docs-discipline/InternalRefs.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        E3 in the retired slop-lint.py, and a CONSUMER-genre rule only, so
+        excluded at relaxed. Scope is deliberately prose and not raw: the original
+        scanned whole lines so a spec path inside a link target was caught, but
+        measured on the source corpus that cost 5 false positives per README
+        (`--no-constitution` in a command example, `.specify/` in a code span)
+        against one real prose hit. Link targets are validated by lychee in CI.
+        .vale.ini disables it for specs/, .specify/, ADR paths, CONTRIBUTING,
+        constitution, and the two package READMEs that document the rule itself.
