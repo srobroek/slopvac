@@ -26,6 +26,20 @@ STARTER_CONFIG = '''\
 # relaxed = loose writing: notes, comments, drafts
 profile = "{profile}"
 
+# Never linted. Every top-level key must sit ABOVE the first [table] header: a
+# TOML table captures every key that follows it until the next header, so an
+# `exclude` line written lower down lands inside [thresholds] or [vale] and fails
+# to load. This is the one TOML trap worth knowing.
+exclude = [
+  "**/node_modules/**",
+  "**/apm_modules/**",
+  "**/.venv/**",
+  "**/dist/**",
+  "**/build/**",
+  # release-please generates this from commit subjects; its prose is not authored.
+  "**/CHANGELOG.md",
+]
+
 [thresholds]
 # Density budgets, not counts, so a long document earns proportionally more
 # findings. Documents under 60 words are scored on absolute counts instead:
@@ -107,15 +121,4 @@ default = "en-US"        # en-US | en-GB | und
 enabled = true
 # binary = "vale"
 # config = ".vale.ini"
-
-# Never linted.
-exclude = [
-  "**/node_modules/**",
-  "**/apm_modules/**",
-  "**/.venv/**",
-  "**/dist/**",
-  "**/build/**",
-  # release-please generates this from commit subjects; its prose is not authored.
-  "**/CHANGELOG.md",
-]
 '''
