@@ -1,0 +1,106 @@
+id: ste-safety
+title: STE Safety Instructions
+description: Governs how a document marks a risk, orders the command, and explains the consequence.
+weight: 1.5
+max_per_100_words:
+  strict: 0.5
+  normal: 0.5
+recommended_for: [runbook, api-docs, reference]
+rules:
+  - id: risk-level-word-missing-or-wrong
+    name: Mark the risk level with the right word
+    kind: judgement
+    severity: error
+    message: Check that this block uses the risk word that matches its actual risk level.
+    scope: paragraph
+    text_type: safety
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      Does this block describe a risk of harm to a person, or only a risk of damage to data,
+      systems, or equipment? Harm to a person takes the higher marker; damage alone takes the
+      lower one; when both apply, use the higher marker.
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: 'CAUTION: This command deletes every snapshot and cannot be undone.'
+        good: 'WARNING: This command deletes every snapshot. You cannot recover the data.'
+      - bad: 'This command deletes every snapshot and cannot be undone.'
+        good: 'WARNING: This command deletes every snapshot. You cannot recover the data.'
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:7.1'
+      note: >-
+        Two halves. Whether a marker is present is mechanizable (a destructive-command
+        detector can require one) but classifying the severity requires knowing the real
+        consequence, so the rule stays judgement. In software documentation the higher marker
+        maps to unrecoverable data loss or a security exposure and the lower one to a
+        recoverable failure; that mapping is our adaptation, since the specification's own
+        split is injury against equipment damage. Enforced at every tier, and the category
+        weight is raised, because a missing warning is the highest-cost defect in a runbook.
+    fix: Add the correct risk marker, or raise the existing marker to match the consequence.
+
+  - id: safety-block-does-not-start-with-command
+    name: Start a safety block with the command or the condition
+    kind: pattern
+    severity: warning
+    message: 'This safety block does not open with a command or condition ("{match}").'
+    scope: paragraph
+    text_type: safety
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '^\s*(?:>\s*)?(?:\*\*)?(?:WARNING|CAUTION|DANGER|Warning|Caution|Danger)(?:\*\*)?\s*[:.]?\s*(?:(?:This|That|The|A|An|It|There)\b|(?:[A-Z][a-z]+\s+)?(?:is|are|was|were|can|could|may|might)\b)'
+    ignore_case: false
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: 'WARNING: There is a risk of data loss when you run this command with the force flag.'
+        good: 'WARNING: Do not use the force flag on a production database. The force flag deletes every row.'
+      - bad: 'CAUTION: The cache can serve stale reads for one hour after you change the config.'
+        good: 'CAUTION: Wait one hour after you change the config. The cache serves stale reads until then.'
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:7.2'
+      note: >-
+        The rule wants the actionable part first, because a reader who stops after one line
+        must still know what to do. The pattern matches the failure (a marker followed by a
+        descriptive opener) rather than trying to recognize every valid imperative. Tested:
+        both bad examples match; both good examples do not; and
+        "WARNING: Rotate the key before the audit" does not match. Issue 9 changed one
+        adjective in this rule's wording relative to Issue 7 without changing its substance.
+    fix: Move the command or the condition to the first sentence of the block.
+
+  - id: safety-block-missing-consequence
+    name: Explain the consequence
+    kind: structure
+    severity: error
+    message: This safety block gives no explanation of the risk or the result.
+    scope: paragraph
+    text_type: safety
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: 'WARNING: Do not use the force flag on a production database.'
+        good: 'WARNING: Do not use the force flag on a production database. The force flag deletes every row and you cannot recover the data.'
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:7.3'
+      note: >-
+        Mechanizable as a structural check: a safety block must contain at least two
+        sentences, one of which states an outcome. Implement the outcome test as a consequence
+        vocabulary check (a modal of possibility plus a harm noun, or an explicit result
+        clause) rather than as a single regex, so it can be tuned without rewriting the rule.
+        Enforced at every tier: a warning without a reason gets ignored, which defeats it.
+    fix: Add a sentence that states what happens if the reader ignores the warning.

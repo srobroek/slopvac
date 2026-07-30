@@ -1,5 +1,5 @@
 # Built by vale-styles/build.sh and published as release assets.
-vale-styles/dist/
+packages/slopvac-lint/vale-styles/dist/
 
 # Fetched by `vale sync`, never committed.
 .vale-styles/
@@ -15,3 +15,6 @@ __pycache__/
 *.db
 .beads-credential-key
 .beads/proxieddb/
+.venv/
+*.egg-info/
+__pycache__/

@@ -1,0 +1,78 @@
+id: ste-nouns
+title: STE Multi-word Nouns
+description: Caps the length of noun stacks and requires a short form for longer domain terms.
+weight: 1.0
+max_per_100_words:
+  strict: 0.5
+  normal: 1.0
+recommended_for: [reference, runbook, api-docs, readme]
+rules:
+  - id: multiword-noun-too-long
+    name: Keep a noun stack to three words
+    kind: metric
+    severity: warning
+    message: 'This noun stack has {value} words. Use three or fewer.'
+    scope: sentence
+    text_type: any
+    metric: multiword_noun_words
+    threshold: 3
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - api-name
+      - registered-domain-term
+    allowlist: []
+    examples:
+      - bad: Set the request retry backoff jitter factor in the client config.
+        good: Set the jitter factor for retry backoff in the client config.
+      - bad: The deployment pipeline artifact retention policy runs each night.
+        good: The retention policy for pipeline artifacts runs each night.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:2.1'
+      note: >-
+        Counted in words, not in nouns. A vendor restatement of this rule says "nouns",
+        which is wrong against the specification's own worked counts: it labels a
+        four-word stack a violation even though one of the four words is an adjective.
+        Advisory rather than excluded at relaxed tier because a five-word stack is a real
+        comprehension cost, but our detector depends on a tagger and can miscount.
+    fix: Break the stack with a preposition, or define a short form.
+
+  - id: long-domain-term-without-short-form
+    name: Give a short form for a long domain term
+    kind: judgement
+    severity: suggestion
+    message: Check that this long domain term is written in full once and then given a short form.
+    scope: document
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      This domain term is longer than three words and cannot be shortened, because the
+      project owns the name. Is it written in full at first use, and is either a short form
+      declared or the words joined with hyphens as one unit?
+    exceptions:
+      - code-span
+      - identifier-fidelity
+    allowlist: []
+    examples:
+      - bad: Restart the regional inbound request admission controller after each config change.
+        good: >-
+          Restart the regional inbound request admission controller (called the admission
+          controller in this runbook) after each config change.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:2.2'
+      note: >-
+        Judgement because the checker cannot know whether a long term is an immovable
+        project name or careless stacking. The related hyphen constraint (no more than three
+        words joined as one unit) is mechanized in ste-punctuation/hyphen-group-too-long.
+    fix: Write the term in full once, then declare a short form or hyphenate the fixed unit.

@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slopvac-lint"
+version = "0.1.0"
+description = "Score prose against AI-slop, Simplified Technical English, and Orwell rulesets. Deterministic, configurable, CI-ready."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "Sjors Robroek" }]
+keywords = ["linter", "prose", "documentation", "ai-slop", "ste", "vale"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+  "click>=8.1",
+  "pydantic>=2.7",
+  "pathspec>=0.12",
+  "rich>=13.7",
+  "regex>=2024.5.15",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-cov>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/srobroek/slopvac"
+Repository = "https://github.com/srobroek/slopvac"
+Issues = "https://github.com/srobroek/slopvac/issues"
+
+[project.scripts]
+slopvac-lint = "slopvac_lint.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/slopvac_lint"]
+
+# The rule YAML and the wordlist live INSIDE the package tree so that an editable
+# install resolves them too: force-include applies to a built wheel only, and an
+# editable install would leave importlib.resources with no rules at all.
+[tool.hatch.build.targets.wheel.force-include]
+"vale-styles" = "slopvac_lint/vale-styles"
+
+[tool.hatch.build]
+artifacts = ["src/slopvac_lint/rules/*.yml", "src/slopvac_lint/data/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

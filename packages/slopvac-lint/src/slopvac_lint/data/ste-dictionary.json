@@ -1,0 +1,10444 @@
+{
+ "source": "ASD-STE100 Issue 9 (2025-01-15)",
+ "source_note": "Word, part-of-speech, and approved-status triples from the ASD-STE100 Issue 9 dictionary. ASD-STE100 is copyright Aerospace, Security and Defence Industries Association of Europe (ASD) and is an EU registered trademark. This file holds reference data only: no rule text, no definitions, no examples from the specification. Deviations for software documentation live in vocabulary-overlay.yml, never in this file.",
+ "extracted": "2026-07-30",
+ "entry_count": 2087,
+ "approved_count": 800,
+ "entries": [
+  {
+   "word": "a",
+   "pos": "article",
+   "status": "approved"
+  },
+  {
+   "word": "abaft",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "abandon",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "abate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ability",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "able",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "abnormal",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "abnormality",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "about",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "above",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "abrasive",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "abrupt",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "absence",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "absent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "absolutely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "absorb",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "absorption",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "abundant",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "abut",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "accelerate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "accept",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "acceptable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "acceptance",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "access",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "accessible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "accident",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "accommodate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "accomplish",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "account for",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "accumulate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "accumulation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "accuracy",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "accurate",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "achieve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "acquire",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "acrid",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "across",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "act",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "action",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "activate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "active",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "activity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "actuate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "actuation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "adapt",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "add",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "addition",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "additional",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "adequate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "adhere",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "adhesion",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "adjacent",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "adjoining",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "adjust",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "adjustable",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "adjustment",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "admit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "adopt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "advance",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "advance",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "adverse",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "advisable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "advise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "affect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "aft",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "aft",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "aft of",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "after",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "after",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "again",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "against",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "agent",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "aggravate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "agitate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "agitation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "agree",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "ahead",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "aid",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "aid",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "aim",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "air-dry",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "airborne",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "airflow",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "alert",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "align",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "alignment",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "all",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "allocate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "allow",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "allowable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "almost",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "along",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "already",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "also",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "alter",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "alteration",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "alternate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "alternate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "alternately",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "alternative",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "alternatively",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "although",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "always",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "amend",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "amendment",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "among",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "amount",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "an",
+   "pos": "article",
+   "status": "approved"
+  },
+  {
+   "word": "analog",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "analyze",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "anchor",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ancillary",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "and",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "angular",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "annotation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "annunciate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "another",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "any",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "any",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "anytime",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "apart",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "aperture",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "apparent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "appear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "applicable",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "application",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "apply",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "appoint",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "approach",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "appropriate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "approval",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "approve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "approved",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "area",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "arise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "arm",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "around",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "arrange",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "arrangement",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "arrest",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "arrive",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "arrow",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "article",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "as",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "as",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "as to",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "ascertain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ask",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "assemble",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "assembly",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "assess",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "assessment",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "assign",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "assist",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "assistance",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "associated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "assume",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "assure",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "asymmetric",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "at",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "attach",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "attachment",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "attain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "attempt",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "attempt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "attention",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "audible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "augment",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "aurally",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "authentic",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "authority",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "authorized",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "automatic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "auxiliary",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "available",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "avert",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "avoid",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "aware",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "axial",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "axially",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "back",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "back",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "back",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "back off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "backup",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "backward",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bad",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "badly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "balance",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "bank",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bare",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "bared",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "base",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "base",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "basic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "be",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "because",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "become",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "before",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "before",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "begin",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "beginning",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "behind",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "below",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "below",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "bend",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "bend",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "beneath",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "beside",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "between",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "beware",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "beyond",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "big",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "bind",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "blank",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bleed",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "blend",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "block",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "blockage",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "blocked",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "blot",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "blow",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "blunt",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "blunted",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "bolt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bond",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "bond",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "both",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "bottom",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "bottom",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "bottom",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bounds",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "brace",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "branch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "breadth",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "break",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "break",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "breakdown",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "breathe",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "bright",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "brightly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "brilliance",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "bring",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "briskly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "broadcast",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "brush",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "brush on",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bubble",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "build",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "build",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "bump",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "burn",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "burst",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "but",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "butt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "by",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "by means of",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "bypass",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "calculate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "calculation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "calibrate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "calibration",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "call",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "can",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "cancel",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "cannot",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "cap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "capability",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "capable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "capacity",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "care",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "careful",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "carefully",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "carry",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "carry out",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "case",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "catch",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "categorize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "cause",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "cause",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "caution",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "cautiously",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "cavity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "cease",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "center",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "centralize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "certain",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "certify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "chafe",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "chafed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "change",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "change",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "channel",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "characteristic",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "charge",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "check",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "check",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "chemical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "chip",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "chip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "chock",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "choice",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "choose",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "circa",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "circle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "circular",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "circulate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "clamp",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "classification",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "clean",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "clean",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "cleanliness",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "clear",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "clear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "clearance",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "clearly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "click",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "click",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "clip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "clockwise",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "clogged",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "close",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "close",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "close to",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "closely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "coat",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "coat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "coating",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "cock",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "code",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "code",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "coil",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "coil",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "coincide",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "coincident",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "cold",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "collapse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "collect",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "color",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "color code",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "colored",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "combine",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "combustible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "come",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "come on",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "commence",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "common",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "communicate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "compare",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "comparison",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "compatible",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "compile",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "complete",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "complete",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "completed",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "completely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "completion",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "complicated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "comply",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "component",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "compress",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "comprise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "compulsory",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "compute",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "concentrate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "concentric",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "concern",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "conclusion",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "concurrently",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "condition",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "conduct",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "confine to",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "confirm",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "conflict",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "conform",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "conformance",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "conformity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "connect",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "connection",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "consecutive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "consequence",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "consider",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "considerable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "consist of",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "consistent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "constant",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "construct",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "consult",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "contact",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "contain",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "container",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "contaminant",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "contaminated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "contents",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "contiguous",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "continue",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "continuous",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "contour",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "control",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "control",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "conventional",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "converse",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "convert",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "convey",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "cool",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "cool",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "coordinate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "copy",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "copy",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "corner",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "correct",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "correct",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "correction",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "correctly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "correctness",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "correspond",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "corrode",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "corrosive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "count",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "couple",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "cover",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "crack",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "create",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "critical",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "cross",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "curvature",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "curve",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "curve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "cut",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "cycle",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "cycle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "damage",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "damage",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "damaged",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "damp",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "dampen",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "danger",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "dangerous",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "dangerously",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "data",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "date",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "de-energize",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "de-ice",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deactivate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "deadly",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "deaerate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dearm",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "decay",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "decelerate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "decide",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "decision",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "decrease",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "decrease",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "decrement",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "dedicated",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "deep",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "defective",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "define",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deflate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "deflect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deflection",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "deformed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "defuel",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "defueling",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "degrease",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "delay",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "delay",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "delete",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "delicate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "deliver",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "delivery",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "demand",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "denote",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dent",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "depend",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deplete",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deploy",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "deposit",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "depress",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "depressurize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "depth",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "describe",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deselect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "design",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "desired",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "destroy",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "detach",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "detail",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "detail",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "detect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "determine",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "detrimental",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "develop",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "deviate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "device",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "devise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "diagnose",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "diametrically",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "differ",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "difference",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "different",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "differentiate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "difficult",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "difficulty",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "digital",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "digitally",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "dilute",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dim",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "dim",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dimension",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "diminish",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dimly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "dip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "direct",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "direction",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "directly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "dirty",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "disappear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "disarm",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "disassemble",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "discard",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "discharge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "disconnect",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "discontinue",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "discover",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "discrepancy",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "disengage",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "disinfect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dismantle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dispatch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "disperse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "displace",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "display",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "display",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dispose of",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "disposition",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "disregard",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "distance",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "distinct",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "distinctly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "distort",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "distribute",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "distribution",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "disturb",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "divide",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "do",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "don",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "doubt",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "down",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "down",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "down",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "downward",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "drag",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "drain",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "draw",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dress",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "drift",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "drink",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "drive",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "droop",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "drop",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "drop",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "dry",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "dry",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "due to",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "dull",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "duration",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "during",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "dust",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "each",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "each",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "early",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "earth",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "earth",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ease",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "ease",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "easily",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "easy",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "eat",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "edge",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "effect",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "effect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "effective",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "efficacious",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "efficient",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "efficiently",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "efflux",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "effort",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "either",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "either",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "either",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "eject",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "ejection",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "elapse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "electric",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "electrical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "electronic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "eliminate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "emergency",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "emit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "employ",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "empty",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "empty",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "enable",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "encircle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "enclosed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "encounter",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "end",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "end",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "energize",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "enforce",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "engage",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "engagement",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "enlarge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "enough",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "ensue",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ensure",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "enter",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "entire",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "entirely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "entrance",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "entry",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "equal",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "equal",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "equally",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "equip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "equipment",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "equipped",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "equivalent",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "equivalent",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "erase",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "erect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "erratic",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "error",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "escape",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "establish",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "estimate",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "estimate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "evaluate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "evaluation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "evaporate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "even",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "evenly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "event",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "eventually",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "every",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "evidence",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "evidence",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "evident",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "exact",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "exactly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "examination",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "examine",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "example",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "exceed",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "except",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "exception",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "exceptional",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "exceptionally",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "excess",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "excess",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "excessive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "excessively",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exchange",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exclude",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "excluding",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "execute",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exempt",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "exercise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exert",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exhale",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exhaust",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "exhaust",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exhaustive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "exist",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exit",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "expand",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "expect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "expel",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "expired",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "explain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "explosion",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "explosive",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "expose",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "extend",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "extension",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "extent",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "exterior",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "external",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "extinguish",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "extra",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "extract",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "extreme",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "extremely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "exude",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fabricate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "face",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "face",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "facilitate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "facility",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fact",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "factor",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fail",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "failed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "failure",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "faint",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "fall",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fall",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "false",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "falter",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "familiar",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "far",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "fashion",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fast",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "fast",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fasten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fatal",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "faulty",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "fear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "feasible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "feather",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "feature",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "feed",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "feel",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "few",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "file",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "filing",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fill",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "film",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "filter",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "filtered",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "final",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "find",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "finding",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fine",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "finger-tighten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "finish",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "finish",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fire",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "fire",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "firmly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "first",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "fit",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "fit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fix",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "flame",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "flammable",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "flange",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "flash",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "flat",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "flatness",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "flatten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "flaw",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "flex",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "flexible",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "flight",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "flood",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "flow",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "flow",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "fluctuate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fluid",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "flush",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "flush",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "focus",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fold",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "fold",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "follow",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "following",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "for",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "forbidden",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "force",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "forecast",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "foreign",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "foremost",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "form",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "form",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fortify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "forward",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "forward",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "foul",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fouled",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "fragile",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "free",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "free",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "free from",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "freely",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "freeze",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "frequent",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "fresh",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "from",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "front",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "front",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "fuel",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fulfill",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "full",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "fully",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "function",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "function",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "fundamental",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "further",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "further",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gain",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "gain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gall",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gap",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "garbled",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "garner",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gas",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "gaseous",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "gash",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gather",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gauge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "general",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "generally",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "generate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "generous",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "generously",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gentle",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "gently",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "genuine",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "get",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "get away",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "get down",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "get into",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "get off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "get to",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "give",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "gleam",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "glitch",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "gloss",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "glossy",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "glow",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "glue",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "go",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "go off",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "good",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "gouge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "govern",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "grab",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gradient",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "gradual",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "gradually",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "graph",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "grasp",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "grave",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "grease",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "great",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "greatly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "grip",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "grip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "groove",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "ground",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "ground",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "group",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "grow",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "guard",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "guide",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "gush",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "halt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "halve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hamper",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hand-tight",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "hand-tighten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "handle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hang",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "happen",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hard",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "harden",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "harm",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "harmful",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "harmonize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "haul",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "have",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "have to",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hazard",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "hazardous",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "hazy",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "head",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "head",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hear",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "heat",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "heat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "heavy",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "height",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "heighten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "help",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "help",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "helpful",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "here",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "hesitation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "high",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "highly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hinder",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hinge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hit",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "hitch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hoist",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hold",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "hold",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "hold back",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hold off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hole",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "hook",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hook up",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "horizontal",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "hot",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "house",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "how",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "however",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "huge",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "hum",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hurt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "hydraulic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "identical",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "identify",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "idle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "if",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "ignite",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ignore",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "illuminate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "immediate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "immerse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "immobilize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "impact",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "impact",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "impair",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "implement",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "implementation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "important",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "impossible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "impregnate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "impression",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "improper",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "improperly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "improve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "impurity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "in",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "in",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "inactive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "inadvertent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "inadvertently",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "inboard",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "inboard",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "incident",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "incline",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "include",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "including",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "incompatible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "incomplete",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "incorporate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "incorporation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "incorrect",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "increase",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "increase",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "increment",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "incur",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "independent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "indicate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "indication",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "induce",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ineffective",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "inflammable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "inflate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "inform",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "information",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "ingest",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ingress",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "inhale",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "inhibit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "initial",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "initially",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "initiate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "inject",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "injection",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "injure",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "injury",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "inner",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "inoperative",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "input",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "insert",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "inside",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "inside",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "inside",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "inspect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "inspection",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "install",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "installation",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "instead",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "instead of",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "instruction",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "instrument",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "insufficient",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "insulation",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "insure",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "intact",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "integral",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "intensity",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "interchange",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "interconnect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "interface",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "interfere",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "interference",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "interior",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "intermediate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "internal",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "internally",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "interrupt",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "intersect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "interval",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "into",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "investigate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "inward",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "inward",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "irregular",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "irregularity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "isolate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "isolation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "it",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "item",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "its",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "jack",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "jam",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "job",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "join",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "joint",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "just",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "keep",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "key",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "kill",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "kind",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "kink",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "knock",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "know",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "label",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "lack",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "laminated",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "lamination",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "land",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "large",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "last",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "last",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "last",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "latch",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "later",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "later",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "lateral",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "laterally",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "lay",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "layer",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "lead",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "leak",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "leak",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "leakage",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "least",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "leave",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "left",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "left-hand",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "legible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "length",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "lengthen",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "less",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "let",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "lethal",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "level",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "level",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "level",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "liberal",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "liberally",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "lie",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "life",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "lift",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "light",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "light",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "lighting",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "lightly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "limit",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "limitation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "limited",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "linear",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "linearly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "link",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "liquid",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "liquid",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "list",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "listen",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "little",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "live",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "load",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "local",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "locally",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "locate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "location",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "lock",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "log",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "long",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "look",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "loop",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "loop",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "loose",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "loosely",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "loosen",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "lose",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "lost",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "low",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "lower",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "lowermost",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "lubricate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "lukewarm",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "magnetic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "main",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "maintain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "maintenance",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "major",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "make",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "make certain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "make sure",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "maladjusted",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "malfunction",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "mandatory",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "manipulate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "manual",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "manual",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "manually",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "manufacture",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "many",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "mark",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "mark",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "mask",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "mass",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "match",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "mate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "material",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "mating",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "matter",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "maximum",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "maximum",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "may",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "measure",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "mechanical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "mechanism",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "medical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "medium",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "meet",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "melt",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "mention",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "mesh",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "method",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "mid",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "middle",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "middle",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "mild",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "minimize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "minimum",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "minimum",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "minor",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "minus",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "misrigged",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "missing",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "mix",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "mix",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "mixture",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "mobile",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "mode",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "moderate",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "modify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "moist",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "moisten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "momentary",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "monitor",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "moor",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "more",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "more",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "most",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "most",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "motion",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "motor",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "mount",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "movable",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "move",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "movement",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "much",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "much",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "multiply",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "must",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "name",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "near",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "near",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "nearly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "necessary",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "need",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "neither",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "neither",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "netic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "netically",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "neutral",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "neutralize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "never",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "new",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "next",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "next",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "next to",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "no",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "no",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "noise",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "noisy",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "none",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "nor",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "normal",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "normally",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "nose",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "not",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "notch",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "note",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "notify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "now",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "number",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "obey",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "object",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "observe",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "obstruct",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "obstructed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "obstruction",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "obtain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "occur",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "of",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "off",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "off",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "off",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "often",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "oil",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "oil-free",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "old",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "omit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "on",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "on",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "on",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "once",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "once",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "one",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "only",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "only",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "onto",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "opaque",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "open",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "open",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "opening",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "operable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "operate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "operation",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "operational",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "opportunity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "opposite",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "opposite",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "option",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "optional",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "or",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "order",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "order",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "orient",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "origin",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "original",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "originate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "other",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "other",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "otherwise",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "out",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "out",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "out of",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "outboard",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "outboard",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "outdoors",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "outer",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "outline",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "output",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "outside",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "outside",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "outside",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "outside",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "outwards",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "over",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "overfill",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "overfull",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "overhaul",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "overheat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "overlap",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "overlap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "override",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "overtighten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "pack",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "paint",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "pair",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "parallel",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "park",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "part",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "part",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "partial",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "partially",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "particle",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "particular",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "particularly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "partly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "pass",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "passage",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "past",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "paste",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "patch",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "penetrate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "people",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "per",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "perforated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "perform",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "period",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "periodically",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "permanent",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "permissible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "permit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "permitted",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "persist",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "persistent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "person",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "personnel",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "pertinent",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "picket",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "piece",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "pierced",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "placard",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "place",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "place",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "play",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "plot",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "plug",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "plus",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "pneumatic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "point",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "point",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "poisonous",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "polish",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "poor",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "pop",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "port",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "portion",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "position",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "position",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "possible",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "possibly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "potential",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "pour",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "power",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "precaution",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "precede",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "precise",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "precisely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "precision",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "preferable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "preferably",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "preheat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "preload",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "premature",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "prematurely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "preparation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "prepare",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "prescribed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "presence",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "present",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "present",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "preserve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "preset",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "press",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "pressurize",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "prevent",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "preventive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "previous",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "previously",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "primarily",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "primary",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "prime",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "principal",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "prior to",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "priority",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "probability",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "probable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "probe",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "problem",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "procedure",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "proceed",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "process",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "process",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "produce",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "product",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "profile",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "program",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "progress",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "progress",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "progressive",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "progressively",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "prohibit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "prolonged",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "prompt",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "propagation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "proper",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "properly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "property",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "proportion",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "proportional",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "protect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "protection",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "protective",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "protrude",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "provide",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "proximity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "pull",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "pump",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "puncture",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "purge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "purify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "push",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "put",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "put on",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "qualified",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "quality",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "quantity",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "quarterly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "questionable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "quick",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "quickly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "quit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "quote",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "radial",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "radially",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "raise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "random",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "randomly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "range",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "rapid",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rapidly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rate",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "reach",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reactivate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "read",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "reading",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "readjust",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ready",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "ready",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "real",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rear",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "rear",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "rear of",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "rearmost",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rearward",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "reason",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "reassemble",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rebuild",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "receive",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "recess",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "recess",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recharge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recheck",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reclaim",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recleat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reclose",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recoil",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recommend",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "recondition",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reconstruction",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "record",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "recover",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rectify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recur",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "recycle",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "reduce",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "refer",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "reference",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "referenced",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "refill",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "refit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reflect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reflection",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "refuel",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "register",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "regrease",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "regular",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "regularly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "regulate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "regulation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "reinflate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reinforce",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reinstall",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reinstallation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "reject",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "rejection",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "relate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "related",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "relation",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "relay",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "release",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "relevant",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "relieve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "remain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "remaining",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "remnant",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "removable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "removal",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "remove",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "render",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "renew",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "renovate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "repack",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "repaint",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "repair",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "repair",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "repairable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "repeat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "repeated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "repeatedly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "replace",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "replenish",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "report",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "reposition",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "represent",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "repressurize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "request",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "request",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "require",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reseal",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reset",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "residual",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "residue",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "resistant",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "respective",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "respectively",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "respond",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rest",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "rest",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "restart",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "restore",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "restrain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "restrict",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "result",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "result",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "resume",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "retain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "retorque",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "retouch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "retract",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "retractable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "retraction",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "return",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "return",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reusable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "reuse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reveal",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "reverse",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "reverse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "review",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "rewind",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rework",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rig",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "right",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "right-hand",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rigid",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "rinse",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ripped",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rise",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "rise",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "risk",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "rope off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rotary",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rotate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "rotation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "rotational",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rough",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "roughen",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "roughness",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "round",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "rounded",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "route",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "route",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "routine",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "routing",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "row",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "rub",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "run",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "running",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "safe",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "safely",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "safety",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "safety",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "safety-clip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "safety-wire",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "same",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "same",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "sample",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "sample",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "saturate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "save",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "scan",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "schedule",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "scored",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "scrap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "scrape",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "scratched",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "screw",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "scrub",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "seal",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "seal",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "search",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "seat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "secondary",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "secure",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "secure",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "securely",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "security",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "see",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "seek",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "seepage",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "seized",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "select",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "selection",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "send",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "sense",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "sensitive",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "separable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "separate",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "separate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "separately",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "separation",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "sequence",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "serious",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "serrated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "serration",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "serve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "service",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "serviceability",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "servicing",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "set",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "set",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "setting",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "settle",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sever",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "several",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "severe",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "shake",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "shall",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "shape",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "shape",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sharp",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "sharply",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "shear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sheet",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "shield",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "shift",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "shiny",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "shock",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "short",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "shorten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "should",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "show",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "shut down",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "side",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "sideways",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sight",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "sight",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sign",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "significant",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "silence",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "similar",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "simulate",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "simultaneous",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "since",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "situated",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "situation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "size",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "skid",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slack",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "slack",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "slacken",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slackness",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "slave",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slide",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slight",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "slightly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slope",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "slot",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "slow",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "slow down",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "slowly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "sluggish",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "small",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "smear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "smell",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "smoke",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "smoke",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "smooth",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "smooth",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "smoothly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "snag",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "snap",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "snap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "soak",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "soapy",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "soft",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "soften",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "soiled",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "solid",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "solid",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "solidify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "solution",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "solve",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "some",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "some",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "soon",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sound",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "sound",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "source",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "space",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "space",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "spacing",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "spanwise",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "sparingly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "spark",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "spark",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "speak",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "special",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "specially",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "specific",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "specifically",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "specified",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "speck",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "speech",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "speed",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "spherical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "spill",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "spillage",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "spin",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "splash",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "splined",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "split",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "split",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "spot",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "spot",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "spray",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "spray",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "spread",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "spring",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "spurious",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "stability",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "stabilization",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "stabilize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stable",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "stage",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "stained",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "stamp",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stand",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "standard",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "starboard",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "start",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "start",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "state",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "state",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "station",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stationary",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "stay",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "steadily",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "steady",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "step",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "stick",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sticky",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "stiff",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "still",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stimulate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stir",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stop",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "store",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stow",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "straight",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "straighten",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "strain",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "strap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stress",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "strictly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "strike",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "strip",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "strip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "stripe",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "striped",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "stroke",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "strong",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "structure",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "submerge",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "submit",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "substance",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "substitute",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "substitute",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "substitute",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "subtract",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "successful",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "such",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "suck",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sudden",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "suddenly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "sufficient",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "suitable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "suitably",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sum",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "supply",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "supply",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "support",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "support",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sure",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "surface",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "surplus",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "surrounding",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "survey",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "suspect",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "suspect",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "suspend",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "swallow",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "swap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "sweep",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "swing",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "switch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "switch off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "switch on",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "symbol",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "symptom",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "synchronize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "system",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "tacky",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "tag",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "take",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "take care",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "talk",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "tap",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "tape",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "task",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "taut",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "tear",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "technique",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "telescopic",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "tell",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "temporary",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "tension",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "terminate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "tertiary",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "test",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "test",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "than",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "that",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "that",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "the",
+   "pos": "article",
+   "status": "approved"
+  },
+  {
+   "word": "their",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "them",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "then",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "there",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "there",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "therefore",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "these",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "these",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "they",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "thick",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "thickness",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "thin",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "thin",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "think",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "this",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "this",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "thorough",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "thoroughly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "those",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "thread",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "threaded",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "through",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "through",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "throughout",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "thru",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "thus",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "tie",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "tight",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "tighten",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "tightly",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "till",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "tilt",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "time",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "time",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "tip",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "tip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "to",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "together",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "tolerance",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "too",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "tool",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "top",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "top",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "top off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "torily",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "torque",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "tory",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "total",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "total",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "touch",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "tow",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "toward",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "toxic",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "trace",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "trace",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "track",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "trained",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "transfer",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "transfer",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "transition",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "transmit",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "transport",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "trapped",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "travel",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "travel",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "treat",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "trigger",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "trim",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "trip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "troubleshoot",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "true",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "try",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "tuck",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "tune",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "turn",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "turn",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "turn off",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "turn on",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "turn over",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "twice",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "twist",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "type",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "typical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "unable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unauthorized",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "uncap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unclip",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "uncoil",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "uncouple",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "uncovered",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "uncovered",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "undamaged",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "under",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "underneath",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "underside",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "undertake",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "undo",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "undue",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "uneven",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unfold",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "uniform",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "uniformly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unintentional",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unit",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "unknown",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "unlatch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unless",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "unload",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unlock",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "unnecessary",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unobstructed",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unpack",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unpainted",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unplug",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unprotected",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unreel",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unrestricted",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unsafe",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unscrew",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "unstable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "until",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "until",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "unused",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "unusual",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "unusually",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "unwanted",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "unwind",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "up",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "up",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "up",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "up to",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "upon",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "upper",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "uppermost",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "uppermost",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "upstream",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "upstream",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "upward",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "urgently",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "usage",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "use",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "use",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "usual",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "usually",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "utilization",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "utilize",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "valid",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "validity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "value",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "variable",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "various",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "vary",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "vent",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ventilate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "ventilation",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "verify",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "vertical",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "vertically",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "very",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "via",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "vibrate",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "vibration",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "vicinity",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "view",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "view",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "vigorous",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "vigorously",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "visible",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "visual",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "visually",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "vital",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "voice",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "volatile",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "volume",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "wait",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "walk",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "want",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "warm",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "warm",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "warn",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "wash",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "watch",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "watertight",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "way",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "we",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "weak",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "weakness",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "wear",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "weather",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "weep",
+   "pos": "noun",
+   "status": "unapproved"
+  },
+  {
+   "word": "weigh",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "weight",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "well",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "wet",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "when",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "whenever",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "where",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "whether",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "which",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "whichever",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "whichever",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "while",
+   "pos": "conjunction",
+   "status": "approved"
+  },
+  {
+   "word": "whilst",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "who",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "whoever",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "whole",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "wholly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "whose",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "wide",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "width",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "will",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "wind",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "windy",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "wipe",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "wire",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "wire-lock",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "wise",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "with",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "withdraw",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "within",
+   "pos": "preposition",
+   "status": "unapproved"
+  },
+  {
+   "word": "without",
+   "pos": "preposition",
+   "status": "approved"
+  },
+  {
+   "word": "withstand",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "work",
+   "pos": "noun",
+   "status": "approved"
+  },
+  {
+   "word": "work",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "would",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "wrap",
+   "pos": "verb",
+   "status": "unapproved"
+  },
+  {
+   "word": "write",
+   "pos": "verb",
+   "status": "approved"
+  },
+  {
+   "word": "wrong",
+   "pos": "adjective",
+   "status": "unapproved"
+  },
+  {
+   "word": "wrongly",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "yes",
+   "pos": "adverb",
+   "status": "approved"
+  },
+  {
+   "word": "yet",
+   "pos": "adverb",
+   "status": "unapproved"
+  },
+  {
+   "word": "yet",
+   "pos": "conjunction",
+   "status": "unapproved"
+  },
+  {
+   "word": "you",
+   "pos": "pronoun",
+   "status": "approved"
+  },
+  {
+   "word": "your",
+   "pos": "adjective",
+   "status": "approved"
+  },
+  {
+   "word": "yourself",
+   "pos": "pronoun",
+   "status": "unapproved"
+  },
+  {
+   "word": "zero",
+   "pos": "verb",
+   "status": "unapproved"
+  }
+ ]
+}
