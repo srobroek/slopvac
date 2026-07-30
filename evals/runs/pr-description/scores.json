@@ -1,0 +1,120 @@
+{
+  "topic": "pr-description",
+  "profile": "normal",
+  "conditions": {
+    "01-unguided": {
+      "raw_words": 326,
+      "new": {
+        "score": 0.0,
+        "findings": 50,
+        "errors": 16,
+        "warnings": 33,
+        "suggestions": 1,
+        "per_100_words": 16.892,
+        "words": 296,
+        "passed": false,
+        "failure_reasons": [
+          "16 error(s), limit 0",
+          "16.89 findings per 100 words, budget 3.0",
+          "score 0.0, minimum 70.0",
+          "ai-tells-register at 0.68 per 100 words, budget 0.6",
+          "docs-discipline at 1.01 per 100 words, budget 0.5",
+          "prose-craft at 2.70 per 100 words, budget 1.5",
+          "prose-format at 3.38 per 100 words, budget 0.4",
+          "prose-inflation at 0.68 per 100 words, budget 0.6",
+          "ste-descriptive at 1.35 per 100 words, budget 1.0",
+          "ste-sentences at 2.03 per 100 words, budget 1.5",
+          "ste-verbs at 2.03 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "ai-tells-content-shape": {
+            "findings": 1,
+            "errors": 1,
+            "score": 14.5
+          },
+          "ai-tells-register": {
+            "findings": 2,
+            "errors": 2,
+            "score": 0.0
+          },
+          "ai-tells-structure": {
+            "findings": 1,
+            "errors": 1,
+            "score": 40.8
+          },
+          "docs-discipline": {
+            "findings": 3,
+            "errors": 0,
+            "score": 0.0
+          },
+          "prose-craft": {
+            "findings": 8,
+            "errors": 0,
+            "score": 9.2
+          },
+          "prose-discipline": {
+            "findings": 2,
+            "errors": 0,
+            "score": 53.9
+          },
+          "prose-format": {
+            "findings": 10,
+            "errors": 10,
+            "score": 0.0
+          },
+          "prose-inflation": {
+            "findings": 2,
+            "errors": 2,
+            "score": 0.0
+          },
+          "ste-descriptive": {
+            "findings": 4,
+            "errors": 0,
+            "score": 30.3
+          },
+          "ste-practices": {
+            "findings": 1,
+            "errors": 0,
+            "score": 93.2
+          },
+          "ste-sentences": {
+            "findings": 6,
+            "errors": 0,
+            "score": 30.3
+          },
+          "ste-verbs": {
+            "findings": 6,
+            "errors": 0,
+            "score": 0.0
+          },
+          "ste-words": {
+            "findings": 4,
+            "errors": 0,
+            "score": 51.3
+          }
+        },
+        "rules": {
+          "prose-format.no-unicode-dash": 10,
+          "prose-craft.first-person-plural": 7,
+          "ste-sentences.omitted-word-or-contraction": 6,
+          "ste-descriptive.sentence-too-long-descriptive": 4,
+          "ste-verbs.complex-tense": 4,
+          "ste-words.approved-word-substitution": 3,
+          "docs-discipline.status-language": 2,
+          "prose-discipline.bidirectional-hedge": 2,
+          "ste-verbs.passive-voice": 2,
+          "ai-tells-content-shape.durable-vocabulary-habits": 1,
+          "ai-tells-register.corporate-analytic-filler-core": 1,
+          "ai-tells-register.intensifier-tics-core": 1,
+          "ai-tells-structure.contrastive-inversion-frames": 1,
+          "docs-discipline.history-narration": 1,
+          "prose-craft.unclear-antecedent": 1,
+          "prose-inflation.intensifier": 1,
+          "prose-inflation.slop-lexicon": 1,
+          "ste-practices.unclear-demonstrative-this": 1,
+          "ste-words.spelling": 1
+        }
+      }
+    }
+  }
+}

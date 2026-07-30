@@ -1,0 +1,144 @@
+{
+  "topic": "readme-cache",
+  "profile": "normal",
+  "conditions": {
+    "01-unguided": {
+      "raw_words": 590,
+      "new": {
+        "score": 0.0,
+        "findings": 64,
+        "errors": 22,
+        "warnings": 37,
+        "suggestions": 5,
+        "per_100_words": 15.311,
+        "words": 418,
+        "passed": false,
+        "failure_reasons": [
+          "22 error(s), limit 0",
+          "15.31 findings per 100 words, budget 3.0",
+          "score 0.0, minimum 70.0",
+          "ai-tells-formatting at 1.44 per 100 words, budget 1.0",
+          "ai-tells-structure at 0.96 per 100 words, budget 0.6",
+          "prose-discipline at 0.96 per 100 words, budget 0.8",
+          "prose-format at 3.11 per 100 words, budget 0.4",
+          "prose-inflation at 1.68 per 100 words, budget 0.6",
+          "ste-sentences at 1.91 per 100 words, budget 1.5"
+        ],
+        "categories": {
+          "ai-tells-formatting": {
+            "findings": 6,
+            "errors": 0,
+            "score": 26.3
+          },
+          "ai-tells-register": {
+            "findings": 1,
+            "errors": 1,
+            "score": 56.1
+          },
+          "ai-tells-structure": {
+            "findings": 4,
+            "errors": 0,
+            "score": 18.9
+          },
+          "docs-discipline": {
+            "findings": 2,
+            "errors": 0,
+            "score": 48.7
+          },
+          "orwell": {
+            "findings": 1,
+            "errors": 1,
+            "score": 65.4
+          },
+          "prose-craft": {
+            "findings": 6,
+            "errors": 0,
+            "score": 48.7
+          },
+          "prose-discipline": {
+            "findings": 4,
+            "errors": 0,
+            "score": 37.5
+          },
+          "prose-format": {
+            "findings": 13,
+            "errors": 13,
+            "score": 0.0
+          },
+          "prose-inflation": {
+            "findings": 7,
+            "errors": 7,
+            "score": 0.0
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 85.6
+          },
+          "ste-practices": {
+            "findings": 4,
+            "errors": 0,
+            "score": 80.9
+          },
+          "ste-procedural": {
+            "findings": 2,
+            "errors": 0,
+            "score": 71.3
+          },
+          "ste-punctuation": {
+            "findings": 1,
+            "errors": 0,
+            "score": 95.2
+          },
+          "ste-sentences": {
+            "findings": 8,
+            "errors": 0,
+            "score": 33.8
+          },
+          "ste-verbs": {
+            "findings": 3,
+            "errors": 0,
+            "score": 59.8
+          },
+          "ste-words": {
+            "findings": 1,
+            "errors": 0,
+            "score": 90.4
+          }
+        },
+        "rules": {
+          "prose-format.no-unicode-dash": 13,
+          "ste-sentences.omitted-word-or-contraction": 8,
+          "ai-tells-formatting.emoji-list-markers": 5,
+          "prose-inflation.slop-lexicon": 5,
+          "prose-discipline.marketing-lexicon": 3,
+          "ste-verbs.passive-voice": 3,
+          "ai-tells-structure.tricolon-abuse-core": 2,
+          "prose-craft.future-tense": 2,
+          "ste-procedural.condition-after-command": 2,
+          "ai-tells-formatting.title-case-heading": 1,
+          "ai-tells-register.corporate-analytic-filler-core": 1,
+          "ai-tells-structure.rhetorical-question-transition": 1,
+          "ai-tells-structure.think-of-it-as-core": 1,
+          "docs-discipline.history-narration": 1,
+          "docs-discipline.status-language": 1,
+          "orwell.unsupported-evaluative": 1,
+          "prose-craft.first-person-plural": 1,
+          "prose-craft.politeness": 1,
+          "prose-craft.sentence-length": 1,
+          "prose-craft.unclear-antecedent": 1,
+          "prose-discipline.bidirectional-hedge": 1,
+          "prose-inflation.business-jargon": 1,
+          "prose-inflation.hedge-stack": 1,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-practices.false-friend-term": 1,
+          "ste-practices.omitted-conjunction-that": 1,
+          "ste-practices.possessive-form-unclear": 1,
+          "ste-practices.unclear-demonstrative-this": 1,
+          "ste-punctuation.semicolon-used": 1,
+          "ste-words.approved-word-substitution": 1
+        }
+      }
+    }
+  }
+}

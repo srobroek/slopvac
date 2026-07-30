@@ -62,6 +62,9 @@ MUST Six sentences per paragraph at most, one topic each. Steps go in a vertical
 MUST Every claim names a checkable particular: a number, a path, a command, a version, a named event.
 MUST Delete any adjective you cannot back with a number, benchmark, or feature list.
 MUST Delete every span whose removal changes no proposition, obligation, or referent.
+MUST Take the position the evidence supports. Hedge only where the uncertainty is real and you can name its cause; one hedge at most, never a hedge on a hedge.
+NOT Hedging in both directions ("may improve latency, though it might also increase it") -- the halves cancel and the reader learns nothing actionable.
+DEFAULT Judge hedging across the whole document, not the sentence: if most load-bearing claims carry a hedge, the document asserts nothing however careful each sentence reads.
 MUST Name who acted: an abstraction is not an actor ("the team fixed it", never "the complaint becomes a fix").
 MUST State what the artifact does -- never effort, intent, process, or journey.
 MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".

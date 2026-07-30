@@ -1,0 +1,111 @@
+{
+  "topic": "error-message",
+  "profile": "normal",
+  "conditions": {
+    "01-unguided": {
+      "raw_words": 146,
+      "new": {
+        "score": 0.0,
+        "findings": 25,
+        "errors": 3,
+        "warnings": 21,
+        "suggestions": 1,
+        "per_100_words": 17.606,
+        "words": 142,
+        "passed": false,
+        "failure_reasons": [
+          "3 error(s), limit 0",
+          "17.61 findings per 100 words, budget 3.0",
+          "score 0.0, minimum 70.0",
+          "ai-tells-formatting at 1.41 per 100 words, budget 1.0",
+          "prose-craft at 4.22 per 100 words, budget 1.5",
+          "prose-format at 0.70 per 100 words, budget 0.4",
+          "prose-inflation at 2.11 per 100 words, budget 0.6",
+          "prose-scope at 0.70 per 100 words, budget 0.6",
+          "ste-sentences at 2.11 per 100 words, budget 1.5",
+          "ste-verbs at 2.11 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "ai-tells-formatting": {
+            "findings": 2,
+            "errors": 0,
+            "score": 27.6
+          },
+          "orwell": {
+            "findings": 1,
+            "errors": 1,
+            "score": 11.2
+          },
+          "prose-craft": {
+            "findings": 6,
+            "errors": 0,
+            "score": 0.0
+          },
+          "prose-discipline": {
+            "findings": 1,
+            "errors": 0,
+            "score": 52.3
+          },
+          "prose-format": {
+            "findings": 1,
+            "errors": 1,
+            "score": 0.0
+          },
+          "prose-inflation": {
+            "findings": 3,
+            "errors": 1,
+            "score": 0.0
+          },
+          "prose-scope": {
+            "findings": 1,
+            "errors": 0,
+            "score": 38.6
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 60.5
+          },
+          "ste-practices": {
+            "findings": 1,
+            "errors": 0,
+            "score": 85.9
+          },
+          "ste-sentences": {
+            "findings": 3,
+            "errors": 0,
+            "score": 27.6
+          },
+          "ste-verbs": {
+            "findings": 3,
+            "errors": 0,
+            "score": 0.0
+          },
+          "ste-words": {
+            "findings": 2,
+            "errors": 0,
+            "score": 49.5
+          }
+        },
+        "rules": {
+          "prose-craft.first-person-plural": 5,
+          "ste-sentences.omitted-word-or-contraction": 3,
+          "prose-inflation.borderline-hype": 2,
+          "ste-verbs.passive-voice": 2,
+          "ste-words.approved-word-substitution": 2,
+          "ai-tells-formatting.emoji-list-markers": 1,
+          "ai-tells-formatting.title-case-heading": 1,
+          "orwell.unsupported-evaluative": 1,
+          "prose-craft.politeness": 1,
+          "prose-discipline.phrasal-verb": 1,
+          "prose-format.no-unicode-dash": 1,
+          "prose-inflation.slop-lexicon": 1,
+          "prose-scope.unrequested-reassurance": 1,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-practices.omitted-conjunction-that": 1,
+          "ste-verbs.auxiliary-stacking": 1
+        }
+      }
+    }
+  }
+}

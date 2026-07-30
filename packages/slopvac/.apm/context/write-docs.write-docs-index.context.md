@@ -35,6 +35,14 @@ MUST Six sentences per paragraph at most, one topic each. Use a vertical list fo
 MUST Every claim names a checkable particular: a number, a path, a command, a version, a named event. An abstraction is not a substitute for evidence you do not have.
 MUST Delete any adjective you cannot back with a number, benchmark, or feature list. Where the fact exists, state the fact and drop the adjective.
 MUST Delete every span whose removal changes no proposition, obligation, or referent.
+
+Hedging -- the document has to assert something:
+
+MUST Take the position the evidence supports. A hedge is allowed only where the uncertainty is real and you can name its cause: a measured variance, a documented platform difference, a limit you have not tested past.
+MUST One hedge at most, and never a hedge on a hedge. "May help reduce some of the noise in certain cases" is three layers and no claim.
+NOT Hedging in both directions. "This may improve latency, though it might also increase it" cancels itself; the reader learns nothing they can act on. Give both numbers, or pick the one the evidence supports.
+NOT Balancing every claim with a counter-claim nobody makes, to read even-handed.
+DEFAULT Test the whole document, not the sentence: if most load-bearing claims carry a hedge, the document says nothing however careful each sentence looks. Ask whether a reader can act on it, or whether every path out ends in "it depends".
 MUST Name who acted. An abstraction is not an actor: "the team fixed it that week", never "the complaint becomes a fix". If no person fits, use "you".
 NOT A figure of speech you are used to seeing in print. Write the fact, a fresh image, or nothing.
 NOT Two physical images colliding in one sentence.

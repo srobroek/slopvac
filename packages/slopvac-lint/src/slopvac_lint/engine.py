@@ -92,6 +92,40 @@ def count_clause_boundaries(text: str) -> int:
     return len(_CLAUSE_JOIN.findall(text))
 
 
+
+def format_message(template: str, **fields: object) -> str:
+    """Interpolate a rule message without dying on an unknown placeholder.
+
+    Rule messages are DATA, written by whoever added the rule, and the vocabulary
+    of placeholders drifted: some rules say `{value}` and `{limit}`, others
+    `{match}` and `{replacement}`. A KeyError here kills the whole run over a
+    cosmetic mismatch, so unknown placeholders are left as literal text and the
+    known aliases are all supplied.
+    """
+    aliases = dict(fields)
+    # Metric rules describe a measurement and its ceiling; lexical rules describe
+    # a match and its replacement. Accept either vocabulary for both.
+    if "match" in fields:
+        aliases.setdefault("value", fields["match"])
+        aliases.setdefault("count", fields["match"])
+        aliases.setdefault("actual", fields["match"])
+    if "replacement" in fields:
+        aliases.setdefault("limit", fields["replacement"])
+        aliases.setdefault("max", fields["replacement"])
+        aliases.setdefault("threshold", fields["replacement"])
+
+    class _Lenient(dict):
+        def __missing__(self, key: str) -> str:
+            return "{" + key + "}"
+
+    try:
+        return template.format_map(_Lenient(aliases))
+    except (IndexError, ValueError):
+        # A stray brace in the message text. Return it verbatim rather than
+        # failing the run.
+        return template
+
+
 def build_substitution_pattern(substitutions: dict[str, str]) -> str:
     """One alternation over every key, longest first.
 
@@ -405,8 +439,8 @@ class Engine:
                 if rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
                     replacement = match_substitution(rule.substitutions, matched)
 
-                message = rule.message.format(
-                    match=matched, replacement=replacement or ""
+                message = format_message(
+                    rule.message, match=matched, replacement=replacement or ""
                 )
                 results.append(
                     Finding(
@@ -461,7 +495,7 @@ class Engine:
                 results.append(
                     self._metric_finding(
                         rule, document, sentence.line, severity,
-                        rule.message.format(
+                        format_message(rule.message, 
                             match=str(sentence.word_count), replacement=str(int(cap))
                         ),
                     )
@@ -480,7 +514,7 @@ class Engine:
                 results.append(
                     self._metric_finding(
                         rule, document, sentence.line, severity,
-                        rule.message.format(
+                        format_message(rule.message, 
                             match=str(count + 1), replacement=str(int(threshold) + 1)
                         ),
                     )
@@ -498,7 +532,7 @@ class Engine:
                 results.append(
                     self._metric_finding(
                         rule, document, block.lines[0], severity,
-                        rule.message.format(
+                        format_message(rule.message, 
                             match=str(len(block.sentences)),
                             replacement=str(int(threshold)),
                         ),
@@ -517,7 +551,7 @@ class Engine:
                 results.append(
                     self._metric_finding(
                         rule, document, 1, severity,
-                        rule.message.format(
+                        format_message(rule.message, 
                             match=f"{value:.2f}", replacement=f"{threshold:.2f}"
                         ),
                     )
@@ -566,7 +600,7 @@ class Engine:
                         results.append(
                             self._metric_finding(
                                 rule, document, block.lines[0], severity,
-                                rule.message.format(
+                                format_message(rule.message, 
                                     match=f"h{block.level}", replacement=f"h{previous + 1}"
                                 ),
                             )

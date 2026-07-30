@@ -1,0 +1,125 @@
+{
+  "topic": "guide-migration",
+  "profile": "normal",
+  "conditions": {
+    "01-unguided": {
+      "raw_words": 362,
+      "new": {
+        "score": 0.0,
+        "findings": 63,
+        "errors": 10,
+        "warnings": 50,
+        "suggestions": 3,
+        "per_100_words": 23.774,
+        "words": 265,
+        "passed": false,
+        "failure_reasons": [
+          "10 error(s), limit 0",
+          "23.77 findings per 100 words, budget 3.0",
+          "score 0.0, minimum 70.0",
+          "ai-tells-structure at 1.13 per 100 words, budget 0.6",
+          "docs-discipline at 0.76 per 100 words, budget 0.5",
+          "prose-craft at 6.79 per 100 words, budget 1.5",
+          "prose-format at 1.89 per 100 words, budget 0.4",
+          "prose-inflation at 1.89 per 100 words, budget 0.6",
+          "ste-sentences at 4.91 per 100 words, budget 1.5",
+          "ste-verbs at 3.02 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "ai-tells-content-shape": {
+            "findings": 1,
+            "errors": 1,
+            "score": 5.3
+          },
+          "ai-tells-formatting": {
+            "findings": 1,
+            "errors": 0,
+            "score": 77.4
+          },
+          "ai-tells-structure": {
+            "findings": 3,
+            "errors": 3,
+            "score": 0.0
+          },
+          "docs-discipline": {
+            "findings": 2,
+            "errors": 0,
+            "score": 22.9
+          },
+          "prose-craft": {
+            "findings": 18,
+            "errors": 0,
+            "score": 0.0
+          },
+          "prose-discipline": {
+            "findings": 2,
+            "errors": 0,
+            "score": 49.3
+          },
+          "prose-format": {
+            "findings": 5,
+            "errors": 5,
+            "score": 0.0
+          },
+          "prose-inflation": {
+            "findings": 5,
+            "errors": 1,
+            "score": 0.0
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 77.4
+          },
+          "ste-practices": {
+            "findings": 3,
+            "errors": 0,
+            "score": 77.4
+          },
+          "ste-sentences": {
+            "findings": 13,
+            "errors": 0,
+            "score": 0.0
+          },
+          "ste-verbs": {
+            "findings": 8,
+            "errors": 0,
+            "score": 0.0
+          },
+          "ste-words": {
+            "findings": 1,
+            "errors": 0,
+            "score": 84.9
+          }
+        },
+        "rules": {
+          "ste-sentences.omitted-word-or-contraction": 13,
+          "prose-craft.first-person-plural": 7,
+          "prose-craft.future-tense": 5,
+          "prose-format.no-unicode-dash": 5,
+          "ste-verbs.passive-voice": 5,
+          "prose-inflation.borderline-hype": 3,
+          "ste-verbs.complex-tense": 3,
+          "ai-tells-structure.meta-narration-frames": 2,
+          "docs-discipline.history-narration": 2,
+          "prose-craft.politeness": 2,
+          "ste-practices.unclear-demonstrative-this": 2,
+          "ai-tells-content-shape.durable-vocabulary-habits": 1,
+          "ai-tells-formatting.title-case-heading": 1,
+          "ai-tells-structure.summary-closer-frames": 1,
+          "prose-craft.directional-ref": 1,
+          "prose-craft.gerund-heading": 1,
+          "prose-craft.relative-date": 1,
+          "prose-craft.unclear-antecedent": 1,
+          "prose-discipline.hedged-hedge": 1,
+          "prose-discipline.phrasal-verb": 1,
+          "prose-inflation.document-preamble": 1,
+          "prose-inflation.vague-quantifier": 1,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-practices.phrasal-verb": 1,
+          "ste-words.approved-word-substitution": 1
+        }
+      }
+    }
+  }
+}
