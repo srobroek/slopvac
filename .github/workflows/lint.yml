@@ -52,7 +52,7 @@ jobs:
         run: pip install "yamllint==1.37.1"
 
       - name: yamllint
-        run: yamllint -c .yamllint.yml .github/workflows/ apm.yml
+        run: yamllint -c .yamllint.yml .github/workflows/ packages/slopvac/apm.yml
 
   shell-lint:
     runs-on: ubuntu-latest
@@ -91,16 +91,16 @@ jobs:
       - name: Gate this repo's own docs
         run: |
           set -euo pipefail
-          ./vale-styles/build.sh
-          python3 -m http.server 8899 --directory vale-styles/dist &
+          ./packages/slopvac-lint/vale-styles/build.sh
+          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
           for _ in $(seq 1 20); do
             curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
             sleep 0.5
           done
-          config=.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
-          bash .apm/skills/review-docs/scripts/slop-lint.sh \
+          bash packages/slopvac/.apm/skills/review-docs/scripts/slop-lint.sh \
             --genre consumer \
-            README.md vale-styles/README.md README.md
+            README.md packages/slopvac-lint/vale-styles/README.md

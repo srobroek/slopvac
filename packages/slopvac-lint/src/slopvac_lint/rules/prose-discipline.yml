@@ -402,3 +402,209 @@ rules:
         the word belongs to advertising at all. `bulletproof` fails even with a
         benchmark beside it.
     fix: Delete the adjective and state what the reader can measure.
+
+  # --- Run-on, judgement half -----------------------------------------------
+  # Clause counting is a proxy, not the defect. A sentence can carry four clauses
+  # and read cleanly when they share a subject and run in sequence, and it can
+  # carry two and be unreadable when they hold unrelated ideas. Only a reader
+  # decides which, so the metric finds candidates and this decides.
+  - id: overloaded-sentence
+    name: One sentence, one idea
+    kind: judgement
+    message: >-
+      This sentence carries more than one idea. Split it at the point where the
+      reader has to start holding something new.
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Read the sentence once and stop. How many separate things must the reader
+      now remember? If more than one, could each stand as its own sentence
+      without repeating a noun phrase to make sense? If yes, it is overloaded.
+      A list of parallel actions sharing one subject and one verb is ONE idea,
+      however long; two clauses joined by "and" that could each stand alone are
+      two.
+    exceptions:
+      - quotation
+      - code-span
+      - vertical-list
+      - legal-force
+      - parallel-list
+    examples:
+      - bad: >-
+          The parser reads the manifest and the resolver walks the dependency
+          graph.
+        good: >-
+          The parser reads the manifest. The resolver then walks the dependency
+          graph.
+        note: >-
+          Two clauses, two subjects, two ideas. Each stands alone.
+      - bad: >-
+          Because the cache is keyed by content the migration must run first,
+          and the index rebuild depends on it, so plan for downtime.
+        good: >-
+          The cache is keyed by content, so the migration must run first. The
+          index rebuild depends on the migration. Plan for downtime.
+      - bad: We deleted the retry path, which nobody used, and simplified the client.
+        good: Nobody used the retry path, so we deleted it. That simplified the client.
+        note: >-
+          The metric counts two boundaries here and would pass at threshold 3.
+          A reader still holds three things.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.1'
+      note: >-
+        Paired with prose-discipline.run-on, which counts clause boundaries. The
+        count is a candidate finder: it cannot tell a parallel list sharing one
+        subject from two unrelated clauses, and both shapes appear at the same
+        boundary count. This half carries the decision.
+    fix: >-
+      Split at the boundary where the reader starts holding a second thing, and
+      make the shared noun explicit in the new sentence.
+
+  # --- Hedging: the document-level failure ----------------------------------
+  # The existing rules catch a stack inside one sentence
+  # (prose-inflation.hedge-stack) and an invented counter-claim
+  # (ai-tells-register.hedged-symmetry). Neither sees a document that hedges
+  # every claim it makes and therefore asserts nothing.
+  - id: hedged-into-uselessness
+    name: The document must assert something
+    kind: judgement
+    message: >-
+      This document hedges its own claims to the point of asserting nothing. Take
+      the position the evidence supports.
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      List the load-bearing claims: the sentences a reader would act on. For each,
+      is it hedged? Then ask three things. First, could the reader act on the
+      document as written, or does every path out of it end in "it depends"?
+      Second, is any claim hedged in BOTH directions, so that the hedge and its
+      counter-hedge cancel ("this may improve latency, though it might also
+      increase it")? Third, is any hedge itself hedged ("this could potentially
+      help in some cases")? A document where the majority of load-bearing claims
+      carry a hedge is a document that says nothing, whatever each sentence
+      looks like on its own.
+    exceptions:
+      - genuine-uncertainty
+      - quotation
+      - legal-force
+      - safety-critical
+      - measured-variance
+    examples:
+      - bad: >-
+          The cache may improve response time in some workloads, though results
+          can vary and it might increase memory use depending on configuration.
+        good: >-
+          The cache cuts median response time by 40% on repeated prompts. It
+          holds entries in memory: budget 200 MB per 10,000 entries.
+        note: >-
+          Hedged in both directions, so the two halves cancel and the reader
+          learns nothing they can act on.
+      - bad: >-
+          You should probably consider using the strict profile for reference
+          material, although the normal profile may also be suitable in many
+          cases.
+        good: Use the strict profile for reference material.
+      - bad: This could potentially help reduce some of the noise in certain cases.
+        good: This removes the 12 findings that fired on code comments.
+        note: A hedge on a hedge on a quantifier. Three layers, no claim.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: cut-what-cuts
+      note: >-
+        Document-scoped on purpose. Every sentence here can pass
+        prose-inflation.hedge-stack, which fires only on a stack inside one
+        sentence. The defect is the ratio across the document: a single honest
+        hedge is correct, and hedging every claim is a refusal to write the doc.
+        A hedge is permitted where the uncertainty is real and named -- a
+        measured variance, a documented platform difference -- and the exception
+        list is what a suppression must cite.
+    fix: >-
+      For each hedged claim, either state it plainly with the evidence, or delete
+      it. Where the uncertainty is real, name its cause and its bound instead of
+      hedging the verb.
+
+  - id: bidirectional-hedge
+    name: Do not hedge both ways
+    kind: pattern
+    severity: warning
+    message: >-
+      "{match}" hedges in both directions, so the two halves cancel. State which
+      one the evidence supports.
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    # A hedged claim followed by a hedged counter-claim in the same sentence. This
+    # is the mechanizable core of hedged-into-uselessness: the shape is visible
+    # even when the ratio across the document is not.
+    pattern: '(?:may|might|could|can|should|tends? to|is likely to)\s+\w+[^.!?]{0,80}?(?:,\s*)?(?:but|though|although|however|while|whereas|yet)\s+[^.!?]{0,40}?(?:may|might|could|can|also|equally|sometimes)\b'
+    ignore_case: true
+    exceptions:
+      - genuine-uncertainty
+      - measured-variance
+      - quotation
+      - legal-force
+      - safety-critical
+    examples:
+      - bad: >-
+          The cache may improve response time, though it might also increase
+          memory use.
+        good: >-
+          The cache cuts median response time by 40% and holds 200 MB per 10,000
+          entries.
+      - bad: Batching can reduce cost, but it may equally add latency.
+        good: Batching cuts cost by 30% and adds 15 ms of latency.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: cut-what-cuts
+      note: >-
+        The mechanizable core of hedged-into-uselessness. Reports the shape; the
+        judgement rule decides whether the uncertainty behind it is real.
+    fix: >-
+      Keep the direction the evidence supports and state its magnitude. Where both
+      hold, give both numbers rather than both hedges.
+
+  - id: hedged-hedge
+    name: One hedge or none
+    kind: pattern
+    severity: warning
+    message: >-
+      "{match}" hedges a hedge. Keep at most one, or state the claim plainly.
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    # Distinct from prose-inflation.hedge-stack, which matches a modal followed by
+    # an adverb. This catches a hedge wrapped around a VAGUE QUANTIFIER, which is
+    # the commoner generated shape: "help reduce some of", "in certain cases".
+    pattern: '(?<![\w-])(?:may|might|could|can|should|would)\s+(?:\w+\s+)?(?:help(?:s)?\s+(?:to\s+)?|serve\s+to\s+|work\s+to\s+|tend\s+to\s+)?\w+\s+(?:some|certain|various|several|many|most)\s+(?:of\s+)?(?:the\s+)?\w+|(?<![\w-])in\s+(?:some|certain|many|most)\s+cases?(?![\w-])'
+    ignore_case: true
+    exceptions:
+      - genuine-uncertainty
+      - measured-variance
+      - quotation
+      - legal-force
+    examples:
+      - bad: This could potentially help reduce some of the noise in certain cases.
+        good: This removes the 12 findings that fired on code comments.
+      - bad: The flag may help avoid certain failures.
+        good: The flag skips the retry path, so a 429 fails immediately.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: cut-what-cuts
+      note: >-
+        Separate from prose-inflation.hedge-stack: that rule matches modal plus
+        adverb ("may possibly"), this one matches a modal wrapped around a vague
+        quantifier ("may help reduce some of the"), which no adverb appears in.
+    fix: >-
+      Delete the hedging verbs and the quantifier, then name what actually
+      changes.

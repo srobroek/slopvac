@@ -329,8 +329,15 @@ def test_disable_block_suppresses_a_range():
 # --- scoring -----------------------------------------------------------------
 
 
-def _score(findings, words, profile=Profile.NORMAL, **kwargs):
+def _score(findings, words, profile=Profile.NORMAL, categories_meta=None, **kwargs):
+    """Score with the REAL category weights by default.
+
+    `categories_meta` decides which categories appear in the report at all, so a
+    one-entry stub hides the dilution the overall score has to resist.
+    """
     config = _config(profile=profile, **kwargs)
+    if categories_meta is None:
+        categories_meta = load_ruleset().weights
     return score_document(
         path="a.md",
         findings=findings,
@@ -338,7 +345,7 @@ def _score(findings, words, profile=Profile.NORMAL, **kwargs):
         sentences=1,
         paragraphs=1,
         config=resolve_for(config, Path("/repo/a.md")),
-        categories_meta={"orwell": 1.5},
+        categories_meta=categories_meta,
     )
 
 
@@ -379,10 +386,87 @@ def test_min_score_gate():
     assert any("score" in reason for reason in result.failure_reasons)
 
 
-def test_zero_weight_category_does_not_move_the_score():
+def test_zero_weight_category_leaves_the_category_average_alone():
+    """A zero-weight category is informational: it contributes to neither the
+    numerator nor the denominator of the per-category mean.
+
+    It cannot RAISE the overall score, because the overall score is clamped to the
+    document's own findings -- otherwise zero-weighting every category would score
+    a slop document 100/100. So the assertion is on the mean, not the total.
+    """
     findings = _run("It is the tip of the iceberg.")
     weighted = _score(findings, 200)
     unweighted = _score(
         findings, 200, categories={"orwell": CategorySettings(weight=0)}
     )
-    assert unweighted.score > weighted.score
+    assert unweighted.score <= weighted.score, "zero-weighting must not flatter"
+
+    # The category itself is still reported, so a reader sees what was excluded.
+    entry = next(c for c in unweighted.categories if c.category == "orwell")
+    assert entry.findings > 0
+
+
+def test_zero_weighting_everything_cannot_score_a_slop_document_100():
+    """The reason the overall score is clamped to the document's own findings."""
+    findings = _run(
+        "In today's rapidly evolving landscape our robust and comprehensive "
+        "platform will supercharge your workflow."
+    )
+    assert findings
+    zeroed = {
+        name: CategorySettings(weight=0) for name in load_ruleset().categories
+    }
+    result = _score(findings, 200, categories=zeroed)
+    assert result.score < 100.0
+
+
+# --- scoring calibration -----------------------------------------------------
+
+
+def test_short_document_with_errors_does_not_score_100():
+    """Regression. Density is meaningless below the floor, so every category
+    scored 100 and a 10-word document with five errors reported 100/100. Reporting
+    a perfect score for that is worse than reporting nothing."""
+    findings = _run(
+        "A robust and comprehensive tool that will supercharge your workflow."
+    )
+    assert sum(1 for f in findings if f.severity is Severity.ERROR) >= 3
+    result = _score(findings, 10)
+    assert result.score < 50, f"scored {result.score} on a short error-laden document"
+    assert not result.passed
+
+
+def test_category_average_cannot_dilute_the_overall_score():
+    """Regression. A weighted mean over 23 categories that found nothing drowned
+    the two that found errors, so five errors read as 92.7/100."""
+    findings = _run(
+        "A robust and comprehensive tool that will supercharge your workflow."
+    )
+    result = _score(findings, 10)
+    clean = [c for c in result.categories if c.findings == 0]
+    dirty = [c for c in result.categories if c.findings]
+    assert clean, "the fixture needs categories with no findings"
+    assert dirty, "the fixture needs categories with findings"
+
+    # The invariant: 20-odd categories scoring 100 must not pull the overall score
+    # ABOVE the worst category that actually found something. A plain weighted
+    # mean did exactly that.
+    assert result.score <= min(c.score for c in dirty), (
+        f"overall {result.score} exceeds the worst dirty category "
+        f"{min(c.score for c in dirty)}"
+    )
+    naive_mean = sum(c.score for c in result.categories) / len(result.categories)
+    assert result.score < naive_mean, (
+        f"overall {result.score} is not better than the diluting mean {naive_mean}"
+    )
+
+
+def test_score_decreases_monotonically_with_findings():
+    light = _run("The result is not unexpected.")
+    heavy = _run(
+        "In today's rapidly evolving landscape our robust and comprehensive "
+        "platform will supercharge your workflow. It is a paradigm shift. "
+        "The runner performs an analysis of the report prior to the merge."
+    )
+    assert len(heavy) > len(light)
+    assert _score(heavy, 200).score < _score(light, 200).score

@@ -41,7 +41,15 @@
     }
   ],
   "packages": {
-    ".": {
+    "packages/slopvac-lint": {
+      "release-type": "python",
+      "component": "slopvac-lint",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        "src/slopvac_lint/__init__.py"
+      ]
+    },
+    "packages/slopvac": {
       "release-type": "simple",
       "component": "slopvac",
       "changelog-path": "CHANGELOG.md",
@@ -50,7 +58,14 @@
           "type": "yaml",
           "path": "apm.yml",
           "jsonpath": "$.version"
-        },
+        }
+      ]
+    },
+    ".": {
+      "release-type": "simple",
+      "component": "slopvac-repo",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
         {
           "type": "json",
           "path": ".claude-plugin/plugin.json",

@@ -68,6 +68,21 @@ def _score_from_density(
     return max(0.0, 70.0 * (1.0 - over / span))
 
 
+def _score_from_counts(weighted_count: float) -> float:
+    """Score a document too short to measure by density.
+
+    Density is meaningless below MIN_WORDS_FOR_DENSITY, but a short document with
+    five errors is not a clean document, and reporting 100/100 for it is worse
+    than reporting nothing. So the score comes off the weighted COUNT instead:
+    one suggestion costs 5, one error costs 20, and four errors reach zero.
+
+    Deliberately harsher per finding than the density path. A 40-word error
+    message has room for no defects at all, which is the same reasoning that puts
+    the 20-word cap on procedural text.
+    """
+    return max(0.0, 100.0 - weighted_count * 5.0)
+
+
 def score_document(
     path: str,
     findings: list[Finding],
@@ -121,7 +136,13 @@ def score_document(
         if settings is not None and settings.max_per_100_words is not None:
             budget = settings.max_per_100_words
 
-        score = _score_from_density(weighted, budget)
+        # Below the density floor, score on the weighted COUNT: a 10-word
+        # document with five errors is not clean, and density cannot say so.
+        if words < MIN_WORDS_FOR_DENSITY or not words:
+            weighted_count = sum(SEVERITY_WEIGHT[f.severity] for f in items)
+            score = _score_from_counts(weighted_count)
+        else:
+            score = _score_from_density(weighted, budget)
         category_scores.append(
             CategoryScore(
                 category=name,
@@ -143,6 +164,25 @@ def score_document(
             weight_sum += weight
 
     overall = weighted_total / weight_sum if weight_sum else 100.0
+
+    # A weighted mean over every category DILUTES: 23 categories that found
+    # nothing score 100 each and drown the two that found errors, so a document
+    # with five errors read as 92.7. The overall score is therefore taken from the
+    # whole document's own findings, using the same two paths as a category, and
+    # the per-category means only pull it down further.
+    #
+    # Both directions matter. Averaging alone is too kind; using the document
+    # figure alone loses the signal that one category is far over its budget while
+    # the rest are clean. So take the lower.
+    document_weighted = sum(SEVERITY_WEIGHT[f.severity] for f in findings)
+    if words >= MIN_WORDS_FOR_DENSITY and words:
+        document_score = _score_from_density(
+            document_weighted / words * 100,
+            config.thresholds.max_total_per_100_words,
+        )
+    else:
+        document_score = _score_from_counts(document_weighted)
+    overall = min(overall, document_score)
 
     errors = sum(1 for f in findings if f.severity is Severity.ERROR)
     warnings = sum(1 for f in findings if f.severity is Severity.WARNING)

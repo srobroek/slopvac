@@ -12,7 +12,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "vale-styles/**"
+      - "packages/slopvac-lint/vale-styles/**"
       - ".github/workflows/publish-vale-styles.yml"
   workflow_dispatch:
 
@@ -36,7 +36,7 @@ jobs:
           persist-credentials: false
 
       - name: Build packages
-        run: ./vale-styles/build.sh
+        run: ./packages/slopvac-lint/vale-styles/build.sh
 
       - name: Publish to the rolling vale-styles tag
         env:
@@ -44,9 +44,9 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view vale-styles >/dev/null 2>&1; then
-            gh release upload vale-styles vale-styles/dist/*.zip --clobber
+            gh release upload vale-styles packages/slopvac-lint/vale-styles/dist/*.zip --clobber
           else
-            gh release create vale-styles vale-styles/dist/*.zip \
+            gh release create vale-styles packages/slopvac-lint/vale-styles/dist/*.zip \
               --title "Vale styles" \
               --notes "Rolling release. Assets are replaced on every publish; see vale-styles/README.md." \
               --latest=false
