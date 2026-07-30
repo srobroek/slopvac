@@ -223,7 +223,6 @@ class CompileResult:
 METRIC_TOKENS = {
     "sentence_words": STE_WORD_TOKEN,
     "paragraph_words": STE_WORD_TOKEN,
-    "lead_in_words": STE_WORD_TOKEN,
     "paragraph_sentences": SENTENCE_TERMINATOR,
     "clause_boundaries": CLAUSE_JOIN_TOKEN,
 }
@@ -246,9 +245,31 @@ MISSING_METRIC_REASON = (
 # being an instruction it is not. Across the 8-document corpus this rule alone was
 # 80 findings on 8 of 8 documents, the largest single contributor to the
 # all-profiles 0.0 score.
-# Metrics whose native evaluation branches on `Sentence.text_type`. Only these can
-# disagree with a compiled Vale rule, so only these are held back from Vale.
+# Metrics whose native evaluation branches on `Sentence.text_type`. Held back from
+# Vale for the reason in TEXT_TYPE_REASON.
 TEXT_TYPE_AWARE_METRICS = frozenset({"sentence_words"})
+
+# Metrics whose count Vale reports differently from `count_words`, held back for a
+# reason unrelated to text type: `STE_WORD_TOKEN` reproduces STE word counting over
+# PROSE, but an inline code span is one word to `count_words` and zero to Vale, whose
+# markdown scoping drops the span before the token counter sees it. Measured on this
+# project's own README, paragraph line 37: Vale 8 words against `count_words` 10.
+#
+# Scoped to `paragraph_words` and deliberately NOT to `sentence_words`. The
+# sentence-scoped rules were moved to Vale on a measured finding that one ordered
+# alternation reproduces the count, and the tests carry that finding; a code span
+# shifts a paragraph across the 8-word bound far more readily than it shifts a
+# sentence across 20 or 25, and widening this set on reasoning alone would reverse a
+# tested decision without evidence for it. If a sentence-scoped disagreement is ever
+# measured, that is the point to widen it.
+WORD_COUNTING_METRICS = frozenset({"paragraph_words"})
+
+WORD_COUNT_REASON = (
+    "metric counts words as ASD-STE100 8.4-8.7 define them and an inline code span is "
+    "one word, which Vale's occurrence counter reports as zero because markdown "
+    "scoping drops the span before counting, so the compiled rule reports a different "
+    "number from the native one for the same paragraph"
+)
 
 TEXT_TYPE_REASON = (
     "metric is scoped to text_type={text_type}, which Vale cannot determine: its "
@@ -379,9 +400,29 @@ _RATIO_METRICS: dict[str, tuple[str, int]] = {
         r"(?i)\b\w{4,}(?:tion|sion|ment|ness|ity|ance|ence|ism|ology)\b",
         100,
     ),
-    "dash_per_1000_words": ("—", 1000),
-    "bold_spans_per_1000_words": (r"\*\*[^*]+\*\*", 1000),
 }
+
+# Ratio metrics held back from the Tengo path because their message must state the
+# measured density and no Vale extension point can supply it.
+#
+# The ratio script decides a comparison and returns a match, so `_message` strips
+# `{match}` to nothing rather than emit a Go format error. That is correct for a
+# rule whose wording survives without the number. It is wrong for these two, whose
+# entire message IS the number: `bold spray: bold spans per 1000 words` tells a
+# reader nothing they can act on, which the project's own actionability rule
+# forbids. Both now have a native branch that carries the count.
+#
+# Keep this in step with NATIVE_METRICS. A metric here with no native branch is
+# reported as UNCHECKED, which is loud, but it is still a rule that stopped firing.
+DENSITY_MESSAGE_METRICS = frozenset(
+    {"dash_per_1000_words", "bold_spans_per_1000_words"}
+)
+
+DENSITY_MESSAGE_REASON = (
+    "metric '{metric}' is a density whose message states the measured figure, and "
+    "Vale's script extension point returns a match rather than a number, so the "
+    "rule stays native to keep the count in the message"
+)
 
 
 def _script_for(rule: Rule) -> str | None:
@@ -568,6 +609,12 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
         # starts honouring `text_type` natively, it belongs here too.
         if rule.metric in TEXT_TYPE_AWARE_METRICS and rule.text_type is not TextType.ANY:
             raise ValueError(TEXT_TYPE_REASON.format(text_type=rule.text_type.value))
+        if rule.metric in DENSITY_MESSAGE_METRICS:
+            raise ValueError(DENSITY_MESSAGE_REASON.format(metric=rule.metric))
+        # Unconditional, unlike the check above: the word definition applies to every
+        # word-counting metric regardless of how the rule is scoped.
+        if rule.metric in WORD_COUNTING_METRICS:
+            raise ValueError(WORD_COUNT_REASON)
         token = METRIC_TOKENS.get(rule.metric or "")
         if token is not None:
             bound, value = _occurrence_bound(rule)

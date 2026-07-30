@@ -193,6 +193,13 @@ def test_unknown_locale_reports_rather_than_raises():
         ("en-GB", "Set the colour to grey and read the catalogue."),
         # CSS and web platform identifiers are American by specification.
         ("en-GB", "Set background-color and currentColor on the dialog."),
+        # `whilst`, `amongst`, and `amidst` were in the table and are archaic
+        # register rather than locale. The en-GB direction demanded `whilst` for
+        # every `while`, which put 3 findings on this project's own README and
+        # lowered its score for being written plainly. British technical writing
+        # uses the short forms, so both directions must leave these alone.
+        ("en-GB", "While the gate runs, it counts among the checks amid the rest."),
+        ("en-US", "While the gate runs, it counts among the checks amid the rest."),
     ],
 )
 def test_locale_leaves_correct_prose_alone(tag, text):

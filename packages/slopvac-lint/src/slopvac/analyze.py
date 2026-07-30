@@ -53,6 +53,16 @@ LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(.*)$")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 MD_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 MD_IMAGE = re.compile(r"!\[([^\]]*)\]\([^)]*\)")
+INLINE_CODE = re.compile(r"`[^`\n]+`")
+
+# `**x**` and `__x__`, non-greedy and single-line. A bold span does not straddle a
+# blank line, and the greedy form fused every span on a line into one match, which
+# undercounted exactly the documents the density rule is aimed at.
+BOLD_SPAN = re.compile(r"(?<!\*)\*\*(?!\s)[^*\n]+?(?<!\s)\*\*(?!\*)|__(?!\s)[^_\n]+?(?<!\s)__")
+
+# The em dash and the double hyphen that stands in for it. The en dash is excluded:
+# in a numeric range it is correct typography, and the rule is about the aside.
+DASH_AS_ASIDE = re.compile(r"—|(?<![-\w])--(?![-\w>])")
 
 # --- Word counting per STE 8.4-8.7 -------------------------------------------
 
@@ -107,7 +117,12 @@ NON_TERMINAL = {
     "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "inc", "ltd", "co",
     "vol", "ch", "sec", "min", "max", "avg", "std", "resp",
 }
-SENTENCE_END = re.compile(r"(?<=[.!?])[\"'”’)\]]*\s+(?=[\"'“(\[]*[A-Z0-9])")
+# The `\x00` in the lookahead is the code-span sentinel. A sentence that OPENS with
+# an inline code span -- "`reason` is required." -- has no capital at its start, so
+# without it the split never fires and the span fuses onto the sentence before. That
+# is not cosmetic: it made the list-lead-in metric measure a colon against text from
+# a preceding sentence, reporting a 26-word lead-in for a 5-word one.
+SENTENCE_END = re.compile(r"(?<=[.!?])[\"'”’)\]]*\s+(?=[\"'“(\[]*[A-Z0-9\x00])")
 
 IMPERATIVE_MARKERS = re.compile(
     r"^(?:please\s+)?(?:do|run|set|add|remove|delete|install|configure|open|close|"
@@ -186,6 +201,25 @@ class Document:
 
     def prose_text(self) -> str:
         return "\n".join(self.prose_lines)
+
+    def markup_text(self) -> str:
+        """Prose lines with their markup intact, for rules that measure the markup.
+
+        `prose_text` cannot serve: it strips the emphasis markers and dashes that a
+        formatting rule counts. This keeps the raw line but drops code blocks, front
+        matter, and inline code spans, so `**kwargs` in a snippet is not a bold span
+        and a `--flag` in a command is not a dash.
+        """
+        skip: set[int] = set()
+        for block in self.blocks:
+            if block.kind in {BlockKind.CODE, BlockKind.FRONT_MATTER}:
+                skip.update(range(block.lines[0], block.lines[1] + 1))
+        kept = [
+            line
+            for number, line in enumerate(self.raw_lines, start=1)
+            if number not in skip
+        ]
+        return INLINE_CODE.sub(" ", "\n".join(kept))
 
 
 def count_words(text: str) -> int:
@@ -287,8 +321,19 @@ def _inline_prose(token) -> str:
 
     Walks markdown-it's inline token tree rather than running regexes over the
     raw line, so a URL inside backticks or a bracket inside a code span is
-    already handled by the parser that understands them. An inline code span
-    becomes a space: it is one token to the word counter but not a word.
+    already handled by the parser that understands them.
+
+    An inline code span becomes `\\x00`, the count-as-one sentinel `count_words`
+    already uses for a quoted or parenthesized span. It is ONE word, not zero: no
+    rule should match inside a code span, but it occupies a slot in the sentence, and
+    dropping it to whitespace made it vanish from every word count. That undercounted
+    every length cap, and it surfaced first as a false positive rather than as a
+    missed finding -- a wrapped sentence whose visible words are mostly code counted
+    as a bare fragment, so the rejoin-a-one-fragment-paragraph rule fired on a whole
+    sentence.
+
+    The sentinel is non-word to `re`, so it reads as a boundary to the lexical rules
+    that match over this text, which is what a code span should look like to them.
     """
     parts: list[str] = []
     skip_link_text = False
@@ -297,7 +342,7 @@ def _inline_prose(token) -> str:
             if not skip_link_text:
                 parts.append(child.content)
         elif child.type == "code_inline":
-            parts.append(" ")
+            parts.append(" \x00 ")
         elif child.type in ("softbreak", "hardbreak"):
             parts.append(" ")
         elif child.type == "image":
@@ -513,3 +558,184 @@ HEDGE = re.compile(
     r"tends? to|suggests?)\b",
     re.I,
 )
+
+# A bullet whose visible content opens with a bold run and a colon:
+# `- **Thing:** explanation`. The marker may be `-`, `*`, `+`, or `1.`, and the
+# emphasis may be `**` or `__`.
+#
+# The colon may fall INSIDE or OUTSIDE the emphasis. Both forms render the same and
+# both are the tell; a first version required it outside, which matched none of the
+# four bullets in the probe file because `**Thing:**` is the form people write.
+#
+# Matched against the RAW line rather than the prose projection, because the
+# projection strips the emphasis markers that are the whole signal here.
+# The colon is REQUIRED. Making it optional matched `- **just bold** no colon`,
+# which is emphasis rather than a pseudo-heading, and the rule is about the
+# heading-shaped bullet specifically.
+BOLD_COLON_BULLET = re.compile(
+    r"^\s*(?:[-*+]|\d+[.)])\s+(?:\*\*|__)[^*_]+?"
+    r"(?::(?:\*\*|__)|(?:\*\*|__)\s*:)"
+)
+
+# A coordinated series: the commas that separate items, plus the conjunction
+# before the last one. Counting SEPARATORS rather than parsing the noun phrases,
+# because the rule's threshold is a count of items and a separator count converts
+# to it by adding one.
+COORDINATING_CONJUNCTION = re.compile(r",?\s+\b(?:and|or)\b\s+", re.I)
+
+# Words that never carry a noun stack even though they sit between nouns. A
+# preposition or an article ends the stack -- "the number of open pull requests"
+# is not a five-word stack, it is two short ones.
+STACK_BREAKER = frozenset(
+    {
+        "a", "an", "the", "of", "in", "on", "at", "to", "for", "from", "by",
+        "with", "without", "into", "onto", "over", "under", "between", "through",
+        "and", "or", "but", "nor", "as", "than", "that", "which", "who", "whom",
+        "is", "are", "was", "were", "be", "been", "being", "has", "have", "had",
+        "not", "no", "if", "when", "while", "after", "before", "during",
+        # Subordinators. A clause boundary is exactly where a noun stack ends.
+        # `because` was missing and produced `Specificity ranking loses because`
+        # as a 4-word stack on this project's own README.
+        "because", "since", "although", "though", "unless", "until", "whether",
+        "whereas", "once", "where", "why", "how",
+        # Determiners and pronouns. A possessive opens a noun phrase rather than
+        # continuing a stack, so `keeps its shipped severity` is not a 4-word stack.
+        "its", "their", "his", "her", "our", "your", "my", "this", "that",
+        "these", "those", "it", "they", "them", "we", "us", "you", "he", "she",
+        "each", "every", "any", "some", "all", "both", "either", "neither",
+        "what", "whose", "there", "here", "then", "so", "such", "same", "other",
+        "one", "two", "three", "four", "five",
+        # Common verbs a suffix test cannot separate from nouns. `-er` and `-ing`
+        # are in NOUN_SUFFIX, so without these `keeps ... reach` style runs counted.
+        "keeps", "keep", "sets", "set", "gets", "get", "makes", "make", "does",
+        "do", "reads", "read", "reach", "reaches", "gives", "give", "takes",
+        "take", "uses", "use", "runs", "run", "names", "name", "says", "say",
+        "counts", "count", "holds", "hold", "needs", "need", "puts", "put",
+        "means", "mean", "resolve", "resolves", "clear", "clears", "switches",
+        "switch", "subtracts", "subtract", "tracks", "track", "carry", "carries",
+        "report", "reports", "lint", "linting", "asked", "ask", "folding",
+        "overlapping",
+        # `shows` and `loses` end in `-s` like a plural noun and carry no noun
+        # suffix, so nothing else separates them: `blanket suppression shows up`
+        # counted 4 and `Specificity ranking loses` counted 3.
+        "shows", "show", "loses", "lose", "adds", "add", "drops", "drop",
+        "applies", "apply", "wins", "win", "owns", "own", "picks", "pick",
+        "stays", "stay", "sits", "sit", "sets",
+        # Modals. A modal always introduces a verb, so it cannot sit inside a noun
+        # stack: `the gates the whole document must clear` is not a 4-word stack.
+        "must", "can", "will", "would", "should", "shall", "may", "might",
+        "could", "cannot",
+    }
+)
+
+# A capitalised or lowercase word that can sit in a noun stack. Excludes anything
+# holding a digit, a hyphen, or an underscore: those are identifiers, and a
+# `--flag` or a `snake_case` name is one unit rather than a stack of English
+# nouns.
+STACK_WORD = re.compile(r"^[A-Za-z]+$")
+
+# Adjective and noun suffixes, for the ratio in `adjectives_per_noun`.
+#
+# THIS IS SUFFIX HEURISTICS, NOT A PART-OF-SPEECH TAGGER. The rule's own
+# provenance says it needs one and that the engine does not have one. A tagger is
+# a dependency this package does not carry, so the measurement is deliberately
+# conservative: it counts only words whose suffix is a reliable signal, and it
+# reports a ratio over those alone rather than over every word. An untagged word
+# lands in neither count.
+ADJECTIVE_SUFFIX = re.compile(
+    r"\b\w{4,}(?:able|ible|ical|ful|less|ous|ive|istic|ary|" r"ish|like)\b", re.I
+)
+NOUN_SUFFIX = re.compile(
+    r"\b\w{4,}(?:tion|sion|ment|ness|ity|ance|ence|ism|ology|er|or|ist|"
+    r"ure|age|ing)\b",
+    re.I,
+)
+
+
+def stdev(values: list[float]) -> float:
+    """Population standard deviation. 0.0 for fewer than two values.
+
+    Population rather than sample, because the paragraphs of a document are the
+    whole population being described rather than a draw from a larger one.
+    """
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    return (sum((v - mean) ** 2 for v in values) / len(values)) ** 0.5
+
+
+def longest_noun_stack(text: str) -> int:
+    """Longest run of consecutive stackable words in a sentence.
+
+    A run ends at a `STACK_BREAKER`, at an `-ly` adverb, at punctuation, or at any
+    token that is not plain letters.
+
+    A run counts ONLY IF at least one of its words carries a noun suffix. That
+    condition is what makes the measure usable without a part-of-speech tagger.
+    Adjacency alone counts far too much: measured on this project's own README,
+    the bare adjacency version produced 73 findings, including 5 for
+    `Score prose against three rulesets` and 7 for
+    `This is a very good simple test case here today` -- runs of verbs, adjectives,
+    and adverbs that no reader would call a noun stack. Requiring a noun-suffix
+    anchor took both to 0 while still reporting 5 for
+    `container orchestration platform migration strategy`.
+
+    Under-reports on purpose. A stack of short Germanic nouns carries no suffix
+    signal, so `disk cache size limit` is missed. A missed finding on a rule that
+    ships advisory outside strict is the cheaper error here; a wall of false
+    positives teaches people to disable the category.
+    """
+    longest = 0
+    run: list[str] = []
+
+    def close(longest: int) -> int:
+        if len(run) > longest and any(NOUN_SUFFIX.match(w) for w in run):
+            return len(run)
+        return longest
+
+    # Walks tokens and inspects the GAP between them, rather than splitting. A
+    # split discards the separator, which made punctuation invisible: the comma in
+    # a table cell reading `reference, specs, API docs, runbooks` disappeared and
+    # the four separate items counted as one 5-word stack. A stack cannot span a
+    # comma, a colon, or a bracket.
+    previous_end = 0
+    for match in re.finditer(r"[\w'\x00-]+", text):
+        gap = text[previous_end : match.start()]
+        previous_end = match.end()
+        token = match.group().strip("'")
+        broken = bool(gap) and not gap.isspace()
+        if (
+            broken
+            or not token
+            or not STACK_WORD.match(token)
+            or token.lower() in STACK_BREAKER
+            or token.lower().endswith("ly")
+        ):
+            longest = close(longest)
+            run = []
+            if broken and token and STACK_WORD.match(token) and (
+                token.lower() not in STACK_BREAKER
+                and not token.lower().endswith("ly")
+            ):
+                # The separator ended the previous run, but this token still opens
+                # the next one. Dropping it here lost the first word of every stack
+                # that followed any punctuation.
+                run.append(token)
+            continue
+        run.append(token)
+    return close(longest)
+
+
+def coordinated_items(text: str) -> int:
+    """Items in the longest coordinated series in a sentence.
+
+    Counts separators and adds one. A series needs a conjunction: two clauses
+    joined by a comma alone are not a list, and counting bare commas made every
+    parenthetical read as a series.
+    """
+    if not COORDINATING_CONJUNCTION.search(text):
+        return 0
+    # Only the commas BEFORE the conjunction belong to the series. A trailing
+    # subordinate clause after it would otherwise inflate the count.
+    head = COORDINATING_CONJUNCTION.split(text)[0]
+    return head.count(",") + 2

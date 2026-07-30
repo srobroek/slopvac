@@ -40,6 +40,7 @@ from .engine import Engine, drop_quoted_illustrations
 from .model import DocumentScore, RuleKind
 from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
+from .reference import render_reference
 from .report import LintReport, build_sarif, summarize
 from .score import score_document
 from .compile_vale import CompileResult, ValeUnavailable, cache_root, compile_ruleset
@@ -967,3 +968,69 @@ def compile_styles(
 
 if __name__ == "__main__":
     main()
+
+
+@main.command("reference")
+@click.option(
+    "--write",
+    "destination",
+    type=click.Path(dir_okay=False, path_type=Path),
+    help="Write the reference to this path instead of stdout.",
+)
+@click.option(
+    "--check",
+    is_flag=True,
+    help="Exit 2 if the file at --write differs from what would be generated.",
+)
+@click.option("--rules-dir", multiple=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]) -> None:
+    """Generate the rules reference, split into checked and judgement rules.
+
+    `--check` is what makes the committed copy trustworthy. A generated document
+    with no check is a stale file with extra steps, and the failure it produces is
+    the expensive kind: somebody plans against a rule that was renamed, retiered,
+    or removed. So CI regenerates and compares rather than trusting the commit.
+    """
+    console = _console(False)
+    try:
+        ruleset = load_ruleset(list(rules_dir) or None)
+    except RuleLoadError as exc:
+        console.print(f"[red]rule error[/]: {exc}")
+        raise SystemExit(EXIT_ERROR)
+
+    rendered = render_reference(ruleset, version=__version__)
+
+    if check:
+        if destination is None:
+            console.print("[red]--check needs --write[/] to name the file to compare")
+            raise SystemExit(EXIT_ERROR)
+        current = destination.read_text() if destination.exists() else ""
+        if current == rendered:
+            console.print(f"[green]{destination} is current[/]")
+            raise SystemExit(EXIT_OK)
+        # A diff rather than "files differ": the whole point is that whoever hits
+        # this in CI can see whether they renamed a rule or dropped one.
+        import difflib
+
+        diff = difflib.unified_diff(
+            current.splitlines(keepends=True),
+            rendered.splitlines(keepends=True),
+            fromfile=f"{destination} (committed)",
+            tofile=f"{destination} (generated)",
+            n=1,
+        )
+        sys.stdout.writelines(diff)
+        console.print(
+            f"\n[red]{destination} is out of date[/]. Regenerate with "
+            f"`slopvac reference --write {destination}` and commit the result."
+        )
+        raise SystemExit(EXIT_ERROR)
+
+    if destination is None:
+        click.echo(rendered, nl=False)
+        raise SystemExit(EXIT_OK)
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(rendered)
+    console.print(f"wrote [bold]{destination}[/] ({len(ruleset.rules)} rules)")
+    raise SystemExit(EXIT_OK)

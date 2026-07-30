@@ -43,10 +43,19 @@ from typing import Any
 
 from .analyze import (
     ABSTRACTION_SUFFIX,
+    ADJECTIVE_SUFFIX,
+    BOLD_COLON_BULLET,
+    BOLD_SPAN,
     CONCRETE_REFERENT,
+    DASH_AS_ASIDE,
     HEDGE,
+    NOUN_SUFFIX,
     BlockKind,
     Document,
+    coordinated_items,
+    count_words,
+    longest_noun_stack,
+    stdev,
     syllables,
 )
 from .config import ResolvedConfig, Severity
@@ -245,12 +254,21 @@ NATIVE_METRICS = frozenset(
     {
         "sentence_words",
         "clause_boundaries",
+        "paragraph_words",
+        "lead_in_words",
         "paragraph_sentences",
         "syllables_per_word",
         "passive_ratio",
         "hedge_per_100_words",
         "abstraction_density",
         "concrete_referents_per_paragraph",
+        "paragraph_words_stdev",
+        "adjectives_per_noun",
+        "consecutive_bold_colon_bullets",
+        "multiword_noun_words",
+        "coordinated_items",
+        "bold_spans_per_1000_words",
+        "dash_per_1000_words",
     }
 )
 
@@ -404,17 +422,54 @@ class Engine:
             return False
         return True
 
+    def _authored(self, setting: str) -> bool:
+        """Did a human write this setting, or did the profile supply it?
+
+        Reads `ResolvedConfig.provenance`, which names the layer whose value
+        survived for each setting some layer touched. A profile default is recorded
+        as `profile default (...)`; anything a config file or an override set is
+        recorded as `config` or `overrides[i] (...)`. Absent means untouched.
+
+        Conservative on purpose: an unrecognised label counts as authored, so a new
+        layer added to `resolve_for` errs toward honouring what somebody wrote rather
+        than silently discarding it.
+        """
+        where = self.config.provenance.get(setting)
+        return where is not None and not where.startswith("profile default")
+
     def severity_for(self, rule: Rule) -> Severity:
         """Resolve the level this rule reports at.
 
-        Precedence, narrowest wins: rule override > category severity > tier
-        disposition > the rule's shipped severity. A category severity SETS the
-        level in both directions, so `severity = "error"` promotes and
+        Precedence, narrowest wins: rule override > AUTHORED category severity >
+        tier disposition > the rule's shipped severity. An authored severity SETS
+        the level in both directions, so `severity = "error"` promotes and
         `severity = "warning"` demotes.
+
+        AUTHORED is the load-bearing word, and getting it wrong made the advisory
+        tier almost meaningless. `ResolvedConfig.categories` is SEEDED from the
+        profile's own defaults, so a category severity is not evidence that anybody
+        asked for it -- and letting it override the advisory demotion below meant
+        the profile overrode itself. `ai-tells-structure` at `normal` marks
+        `emphasis-paragraph-metric` advisory and sets the category to `error` in the
+        same breath; the category won, and a rule the profile does not stand behind
+        failed the gate as an ERROR. Measured across the three profiles: of 64
+        advisory-and-active rules only 11 were still suggestions, and 12 had been
+        promoted to ERROR by their own profile.
+
+        `provenance` is what tells the two apart -- it records the layer that set
+        each surviving value, and a profile default is never credited to `config` or
+        to an override. So the promotion is honoured when a human wrote it and
+        ignored when it is just the profile's own coarser dial.
         """
         severity = rule.severity
 
-        if rule.tier_for(self.config.profile.value) is Tier.ADVISORY:
+        # Read from the TIER, not from whether the demotion below changed anything. A
+        # rule that already ships at `suggestion` never enters that branch, and
+        # deriving the flag there let the profile promote exactly those rules -- the
+        # quietest ones -- straight to ERROR.
+        advisory = rule.tier_for(self.config.profile.value) is Tier.ADVISORY
+
+        if advisory:
             # SUGGESTION, not WARNING. An advisory rule is one the profile does not
             # stand behind, so it must not be able to fail the run on its own -- and
             # capping at WARNING let it do exactly that through the density budget,
@@ -429,12 +484,16 @@ class Engine:
         # Set, not cap. Capping downward only made `[categories.x] severity =
         # "error"` silently do nothing: the project wrote the promotion it wanted and
         # the gate ignored it, which is worse than either honouring or rejecting it.
-        # This deliberately overrides the advisory cap above -- naming a category and
-        # asking for `error` says the profile's judgement about that category does not
-        # apply here, and the profile is the coarser dial of the two.
+        #
+        # It overrides the advisory demotion above only when a HUMAN wrote it. Naming
+        # a category and asking for `error` says the profile's judgement about that
+        # category does not apply here; a value the profile itself supplied says
+        # nothing of the kind, and honouring it let the profile contradict its own
+        # tiers.
         category = self.config.categories.get(rule.category)
         if category is not None and category.severity is not None:
-            severity = category.severity
+            if not advisory or self._authored(f"categories.{rule.category}"):
+                severity = category.severity
 
         override = self.config.rules.get(rule.qualified_id)
         if override is not None and override.severity is not None:
@@ -730,6 +789,79 @@ class Engine:
                     )
                 )
 
+        elif metric == "lead_in_words":
+            # STE 6.4 counts the text before a list's colon as a sentence of its own.
+            # The measurement is therefore "words BEFORE the colon", and it applies
+            # only to a sentence that HAS one.
+            #
+            # It had no native branch and reached Vale through `METRIC_TOKENS`, mapped
+            # to the plain word token. Vale's occurrence counter has no notion of a
+            # colon, so the compiled rule counted every word in the sentence and fired
+            # on any sentence over 20 words whether or not a colon appeared in it. On
+            # this project's own README that was 27 findings, all of them ERROR, on
+            # lines whose text contains no colon at all -- the rule reported the
+            # sentence cap it already has, under a message telling the author to fix a
+            # list lead-in they never wrote.
+            # Iterating SENTENCES, not lines, because the rule declares
+            # `scope: sentence` and a lead-in is a sentence. A first attempt walked
+            # `_lines_for_scope` and inherited markdown's hard wrapping: the colon
+            # sits on a later physical line than the words it follows, so a wrapped
+            # sentence was measured as the part before the wrap and a colon two lines
+            # down was credited to text it does not terminate.
+            for sentence in document.sentences:
+                head, separator, _ = sentence.text.partition(":")
+                if not separator:
+                    continue
+                line_number = sentence.line
+                count = count_words(head)
+                if not exceeds(count, threshold):
+                    continue
+                if self._suppressed(rule, line_number, suppressions, disabled):
+                    continue
+                results.append(
+                    self._metric_finding(
+                        rule, document, line_number, severity,
+                        format_message(
+                            rule.message,
+                            match=str(count),
+                            replacement=str(int(threshold)),
+                        ),
+                    )
+                )
+
+        elif metric == "paragraph_words":
+            # Native because Vale reported a different number here. An inline code
+            # span is ONE word to `count_words` and zero to Vale, whose markdown
+            # scoping drops the span before its token counter sees it -- measured on
+            # this project's own README, paragraph line 37: 8 by Vale against 10 by
+            # `count_words`. At an 8-word bound that gap decides the finding, and the
+            # compiled rule fired on four blocks that are not emphasis paragraphs.
+            for block in document.paragraphs:
+                count = count_words(block.text)
+                if not exceeds(count, threshold):
+                    continue
+                # A paragraph nobody wrote as prose is not an emphasis paragraph. A
+                # heading, a list item, and a table cell are already separate blocks,
+                # so what is left to exclude is the degenerate case: a block whose
+                # entire content is one opaque unit -- a lone code span, a bare
+                # version string. `Apache-2.0.` under a `## License` heading is the
+                # canonical one, and telling an author to rejoin it to the paragraph
+                # before it is advice they cannot take.
+                if count <= 1:
+                    continue
+                if self._suppressed(rule, block.lines[0], suppressions, disabled):
+                    continue
+                results.append(
+                    self._metric_finding(
+                        rule, document, block.lines[0], severity,
+                        format_message(
+                            rule.message,
+                            match=str(count),
+                            replacement=str(int(threshold)),
+                        ),
+                    )
+                )
+
         elif metric == "paragraph_sentences":
             for block in document.paragraphs:
                 # STE 6.6 counts sentences per paragraph. A bulleted block does
@@ -749,12 +881,53 @@ class Engine:
                     )
                 )
 
+        elif metric == "multiword_noun_words":
+            for sentence in document.sentences:
+                count = longest_noun_stack(sentence.text)
+                if not exceeds(count, threshold):
+                    continue
+                if self._suppressed(rule, sentence.line, suppressions, disabled):
+                    continue
+                results.append(
+                    self._metric_finding(
+                        rule, document, sentence.line, severity,
+                        format_message(
+                            rule.message,
+                            match=str(count),
+                            replacement=str(int(threshold)),
+                        ),
+                    )
+                )
+
+        elif metric == "coordinated_items":
+            for sentence in document.sentences:
+                count = coordinated_items(sentence.text)
+                if not exceeds(count, threshold):
+                    continue
+                if self._suppressed(rule, sentence.line, suppressions, disabled):
+                    continue
+                results.append(
+                    self._metric_finding(
+                        rule, document, sentence.line, severity,
+                        format_message(
+                            rule.message,
+                            match=str(count),
+                            replacement=str(int(threshold)),
+                        ),
+                    )
+                )
+
         elif metric in {
             "syllables_per_word",
             "passive_ratio",
             "hedge_per_100_words",
             "abstraction_density",
             "concrete_referents_per_paragraph",
+            "paragraph_words_stdev",
+            "adjectives_per_noun",
+            "consecutive_bold_colon_bullets",
+            "bold_spans_per_1000_words",
+            "dash_per_1000_words",
         }:
             value = self.document_metric(metric, document)
             if exceeds(value, threshold):
@@ -864,5 +1037,60 @@ class Engine:
                 return 0.0
             total = sum(len(CONCRETE_REFERENT.findall(p.text)) for p in paragraphs)
             return total / len(paragraphs)
+
+        if name == "paragraph_words_stdev":
+            # The burstiness counter-signal. A model writes paragraphs of uniform
+            # mass, so LOW dispersion is the finding -- note the rule compares with
+            # `lt`, unlike every other metric here.
+            #
+            # Guarded at fewer than three paragraphs. Two paragraphs have a
+            # dispersion but it means nothing, and a one-paragraph document would
+            # score 0.0 and fire on every short file. `stdev` already returns 0.0
+            # below two values, which is exactly the wrong answer for a rule whose
+            # comparison is `lt`, so the guard has to live here rather than there.
+            counts = [float(count_words(p.text)) for p in document.paragraphs]
+            if len(counts) < 3:
+                return float("inf")
+            return stdev(counts)
+
+        if name in {"bold_spans_per_1000_words", "dash_per_1000_words"}:
+            # Both measure the MARKUP, so both read `markup_text` rather than the
+            # prose projection, which strips the very characters they count. Both
+            # denominators are the prose word count, not a count of the markup text,
+            # so a document does not dilute its own density by adding code blocks.
+            if not words:
+                return 0.0
+            pattern = (
+                BOLD_SPAN if name == "bold_spans_per_1000_words" else DASH_AS_ASIDE
+            )
+            return len(pattern.findall(document.markup_text())) / len(words) * 1000
+
+        if name == "adjectives_per_noun":
+            # Suffix heuristics, not a tagger. See ADJECTIVE_SUFFIX for why, and
+            # read the number as a signal rather than a measurement: the rule ships
+            # advisory outside strict and its own threshold is marked INFERRED.
+            nouns = len(NOUN_SUFFIX.findall(text))
+            if not nouns:
+                return 0.0
+            return len(ADJECTIVE_SUFFIX.findall(text)) / nouns
+
+        if name == "consecutive_bold_colon_bullets":
+            # The LONGEST run, not the total. Four scattered bold-colon bullets
+            # across a long document are a formatting choice; four in a row are the
+            # tell, because that shape is what a model reaches for instead of prose
+            # or a table.
+            #
+            # Reads `raw_lines`, since the prose projection strips the emphasis
+            # markers this measures. A blank line does not break a run: markdown
+            # allows a loose list, and the run is about consecutive ITEMS.
+            longest = 0
+            run = 0
+            for line in document.raw_lines:
+                if BOLD_COLON_BULLET.match(line):
+                    run += 1
+                    longest = max(longest, run)
+                elif line.strip():
+                    run = 0
+            return float(longest)
 
         return 0.0

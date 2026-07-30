@@ -154,9 +154,12 @@ _VARIANTS: list[dict[str, str]] = [
     {"en-US": "toward", "en-GB": "towards"},
     {"en-US": "backward", "en-GB": "backwards"},
     {"en-US": "forward", "en-GB": "forwards"},
-    {"en-US": "while", "en-GB": "whilst"},
-    {"en-US": "among", "en-GB": "amongst"},
-    {"en-US": "amid", "en-GB": "amidst"},
+    # `whilst`, `amongst`, and `amidst` are DELETED, not moved. They are archaic
+    # register rather than locale: `while`, `among`, and `amid` are all standard in
+    # British English and are the forms British technical writing actually uses.
+    # Listed as variants, the en-GB direction demanded `whilst` for every `while`,
+    # which added findings to correct prose -- 3 on this project's own README -- and
+    # pushed a document's score DOWN for being written plainly.
 ]
 
 # Words that must never be rewritten regardless of locale, because the string is

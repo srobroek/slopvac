@@ -513,20 +513,62 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
 def test_unimplemented_metrics_are_reported_not_skipped(tmp_path):
     """A metric rule with no implementation must not read as compliant prose.
 
-    Nine metric names in the shipped ruleset have no native branch. Those rules
-    load and match nothing, so without this note a document with a 4,000-word
-    paragraph would report clean on `paragraph_words_stdev` and nobody could tell
-    the check had never run.
+    Such a rule loads, matches nothing, and reports clean, so the notice is the only
+    thing that distinguishes "checked and fine" from "never ran".
+
+    Driven from a fixture rule rather than the shipped ruleset. An earlier version
+    asserted against the nine shipped metrics that had no native branch, and every
+    one has since been implemented, so the test would have started passing
+    vacuously at the moment there was nothing left to report.
     """
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir()
+    (rules_dir / "fixture.yml").write_text(
+        "id: fixture\n"
+        "title: Fixture\n"
+        "description: One rule naming a metric no engine measures.\n"
+        "rules:\n"
+        "  - id: nonexistent-metric\n"
+        "    name: A metric no branch reads\n"
+        "    kind: metric\n"
+        "    severity: warning\n"
+        "    message: 'fixture: {match} against {replacement}'\n"
+        "    scope: document\n"
+        "    metric: no_such_measurement\n"
+        "    threshold: 1\n"
+        "    comparison: gt\n"
+        "    fix: Nothing. This rule exists to be reported as unimplemented.\n"
+        "    provenance:\n"
+        "      source: tests/test_cli.py\n"
+        "      note: Fixture rule, reported as an unimplemented metric.\n",
+        encoding="utf-8",
+    )
     path = tmp_path / "doc.md"
     path.write_text("A short document.\n", encoding="utf-8")
 
     runner = CliRunner()
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--no-vale", "--rules-dir", str(rules_dir), "--format", "json"],
+    )
     payload = json.loads(result.output)
     unchecked = " ".join(payload["documents"][0]["unchecked"])
 
     assert "no implementation" in unchecked
+    assert "nonexistent-metric" in unchecked
+
+
+def test_the_shipped_ruleset_has_no_unimplemented_metric():
+    """The companion to the test above, and the reason it needed a fixture. Every
+    metric the shipped rules name now has a native branch, so a real run reports no
+    unimplemented metric at all."""
+    runner = CliRunner()
+    result = runner.invoke(
+        main, ["compile", "--format", "json", "--no-validate"]
+    )
+    payload = json.loads(result.output)
+    reasons = " ".join(entry["reason"] for entry in payload["native"])
+    assert "no implementation" not in reasons
 
 
 def test_compile_prints_the_routing_table(tmp_path):

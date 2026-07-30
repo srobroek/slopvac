@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
-from slopvac.analyze import count_words, classify_text_type, parse
+from slopvac.analyze import (
+    BOLD_COLON_BULLET,
+    BOLD_SPAN,
+    DASH_AS_ASIDE,
+    classify_text_type,
+    coordinated_items,
+    count_words,
+    longest_noun_stack,
+    parse,
+)
 from slopvac.config import (
     CategorySettings,
     Config,
@@ -17,11 +28,12 @@ from slopvac.config import (
 )
 from slopvac.engine import (
     Engine,
+    NATIVE_METRICS,
     _is_all_caps,
     _inside_quotation,
     count_clause_boundaries,
 )
-from slopvac.model import TextType
+from slopvac.model import TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
 from pathlib import Path
@@ -685,3 +697,383 @@ def test_quoted_illustration_does_not_fail_a_style_guide():
     document = parse("guide.md", guide)
     fired = {f.rule_id for f in _engine().run(document)}
     assert "orwell.unsupported-evaluative" not in fired
+
+
+# --- an inline code span is one word, not zero --------------------------------
+
+
+def test_an_inline_code_span_counts_as_one_word():
+    """It is not prose, and it is not nothing.
+
+    Dropping it to whitespace made it vanish from every word count, which
+    undercounts each length cap. STE 8.5 already collapses a quoted or
+    parenthesized span to one word; a code span is the same opaque unit.
+    """
+    document = parse("t.md", "Run `slopvac lint --format json` now.")
+    # Run + the span + now. Three, where dropping the span to whitespace gave two.
+    assert document.sentences[0].word_count == 3
+    assert count_words("Run  now.") == 2
+
+
+def test_a_code_span_is_still_not_matched_as_prose():
+    """The count changed; what rules can see did not.
+
+    The sentinel must not reintroduce the span's text, and must not fuse the words
+    on either side of it into one token.
+    """
+    document = parse("t.md", "Use `--robust` here.")
+    prose = document.prose_text()
+    assert "--robust" not in prose
+    assert "robust" not in prose
+    assert "Use" in prose and "here" in prose
+
+
+def test_the_sentinel_never_reaches_a_finding_message():
+    """A NUL in reported output would be a control character in a user's terminal
+    and in the JSON payload. The count is internal; the message is not."""
+    document = parse("t.md", "The `x` service is very robust and seamless indeed.")
+    for finding in _engine().run(document):
+        assert "\x00" not in finding.message
+
+
+# --- paragraph_words is native, and the count is the documented one -----------
+
+
+def test_paragraph_words_is_evaluated_natively():
+    """Vale reported a different number for the same paragraph: an inline code span
+    is one word here and zero to Vale, whose markdown scoping drops the span before
+    its token counter sees it. At an 8-word bound that gap decides the finding."""
+    engine = _engine()
+    rule = next(
+        r
+        for r in engine.rules
+        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+    )
+    assert rule.metric == "paragraph_words"
+    assert "paragraph_words" not in engine.unimplemented_metrics()
+    assert rule.qualified_id not in engine.unimplemented_metrics()
+
+
+def test_a_paragraph_of_one_opaque_unit_is_not_an_emphasis_paragraph():
+    """`Apache-2.0.` under a `## License` heading is the canonical case. Telling an
+    author to rejoin it to the paragraph before it is advice they cannot take."""
+    document = parse("t.md", "## License\n\nApache-2.0.\n")
+    fired = {f.rule_id for f in _engine().run(document)}
+    assert "ai-tells-structure.emphasis-paragraph-metric" not in fired
+
+
+def test_a_genuine_emphasis_paragraph_still_fires():
+    """The exclusions above must not disarm the rule."""
+    lead = "A lead-in paragraph long enough to clear the bound sits above it here."
+    document = parse("t.md", f"{lead}\n\nThat is the point.\n")
+    findings = [
+        f
+        for f in _engine().run(document)
+        if f.rule_id == "ai-tells-structure.emphasis-paragraph-metric"
+    ]
+    assert len(findings) == 1
+
+
+# --- a profile must not override its own tiers --------------------------------
+
+
+def test_a_profile_default_does_not_promote_its_own_advisory_rule():
+    """`ResolvedConfig.categories` is SEEDED from the profile, so a category severity
+    is not evidence anybody asked for it. Letting it override the advisory demotion
+    meant the profile overrode itself: `_NORMAL` marks this rule advisory and sets
+    `ai-tells-structure` to `error` in the same breath, and the category won."""
+    engine = _engine()
+    rule = next(
+        r
+        for r in engine.rules
+        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+    )
+    assert rule.tier_for("normal") is Tier.ADVISORY
+    assert engine.severity_for(rule) is Severity.SUGGESTION
+
+
+def test_an_authored_promotion_still_beats_the_advisory_demotion():
+    """Naming a category and asking for `error` says the profile's judgement about
+    that category does not apply here. That must keep working."""
+    engine = _engine(
+        categories={"ai-tells-structure": CategorySettings(severity=Severity.ERROR)}
+    )
+    rule = next(
+        r
+        for r in engine.rules
+        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+    )
+    assert engine.severity_for(rule) is Severity.ERROR
+
+
+def test_an_authored_rule_override_beats_the_advisory_demotion():
+    """The narrowest dial wins, and a rule id is never seeded from the profile."""
+    engine = _engine(
+        rules={
+            "ai-tells-structure.emphasis-paragraph-metric": RuleSettings(
+                severity=Severity.ERROR
+            )
+        }
+    )
+    rule = next(
+        r
+        for r in engine.rules
+        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+    )
+    assert engine.severity_for(rule) is Severity.ERROR
+
+
+def test_no_profile_promotes_a_rule_it_marks_advisory():
+    """The property, over every rule and every profile, rather than the one case that
+    surfaced it. Before the fix 12 rules were promoted to ERROR by their own profile
+    at `normal` alone, and only 11 of 64 advisory-and-active rules across the three
+    profiles were still suggestions."""
+    ruleset = load_ruleset()
+    for profile in (Profile.STRICT, Profile.NORMAL, Profile.RELAXED):
+        engine = Engine(
+            ruleset.rules,
+            resolve_for(_config(profile=profile), Path("/repo/a.md")),
+        )
+        for rule in ruleset.rules:
+            if rule.tier_for(profile.value) is not Tier.ADVISORY:
+                continue
+            if not engine._active(rule):
+                continue
+            assert engine.severity_for(rule) is Severity.SUGGESTION, (
+                f"{rule.qualified_id} is advisory at {profile.value} but reports as "
+                f"{engine.severity_for(rule).value}"
+            )
+
+
+# ---------------------------------------------------------------------------
+# the five metrics that had no implementation in either engine
+#
+# Each shipped as a well-formed rule with a metric name nothing evaluated, so
+# `unimplemented_metrics()` reported them as UNCHECKED on every document and they
+# have never fired since the day they were written. These tests exist so that a
+# regression puts them back in that state loudly rather than silently.
+# ---------------------------------------------------------------------------
+
+
+def test_no_metric_rule_is_left_unimplemented():
+    """The property. Individual cases below cover behaviour; this one covers the
+    failure mode that let all five ship dead -- a rule whose metric no branch reads
+    passes every document, which is indistinguishable from clean prose."""
+    engine = _engine()
+    assert engine.unimplemented_metrics() == []
+
+
+def test_a_noun_stack_over_three_words_is_reported():
+    engine = _engine(profile=Profile.STRICT)
+    document = parse(
+        "a.md", "The container orchestration platform migration strategy needs review.\n"
+    )
+    ids = [f.rule_id for f in engine.run(document)]
+    assert "ste-nouns.multiword-noun-too-long" in ids
+
+
+def test_a_run_of_verbs_and_adjectives_is_not_a_noun_stack():
+    """Without a part-of-speech tagger the first version counted any adjacency, which
+    put 73 findings on this project's own README. The noun-suffix anchor is what
+    separates a stack from a sentence."""
+    assert longest_noun_stack("This is a very good simple test case here today") == 0
+    assert longest_noun_stack("keeps its shipped severity, so it can reach") <= 3
+
+
+def test_a_noun_stack_does_not_span_punctuation():
+    """A first version split on non-word characters, which discarded the separator and
+    fused four table-cell items into one 5-word stack."""
+    assert longest_noun_stack("reference, specs, API docs, runbooks") <= 3
+
+
+def test_a_coordinated_series_over_three_items_is_reported():
+    engine = _engine(profile=Profile.STRICT)
+    document = parse(
+        "a.md",
+        "The manifest sets the image tag, the replica count, the resource limits, "
+        "and the service account.\n",
+    )
+    ids = [f.rule_id for f in engine.run(document)]
+    assert "ste-sentences.complex-text-not-in-vertical-list" in ids
+
+
+def test_a_series_needs_a_conjunction_not_just_commas():
+    """Counting bare commas made every parenthetical read as a coordinated series."""
+    assert coordinated_items("The gate runs, then it reports.") == 0
+    # Three items: `a`, `b`, `c`. The count is commas before the conjunction plus
+    # two, because the conjunction joins the last pair without a comma of its own.
+    assert coordinated_items("It reads a, b, and c.") == 3
+
+
+def test_four_consecutive_bold_colon_bullets_are_reported():
+    engine = _engine(profile=Profile.STRICT)
+    document = parse(
+        "a.md",
+        "# T\n\n"
+        "- **Configuration:** the first thing\n"
+        "- **Deployment:** the second thing\n"
+        "- **Monitoring:** the third thing\n"
+        "- **Rollback:** the fourth thing\n",
+    )
+    ids = [f.rule_id for f in engine.run(document)]
+    assert "ai-tells-formatting.inline-header-list" in ids
+
+
+def test_the_colon_may_fall_inside_or_outside_the_emphasis():
+    """`- **Thing:** x` is the form people write, and a first version required the
+    colon outside the bold, so it matched none of them."""
+    assert BOLD_COLON_BULLET.match("- **Thing:** x")
+    assert BOLD_COLON_BULLET.match("- **Thing**: x")
+    assert BOLD_COLON_BULLET.match("1. **Step:** x")
+
+
+def test_a_bold_bullet_without_a_colon_is_not_a_pseudo_heading():
+    """Emphasis is not a heading. Making the colon optional matched plain emphasis."""
+    assert not BOLD_COLON_BULLET.match("- **just bold** no colon")
+    assert not BOLD_COLON_BULLET.match("- plain bullet")
+
+
+def test_uniform_paragraph_mass_reports_low_dispersion_not_high():
+    """The one metric whose comparison is `lt`. It is the burstiness counter-signal, so
+    uniformity is the finding and variety is the pass."""
+    engine = _engine(profile=Profile.STRICT)
+    uniform = "\n\n".join(
+        [
+            "This paragraph has a deliberate uniform mass so the dispersion measure "
+            "has something to bite on here.",
+            "This paragraph also has a deliberate uniform mass so the dispersion "
+            "measure has something to bite too.",
+            "This paragraph likewise has a deliberate uniform mass so the dispersion "
+            "measure has something to bite.",
+        ]
+    )
+    ids = [f.rule_id for f in engine.run(parse("a.md", uniform + "\n"))]
+    assert "ai-tells-register.uniform-paragraph-mass" in ids
+
+
+def test_a_document_with_too_few_paragraphs_is_not_uniform():
+    """`stdev` returns 0.0 below two values, which is the WRONG answer for a rule that
+    compares with `lt`: every one-paragraph file would fire. The guard returns
+    infinity instead."""
+    engine = _engine(profile=Profile.STRICT)
+    document = parse("a.md", "One short paragraph and nothing else to compare it to.\n")
+    ids = [f.rule_id for f in engine.run(document)]
+    assert "ai-tells-register.uniform-paragraph-mass" not in ids
+
+
+def test_adjective_spray_is_reported():
+    engine = _engine(profile=Profile.STRICT)
+    document = parse(
+        "a.md",
+        "A comprehensive robust scalable solution provides seamless powerful "
+        "flexible integration capabilities for meaningful actionable insights.\n",
+    )
+    ids = [f.rule_id for f in engine.run(document)]
+    assert "ai-tells-content-shape.adjective-per-noun-spray" in ids
+
+
+def test_this_project_readme_does_not_trip_the_new_metrics():
+    """The calibration check. All five thresholds are marked INFERRED rather than
+    measured, and a rule that fires on its own project's README is miscalibrated
+    whatever its provenance says."""
+    engine = _engine(profile=Profile.STRICT)
+    readme = Path(__file__).resolve().parent.parent / "README.md"
+    findings = engine.run(parse(str(readme), readme.read_text(encoding="utf-8")))
+    noisy = [
+        f.rule_id
+        for f in findings
+        if f.rule_id
+        in {
+            "ste-nouns.multiword-noun-too-long",
+            "ai-tells-content-shape.adjective-per-noun-spray",
+            "ai-tells-register.uniform-paragraph-mass",
+        }
+    ]
+    assert noisy == []
+
+
+def test_a_bold_span_is_counted_per_span_not_per_line():
+    """A greedy pattern fused every span on a line into one match, which
+    undercounted exactly the documents the density rule is aimed at."""
+    assert BOLD_SPAN.findall("**a** and **b** and **c**") == ["**a**", "**b**", "**c**"]
+    assert BOLD_SPAN.findall("__x__ here") == ["__x__"]
+    assert BOLD_SPAN.findall("**bad ** trailing space") == []
+
+
+def test_a_numeric_range_is_not_a_dash_aside():
+    """The rule is about the em dash used as an aside. An en dash in a range and a
+    long-option flag are both correct, and counting them made every CLI reference
+    look like a document full of asides."""
+    # A paired aside carries two dashes and counts as two. The metric measures dash
+    # density rather than aside count, and the threshold is calibrated on that.
+    assert DASH_AS_ASIDE.findall("the gate -- which fails -- exits 1") == ["--", "--"]
+    assert DASH_AS_ASIDE.findall("an aside — like this one") == ["—"]
+    assert DASH_AS_ASIDE.findall("pass --verbose to see steps 1--2") == []
+
+
+def test_markup_metrics_ignore_code_blocks_and_inline_spans():
+    """`markup_text` exists because `prose_text` strips the characters these two
+    rules count. Reading `raw` instead would count `**kwargs` in a snippet as a bold
+    span and every `--flag` in a command as an aside."""
+    document = parse(
+        "a.md",
+        "# T\n\nProse with `**not bold**` and `--not-an-aside` inline.\n\n"
+        "```python\ndef f(**kwargs): pass  # -- comment\n```\n\n"
+        "Real **bold** and a real -- aside.\n",
+    )
+    markup = document.markup_text()
+    assert BOLD_SPAN.findall(markup) == ["**bold**"]
+    assert DASH_AS_ASIDE.findall(markup) == ["--"]
+
+
+def test_bold_spray_and_dash_density_report_their_measurement():
+    """Both were routed to Vale, whose script extension point returns a match rather
+    than a number, so each shipped a message with the count missing entirely:
+    `bold spray: bold spans per 1000 words`. A finding a reader cannot act on is the
+    defect this project's own actionability rule names."""
+    engine = _engine(profile=Profile.STRICT)
+    document = parse(
+        "a.md",
+        "# T\n\n"
+        "**One** and **two** — then **three** and **four** — plus **five** here.\n",
+    )
+    messages = {
+        f.rule_id: f.message
+        for f in engine.run(document)
+        if f.rule_id
+        in {"ai-tells-formatting.bold-spray", "ai-tells-formatting.em-dash-density"}
+    }
+    assert set(messages) == {
+        "ai-tells-formatting.bold-spray",
+        "ai-tells-formatting.em-dash-density",
+    }
+    for rule_id, message in messages.items():
+        assert re.search(r"\d+\.\d\d", message), f"{rule_id} states no figure: {message}"
+
+
+def test_a_density_metric_is_not_compiled_to_vale_as_well():
+    """Held back in one place and implemented in another is how a rule gets reported
+    twice. The routing table and NATIVE_METRICS have to agree."""
+    from slopvac.compile_vale import DENSITY_MESSAGE_METRICS
+
+    assert DENSITY_MESSAGE_METRICS <= NATIVE_METRICS
+
+
+def test_a_clause_boundary_ends_a_noun_stack():
+    """`because` was missing from STACK_BREAKER and produced a 4-word stack on this
+    project's own README. A subordinator is exactly where a noun phrase ends."""
+    assert longest_noun_stack("Specificity ranking loses because no ordering exists") <= 3
+    assert longest_noun_stack("The gate reports although the score passes") <= 3
+
+
+def test_a_verb_ending_in_s_does_not_extend_a_noun_stack():
+    """`shows` and `loses` look like plural nouns to a suffix test and carry no noun
+    suffix of their own, so nothing but the breaker list separates them."""
+    assert longest_noun_stack("so a blanket suppression shows up in a diff") <= 3
+    assert longest_noun_stack("the override wins and the profile loses") <= 3
+
+
+def test_the_stack_rule_still_reports_a_real_stack():
+    """The companion to every false-positive fix above. Each round widened
+    STACK_BREAKER, and a list wide enough to silence everything silences this too."""
+    assert longest_noun_stack("container orchestration platform migration strategy") == 5
