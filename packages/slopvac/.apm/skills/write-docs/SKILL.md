@@ -65,6 +65,14 @@ MUST Delete every span whose removal changes no proposition, obligation, or refe
 MUST Take the position the evidence supports. Hedge only where the uncertainty is real and you can name its cause; one hedge at most, never a hedge on a hedge.
 NOT Hedging in both directions ("may improve latency, though it might also increase it") -- the halves cancel and the reader learns nothing actionable.
 DEFAULT Judge hedging across the whole document, not the sentence: if most load-bearing claims carry a hedge, the document asserts nothing however careful each sentence reads.
+MUST Attribute or own every claim. "Experts agree", "research has shown", "it is widely known", and "some people say" dress a claim in authority it does not have: name the source, or state it as your own.
+MUST Give a comparative its baseline. "20% faster" than what, measured how.
+MUST Give a quantity its count. "Several", "various", "a number of", "in most cases" all name a number the writer has and withheld.
+NOT Presuming the reader: "obviously", "clearly", "of course", "note that", "it should be noted that", "as you can see", "interestingly". The sentence stands without them, so delete them.
+NOT Puffery: an adjective that praises rather than describes ("award-winning", "innovative", "world-class", "remarkable"). State the fact that would earn it.
+NOT A relative time reference in a document that outlives the moment: "recently", "currently", "for now", "last quarter", "in the future". Give a date or a version.
+NOT A rhetorical question as a heading. A heading is an index entry: "Configure the pool", not "How do I configure the pool?".
+NOT Pairing "including" or "such as" with "etc." -- either already says the list is partial. Where the list is complete, write "consisting of".
 MUST Name who acted: an abstraction is not an actor ("the team fixed it", never "the complaint becomes a fix").
 MUST State what the artifact does -- never effort, intent, process, or journey.
 MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".

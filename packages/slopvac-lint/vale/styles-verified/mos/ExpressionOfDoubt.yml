@@ -1,0 +1,14 @@
+extends: existence
+message: "expression of doubt: '%s' -- state the status, or attribute the claim"
+level: warning
+ignorecase: true
+# MOS:DOUBT. `alleged` and `accused` are legitimate where wrongdoing is asserted
+# but undetermined, which is a genre our exceptions cover rather than the pattern.
+tokens:
+  - supposed
+  - supposedly
+  - purported
+  - purportedly
+  - so-called
+  - ostensibly
+  - seemingly

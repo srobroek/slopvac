@@ -48,6 +48,17 @@ NOT A figure of speech you are used to seeing in print. Write the fact, a fresh 
 NOT Two physical images colliding in one sentence.
 NOT Reporting a failure, cost, or harm without naming who did what to whom.
 
+Attribution and precision:
+
+MUST Attribute or own every claim. "Experts agree", "research has shown", "it is widely known", "some people say" dress a claim in authority it does not have: name the source, or state it as yours.
+MUST Give a comparative its baseline: "20% faster" than what, measured how.
+MUST Give a quantity its count. "Several", "various", "a number of", "in most cases" each name a number you have and withheld.
+NOT Presuming the reader: "obviously", "clearly", "of course", "note that", "it should be noted that", "as you can see", "interestingly". The sentence stands without them.
+NOT Puffery -- an adjective that praises rather than describes ("award-winning", "innovative", "world-class", "remarkable"). State the fact that would earn it.
+NOT A relative time reference in a document that outlives the moment: "recently", "currently", "for now", "last quarter", "in the future". Give a date or a version.
+NOT A rhetorical question as a heading. A heading is an index entry: "Configure the pool", not "How do I configure the pool?".
+NOT Pairing "including" or "such as" with "etc." -- either already says the list is partial.
+
 ## All genres
 
 MUST State what the artifact does -- never effort, intent, process, or journey.

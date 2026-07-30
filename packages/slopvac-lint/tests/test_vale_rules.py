@@ -87,7 +87,7 @@ def _config(tmp_path: Path) -> Path:
         "MinAlertLevel = suggestion\n"
         "\n"
         "[*.md]\n"
-        "BasedOnStyles = hedge\n",
+        "BasedOnStyles = hedge, mos\n",
         encoding="utf-8",
     )
     return config
@@ -170,6 +170,26 @@ def test_weasel_fixture_fires(tmp_path):
     assert not missed, f"no rule fired on: {missed}"
 
 
+def test_mos_fixture_fires(tmp_path):
+    """Wikipedia's Manual of Style: Words to watch, plus the Vocabulary section.
+
+    Four classes with four different fixes: puffery needs the fact that earns the
+    adjective, editorializing and presumptuous language need deletion, an
+    expression of doubt needs the status, and a relative time reference needs a
+    date. Token lists taken verbatim from the raw wikitext.
+    """
+    config = _config(tmp_path)
+    findings = _run(config, FIXTURES / "mos-fire.md")
+    missed = [
+        line
+        for number, line in _lines(FIXTURES / "mos-fire.md")
+        if number not in findings
+        and line not in KNOWN_MISSES
+        and not line.startswith("#")
+    ]
+    assert not missed, f"no rule fired on: {missed}"
+
+
 def test_every_rule_is_a_warning_or_below():
     """No hedging rule errors.
 
@@ -234,7 +254,7 @@ def test_known_misses_are_still_missed(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "fixture", ["must-not-fire.md", "hard.md", "weasel-clean.md"]
+    "fixture", ["must-not-fire.md", "hard.md", "weasel-clean.md", "mos-clean.md"]
 )
 def test_negative_fixtures_are_clean(tmp_path, fixture):
     """Zero false positives, on both negative fixtures.

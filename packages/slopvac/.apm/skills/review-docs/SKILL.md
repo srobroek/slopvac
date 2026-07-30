@@ -40,7 +40,31 @@ the checks in step 3 are read FROM the linter, so they cannot drift from it.
    MUST Read `documents[].unchecked`. An absent `vale` or an unsynced style makes
    those rules report every file as clean, which is indistinguishable from a pass.
 
-3. LOAD the checks no pattern reaches:
+3. Triage the warnings. An ERROR is a defect: fix it. A WARNING marks a
+   candidate the pattern could not settle, so settle it per finding rather than
+   by re-reading the document.
+
+   For each warning, read the span at `line`/`column` and its sentence, then
+   return one of three verdicts:
+
+   | Verdict | When | Do |
+   |---|---|---|
+   | `defect` | the shape is a real defect in this sentence | apply the `fix` |
+   | `exception` | an exception on the rule's own list applies | annotate with that reason |
+   | `false-positive` | the rule matched correct prose | report it; change nothing |
+
+   `uvx slopvac-lint explain <rule_id>` gives the decision question, the closed
+   exception list, and worked examples.
+
+   MUST Report every `false-positive` in the verdict, naming the rule, the
+   matched text, and the sentence. That is evidence about the RULE, and a rule
+   collecting them is one to tighten or demote.
+   NOT Suppressing a finding you judged `false-positive`. An annotation claims a
+   named exception applies, and "the rule is wrong" is not on any list.
+   NOT Editing correct prose to silence a warning. Three rules ship deliberately
+   soft, so a warning that survives triage is a finding about the linter.
+
+4. LOAD the checks no pattern reaches:
 
    ```sh
    uvx slopvac-lint rules --judgement --format json
@@ -49,16 +73,18 @@ the checks in step 3 are read FROM the linter, so they cannot drift from it.
    Each entry carries a decidable `judgement_question`, the `fix`, its
    `exceptions`, and worked `examples`. Filter by `scope` to work at the right
    level -- the `document` ones are ratio checks a per-line rule cannot see, and
-   they catch the failures where every sentence passes on its own.
+   they catch the failures where every sentence passes on its own. These always
+   run, whatever the gate reported: a document where every sentence passes and
+   the whole asserts nothing produces no finding at all.
 
    Answer each question with evidence from the text, not an impression.
 
-4. Verify the claims. Every sentence checks against code at HEAD; every consumer
+5. Verify the claims. Every sentence checks against code at HEAD; every consumer
    example has a runnable test under `examples/`; no sentence describes unbuilt
    behavior in the present tense. This is where real defects concentrate, more
    than in the register.
 
-5. Report the verdict in the shape below.
+6. Report the verdict in the shape below.
 
 MUST Invoke this skill rather than the linter alone. The gate is pattern-matching
 and cannot see register, symmetry, or an unsupported claim.

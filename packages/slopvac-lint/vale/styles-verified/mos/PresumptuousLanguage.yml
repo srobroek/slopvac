@@ -1,0 +1,14 @@
+extends: existence
+message: "presumptuous language: '%s' -- present the fact and let the reader judge"
+level: warning
+scope: raw
+ignorecase: true
+# Wikipedia MOS:INSTRUCT, verbatim examples. Distinct from Editorializing: these
+# address the reader directly or presume their knowledge, and the fix is DELETION
+# rather than substitution -- the sentence stands without them.
+#
+# `note that` and `remember that` are here, but a NOTE BLOCK is not: a runbook's
+# "NOTE:" prefix is structural, and STE rule 5.5 governs it. The pattern requires
+# the phrase mid-sentence.
+raw:
+  - '\b(?:remember that|note that|notice that|keep in mind that|bear in mind that|as (?:you|we) (?:can see|know|might expect|would expect)|as everyone knows|needless to say|it goes without saying)\b|\bit (?:should|must|is important to|is worth(?:while)?|may be worth) (?:be )?(?:noted?|noting|mention(?:ed|ing)?|remember(?:ed|ing)?|emphasi[sz]ed?) that\b|\b(?:interestingly|curiously|amusingly|ironically|surprisingly|unexpectedly|coincidentally|tellingly|notably)\b'
