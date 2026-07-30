@@ -53,6 +53,7 @@ Attribution and precision:
 MUST Attribute or own every claim. "Experts agree", "research has shown", "it is widely known", "some people say" dress a claim in authority it does not have: name the source, or state it as yours.
 MUST Give a comparative its baseline: "20% faster" than what, measured how.
 MUST Give a quantity its count. "Several", "various", "a number of", "in most cases" each name a number you have and withheld.
+MUST Apply that to the bare quantifiers as well -- "most", "some", "many", "often", "usually". No linter can flag them: "most requests complete in 15 ms" is correct, "most users prefer it" is not, and the difference is whether you had the figure. If you had it, use it.
 NOT Presuming the reader: "obviously", "clearly", "of course", "note that", "it should be noted that", "as you can see", "interestingly". The sentence stands without them.
 NOT Puffery -- an adjective that praises rather than describes ("award-winning", "innovative", "world-class", "remarkable"). State the fact that would earn it.
 NOT A relative time reference in a document that outlives the moment: "recently", "currently", "for now", "last quarter", "in the future". Give a date or a version.

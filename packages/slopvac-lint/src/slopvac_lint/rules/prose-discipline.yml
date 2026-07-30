@@ -608,3 +608,65 @@ rules:
     fix: >-
       Delete the hedging verbs and the quantifier, then name what actually
       changes.
+
+  # --- Bare quantifiers: the class no pattern can reach ----------------------
+  # `most`, `some`, `many`, `often`, and `usually` are the commonest evasion in
+  # generated prose AND ordinary correct English. Wikipedia's own qualifier is the
+  # test -- "quantifiers such as many, WHEN QUANTIFIABLE MEASURES COULD BE
+  # PROVIDED" -- and whether the figure was available is not in the text. So this
+  # is judgement, and the token list stays out of the lexical rules.
+  - id: bare-quantifier-with-figure-available
+    name: Give the bare quantifier its number
+    kind: judgement
+    message: >-
+      A bare quantifier stands where a figure was available. Give the number.
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Find every bare quantifier: most, some, many, few, often, usually,
+      frequently, generally, typically, several times, much, little. For each,
+      ask one question -- does the writer have the number? A quantifier over
+      something the document itself counts elsewhere, over a list it contains,
+      or over a measurement it reports is a withheld figure and must be
+      replaced. A quantifier over a genuinely unbounded or unmeasured set is
+      correct and stays.
+    exceptions:
+      - genuinely-unmeasured
+      - quotation
+      - unbounded-set
+      - idiom
+      - defined-elsewhere
+    examples:
+      - bad: Most requests are cached.
+        good: 94% of requests are cached.
+        note: >-
+          The document reports the hit rate two paragraphs later, so the figure
+          was available.
+      - bad: The parser handles many formats.
+        good: The parser handles XISF, FITS, and TIFF.
+        note: A list the document could have written out.
+      - bad: Some tests need a live database.
+        good: The four integration tests need a live database.
+      - bad: Most requests complete in 15 ms.
+        good: Most requests complete in 15 ms.
+        note: >-
+          CORRECT AS WRITTEN, and the reason this is judgement rather than a
+          token list. The figure is present; `most` quantifies the distribution
+          honestly, because not all of them do.
+    provenance:
+      source: Wikipedia MOS:WEASEL
+      note: >-
+        Deliberately NOT a lexical rule. Wikipedia lists these tokens, and its own
+        condition is "when quantifiable measures could be provided", which no
+        pattern decides: "most requests complete in 15 ms" is correct and "most
+        users prefer it" is not, and the two are identical in shape. A token rule
+        here would fire on correct prose in every document, which is how a rule
+        gets disabled. The multi-word forms that carry the evasion in their
+        shape -- "a number of", "in most cases" -- ARE mechanized, in
+        prose-inflation.vague-quantifier.
+    fix: >-
+      Replace the quantifier with the figure. Where the set is genuinely
+      unmeasured, say so and name why.

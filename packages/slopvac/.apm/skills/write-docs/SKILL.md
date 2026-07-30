@@ -68,6 +68,7 @@ DEFAULT Judge hedging across the whole document, not the sentence: if most load-
 MUST Attribute or own every claim. "Experts agree", "research has shown", "it is widely known", and "some people say" dress a claim in authority it does not have: name the source, or state it as your own.
 MUST Give a comparative its baseline. "20% faster" than what, measured how.
 MUST Give a quantity its count. "Several", "various", "a number of", "in most cases" all name a number the writer has and withheld.
+MUST Ask it of the bare quantifiers too -- "most", "some", "many", "often", "usually". The linter cannot flag these, because "most requests complete in 15 ms" is correct and "most users prefer it" is not, and only you know whether the figure was available. If it was, use it.
 NOT Presuming the reader: "obviously", "clearly", "of course", "note that", "it should be noted that", "as you can see", "interestingly". The sentence stands without them, so delete them.
 NOT Puffery: an adjective that praises rather than describes ("award-winning", "innovative", "world-class", "remarkable"). State the fact that would earn it.
 NOT A relative time reference in a document that outlives the moment: "recently", "currently", "for now", "last quarter", "in the future". Give a date or a version.
