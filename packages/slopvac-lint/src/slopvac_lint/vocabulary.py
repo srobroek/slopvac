@@ -17,17 +17,21 @@ the words carrying a part-of-speech-dependent status appear 7.2 times per 1,000
 words (`code`, `view`, `time`, `work`, `back`, `over` are the frequent ones), so
 flattening them would produce roughly 8,000 false findings.
 
-PART-OF-SPEECH TAGGING is deliberately shallow: no model, no dependency. The
-tagger resolves a word only when the surrounding tokens make the part of speech
-unambiguous, and reports nothing otherwise. A wrong tag produces a false finding
-on correct prose, which is the failure that gets a rule disabled -- so silence is
-the correct answer when the evidence is thin.
+PART-OF-SPEECH TAGGING IS VALE'S. This module used to carry a shallow tagger that
+read a word's part of speech from its neighbours and returned UNKNOWN whenever the
+evidence was thin -- which on real prose was most of the time, so rule 1.2 went
+largely unchecked. Vale ships a Penn Treebank tagger, and its `sequence` extension
+point matches a pattern only where the tag agrees: `close` as a verb is flagged and
+"close to the limit" is not. Verified by execution.
+
+What survives here is the DICTIONARY -- the loader, the merge, and the query. The
+compiler reads it to generate four `sequence` rules, one per part of speech,
+rather than one rule per entry.
 """
 
 from __future__ import annotations
 
 import json
-import regex as re
 from dataclasses import dataclass
 from enum import Enum
 from importlib import resources
@@ -104,6 +108,14 @@ class Vocabulary:
     @property
     def approved_count(self) -> int:
         return sum(1 for e in self._entries.values() if e.approved)
+
+    def unapproved(self) -> list[Entry]:
+        """Every entry the dictionary does not approve.
+
+        The compiler groups these by part of speech to build the Vale `sequence`
+        rules, and needs the whole set rather than a per-word lookup.
+        """
+        return [e for e in self._entries.values() if not e.approved]
 
     def lookup(self, word: str, pos: Pos) -> Entry | None:
         return self._entries.get((word.lower(), pos))
@@ -185,102 +197,3 @@ def load_vocabulary(overlay_path: Path | None = None) -> Vocabulary:
             source="slopvac overlay",
         )
     return Vocabulary(entries)
-
-
-# --- shallow part-of-speech resolution ---------------------------------------
-
-DETERMINER = re.compile(
-    r"^(?:the|a|an|this|that|these|those|its|his|her|their|our|your|my|each|every|"
-    r"any|some|no|which|whose)$",
-    re.I,
-)
-MODAL = re.compile(
-    r"^(?:can|could|will|would|shall|should|may|might|must|do|does|did|to)$", re.I
-)
-BE = re.compile(r"^(?:is|are|was|were|be|been|being|am)$", re.I)
-PREP = re.compile(
-    r"^(?:of|in|on|at|by|for|with|from|into|onto|over|under|about|between|through|"
-    r"during|before|after|above|below|against|among|within|without|across)$",
-    re.I,
-)
-ADVERB_SUFFIX = re.compile(r"ly$", re.I)
-WORD = re.compile(r"[A-Za-z][A-Za-z'-]*")
-
-
-def resolve_pos(tokens: list[str], index: int) -> Pos:
-    """Best-effort part of speech for `tokens[index]`.
-
-    Returns UNKNOWN whenever the evidence is weak. That is the point: an
-    unresolved word is skipped rather than guessed, so the vocabulary check never
-    reports a violation it cannot justify.
-    """
-    word = tokens[index]
-    previous = tokens[index - 1] if index > 0 else ""
-    following = tokens[index + 1] if index + 1 < len(tokens) else ""
-
-    # A determiner or preposition immediately before means the head is nominal,
-    # unless an adjective intervenes -- which the next test catches.
-    if DETERMINER.match(previous) or PREP.match(previous):
-        if following and not DETERMINER.match(following) and WORD.fullmatch(following):
-            # "the cache layer": `cache` modifies, so it is not the head noun and
-            # the reading is ambiguous. Refuse rather than guess.
-            return Pos.UNKNOWN
-        return Pos.NOUN
-
-    # A modal or infinitive marker before means a bare verb follows.
-    if MODAL.match(previous):
-        return Pos.VERB
-
-    # "is <word>ed" is passive; "is <word>" with an adjective-shaped word is a
-    # predicate adjective. Neither is reliable enough for a noun/verb call.
-    if BE.match(previous):
-        if word.lower().endswith(("ed", "en")):
-            return Pos.VERB
-        return Pos.UNKNOWN
-
-    if ADVERB_SUFFIX.search(word) and len(word) > 4:
-        return Pos.ADVERB
-
-    # Sentence-initial and imperative: a procedural sentence starts with its verb.
-    if index == 0:
-        return Pos.VERB
-
-    return Pos.UNKNOWN
-
-
-def check_sentence(
-    text: str, vocabulary: Vocabulary, line: int
-) -> list[tuple[int, str, Pos, Entry | None]]:
-    """Find vocabulary problems in one sentence.
-
-    Yields `(column, word, resolved_pos, entry)`. `entry` is None when the word is
-    absent from the dictionary entirely, which the caller reports differently from
-    a known-but-unapproved word: an unknown word is usually a technical name that
-    rule 1.5 permits, while a known unapproved word has a replacement.
-    """
-    matches = list(WORD.finditer(text))
-    tokens = [m.group(0).lower() for m in matches]
-    results: list[tuple[int, str, Pos, Entry | None]] = []
-
-    for index, match in enumerate(matches):
-        word = match.group(0)
-        lowered = word.lower()
-        if len(lowered) < 3:
-            continue
-        if not vocabulary.is_known(lowered):
-            continue  # technical name or out of scope; rule 1.5 territory
-
-        pos = resolve_pos(tokens, index)
-        if pos is Pos.UNKNOWN:
-            continue  # evidence too weak to justify a finding
-
-        known = vocabulary.known_parts_of_speech(lowered)
-        if pos not in known:
-            # Rule 1.2: the word exists but not as this part of speech.
-            results.append((match.start() + 1, word, pos, None))
-            continue
-
-        entry = vocabulary.lookup(lowered, pos)
-        if entry is not None and not entry.approved:
-            results.append((match.start() + 1, word, pos, entry))
-    return results

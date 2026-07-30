@@ -1,17 +1,26 @@
-"""Vale sub-gate.
+"""Run Vale over the compiled styles and map its findings onto our types.
 
-Vale stays in the pipeline for one reason: the upstream `tbhb/vale-ai-tells`
-package is 76 maintained rules we do not want to fork, and Vale's syntax-aware
-parsers lint comments and docstrings in source files while skipping identifiers
-and string literals -- which this project measured and depends on.
+Vale is THE execution engine for every mechanical rule. `compile_vale` writes our
+ruleset into a Vale style tree whose rule names are our own qualified ids, so a
+Vale finding's `Check` is our `rule_id` with no translation step. This module
+runs it and adopts the results.
 
-Our own styles are converted to the native ruleset, so a rule is not run twice.
-This module runs only the styles Vale still owns.
+OUR SEVERITY IS AUTHORITATIVE even though Vale's agrees. The generated ini
+carries the level our precedence chain resolved, so Vale reports what we asked
+for; re-resolving here rather than trusting the echo means a future ini bug shows
+up as a mismatch in one place instead of silently changing what a gate blocks on.
 
-MISSING TOOLS ARE LOUD. An absent binary, an unsynced style, or a config that
-resolves nothing all make Vale report a clean file and exit 0, which is
-indistinguishable from a pass. Every such case returns an `unchecked` note that
-the caller surfaces in the report rather than swallowing.
+MISSING TOOLS ARE LOUD, and the list of ways Vale can quietly check nothing is
+the reason this module is longer than a subprocess call:
+
+  - the binary is absent
+  - the compiled config is missing
+  - Vale times out
+  - the output does not parse
+  - Vale resolves FEWER rules than we compiled, which happens when a rule fails
+    to load; Vale then reports every file clean and exits 0
+
+Every one produces an `unchecked` note. None produces a pass.
 """
 
 from __future__ import annotations
@@ -22,11 +31,10 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .config import Config, Severity
+from .config import Severity
 from .model import Finding
 
-# Styles Vale keeps. Ours moved to the native engine.
-VALE_OWNED = ("ai-tells",)
+TIMEOUT_SECONDS = 120
 
 SEVERITY_MAP = {
     "error": Severity.ERROR,
@@ -41,83 +49,70 @@ class ValeResult:
     unchecked: list[str] = field(default_factory=list)
 
     def findings_for(self, path: str) -> list[Finding]:
-        # Vale normalizes paths; try the exact string then the resolved form.
+        # Vale echoes the path it was given, which may be relative; try that
+        # first, then the resolved form.
         if path in self.by_path:
             return self.by_path[path]
-        resolved = str(Path(path).resolve())
-        return self.by_path.get(resolved, [])
+        return self.by_path.get(str(Path(path).resolve()), [])
 
 
-def _styles_synced(config_path: Path, styles: list[str]) -> list[str]:
-    """Which requested styles are missing from the resolved StylesPath.
+def run_compiled_vale(
+    paths: list[Path],
+    compiled,
+    severities: dict[str, Severity],
+    categories: dict[str, str],
+    binary: str = "vale",
+) -> ValeResult:
+    """Lint `paths` with the compiled styles.
 
-    Checked per style rather than by directory existence: a sync that fails
-    partway leaves what it already fetched, and Vale reports every file clean for
-    a style it cannot resolve, so a partial sync looks exactly like a pass.
+    `severities` and `categories` are keyed by qualified rule id and come from
+    the same resolution the compiler used, so a finding carries our level and our
+    category rather than Vale's echo of them.
     """
-    styles_path = Path("styles")
-    for line in config_path.read_text(encoding="utf-8").splitlines():
-        if line.strip().startswith("StylesPath"):
-            _, _, value = line.partition("=")
-            styles_path = Path(value.strip())
-            break
-    if not styles_path.is_absolute():
-        styles_path = config_path.parent / styles_path
-    return [s for s in styles if not (styles_path / s).is_dir()]
-
-
-def run_vale(paths: list[Path], config: Config) -> ValeResult:
-    """Run Vale over `paths` and map its JSON onto our Finding type."""
     result = ValeResult()
-    settings = config.vale
 
-    binary = shutil.which(settings.binary)
-    if binary is None:
+    resolved_binary = shutil.which(binary)
+    if resolved_binary is None:
         result.unchecked.append(
-            f"`{settings.binary}` is not on PATH, so the upstream ai-tells rules "
-            f"did NOT run. Install it (`mise use -g vale` or `brew install vale`) "
-            f"or set `vale.enabled = false` to silence this."
+            f"`{binary}` is not on PATH, so the {len(compiled.vale_rules)} rules "
+            f"compiled for it did NOT run. Install it (`mise use -g vale` or "
+            f"`brew install vale`), or pass --no-vale to acknowledge the gap."
         )
         return result
 
-    config_path = settings.config
-    if config_path is None:
-        # Prefer a project .vale.ini; fall back to the packaged one.
-        root = config.root or Path.cwd()
-        candidate = root / ".vale.ini"
-        if candidate.is_file():
-            config_path = candidate
-        else:
-            from importlib import resources
-
-            try:
-                packaged = resources.files("slopvac_lint") / "vale" / ".vale.ini"
-                config_path = Path(str(packaged))
-            except (ModuleNotFoundError, FileNotFoundError):
-                config_path = None
-
-    if config_path is None or not Path(config_path).is_file():
+    config_path = Path(compiled.config_path)
+    if not config_path.is_file():
         result.unchecked.append(
-            "no .vale.ini was found, so the upstream ai-tells rules did NOT run. "
-            "Run `slopvac-lint init --vale` or point `vale.config` at one."
+            f"the compiled Vale config is missing ({config_path}), so "
+            f"{len(compiled.vale_rules)} rules did NOT run."
         )
         return result
 
-    config_path = Path(config_path)
-    styles = settings.styles or list(VALE_OWNED)
-    missing = _styles_synced(config_path, styles)
-    if missing:
+    # A rule that fails to load is absent from `ls-config` while Vale still exits
+    # 0 on every file. Comparing the resolved set against what we wrote is the
+    # only way that reads as a gap rather than as clean prose.
+    from .compile_vale import resolved_checks
+
+    expected = set(compiled.vale_rules)
+    actual = resolved_checks(config_path, binary)
+    if actual is None:
         result.unchecked.append(
-            f"Vale styles are not synced ({' '.join(missing)}), so those rules did "
-            f"NOT run -- an unsynced style reports every file as clean. "
-            f"Run: vale --config='{config_path}' sync"
+            "Vale could not report its resolved configuration, so the rules it "
+            "actually loaded is unknown. Findings below may be incomplete."
         )
-        return result
+    elif expected - actual:
+        missing = sorted(expected - actual)
+        result.unchecked.append(
+            f"Vale resolved {len(actual)} rules but {len(expected)} were compiled "
+            f"for it; these did NOT run and their absence is indistinguishable "
+            f"from a clean file: {', '.join(missing[:8])}"
+            + (f" (+{len(missing) - 8} more)" if len(missing) > 8 else "")
+        )
 
     try:
         completed = subprocess.run(
             [
-                binary,
+                resolved_binary,
                 f"--config={config_path}",
                 "--output=JSON",
                 "--no-exit",
@@ -125,13 +120,26 @@ def run_vale(paths: list[Path], config: Config) -> ValeResult:
             ],
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired:
-        result.unchecked.append("Vale timed out after 120s; those rules did NOT run.")
+        result.unchecked.append(
+            f"Vale timed out after {TIMEOUT_SECONDS}s; its rules did NOT run."
+        )
         return result
     except OSError as exc:
-        result.unchecked.append(f"Vale could not be run ({exc}); those rules did NOT run.")
+        result.unchecked.append(f"Vale could not be run ({exc}); its rules did NOT run.")
+        return result
+
+    # E201 means a rule file was rejected, and Vale then lints nothing at all.
+    # The compiler probes for this, so reaching it here means a rule broke after
+    # compilation -- loud, because the alternative is a silent all-clean run.
+    combined = completed.stdout + completed.stderr
+    if "E201" in combined or "error parsing regexp" in combined:
+        result.unchecked.append(
+            "Vale rejected a compiled rule (E201) and therefore linted NOTHING. "
+            "Run `slopvac-lint compile --outdir <dir>` and check that directory."
+        )
         return result
 
     raw = completed.stdout.strip()
@@ -145,25 +153,53 @@ def run_vale(paths: list[Path], config: Config) -> ValeResult:
         )
         return result
 
+    if not isinstance(data, dict):
+        result.unchecked.append(
+            "Vale returned an unexpected JSON shape; its rules did NOT contribute "
+            "findings."
+        )
+        return result
+
     for path, alerts in data.items():
         for alert in alerts:
-            check = alert.get("Check", "?")
-            style = check.split(".", 1)[0]
-            # Only keep what Vale still owns; ours run natively and would double.
-            if style not in styles:
-                continue
+            check = alert.get("Check", "")
+            span = alert.get("Span") or [1]
+            severity = severities.get(check)
+            if severity is None:
+                # Vale reported a rule we did not compile. Keep it at the level
+                # Vale chose rather than dropping it: a finding nobody claims is
+                # still a finding, and silently discarding it would hide a
+                # stray style on the StylesPath.
+                severity = SEVERITY_MAP.get(alert.get("Severity", "warning"), Severity.WARNING)
             result.by_path.setdefault(path, []).append(
                 Finding(
                     path=path,
                     line=alert.get("Line", 1),
-                    column=(alert.get("Span") or [1])[0],
+                    column=span[0] if span else 1,
+                    end_column=span[1] if len(span) > 1 else None,
                     rule_id=check,
-                    category=f"vale-{style}",
-                    severity=SEVERITY_MAP.get(
-                        alert.get("Severity", "error"), Severity.ERROR
-                    ),
-                    message=alert.get("Message", "").strip(),
+                    category=categories.get(check, check.split(".", 1)[0]),
+                    severity=severity,
+                    message=(alert.get("Message") or "").strip(),
                     matched_text=alert.get("Match", ""),
                 )
             )
     return result
+
+
+def unchecked_for_skipped(compiled) -> list[str]:
+    """The note that `--no-vale` produces.
+
+    Skipping Vale now skips most of the ruleset, so the rules that would have run
+    are reported as unchecked rather than dropped. A gate that silently stops
+    checking 132 of 148 mechanical rules while still printing a score is the
+    exact failure mode this project refuses to ship.
+    """
+    if not compiled.vale_rules:
+        return []
+    return [
+        f"--no-vale skipped the Vale engine, so {len(compiled.vale_rules)} of the "
+        f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
+        f"did NOT run. The score below reflects only the "
+        f"{len(compiled.native_rules)} rules that stayed native."
+    ]

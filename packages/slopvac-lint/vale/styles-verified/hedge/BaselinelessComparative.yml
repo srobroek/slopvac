@@ -1,0 +1,17 @@
+extends: existence
+message: "comparative with no baseline: name what it is being compared to"
+level: warning
+scope: raw
+ignorecase: true
+# TWO Vale traps in this one rule, both silent:
+#
+# 1. A literal `%` must be written `%%`. Vale runs the pattern through a
+#    printf-style formatter, so a bare `%` is consumed as a format directive and
+#    the rule matches nothing, with no error. Proven: `20 ?% faster` matched
+#    nothing, `20 ?%% faster` matched both probes.
+# 2. Go RE2 has NO negative lookahead, so `` cannot exempt the
+#    compliant form. Requiring sentence-ending punctuation right after the
+#    comparative does the same job: a baseline clause pushes the terminator past
+#    it.
+raw:
+  - '\d+(?:\.\d+)? ?(?:%%|percent) (?:cheaper|faster|smaller|larger|better|worse|higher|lower|fewer)[.,;!]|(?:^|[.!?] )(?:It|This|That|The \w+|\w+) (?:is|are) (?:\w+ly )?(?:cheaper|faster|smaller|better|stronger|safer|simpler|slower|worse)[.!]'

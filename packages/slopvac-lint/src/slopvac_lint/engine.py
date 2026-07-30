@@ -1,9 +1,28 @@
-"""Execute rules against a parsed document and produce findings.
+r"""The native execution path: what Vale cannot run, plus what Vale cannot own.
 
-The checker is selected by `Rule.kind`, so adding a lexical, substitution, or
-threshold rule needs no code -- only a YAML file. That is what makes the ruleset
-user-editable in the way Vale's styles are, without Vale's single-config-file
-limitation.
+VALE IS THE EXECUTION ENGINE. `compile_vale` routes 132 of the 148 mechanical
+rules to it, so this module is no longer the main checker. What remains is of two
+kinds, and the second is why the lexical and metric paths still exist:
+
+  ALWAYS OURS -- severity precedence (`severity_for`), rule selection per profile
+  and config layer (`_active`), and the suppression annotation contract. Vale has
+  no notion of any of them; the compiler asks THIS class what level a rule
+  resolves to before it writes the ini.
+
+  OURS ONLY BECAUSE VALE REFUSED IT -- 16 rules at the shipped profiles. Two are
+  `kind: pattern` whose regex Go will not compile (`\U`-escaped emoji ranges), so
+  `_run_lexical` stays for exactly those. Four are `kind: vocabulary`, five are
+  metrics with no Vale expression, and five are structure rules needing
+  cross-block comparison. `compile_ruleset` names each one and its reason.
+
+The routing is not a static list: `slopvac-lint compile` prints it, and a rule
+moves here the moment Vale rejects its pattern, which is tested by execution on
+every compile.
+
+A METRIC WITH NO IMPLEMENTATION IS REPORTED, NOT SKIPPED. Nine metric names in
+the shipped ruleset have no native branch, so those rules used to load, match
+nothing, and report every document clean. `unimplemented_metrics` names them so
+the caller can surface them as `unchecked`.
 
 SUPPRESSION IS AN ANNOTATION CONTRACT, not a comment convention. A suppression
 must name an exception from the rule's own closed list:
@@ -90,6 +109,22 @@ _CLAUSE_JOIN = re.compile(
 def count_clause_boundaries(text: str) -> int:
     """How many times this sentence starts a new independent idea."""
     return len(_CLAUSE_JOIN.findall(text))
+
+
+# Metric names `_run_metric` knows how to measure. A rule naming anything else
+# cannot fire, so it is reported rather than run -- see `unimplemented_metrics`.
+NATIVE_METRICS = frozenset(
+    {
+        "sentence_words",
+        "clause_boundaries",
+        "paragraph_sentences",
+        "syllables_per_word",
+        "passive_ratio",
+        "hedge_per_100_words",
+        "abstraction_density",
+        "concrete_referents_per_paragraph",
+    }
+)
 
 
 
@@ -376,6 +411,21 @@ class Engine:
         return compiled
 
     # --- execution ------------------------------------------------------------
+
+    def unimplemented_metrics(self) -> list[str]:
+        """Active metric rules this engine cannot measure.
+
+        Such a rule loads, validates, runs, and matches nothing, so the document
+        reports clean whether or not it complies -- the failure mode this project
+        exists to prevent. The caller reports these as `unchecked`; they are not
+        silently dropped and they are not a load error, because the rule is
+        well-formed and a future Vale plan may pick it up.
+        """
+        return sorted(
+            rule.qualified_id
+            for rule in self.rules
+            if rule.kind is RuleKind.METRIC and (rule.metric or "") not in NATIVE_METRICS
+        )
 
     def run(self, document: Document) -> list[Finding]:
         suppressions, disabled, findings = self._scan_suppressions(document)

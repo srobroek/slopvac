@@ -1,0 +1,44 @@
+extends: existence
+message: "vague quantifier: '%s' -- give the count, or name the cases"
+level: warning
+ignorecase: true
+# Wikipedia's weasel-word categories, restricted to the NUMERICALLY VAGUE class.
+# The unsupported-attribution and passive-authority classes are separate rules
+# below, because their fix differs: a quantifier needs a number, an attribution
+# needs a source.
+#
+# Bare `most`, `some`, `many`, and `often` are DELIBERATELY ABSENT. They are
+# correct in ordinary prose ("most requests complete in 15 ms") and cannot be
+# distinguished from the weasel use by pattern. Only the multi-word forms, which
+# carry the evasion in their shape, are listed.
+tokens:
+  - several
+  - various
+  - numerous
+  - myriad
+  - a number of
+  - a variety of
+  - a handful of
+  - a range of
+  - a majority of
+  - a great deal of
+  - a good deal of
+  - countless
+  - innumerable
+  - plenty of
+  - a lot of
+  - lots of
+  - in most cases
+  - in many cases
+  - in some cases
+  - more often than not
+  - the vast majority
+  - the overwhelming majority
+  - a significant number
+  - a substantial number
+  - a considerable number
+  - up to
+  - as much as
+  - as many as
+  - four out of five
+  - nine out of ten
