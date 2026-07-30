@@ -91,7 +91,7 @@ def run_vale(paths: list[Path], config: Config) -> ValeResult:
             from importlib import resources
 
             try:
-                packaged = resources.files("slopvac_lint.vale-styles") / ".vale.ini"
+                packaged = resources.files("slopvac_lint") / "vale" / ".vale.ini"
                 config_path = Path(str(packaged))
             except (ModuleNotFoundError, FileNotFoundError):
                 config_path = None

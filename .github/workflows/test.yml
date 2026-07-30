@@ -1,7 +1,8 @@
 name: Tests
 
-# Runs the whole suite: pytest for the Vale rule behaviour, the prose-gate hook, and
-# the config scaffold; bats for the SubagentStart injector.
+# Runs the whole suite. The linter has its own job below, against every Python
+# version its metadata claims; this job covers the Vale sub-gate, whose styles are
+# fetched rather than committed.
 #
 # The rule tests drive the real `vale` binary against fixtures, because Vale has no
 # rule-test framework, so the styles have to be built and synced first. They are
@@ -51,8 +52,6 @@ jobs:
           python3 -m pip install --quiet ast-grep-cli
           ast-grep --version
 
-      - name: Install bats
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
 
       - name: Install pytest
         run: python3 -m pip install --quiet pytest
@@ -68,22 +67,19 @@ jobs:
             curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
             sleep 0.5
           done
-          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac-lint/vale/.vale.ini
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
           for style in ai-tells ai-residue prose-agency prose-inflation prose-scope docs-discipline prose-format; do
-            test -d "packages/slopvac/.apm/skills/review-docs/vale/styles/$style" \
+            test -d "packages/slopvac-lint/vale/styles/$style" \
               || { echo "$style did not sync"; exit 1; }
           done
 
       - name: pytest
         run: |
-          python3 -m pytest packages/slopvac/tests \
-            packages/slopvac/.apm/skills/review-docs/tests -q
+          python3 -m pytest packages/slopvac-lint/tests -q
 
-      - name: bats
-        run: bats packages/slopvac/tests/*.bats
 
       # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
       # loads but resolves nothing reports every file as clean. Lint a probe file
@@ -92,7 +88,7 @@ jobs:
       - name: Validate every rule loads
         run: |
           set -euo pipefail
-          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac-lint/vale/.vale.ini
           printf 'The library leverages a robust parser.\n' > /tmp/probe.md
           out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
           printf '%s\n' "$out"
@@ -174,7 +170,8 @@ jobs:
         run: |
           set -euo pipefail
           slopvac-lint --version
-          slopvac-lint rules --judgement --format json | python3 -c 'import json,sys; assert json.load(sys.stdin)["rules"]'
+          slopvac-lint rules --judgement --format json > /tmp/judgement.json
+          python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
           slopvac-lint explain orwell.stale-figure > /dev/null
           slopvac-lint init --path /tmp/slopvac.toml
           slopvac-lint /tmp/probe.md --no-vale --config /tmp/slopvac.toml || test $? -eq 1

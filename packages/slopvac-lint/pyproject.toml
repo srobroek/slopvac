@@ -48,6 +48,7 @@ packages = ["src/slopvac_lint"]
 # install resolves them too: force-include applies to a built wheel only, and an
 # editable install would leave importlib.resources with no rules at all.
 [tool.hatch.build.targets.wheel.force-include]
+"vale" = "slopvac_lint/vale"
 "vale-styles" = "slopvac_lint/vale-styles"
 
 [tool.hatch.build]

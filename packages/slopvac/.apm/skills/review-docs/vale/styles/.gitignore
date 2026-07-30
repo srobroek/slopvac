@@ -1,5 +1,0 @@
-# Every style is fetched by `vale sync` from the Packages URLs in ../.vale.ini.
-# Nothing here is committed, and nothing here is hand-edited: a sync overwrites
-# each style directory wholesale. Our own rules are authored in vale-styles/ at
-# the repo root and published as release assets.
-*/

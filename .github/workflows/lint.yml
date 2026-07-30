@@ -97,10 +97,10 @@ jobs:
             curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
             sleep 0.5
           done
-          config=packages/slopvac/.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac-lint/vale/.vale.ini
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
-          bash packages/slopvac/.apm/skills/review-docs/scripts/slop-lint.sh \
-            --genre consumer \
-            README.md packages/slopvac-lint/vale-styles/README.md
+          uvx --from ./packages/slopvac-lint slopvac-lint lint \
+            README.md packages/slopvac-lint/README.md \
+            packages/slopvac-lint/vale-styles/README.md
