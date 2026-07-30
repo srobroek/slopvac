@@ -1,4 +1,4 @@
-# slopvac-lint
+# slopvac
 
 Score prose against three rulesets: AI-slop patterns, Simplified Technical
 English, and Orwell's rules restated as objective tests.
@@ -7,22 +7,39 @@ Reports a finding density per 100 words and a 0-100 score, per category and
 overall, with warn and error levels you set per category.
 
 ```sh
-uvx slopvac-lint README.md
-uvx slopvac-lint --profile strict docs/
-uvx slopvac-lint --format json docs/ | jq .summary
+uvx slopvac README.md
+uvx slopvac --profile strict docs/
+uvx slopvac --format json docs/ | jq .summary
 ```
 
 ## Install
 
 ```sh
-uv tool install slopvac-lint     # persistent, no per-call resolution
-uvx slopvac-lint --help          # or run it without installing
-pipx install slopvac-lint
+uv tool install slopvac     # persistent, no per-call resolution
+uvx slopvac --help          # or run it without installing
+pipx install slopvac
 ```
 
-[Vale](https://vale.sh) is optional and extends the run with the upstream
-[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) package. Without it
-those rules report as `UNCHECKED` rather than passing silently.
+[Vale](https://vale.sh) 3.15 or later executes most of the ruleset and belongs on
+your PATH. `slopvac` compiles its own YAML rules into a Vale style directory
+and generates the `.vale.ini` it passes to Vale.
+
+| Engine | Rules | Covers |
+| --- | --- | --- |
+| Vale | 133 | token, regex, and substitution matching; sentence and paragraph word counts; part-of-speech checks against your word blocklist; whole-document ratios |
+| built-in | 15 | patterns Go's regex engine rejects, metrics with no Vale form, and block-shape comparisons |
+| neither | 67 | rules stating a question a reviewer answers; `slopvac rules --judgement` lists them |
+
+Without the binary the run still scores the 15 built-in rules and reports the rest
+as `UNCHECKED`, so a partial check never reads as a pass. `--no-vale` reports the
+same way.
+
+Inspect the routing, or run Vale by hand against the generated config:
+
+```sh
+slopvac compile --outdir build/vale
+vale --config=build/vale/.vale.ini docs/
+```
 
 ## Profiles
 
@@ -38,7 +55,7 @@ passive is correct in a specification and wrong in a guide.
 
 ## Configuration
 
-`slopvac-lint init` writes a `slopvac.toml`. Three layers patch each other per
+`slopvac init` writes a `slopvac.toml`. Three layers patch each other per
 field:
 
 1. the profile
@@ -64,11 +81,53 @@ profile = "strict"
 ```
 
 A setting belongs to the block it is written in, so appending to the end of the
-file cannot silently re-target it. `slopvac-lint lint --explain-config <file>`
+file cannot silently re-target it. `slopvac lint --explain-config <file>`
 prints what actually applies.
 
 A category cap lowers a rule's severity and never raises it: `severity = "error"`
 on a category will not promote a suggestion into a gate failure.
+
+## Word blocklist
+
+Off by default. Nothing checks your words until you name a file:
+
+```toml
+[vocabulary]
+path = "docs/blocklist.toml"     # relative to this config file
+```
+
+Each entry names a word, the part of speech it is refused as, and why:
+
+```toml
+[[entries]]
+word = "deploy"
+pos = "noun"
+replacement = "deployment"
+reason = "The verb is fine. The noun form is a verb used as a noun."
+
+[[entries]]
+word = "simple"
+pos = "adjective"
+reason = "Judges the reader's experience rather than the work."
+```
+
+`examples/blocklist.toml` is a working starter. `.yml` and `.json` load too.
+
+**The part of speech is the point.** `deploy` is a good verb and a bad noun, and
+one entry per sense is what lets you say so: "the deploy failed" is flagged and
+"deploy the worker" is not. Vale's tagger decides which is which.
+
+**`reason` is required.** The file is refused without one, on the grounds that an
+undocumented refusal cannot be reviewed or removed by anyone but its author.
+`replacement` is optional — omit it when the fix depends on the sentence, because
+a reader applies a suggestion without thinking.
+
+A word absent from the file is fine by definition. There is no way to express "only
+these words are allowed", and that is deliberate: this package shipped an
+ASD-STE100 word list enforced that way, and on ordinary software prose it produced
+828 findings for words that merely had no entry — half of everything it reported.
+The list is deleted rather than disabled. A blocklist you wrote is the only word
+list that knows your domain.
 
 ## Suppressing a finding
 
@@ -78,7 +137,7 @@ A suppression must name an exception from the rule's own list:
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-`slopvac-lint explain orwell.stale-figure` lists the valid reasons. An annotation
+`slopvac explain orwell.stale-figure` lists the valid reasons. An annotation
 naming a reason that is not on the list is reported rather than honoured, and the
 suppression rate is tracked as a metric.
 
@@ -114,10 +173,10 @@ Rules are data. Each lives in a YAML file under `rules/<category>.yml`, so addin
 a lexical, substitution, or threshold rule needs no code.
 
 ```sh
-slopvac-lint rules --profile strict
-slopvac-lint rules --judgement          # what a linter cannot check
-slopvac-lint explain ste-sentences.max-words
-slopvac-lint lint --rules-dir ./my-rules docs/
+slopvac rules --profile strict
+slopvac rules --judgement          # what a linter cannot check
+slopvac explain ste-sentences.max-words
+slopvac lint --rules-dir ./my-rules docs/
 ```
 
 Every rule is validated at load: each regex is compiled, and each example's `bad`
@@ -149,9 +208,8 @@ does not read for truth. A sentence can pass every rule and name a function that
 does not exist, describe a flag that never shipped, or contradict the paragraph
 above it.
 
-The part-of-speech tagger is shallow by design and reports nothing when the
-surrounding tokens leave a word ambiguous, so the approved-word check misses
-cases rather than firing on correct prose.
+No word list ships, and the word check does nothing until you write one. See
+[Word blocklist](#word-blocklist).
 
 ## Sources
 
@@ -160,9 +218,8 @@ rule number. ASD-STE100 is copyright
 [ASD](https://www.asd-ste100.org) and is an EU registered trademark; this package
 reproduces none of its rule text, definitions, or examples.
 
-The approved-word data is the Issue 9 dictionary's word, part-of-speech, and
-status triples. Deviations for software documentation are held separately in
-`vocabulary-overlay.yml` so every one of them is visible.
+No dictionary content is shipped or read. An earlier version carried the Issue 9
+word list; it is removed, and the word check now reads a blocklist you write.
 
 The AI-slop rules are calibrated against a corpus of software documentation. The
 lexical ones perish: a memorized word list tracks one model generation, which is

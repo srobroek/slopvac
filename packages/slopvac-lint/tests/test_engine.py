@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from slopvac_lint.analyze import count_words, classify_text_type, parse
-from slopvac_lint.config import (
+from slopvac.analyze import count_words, classify_text_type, parse
+from slopvac.config import (
     CategorySettings,
     Config,
     Override,
@@ -15,10 +15,15 @@ from slopvac_lint.config import (
     Thresholds,
     resolve_for,
 )
-from slopvac_lint.engine import Engine, count_clause_boundaries
-from slopvac_lint.model import TextType
-from slopvac_lint.rules import load_ruleset
-from slopvac_lint.score import MIN_WORDS_FOR_DENSITY, score_document
+from slopvac.engine import (
+    Engine,
+    _is_all_caps,
+    _inside_quotation,
+    count_clause_boundaries,
+)
+from slopvac.model import TextType
+from slopvac.rules import load_ruleset
+from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
 from pathlib import Path
 
 
@@ -235,7 +240,7 @@ def _engine(profile=Profile.NORMAL, **config_kwargs) -> Engine:
     return Engine(ruleset.rules, resolve_for(config, Path("/repo/a.md")))
 
 
-def test_category_cap_lowers_severity():
+def test_category_severity_lowers_severity():
     engine = _engine(
         categories={"orwell": CategorySettings(severity=Severity.SUGGESTION)}
     )
@@ -243,18 +248,34 @@ def test_category_cap_lowers_severity():
     assert engine.severity_for(rule) is Severity.SUGGESTION
 
 
-def test_category_cap_never_raises_severity():
-    """A coarse dial must not create blocking findings the rule author never
-    intended."""
+def test_category_severity_raises_severity():
+    """A category severity is a decision, so it promotes as well as demotes.
+
+    Capping downward only meant `[categories.x] severity = "error"` silently did
+    nothing: the project wrote the promotion it asked for and the gate ignored it,
+    which is worse than either honouring it or rejecting the key.
+    """
     engine = _engine(
         categories={"prose-craft": CategorySettings(severity=Severity.ERROR)}
     )
-    for rule in engine.rules:
-        if rule.category != "prose-craft":
-            continue
-        if rule.severity is Severity.SUGGESTION:
-            assert engine.severity_for(rule) is Severity.SUGGESTION
-            return
+    promoted = [
+        rule
+        for rule in engine.rules
+        if rule.category == "prose-craft" and rule.severity is not Severity.ERROR
+    ]
+    assert promoted, "no prose-craft rule ships below error; the test proves nothing"
+    for rule in promoted:
+        assert engine.severity_for(rule) is Severity.ERROR
+
+
+def test_rule_override_still_beats_category_severity():
+    """Narrowest wins, so one rule can opt out of its category's severity."""
+    engine = _engine(
+        categories={"orwell": CategorySettings(severity=Severity.ERROR)},
+        rules={"orwell.stale-figure": RuleSettings(severity=Severity.WARNING)},
+    )
+    rule = next(r for r in engine.rules if r.qualified_id == "orwell.stale-figure")
+    assert engine.severity_for(rule) is Severity.WARNING
     pytest.skip("no suggestion-level rule in prose-craft to test against")
 
 
@@ -470,3 +491,197 @@ def test_score_decreases_monotonically_with_findings():
     )
     assert len(heavy) > len(light)
     assert _score(heavy, 200).score < _score(light, 200).score
+
+
+# --- register regression: RFC 2119 normative keywords ------------------------
+#
+# Found by the independent eval corpus (`evals/independent/`), not by a fixture
+# written to pass. The corpus is eight documents written by agents given a genre
+# and nothing else, so no document was authored against these rules. The
+# specification-register document opened with the RFC 2119 boilerplate and drew
+# five findings telling its author to write `must` in place of `SHOULD`, which
+# strengthens a requirement the author deliberately left optional. That is a
+# wrong lint, not a noisy one.
+
+
+def test_all_caps_normative_keywords_are_not_rewritten():
+    """`SHOULD` is weaker than `MUST` in RFC 2119; advising the swap inverts it."""
+    findings = _run(
+        "The key words MUST, SHALL, SHOULD, and MAY are to be interpreted as\n"
+        "described in RFC 2119.\n"
+        "\n"
+        "A server that reaches the configured maximum SHOULD include the\n"
+        "`Upload-Max-Length` header field.\n",
+        profile=Profile.STRICT,
+    )
+    offenders = [
+        f for f in findings
+        if f.rule_id.endswith("obligation-word-substitution")
+        or f.rule_id.endswith("approved-word-substitution")
+    ]
+    assert not offenders, (
+        "an all-caps RFC 2119 keyword was flagged for substitution: "
+        + ", ".join(f"{f.rule_id} on {f.matched_text!r}" for f in offenders)
+    )
+
+
+def test_lowercase_obligation_word_still_fires():
+    """The case-sensitivity is a carve-out for capitals, not a removal."""
+    findings = _run(
+        "The worker should retry the request before it reports a failure.",
+        profile=Profile.STRICT,
+    )
+    assert any(
+        f.rule_id.endswith("obligation-word-substitution") for f in findings
+    ), "lowercase `should` no longer reports; the carve-out is too wide"
+
+
+def test_named_contract_is_not_a_relation_term():
+    """"Master Subscription Agreement" is an instrument's proper name.
+
+    Also from `evals/independent/`: the legal-register document drew advice to
+    rename a contract the writer does not own. The relation sense still reports.
+    """
+    exempt = _run(
+        "This Notice forms part of the Master Subscription Agreement between the\n"
+        "Customer and the Vendor.\n"
+    )
+    assert not [f for f in exempt if f.rule_id == "prose-inclusive.exclusive"]
+
+    relation = _run("Promote the replica to master when the node fails over.")
+    assert [f for f in relation if f.rule_id == "prose-inclusive.exclusive"], (
+        "the relation sense of `master` stopped reporting; the carve-out is too wide"
+    )
+
+
+# --- all-caps carve-out -------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "matched,expected,why",
+    [
+        ("MUST", True, "RFC 2119 normative keyword"),
+        ("DATABASE_URL", True, "identifier"),
+        ("JSON", True, "initialism"),
+        ("WARNING", True, "safety marker"),
+        ("is IMPORTANT", True, "capitalised word carries the rule, `is` is scaffold"),
+        ("ENSURE the", True, "same, with a trailing article"),
+        ("Ensure", False, "title case is ordinary prose"),
+        ("ensure", False, "lowercase is ordinary prose"),
+        ("A", False, "a single capital is not shouting"),
+        ("The", False, "sentence-initial capital is not shouting"),
+        ("is robust", False, "no capitalised word at all"),
+        (
+            "MUST be set correctly by the caller",
+            False,
+            "too many words to be a token; a real sentence must stay checkable",
+        ),
+    ],
+)
+def test_all_caps_predicate(matched, expected, why):
+    assert _is_all_caps(matched) is expected, why
+
+
+def test_all_caps_words_do_not_draw_prose_findings():
+    """An identifier and a safety marker are not prose defects.
+
+    `ENSURE` drew a substitution telling the author to write "make sure" and
+    `is IMPORTANT` was reported as passive voice. Both are the capitals doing
+    their job, and both were found by the independent eval corpus.
+    """
+    findings = _run(
+        "Set DATABASE_URL before you start the worker.\n"
+        "\n"
+        "The API returns JSON over HTTP. TLS is REQUIRED.\n"
+        "\n"
+        "You should ENSURE the value is correct.\n",
+        profile=Profile.STRICT,
+    )
+    caps_hits = [
+        f for f in findings
+        if f.matched_text and _is_all_caps(f.matched_text)
+    ]
+    assert not caps_hits, "an all-caps token drew a prose finding: " + ", ".join(
+        f"{f.rule_id} on {f.matched_text!r}" for f in caps_hits
+    )
+
+
+def test_lowercase_equivalent_still_fires():
+    """The carve-out is about capitals, not about the words."""
+    findings = _run("You should ensure the value is correct.", profile=Profile.STRICT)
+    assert [f for f in findings if f.matched_text.lower().startswith("ensure")], (
+        "lowercase `ensure` stopped reporting; the carve-out is too wide"
+    )
+
+
+# --- the `quotation` exception -------------------------------------------------
+#
+# Found by linting this project's OWN steering document: it drew 7 errors and
+# every one was a phrase it was quoting in order to forbid it. 11 rules already
+# declared `quotation` in their exception lists and no engine honoured it.
+
+
+@pytest.mark.parametrize(
+    "line, phrase, quoted, why",
+    [
+        (
+            'NOT Puffery: an adjective like "world-class" that praises.',
+            "world-class",
+            True,
+            "the banned word, quoted so the rule can name it",
+        ),
+        (
+            'MUST Use a verb: "analyze the log", not "perform an analysis of it".',
+            "perform an analysis",
+            True,
+            "second quotation on the same line still counts",
+        ),
+        (
+            "Say “Experts agree” and you have dodged the attribution.",
+            "Experts agree",
+            True,
+            "curly quotes, which every editor inserts silently",
+        ),
+        (
+            "This parser is world-class and comprehensive.",
+            "world-class",
+            False,
+            "unquoted use is the defect the rule exists for",
+        ),
+        (
+            "Don't use it; the team's build isn't ready for world-class claims.",
+            "world-class",
+            False,
+            "APOSTROPHES MUST NOT PAIR INTO A QUOTATION. An early version of the "
+            "predicate read \"'t use it; the team'\" as a quoted span, which would "
+            "have silenced every finding between two apostrophes in ordinary "
+            "English prose",
+        ),
+        (
+            'Set width to 30" and height to 12" for a world-class finish.',
+            "world-class",
+            False,
+            "INCH MARKS MUST NOT PAIR EITHER. Same defect, different mark: the "
+            "two inch marks bracketed the phrase",
+        ),
+    ],
+)
+def test_quotation_predicate(line, phrase, quoted, why):
+    start = line.index(phrase)
+    assert _inside_quotation(line, start, start + len(phrase)) is quoted, why
+
+
+def test_quoted_illustration_does_not_fail_a_style_guide():
+    """A document that BANS a phrase has to print the phrase.
+
+    This is the regression that matters: without the exception, no style guide
+    can pass its own gate, and the linter's own steering file was the proof.
+    """
+    guide = (
+        "# House style\n\n"
+        'NOT Puffery: an adjective that praises rather than describes ("world-class",\n'
+        '"comprehensive", "battle-tested"). State the fact that would earn it.\n'
+    )
+    document = parse("guide.md", guide)
+    fired = {f.rule_id for f in _engine().run(document)}
+    assert "orwell.unsupported-evaluative" not in fired

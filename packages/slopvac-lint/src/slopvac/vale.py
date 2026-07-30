@@ -138,7 +138,7 @@ def run_compiled_vale(
     if "E201" in combined or "error parsing regexp" in combined:
         result.unchecked.append(
             "Vale rejected a compiled rule (E201) and therefore linted NOTHING. "
-            "Run `slopvac-lint compile --outdir <dir>` and check that directory."
+            "Run `slopvac compile --outdir <dir>` and check that directory."
         )
         return result
 

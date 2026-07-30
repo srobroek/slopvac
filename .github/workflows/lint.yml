@@ -70,6 +70,50 @@ jobs:
           find . -name '*.sh' -not -path './.git/*' -print0 |
             xargs -0 shellcheck --severity=warning
 
+  # Runs this repo's own action against this repo, from the working tree rather
+  # than a published tag. A composite action that breaks is only visible when it
+  # is executed, and no unit test executes one.
+  action:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write  # the SARIF upload
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # changed-files-only needs the merge base
+
+      - name: Run the action on this repo's docs
+        id: slopvac
+        uses: ./
+        with:
+          paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
+          source: ./packages/slopvac-lint  # the working tree, not the last release
+          sarif: "true"
+          # The docs do not pass their own gate yet, and a red required check
+          # every run trains people to ignore it. The annotations and the alerts
+          # are the deliverable here; flip this to true once the corpus is clean.
+          fail-on-findings: "false"
+
+      - name: Report what the action returned
+        env:
+          SCORE: ${{ steps.slopvac.outputs.score }}
+          FINDINGS: ${{ steps.slopvac.outputs.findings }}
+          ERRORS: ${{ steps.slopvac.outputs.errors }}
+          PASSED: ${{ steps.slopvac.outputs.passed }}
+          SARIF: ${{ steps.slopvac.outputs.sarif }}
+        run: |
+          set -euo pipefail
+          echo "score=$SCORE findings=$FINDINGS errors=$ERRORS passed=$PASSED"
+          # An empty output means the step exited before writing them, which is a
+          # broken action reported as a clean run.
+          test -n "$SCORE" || { echo "the action returned no score"; exit 1; }
+          test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
+          python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
+
   prose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -101,6 +145,6 @@ jobs:
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
-          uvx --from ./packages/slopvac-lint slopvac-lint lint \
+          uvx --from ./packages/slopvac-lint slopvac lint \
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/vale-styles/README.md

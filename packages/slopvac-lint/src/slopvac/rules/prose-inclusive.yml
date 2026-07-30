@@ -121,7 +121,13 @@ rules:
       '\bwhite[- ]?listed\b': allowlisted
       '\bwhite[- ]?listing\b': allowlisting
       '\bgrey[- ]?list\b': greylist (rename to a neutral term)
-      '\bmaster(?! branch| boot record| broker| key| password| node)\b': primary, main, source, controller
+      # The lookahead list holds the settled compounds where `master` names no
+      # relation between parties, so renaming it changes the referent. The
+      # contract forms were added after an independent eval corpus flagged
+      # "Master Subscription Agreement" in a data-processing notice: that is a
+      # legal instrument's proper name, and the advice was to rename a document
+      # the writer does not own.
+      '\bmaster(?! branch| boot record| broker| key| password| node| subscription agreement| serviced? agreement| licen[cs]e agreement| agreement| data)\b': primary, main, source, controller
       '\bslave(?! broker)\b': replica, secondary, worker, follower
       '\bmaster/slave\b': primary/replica
       '\bdummy (?:data|value|file|object|variable)\b': placeholder, mock, sample
@@ -147,7 +153,9 @@ rules:
         good: Add the host to the allowlist.
       - bad: Promote the slave to master.
         good: Promote the replica to primary.
-        note: '"master branch" and "master boot record" are exempt by lookahead.'
+        note: >-
+          "master branch", "master boot record", and the named contract forms
+          ("Master Subscription Agreement") are exempt by lookahead.
     provenance:
       source: vale-styles/prose-inclusive/Exclusive.yml
       url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md

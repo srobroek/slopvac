@@ -15,7 +15,7 @@ kinds, and the second is why the lexical and metric paths still exist:
   metrics with no Vale expression, and five are structure rules needing
   cross-block comparison. `compile_ruleset` names each one and its reason.
 
-The routing is not a static list: `slopvac-lint compile` prints it, and a rule
+The routing is not a static list: `slopvac compile` prints it, and a rule
 moves here the moment Vale rejects its pattern, which is tested by execution on
 every compile.
 
@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import regex as re
 from dataclasses import dataclass
+from typing import Any
 
 from .analyze import (
     ABSTRACTION_SUFFIX,
@@ -109,6 +110,133 @@ _CLAUSE_JOIN = re.compile(
 def count_clause_boundaries(text: str) -> int:
     """How many times this sentence starts a new independent idea."""
     return len(_CLAUSE_JOIN.findall(text))
+
+
+# Two capitals minimum, and at least one letter, so a single capital and an
+# ordinary sentence-initial word are NOT exempt. Digits, underscores, hyphens, and
+# dots ride along, which is what makes `DATABASE_URL`, `RFC 2119`, and `TLS1.3`
+# count as all-caps while `Ensure` does not.
+# A quotation opens at a word boundary and closes against a non-space. The
+# boundary guards are load-bearing, not defensive:
+#   `Set width to 30" and height to 12"` paired the two INCH marks into a span,
+#   which would have silenced every finding between them.
+# There is deliberately NO straight-single branch. `'` is the apostrophe, so
+# "Don't use it; the team's build" parses as the quotation `'t use it; the team'`
+# — a rule-silencing span in ordinary English. A single-quoted phrase is rare in
+# technical prose and not worth that trade.
+_QUOTED_SPAN = re.compile(
+    r"""
+      (?<![\w"”])  "  [^"\n]{1,200}  (?<!\s)  "  (?![\w])   # straight double
+    | (?<![\w“])    “  [^”\n]{1,200}                   ”
+    | (?<![\w‘])    ‘  [^’\n]{1,200}                   ’
+    """,
+    re.VERBOSE,
+)
+
+
+def _inside_quotation(text: str, start: int, end: int) -> bool:
+    """Is this match wholly inside a quoted span on the same line?
+
+    A document that BANS a phrase has to print the phrase. Without this, every
+    style guide fails its own gate: `write-docs.context.md` drew 7 errors, all of
+    them the phrase it was forbidding ("Experts agree", "world-class", "perform an
+    analysis"). The rules already declare `quotation` in their exception lists; the
+    engine simply never detected one.
+
+    Line-scoped and length-capped on purpose. A quote mark is also an apostrophe, a
+    unit of inches, and a shell quote, so an unbounded scan pairs marks that were
+    never a quotation and silences half a document.
+    """
+    return any(
+        span.start() < start and end <= span.end() - 1
+        for span in _QUOTED_SPAN.finditer(text)
+    )
+
+
+def drop_quoted_illustrations(
+    findings: list[Finding], document: Document, ruleset: Any
+) -> list[Finding]:
+    """Apply the `quotation` exception to findings the native engine did not raise.
+
+    Vale never sees a rule's exception list, so without this the exception holds for
+    only the half of the ruleset the native engine runs, and which half a rule lands
+    in is an implementation detail no author can predict.
+
+    A finding survives unless its own rule declares `quotation` AND its matched text
+    sits inside a quoted span on its line. A finding carrying no `matched_text`
+    cannot be located, so it survives.
+    """
+    kept: list[Finding] = []
+    for finding in findings:
+        rule = ruleset.by_id(finding.rule_id)
+        index = finding.line - 1
+        if (
+            rule is not None
+            and "quotation" in rule.exceptions
+            and finding.matched_text
+            and 0 <= index < len(document.raw_lines)
+        ):
+            line = document.raw_lines[index]
+            start = line.find(finding.matched_text)
+            if start != -1 and _inside_quotation(
+                line, start, start + len(finding.matched_text)
+            ):
+                continue
+        kept.append(finding)
+    return kept
+
+
+_ALL_CAPS = re.compile(r"^[^a-z]*[A-Z][^a-z]*[A-Z][^a-z]*$")
+
+
+def _is_all_caps(matched: str) -> bool:
+    """Is this match written entirely in capitals?
+
+    WHY A MATCH LIKE THIS IS EXEMPT BY DEFAULT. An all-caps token in technical
+    prose is nearly always one of four things, and no prose rule is about any of
+    them:
+
+      - a normative keyword    RFC 2119 MUST / SHOULD / MAY
+      - an identifier          DATABASE_URL, MAX_RETRY_COUNT
+      - an initialism          JSON, TLS, HTTP
+      - a safety marker        WARNING, CAUTION
+
+    Two live false positives motivated this, both found by the independent eval
+    corpus rather than by a fixture: `ENSURE` drew a substitution telling the
+    author to write "make sure", and `is IMPORTANT` was reported as passive voice.
+    Neither is a prose defect; both are the capitals doing their job.
+
+    A rule that IS about the capitals themselves sets `match_all_caps: true`.
+
+    A MULTI-WORD MATCH IS EXEMPT WHEN ITS CAPITALISED WORD CARRIES THE RULE. A
+    pattern often captures a neighbour for context: passive voice matched
+    "is IMPORTANT" and a conjunction rule matched "ENSURE the". The capitalised
+    word is the one being judged and the lowercase neighbour is only scaffolding,
+    so the whole-span test is too strict. Requiring EVERY alphabetic word in the
+    span to be either all-caps or a short function word keeps that exemption from
+    swallowing a real sentence, which would be all-caps only if it were shouting.
+    """
+    if _ALL_CAPS.match(matched):
+        return True
+    words = re.findall(r"[A-Za-z][A-Za-z0-9_.-]*", matched)
+    if not words or len(words) > 4:
+        return False
+    capitalised = [w for w in words if _ALL_CAPS.match(w)]
+    if not capitalised:
+        return False
+    return all(w in _SCAFFOLD_WORDS or _ALL_CAPS.match(w) for w in words)
+
+
+# Function words a pattern picks up as context around the word it judges. Short and
+# closed on purpose: a longer list starts exempting real prose.
+_SCAFFOLD_WORDS = frozenset(
+    {
+        "is", "are", "was", "were", "be", "been", "being", "am",
+        "the", "a", "an", "this", "that", "these", "those",
+        "and", "or", "not", "to", "of", "in", "on", "for", "with", "as", "at",
+        "it", "its", "if", "then", "by", "from",
+    }
+)
 
 
 # Metric names `_run_metric` knows how to measure. A rule naming anything else
@@ -231,9 +359,23 @@ def match_substitution(substitutions: dict[str, str], matched: str) -> str | Non
 class Engine:
     """Runs one ruleset against one document."""
 
-    def __init__(self, rules: list[Rule], config: ResolvedConfig) -> None:
+    def __init__(
+        self,
+        rules: list[Rule],
+        config: ResolvedConfig,
+        only: set[str] | None = None,
+    ) -> None:
+        """`only` restricts execution to the named qualified ids.
+
+        The caller passes the rules Vale did NOT take, so the two engines partition
+        the ruleset instead of both running everything -- which reported every
+        finding twice. Left as None the engine runs everything it selects, which is
+        what `severity_for` callers and the tests want.
+        """
         self.config = config
         self.rules = [r for r in rules if self._active(r)]
+        if only is not None:
+            self.rules = [r for r in self.rules if r.qualified_id in only]
         self._compiled: dict[str, re.Pattern[str]] = {}
 
     # --- rule selection -------------------------------------------------------
@@ -265,22 +407,34 @@ class Engine:
     def severity_for(self, rule: Rule) -> Severity:
         """Resolve the level this rule reports at.
 
-        Precedence, narrowest wins: rule override > category cap > tier
-        disposition > the rule's shipped severity. A category cap LOWERS but never
-        raises, so `severity = "error"` on a category does not promote a
-        suggestion into a gate failure -- that would let a coarse dial create
-        findings the rule author never intended to be blocking.
+        Precedence, narrowest wins: rule override > category severity > tier
+        disposition > the rule's shipped severity. A category severity SETS the
+        level in both directions, so `severity = "error"` promotes and
+        `severity = "warning"` demotes.
         """
         severity = rule.severity
 
         if rule.tier_for(self.config.profile.value) is Tier.ADVISORY:
-            if severity.rank > Severity.WARNING.rank:
-                severity = Severity.WARNING
+            # SUGGESTION, not WARNING. An advisory rule is one the profile does not
+            # stand behind, so it must not be able to fail the run on its own -- and
+            # capping at WARNING let it do exactly that through the density budget,
+            # which counts by severity weight rather than by tier. Measured: the
+            # controlled-vocabulary rule is advisory at `normal` and still drove all
+            # 8 independent-corpus documents to score 0.0, contributing 78 of 154
+            # findings on a correct specification. "Advisory" that fails the gate is
+            # just "enforced" with a quieter label.
+            if severity.rank > Severity.SUGGESTION.rank:
+                severity = Severity.SUGGESTION
 
+        # Set, not cap. Capping downward only made `[categories.x] severity =
+        # "error"` silently do nothing: the project wrote the promotion it wanted and
+        # the gate ignored it, which is worse than either honouring or rejecting it.
+        # This deliberately overrides the advisory cap above -- naming a category and
+        # asking for `error` says the profile's judgement about that category does not
+        # apply here, and the profile is the coarser dial of the two.
         category = self.config.categories.get(rule.category)
         if category is not None and category.severity is not None:
-            if category.severity.rank < severity.rank:
-                severity = category.severity
+            severity = category.severity
 
         override = self.config.rules.get(rule.qualified_id)
         if override is not None and override.severity is not None:
@@ -483,6 +637,12 @@ class Engine:
                 # e.g. "iron resolution" allowing "iron".
                 window = text[max(0, match.start() - 30) : match.end() + 30].lower()
                 if any(entry in window for entry in allowed if " " in entry):
+                    continue
+                if not rule.match_all_caps and _is_all_caps(matched):
+                    continue
+                if "quotation" in rule.exceptions and _inside_quotation(
+                    text, match.start(), match.end()
+                ):
                     continue
 
                 replacement = None

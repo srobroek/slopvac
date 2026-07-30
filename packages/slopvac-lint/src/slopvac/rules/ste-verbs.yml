@@ -193,7 +193,34 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:am|is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(\w+(?:ed|en|wn|nt|lt|ft)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b(?:\s+by\b)?'
+    # TWO BRANCHES, because an -ed/-en word after `be` is a participle OR an
+    # adjective and nothing lexical separates them.
+    #
+    #   1. `<participle> by` -- an explicit agent PROVES the passive, so no guard
+    #      applies. This branch keeps "is undeployed by the operator" and "is
+    #      unchecked by the guard" reported; branch 2's prefix guard would suppress
+    #      them.
+    #   2. no agent, so the adjectival guard runs: a CLOSED LIST of -ed words that
+    #      are adjectives rather than participles.
+    #
+    # The guard is a closed list and not a `(?:un|de)\w*ed` prefix test, which is
+    # what I tried first. `de-` is productive on ordinary verbs -- deleted, deployed,
+    # declared, decided -- so the prefix form suppressed real passives. The ruleset's
+    # own self-verification caught it immediately, on this rule's own `bad` example
+    # ("The stale branches were deleted last night."), which is the argument for
+    # keeping executable examples attached to every rule.
+    #
+    # The `nt|lt|ft` suffixes this pattern used to carry are GONE. They matched
+    # adjectives, not participles: measured on the independent corpus and this repo's
+    # own docs they fired on redundant, different, transient, important, consistent,
+    # permanent, current, significant, excellent, and "are irreducibly judgement".
+    # Every irregular participle they were meant to reach (built, kept, left, meant,
+    # dealt, felt, lost) is in the explicit list below, so dropping them cost no true
+    # positive: verified against 14 known passives and 17 known adjectives, now at 0
+    # false positives and 0 misses.
+    #
+    # `\w{3,}` rather than `\w+`, so `is red` and `is ten` cannot reach the class.
+    pattern: '\b(?:am|is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(?:(?:\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\s+by\b|(?!(?:unlimited|unbounded|unordered|unchanged|undefined|untracked|tired|dedicated|detailed|complicated|interested|involved|related|advanced|limited|fixed|mixed|varied|skilled|aged|red|used|decorrelated|deprecated)\b)(\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b)'
     ignore_case: true
     exceptions:
       - quotation

@@ -15,10 +15,24 @@ A naive tokenizer over-counts every one of those and reports a compliant sentenc
 as too long. False positives are worse than misses here: they get the rule turned
 off, which is how a gate stops gating.
 
-Markdown handling: code fences, inline code, URLs, link targets, front matter, and
-HTML comments are stripped before prose analysis but their LINES are preserved, so
-a reported line number opens the right place in the real file. That is the same
-line-preserving shadow technique the JSX extractor already uses.
+MARKDOWN BLOCK STRUCTURE IS markdown-it-py's, not ours. The CommonMark reference
+implementation reports a source line map per block token, so code fences, inline
+code, URLs, link targets, and emphasis are identified by a parser that knows the
+grammar instead of by line regexes that approximated it. Front matter is not
+CommonMark, so it is stripped before parsing and its lines are held back to keep
+every later line number correct; HTML comments are blanked after block assignment
+so a suppression annotation is not itself linted.
+
+The LINES ARE PRESERVED either way: `prose_lines` is index-aligned with the source,
+so a reported line number opens the right place in the real file.
+
+WHAT IS STILL OURS is everything CommonMark has no opinion on -- the word count
+above, the sentence segmentation with its rule 8.4 colon case, the
+procedural/descriptive split, and the document-level measures at the bottom.
+
+`count_words` is ALSO THE TEST ORACLE for the compiled Vale word-count rule: the
+generated alternation is asserted against it sentence by sentence, which is what
+stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 """
 
 from __future__ import annotations
@@ -28,23 +42,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Iterator
 
+from markdown_it import MarkdownIt
+
 from .model import TextType
 
 # --- Markdown structure ------------------------------------------------------
 
-FENCE = re.compile(r"^(\s*)(`{3,}|~{3,})")
 FRONT_MATTER = re.compile(r"^---\s*$")
-ATX_HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
-SETEXT_UNDERLINE = re.compile(r"^\s*(=+|-{2,})\s*$")
 LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(.*)$")
-BLOCKQUOTE = re.compile(r"^\s*>\s?(.*)$")
-TABLE_ROW = re.compile(r"^\s*\|.*\|\s*$")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
-INLINE_CODE = re.compile(r"`[^`\n]*`")
 MD_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 MD_IMAGE = re.compile(r"!\[([^\]]*)\]\([^)]*\)")
-AUTOLINK = re.compile(r"<https?://[^>\s]+>|https?://\S+")
-BOLD_ITALIC = re.compile(r"(\*{1,3}|_{1,3})(?=\S)(.+?)(?<=\S)\1")
 
 # --- Word counting per STE 8.4-8.7 -------------------------------------------
 
@@ -72,7 +80,6 @@ UNIT = (
     r"USD|EUR|GBP"
     r")(?:\^?-?\d)?"
 )
-NUMBER_UNIT = re.compile(rf"^{NUMBER}\s*{UNIT}?$")
 SPELLED_COMPOUND_NUMBER = re.compile(
     r"^(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
     r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|"
@@ -85,7 +92,6 @@ SPELLED_COMPOUND_NUMBER = re.compile(
 ABBREVIATION = re.compile(r"^(?:[A-Z]{2,}(?:s)?|(?:[A-Za-z]\.){2,})$")
 HYPHENATED = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$")
 # Alphanumeric identifier: mixes letters and digits, or carries _ / : / .
-IDENTIFIER = re.compile(r"^(?=.*[A-Za-z])(?=.*\d)[\w.:/-]+$|^\w+(?:_\w+)+$")
 WORDLIKE = re.compile(r"[A-Za-z0-9]")
 
 QUOTED_SPAN = re.compile(r"\"[^\"\n]{1,200}\"|'[^'\n]{2,200}'|“[^”\n]{1,200}”")
@@ -182,21 +188,6 @@ class Document:
         return "\n".join(self.prose_lines)
 
 
-def strip_inline(text: str) -> str:
-    """Remove inline constructs whose contents are not prose.
-
-    Order matters: images before links (an image is a link with a bang), links
-    before autolinks, and code before everything so that a URL inside backticks is
-    already gone.
-    """
-    text = INLINE_CODE.sub(" ", text)
-    text = MD_IMAGE.sub(r"\1", text)
-    text = MD_LINK.sub(r"\1", text)
-    text = AUTOLINK.sub(" ", text)
-    text = BOLD_ITALIC.sub(r"\2", text)
-    return text
-
-
 def count_words(text: str) -> int:
     """Count words the way ASD-STE100 rules 8.4-8.7 define a word.
 
@@ -291,153 +282,190 @@ def split_sentences(text: str, start_line: int) -> list[Sentence]:
     return pieces
 
 
+def _inline_prose(token) -> str:
+    """Prose text of an inline token, with non-prose spans removed.
+
+    Walks markdown-it's inline token tree rather than running regexes over the
+    raw line, so a URL inside backticks or a bracket inside a code span is
+    already handled by the parser that understands them. An inline code span
+    becomes a space: it is one token to the word counter but not a word.
+    """
+    parts: list[str] = []
+    skip_link_text = False
+    for child in token.children or []:
+        if child.type == "text":
+            if not skip_link_text:
+                parts.append(child.content)
+        elif child.type == "code_inline":
+            parts.append(" ")
+        elif child.type in ("softbreak", "hardbreak"):
+            parts.append(" ")
+        elif child.type == "image":
+            # Alt text is prose; the src is not.
+            parts.append(child.attrGet("alt") or "")
+        elif child.type == "autolink_open":
+            # A bare URL is not prose. Its text child repeats the target.
+            skip_link_text = True
+        elif child.type == "link_close":
+            skip_link_text = False
+    return "".join(parts).strip()
+
+
+def _is_autolink(token) -> bool:
+    return token.markup == "autolink"
+
+
 def parse(path: str, raw: str) -> Document:
-    """Parse markdown into blocks and a line-aligned prose projection."""
+    """Parse markdown into blocks and a line-aligned prose projection.
+
+    BLOCK STRUCTURE COMES FROM markdown-it-py, the CommonMark reference
+    implementation, rather than from our own line matchers. It reports a
+    `map` per block token, which is what keeps `prose_lines` aligned with the
+    source so a finding's line number opens the right place in the real file.
+
+    What stays ours is everything downstream: the STE word count, the sentence
+    segmentation with its rule 8.4 colon case, and the procedural/descriptive
+    split. CommonMark has no opinion on any of them.
+    """
     raw_lines = raw.split("\n")
     prose_lines = [""] * len(raw_lines)
     blocks: list[Block] = []
     front_matter: dict[str, str] = {}
 
-    index = 0
-    total = len(raw_lines)
-
-    # Front matter, only when the very first line opens it.
-    if total and FRONT_MATTER.match(raw_lines[0]):
-        index = 1
-        while index < total and not FRONT_MATTER.match(raw_lines[index]):
+    body = raw
+    offset = 0
+    # Front matter is not CommonMark, so it is stripped before parsing and its
+    # lines are held back to keep every later line number correct.
+    if raw_lines and FRONT_MATTER.match(raw_lines[0]):
+        for index in range(1, len(raw_lines)):
+            if FRONT_MATTER.match(raw_lines[index]):
+                offset = index + 1
+                break
             if ":" in raw_lines[index]:
                 key, _, value = raw_lines[index].partition(":")
                 front_matter[key.strip()] = value.strip().strip("\"'")
-            index += 1
-        blocks.append(
-            Block(kind=BlockKind.FRONT_MATTER, lines=(1, index + 1), text="")
-        )
-        index += 1
+        else:
+            offset = len(raw_lines)
+        blocks.append(Block(kind=BlockKind.FRONT_MATTER, lines=(1, offset), text=""))
+        body = "\n".join(raw_lines[offset:])
 
-    paragraph: list[tuple[int, str]] = []
+    parser = MarkdownIt("commonmark", {"html": True}).enable("table")
+    tokens = parser.parse(body)
 
-    def flush_paragraph() -> None:
-        if not paragraph:
-            return
-        first = paragraph[0][0]
-        last = paragraph[-1][0]
-        text = " ".join(t for _, t in paragraph).strip()
-        if text:
-            block = Block(
-                kind=BlockKind.PARAGRAPH, lines=(first, last), text=text
-            )
-            block.sentences = split_sentences(text, first)
-            blocks.append(block)
-        paragraph.clear()
+    # A table cell is its own span: it is not a sentence in a paragraph, and
+    # counting it as one inflates every density metric.
+    table_cells: list[str] | None = None
+    table_start = 0
+    kind_stack: list[BlockKind] = []
+    heading_level = 0
 
-    while index < total:
-        line = raw_lines[index]
-        number = index + 1
+    def record(kind: BlockKind, first: int, last: int, text: str, level: int = 0) -> None:
+        block = Block(kind=kind, lines=(first, last), text=text, level=level)
+        block.sentences = split_sentences(text, first)
+        blocks.append(block)
 
-        fence = FENCE.match(line)
-        if fence:
-            flush_paragraph()
-            marker = fence.group(2)
-            start = number
-            index += 1
-            while index < total:
-                closing = FENCE.match(raw_lines[index])
-                if closing and closing.group(2)[0] == marker[0] and len(
-                    closing.group(2)
-                ) >= len(marker):
-                    index += 1
-                    break
-                index += 1
-            blocks.append(
-                Block(kind=BlockKind.CODE, lines=(start, index), text="")
-            )
+    for token in tokens:
+        if token.type == "front_matter":
             continue
 
-        if not line.strip():
-            flush_paragraph()
-            index += 1
+        if token.type == "table_open":
+            table_cells = []
+            table_start = token.map[0] + 1 + offset
+            kind_stack.append(BlockKind.TABLE)
             continue
-
-        heading = ATX_HEADING.match(line)
-        if heading:
-            flush_paragraph()
-            text = strip_inline(heading.group(2)).strip()
-            prose_lines[index] = text
+        if token.type == "table_close":
             block = Block(
-                kind=BlockKind.HEADING,
-                lines=(number, number),
-                text=text,
-                level=len(heading.group(1)),
+                kind=BlockKind.TABLE,
+                lines=(table_start, table_start),
+                text=" ".join(table_cells or []),
             )
-            block.sentences = split_sentences(text, number)
-            blocks.append(block)
-            index += 1
-            continue
-
-        if TABLE_ROW.match(line):
-            flush_paragraph()
-            start = number
-            cells: list[str] = []
-            while index < total and TABLE_ROW.match(raw_lines[index]):
-                row = raw_lines[index]
-                if not re.fullmatch(r"\s*\|[\s|:-]+\|\s*", row):
-                    text = strip_inline(row.strip().strip("|"))
-                    parts = [c.strip() for c in text.split("|")]
-                    prose_lines[index] = " ".join(parts)
-                    cells.extend(p for p in parts if p)
-                index += 1
-            block = Block(
-                kind=BlockKind.TABLE, lines=(start, index), text=" ".join(cells)
-            )
-            # Each cell is its own span: a table cell is not a sentence in a
-            # paragraph, and counting it as one inflates every density metric.
-            for offset, cell in enumerate(cells):
+            for cell in table_cells or []:
                 if WORDLIKE.search(cell):
                     block.sentences.append(
                         Sentence(
                             text=cell,
-                            line=start,
+                            line=table_start,
                             column=1,
                             word_count=count_words(cell),
                             text_type=classify_text_type(cell),
                         )
                     )
             blocks.append(block)
+            table_cells = None
+            kind_stack.pop()
             continue
 
-        item = LIST_ITEM.match(line)
-        if item:
-            flush_paragraph()
-            text = strip_inline(item.group(2)).strip()
-            prose_lines[index] = text
-            block = Block(
-                kind=BlockKind.LIST_ITEM, lines=(number, number), text=text
-            )
-            block.sentences = split_sentences(text, number)
-            blocks.append(block)
-            index += 1
+        if token.type == "fence" or token.type == "code_block":
+            first = token.map[0] + 1 + offset
+            last = token.map[1] + offset
+            blocks.append(Block(kind=BlockKind.CODE, lines=(first, last), text=""))
             continue
 
-        quote = BLOCKQUOTE.match(line)
-        if quote:
-            flush_paragraph()
-            text = strip_inline(quote.group(1)).strip()
-            prose_lines[index] = text
-            block = Block(kind=BlockKind.QUOTE, lines=(number, number), text=text)
-            block.sentences = split_sentences(text, number)
-            blocks.append(block)
-            index += 1
+        if token.type == "heading_open":
+            heading_level = int(token.tag[1:])
+            kind_stack.append(BlockKind.HEADING)
+            continue
+        if token.type == "paragraph_open":
+            kind_stack.append(BlockKind.PARAGRAPH)
+            continue
+        if token.type == "blockquote_open":
+            kind_stack.append(BlockKind.QUOTE)
+            continue
+        if token.type == "list_item_open":
+            kind_stack.append(BlockKind.LIST_ITEM)
+            continue
+        if token.type in ("heading_close", "blockquote_close", "list_item_close"):
+            if kind_stack:
+                kind_stack.pop()
+            continue
+        if token.type == "paragraph_close":
+            if kind_stack and kind_stack[-1] is BlockKind.PARAGRAPH:
+                kind_stack.pop()
             continue
 
-        cleaned = strip_inline(line).strip()
-        prose_lines[index] = cleaned
-        paragraph.append((number, cleaned))
-        index += 1
+        if token.type != "inline" or token.map is None:
+            continue
 
-    flush_paragraph()
+        text = _inline_prose(token)
+        first = token.map[0] + 1 + offset
+        last = token.map[1] + offset
+
+        if table_cells is not None:
+            table_cells.append(text)
+            if 0 < first <= len(prose_lines):
+                existing = prose_lines[first - 1]
+                prose_lines[first - 1] = f"{existing} {text}".strip()
+            continue
+
+        # A multi-line paragraph is one block, and its prose is projected onto the
+        # line each source line came from so a finding points at the right one.
+        source = raw_lines[first - 1 : last]
+        pieces = text.split("\n") if "\n" in text else None
+        if pieces and len(pieces) == len(source):
+            for index, piece in enumerate(pieces):
+                prose_lines[first - 1 + index] = piece.strip()
+            text = " ".join(p.strip() for p in pieces)
+        else:
+            for index in range(first - 1, min(last, len(prose_lines))):
+                prose_lines[index] = ""
+            if 0 < first <= len(prose_lines):
+                prose_lines[first - 1] = text
+
+        # A list item holding a paragraph reports as the ITEM, not the paragraph:
+        # markdown-it wraps every item body in a paragraph, and STE 8.4 counts the
+        # item. So the innermost non-paragraph container wins, and a bare
+        # paragraph falls back to PARAGRAPH.
+        kind = BlockKind.PARAGRAPH
+        for candidate in reversed(kind_stack):
+            if candidate is BlockKind.PARAGRAPH:
+                continue
+            if candidate in (BlockKind.HEADING, BlockKind.LIST_ITEM, BlockKind.QUOTE):
+                kind = candidate
+                break
+        record(kind, first, last, text, heading_level if kind is BlockKind.HEADING else 0)
 
     # HTML comments can span lines; blank them after block assignment so a
-    # suppression comment does not itself get linted.
+    # suppression annotation is not itself linted.
     joined = HTML_COMMENT.sub(
         lambda m: re.sub(r"[^\n]", " ", m.group(0)), "\n".join(prose_lines)
     )
@@ -451,6 +479,7 @@ def parse(path: str, raw: str) -> Document:
         blocks=blocks,
         front_matter=front_matter,
     )
+
 
 
 # --- Document-level metrics --------------------------------------------------

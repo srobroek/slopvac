@@ -8,6 +8,7 @@ weight: 1.2
 recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
 rules:
   - id: slop-lexicon
+    exceptions: [quotation]
     name: Replace a marketing adjective with a measurable claim
     kind: pattern
     severity: error
@@ -63,6 +64,7 @@ rules:
         Enforced at every tier and kept at error for source comments in .vale.ini.
 
   - id: vague-declarative
+    exceptions: [quotation]
     name: Name the specific thing
     kind: pattern
     severity: error
@@ -170,6 +172,7 @@ rules:
         genre.
 
   - id: uncomparables
+    exceptions: [quotation]
     name: Drop the intensifier from an absolute
     kind: pattern
     severity: error
@@ -199,6 +202,7 @@ rules:
         possible configurations".
 
   - id: vague-quantifier
+    exceptions: [quotation]
     name: Give the count
     kind: pattern
     severity: warning
@@ -233,6 +237,7 @@ rules:
         entry -- see ai-tells-content-shape.fake-specificity for the remainder.
 
   - id: nominalized-verb
+    exceptions: [quotation]
     name: Use the verb, not the noun
     kind: pattern
     severity: error
@@ -324,6 +329,7 @@ rules:
         Mechanised half of the structure catalog's "Hollow acknowledgment" tell.
 
   - id: borderline-hype
+    exceptions: [quotation]
     name: Back the claim with a number or example
     kind: pattern
     severity: warning

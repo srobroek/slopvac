@@ -7,6 +7,7 @@ weight: 1.0
 recommended_for: [consumer-docs]
 rules:
   - id: status-language
+    exceptions: [quotation]
     name: State what the artifact does at HEAD
     kind: pattern
     severity: error
@@ -37,6 +38,7 @@ rules:
         Go->Python: the lookahead `(?!...)` is RE2-safe and ports unchanged.
 
   - id: history-narration
+    exceptions: [quotation]
     name: Keep deltas out of a doc body
     kind: pattern
     severity: error
@@ -62,6 +64,7 @@ rules:
         construction.
 
   - id: internal-refs
+    exceptions: [quotation]
     name: Keep internal references out of consumer docs
     kind: pattern
     severity: error

@@ -116,7 +116,7 @@ jobs:
   # in its own job against the Python versions its metadata claims to support. A
   # `requires-python` floor nobody exercises is a claim, not a fact.
   lint-package:
-    name: slopvac-lint (py${{ matrix.python }})
+    name: slopvac (py${{ matrix.python }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -156,10 +156,10 @@ jobs:
           set -euo pipefail
           for locale in en-US en-GB und; do
             printf 'Checking %s\n' "$locale"
-            slopvac-lint rules --format json > /dev/null
+            slopvac rules --format json > /dev/null
             printf 'A robust tool.\n' > /tmp/probe.md
             set +e
-            slopvac-lint /tmp/probe.md --no-vale --locale "$locale" > /dev/null
+            slopvac /tmp/probe.md --no-vale --locale "$locale" > /dev/null
             status=$?
             set -e
             test "$status" -ne 2 || { echo "locale $locale broke the run"; exit 1; }
@@ -169,9 +169,9 @@ jobs:
         working-directory: packages/slopvac-lint
         run: |
           set -euo pipefail
-          slopvac-lint --version
-          slopvac-lint rules --judgement --format json > /tmp/judgement.json
+          slopvac --version
+          slopvac rules --judgement --format json > /tmp/judgement.json
           python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
-          slopvac-lint explain orwell.stale-figure > /dev/null
-          slopvac-lint init --path /tmp/slopvac.toml
-          slopvac-lint /tmp/probe.md --no-vale --config /tmp/slopvac.toml || test $? -eq 1
+          slopvac explain orwell.stale-figure > /dev/null
+          slopvac init --path /tmp/slopvac.toml
+          slopvac /tmp/probe.md --no-vale --config /tmp/slopvac.toml || test $? -eq 1

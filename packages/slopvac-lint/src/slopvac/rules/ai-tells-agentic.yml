@@ -408,6 +408,7 @@ rules:
         prose-inflation.document-preamble catches the document-level form.
 
   - id: summary-closer-frames
+    exceptions: [quotation]
     name: End on the last fact
     kind: tokens
     severity: error
@@ -774,6 +775,7 @@ rules:
         the reader to know the domain.
 
   - id: vague-attribution-core
+    exceptions: [quotation]
     name: Name the source or own the claim
     kind: pattern
     severity: error
@@ -1370,6 +1372,7 @@ rules:
         ("falls out naturally", ai-tells-register.organic-consequence-core).
 
   - id: anthropomorphised-justification-core
+    exceptions: [quotation]
     name: State the measured property, not the desert
     kind: tokens
     severity: error
@@ -1955,6 +1958,7 @@ rules:
         sentence. Upstream ai-tells.ParticipialPadding covers this and stays enabled.
 
   - id: durable-vocabulary-habits
+    exceptions: [quotation]
     name: Use the concrete verb
     kind: substitution
     severity: error

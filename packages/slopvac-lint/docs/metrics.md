@@ -9,8 +9,9 @@ Worked example. Under this contract the sentence
 
 > Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
 
-counts 11 words. A whitespace tokenizer counts 15. On a 20-word cap that gap is the
-difference between silence and a false positive on a sentence the specification permits.
+counts 13 words: `30 s` collapses to one and `"edge gateway"` to one. A whitespace
+tokenizer counts 15. On a 20-word cap that gap is the difference between silence and a
+false positive on a sentence the specification permits.
 
 All rule citations below are to Issue 9. Two of these rules changed between issues, so an
 implementation targets one issue; this contract targets Issue 9.

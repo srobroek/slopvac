@@ -1,4 +1,4 @@
-name: Publish slopvac-lint
+name: Publish slopvac
 
 # Publishes the linter to PyPI through Trusted Publishing (OIDC), so no API token
 # is stored anywhere. The identity PyPI must be configured to trust is the
@@ -25,7 +25,7 @@ name: Publish slopvac-lint
 on:
   push:
     tags:
-      - "slopvac-lint--v*"
+      - "slopvac--v*"
   workflow_dispatch:
     inputs:
       dry-run:
@@ -87,17 +87,24 @@ jobs:
           wheel = glob.glob("dist/*.whl")[0]
           names = zipfile.ZipFile(wheel).namelist()
           rules = [n for n in names if "/rules/" in n and n.endswith(".yml")]
-          data = [n for n in names if "/data/" in n]
           problems = []
           if len(rules) < 15:
               problems.append(f"only {len(rules)} rule files in the wheel")
-          if not any("ste-dictionary.json" in n for n in data):
-              problems.append("the vocabulary dictionary is missing")
-          if not any("vocabulary-overlay.yml" in n for n in data):
-              problems.append("the vocabulary overlay is missing")
+
+          # NO WORDLIST IS SHIPPED, and this asserts the ABSENCE. The wheel used to
+          # carry an extracted ASD-STE100 dictionary enforced as an allowlist, which
+          # made every unlisted word a finding; a project now supplies its own
+          # blocklist via `[vocabulary] path`. Re-adding a packaged default would
+          # restore that behaviour silently, so it fails the release instead.
+          shipped_data = [n for n in names if "/data/" in n]
+          if shipped_data:
+              problems.append(f"the wheel ships a wordlist again: {shipped_data}")
+          if any("examples/" in n for n in names):
+              problems.append("examples/ is repo documentation and must not be packaged")
+
           if problems:
               sys.exit("wheel is incomplete: " + "; ".join(problems))
-          print(f"wheel carries {len(rules)} rule files and {len(data)} data files")
+          print(f"wheel carries {len(rules)} rule files and no packaged wordlist")
           PY
 
       # Install the built wheel in a clean environment and run it, so a packaging
@@ -108,8 +115,8 @@ jobs:
           set -euo pipefail
           uv venv /tmp/smoke
           VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
-          /tmp/smoke/bin/slopvac-lint --version
-          /tmp/smoke/bin/slopvac-lint rules --format json > /tmp/rules.json
+          /tmp/smoke/bin/slopvac --version
+          /tmp/smoke/bin/slopvac rules --format json > /tmp/rules.json
           python3 - <<'PY'
           import json, sys
 
@@ -121,7 +128,7 @@ jobs:
 
           printf 'A robust and comprehensive tool that will supercharge you.\n' > /tmp/probe.md
           set +e
-          /tmp/smoke/bin/slopvac-lint /tmp/probe.md --no-vale
+          /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale
           status=$?
           set -e
           # 1 means the prose failed, which is the expected result for that probe.
@@ -146,7 +153,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/slopvac-lint
+      url: https://test.pypi.org/p/slopvac
     permissions:
       id-token: write # the OIDC token Trusted Publishing exchanges for an upload
     steps:
@@ -173,7 +180,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: pypi
-      url: https://pypi.org/p/slopvac-lint
+      url: https://pypi.org/p/slopvac
     permissions:
       id-token: write
     steps:

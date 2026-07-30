@@ -24,10 +24,10 @@ import yaml
 from .model import Category, Rule, RuleKind
 
 # Resolved as a SUBDIRECTORY of the package, not as a package itself: this module
-# is `slopvac_lint.rules`, so `resources.files("slopvac_lint.rules")` returns this
+# is `slopvac.rules`, so `resources.files("slopvac.rules")` returns this
 # module's own parent package and silently yields no rule files.
 RULES_DIRNAME = "rules"
-RULES_PACKAGE = "slopvac_lint"
+RULES_PACKAGE = "slopvac"
 
 
 class RuleLoadError(Exception):

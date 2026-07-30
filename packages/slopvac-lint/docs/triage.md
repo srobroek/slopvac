@@ -32,7 +32,7 @@ judgement runs only on those spans.
 | `replacement` | the fix, where the rule knows it |
 | `severity` | `error` is not triaged; `warning` and `suggestion` are |
 
-`slopvac-lint explain <rule_id>` adds the decision question, the closed exception
+`slopvac explain <rule_id>` adds the decision question, the closed exception
 list, and worked examples.
 
 ## The triage question

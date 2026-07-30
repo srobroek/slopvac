@@ -8,13 +8,29 @@ max_per_100_words:
 recommended_for: [reference, runbook, api-docs, readme, pr-description]
 rules:
   - id: word-outside-controlled-vocabulary
-    name: Use a word from the controlled vocabulary
+    name: Do not use a word this project refuses
     kind: vocabulary
     severity: warning
-    message: '"{match}" is not in the controlled vocabulary and is not a registered domain term.'
+    message: '"{match}" is on this project''s word blocklist.'
     scope: prose
     text_type: any
     tiers:
+      # A BLOCKLIST RULE, AND IT CHECKS NOTHING UNTIL A PROJECT OPTS IN. It reads
+      # `[vocabulary] path` from the slopvac config and reports as native-unrun when
+      # that is unset, which is the default.
+      #
+      # It used to read a packaged ASD-STE100 dictionary as an ALLOWLIST, so every
+      # word outside 859 approved ones was a finding. At `strict` this rule alone
+      # raised 78 of 154 findings on a correct specification -- 8.29 per 100 words
+      # against a 1.5 budget -- rejecting `verify`, `size`, `stored`, and `compute`;
+      # all 8 corpus documents scored 0.0 at strict against 87 to 99 at relaxed.
+      # Half the hits were words with NO dictionary entry at all, which no override
+      # could reach, so the dictionary was deleted rather than tuned. The full
+      # measurement is in vocabulary.py.
+      #
+      # ENFORCED at strict now, and that is not a tightening. The old advisory tier
+      # existed to contain a wordlist nobody chose; a project that writes its own
+      # blocklist and states a reason per word has asked for it to be enforced.
       strict: enforced
       normal: advisory
       relaxed: excluded
@@ -25,18 +41,23 @@ rules:
       - registered-domain-term
     allowlist: []
     examples:
-      - bad: The scheduler endeavors to place each pod on a distinct node.
-        good: The scheduler tries to place each pod on a different node.
+      # From examples/blocklist.toml. Not machine-verified -- a vocabulary rule has
+      # no pattern to compile, so `_verify_examples` skips it and the words a
+      # project refuses are its own.
+      - bad: The operator will utilize the retry budget to quickly drain the queue.
+        good: The operator uses the retry budget to drain the queue in under a minute.
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.1'
       note: >-
-        Our restatement of the three permitted word sources (controlled list, domain noun,
-        domain verb). We do not ship the source dictionary; this rule reads our own
-        vocabulary dataset. Advisory at normal tier because a general-writing corpus has a
-        much wider legitimate word range than a maintenance manual, so an enforced version
-        produces unusable noise until the domain-term registry is populated.
-    fix: Replace the word with its vocabulary replacement, or register it as a domain term.
+        Rule 1.1 restricts words to a controlled list plus domain nouns and verbs. We check
+        the INVERSE of its first clause and no part of the other two: a project states which
+        words it refuses, and every other word is permitted. That is a weaker check than the
+        specification describes, and deliberately so -- the clause as written needs a
+        populated domain-term registry to be usable, and enforcing the list without one
+        rejected ordinary software vocabulary at 8.29 findings per 100 words. No ASD content
+        is shipped or read.
+    fix: Use the replacement the blocklist names, or rewrite the sentence.
 
   - id: approved-word-substitution
     name: Use the controlled replacement word
@@ -67,8 +88,6 @@ rules:
       due to the fact that: because
       a number of: some
       at this point in time: now
-      shall: must
-      should: must
     ignore_case: true
     exceptions:
       - identifier-fidelity
@@ -91,6 +110,54 @@ rules:
         subset so the YAML stays reviewable. Advisory at relaxed tier because a longer
         synonym is understood, only inconsistent.
     fix: Replace the flagged word with the listed replacement.
+
+  - id: obligation-word-substitution
+    name: Use one obligation word
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    substitutions:
+      shall: must
+      should: must
+    # CASE-SENSITIVE ON PURPOSE, and this is the whole reason the pair is not in
+    # `approved-word-substitution` above. RFC 2119 gives `SHOULD` a normative
+    # strength weaker than `MUST`, so an all-caps hit told a specification author
+    # to strengthen a requirement they had deliberately left optional. The lint
+    # was not noise there; it was wrong. An independent eval corpus caught it on a
+    # W3C-register document that opens with the RFC 2119 boilerplate.
+    #
+    # Lowercase `should` in ordinary prose is still hedged obligation and STE
+    # still wants one word for one meaning, so the rule keeps firing there.
+    ignore_case: false
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - normative-keyword
+    allowlist: []
+    examples:
+      - bad: The worker should retry the request before it reports a failure.
+        good: The worker must retry the request before it reports a failure.
+      - bad: Callers shall close the handle.
+        good: Callers must close the handle.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.1'
+      note: >-
+        Advisory at normal tier: outside a specification the distinction between
+        obligation words is a consistency question rather than a defect, and a
+        document that uses `should` throughout is understood.
+    fix: >-
+      Replace with "must" where the requirement is real. Where it is genuinely
+      optional, say so plainly ("optional", "you can") rather than hedging the
+      obligation word. In a document using RFC 2119 keywords, write them in
+      capitals.
 
   - id: word-used-in-wrong-part-of-speech
     name: Use the word only in its permitted part of speech
@@ -207,7 +274,7 @@ rules:
       note: >-
         The specification states its own category example lists are not exhaustive, so
         absence from a list proves nothing. Membership is therefore a judgement, and the
-        category set itself is project configuration (see vocabulary-design.md).
+        category set itself is project configuration (see domain-categories.md).
     fix: Register the term in a domain-noun category, or replace it with a vocabulary word.
 
   - id: unapproved-word-not-a-domain-noun

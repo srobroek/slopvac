@@ -11,9 +11,9 @@ from __future__ import annotations
 import regex as re
 import pytest
 
-from slopvac_lint.engine import build_substitution_pattern
-from slopvac_lint.model import RuleKind, Tier
-from slopvac_lint.rules import inject_locale_rule, load_ruleset
+from slopvac.engine import build_substitution_pattern
+from slopvac.model import RuleKind, Tier
+from slopvac.rules import inject_locale_rule, load_ruleset
 
 
 @pytest.fixture(scope="module")
@@ -109,7 +109,7 @@ def test_every_lexical_rule_has_an_example(ruleset):
 def test_substitution_keys_resolve_to_a_replacement(ruleset):
     """A substitution rule must be able to name the fix for anything it matches.
     Keys are regex, so a direct dict lookup is not enough."""
-    from slopvac_lint.engine import match_substitution
+    from slopvac.engine import match_substitution
 
     for rule in ruleset.rules:
         if rule.kind is not RuleKind.SUBSTITUTION or not rule.substitutions:
@@ -196,7 +196,7 @@ def test_unknown_locale_reports_rather_than_raises():
     ],
 )
 def test_locale_leaves_correct_prose_alone(tag, text):
-    from slopvac_lint.locale import resolve
+    from slopvac.locale import resolve
 
     locale = resolve(tag)
     pattern = re.compile(build_substitution_pattern(locale.substitutions), re.I)
@@ -214,8 +214,8 @@ def test_locale_leaves_correct_prose_alone(tag, text):
     ],
 )
 def test_locale_catches_the_other_variant(tag, text, expected):
-    from slopvac_lint.engine import match_substitution
-    from slopvac_lint.locale import resolve
+    from slopvac.engine import match_substitution
+    from slopvac.locale import resolve
 
     locale = resolve(tag)
     pattern = re.compile(build_substitution_pattern(locale.substitutions), re.I)
@@ -229,7 +229,7 @@ def test_locale_catches_the_other_variant(tag, text, expected):
 def test_locale_inflections_are_generated():
     """`initialise` was caught and `initialises` was not, in the first revision of
     the hand-written rule. Generation exists to close that class of gap."""
-    from slopvac_lint.locale import resolve
+    from slopvac.locale import resolve
 
     us = resolve("en-US").substitutions
     for form in ("initialise", "initialises", "initialised", "initialising"):

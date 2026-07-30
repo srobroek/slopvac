@@ -8,6 +8,7 @@ weight: 1.5
 recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
 rules:
   - id: chat-leakage
+    exceptions: [quotation]
     name: Delete chat-session leakage
     kind: pattern
     severity: error

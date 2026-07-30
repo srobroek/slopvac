@@ -39,6 +39,7 @@ rules:
         unnamed-alternative case is ai-tells-content-shape.unasked-for-rationale.
 
   - id: implementation-leak
+    exceptions: [quotation]
     name: Move a benchmark result out of the doc
     kind: pattern
     severity: error

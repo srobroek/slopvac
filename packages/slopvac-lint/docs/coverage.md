@@ -105,8 +105,8 @@ a decidable reviewer question instead of a regex.
 **Two aerospace-specific parts of larger rules are narrowed rather than dropped.** Rule 1.10
 also covers regional dialect, which we do not implement, because a dialect list for software
 prose is not maintainable; the slang and jargon half is a token list. Rule 1.5's 22-category
-noun taxonomy is replaced by a 9-category subset plus 4 new software categories, analysed in
-`vocabulary-design.md` — 11 of the 22 are physical-artifact categories with no software
+noun taxonomy is replaced by a 9-category subset plus 4 new software categories, mapped in
+`domain-categories.md` — 11 of the 22 are physical-artifact categories with no software
 analogue.
 
 **One recommendation is deliberately weaker than the source.** GR-8 permits the possessive and
@@ -114,25 +114,42 @@ only asks a writer to drop it when unsure. A rule flagging every possessive woul
 the source, so ours targets only the two shapes that are hard to parse and stays advisory
 everywhere.
 
-## Rules that need the vocabulary dataset
+## Rules that need a word list, and therefore do not run by default
 
-Nine rules cannot run without `vocabulary-build.md` output. They are the reason the vocabulary
-is a required deliverable.
+Nine rules read a word list. None ships, so all nine check nothing until a project sets
+`vocabulary.path`.
+
+That is a deliberate reversal. The package shipped the extracted Issue 9 list and enforced it
+as an **allowlist**, so every word outside 859 approved ones was a finding. Measured on eight
+independently written documents, that rule alone was 51% of all findings at strict — 443 of 864
+— and drove all eight to a score of 0.0 while the same documents scored 87 to 99 at relaxed.
+The defect was structural rather than a matter of calibration:
+
+- **Absence is not disapproval.** 828 hits across 421 words had no entry at all: `reviewer`,
+  `transaction`, `threshold`, plus inflections the source lists only as base forms. No override
+  could reach them, because there was nothing to override.
+- **The source is deliberately incomplete.** It excludes technical nouns and verbs by design and
+  delegates them to its own rules 1.5 through 1.13, so the list was never meant to stand alone.
+- **Membership is context-dependent.** The source's own worked example makes one word legal in
+  one sentence and illegal in another.
+
+So the list is deleted, and a project supplies a **blocklist** instead: the words it refuses,
+each with a reason. A word absent from that file is fine by definition.
 
 | Rule | Needs | Available now? |
 |---|---|---|
-| 1.1 `word-outside-controlled-vocabulary` | Word, POS, status | Yes, from the base CSV |
-| 1.2 `word-used-in-wrong-part-of-speech` | POS-keyed status, plus a tagger | Status yes; tagger is a dependency |
-| 1.4 `verb-or-adjective-form-not-permitted` | Inflected forms | **No** — not yet extracted |
-| 3.1 `verb-form-not-listed` | Inflected forms | **No** — not yet extracted |
-| 1.3, 9.2 word-sense rules | Approved-meaning gloss | **No** — and it stays unshipped even once extracted, because it is authored prose |
-| 1.1 `approved-word-substitution` | Replacement per word | 39 pairs from the published recurring-error table, plus our overlay; the remaining 1,289 need column extraction |
+| 1.1 `word-outside-controlled-vocabulary` | Word, POS | Only from a project blocklist; nothing ships |
+| 1.2 `word-used-in-wrong-part-of-speech` | POS-keyed entries, plus a tagger | Tagger is Vale's; the entries are the project's |
+| 1.4 `verb-or-adjective-form-not-permitted` | Inflected forms | **No** — and no longer planned |
+| 3.1 `verb-form-not-listed` | Inflected forms | **No** — and no longer planned |
+| 1.3, 9.2 word-sense rules | Approved-meaning gloss | **No** — authored prose, never shippable |
+| 1.1 `approved-word-substitution` | Replacement per word | 39 pairs from the published recurring-error table. This rule is independent of the blocklist and still runs |
 | 1.5, 1.6, 1.12 domain-term rules | A project domain-term registry | Project configuration, not shipped data |
 
-Two of these are hard blocks. The form rules cannot run at all until inflected forms are
-extracted, which is why both sit at advisory on the normal tier. Do not substitute a stemmer:
-the source refuses the past participle of a small number of verbs and a generated inflection
-cannot know which ones.
+The two form rules are permanent gaps rather than pending work. They need per-verb inflected
+forms, which only the unshippable source carries, and a stemmer is not a substitute: the source
+refuses the past participle of a small number of verbs and a generated inflection cannot know
+which ones. Both stay advisory.
 
 ## Top five false-positive risks
 

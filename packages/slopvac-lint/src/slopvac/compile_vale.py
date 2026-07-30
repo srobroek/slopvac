@@ -56,7 +56,7 @@ from pathlib import Path
 import yaml
 
 from .config import ResolvedConfig, Severity
-from .model import Rule, RuleKind, Scope
+from .model import Rule, RuleKind, Scope, TextType
 
 # Our scope vocabulary to Vale's. Vale has no document scope: a whole-document
 # rule is a `script` with `scope: raw`, which is the only extension point that
@@ -68,6 +68,43 @@ SCOPE_MAP = {
     Scope.HEADING: "heading",
     Scope.RAW: "raw",
 }
+
+# Every scope Vale accepts, confirmed by firing a rule at each against a document
+# holding the token in a heading, a paragraph, a table, a list, a blockquote, and
+# a code span.
+#
+# THIS LIST EXISTS BECAUSE VALE WILL NOT VALIDATE FOR US. An unknown scope does
+# not raise: the rule loads, Vale exits 0, and the file reports clean, which is
+# indistinguishable from a pass. Only the *deprecated* scopes report E201.
+#
+# The specific near-miss this guards: `prose` is not a Vale scope, and it is the
+# DEFAULT value of `scope` in our own rule model. Emitting our scope name verbatim
+# would silently disable every rule that never sets one -- the majority -- while
+# every fixture reported clean. That is the exact failure mode this project exists
+# to prevent, so SCOPE_MAP's output is asserted against this list rather than
+# trusted.
+VALE_SCOPES = frozenset(
+    {
+        "text", "summary", "heading", "table", "table.header", "table.cell",
+        "list", "paragraph", "sentence", "raw", "alt",
+    }
+    | {f"heading.h{level}" for level in range(1, 7)}
+)
+
+
+def validate_scope(scope: str) -> str:
+    """Return `scope` if Vale accepts it, else raise.
+
+    Loud on the way out is the point: a silently-disabled rule is the one defect a
+    linter must never have.
+    """
+    if scope not in VALE_SCOPES:
+        raise ValueError(
+            f"{scope!r} is not a Vale scope. Vale accepts it silently and the "
+            f"rule then never fires. Valid: {', '.join(sorted(VALE_SCOPES))}"
+        )
+    return scope
+
 
 # Penn Treebank tags per our Pos, for the vocabulary `sequence` rules. Vale's
 # tagger emits Penn tags, so this is the join between our dictionary and its
@@ -133,7 +170,7 @@ class NativeRule:
     """A rule the compiler refused to hand to Vale, and the reason a reader needs.
 
     The reason is a sentence, not a code, because it is printed by
-    `slopvac-lint compile` and `--explain-config` and read by somebody deciding
+    `slopvac compile` and `--explain-config` and read by somebody deciding
     whether the routing is a bug.
     """
 
@@ -144,7 +181,7 @@ class NativeRule:
 
 @dataclass
 class CompileResult:
-    """What went where. `slopvac-lint compile` prints this as the routing table."""
+    """What went where. `slopvac compile` prints this as the routing table."""
 
     outdir: Path
     config_path: Path
@@ -153,6 +190,11 @@ class CompileResult:
     judgement_rules: list[str] = field(default_factory=list)
     disabled_rules: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    # A generated rule's Vale check mapped to the ruleset rule that owns it. The
+    # vocabulary rules are one YAML rule compiled into four Vale rules (one per
+    # part of speech), so a finding has to be attributed back or it would carry a
+    # rule id that `slopvac explain` cannot resolve.
+    aliases: dict[str, str] = field(default_factory=dict)
 
     @property
     def vale_count(self) -> int:
@@ -189,6 +231,29 @@ METRIC_TOKENS = {
 MISSING_METRIC_REASON = (
     "no Vale expression for metric '{metric}': it needs a measurement Vale's "
     "occurrence counter and Tengo scripting do not reach, so it stays native"
+)
+
+# A metric that only applies to one KIND of sentence cannot go to Vale, however
+# countable the metric itself is.
+#
+# `occurrence` counts a sentence's words perfectly well. What it cannot do is ask
+# `classify_text_type` whether this sentence is an instruction or an explanation, so
+# a compiled `text_type: procedural` rule applies its 20-word cap to EVERY sentence.
+# Measured: on `design-doc-outbox.md` line 16, a 35-word descriptive sentence drew
+# both `sentence-too-long-descriptive` (native, cap 25, correct) and
+# `sentence-too-long-procedural` (Vale, cap 20, wrong) -- two findings on one
+# sentence for mutually exclusive reasons, telling the author to cut to 20 words for
+# being an instruction it is not. Across the 8-document corpus this rule alone was
+# 80 findings on 8 of 8 documents, the largest single contributor to the
+# all-profiles 0.0 score.
+# Metrics whose native evaluation branches on `Sentence.text_type`. Only these can
+# disagree with a compiled Vale rule, so only these are held back from Vale.
+TEXT_TYPE_AWARE_METRICS = frozenset({"sentence_words"})
+
+TEXT_TYPE_REASON = (
+    "metric is scoped to text_type={text_type}, which Vale cannot determine: its "
+    "occurrence counter sees a sentence's words but not whether that sentence is an "
+    "instruction or an explanation, so the rule stays native"
 )
 
 
@@ -430,7 +495,7 @@ def _needs_existence_fallback(substitutions: dict[str, str]) -> bool:
 
 def _payload_for(rule: Rule, level: str) -> dict | None:
     """One Vale rule as a dict, or None when no extension point fits."""
-    scope = SCOPE_MAP.get(rule.scope, "text")
+    scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
 
     if rule.kind is RuleKind.TOKENS and rule.tokens:
         payload = {
@@ -456,13 +521,30 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
             # the keys is what `existence` needs, longest first so the widest key
             # wins the span.
             keys = sorted(rule.substitutions, key=len, reverse=True)
+            # `existence` supplies ONE argument (the match), so a two-verb message
+            # would render the second as `%!s(MISSING)`. Drop the replacement verb
+            # and keep the match, which is the argument Vale actually passes.
+            text = _message(rule)
+            if text.count("%s") > 1:
+                head, _, tail = text.partition("%s")
+                text = head + "a simpler word" + tail
+            # BOUNDARIES MUST BE RESTORED BY HAND. Vale's `substitution` wraps each
+            # key in `\b...\b`; a bare alternation has no such wrapper, so `e.g.`
+            # -- whose dots are unescaped regex -- matched "ice" inside "service".
+            # A leading boundary plus a non-word-character trailing guard keeps a
+            # key that legitimately ends in punctuation working.
+            alternation = "|".join(f"(?:{k})" for k in keys)
             payload = {
                 "extends": "existence",
-                "message": _message(rule).replace("%s", "%s", 1),
+                "message": text,
                 "level": level,
                 "scope": scope,
                 "ignorecase": rule.ignore_case,
-                "raw": ["|".join(f"(?:{k})" for k in keys)],
+                # A lookbehind, not a consuming character class, so the reported
+                # span is the match itself rather than the character before it.
+                # Vale accepts lookbehind -- verified, despite RE2's documented
+                # lack of it, because Vale rewrites the pattern before RE2 sees it.
+                "raw": [rf"(?<![\w-])(?:{alternation})(?![\w-])"],
             }
         else:
             payload = {
@@ -473,6 +555,19 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
                 "swap": dict(rule.substitutions),
             }
     elif rule.kind is RuleKind.METRIC:
+        # Checked BEFORE the token lookup: a text-type-scoped metric must stay
+        # native even when its metric is one Vale counts happily. See
+        # TEXT_TYPE_REASON -- compiling it applied one text type's cap to every
+        # sentence and double-reported the ones the native engine already had right.
+        #
+        # Restricted to the metrics whose NATIVE branch actually reads `text_type`.
+        # A first attempt guarded on `text_type` alone and pulled three more rules
+        # out of Vale for nothing: `paragraph_sentences` and the other block metrics
+        # declare a `text_type` that `_run_metric` never consults, so Vale and the
+        # native engine already agreed. Keep the two lists in step -- if a metric
+        # starts honouring `text_type` natively, it belongs here too.
+        if rule.metric in TEXT_TYPE_AWARE_METRICS and rule.text_type is not TextType.ANY:
+            raise ValueError(TEXT_TYPE_REASON.format(text_type=rule.text_type.value))
         token = METRIC_TOKENS.get(rule.metric or "")
         if token is not None:
             bound, value = _occurrence_bound(rule)
@@ -578,32 +673,35 @@ def _probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
 
 
 def vocabulary_sequence_rules(
-    vocabulary, level: str = "warning", limit: int | None = None
+    vocabulary,
+    level: str = "warning",
+    limit: int | None = None,
+    owner: str = "ste-words.word-used-in-wrong-part-of-speech",
 ) -> dict[str, dict]:
-    """Vale `sequence` rules for the unapproved controlled vocabulary.
+    """Vale `sequence` rules for the project's word blocklist.
 
-    GROUPED BY PART OF SPEECH, not one rule per word. The dictionary holds ~2,000
-    unapproved entries and a rule file each would be unreadable and slow; one
-    rule per part of speech is four files whose pattern is an alternation.
+    GROUPED BY PART OF SPEECH, not one rule per word: a rule file per word would
+    be unreadable and slow, while one rule per part of speech is at most four
+    files whose pattern is an alternation. That holds whether the blocklist has
+    eleven entries or eleven hundred.
 
-    This is what replaces the hand-rolled tagger that used to live in
-    `vocabulary.py`. That tagger resolved a part of speech from neighbouring
-    tokens and returned UNKNOWN whenever the evidence was thin, which meant it
-    stayed silent on most real prose. Vale's tagger emits Penn Treebank tags, so
-    `close` as a verb is flagged and `close to the limit` is not -- verified by
-    execution, and the reason 2,087 dictionary entries now cost four rules.
+    Vale's tagger is what makes the grouping sound. It emits Penn Treebank tags, so
+    a blocklist entry scoped to `verb` flags `close` as a verb and leaves "close to
+    the limit" alone -- verified by execution. A hand-rolled tagger lived here once
+    and returned UNKNOWN whenever the evidence was thin, which on real prose was
+    most of the time.
     """
     from .vocabulary import Pos
 
     grouped: dict[Pos, list[str]] = {}
-    for (word, pos), entry in vocabulary._entries.items():
-        if entry.approved:
+    for entry in vocabulary.blocked():
+        if entry.pos.value not in PENN_TAGS:
             continue
-        if pos.value not in PENN_TAGS:
+        # A non-alphabetic or two-letter entry cannot be tagged reliably and
+        # would widen the alternation for no gain.
+        if not entry.word.isalpha() or len(entry.word) < 3:
             continue
-        if not word.isalpha() or len(word) < 3:
-            continue
-        grouped.setdefault(pos, []).append(word)
+        grouped.setdefault(entry.pos, []).append(entry.word)
 
     payloads: dict[str, dict] = {}
     for pos, words in grouped.items():
@@ -613,9 +711,15 @@ def vocabulary_sequence_rules(
         if not selected:
             continue
         alternation = "|".join(selected)
-        payloads[f"vocab-{pos.value}"] = {
+        # Named after the OWNING rule plus the part of speech, so a finding maps
+        # back to a real rule id in our ruleset rather than to an invented one.
+        owner_name = owner.split(".", 1)[1]
+        # "an adjective", not "a adjective". Two of the eight parts of speech start
+        # with a vowel, so the article has to be chosen rather than hardcoded.
+        article = "an" if pos.value[0] in "aeiou" else "a"
+        payloads[f"{owner_name}--{pos.value}"] = {
             "extends": "sequence",
-            "message": f"'%s' is not approved as a {pos.value}; use the approved term",
+            "message": f"'%s' is on this project's blocklist as {article} {pos.value}",
             "level": level,
             "ignorecase": True,
             "tokens": [{"pattern": f"(?:{alternation})", "tag": PENN_TAGS[pos.value]}],
@@ -623,7 +727,69 @@ def vocabulary_sequence_rules(
     return payloads
 
 
+# STE 1.1 is the clause the dictionary actually answers: whether the word is in
+# the controlled vocabulary as used. Preferred as the owner when present.
+_VOCABULARY_OWNER_PREFERENCE = (
+    "ste-words.word-outside-controlled-vocabulary",
+    "ste-words.word-used-in-wrong-part-of-speech",
+)
+
+
+def _elect_vocabulary_owner(
+    owners: list[Rule], result: CompileResult
+) -> list[Rule]:
+    """Keep one dictionary-backed rule; route the rest native with the reason.
+
+    Every `kind: vocabulary` rule would compile to the same sweep over the same
+    wordlist, so emitting all of them reports one word four times. The others are
+    not dropped: they are reported as native, which is honest -- their distinctions
+    (which FORM of a listed verb, which part of speech was expected) need evidence
+    the flat dictionary does not carry.
+    """
+    if len(owners) <= 1:
+        return owners
+
+    by_id = {rule.qualified_id: rule for rule in owners}
+    chosen = next(
+        (by_id[rule_id] for rule_id in _VOCABULARY_OWNER_PREFERENCE if rule_id in by_id),
+        owners[0],
+    )
+    for rule in owners:
+        if rule is chosen:
+            continue
+        result.native_rules.append(
+            NativeRule(
+                rule.qualified_id,
+                rule.kind.value,
+                f"the controlled-vocabulary sweep is compiled once, under "
+                f"{chosen.qualified_id}; this rule's own distinction needs evidence "
+                f"the (word, part-of-speech) dictionary does not carry",
+            )
+        )
+    return [chosen]
+
+
 # --- cache --------------------------------------------------------------------
+
+
+def _compiler_source_digest() -> str:
+    """Hash this module's own source, for the cache key.
+
+    Read from `__file__` rather than tracked as a hand-bumped version constant,
+    because a constant only invalidates when someone REMEMBERS to bump it, and the
+    failure it guards against is silent. Falls back to the package version if the
+    source is unreadable (a zipimport or a frozen build), which is weaker but never
+    worse than the input-only key it replaces.
+    """
+    try:
+        return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]
+    except OSError:
+        from . import __version__
+
+        return f"v{__version__}"
+
+
+_COMPILER_SOURCE_DIGEST = _compiler_source_digest()
 
 
 def cache_root() -> Path:
@@ -642,7 +808,12 @@ def cache_root() -> Path:
     return Path(tempfile.gettempdir()) / "slopvac-cache"
 
 
-def _fingerprint(rules: list[Rule], config: ResolvedConfig, levels: dict[str, str]) -> str:
+def _fingerprint(
+    rules: list[Rule],
+    config: ResolvedConfig,
+    levels: dict[str, str],
+    vocabulary=None,
+) -> str:
     """Hash of everything that changes the output.
 
     Keyed on the resolved LEVELS rather than the raw config, because that is what
@@ -650,12 +821,34 @@ def _fingerprint(rules: list[Rule], config: ResolvedConfig, levels: dict[str, st
     produce identical output and should share a cache entry.
     """
     digest = hashlib.sha256()
+    # THE COMPILER'S OWN SOURCE IS PART OF THE KEY. Rules, levels, and profile are
+    # the compiler's INPUT; the generated style also depends on the code that
+    # translates them, so keying on input alone serves a stale style after every
+    # compiler change. This cost real debugging time: the fix that stops a
+    # text-type-scoped metric from reaching Vale appeared to do NOTHING -- three
+    # rescores of the whole corpus came back byte-identical, including counts that
+    # had to change -- because the fingerprint was unchanged and the cached style
+    # still held the rule. A silently stale cache is indistinguishable from a fix
+    # that does not work, which is the more expensive failure of the two.
+    digest.update(_COMPILER_SOURCE_DIGEST.encode())
     for rule in sorted(rules, key=lambda r: r.qualified_id):
         digest.update(rule.qualified_id.encode())
         digest.update(rule.model_dump_json(exclude={"category"}).encode())
     for rule_id in sorted(levels):
         digest.update(f"{rule_id}={levels[rule_id]}".encode())
     digest.update(config.profile.value.encode())
+    # THE BLOCKLIST IS PART OF THE KEY TOO, and for the same reason: its words are
+    # baked into the generated `sequence` rules, so adding one and re-running would
+    # otherwise hit a cache entry compiled without it. The failure mode is the one
+    # documented above -- an edit that appears to do nothing -- and it would land on
+    # a USER editing their own wordlist rather than on us editing the compiler,
+    # which makes it harder to diagnose, not easier.
+    #
+    # Hashed from the entries rather than the file bytes, so reformatting the file
+    # or moving it between TOML and YAML does not invalidate a still-correct style.
+    if vocabulary is not None:
+        for entry in sorted(vocabulary.blocked(), key=lambda e: (e.word, e.pos.value)):
+            digest.update(f"{entry.word}:{entry.pos.value}".encode())
     return digest.hexdigest()[:16]
 
 
@@ -692,7 +885,7 @@ def compile_ruleset(
             continue
         levels[rule.qualified_id] = severity.value
 
-    fingerprint = _fingerprint(ruleset.rules, resolved_config, levels)
+    fingerprint = _fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
     if outdir is None:
         outdir = cache_root() / fingerprint
     outdir = Path(outdir)
@@ -712,12 +905,14 @@ def compile_ruleset(
                 judgement_rules=cached.get("judgement_rules", []),
                 disabled_rules=cached.get("disabled_rules", []),
                 notes=cached.get("notes", []),
+                aliases=cached.get("aliases", {}),
             )
 
     result = CompileResult(outdir=outdir, config_path=outdir / ".vale.ini")
 
     payloads: dict[str, dict] = {}
     categories: dict[str, str] = {}
+    vocabulary_owners: list[Rule] = []
 
     for rule in ruleset.rules:
         if rule.kind is RuleKind.JUDGEMENT:
@@ -737,6 +932,12 @@ def compile_ruleset(
             continue
 
         if payload is None:
+            if rule.kind is RuleKind.VOCABULARY:
+                # Compiled below, from the dictionary rather than from the rule's
+                # own payload: one YAML rule becomes one Vale rule per part of
+                # speech.
+                vocabulary_owners.append(rule)
+                continue
             reason = (
                 MISSING_METRIC_REASON.format(metric=rule.metric)
                 if rule.kind is RuleKind.METRIC
@@ -749,11 +950,57 @@ def compile_ruleset(
         payloads[rule.qualified_id] = payload
         categories[rule.qualified_id] = rule.category
 
-    if vocabulary is not None:
-        for name, payload in vocabulary_sequence_rules(vocabulary).items():
-            payloads[f"ste-words.{name}"] = payload
-            categories[f"ste-words.{name}"] = "ste-words"
-            levels[f"ste-words.{name}"] = "warning"
+    # A `kind: vocabulary` rule becomes one Vale `sequence` rule per part of
+    # speech, keyed to the project's blocklist. With no blocklist configured there
+    # is nothing to generate and nothing to check, which is the DEFAULT state, not
+    # a degraded one -- see `config.VocabularySettings`.
+    #
+    # ONLY ONE RULE OWNS THE BLOCKLIST SWEEP. The vocabulary rules cite different
+    # STE clauses (1.1 not-in-vocabulary, 1.2 wrong part of speech, 1.4 and 3.1
+    # disallowed forms) but a `(word, pos)` blocklist answers exactly one question:
+    # is this word refused as the part of speech it is used as. Compiling all of
+    # them produced a finding each on every word. The others stay native and say
+    # why, so the distinction is recorded rather than lost.
+    vocabulary_owners = _elect_vocabulary_owner(vocabulary_owners, result)
+
+    for rule in vocabulary_owners:
+        if not vocabulary:
+            # `not vocabulary` covers both None and empty, because they mean the
+            # same thing to a reader: no word is refused, so the rule has nothing
+            # to say. Distinguishing them here would report a configuration detail
+            # as a rule outcome.
+            result.native_rules.append(
+                NativeRule(
+                    rule.qualified_id,
+                    rule.kind.value,
+                    # No square brackets in this string: the CLI renders native
+                    # reasons through rich, which reads `[vocabulary]` as a style tag
+                    # and silently deletes it, so the message named no setting at all.
+                    "no word blocklist is configured, so this rule has nothing to "
+                    "check. Set vocabulary.path in your slopvac config to enable it "
+                    "-- see examples/blocklist.toml",
+                )
+            )
+            continue
+        generated = vocabulary_sequence_rules(
+            vocabulary, level=levels[rule.qualified_id], owner=rule.qualified_id
+        )
+        if not generated:
+            result.native_rules.append(
+                NativeRule(
+                    rule.qualified_id,
+                    rule.kind.value,
+                    "the blocklist holds no entry with a taggable part of speech, "
+                    "so there is nothing to compile",
+                )
+            )
+            continue
+        for name, payload in generated.items():
+            check = f"{rule.category}.{name}"
+            payloads[check] = payload
+            categories[check] = rule.category
+            levels[check] = levels[rule.qualified_id]
+            result.aliases[check] = rule.qualified_id
 
     if validate:
         resolved_binary = shutil.which(binary)
@@ -802,6 +1049,7 @@ def compile_ruleset(
                 "judgement_rules": result.judgement_rules,
                 "disabled_rules": result.disabled_rules,
                 "notes": result.notes,
+                "aliases": result.aliases,
             },
             indent=2,
         ),
@@ -820,10 +1068,10 @@ def _render_ini(rule_ids: list[str], levels: dict[str, str]) -> str:
     that failed to resolve.
     """
     lines = [
-        "# GENERATED by slopvac-lint. Do not edit: regenerated on every run from",
+        "# GENERATED by slopvac. Do not edit: regenerated on every run from",
         "# the resolved config, and any hand edit is overwritten.",
         "#",
-        "# Severity per rule comes from slopvac-lint's own precedence chain (rule",
+        "# Severity per rule comes from slopvac's own precedence chain (rule",
         "# override > category cap > tier > shipped severity). A rule that",
         "# resolved to `off` is absent from this file entirely.",
         "",

@@ -1,4 +1,4 @@
-"""slopvac-lint: score prose against AI-slop, Simplified Technical English, and
+"""slopvac: score prose against AI-slop, Simplified Technical English, and
 Orwell rulesets.
 
 Two layers, because half of this resists mechanization. The deterministic layer

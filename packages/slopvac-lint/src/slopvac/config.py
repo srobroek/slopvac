@@ -40,7 +40,7 @@ PYPROJECT = "pyproject.toml"
 
 class Severity(str, Enum):
     """A finding's weight. `off` is a level rather than a deletion so that a
-    disabled rule still appears in `slopvac-lint rules --show-disabled`."""
+    disabled rule still appears in `slopvac rules --show-disabled`."""
 
     OFF = "off"
     SUGGESTION = "suggestion"
@@ -74,15 +74,29 @@ class Profile(str, Enum):
 
 class CategorySettings(BaseModel):
     """Per-category dials. Every field is optional so a patch layer can set one
-    without restating the others."""
+    without restating the others.
+
+    A bare severity string stands in for the whole table, as it does for a rule:
+
+        [categories]
+        prose-scope = "warning"
+    """
 
     model_config = ConfigDict(extra="forbid")
 
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_bare_severity(cls, data: Any) -> Any:
+        if isinstance(data, str):
+            return {"severity": data}
+        return data
+
     severity: Severity | None = Field(
         default=None,
-        description="Cap for every rule in this category. Lowers a rule's own "
-        "severity but never raises it: a rule shipped as `suggestion` stays a "
-        "suggestion under `severity = 'error'`.",
+        description="The level every rule in this category reports at. Promotes as "
+        "well as demotes: `severity = 'error'` makes a suggestion blocking, and "
+        "`severity = 'warning'` takes an error off the gate. A per-rule "
+        "[rules.\"cat.rule\"] entry still wins over this.",
     )
     max_per_100_words: float | None = Field(
         default=None,
@@ -100,12 +114,36 @@ class CategorySettings(BaseModel):
 
 
 class RuleSettings(BaseModel):
-    """Per-rule override. `severity = "off"` is the documented way to disable."""
+    """Per-rule override. `severity = "off"` is the documented way to disable.
+
+    SEVERITY IS THE ONLY FIELD, so a bare string is accepted in its place:
+
+        [rules]
+        "prose-format.no-unicode-dash" = "off"
+
+    which is the same thing as the two-line table form. The shorthand exists
+    because setting one rule's severity is the dominant edit anyone makes to this
+    file, and the table form costs a quoted header plus a key plus a blank line
+    for one decision -- 90 lines for 30 tuned rules.
+
+    There is deliberately NO per-rule `weight`. It used to be declared here,
+    validated, and merged through all three config layers while never being read
+    by the scorer: `weight` reaches the score only from `CategorySettings`. A knob
+    that accepts a number and discards it is worse than no knob, and per-rule
+    weight cannot be calibrated anyway without stating whether it subdivides its
+    category's share or adds to the global pool.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     severity: Severity | None = None
-    weight: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_bare_severity(cls, data: Any) -> Any:
+        if isinstance(data, str):
+            return {"severity": data}
+        return data
 
 
 class Thresholds(BaseModel):
@@ -156,9 +194,34 @@ class LocaleSettings(BaseModel):
     )
 
 
+class VocabularySettings(BaseModel):
+    """The word blocklist. OFF unless a project points at a file.
+
+    No default wordlist, and the absence is the design. This package used to ship
+    an extracted ASD-STE100 dictionary and enforce it as an ALLOWLIST, which made
+    every word outside 859 approved ones a finding: 51% of all findings at
+    `strict` on an 8-document corpus, driving documents with zero errors to a score
+    of 0.0. Half those hits were words with no dictionary entry at all, so no
+    override could reach them.
+
+    A wordlist is a project's editorial position, so it comes from the project. The
+    only sound default is nothing -- see `vocabulary.py` for the full measurement,
+    and `examples/blocklist.toml` for a starting file.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    path: Path | None = Field(
+        default=None,
+        description="Path to a blocklist of words this project refuses, relative "
+        "to the config file. TOML, YAML, or JSON; every entry needs a `word`, a "
+        "`pos`, and a `reason`. Unset means the vocabulary rules do not run.",
+    )
+
+
 class ValeSettings(BaseModel):
     """The Vale sub-gate. Vale owns the regex layer for the styles already
-    published from this repo; slopvac-lint owns scoring, tiers, and the rules Vale
+    published from this repo; slopvac owns scoring, tiers, and the rules Vale
     cannot express.
 
     `binary` stays configurable because Vale is a Go binary installed
@@ -196,6 +259,10 @@ class Override(BaseModel):
     thresholds: Thresholds | None = None
     vale: ValeSettings | None = None
     locale: LocaleSettings | None = None
+    #: A blocklist is an editorial position, and a vendored subtree does not share
+    #: the project's. Overridable for that reason: without it the only options are
+    #: one wordlist for the whole repository or none.
+    vocabulary: VocabularySettings | None = None
 
     @model_validator(mode="after")
     def _compile_spec(self) -> Override:
@@ -228,6 +295,7 @@ class Config(BaseModel):
     thresholds: Thresholds = Field(default_factory=Thresholds)
     vale: ValeSettings = Field(default_factory=ValeSettings)
     locale: LocaleSettings = Field(default_factory=LocaleSettings)
+    vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
     overrides: list[Override] = Field(default_factory=list)
 
     exclude: list[str] = Field(
@@ -261,6 +329,10 @@ class Config(BaseModel):
         spec: pathspec.PathSpec = getattr(self, "_exclude_spec")
         return spec.match_file(relative_path)
 
+    def blocklist_path(self) -> Path | None:
+        """The project-wide blocklist. See `resolve_blocklist_path`."""
+        return resolve_blocklist_path(self.vocabulary, self.root)
+
 
 class ResolvedConfig(BaseModel):
     """The settings that apply to ONE file, after the profile and every matching
@@ -276,6 +348,7 @@ class ResolvedConfig(BaseModel):
     thresholds: Thresholds
     vale: ValeSettings
     locale: LocaleSettings
+    vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
     applied_overrides: list[str] = Field(
         default_factory=list,
         description="Which override globs matched, in order. Reported by "
@@ -351,6 +424,25 @@ def find_config(start: Path) -> Path | None:
     return None
 
 
+def resolve_blocklist_path(
+    vocabulary: VocabularySettings, root: Path | None
+) -> Path | None:
+    """A configured blocklist, resolved against the config file's directory.
+
+    Relative to the CONFIG, not to the working directory: `path =
+    "docs/blocklist.toml"` has to mean the same file whether the linter runs from
+    the repo root or from a subdirectory, or a CI run and a local run disagree
+    about what the gate is. An `[[overrides]]` block resolves against the same
+    root, since the override lives in the same file.
+    """
+    configured = vocabulary.path
+    if configured is None:
+        return None
+    if configured.is_absolute():
+        return configured
+    return ((root or Path.cwd()) / configured).resolve()
+
+
 class ConfigError(Exception):
     """A config file that exists but cannot be used.
 
@@ -416,6 +508,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     thresholds = _merge_thresholds(profile_thresholds(profile), config.thresholds)
     vale = config.vale.model_copy()
     locale = config.locale.model_copy()
+    vocabulary = config.vocabulary.model_copy()
 
     # Layer 2: the top-level tables.
     for name, patch in config.categories.items():
@@ -444,6 +537,8 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
                 if value is not None:
                     merged[key] = value
             vale = ValeSettings.model_validate(merged)
+        if override.vocabulary is not None and override.vocabulary.path is not None:
+            vocabulary = override.vocabulary.model_copy()
 
     return ResolvedConfig(
         path=file_path,
@@ -453,6 +548,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         thresholds=thresholds,
         vale=vale,
         locale=locale,
+        vocabulary=vocabulary,
         applied_overrides=applied,
     )
 

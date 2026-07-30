@@ -66,6 +66,7 @@ rules:
         parsing a regex cannot do.
 
   - id: annotations
+    exceptions: [quotation]
     name: Move an annotation to an issue
     kind: pattern
     severity: warning
@@ -243,6 +244,7 @@ rules:
         that the Vale original was not silently matching nothing on these branches.
 
   - id: directional-ref
+    exceptions: [quotation]
     name: Link the heading by name instead of by position
     kind: substitution
     severity: warning
@@ -287,6 +289,7 @@ rules:
         ai-tells-formatting.cross-reference-signposting.
 
   - id: first-person-plural
+    exceptions: [quotation]
     name: Name the artifact, not the vendor
     kind: pattern
     severity: warning
@@ -431,6 +434,7 @@ rules:
         hyphen adds no information.
 
   - id: latinisms
+    exceptions: [quotation]
     name: Use the English phrase
     kind: substitution
     severity: warning
@@ -829,6 +833,7 @@ rules:
         not a register preference.
 
   - id: wordiness
+    exceptions: [quotation]
     name: Use the short word
     kind: substitution
     severity: warning

@@ -18,3 +18,7 @@ __pycache__/
 .venv/
 *.egg-info/
 __pycache__/
+
+# Build artifacts. A wheel in git goes stale the moment the source changes,
+# and a stale wheel that installs is worse than no wheel.
+dist/

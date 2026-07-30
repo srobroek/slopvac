@@ -1,4 +1,4 @@
-"""The starter config `slopvac-lint init` writes.
+"""The starter config `slopvac init` writes.
 
 Written as a template rather than generated from the model so the comments carry
 the reasoning. A config a reader cannot understand gets deleted wholesale the
@@ -17,9 +17,9 @@ STARTER_CONFIG = '''\
 # Vale rule line, a setting here belongs to the block it is written in, so
 # appending to the end of this file cannot silently re-target it.
 #
-# Inspect what actually applies:  slopvac-lint lint --explain-config <file>
-# Understand one rule:            slopvac-lint explain <category>.<rule>
-# List everything:                slopvac-lint rules --profile {profile}
+# Inspect what actually applies:  slopvac lint --explain-config <file>
+# Understand one rule:            slopvac explain <category>.<rule>
+# List everything:                slopvac rules --profile {profile}
 
 # strict  = technical documentation: reference, specs, API docs, runbooks
 # normal  = general writing at a high bar: README, guides, ADRs
@@ -68,13 +68,27 @@ default = "en-US"        # en-US | en-GB | und
 # [overrides.locale]
 # default = "en-GB"
 
+# --- Word blocklist ----------------------------------------------------------
+# OFF until you point at a file. No word list ships with this package, and the
+# word-choice rules check nothing while this is unset.
+#
+# Each entry names a word, the part of speech it is refused as, and a reason. The
+# part of speech is the point: `deploy` is a good verb and a bad noun, so "the
+# deploy failed" is flagged and "deploy the worker" is not. The file is refused if
+# any entry has no `reason`, because nobody can review a refusal that gives none.
+#
+# A word absent from the file is fine BY DEFINITION. There is no "only these words
+# are allowed" setting: this package shipped an ASD-STE100 list enforced that way,
+# and on ordinary software prose it reported 828 words whose only fault was having
+# no entry. Copy examples/blocklist.toml and cut what you disagree with.
+#
+# [vocabulary]
+# path = "docs/blocklist.toml"     # relative to THIS file; .yml and .json load too
+
 # --- Categories --------------------------------------------------------------
 # Turn one off, or demote it to advisory. A category cap LOWERS a rule's
 # severity and never raises it, so setting `severity = "error"` here will not
 # promote a suggestion into a gate failure.
-#
-# [categories.ste-vocabulary]
-# enabled = false            # the approved-word check; off by default at normal
 #
 # [categories.prose-scope]
 # severity = "warning"       # worth seeing, not worth blocking

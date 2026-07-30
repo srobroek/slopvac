@@ -41,6 +41,7 @@ rules:
         .vale.ini keeps it at error for source comments.
 
   - id: agentless-passive
+    exceptions: [quotation]
     name: Name who acted in a passive
     kind: pattern
     severity: error

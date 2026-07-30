@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "slopvac-lint"
+name = "slopvac"
 version = "0.1.0"
 description = "Score prose against AI-slop, Simplified Technical English, and Orwell rulesets. Deterministic, configurable, CI-ready."
 readme = "README.md"
@@ -28,6 +28,10 @@ dependencies = [
   "rich>=13.7",
   "regex>=2024.5.15",
   "pyyaml>=6.0",
+  # CommonMark block parsing. Replaces a hand-rolled line matcher: the reference
+  # implementation reports a source line map per block, which is what keeps a
+  # finding's line number pointing at the real file.
+  "markdown-it-py>=3.0",
 ]
 
 [project.optional-dependencies]
@@ -39,20 +43,26 @@ Repository = "https://github.com/srobroek/slopvac"
 Issues = "https://github.com/srobroek/slopvac/issues"
 
 [project.scripts]
-slopvac-lint = "slopvac_lint.cli:main"
+slopvac = "slopvac.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/slopvac_lint"]
+packages = ["src/slopvac"]
 
-# The rule YAML and the wordlist live INSIDE the package tree so that an editable
-# install resolves them too: force-include applies to a built wheel only, and an
-# editable install would leave importlib.resources with no rules at all.
+# The rule YAML lives INSIDE the package tree so that an editable install resolves
+# it too: force-include applies to a built wheel only, and an editable install
+# would leave importlib.resources with no rules at all.
+#
+# There is no packaged wordlist. `data/` held an extracted ASD-STE100 dictionary
+# enforced as an allowlist, which made every unlisted word a finding; it is deleted
+# rather than disabled, and a project supplies its own blocklist via
+# `[vocabulary] path`. `examples/blocklist.toml` is a starter and is NOT packaged --
+# it is repo documentation, and shipping it would invite loading it as a default.
 [tool.hatch.build.targets.wheel.force-include]
-"vale" = "slopvac_lint/vale"
-"vale-styles" = "slopvac_lint/vale-styles"
+"vale" = "slopvac/vale"
+"vale-styles" = "slopvac/vale-styles"
 
 [tool.hatch.build]
-artifacts = ["src/slopvac_lint/rules/*.yml", "src/slopvac_lint/data/*"]
+artifacts = ["src/slopvac/rules/*.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

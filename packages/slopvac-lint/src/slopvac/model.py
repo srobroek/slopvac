@@ -171,6 +171,14 @@ class Rule(BaseModel):
     comparison: Literal["gt", "gte", "lt", "lte"] = "gt"
 
     ignore_case: bool = True
+    match_all_caps: bool = Field(
+        default=False,
+        description="Report a match written entirely in capitals. Default False: an "
+        "all-caps token is usually a normative keyword (RFC 2119 MUST/SHOULD), an "
+        "identifier (DATABASE_URL), an initialism (JSON/TLS), or a safety marker "
+        "(WARNING), none of which the prose rules are about. Set True only for a "
+        "rule about the capitals themselves.",
+    )
     exceptions: list[str] = Field(
         default_factory=list,
         description="Named, closed exception list. A suppression annotation must "
@@ -284,6 +292,11 @@ class CategoryScore(BaseModel):
     warnings: int
     suggestions: int
     per_100_words: float
+    #: Errors and warnings per 100 words -- the figure the budget is checked
+    #: against. Reported separately from `per_100_words` so a failure reason can
+    #: quote the number that actually failed; quoting the raw density instead
+    #: reads as a contradiction when the two differ by a wall of suggestions.
+    gating_per_100_words: float = 0.0
     budget: float | None = None
     score: float = Field(ge=0, le=100)
     over_budget: bool = False

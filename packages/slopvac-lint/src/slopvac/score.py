@@ -1,12 +1,22 @@
 """Turn findings into a density measurement and a 0-100 score.
 
-TWO NUMBERS, DELIBERATELY. They answer different questions and neither replaces
-the other:
+THREE NUMBERS, DELIBERATELY. They answer different questions and none replaces
+another:
 
-  per_100_words  the raw density. Comparable across documents of any length, and
-                 the honest measurement -- it is a count, not a judgement.
-  score          0-100, derived from density against the profile's budget. What a
-                 CI badge shows and what a `min_score` gate reads.
+  per_100_words         the raw density, every finding. Comparable across documents
+                        of any length, and the honest measurement -- it is a count,
+                        not a judgement.
+  gating_per_100_words  errors and warnings only. What the BUDGET is checked
+                        against.
+  score                 0-100, from gating density against the profile's budget,
+                        less a bounded suggestion penalty. What a CI badge shows
+                        and what a `min_score` gate reads.
+
+A SUGGESTION MAY LOWER A SCORE BUT MUST NOT FAIL A RUN. That one rule explains why
+there are three numbers instead of one. `min_score` is a gate, so anything with an
+unbounded contribution to the score is a gate too, whatever its label says -- and an
+advisory rule resolving to SUGGESTION then fails the run it was excluded from
+failing. See MAX_SUGGESTION_PENALTY for the measurement that forced this.
 
 A single raw threshold cannot serve both a 40-word error message and a 4,000-word
 guide: one finding in the former is 2.5 per 100 words and unremarkable, the same
@@ -42,6 +52,32 @@ MIN_WORDS_FOR_DENSITY = 60
 # linearly to this point rather than cliff-edging, so a document that is slightly
 # over reads differently from one that is far over.
 ZERO_SCORE_MULTIPLE = 4.0
+
+# The most a document can lose to SUGGESTIONS alone, in points.
+#
+# A suggestion may lower a score; it must not fail a run. Those two goals conflict
+# as soon as `min_score` is a gate and suggestions feed the score without bound,
+# which is what shipped: on `design-doc-outbox.md` suggestions were 76 of the 152
+# weight units -- exactly half -- and carried a document with ZERO errors past the
+# 12.0 zero-score point on their own. All 8 independent-corpus documents scored 0.0
+# at `normal` and `strict` while scoring 87 to 99 at `relaxed`.
+#
+# 15 keeps the signal visible and non-fatal: a document clean of errors and
+# warnings but dense with suggestions lands near 85, which reads as "worth a look"
+# rather than "rejected", and cannot cross the shipped 70.0 minimum.
+MAX_SUGGESTION_PENALTY = 15.0
+
+# Suggestion density at which that penalty is fully spent. Above it the penalty is
+# capped, so an advisory rule with hundreds of hits costs the same as one with ten.
+SUGGESTION_PENALTY_FULL_AT = 6.0
+
+
+def _suggestion_penalty(suggestion_density: float) -> float:
+    """Points to deduct for suggestion density, bounded by MAX_SUGGESTION_PENALTY."""
+    if suggestion_density <= 0 or SUGGESTION_PENALTY_FULL_AT <= 0:
+        return 0.0
+    share = min(1.0, suggestion_density / SUGGESTION_PENALTY_FULL_AT)
+    return MAX_SUGGESTION_PENALTY * share
 
 
 def _score_from_density(
@@ -121,14 +157,46 @@ def score_document(
         warnings = sum(1 for f in items if f.severity is Severity.WARNING)
         suggestions = sum(1 for f in items if f.severity is Severity.SUGGESTION)
 
-        density = (
-            len(items) / words * 100
-            if words >= MIN_WORDS_FOR_DENSITY and words
+        measurable = words >= MIN_WORDS_FOR_DENSITY and words
+        # THREE densities, and conflating any two of them was the calibration bug.
+        #   density  every finding, raw. REPORTED, because the report is a
+        #            measurement and a count is the honest form of it.
+        #   gating   errors and warnings only. Checked against the BUDGET.
+        #   weighted severity-weighted. Feeds the SCORE.
+        #
+        # A SUGGESTION must not be able to fail a run on its own. An advisory rule
+        # resolves to SUGGESTION (`engine.severity_for`), so while the budget counted
+        # raw findings, a rule the profile explicitly does not stand behind failed
+        # the run anyway -- and demoting its severity changed nothing, because the
+        # demotion moved the score but not the count the budget read. Measured: the
+        # controlled-vocabulary rule is advisory at every profile and still put
+        # `ste-words` at 8.29 per 100 words against a 1.5 budget on a correct
+        # specification, which drove all 8 independent-corpus documents to 0.0.
+        density = len(items) / words * 100 if measurable else 0.0
+        gating = (
+            sum(1 for f in items if f.severity is not Severity.SUGGESTION)
+            / words
+            * 100
+            if measurable
             else 0.0
         )
+        # The SCORE runs on gating weight, with suggestions applied afterwards as a
+        # bounded penalty (see MAX_SUGGESTION_PENALTY). Feeding them into the same
+        # density let them consume the whole scale.
         weighted = (
-            sum(SEVERITY_WEIGHT[f.severity] for f in items) / words * 100
-            if words >= MIN_WORDS_FOR_DENSITY and words
+            sum(
+                SEVERITY_WEIGHT[f.severity]
+                for f in items
+                if f.severity is not Severity.SUGGESTION
+            )
+            / words
+            * 100
+            if measurable
+            else 0.0
+        )
+        suggestion_density = (
+            sum(1 for f in items if f.severity is Severity.SUGGESTION) / words * 100
+            if measurable
             else 0.0
         )
 
@@ -142,7 +210,11 @@ def score_document(
             weighted_count = sum(SEVERITY_WEIGHT[f.severity] for f in items)
             score = _score_from_counts(weighted_count)
         else:
-            score = _score_from_density(weighted, budget)
+            score = max(
+                0.0,
+                _score_from_density(weighted, budget)
+                - _suggestion_penalty(suggestion_density),
+            )
         category_scores.append(
             CategoryScore(
                 category=name,
@@ -151,9 +223,10 @@ def score_document(
                 warnings=warnings,
                 suggestions=suggestions,
                 per_100_words=round(density, 3),
+                gating_per_100_words=round(gating, 3),
                 budget=budget,
                 score=round(score, 1),
-                over_budget=budget is not None and density > budget,
+                over_budget=budget is not None and gating > budget,
             )
         )
 
@@ -174,14 +247,30 @@ def score_document(
     # Both directions matter. Averaging alone is too kind; using the document
     # figure alone loses the signal that one category is far over its budget while
     # the rest are clean. So take the lower.
-    document_weighted = sum(SEVERITY_WEIGHT[f.severity] for f in findings)
+    document_weighted = sum(
+        SEVERITY_WEIGHT[f.severity]
+        for f in findings
+        if f.severity is not Severity.SUGGESTION
+    )
     if words >= MIN_WORDS_FOR_DENSITY and words:
-        document_score = _score_from_density(
-            document_weighted / words * 100,
-            config.thresholds.max_total_per_100_words,
+        document_suggestions = (
+            sum(1 for f in findings if f.severity is Severity.SUGGESTION) / words * 100
+        )
+        document_score = max(
+            0.0,
+            _score_from_density(
+                document_weighted / words * 100,
+                config.thresholds.max_total_per_100_words,
+            )
+            - _suggestion_penalty(document_suggestions),
         )
     else:
-        document_score = _score_from_counts(document_weighted)
+        # Below the density floor every finding counts, suggestions included: a
+        # 40-word message has no room for any, and the count path is already
+        # calibrated to be harsher (see `_score_from_counts`).
+        document_score = _score_from_counts(
+            sum(SEVERITY_WEIGHT[f.severity] for f in findings)
+        )
     overall = min(overall, document_score)
 
     errors = sum(1 for f in findings if f.severity is Severity.ERROR)
@@ -198,13 +287,22 @@ def score_document(
         reasons.append(
             f"{warnings} warning(s), limit {thresholds.max_warnings}"
         )
+    # Checked on errors and warnings, for the reason given at the category budget
+    # above: a suggestion must not fail a run. The reason line quotes the figure
+    # that was checked, and names it, so it can be reconciled against the raw
+    # `per_100_words` in the same report.
+    gating_per_100 = (
+        (errors + warnings) / words * 100
+        if words >= MIN_WORDS_FOR_DENSITY and words
+        else 0.0
+    )
     if (
         thresholds.max_total_per_100_words is not None
         and words >= MIN_WORDS_FOR_DENSITY
-        and per_100 > thresholds.max_total_per_100_words
+        and gating_per_100 > thresholds.max_total_per_100_words
     ):
         reasons.append(
-            f"{per_100:.2f} findings per 100 words, budget "
+            f"{gating_per_100:.2f} errors+warnings per 100 words, budget "
             f"{thresholds.max_total_per_100_words}"
         )
     if thresholds.min_score is not None and overall < thresholds.min_score:
@@ -212,8 +310,8 @@ def score_document(
     for entry in category_scores:
         if entry.over_budget:
             reasons.append(
-                f"{entry.category} at {entry.per_100_words:.2f} per 100 words, "
-                f"budget {entry.budget}"
+                f"{entry.category} at {entry.gating_per_100_words:.2f} "
+                f"errors+warnings per 100 words, budget {entry.budget}"
             )
 
     return DocumentScore(
@@ -234,79 +332,3 @@ def score_document(
         failure_reasons=reasons,
         unchecked=unchecked or [],
     )
-
-
-def aggregate(scores: list[DocumentScore]) -> dict[str, object]:
-    """Roll several documents into one summary.
-
-    Density is recomputed over TOTAL words rather than averaged over documents:
-    averaging per-document densities lets a 30-word file outweigh a 3,000-word
-    one, which misreports a repository.
-    """
-    if not scores:
-        return {
-            "documents": 0,
-            "words": 0,
-            "findings": 0,
-            "errors": 0,
-            "warnings": 0,
-            "suggestions": 0,
-            "per_100_words": 0.0,
-            "score": 100.0,
-            "passed": True,
-            "categories": [],
-        }
-
-    words = sum(s.words for s in scores)
-    findings = sum(s.total_findings for s in scores)
-    errors = sum(s.errors for s in scores)
-    warnings = sum(s.warnings for s in scores)
-    suggestions = sum(s.suggestions for s in scores)
-
-    # Word-weighted mean, so a long document counts for more than a stub.
-    if words:
-        overall = sum(s.score * max(s.words, 1) for s in scores) / sum(
-            max(s.words, 1) for s in scores
-        )
-    else:
-        overall = sum(s.score for s in scores) / len(scores)
-
-    per_category: dict[str, dict[str, float]] = {}
-    for score in scores:
-        for entry in score.categories:
-            bucket = per_category.setdefault(
-                entry.category,
-                {"findings": 0, "errors": 0, "warnings": 0, "suggestions": 0, "score": 0.0, "n": 0},
-            )
-            bucket["findings"] += entry.findings
-            bucket["errors"] += entry.errors
-            bucket["warnings"] += entry.warnings
-            bucket["suggestions"] += entry.suggestions
-            bucket["score"] += entry.score
-            bucket["n"] += 1
-
-    categories = [
-        {
-            "category": name,
-            "findings": int(data["findings"]),
-            "errors": int(data["errors"]),
-            "warnings": int(data["warnings"]),
-            "suggestions": int(data["suggestions"]),
-            "per_100_words": round(data["findings"] / words * 100, 3) if words else 0.0,
-            "score": round(data["score"] / data["n"], 1) if data["n"] else 100.0,
-        }
-        for name, data in sorted(per_category.items())
-    ]
-
-    return {
-        "documents": len(scores),
-        "words": words,
-        "findings": findings,
-        "errors": errors,
-        "warnings": warnings,
-        "suggestions": suggestions,
-        "per_100_words": round(findings / words * 100, 3) if words else 0.0,
-        "score": round(overall, 1),
-        "passed": all(s.passed for s in scores),
-        "categories": categories,
-    }
