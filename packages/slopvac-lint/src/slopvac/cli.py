@@ -526,6 +526,17 @@ def lint(
             off = [n for n, c in resolved.categories.items() if c.enabled is False]
             if off:
                 console.print(f"  disabled: {', '.join(sorted(off))}")
+
+            # WHICH BLOCK WON, per setting. Resolution is a cascade in file order,
+            # so with two overlapping globs the answer to "why is this rule still
+            # on" is otherwise an inference over every block in the file -- and the
+            # BROADER pattern wins if it comes later, which is the opposite of what
+            # a reader assumes. Listing only settings some layer actually touched:
+            # the ~30 untouched profile defaults would bury the handful that matter.
+            if resolved.provenance:
+                console.print("  set by:")
+                for setting, where in sorted(resolved.provenance.items()):
+                    console.print(f"    {setting}: {where}")
         raise SystemExit(EXIT_OK)
 
     # Loaded HERE, not lazily at compile time, so a broken blocklist is reported

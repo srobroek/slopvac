@@ -245,6 +245,17 @@ class ValeSettings(BaseModel):
 class Override(BaseModel):
     """A glob-scoped patch. Matched with gitignore semantics via pathspec, so
     `docs/**` and `!docs/generated/**` behave the way a reader expects.
+
+    WHY AN ARRAY OF BLOCKS rather than one table keyed by glob. A table
+    (`[overrides."docs/**"]`) reads better, and TOML would reject a duplicate key
+    for free. It cannot express the case this list exists for: a scope is often
+    several patterns, at least one of them a negation, and `docs/**` plus
+    `!docs/generated/**` is one scope with one set of settings, not two scopes.
+    Keying by glob would force that into two blocks whose settings must be kept
+    in agreement by hand.
+
+    So the block is the unit and `files` is a list. What TOML would have given
+    for free is done in `Config._reject_duplicate_scopes` instead.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -325,6 +336,37 @@ class Config(BaseModel):
         )
         return self
 
+    @model_validator(mode="after")
+    def _reject_duplicate_scopes(self) -> Config:
+        """Two blocks with the same `files` are an error.
+
+        Because `[[overrides]]` is an array of tables, TOML cannot reject this the
+        way it rejects a duplicate table key -- and duplicating a scope is never
+        what an author means. It reads as two independent decisions, and resolves
+        as one: the later block wins field by field, so a setting present in the
+        first and absent in the second survives while a setting present in both
+        does not. Somebody editing the first block then sees no effect on the
+        settings that collide, and an effect on the ones that do not.
+
+        Compared as a SET, so reordering the patterns inside a block is the same
+        scope. Patterns are normalised only by stripping surrounding whitespace:
+        `docs/**` and `docs/**/` are different globs to pathspec, and claiming
+        otherwise here would be a second, quieter guess.
+        """
+        seen: dict[frozenset[str], int] = {}
+        for index, override in enumerate(self.overrides):
+            key = frozenset(pattern.strip() for pattern in override.files)
+            if key in seen:
+                raise ValueError(
+                    f"overrides[{index}] repeats the scope of "
+                    f"overrides[{seen[key]}] ({', '.join(sorted(key))}). Merge "
+                    f"them into one block: two blocks with the same scope resolve "
+                    f"field by field, so the earlier one silently loses only the "
+                    f"settings they share."
+                )
+            seen[key] = index
+        return self
+
     def is_excluded(self, relative_path: str) -> bool:
         spec: pathspec.PathSpec = getattr(self, "_exclude_spec")
         return spec.match_file(relative_path)
@@ -353,6 +395,11 @@ class ResolvedConfig(BaseModel):
         default_factory=list,
         description="Which override globs matched, in order. Reported by "
         "`--explain-config` so a surprising result is traceable.",
+    )
+    provenance: dict[str, str] = Field(
+        default_factory=dict,
+        description="For each setting that any layer touched, WHICH layer set the "
+        "value that survived. See `resolve_for`.",
     )
 
 
@@ -482,6 +529,31 @@ def load_config(path: Path | None, root: Path | None = None) -> Config:
 def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     """Fold the profile and every matching override into one settings object.
 
+    A CASCADE IN FILE ORDER, NOT STRICTEST-WINS AND NOT MOST-SPECIFIC-WINS. Every
+    matching block applies, in the order it appears, and the last one to set a
+    field owns that field. So `files = ["x.*"]` after `files = ["x.md"]` wins for
+    `x.md` even though it is the broader pattern, and reordering the two blocks
+    changes the result.
+
+    That is the intended design, and specificity ranking was the alternative. It
+    was rejected because there is no ordering on globs that a reader can predict:
+    `docs/**` against `**/*.md` is not more or less specific, it is differently
+    specific, and any rule that picks a winner there has to be memorised. File
+    order is the one rule that needs no explanation and is visible in the file
+    being read.
+
+    STRICTEST-WINS was rejected separately, and more firmly. Under it a project
+    could not RELAX anything -- a vendored subtree or a generated `docs/api/`
+    could never be dialled down, because the stricter parent always won. Relaxing
+    a subtree is the main reason overrides exist.
+
+    What file order costs is discoverability, so this function records WHERE each
+    surviving value came from in `provenance`. `--explain-config` prints it, which
+    turns "why is this rule still on" into a lookup instead of an inference over
+    every block in the file. `Config._reject_duplicate_scopes` covers the case
+    where two blocks share a scope outright; overlap between DIFFERENT globs is
+    legitimate and stays legal.
+
     Import is local to avoid a cycle: profiles describes rule defaults in terms
     of the enums above.
     """
@@ -495,12 +567,24 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         # silently applying no overrides.
         relative = file_path.name
 
+    # Names the layer in `provenance`, so the label a reader sees is the same
+    # string `--explain-config` prints and the same index the duplicate-scope and
+    # unknown-name errors use.
+    def label(index: int | None, override: Override | None = None) -> str:
+        if index is None or override is None:
+            return "config"
+        return f"overrides[{index}] ({', '.join(override.files)})"
+
+    provenance: dict[str, str] = {}
+
     # Layer 1: the profile.
     profile = config.profile
-    matching = [o for o in config.overrides if o.matches(relative)]
-    for override in matching:
+    provenance["profile"] = f"profile default ({profile.value})"
+    matching = [(i, o) for i, o in enumerate(config.overrides) if o.matches(relative)]
+    for index, override in matching:
         if override.profile is not None:
             profile = override.profile
+            provenance["profile"] = label(index, override)
 
     defaults = profile_defaults(profile)
     categories = {name: settings.model_copy() for name, settings in defaults.items()}
@@ -513,32 +597,53 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     # Layer 2: the top-level tables.
     for name, patch in config.categories.items():
         categories[name] = _merge_category(categories.get(name), patch)
+        provenance[f"categories.{name}"] = label(None)
     for name, patch in config.rules.items():
         rules[name] = _merge_rule(rules.get(name), patch)
+        provenance[f"rules.{name}"] = label(None)
+    # Compared against a DEFAULT `Thresholds`, not against emptiness: the model has
+    # non-None field defaults, so a truthiness test credited the config file for
+    # thresholds it never mentioned and the profile actually set.
+    if config.thresholds.model_dump(exclude_none=True) != Thresholds().model_dump(
+        exclude_none=True
+    ):
+        provenance["thresholds"] = label(None)
+    if config.vocabulary.path is not None:
+        provenance["vocabulary"] = label(None)
 
-    # Layer 3: every matching override, in file order.
+    # Layer 3: every matching override, in file order. Each assignment to
+    # `provenance` overwrites the previous one, which is exactly the precedence
+    # being recorded: the last writer is the winner.
     applied: list[str] = []
-    for override in matching:
+    for index, override in matching:
         applied.extend(override.files)
+        where = label(index, override)
         for name, patch in override.categories.items():
             categories[name] = _merge_category(categories.get(name), patch)
+            provenance[f"categories.{name}"] = where
         for name, patch in override.rules.items():
             rules[name] = _merge_rule(rules.get(name), patch)
-        thresholds = _merge_thresholds(thresholds, override.thresholds)
+            provenance[f"rules.{name}"] = where
+        if override.thresholds is not None:
+            thresholds = _merge_thresholds(thresholds, override.thresholds)
+            provenance["thresholds"] = where
         if override.locale is not None:
             merged_locale = locale.model_dump()
             for key, value in override.locale.model_dump().items():
                 if value:
                     merged_locale[key] = value
             locale = LocaleSettings.model_validate(merged_locale)
+            provenance["locale"] = where
         if override.vale is not None:
             merged = vale.model_dump()
             for key, value in override.vale.model_dump().items():
                 if value is not None:
                     merged[key] = value
             vale = ValeSettings.model_validate(merged)
+            provenance["vale"] = where
         if override.vocabulary is not None and override.vocabulary.path is not None:
             vocabulary = override.vocabulary.model_copy()
+            provenance["vocabulary"] = where
 
     return ResolvedConfig(
         path=file_path,
@@ -550,6 +655,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         locale=locale,
         vocabulary=vocabulary,
         applied_overrides=applied,
+        provenance=provenance,
     )
 
 

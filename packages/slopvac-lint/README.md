@@ -69,23 +69,74 @@ profile = "normal"
 max_errors = 0
 min_score = 70
 
-[categories.ste-vocabulary]
-enabled = false
+[categories]
+ste-vocabulary = "off"
 
-[rules."prose-format.no-unicode-dash"]
-severity = "off"           # house style uses real em dashes
+[rules]
+"prose-format.no-unicode-dash" = "off"    # house style uses real em dashes
 
 [[overrides]]
 files = ["docs/reference/**/*.md", "runbooks/**/*.md"]
 profile = "strict"
 ```
 
-A setting belongs to the block it is written in, so appending to the end of the
-file cannot silently re-target it. `slopvac lint --explain-config <file>`
-prints what actually applies.
+Severity is the only per-rule setting, so a bare string stands in for the table
+form: `"prose-format.no-unicode-dash" = "off"` and `[rules."prose-format.no-unicode-dash"]`
+with `severity = "off"` are the same thing. The same shorthand works for a
+category.
 
-A category cap lowers a rule's severity and never raises it: `severity = "error"`
-on a category will not promote a suggestion into a gate failure.
+Severity is a **set at every layer, not a cap**. A category's `severity` promotes
+as well as demotes, and so does a rule's, so `severity = "error"` on a category
+does turn its suggestions into gate failures. Narrowest wins: a rule override
+beats its category, which beats the profile's disposition, which beats the
+severity the rule ships with.
+
+A misspelled rule id or category name is an **error**, not a silent no-op —
+including inside an `[[overrides]]` block. `slopvac` refuses to lint and offers
+the closest real name, because the alternative failure is "I disabled it and the
+gate still fails."
+
+### How overlapping globs resolve
+
+Every matching `[[overrides]]` block applies, in **file order**, and the last
+block to set a field owns that field. It is not strictest-wins and not
+most-specific-wins:
+
+```toml
+[[overrides]]
+files = ["x.md"]
+profile = "strict"
+
+[[overrides]]
+files = ["x.*"]      # broader, but LATER, so this one wins for x.md
+profile = "relaxed"
+```
+
+Specificity ranking was rejected because there is no ordering on globs a reader
+can predict — `docs/**` against `**/*.md` is differently specific, not more or
+less — and any rule that picks a winner there has to be memorised. Strictest-wins
+was rejected because under it nothing can be **relaxed**: a vendored subtree or a
+generated `docs/api/` could never be dialled down, which is the main reason
+overrides exist.
+
+Two blocks with the *same* scope are refused, since that reads as two independent
+decisions and resolves as one. Overlap between different globs is legitimate and
+stays legal.
+
+`slopvac lint --explain-config <file>` prints what applies **and which block set
+each setting**:
+
+```
+x.md
+  profile: relaxed
+  overrides: x.md, x.*
+  set by:
+    profile: overrides[1] (x.*)
+    rules.prose-format.no-unicode-dash: overrides[0] (x.md)
+```
+
+Only settings some layer actually touched are listed; the untouched profile
+defaults would bury them.
 
 ## Word blocklist
 
