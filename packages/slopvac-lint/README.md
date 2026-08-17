@@ -249,6 +249,45 @@ A suppression must name an exception from the rule's own list:
 names a reason off that list, `slopvac` reports it rather than honors it, and
 tracks the suppression rate as a metric.
 
+## Output formats
+
+```sh
+slopvac docs/                            # a terminal report
+slopvac --format json docs/ | jq .        # every finding, every score
+slopvac --format github docs/            # Action annotations on the diff
+slopvac --format sarif docs/ > out.sarif  # code scanning
+slopvac --open docs/                     # an HTML report, in your browser
+```
+
+`--open` writes a self-contained page and opens it. `--out report.html` names the
+file instead of a temporary one, and implies HTML. The page needs no network and
+no assets, so it survives being attached to a CI run or mailed to a reviewer.
+
+The report leads with what did **not** run, before the score, and flags each
+affected document in the table. A score from an engine that failed to start is an
+upper bound, and a reader who misses that has been misled by their own report.
+
+Below that: the verdict, then the documents worst first, then the categories that
+fired, then the findings, grouped per document. Anything that failed starts open.
+
+## The compiled-rule cache
+
+`slopvac` compiles its YAML rules into a Vale style directory once and reuses it.
+The cache key is a hash of the rules, the resolved config, the severities, and
+your blocklist, so **nothing is ever served stale**: any edit mints a new key.
+
+```sh
+slopvac cache            # where it is, how many trees, how much disk
+slopvac cache --prune    # keep the 16 most recently used
+slopvac cache --all      # delete every tree
+```
+
+A lint prunes on its own, keeping the 16 trees used most recently. A cache hit
+counts as use. A tree that a project keeps hitting therefore survives, however
+old it is.
+Pruning is only ever about disk: it cannot cause a wrong result. Set
+`SLOPVAC_CACHE_DIR` to move it; it defaults under `XDG_CACHE_HOME`.
+
 ## Exit codes
 
 | Code | Means |
@@ -438,8 +477,8 @@ permitted set. Measured on an 8-document corpus:
 - 1,275 of its 1,282 refusals carried neither a reason nor a replacement
 
 Absence from a deliberately incomplete dictionary is not disapproval. It is a
-**blocklist** now, empty until you write one, and every entry requires a reason. An
-Nobody but its author can argue with or later remove an entry that gives no
+**blocklist** now, empty until you write one, and every entry requires a reason.
+Nobody but its author can argue with, or later remove, an entry that gives no
 reason.
 
 Suppression follows from the same position: `<!-- slopvac-disable-next-line rule:

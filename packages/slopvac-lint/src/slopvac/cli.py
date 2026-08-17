@@ -18,6 +18,8 @@ import fnmatch
 import hashlib
 import json
 import sys
+import tempfile
+import webbrowser
 from datetime import datetime
 from pathlib import Path
 
@@ -41,6 +43,7 @@ from .engine import Engine, drop_quoted_illustrations
 from .model import DocumentScore, RuleKind
 from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
+from .html import render_html
 from .reference import render_reference
 from .report import LintReport, build_sarif, summarize
 from .score import score_document
@@ -408,9 +411,23 @@ def main(context: click.Context) -> None:
 @click.option(
     "--format",
     "output_format",
-    type=click.Choice(["text", "json", "github", "sarif"]),
+    type=click.Choice(["text", "json", "github", "sarif", "html"]),
     default="text",
-    help="text for humans, json for tooling, github for Action annotations.",
+    help="text for humans, json for tooling, github for Action annotations, "
+    "html for a self-contained report.",
+)
+@click.option(
+    "--out",
+    "out_path",
+    type=click.Path(dir_okay=False, path_type=Path),
+    help="Write the report here instead of stdout. Implied by --open.",
+)
+@click.option(
+    "--open",
+    "open_report",
+    is_flag=True,
+    help="Open the HTML report in a browser. Writes to a temp file unless --out "
+    "names one.",
 )
 @click.option("--min-score", type=float, help="Fail below this 0-100 score.")
 @click.option(
@@ -439,6 +456,8 @@ def lint(
     only_categories: tuple[str, ...],
     disabled: tuple[str, ...],
     output_format: str,
+    out_path: Path | None,
+    open_report: bool,
     min_score: float | None,
     max_per_100_words: float | None,
     locale_tag: str | None,
@@ -627,7 +646,35 @@ def lint(
         for score in scores:
             score.unchecked.append(locale_note)
 
-    if output_format == "json":
+    if output_format == "html" or open_report:
+        page = render_html(summarize(scores), scores, __version__)
+        destination = out_path
+        if destination is None and open_report:
+            # A named temp file rather than stdout: a browser needs a path, and the
+            # file has to outlive this process, so NamedTemporaryFile(delete=False)
+            # is the shape. Keyed on nothing, so repeated runs do not collide.
+            handle = tempfile.NamedTemporaryFile(
+                prefix="slopvac-report-", suffix=".html", delete=False
+            )
+            destination = Path(handle.name)
+            handle.close()
+        if destination is not None:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(page, encoding="utf-8")
+            console.print(f"report: [bold]{destination}[/]")
+            if open_report:
+                # A browser that will not open is not a lint failure, so this
+                # reports and carries on to the exit code the prose earned.
+                if webbrowser.open(destination.resolve().as_uri()):
+                    console.print("opened in your browser")
+                else:
+                    console.print(
+                        "[yellow]could not open a browser[/]; the report is at the "
+                        "path above"
+                    )
+        else:
+            click.echo(page, nl=False)
+    elif output_format == "json":
         click.echo(
             LintReport(
                 version=__version__, summary=summarize(scores), documents=scores
@@ -923,11 +970,20 @@ def compile_styles(
     inject_locale_rule(ruleset, config.locale.default, config.locale.allow)
     resolved = resolve_for(config, Path("README.md"))
 
+    # An unvalidated tree may hold a rule Vale refuses to load, and one such rule
+    # makes Vale lint nothing at all while exiting 0. The compiler therefore refuses
+    # to put one in the shared cache, so `--no-validate` without `--outdir` gets a
+    # throwaway directory of its own. It is not cleaned up: the path is printed, and
+    # inspecting the generated styles is the reason to pass this flag.
+    destination = outdir
+    if destination is None and no_validate:
+        destination = Path(tempfile.mkdtemp(prefix="slopvac-styles-"))
+
     try:
         result = compile_ruleset(
             ruleset,
             resolved,
-            outdir=outdir,
+            outdir=destination,
             binary=config.vale.binary,
             validate=not no_validate,
             vocabulary=vocabulary,
