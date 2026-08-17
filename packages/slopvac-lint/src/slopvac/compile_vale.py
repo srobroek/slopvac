@@ -1071,14 +1071,31 @@ def compile_ruleset(
 
     # Write the tree only once the routing is settled, so a rejected rule never
     # reaches disk where a later run could pick it up from the cache.
-    if outdir.exists():
-        shutil.rmtree(outdir)
-    (outdir / "styles").mkdir(parents=True)
+    #
+    # Build in a private sibling directory and rename it into place, rather than
+    # clearing `outdir` and writing into it. Two costs paid for that:
+    #
+    # A reader is never shown a half-built tree. Clearing first left a window --
+    # ~200 rule files wide -- in which a concurrent run resolved a config whose
+    # rules were partly absent. Vale rejects the config (E201) and then lints
+    # NOTHING while still exiting 0, so every file reads clean and the score is
+    # silently native-rules-only. That is the exact failure this project exists to
+    # prevent, and it cost a session's worth of trust in its own README score.
+    #
+    # And a crash leaves no cache entry at all. The manifest is the last thing
+    # written, so a run killed mid-write used to leave a directory that looked
+    # cached to the fingerprint check; now the manifest lands inside the temporary
+    # tree and becomes visible only with the rename, which is atomic.
+    staging = outdir.parent / f".{outdir.name}.building-{os.getpid()}"
+    outdir.parent.mkdir(parents=True, exist_ok=True)
+    if staging.exists():
+        shutil.rmtree(staging)
+    (staging / "styles").mkdir(parents=True)
 
     for rule_id, payload in sorted(payloads.items()):
         category = categories[rule_id]
         name = rule_id.split(".", 1)[1]
-        directory = outdir / "styles" / category
+        directory = staging / "styles" / category
         directory.mkdir(parents=True, exist_ok=True)
         (directory / f"{name}.yml").write_text(
             yaml.safe_dump(payload, sort_keys=False, allow_unicode=True, width=10**6),
@@ -1086,8 +1103,10 @@ def compile_ruleset(
         )
         result.vale_rules.append(rule_id)
 
-    result.config_path.write_text(_render_ini(sorted(payloads), levels), encoding="utf-8")
-    manifest_path.write_text(
+    (staging / ".vale.ini").write_text(
+        _render_ini(sorted(payloads), levels), encoding="utf-8"
+    )
+    (staging / "manifest.json").write_text(
         json.dumps(
             {
                 "fingerprint": fingerprint,
@@ -1102,6 +1121,23 @@ def compile_ruleset(
         ),
         encoding="utf-8",
     )
+
+    # `os.replace` is atomic for a directory only when the target does not exist,
+    # so the old tree moves aside first and is removed after the swap. A loser in a
+    # race finds its own rename failing because the winner already published an
+    # identical tree -- the fingerprint says so -- so it keeps the winner's.
+    previous = outdir.parent / f".{outdir.name}.replaced-{os.getpid()}"
+    try:
+        if outdir.exists():
+            os.replace(outdir, previous)
+        try:
+            os.replace(staging, outdir)
+        except OSError:
+            if not (outdir / "manifest.json").is_file():
+                raise
+            shutil.rmtree(staging, ignore_errors=True)
+    finally:
+        shutil.rmtree(previous, ignore_errors=True)
     return result
 
 

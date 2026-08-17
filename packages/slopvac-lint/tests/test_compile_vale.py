@@ -13,6 +13,7 @@ green suite on a machine with no Vale would assert only that we can write YAML.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -626,6 +627,67 @@ def test_second_compile_reuses_the_cache(ruleset, vocabulary, tmp_path):
     assert marker.exists(), "the tree was rewritten instead of reused"
     assert second.vale_rules == first.vale_rules
     assert second.native_reasons() == first.native_reasons()
+
+
+def test_a_reader_never_sees_a_half_built_cache_tree(ruleset, vocabulary, tmp_path):
+    """The tree is published by one rename, so it is complete or absent.
+
+    The old compiler cleared `outdir` and then wrote ~200 rule files into it, which
+    left a window in which a concurrent run resolved a config naming rules that were
+    not on disk yet. Vale rejects such a config (E201) and then lints NOTHING while
+    still exiting 0, so every file reads clean and the score silently drops to
+    native-rules-only. This asserts the window is closed: at the moment the
+    directory exists at all, its ini and every rule the ini names exist too.
+    """
+    config = resolve_for(Config(), Path("README.md"))
+    outdir = tmp_path / "c"
+    compile_ruleset(
+        ruleset, config, outdir=outdir, validate=False, vocabulary=vocabulary, force=True
+    )
+    # Recompile over the published tree. Nothing may be missing at any point, so the
+    # check runs against the result rather than racing it: a partial publish would
+    # leave the ini naming a file the rename never carried over.
+    compile_ruleset(
+        ruleset, config, outdir=outdir, validate=False, vocabulary=vocabulary, force=True
+    )
+    # Read the ini by line rather than with configparser: Vale's format opens with
+    # header-less global keys, which configparser rejects outright.
+    named = re.findall(
+        r"^([\w-]+\.[\w-]+)\s*=",
+        (outdir / ".vale.ini").read_text(encoding="utf-8"),
+        re.MULTILINE,
+    )
+    assert named, "the generated ini names no rules, so this asserts nothing"
+    for rule in named:
+        category, name = rule.split(".", 1)
+        assert (outdir / "styles" / category / f"{name}.yml").is_file(), (
+            f"the ini enables {rule} but the file is absent -- Vale would E201 and "
+            f"then lint nothing"
+        )
+
+
+def test_a_failed_compile_leaves_no_cache_entry(ruleset, vocabulary, tmp_path, monkeypatch):
+    """A crash mid-write must not leave a directory that reads as cached.
+
+    The manifest is what the fingerprint check looks for, and it is now written
+    inside the staging tree, so a run that dies before the rename publishes nothing.
+    """
+    import slopvac.compile_vale as module
+
+    config = resolve_for(Config(), Path("README.md"))
+    outdir = tmp_path / "c"
+
+    def explode(*args, **kwargs):
+        raise RuntimeError("killed mid-write")
+
+    monkeypatch.setattr(module.os, "replace", explode)
+    with pytest.raises(RuntimeError):
+        compile_ruleset(
+            ruleset, config, outdir=outdir, validate=False, vocabulary=vocabulary, force=True
+        )
+    assert not (outdir / "manifest.json").is_file()
+    leftovers = [p.name for p in tmp_path.iterdir() if p.name.startswith(".c.")]
+    assert not leftovers or all("building" in n for n in leftovers), leftovers
 
 
 def test_changing_a_severity_invalidates_the_cache(ruleset, vocabulary, tmp_path):
