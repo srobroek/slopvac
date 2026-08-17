@@ -6,10 +6,10 @@ AI generated documentation has a clear fingerprint. Contrastive inversions.
 Adjectives nothing measures. Rationale that belongs in a decision record, roadmap
 language for something that does not ship yet, and hedging on every claim.
 
-This package ships two skills. 
+This package ships two skills.
 
 `write-docs` classifies a document by genre and authors against that
-genre's rules. 
+genre's rules.
 
 `review-docs` gates a document with a deterministic
 [Vale](https://vale.sh) pass, judges the register against a catalog of tells no regex
@@ -36,7 +36,6 @@ claude plugins install slopvac@slopvac --scope user
 codex plugin marketplace add srobroek/slopvac
 codex plugin add slopvac@slopvac
 ```
-
 
 **Kiro, or anywhere you already use [APM](https://microsoft.github.io/apm/)**
 
@@ -143,7 +142,6 @@ absent, nothing more"]
     class REVISE bad
     class PASS,SHIP good
 ```
-
 
 The `SubagentStart` hook injects the rules
 into every subagent, because a subagent inherits main-session steering weakly.
@@ -302,7 +300,7 @@ point it runs.
 ### Rule sources
 
 `vale sync` fetches the style packages listed under
-[What it catches](#what-it-catches). All but one are built from `vale-styles/` in
+[Patterns it catches](#patterns-it-catches). All but one are built from `vale-styles/` in
 this repo; `ai-tells` comes from
 [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) (MIT), whose 76 rules
 arrive with the exclusions a software corpus needs already applied. The lexical rules in `prose-inflation` were harvested from

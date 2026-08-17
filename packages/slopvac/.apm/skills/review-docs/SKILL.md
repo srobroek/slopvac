@@ -6,11 +6,12 @@ description: Review written text for AI tells, slop, and genre defects, and retu
 # Review Docs
 
 TRIGGER
+
 + finishing any significant piece of prose -- run this before calling it done
 + "review this README", "deslop this", "does this read like AI", "check the docs"
 + reviewing text someone else drafted, human or model
-- authoring from scratch, or choosing a genre → write-docs (it calls this skill at the end)
-- code comments and docstrings → language conventions
++ authoring from scratch, or choosing a genre → write-docs (it calls this skill at the end)
++ code comments and docstrings → language conventions
 
 `slopvac` owns every mechanical rule. This skill owns the judgement the
 linter cannot make, and the verdict. Neither carries a copy of the other's rules:

@@ -6,12 +6,13 @@ description: Invoke before writing or reviewing a README, docs, PR/release text,
 # Write Docs
 
 TRIGGER
+
 + writing or updating README.md, docs/**, or any doc a consumer of the artifact reads
 + writing a PR description, commit message, or hand-written release notes
 + writing specs, ADRs, constitutions, CONTRIBUTING, runbooks (internal genre)
-- reviewing or de-slopping text that already exists → review-docs
-- authoring skills, steering, or agent definitions → write-agentic
-- code comments and docstrings → language conventions
++ reviewing or de-slopping text that already exists → review-docs
++ authoring skills, steering, or agent definitions → write-agentic
++ code comments and docstrings → language conventions
 
 This skill authors. `slopvac` gates mechanically; the `review-docs` skill
 judges what no pattern reaches. Steps 4 and 5 run both, and neither is optional --
