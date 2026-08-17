@@ -20,6 +20,30 @@ Corpus where quoted: 488 tracked `*.md` in the source repo.
 | `ai-tells.AICompoundPhrases` | `warning` | Same dead era-band as `OverusedVocabulary` (intricate, tapestry, testament, pivotal, multifaceted), scored as compound pairs. Demoted rather than disabled because the compound form is a stronger signal than the bare adjective: worth seeing, not gating on. | Yes. No owned replacement; keep it in Vale at warning. |
 | `ai-tells.VerbTricolon` | `warning` | 149 hits, and the rule cannot tell a rhetorical tricolon from a three-item technical enumeration ("create, update, and delete"), which this corpus is full of. | Yes. `ai-tells-structure.tricolon-abuse-core` ships at warning citing this same 149-hit measurement. |
 
+## The 23 orphaned `ai-tells` rules (never in `.vale.ini`, so never measured)
+
+A second set of `ai-tells` rules existed only on the retired `agentic-packages`
+branch `chore/context-engineering-audit` and in the archived
+`bailiff/.vale-styles/ai-tells/`. They were never referenced from any
+`.vale.ini`, so the 488-file corpus never ran them and there is no hit count for
+any of them. Ported on that basis, at the levels recorded in
+`rules/ai-tells-figurative.yml`.
+
+| Vale rule | Disposition | Reason |
+|---|---|---|
+| `Figurative{Sits,Runs,Falls,Draws,Casts,Strikes,Wins,Lends,Rides,Loud}` | Ported, `warning` | One rule per verb, because the scope caveat differs per verb. `ai-tells-register.figurative-verb-verdict-core` reaches none of them: it is a 10-token list about verdicts. |
+| `ResonateOveruse` | Ported, `warning` | Single token, no owned rule matched it. |
+| `ColloquialAssessments` | Ported, `warning` | Overlaps an owned rule on one branch of 22 (`the point lands`). |
+| `PromotionalPuffery` | Ported, `error` | 0 of 55 tokens reachable. `prose-inflation.slop-lexicon` owns single adjectives; this owns multi-word constructions. |
+| `StrategyBuzzwords` | Ported, `error` | Only `north star` was owned. Flywheel, moat, network-effect, land-grab were not. |
+| `AIAdjectiveNounPairs` | Ported, `warning`, narrowed | Vale `sequence` with POS tags; this engine has no tagger outside `kind: vocabulary`, so the noun side is a following lowercase word. Under-matches, which is the safe direction. `holistic`/`seamless`/`comprehensive` dropped as already owned. |
+| `OverusedVocabularyVerbs` | Ported, `warning`, as tokens | Same POS problem, so noun uses fire too; `domain-term` is the exception for them. `leverage` dropped as already owned. |
+| `SemicolonUsage`, `ColonUsage`, `ShipOveruse`, `FormalRegister`, `RedundantPrecaution`, `GrowthMetaphors`, `AICompoundPhrases` | NOT ported | Same rules as the measured table above, which already says not to port them. A filename absent from the engine is not evidence of a gap when the reason is recorded. |
+
+`FigurativeStrikes` does NOT cover `strikes a balance`: the source noun list is
+note/tone/chord. The loader's example check established that by rejecting a
+first draft that claimed otherwise.
+
 ## Section-level exclusions (not rule dispositions, same institutional value)
 
 | Scope | What is turned off | Measurement / reason | Carry over? |

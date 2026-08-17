@@ -34,7 +34,12 @@ _STRICT: dict[str, CategorySettings] = {
     "ai-tells-register": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.3, weight=1.5),
     "ai-tells-formatting": CategorySettings(severity=Severity.WARNING, max_per_100_words=0.5, weight=0.8),
     "ai-tells-content-shape": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.2, weight=1.5),
+    # A figurative verb has a literal alternative in any register, but the
+    # budget is looser than the other ai-tells bands: these are single-word
+    # matches, so one metaphor-heavy paragraph spends a tight budget outright.
+    "ai-tells-figurative": CategorySettings(severity=Severity.WARNING, max_per_100_words=0.4, weight=1.0),
     "prose-inflation": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.3, weight=1.5),
+    "prose-promotion": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.2, weight=1.2),
     "prose-agency": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.4, weight=1.2),
     "prose-scope": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.3, weight=1.0),
     "prose-format": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.2, weight=0.8),
@@ -69,7 +74,9 @@ _NORMAL: dict[str, CategorySettings] = {
     "ai-tells-register": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.6, weight=1.5),
     "ai-tells-formatting": CategorySettings(severity=Severity.WARNING, max_per_100_words=1.0, weight=0.8),
     "ai-tells-content-shape": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.4, weight=1.5),
+    "ai-tells-figurative": CategorySettings(severity=Severity.WARNING, max_per_100_words=0.8, weight=1.0),
     "prose-inflation": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.6, weight=1.5),
+    "prose-promotion": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.4, weight=1.2),
     "prose-agency": CategorySettings(severity=Severity.WARNING, max_per_100_words=0.8, weight=1.0),
     "prose-scope": CategorySettings(severity=Severity.WARNING, max_per_100_words=0.6, weight=1.0),
     "prose-format": CategorySettings(severity=Severity.ERROR, max_per_100_words=0.4, weight=0.8),
@@ -107,7 +114,14 @@ _RELAXED: dict[str, CategorySettings] = {
     "ai-tells-register": CategorySettings(severity=Severity.WARNING, max_per_100_words=1.5, weight=1.0),
     "ai-tells-formatting": CategorySettings(severity=Severity.OFF),
     "ai-tells-content-shape": CategorySettings(severity=Severity.WARNING, max_per_100_words=1.0, weight=1.0),
+    # OFF, and every rule in it is `relaxed: excluded` anyway: a metaphor is a
+    # register choice, and relaxed is the profile that grants register latitude.
+    "ai-tells-figurative": CategorySettings(severity=Severity.OFF),
     "prose-inflation": CategorySettings(severity=Severity.WARNING, max_per_100_words=1.5, weight=1.0),
+    # Survives at relaxed, unlike the figurative band: the two rules kept here
+    # are `relaxed: enforced` because puffery and strategy-deck vocabulary make
+    # an unbacked claim, which is a defect in any register.
+    "prose-promotion": CategorySettings(severity=Severity.WARNING, max_per_100_words=1.0, weight=1.0),
     "prose-agency": CategorySettings(severity=Severity.SUGGESTION, max_per_100_words=2.0, weight=0.5),
     "prose-scope": CategorySettings(severity=Severity.OFF),
     "prose-format": CategorySettings(severity=Severity.SUGGESTION, max_per_100_words=2.0, weight=0.3),
