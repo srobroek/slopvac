@@ -1,0 +1,14 @@
+The document is complete. `README.v4.md` is written.
+
+**What I changed** (26 of 39 findings cleared):
+
+- **Vertical lists (15 findings)** — converted coordinate series to bullets: the extension list (line 3), the `slopvac rules` row fields and filter flags, the `slopvac explain` output fields, the rule's required and optional fields, the `prose` scope exclusions and the other scopes, the all-caps token cases, the `metric` measurements, the threshold-failure list, and the exit-2 causes. Split the two-clause bullets on `text` output and gating density instead of listing, where a split was smaller.
+- **Long sentences (7)** — split at a clause boundary: the specificity/strictest-wins pair, the rule-fields sentence, the `metric` table row (moved the UNCHECKED sentence out of the table into prose below it), the allowlist consequence, the exit-2 sentence.
+- **Noun stacks (7)** — broke each with a preposition or an article: "generated Markdown reference" → "Markdown reference that slopvac generates"; "bare severity string" → "severity written as a bare string"; "file order" → "the file order"; "every matching block" → "every block that matches"; "strict ordering" → "ordering that is strict"; "`quotation` exception" → "exception named `quotation`"; "gating density budget" → split into two sentences.
+- **Semicolon (1 in body)** — the `score` bullet became two sentences.
+- **Omitted `that` (2)** — recast both to remove the construction: "The budget for that number is `max_total_per_100_words`" and "This number appears on a badge".
+- **Anthropomorphism, emphasis paragraph, vague quantifier, tricolon** — "the loader refuses" → "A rule without provenance stops the load"; the 7-word emphasis paragraph rejoined the sentence above it; "usually" → "these three shapes"; the tricolon broke into a list.
+
+Every number, path, flag, rule id, exit code, and code fence is byte-identical, and the judgement-pass structure and section order are intact.
+
+**Six declines**, all logged at the end: they all fall inside v3's own carried-over `## Findings not applied` list, which the brief requires to survive unchanged.

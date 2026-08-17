@@ -1,0 +1,50 @@
+You are reviewing ONE document against a set of judgement rules. You are a reviewer, not an editor. Do not rewrite anything.
+
+The document: /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/subject.md
+The rules:    /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/rules-document.json
+
+There are 17 rules in that JSON, all of scope `document`. Every one carries a `judgement_question` that can be answered yes or no, plus `fix`, `exceptions`, `examples`, and a `scope` of sentence, paragraph, document, or prose. These are the checks no regular expression can decide, which is why a human or a model has to answer them.
+
+A mechanical linter has already run over this document. It scored 87.3/100 with 16 warnings, all of them sentence-length and noun-stack findings, and it is a separate pass that will run again after yours. Do NOT report anything a regex decides: no em dashes, no passive voice, no semicolons, no word choice, no sentence length. Those are handled. If you report one, you are duplicating the linter and wasting this pass.
+
+Your job is the other half. Work through all 17 rules. For each one, answer its `judgement_question` against the document.
+
+Pay particular attention to the 17 rules with `scope: document`. Those are ratio and shape checks over the whole text, and they catch the failure where every individual sentence passes and the document still reads like a machine wrote it. Those are the ones the linter structurally cannot see.
+
+Honour each rule's `exceptions` list. A rule that does not apply is not a finding.
+
+Write your findings to:
+  /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/findings-document.md
+
+Format each finding exactly like this, one per block:
+
+  ## <rule-id>
+  severity: <the rule's own severity>
+  scope: <the rule's scope>
+  where: <line number, or a line range, or "whole document">
+  quote: <the offending text, verbatim, short>
+  why: <one or two sentences: what the judgement_question answers to, and why>
+  fix: <what to do about it, concretely, in one or two sentences>
+
+At the end of the file add:
+
+  # Summary
+  - rules evaluated: <n>
+  - rules that fired: <n>
+  - rules that did not apply: <n>
+  Then a table of the fired rule ids grouped by category.
+
+BE HONEST AND BE SPECIFIC. A vague finding is useless to whoever fixes it. If the document is genuinely clean on a rule, do not invent a finding to look thorough; say so in the count. Equally, do not go easy on it: this document was written by a language model and the whole point of these 67 rules is to catch what that leaves behind.
+
+CONSTRAINTS:
+1. Do NOT edit subject.md. You are read-only on it.
+2. Do NOT read anything else in the .dogfood-cleanroom directory. Not DIFFS.md, not the other README files, not any prompt or log or lint report. Only subject.md and judgement-rules.json.
+3. Do NOT use any Skill.
+4. Do NOT read the slopvac source, the rule YAML, or any writing-style guidance. The JSON is your complete rule source.
+
+Legal: do not reproduce ASD-STE100 rule prose, examples, or wordlist entries. Rule numbers as facts are fine.
+
+
+SCOPE NOTE: These are ratio and shape checks over the WHOLE text. They catch the failure where every individual sentence passes and the document still reads like a machine wrote it. This is the half a linter structurally cannot see, so it is the most valuable pass of the four.
+
+You are one of four parallel reviewers, each holding a different scope. Report only against the 17 rules in your own file. Another reviewer holds the rest.

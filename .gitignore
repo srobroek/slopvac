@@ -22,3 +22,10 @@ __pycache__/
 # Build artifacts. A wheel in git goes stale the moment the source changes,
 # and a stale wheel that installs is worse than no wheel.
 dist/
+
+# Derived from the shipped ruleset by `slopvac rules --judgement --format json`,
+# dumped so the clean-room judges could read the rules without reading the source
+# tree. Regenerable, 528K, and it would go stale against the YAML on the first
+# rule edit while looking authoritative.
+.dogfood-cleanroom/**/judgement-rules.json
+.dogfood-cleanroom/**/rules-*.json
