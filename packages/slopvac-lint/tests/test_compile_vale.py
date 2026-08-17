@@ -24,7 +24,6 @@ import pytest
 from slopvac.analyze import count_words
 from slopvac.compile_vale import (
     STE_WORD_TOKEN,
-    CompileResult,
     _occurrence_bound,
     cache_root,
     compile_ruleset,
@@ -277,7 +276,7 @@ def test_ini_carries_our_resolved_severity(ruleset, vocabulary, tmp_path):
 
 def test_disabled_category_removes_every_rule_in_it(ruleset, vocabulary, tmp_path):
     config = Config()
-    config.categories["orwell"] = CategorySettings(enabled=False)
+    config.categories["orwell"] = CategorySettings(severity=Severity.OFF)
     resolved = resolve_for(config, Path("README.md"))
     result = compile_ruleset(
         ruleset, resolved, outdir=tmp_path / "cat", validate=False, vocabulary=vocabulary, force=True

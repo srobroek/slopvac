@@ -422,8 +422,19 @@ class Engine:
     def _active(self, rule: Rule) -> bool:
         """A rule runs when its tier admits it and no config layer turned it off.
 
-        Category `enabled = false` wins over a rule-level severity, because
-        disabling a category is the coarser and more deliberate act.
+        `severity = "off"` is the ONE way to disable, at either level. There used to
+        be a second, a category `enabled = false`, and it was not a synonym: it was
+        checked before the severity and could not be undone by a later layer. The
+        profiles set it on 15 categories, so at `relaxed` a project writing
+
+            [categories]
+            ste-nouns = "warning"
+
+        was silently ignored -- the value parsed, validated, resolved, and changed
+        nothing. `severity_for` calls that failure mode out by name for the promotion
+        case: the project wrote what it wanted and the gate ignored it, which is
+        worse than either honouring or rejecting it. Collapsing the two makes the
+        profile's own disabling a normal layer that a project can override.
         """
         profile = self.config.profile.value
         if rule.tier_for(profile) is Tier.EXCLUDED:
@@ -432,11 +443,8 @@ class Engine:
             return False  # carried for the reviewer; never fires mechanically
 
         category = self.config.categories.get(rule.category)
-        if category is not None:
-            if category.enabled is False:
-                return False
-            if category.severity is Severity.OFF:
-                return False
+        if category is not None and category.severity is Severity.OFF:
+            return False
 
         override = self.config.rules.get(rule.qualified_id)
         if override is not None and override.severity is Severity.OFF:

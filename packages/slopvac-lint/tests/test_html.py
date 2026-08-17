@@ -7,7 +7,7 @@ engine did not run" has been actively misled. Most of what follows asserts that.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -15,7 +15,7 @@ from slopvac.html import render_html
 from slopvac.model import DocumentScore, Finding, Severity
 from slopvac.report import CategorySummary, RunSummary
 
-STAMP = datetime(2026, 1, 2, 3, 4, tzinfo=timezone.utc)
+STAMP = datetime(2026, 1, 2, 3, 4, tzinfo=UTC)
 
 
 def _finding(**kwargs) -> Finding:

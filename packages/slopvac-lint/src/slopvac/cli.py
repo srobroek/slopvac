@@ -493,7 +493,7 @@ def lint(
         if "." in entry:
             config.rules[entry] = RuleSettings(severity=Severity.OFF)
         else:
-            config.categories[entry] = CategorySettings(enabled=False)
+            config.categories[entry] = CategorySettings(severity=Severity.OFF)
 
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -527,7 +527,7 @@ def lint(
             raise SystemExit(EXIT_ERROR) from None
         for name in list(ruleset.categories):
             if name not in keep:
-                config.categories[name] = CategorySettings(enabled=False)
+                config.categories[name] = CategorySettings(severity=Severity.OFF)
 
     try:
         paths = _collect_paths(targets, config)
@@ -550,7 +550,11 @@ def lint(
             blocklist = resolve_blocklist_path(resolved.vocabulary, config.root)
             if blocklist is not None:
                 console.print(f"  blocklist: {blocklist}")
-            off = [n for n, c in resolved.categories.items() if c.enabled is False]
+            off = [
+                n
+                for n, c in resolved.categories.items()
+                if c.severity is Severity.OFF
+            ]
             if off:
                 console.print(f"  disabled: {', '.join(sorted(off))}")
 

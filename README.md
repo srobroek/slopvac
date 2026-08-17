@@ -369,7 +369,8 @@ literals, so a field named `robust` stays clean. `.mdx` needs `[formats]`
 findings and exits 0 for them, which reads as a pass, so the skill extracts their JSX
 text with `ast-grep` instead.
 
-See [vale-styles/README.md](vale-styles/README.md) for the full rule set.
+See [vale-styles/README.md](packages/slopvac-lint/vale-styles/README.md) for the
+full rule set.
 
 ## License
 

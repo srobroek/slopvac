@@ -152,6 +152,17 @@ def score_document(
         weight = categories_meta.get(name, 1.0)
         if settings is not None and settings.weight is not None:
             weight = settings.weight
+        # A category turned off scores nothing and must not enter the average at
+        # 100, which would let a relaxed profile inflate the overall figure with
+        # ~15 categories nobody checked. The profiles say this twice, as
+        # `severity = "off"` AND `weight = 0.0`, and the pair only agrees while
+        # nobody overrides half of it: a project promoting `ste-nouns = "warning"`
+        # at `relaxed` inherits the 0.0 and gets findings that cannot move the
+        # score or fail the run -- the same silent-ignore the promotion path was
+        # just fixed for. Deriving it from the severity instead keeps the two in
+        # step.
+        if settings is not None and settings.severity is Severity.OFF:
+            weight = 0.0
 
         errors = sum(1 for f in items if f.severity is Severity.ERROR)
         warnings = sum(1 for f in items if f.severity is Severity.WARNING)

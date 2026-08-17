@@ -8,8 +8,8 @@ so every claim a rule makes about itself is checked here.
 
 from __future__ import annotations
 
-import regex as re
 import pytest
+import regex as re
 
 from slopvac.engine import build_substitution_pattern
 from slopvac.model import RuleKind, Tier

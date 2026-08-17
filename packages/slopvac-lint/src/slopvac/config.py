@@ -105,7 +105,6 @@ class CategorySettings(BaseModel):
         description="Multiplier on this category's contribution to the overall "
         "score. 0 scores the category as informational.",
     )
-    enabled: bool | None = None
 
 
 class RuleSettings(BaseModel):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 
@@ -27,17 +28,15 @@ from slopvac.config import (
     resolve_for,
 )
 from slopvac.engine import (
-    Engine,
     NATIVE_METRICS,
-    _is_all_caps,
+    Engine,
     _inside_quotation,
+    _is_all_caps,
     count_clause_boundaries,
 )
 from slopvac.model import TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
-from pathlib import Path
-
 
 # --- word counting, ASD-STE100 rules 8.4 through 8.7 -------------------------
 
@@ -301,7 +300,7 @@ def test_rule_override_wins_over_category():
 
 
 def test_disabled_category_removes_its_rules():
-    engine = _engine(categories={"orwell": CategorySettings(enabled=False)})
+    engine = _engine(categories={"orwell": CategorySettings(severity=Severity.OFF)})
     assert not [r for r in engine.rules if r.category == "orwell"]
 
 
