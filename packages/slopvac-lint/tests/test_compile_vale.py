@@ -698,15 +698,33 @@ def test_changing_a_severity_invalidates_the_cache(ruleset, vocabulary, tmp_path
     """
     plain = resolve_for(Config(), Path("README.md"))
     first = compile_ruleset(
-        ruleset, plain, validate=False, vocabulary=vocabulary, force=True
+        ruleset, plain, outdir=None, validate=True, vocabulary=vocabulary, force=True
     )
 
     changed = Config()
     changed.categories["prose-inflation"] = CategorySettings(severity=Severity.SUGGESTION)
     second = compile_ruleset(
-        ruleset, resolve_for(changed, Path("README.md")), validate=False, vocabulary=vocabulary
+        ruleset,
+        resolve_for(changed, Path("README.md")),
+        outdir=None,
+        validate=True,
+        vocabulary=vocabulary,
     )
     assert first.outdir != second.outdir
+
+
+def test_an_unvalidated_tree_is_never_cached(ruleset, vocabulary):
+    """The cache is shared, so only a probed tree may enter it.
+
+    An unvalidated compile writes every payload, including any Vale refuses to
+    load, and one such rule makes Vale lint NOTHING while exiting 0. A cached entry
+    like that reports every file clean, which is the failure this project exists to
+    prevent, and it persists because the fingerprint check only looks for a
+    manifest.
+    """
+    config = resolve_for(Config(), Path("README.md"))
+    with pytest.raises(ValueError, match="unvalidated compile cannot be cached"):
+        compile_ruleset(ruleset, config, validate=False, vocabulary=vocabulary)
 
 
 def test_relaxed_profile_compiles_fewer_rules(ruleset, vocabulary, tmp_path):

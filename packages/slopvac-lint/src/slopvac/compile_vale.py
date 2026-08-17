@@ -934,6 +934,24 @@ def compile_ruleset(
 
     fingerprint = _fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
     if outdir is None:
+        if not validate:
+            # AN UNVALIDATED TREE MUST NEVER REACH THE SHARED CACHE. Without the
+            # probe, every payload is written, including the ones Vale refuses to
+            # compile. A later run whose config fingerprints the same way finds the
+            # manifest, trusts it, and hands Vale a style directory holding an
+            # unloadable rule. Vale answers E201 and then lints NOTHING while
+            # exiting 0, so every file reads clean and the score falls back to the
+            # native rules with no sign that it did.
+            #
+            # That is not hypothetical: it is how this project's own README came to
+            # report 90.7 and 91.5 when the real figure was 82.6. The entry was
+            # written by the test suite, which compiles unvalidated on purpose and
+            # used to inherit the developer's real cache directory.
+            raise ValueError(
+                "an unvalidated compile cannot be cached: pass an explicit outdir, "
+                "because a tree that was never probed may contain a rule Vale "
+                "refuses to load, and one such rule makes Vale lint nothing at all"
+            )
         outdir = cache_root() / fingerprint
     outdir = Path(outdir)
     manifest_path = outdir / "manifest.json"
