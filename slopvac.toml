@@ -1,0 +1,81 @@
+# The prose gate for this repository, applied by the `prose` job in .github/workflows/lint.yml.
+#
+# `normal`, with the Simplified Technical English categories demoted to advisory. STE is written
+# for aircraft maintenance procedures: one clause per sentence, a controlled vocabulary, no
+# coordinated lists in a sentence. That suits a runbook and not a README explaining what a rule
+# catches and why it exists. Measured on this repository's three READMEs: 132 findings, zero
+# errors, and the failures were the score floor and one density budget rather than any error.
+#
+# The slop rules keep their `normal` severity, so a real AI tell still fails the gate.
+profile = "normal"
+
+exclude = [
+  "**/node_modules/**",
+  "**/apm_modules/**",
+  "**/.venv/**",
+  "**/dist/**",
+  "**/build/**",
+]
+
+[thresholds]
+max_errors = 0
+
+# --- Simplified Technical English --------------------------------------------
+[categories.ste-descriptive]
+severity = "suggestion"
+
+[categories.ste-nouns]
+severity = "suggestion"
+
+[categories.ste-practices]
+severity = "suggestion"
+
+[categories.ste-procedural]
+severity = "suggestion"
+
+[categories.ste-punctuation]
+severity = "suggestion"
+
+[categories.ste-sentences]
+severity = "suggestion"
+
+[categories.ste-verbs]
+severity = "suggestion"
+
+[categories.ste-words]
+severity = "suggestion"
+
+# --- The rules documentation --------------------------------------------------
+# `vale-styles/README.md` documents what each rule catches, so its tables quote the tells
+# verbatim: "We chose Python for the hook", "The earlier implementation spawned a shell per
+# check". The linter reads those examples as the real thing and reported prose-scope at 1.22 per
+# 100 words against a 0.6 budget.
+#
+# A rule cannot tell a specimen from an instance, and rewording the examples would make the
+# documentation stop demonstrating the rule. Advisory here only, so the same rules still gate
+# every other document in the repository.
+[[overrides]]
+files = ["packages/slopvac-lint/vale-styles/README.md", "packages/slopvac-lint/docs/rules.md"]
+
+# `max_per_100_words` as well as the severity: demoting the severity alone leaves the category's
+# density budget in force, which is what still failed at 1.22 against 0.6.
+[overrides.categories.prose-scope]
+severity = "suggestion"
+max_per_100_words = 100.0
+
+[overrides.categories.prose-inflation]
+severity = "suggestion"
+
+[overrides.categories.prose-promotion]
+severity = "suggestion"
+
+# --- The score floor ----------------------------------------------------------
+# A README is mostly headings, tables, and short paragraphs, which is the shape the score
+# penalises: the floor is a density measure and these files are dense by design. Errors still
+# gate them, and every category above still reports.
+[[overrides]]
+files = ["**/README.md"]
+
+[overrides.thresholds]
+max_errors = 0
+min_score = 0
