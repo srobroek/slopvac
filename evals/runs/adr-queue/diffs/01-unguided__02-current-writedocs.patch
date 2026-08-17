@@ -1,0 +1,80 @@
+--- 01-unguided
++++ 02-current-writedocs
+@@ -1,36 +1,57 @@
+-# ADR 0014: Adopt a Managed Queue
++# ADR 0014: Use a managed queue rather than self-hosting one
+ 
+-**Status:** Accepted
+-**Date:** 2026-03-14
++- **Status**: Accepted
++- **Date**: 2026-07-30
++- **Deciders**: Platform (2 engineers)
++- **Supersedes**: none
+ 
+ ## Context
+ 
+-As our system has grown, we've increasingly found ourselves in need of a robust message queue to decouple our services. This has become a mission-critical requirement, and after much discussion we felt it was important to document our thinking here.
++The order pipeline needs a durable queue between the API and the fulfillment workers. Requirements:
+ 
+-We evaluated a number of options across the landscape of available solutions. Our constraints were fairly clear from the outset: we're a two-person team, we already have an existing cloud account, and we need to survive a zone outage.
++- At-least-once delivery with per-message acknowledgement.
++- Survive the loss of one availability zone without operator action.
++- Expected steady volume: 40 messages per second, about 100 million messages per month. Peak measured during the March promotion: 260 messages per second for 20 minutes.
++- Message size p99: 4 KB.
+ 
++Constraints that decided this:
++
++- The team is two engineers, both on the same on-call rotation, with no dedicated operations capacity. There is no second rotation to hand a broker to.
++- An AWS account already carries the API, the database, and the workers. Adding a service inside it costs no new vendor review, no new billing relationship, and no new network path.
++- The zone-outage requirement means any self-hosted option needs a multi-zone quorum, not a single node.
++
+ ## Decision
+ 
+-We will leverage a managed queue service rather than self-hosting.
++Use Amazon SQS standard queues, one queue per pipeline stage, each with a dead-letter queue after 5 receives.
+ 
+-## Rationale
++## Consequences
+ 
+-Self-hosting was ultimately rejected on the grounds of operational load. With only two engineers, taking on the burden of running a distributed queue — patching, monitoring, capacity planning, upgrade coordination — simply wasn't tenable. We initially tried spiking a self-hosted deployment and quickly realized the ongoing cost would dominate our engineering time.
++- Zone failure is handled by the service. SQS replicates across zones within the region, and no runbook step exists for it.
++- No broker to patch, no disk to size, no quorum to reason about. The on-call surface is the queue depth alarm and the dead-letter queue alarm.
++- Standard queues do not order messages and can deliver a message more than once. Every consumer must be idempotent on the message's business key. This is a real cost: three existing handlers need an idempotency table before they can move onto the queue.
++- No message priority. A priority need is served by a second queue, not a header.
++- Maximum message size is 256 KB, and maximum retention is 14 days. Payloads above 256 KB must move to S3 with the queue carrying a pointer.
++- Cost at expected volume: about $40 per month for 100 million requests, before batching. Batching 10 messages per call reduces the request count tenfold.
++- The queue is reachable only from inside the account's IAM boundary. A future external publisher needs an API in front of it.
+ 
+-A second managed option was also considered but was rejected on cost at our expected volume. While it offered a somewhat richer feature set, the pricing model didn't align well with our usage pattern, and we couldn't justify the delta.
++## Alternatives
+ 
+-The chosen service integrates seamlessly with our existing cloud account, which was a significant factor. It also provides multi-zone durability out of the box, satisfying our availability requirement without additional work on our part.
++### Self-hosted RabbitMQ or Kafka on EC2
+ 
+-## Consequences
++Rejected on operational load.
+ 
+-- We accept vendor lock-in as a trade-off for reduced operational burden
+-- Our costs will scale with volume, which we'll need to monitor going forward
+-- We lose some flexibility around custom routing logic, though we don't currently need it
++A multi-zone quorum needs 3 nodes minimum. That brings broker version upgrades, disk growth monitoring, certificate rotation, partition rebalancing (Kafka) or queue mirroring policy (RabbitMQ), and a documented recovery procedure for a lost quorum member. Each of those is a runbook two engineers must write, test, and be paged for.
+ 
+-## Alternatives Considered
++The 260 messages per second peak is far below what one broker node handles, so this option buys no throughput headroom we need. It buys ordering and priority, which the pipeline does not require: order arrival is already unordered upstream.
+ 
+-| Option | Verdict |
+-|---|---|
+-| Self-hosted | Rejected — operational load too high for a two-person team |
+-| Alternative managed service | Rejected — cost at expected volume |
+-| Managed service (chosen) | Accepted |
++### Amazon MSK (managed Kafka)
++
++Rejected on cost at expected volume.
++
++MSK bills per broker-hour, not per message. A 3-broker `kafka.m5.large` cluster across three zones is about $390 per month plus storage, against about $40 per month for SQS at 100 million messages. The pipeline's 40 messages per second uses a small fraction of that provisioned capacity, so the premium buys ordering, replay, and consumer groups, none of which the pipeline uses today.
++
++Revisit this decision when any of the following becomes true:
++
++- A consumer needs to replay a stream from an arbitrary offset.
++- Two or more consumer groups need independent reads of the same stream.
++- Sustained volume exceeds roughly 1 billion messages per month, where per-request pricing approaches provisioned-broker cost.

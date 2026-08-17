@@ -115,6 +115,100 @@
           "ste-words.spelling": 1
         }
       }
+    },
+    "02-current-writedocs": {
+      "raw_words": 361,
+      "new": {
+        "score": 40.4,
+        "findings": 8,
+        "errors": 2,
+        "warnings": 6,
+        "suggestions": 0,
+        "per_100_words": 2.721,
+        "words": 294,
+        "passed": false,
+        "failure_reasons": [
+          "2 error(s), limit 0",
+          "score 40.4, minimum 70.0",
+          "ste-verbs at 1.02 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "ai-tells-register": {
+            "findings": 1,
+            "errors": 1,
+            "score": 40.4
+          },
+          "docs-discipline": {
+            "findings": 1,
+            "errors": 0,
+            "score": 61.6
+          },
+          "prose-craft": {
+            "findings": 1,
+            "errors": 0,
+            "score": 86.4
+          },
+          "prose-format": {
+            "findings": 1,
+            "errors": 1,
+            "score": 14.0
+          },
+          "ste-procedural": {
+            "findings": 1,
+            "errors": 0,
+            "score": 79.6
+          },
+          "ste-verbs": {
+            "findings": 3,
+            "errors": 0,
+            "score": 45.7
+          }
+        },
+        "rules": {
+          "ste-verbs.passive-voice": 3,
+          "ai-tells-register.anthropomorphised-justification-core": 1,
+          "docs-discipline.history-narration": 1,
+          "prose-craft.future-tense": 1,
+          "prose-format.no-unicode-dash": 1,
+          "ste-procedural.multiple-instructions-per-sentence": 1
+        }
+      }
+    },
+    "03-new-writedocs": {
+      "raw_words": 395,
+      "new": {
+        "score": 83.7,
+        "findings": 3,
+        "errors": 0,
+        "warnings": 2,
+        "suggestions": 1,
+        "per_100_words": 0.977,
+        "words": 307,
+        "passed": true,
+        "failure_reasons": [],
+        "categories": {
+          "prose-craft": {
+            "findings": 1,
+            "errors": 0,
+            "score": 87.0
+          },
+          "ste-practices": {
+            "findings": 1,
+            "errors": 0,
+            "score": 93.5
+          },
+          "ste-verbs": {
+            "findings": 1,
+            "errors": 0,
+            "score": 80.5
+          }
+        },
+        "rules": {
+          "prose-craft.ordinals": 1,
+          "ste-practices.omitted-conjunction-that": 1,
+          "ste-verbs.passive-voice": 1
+        }
+      }
     }
   }
 }

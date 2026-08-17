@@ -101,6 +101,126 @@
           "ste-sentences.missing-article-or-determiner": 1
         }
       }
+    },
+    "02-current-writedocs": {
+      "raw_words": 906,
+      "new": {
+        "score": 0.0,
+        "findings": 24,
+        "errors": 1,
+        "warnings": 23,
+        "suggestions": 0,
+        "per_100_words": 4.124,
+        "words": 582,
+        "passed": false,
+        "failure_reasons": [
+          "1 error(s), limit 0",
+          "4.12 findings per 100 words, budget 1.5",
+          "score 0.0, minimum 85.0",
+          "prose-craft at 1.20 per 100 words, budget 0.8",
+          "ste-verbs at 2.23 per 100 words, budget 0.4"
+        ],
+        "categories": {
+          "prose-craft": {
+            "findings": 7,
+            "errors": 0,
+            "score": 23.2
+          },
+          "prose-format": {
+            "findings": 1,
+            "errors": 1,
+            "score": 13.2
+          },
+          "ste-procedural": {
+            "findings": 2,
+            "errors": 0,
+            "score": 53.2
+          },
+          "ste-sentences": {
+            "findings": 1,
+            "errors": 0,
+            "score": 79.4
+          },
+          "ste-verbs": {
+            "findings": 13,
+            "errors": 0,
+            "score": 0.0
+          }
+        },
+        "rules": {
+          "ste-verbs.passive-voice": 13,
+          "prose-craft.first-person-plural": 5,
+          "ste-procedural.condition-after-command": 2,
+          "prose-craft.future-tense": 1,
+          "prose-craft.gerund-heading": 1,
+          "prose-format.no-unicode-dash": 1,
+          "ste-sentences.missing-article-or-determiner": 1
+        }
+      }
+    },
+    "03-new-writedocs": {
+      "raw_words": 936,
+      "new": {
+        "score": 0.0,
+        "findings": 21,
+        "errors": 1,
+        "warnings": 18,
+        "suggestions": 2,
+        "per_100_words": 3.398,
+        "words": 618,
+        "passed": false,
+        "failure_reasons": [
+          "1 error(s), limit 0",
+          "3.40 findings per 100 words, budget 1.5",
+          "score 0.0, minimum 85.0",
+          "ste-procedural at 0.48 per 100 words, budget 0.4",
+          "ste-punctuation at 0.65 per 100 words, budget 0.5",
+          "ste-verbs at 1.13 per 100 words, budget 0.4"
+        ],
+        "categories": {
+          "prose-craft": {
+            "findings": 3,
+            "errors": 0,
+            "score": 65.0
+          },
+          "ste-practices": {
+            "findings": 2,
+            "errors": 0,
+            "score": 80.6
+          },
+          "ste-procedural": {
+            "findings": 3,
+            "errors": 1,
+            "score": 17.8
+          },
+          "ste-punctuation": {
+            "findings": 4,
+            "errors": 0,
+            "score": 32.9
+          },
+          "ste-sentences": {
+            "findings": 2,
+            "errors": 0,
+            "score": 63.1
+          },
+          "ste-verbs": {
+            "findings": 7,
+            "errors": 0,
+            "score": 0.0
+          }
+        },
+        "rules": {
+          "ste-verbs.passive-voice": 7,
+          "ste-punctuation.semicolon-used": 4,
+          "ste-practices.omitted-conjunction-that": 2,
+          "ste-procedural.condition-after-command": 2,
+          "ste-sentences.missing-article-or-determiner": 2,
+          "prose-craft.directional-ref": 1,
+          "prose-craft.future-tense": 1,
+          "prose-craft.misnomer": 1,
+          "ste-procedural.sentence-too-long-procedural": 1
+        }
+      }
     }
   }
 }

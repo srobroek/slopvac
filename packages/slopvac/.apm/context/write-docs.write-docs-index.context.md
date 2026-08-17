@@ -2,7 +2,7 @@
 
 Always-on prose rules, applying to every document you write or edit.
 
-The mechanical set is deliberately NOT here. `slopvac-lint` reports every banned
+The mechanical set is deliberately NOT here. `slopvac` reports every banned
 word, substitution, and length breach with the exact replacement, so this file
 carries only what shapes a sentence before it is written, and what no linter can
 decide. Restating a word list here would drift from the tool that enforces it.
@@ -10,10 +10,15 @@ decide. Restating a word list here would drift from the tool that enforces it.
 Check your own output:
 
 ```sh
-uvx slopvac-lint <file>                    # normal tier
-uvx slopvac-lint --profile strict docs/    # reference material, runbooks, specs
-uvx slopvac-lint --format json <file>      # score plus per-category breakdown
+uvx slopvac <file>                     # normal tier
+uvx slopvac --profile strict docs/     # reference material, runbooks, specs
+uvx slopvac --profile relaxed NOTES.md # issue comments, blog posts, informal prose
+uvx slopvac --format json <file>       # score plus per-category breakdown
 ```
+
+MUST Match the profile to the surface. `normal` grades an issue comment like
+reference documentation and reports every contraction, so informal prose takes
+`relaxed`.
 
 Exit 1 means the prose failed a threshold. Exit 2 means nothing was checked, which
 is not a pass. Fix every ERROR; fix or justify each WARNING in one line. For the
@@ -42,7 +47,7 @@ MUST Take the position the evidence supports. A hedge is allowed only where the 
 MUST One hedge at most, and never a hedge on a hedge. "May help reduce some of the noise in certain cases" is three layers and no claim.
 NOT Hedging in both directions. "This may improve latency, though it might also increase it" cancels itself; the reader learns nothing they can act on. Give both numbers, or pick the one the evidence supports.
 NOT Balancing every claim with a counter-claim nobody makes, to read even-handed.
-DEFAULT Test the whole document, not the sentence: if most load-bearing claims carry a hedge, the document says nothing however careful each sentence looks. Ask whether a reader can act on it, or whether every path out ends in "it depends".
+DEFAULT Test the whole document, not the sentence: if a hedge sits on most of the claims the document exists to make, the document says nothing however careful each sentence looks. Ask whether a reader can act on it, or whether every path out ends in "it depends".
 MUST Name who acted. An abstraction is not an actor: "the team fixed it that week", never "the complaint becomes a fix". If no person fits, use "you".
 NOT A figure of speech you are used to seeing in print. Write the fact, a fresh image, or nothing.
 NOT Two physical images colliding in one sentence.

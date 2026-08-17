@@ -12,9 +12,14 @@ TRIGGER
 - authoring from scratch, or choosing a genre → write-docs (it calls this skill at the end)
 - code comments and docstrings → language conventions
 
-`slopvac-lint` owns every mechanical rule. This skill owns the judgement the
+`slopvac` owns every mechanical rule. This skill owns the judgement the
 linter cannot make, and the verdict. Neither carries a copy of the other's rules:
 the checks in step 3 are read FROM the linter, so they cannot drift from it.
+
+Every command below is written `uvx slopvac`, which installs the published
+release. MUST fall back to `uvx --from <path-to-checkout> slopvac` when that
+fails to resolve, and say which one ran. Reporting a verdict without the gate
+having executed is the one failure mode this skill cannot recover from.
 
 ## Workflow
 
@@ -30,7 +35,7 @@ the checks in step 3 are read FROM the linter, so they cannot drift from it.
 2. Run the gate:
 
    ```sh
-   uvx slopvac-lint <file>... --profile <profile> --format json
+   uvx slopvac <file>... --profile <profile> --format json
    ```
 
    Read `summary.score`, `summary.per_100_words`, and the per-category table. Fix
@@ -53,7 +58,7 @@ the checks in step 3 are read FROM the linter, so they cannot drift from it.
    | `exception` | an exception on the rule's own list applies | annotate with that reason |
    | `false-positive` | the rule matched correct prose | report it; change nothing |
 
-   `uvx slopvac-lint explain <rule_id>` gives the decision question, the closed
+   `uvx slopvac explain <rule_id>` gives the decision question, the closed
    exception list, and worked examples.
 
    MUST Report every `false-positive` in the verdict, naming the rule, the
@@ -67,7 +72,7 @@ the checks in step 3 are read FROM the linter, so they cannot drift from it.
 4. LOAD the checks no pattern reaches:
 
    ```sh
-   uvx slopvac-lint rules --judgement --format json
+   uvx slopvac rules --judgement --format json
    ```
 
    Each entry carries a decidable `judgement_question`, the `fix`, its
@@ -95,9 +100,9 @@ A project chooses its own gate. Show the user what is available before changing
 anything:
 
 ```sh
-uvx slopvac-lint rules --profile <profile>                 # every rule and its disposition
-uvx slopvac-lint rules --format json | jq '.categories'    # with recommended_for
-uvx slopvac-lint explain <category>.<rule>                 # one rule in full
+uvx slopvac rules --profile <profile>                 # every rule and its disposition
+uvx slopvac rules --format json | jq '.categories'    # with recommended_for
+uvx slopvac explain <category>.<rule>                 # one rule in full
 ```
 
 DEFAULT Recommend by genre, reading each category's own `recommended_for` field
@@ -111,12 +116,13 @@ rather than a list held here:
 | A repo with generated or vendored docs | exclude those paths; a generated file is not authored prose |
 | Non-American house style | `locale.default = "en-GB"` |
 
-MUST Name what is off by default and say why, so the choice is the user's:
-`ste-vocabulary` (the approved-word check, the noisiest rule against ordinary
-software prose) is disabled at `normal`, and most STE dictionary rules are advisory
-there.
+MUST Name what is off by default and say why, so the choice is the user's. The
+word-choice rules check nothing until the project writes a blocklist and sets
+`vocabulary.path`; no word list ships. Most other STE word rules are advisory at
+`normal`. Read `documents[].unchecked` for the authoritative list on a given run
+rather than reciting one from here.
 MUST Ask before writing `slopvac.toml`. Scaffold it with
-`uvx slopvac-lint init --profile <profile>`.
+`uvx slopvac init --profile <profile>`.
 
 ## Read it adversarially
 
@@ -151,7 +157,7 @@ MUST Suppress one finding by naming an exception from that rule's own closed lis
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-Run `uvx slopvac-lint explain <rule>` for the valid reasons. A reason that is not
+Run `uvx slopvac explain <rule>` for the valid reasons. A reason that is not
 on the list is reported as `meta.invalid-suppression` rather than honoured, and
 "it reads better" is deliberately on no list.
 MUST Give every config override a one-line reason; the next reader needs to know

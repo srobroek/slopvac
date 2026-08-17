@@ -13,7 +13,7 @@ TRIGGER
 - authoring skills, steering, or agent definitions → write-agentic
 - code comments and docstrings → language conventions
 
-This skill authors. `slopvac-lint` gates mechanically; the `review-docs` skill
+This skill authors. `slopvac` gates mechanically; the `review-docs` skill
 judges what no pattern reaches. Steps 4 and 5 run both, and neither is optional --
 a document is not finished until it has passed.
 
@@ -25,6 +25,12 @@ a document is not finished until it has passed.
 | PR bodies, commit messages, hand-written release notes | references/change-comms.md | `normal` |
 | specs/, ADRs, constitutions, CONTRIBUTING, contributor docs | references/internal-docs.md | `normal` |
 | reference material, API docs, runbooks, procedures, safety text | references/internal-docs.md | `strict` |
+| issue comments, discussion replies, blog posts, informal prose | references/consumer-docs.md | `relaxed` |
+
+MUST Match the profile to the surface. `normal` grades an issue comment like
+reference documentation: it reports every contraction and em dash, and an eval
+corpus of informal documents scored 0 on those alone where `relaxed` scored 84 to
+93. A gate that fails correct prose is a gate people turn off.
 
 ## Workflow
 
@@ -35,7 +41,7 @@ a document is not finished until it has passed.
 4. Run the linter and fix what it reports:
 
    ```sh
-   uvx slopvac-lint <file>                    # or --profile strict
+   uvx slopvac <file>                    # or --profile strict
    ```
 
    Fix every ERROR. Fix or justify each WARNING in one line. The linter names the
@@ -64,7 +70,7 @@ MUST Delete any adjective you cannot back with a number, benchmark, or feature l
 MUST Delete every span whose removal changes no proposition, obligation, or referent.
 MUST Take the position the evidence supports. Hedge only where the uncertainty is real and you can name its cause; one hedge at most, never a hedge on a hedge.
 NOT Hedging in both directions ("may improve latency, though it might also increase it") -- the halves cancel and the reader learns nothing actionable.
-DEFAULT Judge hedging across the whole document, not the sentence: if most load-bearing claims carry a hedge, the document asserts nothing however careful each sentence reads.
+DEFAULT Judge hedging across the whole document, not the sentence: if a hedge sits on most of the claims the document exists to make, the document asserts nothing however careful each sentence reads.
 MUST Attribute or own every claim. "Experts agree", "research has shown", "it is widely known", and "some people say" dress a claim in authority it does not have: name the source, or state it as your own.
 MUST Give a comparative its baseline. "20% faster" than what, measured how.
 MUST Give a quantity its count. "Several", "various", "a number of", "in most cases" all name a number the writer has and withheld.
@@ -92,14 +98,14 @@ NOT Over-writing -- real content in the wrong document:
 
 ## Configuring the gate
 
-A project owns its thresholds in `slopvac.toml`; `uvx slopvac-lint init` writes a
+A project owns its thresholds in `slopvac.toml`; `uvx slopvac init` writes a
 starter file.
 
-MUST Fix the prose before changing a rule. When a rule is genuinely wrong for this
+MUST Fix the prose before changing a rule. When a rule is wrong for this
 project, change the config and give the override a one-line reason.
 MUST Suppress a single finding by naming an exception from that rule's own closed
 list: `<!-- slopvac-allow: rule=<id> reason=<name> -->`. Run
-`uvx slopvac-lint explain <id>` for the valid reasons. A reason that is not on the
+`uvx slopvac explain <id>` for the valid reasons. A reason that is not on the
 list is reported rather than honoured.
 NOT Editing the packaged rules: a reinstall overwrites them. Add a house rule with
 `--rules-dir`, or set the severity in `slopvac.toml`.

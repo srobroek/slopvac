@@ -12,7 +12,7 @@ Each is generated four times:
 | `03-new-writedocs` | the new skill plus the always-on steering |
 | `04-regenerated` | 03 rewritten after reading its own lint report |
 
-Every run is scored twice: by the old Vale-only gate and by `slopvac-lint`.
+Every run is scored twice: by the old Vale-only gate and by `slopvac`.
 
 ## Why these eight
 

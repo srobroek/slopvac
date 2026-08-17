@@ -1,0 +1,235 @@
+--- 02-current-writedocs
++++ 03-new-writedocs
+@@ -1,8 +1,8 @@
+ # fluxcache
+ 
+-Caches LLM responses and returns a cached response when a new prompt is semantically similar to a stored one.
++fluxcache caches LLM responses by prompt similarity. It embeds each prompt, compares the embedding against cached prompt embeddings by cosine similarity, and returns the cached response when the best match scores at or above a threshold.
+ 
+-fluxcache embeds each prompt and compares that embedding against stored prompt embeddings by cosine similarity. A match at or above the threshold is a hit, and the stored response is returned. A miss calls your function and stores the result under the new prompt.
++An exact-match cache misses on "Summarize this ticket" versus "Summarise this ticket". fluxcache returns the cached response for both at the default threshold of 0.92.
+ 
+ ## Install
+ 
+@@ -10,13 +10,13 @@
+ pip install fluxcache
+ ```
+ 
+-Redis backend:
++Redis support is an extra:
+ 
+ ```bash
+-pip install "fluxcache[redis]"
++pip install 'fluxcache[redis]'
+ ```
+ 
+-## Quickstart
++## Use
+ 
+ ```python
+ from fluxcache import Cache
+@@ -25,63 +25,46 @@
+ 
+ @cache.wrap
+ def ask(prompt: str) -> str:
+-    return call_your_model(prompt)
++    return my_llm_client.complete(prompt)
+ 
+-ask("What is the capital of France?")   # miss, calls the model
+-ask("what's the capital of france?")    # hit, returns the stored response
++ask("Summarize this ticket")   # calls my_llm_client
++ask("Summarise this ticket")   # cosine 0.97, returns the cached string
+ ```
+ 
+-`cache.wrap` keys on the first positional argument. Pass `key=` to key on something else:
++Call the cache directly when you do not want a decorator:
+ 
+ ```python
+-@cache.wrap(key=lambda messages: messages[-1]["content"])
+-def chat(messages: list[dict]) -> str:
+-    return call_your_model(messages)
++hit = cache.get("Summarise this ticket")
++if hit is None:
++    response = my_llm_client.complete("Summarise this ticket")
++    cache.set("Summarise this ticket", response)
++else:
++    response = hit.value
++    print(hit.score, hit.matched_prompt)
+ ```
+ 
+-## Threshold
++`Cache.get` returns `None` on a miss, or a `Hit` with three fields: `value`, `score`, and `matched_prompt`.
+ 
+-`threshold` is the minimum cosine similarity for a hit, in the range `0.0` to `1.0`. Default is `0.95`.
++## Configuration
+ 
+-| Threshold | Effect |
+-| --- | --- |
+-| 1.0 | Exact-embedding matches only |
+-| 0.95 | Paraphrases and punctuation or case differences |
+-| 0.85 | Same topic, different question |
+-| Below 0.8 | Unrelated prompts return each other's responses |
++| Parameter | Type | Default | Meaning |
++| --- | --- | --- | --- |
++| `threshold` | `float` | `0.92` | Minimum cosine similarity for a hit. Range 0.0 to 1.0. |
++| `ttl` | `int \| None` | `None` | Entry lifetime in seconds. `None` keeps entries until eviction. |
++| `namespace` | `str` | `"default"` | Isolates entries. A lookup only searches its own namespace. |
++| `backend` | `Backend` | `MemoryBackend()` | Where entries live. |
++| `scorer` | `Callable` | cosine similarity | Scores a candidate pair. |
++| `embed` | `Callable` | `sentence-transformers/all-MiniLM-L6-v2` | Turns a prompt into a `list[float]`. |
+ 
+-Inspect a lookup before trusting a threshold:
++Raise `threshold` to reduce wrong hits. Lower it to raise the hit rate.
+ 
+-```python
+-result = cache.lookup("what's the capital of france?")
+-print(result.hit, result.score, result.matched_prompt)
+-```
+-
+-## TTL
+-
+-`ttl` is the lifetime of an entry in seconds. `ttl=None` stores entries without expiry.
+-
+-```python
+-cache = Cache(ttl=86400)                 # one day
+-cache = Cache(ttl=None)                  # no expiry
+-```
+-
+-Per-entry override:
+-
+-```python
+-cache.set("What is the capital of France?", "Paris", ttl=60)
+-```
+-
+ ## Namespaces
+ 
+-A namespace isolates entries. A lookup in one namespace never matches an entry in another. Use one per model, per tenant, or per prompt template version.
++Give each model, prompt template, or tenant its own namespace. Two namespaces never read each other's entries.
+ 
+ ```python
+ gpt = Cache(namespace="gpt-4o")
+-claude = Cache(namespace="claude-opus")
+-
+-gpt.set("ping", "pong")
+-claude.lookup("ping").hit    # False
++haiku = Cache(namespace="claude-haiku")
+ ```
+ 
+ Clear one namespace without touching the others:
+@@ -92,84 +75,69 @@
+ 
+ ## Backends
+ 
+-### In-memory
++`MemoryBackend` holds entries in a dict in the calling process. Entries disappear when the process exits.
+ 
+-The default. Entries live in the process and disappear when it exits. Similarity search is a linear scan over stored embeddings.
+-
+ ```python
+ from fluxcache import Cache, MemoryBackend
+ 
+ cache = Cache(backend=MemoryBackend(max_entries=10_000))
+ ```
+ 
+-`max_entries` evicts least-recently-used entries once exceeded. `max_entries=None` stores without a bound.
++`RedisBackend` shares entries across processes and hosts. It stores each entry as a Redis hash and sets the Redis key TTL from the `ttl` parameter.
+ 
+-### Redis
+-
+-Entries are shared across processes and survive restarts. Requires Redis 6.2 or later.
+-
+ ```python
+ from fluxcache import Cache, RedisBackend
+ 
+-cache = Cache(backend=RedisBackend(url="redis://localhost:6379/0"))
++cache = Cache(
++    backend=RedisBackend(url="redis://localhost:6379/0"),
++    ttl=86_400,
++)
+ ```
+ 
+-`RedisBackend` writes one hash per entry and one embedding index per namespace, all under the key prefix `fluxcache:`. TTL is enforced by Redis key expiry.
++`RedisBackend` scans the namespace's embeddings on every lookup. Lookup cost grows with the number of entries in the namespace.
+ 
++To write a third backend, implement the four methods of `fluxcache.Backend`: `put`, `candidates`, `delete`, and `clear`.
++
+ ## Custom scoring
+ 
+-`scorer` replaces cosine similarity. It receives the query embedding and a candidate embedding as `list[float]` and returns a float compared against `threshold`.
++Pass `scorer` to replace cosine similarity. The callable receives the query embedding, a candidate embedding, and the candidate's stored metadata. It returns a float that fluxcache compares against `threshold`.
+ 
+ ```python
+-import numpy as np
+-from fluxcache import Cache
++def penalize_stale(query_vec, cand_vec, meta):
++    base = fluxcache.cosine(query_vec, cand_vec)
++    age_hours = (time.time() - meta["created_at"]) / 3600
++    return base - 0.01 * age_hours
+ 
+-def dot(query, candidate):
+-    return float(np.dot(query, candidate))
+-
+-cache = Cache(scorer=dot, threshold=0.9)
++cache = Cache(scorer=penalize_stale, threshold=0.90)
+ ```
+ 
+-## Embeddings
++fluxcache calls `scorer` once per candidate in the namespace and takes the highest score.
+ 
+-The default embedder calls OpenAI `text-embedding-3-small` and reads `OPENAI_API_KEY` from the environment. Supply any callable that maps a string to `list[float]`:
++## Bring your own embeddings
+ 
++Pass any callable that maps `str` to `list[float]`. All vectors in one namespace must have the same length; fluxcache raises `DimensionMismatch` when they do not.
++
+ ```python
+-from sentence_transformers import SentenceTransformer
+-from fluxcache import Cache
++def embed(prompt: str) -> list[float]:
++    return openai_client.embeddings.create(
++        model="text-embedding-3-small", input=prompt
++    ).data[0].embedding
+ 
+-model = SentenceTransformer("all-MiniLM-L6-v2")
+-cache = Cache(embedder=lambda text: model.encode(text).tolist())
++cache = Cache(embed=embed, namespace="text-embedding-3-small")
+ ```
+ 
+-Embeddings from different models are not comparable. Change the namespace when you change the embedder.
++## Exceptions
+ 
+-## API
+-
+-| Member | Description |
++| Exception | Raised when |
+ | --- | --- |
+-| `Cache(threshold, ttl, namespace, backend, embedder, scorer)` | Constructs a cache |
+-| `Cache.wrap(fn)` / `Cache.wrap(key=...)` | Decorator that caches a function's return value |
+-| `Cache.lookup(prompt)` | Returns `Result(hit, score, response, matched_prompt)` |
+-| `Cache.set(prompt, response, ttl=None)` | Stores an entry |
+-| `Cache.delete(prompt)` | Removes the exact-prompt entry |
+-| `Cache.clear()` | Removes every entry in the namespace |
+-| `Cache.stats()` | Returns `Stats(hits, misses, entries)` |
++| `DimensionMismatch` | A prompt embedding length differs from the namespace's stored length. |
++| `BackendError` | The backend rejected a read or write. Wraps the backend's own exception. |
+ 
+-## Async
++## Requirements
+ 
+-`AsyncCache` mirrors the `Cache` API with awaitable methods and an `await`-able embedder.
++- Python 3.10 or later
++- `redis` 5.0 or later for `RedisBackend`
+ 
+-```python
+-from fluxcache import AsyncCache
+-
+-cache = AsyncCache(threshold=0.92)
+-
+-@cache.wrap
+-async def ask(prompt: str) -> str:
+-    return await call_your_model(prompt)
+-```
+-
+ ## License
+ 
+-MPL-2.0
++Apache-2.0

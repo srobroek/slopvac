@@ -108,6 +108,81 @@
           "ste-verbs.passive-voice": 1
         }
       }
+    },
+    "02-current-writedocs": {
+      "raw_words": 686,
+      "new": {
+        "score": 53.7,
+        "findings": 9,
+        "errors": 0,
+        "warnings": 8,
+        "suggestions": 1,
+        "per_100_words": 2.695,
+        "words": 334,
+        "passed": false,
+        "failure_reasons": [
+          "score 53.7, minimum 70.0",
+          "ste-verbs at 1.50 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "ai-tells-structure": {
+            "findings": 2,
+            "errors": 0,
+            "score": 46.8
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 82.0
+          },
+          "ste-punctuation": {
+            "findings": 1,
+            "errors": 0,
+            "score": 94.0
+          },
+          "ste-verbs": {
+            "findings": 5,
+            "errors": 0,
+            "score": 23.5
+          }
+        },
+        "rules": {
+          "ste-verbs.passive-voice": 5,
+          "ai-tells-structure.tricolon-abuse-core": 2,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-punctuation.semicolon-used": 1
+        }
+      }
+    },
+    "03-new-writedocs": {
+      "raw_words": 554,
+      "new": {
+        "score": 86.5,
+        "findings": 2,
+        "errors": 0,
+        "warnings": 1,
+        "suggestions": 1,
+        "per_100_words": 0.901,
+        "words": 222,
+        "passed": true,
+        "failure_reasons": [],
+        "categories": {
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 73.0
+          },
+          "ste-punctuation": {
+            "findings": 1,
+            "errors": 0,
+            "score": 91.0
+          }
+        },
+        "rules": {
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-punctuation.semicolon-used": 1
+        }
+      }
     }
   }
 }

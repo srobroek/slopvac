@@ -6,7 +6,7 @@ one and not merely whether it fires:
 
   OLD  Vale with the seven styles this repo published before the split, which is
        what `slop-lint.sh` ran. Reported as a finding count only: it had no score.
-  NEW  slopvac-lint, which reports a density and a 0-100 score per category.
+  NEW  slopvac, which reports a density and a 0-100 score per category.
 
 Usage:
     ./score.py                      score every run under runs/
@@ -29,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
-LINT = ROOT.parent / "packages" / "slopvac-lint"
+LINT = ROOT.parent / "packages" / "slopvac"
 
 # The four generation conditions, in the order they are reported.
 CONDITIONS = ("01-unguided", "02-current-writedocs", "03-new-writedocs", "04-regenerated")
@@ -57,20 +57,20 @@ OLD_STYLES = (
 
 def words(text: str) -> int:
     """Word count for reporting only. Deliberately a plain split: the report has
-    to be checkable by hand, and slopvac-lint's own STE-compliant count is
+    to be checkable by hand, and slopvac's own STE-compliant count is
     reported separately in its JSON."""
     return len(text.split())
 
 
 def run_new_gate(path: Path, profile: str) -> dict:
-    """slopvac-lint, from the working tree rather than PyPI."""
+    """slopvac, from the working tree rather than PyPI."""
     # The venv's own interpreter, so the installed package and its dependencies
     # resolve without a PYTHONPATH or a stripped environment.
     python = LINT / ".venv" / "bin" / "python"
     result = subprocess.run(
         [
             str(python if python.is_file() else sys.executable),
-            "-m", "slopvac_lint.cli", "lint", str(path),
+            "-m", "slopvac.cli", "lint", str(path),
             "--profile", profile, "--no-vale", "--format", "json",
         ],
         capture_output=True, text=True, cwd=LINT,

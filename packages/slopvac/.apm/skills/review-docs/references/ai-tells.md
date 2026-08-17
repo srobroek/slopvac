@@ -2,8 +2,8 @@
 
 Last researched: 2026-07.
 
-The per-tell catalog now lives in `slopvac-lint` as rule data, not here. Read it
-with `uvx slopvac-lint rules --judgement --format json`: each entry carries a
+The per-tell catalog now lives in `slopvac` as rule data, not here. Read it
+with `uvx slopvac rules --judgement --format json`: each entry carries a
 decidable question, its fix, its named exceptions, and worked examples. That is
 one source of truth for the linter and the reviewer, so the two cannot drift.
 

@@ -1,0 +1,213 @@
+--- 02-current-writedocs
++++ 03-new-writedocs
+@@ -1,8 +1,8 @@
+ # xisf-header
+ 
+-Reads the XML header of an XISF astronomical image file into a typed struct. The image data blocks are not decoded.
++`xisf-header` reads the XML header from an XISF astronomical image file and returns it as a typed struct. It does not decode, decompress, or read pixel data.
+ 
+-XISF is the image format of PixInsight. A file begins with a 16-byte signature, then a UTF-8 XML header describing every image, property, and data block in the file. `xisf-header` reads that header and stops.
++XISF is the image format of PixInsight. A single `.xisf` file can carry gigabytes of pixel data behind a header of a few kilobytes. `xisf-header` reads the signature, the 4-byte header length, and that many bytes of XML, then stops.
+ 
+ ## Install
+ 
+@@ -16,126 +16,120 @@
+ ```rust
+ use xisf_header::Header;
+ 
+-let header = Header::from_path("m42.xisf")?;
++fn main() -> Result<(), xisf_header::Error> {
++    let header = Header::from_path("m31.xisf")?;
+ 
+-for image in &header.images {
+-    println!("{:?} {} {:?}", image.geometry, image.sample_format, image.color_space);
++    for image in &header.images {
++        println!("{:?} {:?}", image.geometry, image.sample_format);
++    }
++    Ok(())
+ }
+ ```
+ 
+-`Header::from_path` opens the file, reads the signature and the declared header length, reads exactly that many bytes, and parses them. A 4 GiB image file costs one read of the header region.
++Read from any `Read + Seek` source with `Header::from_reader`:
+ 
+-From bytes already in memory:
+-
+ ```rust
++use std::io::Cursor;
+ use xisf_header::Header;
+ 
+-let bytes = std::fs::read("m42.xisf")?;
+-let header = Header::from_bytes(&bytes)?;
++let header = Header::from_reader(Cursor::new(bytes))?;
+ ```
+ 
+-From any reader:
++## Types
+ 
+-```rust
+-use std::fs::File;
+-use xisf_header::Header;
++`Header` holds the parsed document:
+ 
+-let header = Header::from_reader(File::open("m42.xisf")?)?;
++```rust
++pub struct Header {
++    pub version: String,
++    pub images: Vec<Image>,
++    pub properties: Vec<Property>,
++    pub metadata: Vec<Property>,
++}
+ ```
+ 
+-`from_reader` requires `Read` only; it does not seek.
++`Image` describes one `<Image>` element:
+ 
+-## Types
++```rust
++pub struct Image {
++    pub geometry: Geometry,          // width, height, channels
++    pub sample_format: SampleFormat, // UInt8 .. Float64, Complex32, Complex64
++    pub color_space: ColorSpace,     // Gray, RGB, CIELab
++    pub location: Location,          // where the pixel data lives
++    pub compression: Option<Compression>,
++    pub bounds: Option<(f64, f64)>,
++    pub id: Option<String>,
++    pub fits_keywords: Vec<FitsKeyword>,
++    pub properties: Vec<Property>,
++}
++```
+ 
+-| Type | Contents |
+-| --- | --- |
+-| `Header` | `form`, `images`, `properties`, `metadata`, `header_len` |
+-| `Image` | `geometry`, `sample_format`, `color_space`, `bounds`, `location`, `id`, `properties`, `fits_keywords` |
+-| `Geometry` | `width`, `height`, `channels` |
+-| `SampleFormat` | `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Float32`, `Float64`, `Complex32`, `Complex64` |
+-| `ColorSpace` | `Gray`, `RGB`, `CIELab` |
+-| `DataLocation` | `Attachment { offset, size }`, `Embedded(Vec<u8>)`, `Url { url, index }`, `Path { path, index }` |
+-| `Property` | `id`, `value: PropertyValue` |
+-| `PropertyValue` | Scalar, string, time-point, vector, and matrix variants |
+-| `Form` | `Monolithic`, `Distributed` |
++`Property` carries an XISF property with its declared type:
+ 
+-`Image::location` is the entry point for reading pixels yourself: `Attachment` carries the byte offset and length within the same file.
++```rust
++pub struct Property {
++    pub id: String,
++    pub value: PropertyValue, // Int64, Float64, String, TimePoint, Vector, Matrix, ...
++}
++```
+ 
+ ## Monolithic and distributed files
+ 
+-A monolithic XISF file holds the header and the data blocks in one file. A distributed file holds an `.xisf` header whose data blocks are `Url` or `Path` locations pointing at separate files.
++XISF stores pixel data either inside the same file or in a separate file. `Location` names which form the header declares:
+ 
+-`Header::form` reports which one was read. Both parse through the same call.
+-
+ ```rust
+-use xisf_header::{DataLocation, Form, Header};
+-
+-let header = Header::from_path("survey.xisf")?;
+-
+-if header.form == Form::Distributed {
+-    for image in &header.images {
+-        match &image.location {
+-            DataLocation::Path { path, .. } => println!("block at {}", path.display()),
+-            DataLocation::Url { url, .. } => println!("block at {url}"),
+-            _ => {}
+-        }
+-    }
++pub enum Location {
++    /// Monolithic: pixel data lives in this file.
++    Attachment { position: u64, size: u64 },
++    /// Distributed: pixel data lives at this path or URL.
++    Url { url: String, index: Option<u64> },
++    /// Pixel data is inline base64 inside the header.
++    Embedded,
+ }
+ ```
+ 
+-Referenced block files are not opened or validated.
++`xisf-header` does not resolve a `Url` and does not read the bytes at an `Attachment`. Both variants give you the offset or target so you can read the data yourself.
+ 
++A distributed XISF header file uses the `.xisf` extension and carries the same signature as a monolithic file, so one code path reads both.
++
+ ## Errors
+ 
+-Every parse failure returns `Error` and names the byte offset in the file where the failure was detected.
++Every parse error names the byte offset in the file where the parser stopped:
+ 
+ ```rust
+-use xisf_header::{Error, Header};
+-
+ match Header::from_path("truncated.xisf") {
+-    Ok(header) => println!("{} images", header.images.len()),
+-    Err(Error::Truncated { offset, expected }) => {
+-        eprintln!("file ends at byte {offset}, header declares {expected} bytes");
+-    }
+-    Err(err) => eprintln!("{err}"),
++    Err(e) => println!("{e}"),
++    Ok(_) => {}
+ }
++// XML is not well-formed at byte 1284: mismatched closing tag
+ ```
+ 
+-| Variant | Condition |
+-| --- | --- |
+-| `BadSignature { offset, found }` | The first 8 bytes are not `XISF0100` |
+-| `Truncated { offset, expected }` | The file is shorter than the declared header length |
+-| `Xml { offset, source }` | The header region is not well-formed XML |
+-| `MissingAttribute { offset, element, attribute }` | A required attribute is absent |
+-| `UnknownValue { offset, attribute, found }` | An attribute value is outside the XISF 1.0 enumeration |
+-| `Io(std::io::Error)` | The underlying reader failed |
+-
+-`Display` on `Error` includes the offset, so `{err}` alone is enough for a log line. Offsets are absolute file positions, not positions within the XML.
+-
+-## FITS keywords
+-
+-XISF carries FITS keywords as `<FITSKeyword>` elements. They are parsed into `Image::fits_keywords` as `(name, value, comment)` triples in file order, with duplicates preserved.
+-
+ ```rust
+-let exposure = header.images[0]
+-    .fits_keywords
+-    .iter()
+-    .find(|kw| kw.name == "EXPTIME")
+-    .map(|kw| kw.value.as_str());
++pub enum Error {
++    Io(std::io::Error),
++    /// The first 8 bytes are not "XISF0100".
++    BadSignature { found: [u8; 8] },
++    /// The declared header length exceeds the file length.
++    HeaderLengthOutOfRange { declared: u32, file_len: u64 },
++    Xml { offset: u64, reason: String },
++    /// A required attribute or element is absent.
++    MissingField { offset: u64, field: &'static str },
++    /// An attribute value does not parse as its declared type.
++    InvalidValue { offset: u64, field: &'static str, value: String },
++}
+ ```
+ 
+-## Feature flags
++`Error` implements `std::error::Error` and `Display`. Variants that carry an offset expose it through `Error::offset() -> Option<u64>`.
+ 
+-| Flag | Default | Effect |
+-| --- | --- | --- |
+-| `std` | on | Filesystem and reader constructors |
+-| `serde` | off | `Serialize` and `Deserialize` on every public type |
++## Limits
+ 
+-With `default-features = false` the crate is `no_std` with `alloc`, and `Header::from_bytes` is the only constructor.
++- `Header::from_path` rejects a declared header length above 64 MiB with `HeaderLengthOutOfRange`. Change the ceiling with `Header::from_path_with_limit`.
++- The crate reads XISF 1.0 files (signature `XISF0100`).
++- `no_std` is not supported; the crate uses `std::io`.
+ 
+-## Specification
++## Minimum supported Rust version
+ 
+-Implements the header portion of the XISF 1.0 specification. Unknown elements and attributes are retained in `Header::metadata` rather than rejected.
++1.74.
+ 
+ ## License
+ 

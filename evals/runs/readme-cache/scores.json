@@ -139,6 +139,93 @@
           "ste-words.approved-word-substitution": 1
         }
       }
+    },
+    "02-current-writedocs": {
+      "raw_words": 639,
+      "new": {
+        "score": 61.5,
+        "findings": 7,
+        "errors": 0,
+        "warnings": 7,
+        "suggestions": 0,
+        "per_100_words": 2.047,
+        "words": 342,
+        "passed": false,
+        "failure_reasons": [
+          "score 61.5, minimum 70.0"
+        ],
+        "categories": {
+          "prose-craft": {
+            "findings": 2,
+            "errors": 0,
+            "score": 76.6
+          },
+          "ste-procedural": {
+            "findings": 2,
+            "errors": 0,
+            "score": 66.0
+          },
+          "ste-verbs": {
+            "findings": 3,
+            "errors": 0,
+            "score": 52.4
+          }
+        },
+        "rules": {
+          "ste-verbs.passive-voice": 3,
+          "ste-procedural.condition-after-command": 2,
+          "prose-craft.hyphens": 1,
+          "prose-craft.relative-date": 1
+        }
+      }
+    },
+    "03-new-writedocs": {
+      "raw_words": 611,
+      "new": {
+        "score": 73.6,
+        "findings": 5,
+        "errors": 0,
+        "warnings": 4,
+        "suggestions": 1,
+        "per_100_words": 1.466,
+        "words": 341,
+        "passed": true,
+        "failure_reasons": [],
+        "categories": {
+          "prose-craft": {
+            "findings": 1,
+            "errors": 0,
+            "score": 88.3
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 82.4
+          },
+          "ste-procedural": {
+            "findings": 1,
+            "errors": 0,
+            "score": 82.4
+          },
+          "ste-punctuation": {
+            "findings": 1,
+            "errors": 0,
+            "score": 94.1
+          },
+          "ste-words": {
+            "findings": 1,
+            "errors": 0,
+            "score": 88.3
+          }
+        },
+        "rules": {
+          "prose-craft.gerund-heading": 1,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-procedural.condition-after-command": 1,
+          "ste-punctuation.semicolon-used": 1,
+          "ste-words.spelling": 1
+        }
+      }
     }
   }
 }

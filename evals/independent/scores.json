@@ -1,0 +1,4026 @@
+{
+  "blog-skip-locked": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 1,
+        "findings": 1,
+        "per_100_words": 0.132,
+        "score": 73.6,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.396,
+        "score": 62.6,
+        "suggestions": 0,
+        "warnings": 3
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.132,
+        "score": 84.2,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 8,
+        "per_100_words": 1.055,
+        "score": 60.5,
+        "suggestions": 0,
+        "warnings": 8
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 1,
+        "findings": 1,
+        "per_100_words": 0.132,
+        "score": 62.6,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.396,
+        "score": 62.6,
+        "suggestions": 0,
+        "warnings": 3
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 0,
+        "findings": 6,
+        "per_100_words": 0.792,
+        "score": 56.4,
+        "suggestions": 0,
+        "warnings": 6
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 5,
+        "per_100_words": 0.66,
+        "score": 86.8,
+        "suggestions": 5,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.264,
+        "score": 84.2,
+        "suggestions": 0,
+        "warnings": 2
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.132,
+        "score": 97.4,
+        "suggestions": 1,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 12,
+        "per_100_words": 1.583,
+        "score": 44.1,
+        "suggestions": 0,
+        "warnings": 12
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.264,
+        "score": 84.2,
+        "suggestions": 0,
+        "warnings": 2
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      }
+    ],
+    "errors": 2,
+    "findings": 45,
+    "genre": "blog post",
+    "hits": [
+      {
+        "line": 3,
+        "match": "",
+        "message": "This sentence has 30 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "our ",
+        "message": "first-person plural: our  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "hadn't",
+        "message": "Omitted word or contraction \"hadn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "Our ",
+        "message": "first-person plural: Our  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "doesn't",
+        "message": "Omitted word or contraction \"doesn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "There is",
+        "message": "dead opener: There is -- start the sentence with its real subject",
+        "rule": "prose-craft.dead-opener",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "they're",
+        "message": "Omitted word or contraction \"they're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 23,
+        "match": "You can paper",
+        "message": "This step is not in the imperative (\"You can paper\").",
+        "rule": "ste-procedural.instruction-not-imperative",
+        "severity": "warning"
+      },
+      {
+        "line": 23,
+        "match": "you've",
+        "message": "Omitted word or contraction \"you've\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 23,
+        "match": "you're",
+        "message": "Omitted word or contraction \"you're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 23,
+        "match": "is redundant",
+        "message": "Passive voice \"is redundant\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 27,
+        "match": "",
+        "message": "This sentence has 31 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 27,
+        "match": "was tired",
+        "message": "Passive voice \"was tired\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 27,
+        "match": "two things",
+        "message": "cataphoric lead-in: two things -- let the list carry its own length; cut the forecast",
+        "rule": "ai-tells-structure.cataphoric-lead-in-core",
+        "severity": "warning"
+      },
+      {
+        "line": 27,
+        "match": "two things",
+        "message": "cataphoric lead-in: two things -- let the list carry its own length; cut the forecast",
+        "rule": "ai-tells-structure.cataphoric-lead-in-core",
+        "severity": "warning"
+      },
+      {
+        "line": 27,
+        "match": "back up",
+        "message": "Phrasal verb \"back up\". Use \"copy\".",
+        "rule": "ste-practices.phrasal-verb",
+        "severity": "suggestion"
+      },
+      {
+        "line": 27,
+        "match": "two things",
+        "message": "cataphoric lead-in: two things -- let the list carry its own length; cut the forecast",
+        "rule": "ai-tells-structure.cataphoric-lead-in-core",
+        "severity": "warning"
+      },
+      {
+        "line": 48,
+        "match": "",
+        "message": "This sentence has 31 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 48,
+        "match": "no longer",
+        "message": "history narration: no longer -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "warning"
+      },
+      {
+        "line": 48,
+        "match": "It's",
+        "message": "Omitted word or contraction \"It's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 55,
+        "match": "Claim, work, then",
+        "message": "This step carries more than one instruction (\"Claim, work, then\").",
+        "rule": "ste-procedural.multiple-instructions-per-sentence",
+        "severity": "warning"
+      },
+      {
+        "line": 55,
+        "match": "That's",
+        "message": "Omitted word or contraction \"That's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 55,
+        "match": "doesn't",
+        "message": "Omitted word or contraction \"doesn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 70,
+        "match": "actually",
+        "message": "\"actually\" reads differently to a non-native reader. Use \"in fact\".",
+        "rule": "ste-practices.false-friend-term",
+        "severity": "suggestion"
+      },
+      {
+        "line": 77,
+        "match": "",
+        "message": "This sentence has 32 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 77,
+        "match": "tiny",
+        "message": "vague quantifier: tiny -- give the count, or name the cases",
+        "rule": "prose-inflation.vague-quantifier",
+        "severity": "warning"
+      },
+      {
+        "line": 77,
+        "match": "means it",
+        "message": "Add \"that\" after \"means it\".",
+        "rule": "ste-practices.omitted-conjunction-that",
+        "severity": "suggestion"
+      },
+      {
+        "line": 78,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 84,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 84,
+        "match": "doesn't",
+        "message": "Omitted word or contraction \"doesn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 90,
+        "match": "recommend it",
+        "message": "Add \"that\" after \"recommend it\".",
+        "rule": "ste-practices.omitted-conjunction-that",
+        "severity": "suggestion"
+      },
+      {
+        "line": 92,
+        "match": "",
+        "message": "This sentence has 34 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 92,
+        "match": "you're",
+        "message": "Omitted word or contraction \"you're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 92,
+        "match": "genuinely",
+        "message": "intensifier tic: genuinely -- drop it; add the specific claim that would justify it",
+        "rule": "ai-tells-register.intensifier-tics-core",
+        "severity": "error"
+      },
+      {
+        "line": 99,
+        "match": "you're",
+        "message": "Omitted word or contraction \"you're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 99,
+        "match": "enormous",
+        "message": "vague quantifier: enormous -- give the count, or name the cases",
+        "rule": "prose-inflation.vague-quantifier",
+        "severity": "warning"
+      },
+      {
+        "line": 99,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 99,
+        "match": "eventually",
+        "message": "\"eventually\" reads differently to a non-native reader. Use \"later\".",
+        "rule": "ste-practices.false-friend-term",
+        "severity": "suggestion"
+      },
+      {
+        "line": 103,
+        "match": "",
+        "message": "This sentence has 29 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 103,
+        "match": "I'm",
+        "message": "Omitted word or contraction \"I'm\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 103,
+        "match": "a lot of",
+        "message": "vague quantifier: a lot of -- give the count, or name the cases",
+        "rule": "prose-inflation.vague-quantifier",
+        "severity": "warning"
+      },
+      {
+        "line": 103,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 5.937,
+    "profile": "normal",
+    "register": "informal",
+    "score": 3.0,
+    "suggestions": 6,
+    "warnings": 37,
+    "words": 758
+  },
+  "design-doc-outbox": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.128,
+        "score": 90.4,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 22,
+        "per_100_words": 2.813,
+        "score": 5.8,
+        "suggestions": 0,
+        "warnings": 22
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 8,
+        "per_100_words": 1.023,
+        "score": 59.8,
+        "suggestions": 7,
+        "warnings": 1
+      },
+      {
+        "category": "prose-format",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.128,
+        "score": 92.3,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.512,
+        "score": 89.8,
+        "suggestions": 4,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.128,
+        "score": 92.3,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.512,
+        "score": 89.8,
+        "suggestions": 4,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 0,
+        "findings": 8,
+        "per_100_words": 1.023,
+        "score": 45.6,
+        "suggestions": 0,
+        "warnings": 8
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      }
+    ],
+    "errors": 0,
+    "findings": 49,
+    "genre": "design doc",
+    "hits": [
+      {
+        "line": 9,
+        "match": "performs a dual",
+        "message": "Nominalized action \"performs a dual\". Use the verb.",
+        "rule": "ste-verbs.nominalized-action",
+        "severity": "warning"
+      },
+      {
+        "line": 9,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 9,
+        "match": "with respect to",
+        "message": "Use \"about\" rather than \"with respect to\".",
+        "rule": "orwell.compound-preposition",
+        "severity": "warning"
+      },
+      {
+        "line": 9,
+        "match": "with respect to",
+        "message": "wordy: use 'about' instead of 'with respect to'",
+        "rule": "prose-craft.wordiness",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "",
+        "message": "sentence of 35 words > 34 -- split it, or convert the enumeration to a list",
+        "rule": "prose-craft.sentence-length",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "",
+        "message": "This sentence has 35 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "have measured",
+        "message": "Complex verb construction \"have measured\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "was rolled",
+        "message": "Passive voice \"was rolled\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 16,
+        "match": "means an",
+        "message": "Add \"that\" after \"means an\".",
+        "rule": "ste-practices.omitted-conjunction-that",
+        "severity": "suggestion"
+      },
+      {
+        "line": 24,
+        "match": "today",
+        "message": "relative date: today -- give the absolute date or version",
+        "rule": "prose-craft.relative-date",
+        "severity": "warning"
+      },
+      {
+        "line": 30,
+        "match": "Guarantee that an event is published if and only if its database transaction commits.",
+        "message": "The condition follows the command (\"Guarantee that an event is published if and only if its database transaction commits.\"). Put the condition first.",
+        "rule": "ste-procedural.condition-after-command",
+        "severity": "warning"
+      },
+      {
+        "line": 30,
+        "match": "is published",
+        "message": "Passive voice \"is published\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 33,
+        "match": "customer",
+        "message": "\"customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 39,
+        "match": "Exactly-once",
+        "message": "adverb hyphen: Exactly-once -- an -ly adverb takes no hyphen",
+        "rule": "prose-craft.hyphens",
+        "severity": "warning"
+      },
+      {
+        "line": 39,
+        "match": "consumers",
+        "message": "\"consumers\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 39,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 39,
+        "match": "are targeting",
+        "message": "Complex verb construction \"are targeting\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 39,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 39,
+        "match": "consumers",
+        "message": "\"consumers\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 42,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 43,
+        "match": ". This is",
+        "message": "Bare demonstrative \". This is\". Name the thing it refers to.",
+        "rule": "ste-practices.unclear-demonstrative-this",
+        "severity": "suggestion"
+      },
+      {
+        "line": 43,
+        "match": "This is",
+        "message": "unclear antecedent: This is -- name the noun the demonstrative points at",
+        "rule": "prose-craft.unclear-antecedent",
+        "severity": "warning"
+      },
+      {
+        "line": 54,
+        "match": "consumer",
+        "message": "\"consumer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 56,
+        "match": "e.g.",
+        "message": "Use \"for example\" rather than \"e.g.\".",
+        "rule": "ste-practices.latin-abbreviation",
+        "severity": "suggestion"
+      },
+      {
+        "line": 65,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 72,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 78,
+        "match": "are allocated",
+        "message": "Passive voice \"are allocated\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 78,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 78,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 87,
+        "match": "our ",
+        "message": "first-person plural: our  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 90,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 94,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 98,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 104,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 104,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 108,
+        "match": "Consumers",
+        "message": "\"Consumers\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 108,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 108,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 108,
+        "match": "consumer",
+        "message": "\"consumer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 110,
+        "match": "are committed",
+        "message": "Passive voice \"are committed\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 110,
+        "match": "Consumer",
+        "message": "\"Consumer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 110,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 110,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 110,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 110,
+        "match": "actually",
+        "message": "\"actually\" reads differently to a non-native reader. Use \"in fact\".",
+        "rule": "ste-practices.false-friend-term",
+        "severity": "suggestion"
+      },
+      {
+        "line": 118,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 120,
+        "match": "Stand up",
+        "message": "Use \"deploy\" rather than \"Stand up\".",
+        "rule": "prose-discipline.phrasal-verb",
+        "severity": "warning"
+      },
+      {
+        "line": 127,
+        "match": "is restoring",
+        "message": "Complex verb construction \"is restoring\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 6.266,
+    "profile": "normal",
+    "register": "internal",
+    "score": 10.8,
+    "suggestions": 15,
+    "warnings": 34,
+    "words": 782
+  },
+  "issue-comment-pgbouncer": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.285,
+        "score": 82.9,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 6,
+        "per_100_words": 1.709,
+        "score": 40.2,
+        "suggestions": 0,
+        "warnings": 6
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 3,
+        "findings": 3,
+        "per_100_words": 0.855,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.57,
+        "score": 66.7,
+        "suggestions": 0,
+        "warnings": 2
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 12,
+        "per_100_words": 3.419,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 12
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.57,
+        "score": 66.7,
+        "suggestions": 0,
+        "warnings": 2
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.57,
+        "score": 77.2,
+        "suggestions": 0,
+        "warnings": 2
+      }
+    ],
+    "errors": 3,
+    "findings": 28,
+    "genre": "issue comment",
+    "hits": [
+      {
+        "line": 1,
+        "match": "Thanks",
+        "message": "politeness: Thanks -- an instruction is not a request; state the step",
+        "rule": "prose-craft.politeness",
+        "severity": "warning"
+      },
+      {
+        "line": 1,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 3,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "isn't",
+        "message": "Omitted word or contraction \"isn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "it's",
+        "message": "Omitted word or contraction \"it's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "I'm",
+        "message": "Omitted word or contraction \"I'm\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "you're",
+        "message": "Omitted word or contraction \"you're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 5,
+        "match": "That's",
+        "message": "Omitted word or contraction \"That's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 7,
+        "match": "",
+        "message": "This sentence has 33 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 7,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 7,
+        "match": "have reported",
+        "message": "Complex verb construction \"have reported\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 7,
+        "match": "behaviour",
+        "message": "Use the en-US spelling \"behavior\".",
+        "rule": "ste-words.spelling",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "It's",
+        "message": "Omitted word or contraction \"It's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "isn't",
+        "message": "Omitted word or contraction \"isn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "you're",
+        "message": "Omitted word or contraction \"you're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "please",
+        "message": "politeness: please -- an instruction is not a request; state the step",
+        "rule": "prose-craft.politeness",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "There were",
+        "message": "dead opener: There were -- start the sentence with its real subject",
+        "rule": "prose-craft.dead-opener",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 13,
+        "match": "are handled",
+        "message": "Passive voice \"are handled\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 13,
+        "match": "*not*",
+        "message": "italicised copula: *not* -- delete the emphasis; let word order carry the contrast",
+        "rule": "ai-tells-formatting.italicised-copula",
+        "severity": "warning"
+      },
+      {
+        "line": 13,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 13,
+        "match": "You'd",
+        "message": "Omitted word or contraction \"You'd\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "nuke",
+        "message": "\"nuke\" is slang or jargon. Use a plain term.",
+        "rule": "ste-words.slang-or-jargon-term",
+        "severity": "warning"
+      },
+      {
+        "line": 17,
+        "match": "doesn't",
+        "message": "Omitted word or contraction \"doesn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 17,
+        "match": "That'll",
+        "message": "Omitted word or contraction \"That'll\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 17,
+        "match": "it's",
+        "message": "Omitted word or contraction \"it's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 7.977,
+    "profile": "normal",
+    "register": "informal",
+    "score": 0.0,
+    "suggestions": 0,
+    "warnings": 25,
+    "words": 351
+  },
+  "legal-dpa-notice": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 4,
+        "findings": 4,
+        "per_100_words": 0.503,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.377,
+        "score": 64.0,
+        "suggestions": 0,
+        "warnings": 3
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 5,
+        "per_100_words": 0.628,
+        "score": 74.9,
+        "suggestions": 0,
+        "warnings": 5
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 16,
+        "per_100_words": 2.01,
+        "score": 34.7,
+        "suggestions": 16,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 0,
+        "findings": 7,
+        "per_100_words": 0.879,
+        "score": 52.3,
+        "suggestions": 0,
+        "warnings": 7
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.126,
+        "score": 92.5,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.251,
+        "score": 95.0,
+        "suggestions": 2,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 0,
+        "findings": 6,
+        "per_100_words": 0.754,
+        "score": 58.2,
+        "suggestions": 0,
+        "warnings": 6
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 6,
+        "per_100_words": 0.754,
+        "score": 69.9,
+        "suggestions": 0,
+        "warnings": 6
+      }
+    ],
+    "errors": 4,
+    "findings": 50,
+    "genre": "legal notice",
+    "hits": [
+      {
+        "line": 8,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 12,
+        "match": "",
+        "message": "sentence of 36 words > 34 -- split it, or convert the enumeration to a list",
+        "rule": "prose-craft.sentence-length",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "",
+        "message": "This sentence has 36 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 12,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 12,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 12,
+        "match": "acts as",
+        "message": "copula avoidance: use 'is' instead of 'acts as'",
+        "rule": "ai-tells-content-shape.durable-vocabulary-habits",
+        "severity": "error"
+      },
+      {
+        "line": 12,
+        "match": "acts as",
+        "message": "copula avoidance: use 'is' instead of 'acts as'",
+        "rule": "ai-tells-content-shape.durable-vocabulary-habits",
+        "severity": "error"
+      },
+      {
+        "line": 12,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 12,
+        "match": "acts as",
+        "message": "copula avoidance: use 'is' instead of 'acts as'",
+        "rule": "ai-tells-content-shape.durable-vocabulary-habits",
+        "severity": "error"
+      },
+      {
+        "line": 12,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 14,
+        "match": "",
+        "message": "This sentence has 30 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 14,
+        "match": "acts as",
+        "message": "copula avoidance: use 'is' instead of 'acts as'",
+        "rule": "ai-tells-content-shape.durable-vocabulary-habits",
+        "severity": "error"
+      },
+      {
+        "line": 14,
+        "match": "administration, billing, and service",
+        "message": "tricolon: administration, billing, and service -- cut to the one or two that carry load; break the symmetry",
+        "rule": "ai-tells-structure.tricolon-abuse-core",
+        "severity": "warning"
+      },
+      {
+        "line": 18,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 18,
+        "match": "events, metrics, and traces",
+        "message": "tricolon: events, metrics, and traces -- cut to the one or two that carry load; break the symmetry",
+        "rule": "ai-tells-structure.tricolon-abuse-core",
+        "severity": "warning"
+      },
+      {
+        "line": 18,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 18,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 20,
+        "match": "Authorised",
+        "message": "Use the en-US spelling \"authorized\".",
+        "rule": "ste-words.spelling",
+        "severity": "warning"
+      },
+      {
+        "line": 22,
+        "match": "Authorised",
+        "message": "Use the en-US spelling \"authorized\".",
+        "rule": "ste-words.spelling",
+        "severity": "warning"
+      },
+      {
+        "line": 28,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 29,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 34,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 34,
+        "match": "are purged",
+        "message": "Passive voice \"are purged\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 34,
+        "match": "in accordance with",
+        "message": "wordy: use 'under' instead of 'in accordance with'",
+        "rule": "prose-craft.wordiness",
+        "severity": "warning"
+      },
+      {
+        "line": 36,
+        "match": "Authorised",
+        "message": "Use the en-US spelling \"authorized\".",
+        "rule": "ste-words.spelling",
+        "severity": "warning"
+      },
+      {
+        "line": 41,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 46,
+        "match": "",
+        "message": "sentence of 51 words > 34 -- split it, or convert the enumeration to a list",
+        "rule": "prose-craft.sentence-length",
+        "severity": "warning"
+      },
+      {
+        "line": 46,
+        "match": "",
+        "message": "This sentence has 51 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 46,
+        "match": "Area, Switzerland, and the",
+        "message": "tricolon: Area, Switzerland, and the -- cut to the one or two that carry load; break the symmetry",
+        "rule": "ai-tells-structure.tricolon-abuse-core",
+        "severity": "warning"
+      },
+      {
+        "line": 46,
+        "match": "are made",
+        "message": "Passive voice \"are made\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 48,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 50,
+        "match": "The Customer shall",
+        "message": "This step is not in the imperative (\"The Customer shall\").",
+        "rule": "ste-procedural.instruction-not-imperative",
+        "severity": "warning"
+      },
+      {
+        "line": 50,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 50,
+        "match": "shall",
+        "message": "Use \"must\" rather than \"shall\".",
+        "rule": "ste-words.obligation-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 53,
+        "match": "obtain",
+        "message": "Use \"get\" rather than \"obtain\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 54,
+        "match": "are made",
+        "message": "Passive voice \"are made\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 54,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 54,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 62,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 62,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 62,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 62,
+        "match": "is given by",
+        "message": "Passive voice \"is given by\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 64,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 64,
+        "match": "",
+        "message": "This sentence has 34 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 64,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 64,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 64,
+        "match": "can be made",
+        "message": "Auxiliary stack \"can be made\". Give the action directly.",
+        "rule": "ste-verbs.auxiliary-stacking",
+        "severity": "warning"
+      },
+      {
+        "line": 64,
+        "match": "be made",
+        "message": "Passive voice \"be made\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 64,
+        "match": "Customer",
+        "message": "\"Customer\" appears alongside another actor term in this document. Confirm they name different subjects.",
+        "rule": "prose-discipline.term-rotation-signal",
+        "severity": "suggestion"
+      },
+      {
+        "line": 64,
+        "match": "terminate",
+        "message": "Use \"stop\" rather than \"terminate\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 6.281,
+    "profile": "normal",
+    "register": "formal",
+    "score": 5.4,
+    "suggestions": 18,
+    "warnings": 28,
+    "words": 796
+  },
+  "marketing-feature-flags": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 1,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 48.5,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 80.8,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.769,
+        "score": 69.4,
+        "suggestions": 0,
+        "warnings": 4
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 7,
+        "findings": 7,
+        "per_100_words": 1.346,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 80.8,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.577,
+        "score": 66.4,
+        "suggestions": 0,
+        "warnings": 3
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 96.2,
+        "suggestions": 1,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 88.5,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 96.2,
+        "suggestions": 1,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.769,
+        "score": 69.4,
+        "suggestions": 0,
+        "warnings": 4
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.577,
+        "score": 66.4,
+        "suggestions": 0,
+        "warnings": 3
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.192,
+        "score": 92.3,
+        "suggestions": 0,
+        "warnings": 1
+      }
+    ],
+    "errors": 8,
+    "findings": 28,
+    "genre": "landing copy",
+    "hits": [
+      {
+        "line": 3,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "actually",
+        "message": "\"actually\" reads differently to a non-native reader. Use \"in fact\".",
+        "rule": "ste-practices.false-friend-term",
+        "severity": "suggestion"
+      },
+      {
+        "line": 11,
+        "match": "",
+        "message": "This sentence has 29 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 13,
+        "match": "are declared",
+        "message": "Passive voice \"are declared\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 13,
+        "match": "what's",
+        "message": "Omitted word or contraction \"what's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 13,
+        "match": "what's",
+        "message": "Omitted word or contraction \"what's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 13,
+        "match": "doesn't",
+        "message": "Omitted word or contraction \"doesn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "via",
+        "message": "Latin abbreviation: use 'through, using' instead of 'via'",
+        "rule": "prose-craft.latinisms",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 17,
+        "match": "100 ms",
+        "message": "implementation leak: 100 ms -- the reader cannot act on this; move it to the commit, ADR, or spec",
+        "rule": "prose-scope.implementation-leak",
+        "severity": "warning"
+      },
+      {
+        "line": 21,
+        "match": "didn't",
+        "message": "Omitted word or contraction \"didn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 23,
+        "match": "",
+        "message": "This sentence has 29 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 23,
+        "match": "require",
+        "message": "Use \"need\" rather than \"require\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 25,
+        "match": "has served",
+        "message": "Complex verb construction \"has served\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 27,
+        "match": "be operated",
+        "message": "Passive voice \"be operated\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 29,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 29,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 31,
+        "match": "",
+        "message": "This instruction has 23 words. Use twenty or fewer.",
+        "rule": "ste-procedural.sentence-too-long-procedural",
+        "severity": "warning"
+      },
+      {
+        "line": 31,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 31,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 38,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 41,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 43,
+        "match": "Rail, Brightlane, and Optera",
+        "message": "tricolon: Rail, Brightlane, and Optera -- cut to the one or two that carry load; break the symmetry",
+        "rule": "ai-tells-structure.tricolon-abuse-core",
+        "severity": "warning"
+      },
+      {
+        "line": 43,
+        "match": "200+ services",
+        "message": "fake specificity: 200+ services -- give the number or drop the quantifier",
+        "rule": "ai-tells-content-shape.fake-specificity",
+        "severity": "error"
+      },
+      {
+        "line": 43,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 51,
+        "match": "[Read the docs](",
+        "message": "link text: [Read the docs]( -- name the destination in the link text",
+        "rule": "prose-craft.link-text",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 5.385,
+    "profile": "normal",
+    "register": "promotional",
+    "score": 0.0,
+    "suggestions": 2,
+    "warnings": 18,
+    "words": 520
+  },
+  "release-notes-4-0": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 1,
+        "findings": 1,
+        "per_100_words": 0.137,
+        "score": 72.6,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.548,
+        "score": 50.7,
+        "suggestions": 0,
+        "warnings": 4
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 5,
+        "per_100_words": 0.685,
+        "score": 29.4,
+        "suggestions": 0,
+        "warnings": 5
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.137,
+        "score": 89.7,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 9,
+        "per_100_words": 1.233,
+        "score": 55.0,
+        "suggestions": 0,
+        "warnings": 9
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 3,
+        "findings": 3,
+        "per_100_words": 0.411,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 1,
+        "findings": 2,
+        "per_100_words": 0.274,
+        "score": 61.4,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.548,
+        "score": 67.8,
+        "suggestions": 0,
+        "warnings": 4
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.411,
+        "score": 91.8,
+        "suggestions": 3,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.411,
+        "score": 83.6,
+        "suggestions": 0,
+        "warnings": 3
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 0,
+        "findings": 12,
+        "per_100_words": 1.644,
+        "score": 16.6,
+        "suggestions": 0,
+        "warnings": 12
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.274,
+        "score": 89.0,
+        "suggestions": 0,
+        "warnings": 2
+      }
+    ],
+    "errors": 5,
+    "findings": 49,
+    "genre": "release notes",
+    "hits": [
+      {
+        "line": 3,
+        "match": "We've ",
+        "message": "first-person plural: We've  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "We've",
+        "message": "Omitted word or contraction \"We've\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "been sitting",
+        "message": "Complex verb construction \"been sitting\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "we're ",
+        "message": "first-person plural: we're  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "we're",
+        "message": "Omitted word or contraction \"we're\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "two things",
+        "message": "cataphoric lead-in: two things -- let the list carry its own length; cut the forecast",
+        "rule": "ai-tells-structure.cataphoric-lead-in-core",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "the client decides",
+        "message": "anthropomorphism: the client decides -- name the mechanism, not a mind",
+        "rule": "prose-agency.anthropomorphism",
+        "severity": "warning"
+      },
+      {
+        "line": 8,
+        "match": "no longer",
+        "message": "history narration: no longer -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "warning"
+      },
+      {
+        "line": 8,
+        "match": "require",
+        "message": "Use \"need\" rather than \"require\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "",
+        "message": "sentence of 38 words > 34 -- split it, or convert the enumeration to a list",
+        "rule": "prose-craft.sentence-length",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "",
+        "message": "This sentence has 38 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "was happening",
+        "message": "Complex verb construction \"was happening\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "didn't",
+        "message": "Omitted word or contraction \"didn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 15,
+        "match": "partially-degraded",
+        "message": "adverb hyphen: partially-degraded -- an -ly adverb takes no hyphen",
+        "rule": "prose-craft.hyphens",
+        "severity": "warning"
+      },
+      {
+        "line": 17,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 22,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 29,
+        "match": "",
+        "message": "sentence of 40 words > 34 -- split it, or convert the enumeration to a list",
+        "rule": "prose-craft.sentence-length",
+        "severity": "warning"
+      },
+      {
+        "line": 29,
+        "match": "",
+        "message": "This sentence has 40 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 29,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 29,
+        "match": "two kinds",
+        "message": "cataphoric lead-in: two kinds -- let the list carry its own length; cut the forecast",
+        "rule": "ai-tells-structure.cataphoric-lead-in-core",
+        "severity": "warning"
+      },
+      {
+        "line": 29,
+        "match": "previously",
+        "message": "history narration: previously -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "warning"
+      },
+      {
+        "line": 29,
+        "match": "are transient",
+        "message": "Passive voice \"are transient\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 32,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 36,
+        "match": "is decorrelated",
+        "message": "Passive voice \"is decorrelated\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 36,
+        "match": "can probably",
+        "message": "stacked hedge: can probably -- one hedge or none; commit to the claim or cut it",
+        "rule": "prose-inflation.hedge-stack",
+        "severity": "error"
+      },
+      {
+        "line": 42,
+        "match": "",
+        "message": "This sentence has 30 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 42,
+        "match": "Plenty of",
+        "message": "vague quantifier: Plenty of -- give the count, or name the cases",
+        "rule": "prose-inflation.vague-quantifier",
+        "severity": "warning"
+      },
+      {
+        "line": 47,
+        "match": "genuinely",
+        "message": "intensifier tic: genuinely -- drop it; add the specific claim that would justify it",
+        "rule": "ai-tells-register.intensifier-tics-core",
+        "severity": "error"
+      },
+      {
+        "line": 47,
+        "match": "pipes, sockets, and generators",
+        "message": "tricolon: pipes, sockets, and generators -- cut to the one or two that carry load; break the symmetry",
+        "rule": "ai-tells-structure.tricolon-abuse-core",
+        "severity": "warning"
+      },
+      {
+        "line": 53,
+        "match": "is released",
+        "message": "Passive voice \"is released\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 53,
+        "match": "is acknowledged",
+        "message": "Passive voice \"is acknowledged\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 53,
+        "match": "is released",
+        "message": "Passive voice \"is released\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 60,
+        "match": "no longer",
+        "message": "history narration: no longer -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "warning"
+      },
+      {
+        "line": 60,
+        "match": "We ",
+        "message": "first-person plural: We  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      },
+      {
+        "line": 63,
+        "match": "are renamed",
+        "message": "Passive voice \"are renamed\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 63,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 63,
+        "match": "are grouped by",
+        "message": "Passive voice \"are grouped by\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 67,
+        "match": "is removed",
+        "message": "Passive voice \"is removed\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 70,
+        "match": "no longer",
+        "message": "history narration: no longer -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "warning"
+      },
+      {
+        "line": 70,
+        "match": "is computed",
+        "message": "Passive voice \"is computed\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 72,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "suggestion"
+      },
+      {
+        "line": 75,
+        "match": "Previously",
+        "message": "history narration: Previously -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "warning"
+      },
+      {
+        "line": 87,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 90,
+        "match": "Two things",
+        "message": "cataphoric lead-in: Two things -- let the list carry its own length; cut the forecast",
+        "rule": "ai-tells-structure.cataphoric-lead-in-core",
+        "severity": "warning"
+      },
+      {
+        "line": 95,
+        "match": "were relying",
+        "message": "Complex verb construction \"were relying\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 95,
+        "match": "behaviour",
+        "message": "Use the en-US spelling \"behavior\".",
+        "rule": "ste-words.spelling",
+        "severity": "warning"
+      },
+      {
+        "line": 100,
+        "match": "Thanks",
+        "message": "politeness: Thanks -- an instruction is not a request; state the step",
+        "rule": "prose-craft.politeness",
+        "severity": "warning"
+      },
+      {
+        "line": 100,
+        "match": "",
+        "message": "This sentence has 29 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "warning"
+      },
+      {
+        "line": 100,
+        "match": "we ",
+        "message": "first-person plural: we  -- name the artifact instead of the vendor",
+        "rule": "prose-craft.first-person-plural",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 6.712,
+    "profile": "normal",
+    "register": "mixed",
+    "score": 0.0,
+    "suggestions": 3,
+    "warnings": 41,
+    "words": 730
+  },
+  "spec-resumable-upload": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 3,
+        "findings": 3,
+        "per_100_words": 0.319,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 2,
+        "per_100_words": 0.213,
+        "score": 84.1,
+        "suggestions": 0,
+        "warnings": 2
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 1,
+        "findings": 1,
+        "per_100_words": 0.106,
+        "score": 68.5,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 2,
+        "findings": 3,
+        "per_100_words": 0.319,
+        "score": 10.7,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 12,
+        "findings": 12,
+        "per_100_words": 1.275,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.106,
+        "score": 93.6,
+        "suggestions": 1,
+        "warnings": 0
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.106,
+        "score": 84.1,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.425,
+        "score": 53.7,
+        "suggestions": 0,
+        "warnings": 4
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 2,
+        "findings": 11,
+        "per_100_words": 1.169,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 9
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 3,
+        "per_100_words": 0.319,
+        "score": 63.6,
+        "suggestions": 0,
+        "warnings": 3
+      }
+    ],
+    "errors": 20,
+    "findings": 41,
+    "genre": "specification",
+    "hits": [
+      {
+        "line": 5,
+        "match": "is unlimited",
+        "message": "Passive voice \"is unlimited\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "",
+        "message": "sentence of 35 words > 34 -- split it, or convert the enumeration to a list",
+        "rule": "prose-craft.sentence-length",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "",
+        "message": "This sentence has 27 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 11,
+        "match": "",
+        "message": "This sentence has 35 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 11,
+        "match": "frequently",
+        "message": "vague quantifier: frequently -- give the count, or name the cases",
+        "rule": "prose-inflation.vague-quantifier",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "terminate",
+        "message": "Use \"stop\" rather than \"terminate\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 11,
+        "match": "verify the",
+        "message": "Add \"that\" after \"verify the\".",
+        "rule": "ste-practices.omitted-conjunction-that",
+        "severity": "suggestion"
+      },
+      {
+        "line": 21,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 21,
+        "match": "in this document",
+        "message": "preamble: in this document -- the title already says this; start with the first fact",
+        "rule": "prose-inflation.document-preamble",
+        "severity": "error"
+      },
+      {
+        "line": 21,
+        "match": "are to be interpreted",
+        "message": "Auxiliary stack \"are to be interpreted\". Give the action directly.",
+        "rule": "ste-verbs.auxiliary-stacking",
+        "severity": "warning"
+      },
+      {
+        "line": 21,
+        "match": "be interpreted",
+        "message": "Passive voice \"be interpreted\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 46,
+        "match": "initiates",
+        "message": "wordy: use 'start' instead of 'initiates'",
+        "rule": "prose-craft.wordiness",
+        "severity": "warning"
+      },
+      {
+        "line": 54,
+        "match": "",
+        "message": "This sentence has 29 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 65,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 71,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "warning"
+      },
+      {
+        "line": 72,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "warning"
+      },
+      {
+        "line": 78,
+        "match": "",
+        "message": "This sentence has 29 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 78,
+        "match": "previously",
+        "message": "history narration: previously -- deltas belong in change comms, not a doc body",
+        "rule": "docs-discipline.history-narration",
+        "severity": "error"
+      },
+      {
+        "line": 78,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "warning"
+      },
+      {
+        "line": 78,
+        "match": "MAY have discarded",
+        "message": "Auxiliary stack \"MAY have discarded\". Give the action directly.",
+        "rule": "ste-verbs.auxiliary-stacking",
+        "severity": "warning"
+      },
+      {
+        "line": 78,
+        "match": "have discarded",
+        "message": "Complex verb construction \"have discarded\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "error"
+      },
+      {
+        "line": 90,
+        "match": "be present",
+        "message": "Passive voice \"be present\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 92,
+        "match": "be present",
+        "message": "Passive voice \"be present\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 95,
+        "match": "",
+        "message": "This sentence has 28 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 100,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 100,
+        "match": "is accepted",
+        "message": "Passive voice \"is accepted\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 105,
+        "match": "If the new committed offset equals the declared  , the server MUST perform verification as specified in Section 6 before responding.",
+        "message": "The condition follows the command (\"If the new committed offset equals the declared  , the server MUST perform verification as specified in Section 6 before responding.\"). Put the condition first.",
+        "rule": "ste-procedural.condition-after-command",
+        "severity": "warning"
+      },
+      {
+        "line": 105,
+        "match": "perform verification",
+        "message": "\"perform verification\" freezes the action in a noun. Use the plain verb.",
+        "rule": "prose-discipline.frozen-verb",
+        "severity": "error"
+      },
+      {
+        "line": 105,
+        "match": "perform verification",
+        "message": "nominalisation: perform verification -- use the verb ('validate', not 'perform validation')",
+        "rule": "prose-inflation.nominalized-verb",
+        "severity": "error"
+      },
+      {
+        "line": 105,
+        "match": "perform verification",
+        "message": "Nominalized action \"perform verification\". Use the verb.",
+        "rule": "ste-verbs.nominalized-action",
+        "severity": "warning"
+      },
+      {
+        "line": 105,
+        "match": "perform",
+        "message": "Use \"do\" rather than \"perform\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 105,
+        "match": "as specified in",
+        "message": "internal reference: as specified in -- consumer docs describe the released artifact only",
+        "rule": "docs-discipline.internal-refs",
+        "severity": "error"
+      },
+      {
+        "line": 108,
+        "match": "",
+        "message": "This sentence has 27 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 115,
+        "match": "are expressed",
+        "message": "Passive voice \"are expressed\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      },
+      {
+        "line": 119,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 134,
+        "match": "",
+        "message": "This sentence has 28 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 138,
+        "match": "has passed",
+        "message": "Complex verb construction \"has passed\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "error"
+      },
+      {
+        "line": 138,
+        "match": "as specified in",
+        "message": "internal reference: as specified in -- consumer docs describe the released artifact only",
+        "rule": "docs-discipline.internal-refs",
+        "severity": "error"
+      },
+      {
+        "line": 146,
+        "match": "",
+        "message": "This sentence has 27 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 146,
+        "match": "require",
+        "message": "Use \"need\" rather than \"require\".",
+        "rule": "ste-words.approved-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 146,
+        "match": ";",
+        "message": "The semicolon is not permitted. Write two sentences.",
+        "rule": "ste-punctuation.semicolon-used",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 4.357,
+    "profile": "strict",
+    "register": "formal",
+    "score": 0.0,
+    "suggestions": 1,
+    "warnings": 20,
+    "words": 941
+  },
+  "tutorial-mtls": {
+    "categories": [
+      {
+        "category": "ai-residue",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-content-shape",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-formatting",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-register",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ai-tells-structure",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "docs-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "orwell",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-agency",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-craft",
+        "errors": 0,
+        "findings": 8,
+        "per_100_words": 1.774,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 8
+      },
+      {
+        "category": "prose-discipline",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-format",
+        "errors": 6,
+        "findings": 6,
+        "per_100_words": 1.33,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inclusive",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-inflation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "prose-scope",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-descriptive",
+        "errors": 1,
+        "findings": 1,
+        "per_100_words": 0.222,
+        "score": 41.6,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-nouns",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-practices",
+        "errors": 0,
+        "findings": 4,
+        "per_100_words": 0.887,
+        "score": 31.2,
+        "suggestions": 2,
+        "warnings": 2
+      },
+      {
+        "category": "ste-procedural",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.222,
+        "score": 67.5,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-punctuation",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-safety",
+        "errors": 0,
+        "findings": 0,
+        "per_100_words": 0.0,
+        "score": 100.0,
+        "suggestions": 0,
+        "warnings": 0
+      },
+      {
+        "category": "ste-sentences",
+        "errors": 0,
+        "findings": 7,
+        "per_100_words": 1.552,
+        "score": 0.0,
+        "suggestions": 0,
+        "warnings": 7
+      },
+      {
+        "category": "ste-verbs",
+        "errors": 1,
+        "findings": 2,
+        "per_100_words": 0.443,
+        "score": 15.7,
+        "suggestions": 0,
+        "warnings": 1
+      },
+      {
+        "category": "ste-words",
+        "errors": 0,
+        "findings": 1,
+        "per_100_words": 0.222,
+        "score": 73.4,
+        "suggestions": 0,
+        "warnings": 1
+      }
+    ],
+    "errors": 8,
+    "findings": 30,
+    "genre": "tutorial",
+    "hits": [
+      {
+        "line": 3,
+        "match": "",
+        "message": "This sentence has 26 words. Use twenty-five or fewer.",
+        "rule": "ste-descriptive.sentence-too-long-descriptive",
+        "severity": "error"
+      },
+      {
+        "line": 3,
+        "match": "you'll",
+        "message": "future tense: you'll -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "you'll",
+        "message": "Omitted word or contraction \"you'll\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "set up",
+        "message": "Phrasal verb \"set up\". Use \"configure\".",
+        "rule": "ste-practices.phrasal-verb",
+        "severity": "warning"
+      },
+      {
+        "line": 3,
+        "match": "You'll",
+        "message": "Omitted word or contraction \"You'll\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 5,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 6,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 17,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 17,
+        "match": "you'll",
+        "message": "future tense: you'll -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 17,
+        "match": "you'll",
+        "message": "Omitted word or contraction \"you'll\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 30,
+        "match": "i.e.",
+        "message": "Latin abbreviation: use 'that is' instead of 'i.e.'",
+        "rule": "prose-craft.latinisms",
+        "severity": "warning"
+      },
+      {
+        "line": 30,
+        "match": "i.e.",
+        "message": "Use \"that is\" rather than \"i.e.\".",
+        "rule": "ste-practices.latin-abbreviation",
+        "severity": "warning"
+      },
+      {
+        "line": 30,
+        "match": "don't",
+        "message": "Omitted word or contraction \"don't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 30,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 30,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 50,
+        "match": "you'll",
+        "message": "future tense: you'll -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 50,
+        "match": "you'll",
+        "message": "Omitted word or contraction \"you'll\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 56,
+        "match": "This is",
+        "message": "unclear antecedent: This is -- name the noun the demonstrative points at",
+        "rule": "prose-craft.unclear-antecedent",
+        "severity": "warning"
+      },
+      {
+        "line": 56,
+        "match": "This is",
+        "message": "Bare demonstrative \"This is\". Name the thing it refers to.",
+        "rule": "ste-practices.unclear-demonstrative-this",
+        "severity": "suggestion"
+      },
+      {
+        "line": 56,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 131,
+        "match": "will ",
+        "message": "future tense: will  -- describe what it does now",
+        "rule": "prose-craft.future-tense",
+        "severity": "warning"
+      },
+      {
+        "line": 132,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 135,
+        "match": "Verify the",
+        "message": "Add \"that\" after \"Verify the\".",
+        "rule": "ste-practices.omitted-conjunction-that",
+        "severity": "suggestion"
+      },
+      {
+        "line": 144,
+        "match": "You should see",
+        "message": "This step is not in the imperative (\"You should see\").",
+        "rule": "ste-procedural.instruction-not-imperative",
+        "severity": "warning"
+      },
+      {
+        "line": 144,
+        "match": "should",
+        "message": "Use \"must\" rather than \"should\".",
+        "rule": "ste-words.obligation-word-substitution",
+        "severity": "warning"
+      },
+      {
+        "line": 164,
+        "match": "isn't",
+        "message": "Omitted word or contraction \"isn't\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 167,
+        "match": "\u2014",
+        "message": "em/en dash: \u2014 -- write `--` instead, or a comma, colon, or two sentences",
+        "rule": "prose-format.no-unicode-dash",
+        "severity": "error"
+      },
+      {
+        "line": 167,
+        "match": "that's",
+        "message": "Omitted word or contraction \"that's\". Write the full form.",
+        "rule": "ste-sentences.omitted-word-or-contraction",
+        "severity": "warning"
+      },
+      {
+        "line": 167,
+        "match": "are being",
+        "message": "Complex verb construction \"are being\". Use a simple present, past, or future tense.",
+        "rule": "ste-verbs.complex-tense",
+        "severity": "error"
+      },
+      {
+        "line": 167,
+        "match": "being checked",
+        "message": "Passive voice \"being checked\". Name the actor and use the active voice.",
+        "rule": "ste-verbs.passive-voice",
+        "severity": "warning"
+      }
+    ],
+    "per_100_words": 6.652,
+    "profile": "strict",
+    "register": "instructional",
+    "score": 0.0,
+    "suggestions": 2,
+    "warnings": 20,
+    "words": 451
+  }
+}
