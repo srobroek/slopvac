@@ -50,6 +50,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -195,6 +196,9 @@ class CompileResult:
     # part of speech), so a finding has to be attributed back or it would carry a
     # rule id that `slopvac explain` cannot resolve.
     aliases: dict[str, str] = field(default_factory=dict)
+    # Cache trees this run deleted. Not persisted in the manifest: it describes the
+    # run, not the tree, and a cache hit prunes nothing.
+    pruned: list[Path] = field(default_factory=list)
 
     @property
     def vale_count(self) -> int:
@@ -855,6 +859,50 @@ def cache_root() -> Path:
     return Path(tempfile.gettempdir()) / "slopvac-cache"
 
 
+# How many compiled trees to keep. Each is ~400KB, so 16 is a few megabytes and
+# covers the profiles and locales one project alternates between, plus a handful of
+# other checkouts, without a second compile. The number that matters is not the
+# disk: it is that every ruleset edit, severity change, and blocklist edit mints a
+# new key, so an unpruned cache grows with development activity rather than use.
+# One developer machine reached 209 trees and 83MB.
+CACHE_KEEP = 16
+
+
+def prune_cache(root: Path | None = None, keep: int = CACHE_KEEP) -> list[Path]:
+    """Delete all but the `keep` most recently used compiled trees.
+
+    Returns what it removed. Never raises: a cache that cannot be pruned is a
+    disk-space problem, and failing a lint over one would be worse than the leak.
+
+    Recency is the directory's own mtime, refreshed on every cache hit, so the tree
+    a project keeps hitting survives no matter how long ago it was compiled. Sorted
+    by name as a tiebreak, because two trees written in the same mtime granule must
+    still order deterministically or the survivor set varies between runs.
+    """
+    root = cache_root() if root is None else root
+    removed: list[Path] = []
+    try:
+        entries = [p for p in root.iterdir() if (p / "manifest.json").is_file()]
+    except OSError:
+        return removed
+    if len(entries) <= keep:
+        return removed
+
+    def recency(path: Path) -> tuple[float, str]:
+        try:
+            return (path.stat().st_mtime, path.name)
+        except OSError:
+            return (0.0, path.name)
+
+    for stale in sorted(entries, key=recency, reverse=True)[keep:]:
+        try:
+            shutil.rmtree(stale)
+        except OSError:
+            continue
+        removed.append(stale)
+    return removed
+
+
 def _fingerprint(
     rules: list[Rule],
     config: ResolvedConfig,
@@ -933,6 +981,7 @@ def compile_ruleset(
         levels[rule.qualified_id] = severity.value
 
     fingerprint = _fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
+    cached_here = outdir is None
     if outdir is None:
         if not validate:
             # AN UNVALIDATED TREE MUST NEVER REACH THE SHARED CACHE. Without the
@@ -962,6 +1011,11 @@ def compile_ruleset(
         except (OSError, json.JSONDecodeError):
             cached = None
         if cached and cached.get("fingerprint") == fingerprint:
+            # Mark the hit, so pruning keeps what is in use rather than what was
+            # compiled most recently. A project that alternates two profiles would
+            # otherwise lose whichever it compiled first, however often it runs.
+            with suppress(OSError):
+                os.utime(outdir)
             return CompileResult(
                 outdir=outdir,
                 config_path=outdir / ".vale.ini",
@@ -1156,6 +1210,12 @@ def compile_ruleset(
             shutil.rmtree(staging, ignore_errors=True)
     finally:
         shutil.rmtree(previous, ignore_errors=True)
+
+    # Prune only when this run owns the shared cache. A caller who named its own
+    # outdir gets no housekeeping: that directory is theirs, and deleting siblings
+    # of a path the user chose would be a surprise.
+    if cached_here:
+        result.pruned = prune_cache(outdir.parent)
     return result
 
 

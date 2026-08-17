@@ -13,6 +13,7 @@ green suite on a machine with no Vale would assert only that we can write YAML.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -27,6 +28,7 @@ from slopvac.compile_vale import (
     _occurrence_bound,
     cache_root,
     compile_ruleset,
+    prune_cache,
     resolved_checks,
     vocabulary_sequence_rules,
 )
@@ -711,6 +713,63 @@ def test_changing_a_severity_invalidates_the_cache(ruleset, vocabulary, tmp_path
         vocabulary=vocabulary,
     )
     assert first.outdir != second.outdir
+
+
+def test_pruning_keeps_the_most_recently_used_trees(tmp_path):
+    """Recency is last USE, not compile order.
+
+    A project that alternates two profiles hits one tree and compiles neither, so
+    keying on compile time would evict the tree it uses most.
+    """
+    for index in range(5):
+        tree = tmp_path / f"{index:016x}"
+        tree.mkdir()
+        (tree / "manifest.json").write_text("{}", encoding="utf-8")
+        os.utime(tree, (1_000 + index, 1_000 + index))
+    # The oldest by compile order is used now, so it must survive the prune.
+    os.utime(tmp_path / f"{0:016x}", (9_000, 9_000))
+
+    removed = prune_cache(tmp_path, keep=2)
+    survivors = {p.name for p in tmp_path.iterdir()}
+    assert survivors == {f"{0:016x}", f"{4:016x}"}, survivors
+    assert len(removed) == 3
+
+
+def test_pruning_ignores_anything_that_is_not_a_compiled_tree(tmp_path):
+    """A directory with no manifest was never published, so it is not ours to
+    delete: it may be another process mid-build."""
+    (tmp_path / "half-built").mkdir()
+    for index in range(3):
+        tree = tmp_path / f"tree{index}"
+        tree.mkdir()
+        (tree / "manifest.json").write_text("{}", encoding="utf-8")
+
+    prune_cache(tmp_path, keep=1)
+    assert (tmp_path / "half-built").is_dir()
+
+
+def test_pruning_a_missing_cache_is_not_an_error(tmp_path):
+    """A cache that cannot be read is a disk problem, and failing a lint over one
+    would be worse than the leak."""
+    assert prune_cache(tmp_path / "absent") == []
+
+
+def test_a_compile_prunes_the_shared_cache_but_not_a_chosen_outdir(
+    ruleset, vocabulary, tmp_path, monkeypatch
+):
+    """Housekeeping applies to the cache we own, never to a path the user named."""
+    monkeypatch.setenv("SLOPVAC_CACHE_DIR", str(tmp_path / "cache"))
+    config = resolve_for(Config(), Path("README.md"))
+
+    chosen = tmp_path / "mine"
+    sibling = tmp_path / "keep-me"
+    sibling.mkdir(parents=True)
+    (sibling / "manifest.json").write_text("{}", encoding="utf-8")
+    result = compile_ruleset(
+        ruleset, config, outdir=chosen, validate=False, vocabulary=vocabulary, force=True
+    )
+    assert result.pruned == []
+    assert sibling.is_dir(), "a chosen outdir must not have its siblings pruned"
 
 
 def test_an_unvalidated_tree_is_never_cached(ruleset, vocabulary):

@@ -18,6 +18,7 @@ import fnmatch
 import hashlib
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import click
@@ -43,7 +44,14 @@ from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 from .reference import render_reference
 from .report import LintReport, build_sarif, summarize
 from .score import score_document
-from .compile_vale import CompileResult, ValeUnavailable, cache_root, compile_ruleset
+from .compile_vale import (
+    CACHE_KEEP,
+    CompileResult,
+    ValeUnavailable,
+    cache_root,
+    compile_ruleset,
+    prune_cache,
+)
 from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
 
 LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
@@ -965,6 +973,63 @@ def compile_styles(
         for entry in result.native_rules:
             console.print(f"  {entry.rule_id} [{entry.kind}]")
             console.print(f"    {entry.reason}")
+
+
+@main.command("cache")
+@click.option(
+    "--prune",
+    is_flag=True,
+    help=f"Delete all but the {CACHE_KEEP} most recently used trees. A lint does "
+    f"this on its own; use this to reclaim the disk now.",
+)
+@click.option("--all", "prune_all", is_flag=True, help="Delete every compiled tree.")
+def cache(prune: bool, prune_all: bool) -> None:
+    """Show the compiled-style cache, and prune it.
+
+    A tree is keyed by a hash of the rules and the resolved config, so a ruleset
+    edit, a severity change, or a blocklist edit mints a new one. Nothing is ever
+    served stale -- the key would differ -- so pruning is only about disk.
+    """
+    console = _console(False)
+    root = cache_root()
+    if not root.is_dir():
+        console.print(f"no cache at [bold]{root}[/]")
+        raise SystemExit(EXIT_OK)
+
+    if prune_all:
+        removed = prune_cache(root, keep=0)
+        console.print(f"removed {len(removed)} tree(s) from [bold]{root}[/]")
+        raise SystemExit(EXIT_OK)
+    if prune:
+        removed = prune_cache(root)
+        console.print(f"removed {len(removed)} tree(s) from [bold]{root}[/]")
+
+    trees = sorted(
+        (p for p in root.iterdir() if (p / "manifest.json").is_file()),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    total = sum(f.stat().st_size for f in root.rglob("*") if f.is_file())
+    console.print(f"cache: [bold]{root}[/]")
+    console.print(f"{len(trees)} tree(s), {total / 1_048_576:.1f} MiB, keep {CACHE_KEEP}")
+    if not trees:
+        raise SystemExit(EXIT_OK)
+
+    table = Table(header_style="bold", title="compiled trees", title_justify="left")
+    table.add_column("fingerprint")
+    table.add_column("vale rules", justify="right")
+    table.add_column("last used")
+    for tree in trees:
+        try:
+            manifest = json.loads((tree / "manifest.json").read_text(encoding="utf-8"))
+            count = str(len(manifest.get("vale_rules", [])))
+        except (OSError, json.JSONDecodeError):
+            count = "?"
+        stamp = datetime.fromtimestamp(tree.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+        table.add_row(tree.name, count, stamp)
+    console.print(table)
+    raise SystemExit(EXIT_OK)
+
 
 if __name__ == "__main__":
     main()
