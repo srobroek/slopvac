@@ -308,8 +308,15 @@ runs:
 
     # `always()`, because the whole point is to see the findings on a run that
     # failed on them. Without it the upload is skipped exactly when it matters.
+    #
+    # `steps.lint.outputs.sarif` as well as the inputs. The lint step exits early when it
+    # resolves no paths to check, and sets `sarif=` to say it wrote no file. Uploading on the
+    # input alone then fails the job with `Path does not exist: slopvac.sarif` -- a run that
+    # correctly found nothing to do, reported as a broken action.
     - name: Upload SARIF to code scanning
-      if: always() && inputs.sarif == 'true' && inputs.upload-sarif == 'true'
+      if: >-
+        always() && inputs.sarif == 'true' && inputs.upload-sarif == 'true'
+        && steps.lint.outputs.sarif != ''
       continue-on-error: true
       uses: github/codeql-action/upload-sarif@ea14db8afdef5d462e69d78c4ca45002d4522418 # v4.37.4
       with:

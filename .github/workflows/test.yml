@@ -143,6 +143,19 @@ jobs:
         working-directory: packages/slopvac-lint
         run: uv pip install --system -e ".[dev]"
 
+      # The same install the `test` job does. This job runs the same `pytest tests`, and a rule
+      # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
+      # without it -- which is a missing dependency reported as a test failure.
+      - name: Install vale
+        run: |
+          set -euo pipefail
+          version=3.15.2
+          curl -sSfL -o vale.tar.gz \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          tar -xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+          vale --version
+
       - name: pytest
         working-directory: packages/slopvac-lint
         run: python3 -m pytest tests -q
