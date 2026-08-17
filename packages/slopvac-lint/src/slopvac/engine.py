@@ -248,6 +248,26 @@ _SCAFFOLD_WORDS = frozenset(
 )
 
 
+def _list_stem_lines(document: Document) -> set[int]:
+    """First lines of the paragraphs that introduce a list.
+
+    A stem is a paragraph that ends in a colon and is followed immediately by a list
+    item, with nothing between them. Both halves are required. The colon alone would
+    exclude any short paragraph an author happened to end that way, and adjacency
+    alone would exclude the sentence before every list whether it introduces one or
+    not.
+    """
+    stems: set[int] = set()
+    blocks = document.blocks
+    for index, block in enumerate(blocks):
+        if block.kind is not BlockKind.PARAGRAPH or not block.text.rstrip().endswith(":"):
+            continue
+        following = blocks[index + 1] if index + 1 < len(blocks) else None
+        if following is not None and following.kind is BlockKind.LIST_ITEM and block.lines:
+            stems.add(block.lines[0])
+    return stems
+
+
 # Metric names `_run_metric` knows how to measure. A rule naming anything else
 # cannot fire, so it is reported rather than run -- see `unimplemented_metrics`.
 NATIVE_METRICS = frozenset(
@@ -836,9 +856,21 @@ class Engine:
             # this project's own README, paragraph line 37: 8 by Vale against 10 by
             # `count_words`. At an 8-word bound that gap decides the finding, and the
             # compiled rule fired on four blocks that are not emphasis paragraphs.
+            stems = _list_stem_lines(document)
             for block in document.paragraphs:
                 count = count_words(block.text)
                 if not exceeds(count, threshold):
+                    continue
+                # A LIST STEM IS NOT AN EMPHASIS PARAGRAPH, and excluding it is not a
+                # courtesy: `ste-sentences.complex-text-not-in-vertical-list` orders
+                # the author to turn a series into a vertical list, every list needs a
+                # stem to say what it enumerates, and a stem is short by construction.
+                # Without this the two shipped rules contradict each other, and an
+                # author who obeys the first is reported by the second with no move
+                # left that satisfies both. Measured while rewriting this project's
+                # own README against the ruleset: obeying the list rule 15 times took
+                # this rule from 1 finding to 7, all of them stems.
+                if block.lines[0] in stems:
                     continue
                 # A paragraph nobody wrote as prose is not an emphasis paragraph. A
                 # heading, a list item, and a table cell are already separate blocks,

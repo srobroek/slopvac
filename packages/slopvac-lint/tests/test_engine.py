@@ -762,6 +762,31 @@ def test_a_paragraph_of_one_opaque_unit_is_not_an_emphasis_paragraph():
     assert "ai-tells-structure.emphasis-paragraph-metric" not in fired
 
 
+def test_a_list_stem_is_not_an_emphasis_paragraph():
+    """THE TWO RULES MUST NOT CONTRADICT EACH OTHER.
+    `ste-sentences.complex-text-not-in-vertical-list` orders the author to turn a
+    series into a vertical list; every list needs a stem to say what it enumerates;
+    a stem is short by construction. Without this exclusion an author who obeys the
+    first rule is reported by the second, with no move that satisfies both.
+    Measured while rewriting this project's README against the ruleset: obeying the
+    list rule 15 times took this rule from 1 finding to 7, all of them stems."""
+    document = parse("t.md", "These flags filter the list:\n\n- one\n- two\n")
+    fired = {f.rule_id for f in _engine().run(document)}
+    assert "ai-tells-structure.emphasis-paragraph-metric" not in fired
+
+
+def test_a_short_paragraph_ending_in_a_colon_with_no_list_still_fires():
+    """The colon alone is not the exclusion. Both halves are required, or every
+    short paragraph an author happened to end that way escapes the rule."""
+    document = parse("t.md", "A lead-in long enough to clear the bound sits here.\n\nHere is the thing:\n\nAnd prose continues after it, at length, with no list.\n")
+    findings = [
+        f
+        for f in _engine().run(document)
+        if f.rule_id == "ai-tells-structure.emphasis-paragraph-metric"
+    ]
+    assert [f.line for f in findings] == [3]
+
+
 def test_a_genuine_emphasis_paragraph_still_fires():
     """The exclusions above must not disarm the rule."""
     lead = "A lead-in paragraph long enough to clear the bound sits above it here."
