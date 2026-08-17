@@ -165,6 +165,20 @@ jobs:
             test "$status" -ne 2 || { echo "locale $locale broke the run"; exit 1; }
           done
 
+      # The committed reference must match the ruleset that produced it. A generated
+      # file with no check is a stale file with extra steps, and the failure it
+      # produces is the expensive kind: somebody plans against a rule that was
+      # renamed, retiered, or removed. `--check` exits 2 and prints a unified diff,
+      # so the log says which rules moved rather than just "drift".
+      #
+      # Runs on ONE Python version, not the whole matrix: the output is derived from
+      # the YAML rather than from anything interpreter-dependent, so N copies of the
+      # same comparison would only add N ways to spend CI minutes.
+      - name: The rules reference is current
+        if: matrix.python == '3.13'
+        working-directory: packages/slopvac-lint
+        run: slopvac reference --write docs/rules.md --check
+
       - name: The README's own commands work
         working-directory: packages/slopvac-lint
         run: |
