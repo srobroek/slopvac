@@ -20,7 +20,7 @@ and a charting library, so the bars are divs and the styling is one embedded she
 from __future__ import annotations
 
 import html
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .model import DocumentScore, Severity
 from .report import RunSummary
@@ -134,7 +134,7 @@ def render_html(
     now, in UTC, because a report read on another machine in another timezone is the
     normal case.
     """
-    stamp = (generated or datetime.now(timezone.utc)).strftime("%Y-%m-%d %H:%M UTC")
+    stamp = (generated or datetime.now(UTC)).strftime("%Y-%m-%d %H:%M UTC")
     unchecked = [(doc.path, note) for doc in documents for note in doc.unchecked]
     band, css = _band(summary.score)
     verdict = "PASS" if summary.passed else "FAIL"

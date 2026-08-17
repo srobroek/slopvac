@@ -241,7 +241,14 @@ def resolve(tag: str) -> Locale:
         for other_tag, other in row.items():
             if other_tag == tag or other == target:
                 continue
-            for source_form, target_form in zip(_inflect(other), _inflect(target)):
+            # `strict=False` on purpose. `_inflect` branches on the suffix, so two
+            # words in the same row can return different numbers of forms
+            # (`organise` takes the -ise branch, `program` the doubling one). The
+            # short list is the one both share, and truncating to it pairs like with
+            # like. `strict=True` would raise on a legitimate row.
+            for source_form, target_form in zip(
+                _inflect(other), _inflect(target), strict=False
+            ):
                 if source_form.lower() in allowed:
                     continue
                 if source_form.lower() == target_form.lower():

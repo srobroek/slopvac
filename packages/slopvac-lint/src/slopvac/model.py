@@ -12,8 +12,7 @@ substitution rule needs no Python; only a genuinely new detection strategy does.
 from __future__ import annotations
 
 from enum import Enum
-from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 

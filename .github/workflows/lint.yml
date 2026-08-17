@@ -70,6 +70,33 @@ jobs:
           find . -name '*.sh' -not -path './.git/*' -print0 |
             xargs -0 shellcheck --severity=warning
 
+  python-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          enable-cache: true
+
+      # `check` only, not `format`. The rule provenance comments in this package are
+      # its documentation, and the formatter rewraps them; the selected rule set is
+      # the part that finds defects. It has already found a dead version branch, two
+      # duplicate set members that silently did nothing, and 16 `raise SystemExit`
+      # calls inside `except` with no `from None`, each printing a chained traceback
+      # over its own error message.
+      #
+      # The version is pinned. An unpinned linter turns a new release into a red
+      # build on an untouched branch.
+      - name: ruff
+        working-directory: packages/slopvac-lint
+        run: uvx ruff@0.16.3 check .
+
   # Runs this repo's own action against this repo, from the working tree rather
   # than a published tag. A composite action that breaks is only visible when it
   # is executed, and no unit test executes one.
@@ -148,3 +175,32 @@ jobs:
           uvx --from ./packages/slopvac-lint slopvac lint \
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/vale-styles/README.md
+
+  # The only required status check. Branch protection names this one job rather than
+  # every job, so adding a job above needs no change to the protection rule.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [workflow-lint, shell-lint, python-lint, action, prose]
+    if: always()
+    steps:
+      - name: Verify every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          # A skipped or cancelled job is not a pass. `always()` above is what lets
+          # this job report at all when an upstream job failed.
+          #
+          # The results arrive through the environment rather than a pipe: a heredoc
+          # would override piped stdin, which shellcheck reports as SC2259.
+          python3 - <<'PY'
+          import json, os, sys
+
+          needs = json.loads(os.environ["RESULTS"])
+          failed = [n for n, job in needs.items() if job.get("result") != "success"]
+          if failed:
+              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+              sys.exit(1)
+          print("every job passed")
+          PY

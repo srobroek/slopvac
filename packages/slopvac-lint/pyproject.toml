@@ -71,3 +71,35 @@ artifacts = ["src/slopvac/rules/*.yml"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+[tool.ruff]
+line-length = 90
+target-version = "py311"
+
+[tool.ruff.lint]
+# E,F,I are the floor. B catches the mutable-default and loop-variable-capture
+# classes; UP keeps the syntax at the target version rather than the oldest one
+# still supported; RUF picks up the mutable-class-default and unused-noqa cases.
+select = ["E", "F", "I", "B", "UP", "RUF"]
+
+# E501 is off because the prose in this package's comments IS the documentation, and
+# a hard wrap mid-sentence to satisfy a column count makes it worse to read. The
+# formatter holds code to 90; a comment that runs long is a deliberate choice.
+#
+# RUF001 is off because the ambiguous characters ARE the subject matter. This package
+# matches em dashes, en dashes, and curly quotes in prose; every finding is a literal
+# in a pattern that exists to detect that literal. "Did you mean HYPHEN-MINUS" is
+# exactly the substitution the rule is written to catch.
+#
+# UP042 (inherit from StrEnum) is off because the two are not interchangeable in
+# f-strings. Measured: `json.dumps` gives `"x"` for both, but `f"{Member}"` gives
+# `Class.X` under `str, Enum` and `x` under `StrEnum`. Every message template and
+# report line in this package interpolates these members, so the switch would
+# silently rewrite user-visible output. Worth doing deliberately, not as a lint fix.
+ignore = ["E501", "RUF001", "UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+# A test asserts on the exact text a rule matches, and some of those strings are
+# the bad prose the rule exists to catch. Rewriting them to satisfy a linter would
+# change what the test measures.
+"tests/*" = ["E501", "RUF001"]

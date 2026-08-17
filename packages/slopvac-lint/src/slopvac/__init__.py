@@ -14,7 +14,6 @@ from .model import Category, DocumentScore, Finding, Rule, RuleKind
 from .rules import RuleSet, load_ruleset
 
 __all__ = [
-    "__version__",
     "Category",
     "Config",
     "DocumentScore",
@@ -24,6 +23,7 @@ __all__ = [
     "RuleKind",
     "RuleSet",
     "Severity",
+    "__version__",
     "load_config",
     "load_ruleset",
     "resolve_for",

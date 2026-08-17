@@ -14,11 +14,11 @@ mode this project already documented for unsynced Vale styles.
 
 from __future__ import annotations
 
-import regex as re
 from dataclasses import dataclass, field
 from importlib import resources
 from pathlib import Path
 
+import regex as re
 import yaml
 
 from .model import Category, Rule, RuleKind

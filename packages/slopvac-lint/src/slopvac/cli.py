@@ -15,7 +15,6 @@ project sets `max_warnings`, which preserves the existing gate's behaviour.
 from __future__ import annotations
 
 import fnmatch
-import hashlib
 import json
 import sys
 import tempfile
@@ -29,6 +28,14 @@ from rich.table import Table
 
 from . import __version__
 from .analyze import parse
+from .compile_vale import (
+    CACHE_KEEP,
+    CompileResult,
+    ValeUnavailable,
+    cache_root,
+    compile_ruleset,
+    prune_cache,
+)
 from .config import (
     Config,
     ConfigError,
@@ -40,22 +47,14 @@ from .config import (
     resolve_for,
 )
 from .engine import Engine, drop_quoted_illustrations
-from .model import DocumentScore, RuleKind
-from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
-from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 from .html import render_html
+from .model import DocumentScore, RuleKind
 from .reference import render_reference
 from .report import LintReport, build_sarif, summarize
+from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .score import score_document
-from .compile_vale import (
-    CACHE_KEEP,
-    CompileResult,
-    ValeUnavailable,
-    cache_root,
-    compile_ruleset,
-    prune_cache,
-)
 from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
+from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
 LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
 
@@ -475,7 +474,7 @@ def lint(
         config = load_config(discovered, root=discovered.parent if discovered else None)
     except ConfigError as exc:
         console.print(f"[red]config error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     if profile:
         object.__setattr__(config, "profile", Profile(profile))
@@ -500,7 +499,7 @@ def lint(
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
         console.print(f"[red]ruleset error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     # The spelling rule is generated from the locale, so it is added after the
     # YAML loads. A bad tag becomes an `unchecked` note rather than an exception:
@@ -515,7 +514,7 @@ def lint(
     if name_errors:
         for message in name_errors:
             console.print(f"[red]config error[/] {message}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     if only_categories:
         keep = set(only_categories)
@@ -525,7 +524,7 @@ def lint(
                 f"[red]unknown category[/]: {', '.join(sorted(unknown))}. "
                 f"Known: {', '.join(sorted(ruleset.categories))}"
             )
-            raise SystemExit(EXIT_ERROR)
+            raise SystemExit(EXIT_ERROR) from None
         for name in list(ruleset.categories):
             if name not in keep:
                 config.categories[name] = CategorySettings(enabled=False)
@@ -534,7 +533,7 @@ def lint(
         paths = _collect_paths(targets, config)
     except click.ClickException as exc:
         console.print(f"[red]{exc.message}[/]")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     if not paths:
         console.print("[yellow]no lintable files matched[/]")
@@ -586,7 +585,7 @@ def lint(
         }
     except VocabularyError as exc:
         console.print(f"[red]blocklist error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     # One compile per distinct blocklist, and paths keep their input order within
     # a group so the report reads the same whether or not an override is in play.
@@ -758,7 +757,7 @@ def list_rules(
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
         console.print(f"[red]ruleset error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     inject_locale_rule(ruleset, *_locale_of(config_path or find_config(Path.cwd())))
 
@@ -833,14 +832,14 @@ def explain(
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
         console.print(f"[red]ruleset error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     inject_locale_rule(ruleset, *_locale_of(config_path or find_config(Path.cwd())))
 
     rule = ruleset.by_id(rule_id)
     if rule is None:
         console.print(f"[red]unknown rule[/]: {rule_id}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     # The review skill reads the exception list to choose a suppression reason, and
     # scraping it out of Rich-rendered text is what this avoids. `suppression` is
@@ -862,14 +861,14 @@ def explain(
 
     console.print(f"[bold]{rule.qualified_id}[/] -- {rule.name}")
     console.print(f"kind: {rule.kind.value}   severity: {rule.severity.value}   scope: {rule.scope.value}")
-    console.print(f"tiers: " + "  ".join(f"{k}={v.value}" for k, v in rule.tiers.items()))
+    console.print("tiers: " + "  ".join(f"{k}={v.value}" for k, v in rule.tiers.items()))
     console.print(f"\n{rule.message}")
     if rule.fix:
         console.print(f"\n[bold]Fix[/]: {rule.fix}")
     if rule.judgement_question:
         console.print(f"\n[bold]Decide by asking[/]: {rule.judgement_question}")
     if rule.exceptions:
-        console.print(f"\n[bold]Named exceptions[/] (a suppression must cite one):")
+        console.print("\n[bold]Named exceptions[/] (a suppression must cite one):")
         for name in rule.exceptions:
             console.print(f"  - {name}")
         console.print(
@@ -908,7 +907,7 @@ def init_config(profile: str, force: bool, path: Path) -> None:
 
     path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
     console.print(f"wrote {path}")
-    console.print(f"lint with: slopvac 'docs/**/*.md'")
+    console.print("lint with: slopvac 'docs/**/*.md'")
 
 
 
@@ -951,7 +950,7 @@ def compile_styles(
         config = load_config(discovered, root=discovered.parent if discovered else None)
     except ConfigError as exc:
         console.print(f"[red]config error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
     if profile:
         object.__setattr__(config, "profile", Profile(profile))
 
@@ -959,13 +958,13 @@ def compile_styles(
         vocabulary = load_blocklist(config.blocklist_path())
     except VocabularyError as exc:
         console.print(f"[red]blocklist error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
         console.print(f"[red]ruleset error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     inject_locale_rule(ruleset, config.locale.default, config.locale.allow)
     resolved = resolve_for(config, Path("README.md"))
@@ -994,7 +993,7 @@ def compile_styles(
             f"[red]vale is required to validate the compiled rules[/]: {exc}\n"
             f"Pass --no-validate to compile without proving each rule loads."
         )
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     if output_format == "json":
         click.echo(
@@ -1117,14 +1116,14 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
         console.print(f"[red]rule error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     rendered = render_reference(ruleset, version=__version__)
 
     if check:
         if destination is None:
             console.print("[red]--check needs --write[/] to name the file to compare")
-            raise SystemExit(EXIT_ERROR)
+            raise SystemExit(EXIT_ERROR) from None
         current = destination.read_text() if destination.exists() else ""
         if current == rendered:
             console.print(f"[green]{destination} is current[/]")
@@ -1145,7 +1144,7 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
             f"\n[red]{destination} is out of date[/]. Regenerate with "
             f"`slopvac reference --write {destination}` and commit the result."
         )
-        raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_ERROR) from None
 
     if destination is None:
         click.echo(rendered, nl=False)

@@ -189,3 +189,31 @@ jobs:
           slopvac explain orwell.stale-figure > /dev/null
           slopvac init --path /tmp/slopvac.toml
           slopvac /tmp/probe.md --no-vale --config /tmp/slopvac.toml || test $? -eq 1
+
+  # The only required status check for this workflow. Branch protection names this
+  # one job rather than every matrix leg, so adding a Python version needs no change
+  # to the protection rule.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [test, lint-package]
+    if: always()
+    steps:
+      - name: Verify every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          # A skipped or cancelled job is not a pass, and a matrix leg that never ran
+          # must not read as green. `always()` is what lets this job report at all
+          # when an upstream job failed.
+          python3 - <<'PY'
+          import json, os, sys
+
+          needs = json.loads(os.environ["RESULTS"])
+          failed = [n for n, job in needs.items() if job.get("result") != "success"]
+          if failed:
+              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+              sys.exit(1)
+          print("every job passed")
+          PY

@@ -21,18 +21,13 @@ its own slopvac.toml and a file outside any package still resolves at the root.
 
 from __future__ import annotations
 
-import sys
+import tomllib
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Any
 
 import pathspec
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # pragma: no cover - requires-python is >=3.11
-    import tomli as tomllib
 
 CONFIG_NAMES = ("slopvac.toml", ".slopvac.toml")
 PYPROJECT = "pyproject.toml"
@@ -286,7 +281,7 @@ class Override(BaseModel):
         return self
 
     def matches(self, relative_path: str) -> bool:
-        spec: pathspec.PathSpec = getattr(self, "_spec")
+        spec: pathspec.PathSpec = self._spec
         return spec.match_file(relative_path)
 
 
@@ -368,7 +363,7 @@ class Config(BaseModel):
         return self
 
     def is_excluded(self, relative_path: str) -> bool:
-        spec: pathspec.PathSpec = getattr(self, "_exclude_spec")
+        spec: pathspec.PathSpec = self._exclude_spec
         return spec.match_file(relative_path)
 
     def blocklist_path(self) -> Path | None:

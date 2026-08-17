@@ -37,11 +37,11 @@ stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 
 from __future__ import annotations
 
-import regex as re
+import itertools
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Iterator
 
+import regex as re
 from markdown_it import MarkdownIt
 
 from .model import TextType
@@ -248,7 +248,7 @@ def count_words(text: str) -> int:
 
     # A number followed by a unit was counted twice above; correct it.
     tokens = [t for t in text.split() if WORDLIKE.search(t) or t == "\x00"]
-    for first, second in zip(tokens, tokens[1:]):
+    for first, second in itertools.pairwise(tokens):
         if re.fullmatch(NUMBER, first.strip(",;:!?.")) and re.fullmatch(
             UNIT, second.strip(",;:!?.")
         ):
@@ -600,8 +600,7 @@ STACK_BREAKER = frozenset(
         "whereas", "once", "where", "why", "how",
         # Determiners and pronouns. A possessive opens a noun phrase rather than
         # continuing a stack, so `keeps its shipped severity` is not a 4-word stack.
-        "its", "their", "his", "her", "our", "your", "my", "this", "that",
-        "these", "those", "it", "they", "them", "we", "us", "you", "he", "she",
+        "its", "their", "his", "her", "our", "your", "my", "this", "these", "those", "it", "they", "them", "we", "us", "you", "he", "she",
         "each", "every", "any", "some", "all", "both", "either", "neither",
         "what", "whose", "there", "here", "then", "so", "such", "same", "other",
         "one", "two", "three", "four", "five",
@@ -620,7 +619,13 @@ STACK_BREAKER = frozenset(
         # counted 4 and `Specificity ranking loses` counted 3.
         "shows", "show", "loses", "lose", "adds", "add", "drops", "drop",
         "applies", "apply", "wins", "win", "owns", "own", "picks", "pick",
-        "stays", "stay", "sits", "sit", "sets",
+        "stays", "stay", "sits", "sit",
+        # Found while fixing the participle-head false positive: each of these ends
+        # a clause the same way, carries no noun suffix, and nothing else separated
+        # it. `A failing document opens expanded` counted 4.
+        "opens", "open", "starts", "start", "appears", "appear", "exits", "exit",
+        "fires", "fire", "loads", "load", "lands", "land", "passes", "pass",
+        "fails", "fail", "ends", "end", "begins", "begin", "returns", "return",
         # Modals. A modal always introduces a verb, so it cannot sit inside a noun
         # stack: `the gates the whole document must clear` is not a 4-word stack.
         "must", "can", "will", "would", "should", "shall", "may", "might",
@@ -649,6 +654,19 @@ NOUN_SUFFIX = re.compile(
     r"\b\w{4,}(?:tion|sion|ment|ness|ity|ance|ence|ism|ology|er|or|ist|"
     r"ure|age|ing)\b",
     re.I,
+)
+
+# A past participle, which cannot be the HEAD of a noun stack. It can sit inside
+# one attributively (`distributed cache invalidation strategy`), so this is not a
+# STACK_BREAKER: a run is trimmed at the tail instead.
+PARTICIPLE = re.compile(r"^[A-Za-z]{5,}ed$")
+
+# The `-ed` words that are ordinary nouns, which PARTICIPLE would otherwise trim
+# out of a real stack. Kept short on purpose: the pattern needs five letters, so
+# `bed`, `red`, and `led` never reach it.
+PARTICIPLE_NOUNS = frozenset(
+    {"speed", "breed", "creed", "steed", "tweed", "thread", "spread", "bread",
+     "ahead", "embed", "shred", "sacred", "hundred"}
 )
 
 
@@ -689,8 +707,20 @@ def longest_noun_stack(text: str) -> int:
     run: list[str] = []
 
     def close(longest: int) -> int:
-        if len(run) > longest and any(NOUN_SUFFIX.match(w) for w in run):
-            return len(run)
+        # A stack is named by its head, and a past participle cannot be one. Trimming
+        # the tail rather than breaking the run keeps the attributive use, where the
+        # participle sits inside a real stack: `distributed cache invalidation
+        # strategy` still counts 4. Measured on this project's own README:
+        # `A failing document opens expanded` counted 4 with no noun stack in it.
+        trimmed = list(run)
+        while (
+            trimmed
+            and PARTICIPLE.match(trimmed[-1])
+            and trimmed[-1].lower() not in PARTICIPLE_NOUNS
+        ):
+            trimmed.pop()
+        if len(trimmed) > longest and any(NOUN_SUFFIX.match(w) for w in trimmed):
+            return len(trimmed)
         return longest
 
     # Walks tokens and inspects the GAP between them, rather than splitting. A

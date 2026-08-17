@@ -37,9 +37,10 @@ Orwell's own sixth rule has in an automated pipeline.
 
 from __future__ import annotations
 
-import regex as re
 from dataclasses import dataclass
 from typing import Any
+
+import regex as re
 
 from .analyze import (
     ABSTRACTION_SUFFIX,
