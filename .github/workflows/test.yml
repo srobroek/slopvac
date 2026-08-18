@@ -108,7 +108,12 @@ jobs:
           out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
           printf '%s\n' "$out"
           printf '%s' "$out" | grep -q 'E201' && { echo 'a rule failed to load'; exit 1; }
-          printf '%s' "$out" | grep -q 'prose-inflation.SlopLexicon' \
+          # Any rule from the styles the config fetches, not one named style. This grepped for
+          # `prose-inflation.SlopLexicon` after the config was reduced to ai-tells alone, so the
+          # probe reported its finding correctly and the step still failed. Vale reports a clean
+          # file for a style it cannot resolve, so the check has to exist. It has to name what
+          # the config actually enables.
+          printf '%s' "$out" | grep -qE '\b(ai-tells|prose-[a-z]+|ste-[a-z]+|docs-[a-z]+)\.' \
             || { echo 'styles did not resolve'; exit 1; }
           expected="$(find packages/slopvac-lint/vale-styles -name '*.yml' -not -path '*/dist/*' | wc -l)"
           echo "$expected rules shipped"
