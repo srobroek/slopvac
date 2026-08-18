@@ -35,10 +35,18 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # `secrets` is unavailable in a step-level `if`, which actionlint reports, so the key reaches
+    # the condition below through job env instead.
+    env:
+      HAS_APP_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY != '' }}
     steps:
+      # Both credentials, not just the id. The guard checked the client id alone, so setting
+      # that variable without the key made this step fail with `The 'private-key' input must be
+      # set to a non-empty string` instead of falling back to GITHUB_TOKEN -- a half-configured
+      # repository broke the release rather than degrading.
       - name: Mint release-app token
         id: app-token
-        if: ${{ vars.RELEASE_APP_CLIENT_ID != '' }}
+        if: ${{ vars.RELEASE_APP_CLIENT_ID != '' && env.HAS_APP_KEY == 'true' }}
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
         with:
           app-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
