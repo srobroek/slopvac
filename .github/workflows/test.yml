@@ -53,8 +53,12 @@ jobs:
           ast-grep --version
 
 
-      - name: Install pytest
-        run: python3 -m pip install --quiet pytest
+      # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
+      # and those tests import slopvac: installing the test runner alone collected every module
+      # as `ModuleNotFoundError: No module named 'slopvac'`. The `[dev]` extra brings click and
+      # the rest, which is what the lint-package job installs for the same reason.
+      - name: Install the package and pytest
+        run: python3 -m pip install --quiet -e "./packages/slopvac-lint[dev]"
 
       # A test that skips on a missing style reads as a pass, so build and sync the
       # styles from the working tree before running anything.
