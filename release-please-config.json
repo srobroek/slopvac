@@ -51,7 +51,7 @@
     },
     "packages/slopvac": {
       "release-type": "simple",
-      "component": "slopvac",
+      "component": "slopvac-apm",
       "changelog-path": "CHANGELOG.md",
       "extra-files": [
         {
