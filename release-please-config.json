@@ -3,6 +3,9 @@
   "separate-pull-requests": false,
   "tag-separator": "--",
   "include-component-in-tag": true,
+  "pull-request-title-pattern": "chore: release ${branch}",
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
   "changelog-sections": [
     {
       "type": "feat",
