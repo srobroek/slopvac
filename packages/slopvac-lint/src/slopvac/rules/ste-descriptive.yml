@@ -1,0 +1,222 @@
+id: ste-descriptive
+title: STE Descriptive Writing
+description: Governs information order, connective structure, sentence length, and paragraph shape in explanatory text.
+weight: 1.0
+max_per_100_words:
+  strict: 1.0
+  normal: 1.5
+recommended_for: [reference, readme, api-docs, pr-description]
+rules:
+  - id: information-not-gradual
+    name: Give information gradually
+    kind: judgement
+    severity: suggestion
+    message: Check that this paragraph introduces one idea at a time.
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does each sentence introduce at most one new idea, and does every term appear after
+      the sentence that introduced it? If a reader must already know a later term to parse
+      an earlier sentence, reorder.
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          The reconciler compares desired state from the lease store against observed state
+          from the informer cache and writes the delta to the work queue that the shard
+          leader drains.
+        good: >-
+          The reconciler reads the desired state from the lease store. It reads the observed
+          state from the informer cache. It writes the difference between the two to the work
+          queue. The shard leader drains that queue.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:6.1'
+      note: >-
+        Forward-reference detection is partly mechanizable (first-use position of each
+        glossary term), but the one-idea-per-sentence half is not, and a checker that fires
+        on term order alone would misjudge every summary paragraph. Judgement, with the
+        sentence-length rule carrying most of the practical benefit.
+    fix: Split the paragraph so each sentence adds one idea in reading order.
+
+  - id: missing-key-word-structure
+    name: Use key words to structure the text
+    kind: judgement
+    severity: suggestion
+    message: Check that this paragraph repeats its key words instead of varying them.
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does each sentence pick up a key word or key phrase from the sentence before it, and
+      is that key word written the same way each time?
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          The reconciler drains the work queue. The component then writes the outcome to the
+          job list.
+        good: >-
+          The reconciler drains the work queue. The reconciler then writes the outcome to the
+          work queue.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:6.2'
+      note: >-
+        The consistency half overlaps ste-words/inconsistent-term-for-same-thing, which is
+        the mechanizable part given a synonym-group list. What is unique here is the positive
+        requirement to carry a key word forward, which no checker can measure.
+    fix: Repeat the key word from the previous sentence rather than substituting a synonym.
+
+  - id: sentence-too-long-descriptive
+    name: Keep an explanatory sentence to twenty-five words
+    kind: metric
+    severity: error
+    message: 'This sentence has {value} words. Use twenty-five or fewer.'
+    scope: sentence
+    text_type: descriptive
+    metric: sentence_words
+    threshold: 25
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: >-
+          The gateway terminates TLS, rewrites the Host header, adds a request identifier for
+          tracing, and forwards the request to the service that the routing table names for
+          the path prefix.
+        good: >-
+          The gateway terminates TLS and rewrites the Host header. It adds a request
+          identifier for tracing. It then forwards the request to the service that the routing
+          table names for the path prefix.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:6.3'
+      note: >-
+        Same word-counting contract as the procedural cap, five words wider. A note inside a
+        procedure takes this cap rather than the procedural one, which is why text_type
+        classification (see metrics.md) decides which of the two rules applies rather than
+        document location.
+    fix: Split the sentence at a clause boundary.
+
+  - id: paragraph-without-related-information
+    name: Group related information in a paragraph
+    kind: judgement
+    severity: suggestion
+    message: Check that this paragraph opens with a topic sentence.
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the first sentence of this paragraph tell the reader what the paragraph is about,
+      and does every later sentence add to that topic?
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          Set the retry limit to five. The gateway terminates TLS. Each worker reads one
+          queue.
+        good: >-
+          The gateway handles inbound traffic. It terminates TLS and rewrites the Host
+          header. It then forwards each request to a worker.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:6.4'
+      note: >-
+        Advisory at both upper tiers because the failure it names (a paragraph with no topic
+        sentence) is a drafting problem a reviewer catches faster than a checker, and no
+        threshold makes it decidable.
+    fix: Add a topic sentence, or move the unrelated sentence to its own paragraph.
+
+  - id: paragraph-has-multiple-topics
+    name: Keep one topic per paragraph
+    kind: judgement
+    severity: suggestion
+    message: Check that this paragraph carries one topic.
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Could this paragraph be split at any sentence boundary without either half needing the
+      other? If yes, it carries more than one topic.
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          The gateway terminates TLS and forwards each request to a worker. The billing
+          exporter writes a daily CSV to the audit bucket.
+        good: >-
+          The gateway terminates TLS and forwards each request to a worker.
+
+          The billing exporter writes a daily CSV to the audit bucket.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:6.5'
+      note: >-
+        The split test above is our decidable restatement of "one topic", and it is a
+        reviewer question rather than a finding because measuring topical cohesion needs a
+        model, not a rule. Kept enforced at strict and normal so the reviewer is prompted.
+    fix: Split the paragraph at the topic change.
+
+  - id: paragraph-too-many-sentences
+    name: Keep a paragraph to six sentences
+    kind: metric
+    severity: warning
+    message: 'This paragraph has {value} sentences. Use six or fewer.'
+    scope: paragraph
+    text_type: descriptive
+    metric: paragraph_sentences
+    threshold: 6
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: >-
+          The gateway terminates TLS. It rewrites the Host header. It adds a request
+          identifier. It reads the routing table. It selects a worker. It forwards the
+          request. It records the latency.
+        good: >-
+          The gateway terminates TLS. It rewrites the Host header. It adds a request
+          identifier.
+
+          The gateway reads the routing table and selects a worker. It forwards the request
+          and records the latency.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:6.6'
+      note: >-
+        This metric uses paragraph_sentences, which is NOT the same sentence unit the word
+        caps use. A lead-in plus its vertical list counts as one sentence here, while the
+        word-count rules treat each list item as its own sentence. metrics.md states the
+        resolution and the evidence for it. Getting this wrong makes almost every bulleted
+        block a violation, which is the single largest false-positive risk in the whole set.
+    fix: Split the paragraph into two.

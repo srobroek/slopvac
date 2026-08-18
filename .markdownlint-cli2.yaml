@@ -1,0 +1,54 @@
+# Structural markdown only. This repository already has a prose gate -- its own --
+# and the two must not compete: anything markdownlint says about wording, emphasis,
+# or heading style is either duplicated by a slopvac rule or contradicts one.
+# What is left is the part slopvac does not see: broken list nesting, duplicate
+# headings, unlabelled fences, malformed tables.
+
+config:
+  # Line length is not a defect. The rule files and docs in this repository hold
+  # prose whose reflow changes what a reader sees, and slopvac scores sentences
+  # rather than columns.
+  MD013: false
+
+  # Duplicate headings are legitimate here: `docs/rules.md` is generated with one
+  # section per rule, and sibling rules share sub-heading names by design.
+  MD024: false
+
+  # A fence with no language is usually terminal output or a diff fragment in this
+  # repository's docs, where naming a language would be a lie.
+  MD040: false
+
+  # First line need not be a top-level heading: generated files carry a provenance
+  # comment above it.
+  MD041: false
+
+  # Inline HTML is used for the mermaid diagrams and the collapsible sections in
+  # the READMEs.
+  MD033: false
+
+  # Bold as a label is not an attempt at a heading. `**Claude Code**` above a
+  # fenced block labels the block, and promoting it to `###` would put four
+  # install snippets in the table of contents.
+  MD036: false
+
+  # Consecutive blockquotes separated by a blank line are two SEPARATE quotations.
+  # `docs/orwell-derivation.md` quotes Orwell in sequence, and joining them would
+  # attribute one continuous passage that does not exist.
+  MD028: false
+
+globs:
+  - "**/*.md"
+  - "!**/node_modules/**"
+  # The eval corpus is INPUT to the linter. Its documents are deliberately bad
+  # prose, and several are verbatim agent output; normalising their markdown would
+  # destroy the measurement.
+  - "!.dogfood-cleanroom/**"
+  - "!evals/**"
+  # Generated. `slopvac reference --write` owns the file, and a lint rule it fails
+  # is a bug report against the generator, not an edit to make by hand.
+  - "!packages/slopvac-lint/docs/rules.md"
+  - "!CHANGELOG.md"
+  # Installed by `bd` and `apm`. Editing them to satisfy a lint rule is reverted by
+  # the next install, so the finding would come back on a branch nobody touched.
+  - "!.agents/**"
+  - "!.beads/**"

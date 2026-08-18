@@ -1,0 +1,30 @@
+# This repository's source is largely REGEX over English, so a spell checker sees
+# it wrong twice over. Both classes below are false positives, and every entry was
+# triaged from a real run rather than added defensively.
+
+[files]
+# CHANGELOG entries carry commit SHAs, and a 7-hex abbreviation lands on a word
+# often enough (`caf391e` -> `calf`) that the file is noise-only.
+extend-exclude = ["CHANGELOG.md"]
+
+[default.extend-words]
+# Suffix and prefix FRAGMENTS inside character alternations. Each one is a piece of
+# a word the pattern matches by ending, so "correcting" it breaks the rule:
+#   (?:tion|sion|ment|ness|...)   nominalisation suffixes
+#   (?:ise|ize|yse|yze)           the -ise/-ize locale pair
+ment = "ment"
+ness = "ness"
+ful = "ful"
+ist = "ist"
+ure = "ure"
+yse = "yse"
+mis = "mis"
+nd = "nd"
+ned = "ned"
+fter = "fter"
+struc = "struc"
+utiliz = "utiliz"
+
+# A real word with two accepted spellings, and this one is the spelling used
+# throughout. Not a typo to correct.
+unparseable = "unparseable"

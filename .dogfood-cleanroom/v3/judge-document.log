@@ -1,0 +1,16 @@
+Findings written to `findings-document.md`.
+
+**9 of 17 document-scope rules fired (11 findings).** The strongest ones:
+
+- **elegant-variation** — one config file is called a wordlist, a dictionary, a blocklist, and `[vocabulary] path` within eight lines, and nothing says they are the same file. Separately "tier" and "profile" rotate for one referent across four places.
+- **one-point-dilution** — the "a misconfiguration exits 2 rather than passing silently" argument is made six times in different clothes: as a design commitment, as two flag notes, as "rejects unknown keys", as "a config error rather than a gate that checks nothing in silence", and again as the exit-code table plus the causes list.
+- **over-formatting-reflex** — four separate lists hold only a noun phrase per line (the four excluded spans, the five failures, the seven exit-2 causes, the three ruleset sources). The four real tables are fine; these are sentences in bullet costume.
+- **bare-quantifier-with-figure-available** — "hands most mechanical rules to Vale" withholds a count that `slopvac compile` is documented to print, and "twenty-odd such scores" rounds off the 23 categories the same document names.
+- **vaporware-description** — the `metric` row of the kind table reads as shipped, while the sample transcript at line 77 admits five metric rules have no implementation. That is exactly the mixture the rule targets.
+
+**8 did not apply, honestly:** no summary closer (it ends on `## License`), no coinages, no audience straddle, all four tables vary in a shared dimension, no citation that a claim rests on, no padded FAQ/Troubleshooting, no hedging problem (the doc asserts flatly throughout), and no over-long project term outside code spans.
+
+I stayed off anything a regex decides, and I did not touch `subject.md`.
+
+One caveat worth flagging: **vaporware-description** asks whether code at HEAD does what the present tense claims. I could only cross-check the document against itself, since I was scoped to `subject.md` and the rule JSON. The finding I filed rests on an internal contradiction, not on a source read — the rest of the present-tense claims in the document are unverified rather than verified.
+as *not* a violation on its own, since that set is genuinely unmeasured and the rule's `genuinely-unmeasured` exception covers it. I mentioned it inside the finding only as context for the other two.

@@ -1,0 +1,156 @@
+id: prose-agency
+title: Prose agency
+description: >-
+  Every rule here restores a deleted actor. An abstraction promoted to subject, a
+  machine granted a mind, a passive with the agent removed, a recommendation with
+  nobody behind it.
+weight: 1.2
+recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+rules:
+  - id: false-agency
+    name: Name who acted
+    kind: pattern
+    severity: error
+    message: 'false agency: {match} -- name who acted'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?\s+(becomes?|turns? into|grows? into|evolves? into)\b|\b(the )?(bet|decision|project|initiative|effort|strategy)s?\s+(lives? or dies?|takes? on a life|makes? itself)\b|\b(the )?(data|metrics?|numbers?|evidence|research|code)\s+(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\b|\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\s+(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\b|\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+(emerges?|arrives?|presents? itself|reveals? itself)\b|\bstops? being\b[^.!?]{1,40}\band starts? being\b|\b(?:allows?|enables?|lets?|permits?|empowers?|helps?)\s+(?:you|users?|the user|developers?|the developer|teams?|the reader|clients?|customers?|consumers?|callers?|the caller|agents?|the agent)\b'
+    ignore_case: true
+    fix: Name the human, or use "you" and put the reader in the seat. For the product-agency half, say what the thing has or what the reader does.
+    examples:
+      - bad: The complaint becomes a fix.
+        good: The team fixed it that week.
+      - bad: The tool allows you to filter by category.
+        good: The `--category` flag filters by category.
+      - bad: The data tells us the market rewards speed.
+        good: Open rates fell from 31% to 22% over three weeks.
+    provenance:
+      source: vale-styles/prose-agency/FalseAgency.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Enforced at every tier: a deleted actor is a defect in any register.
+        Subject-anchored, not verb-anchored -- "the data tells us" is the tell,
+        "tells" alone is not -- which keeps "the loader resolves paths" clean. The
+        `allows you to` band is anchored on the pronoun so "the config allows two
+        retries" stays clean. Also the mechanised half of the register catalog's
+        "False agency" entry and of Splunk's UserFocus; see
+        ai-tells-register.false-agency-remainder for the judgement remainder.
+        .vale.ini keeps it at error for source comments.
+
+  - id: agentless-passive
+    exceptions: [quotation]
+    name: Name who acted in a passive
+    kind: pattern
+    severity: error
+    message: 'agentless passive: {match} -- name who acted'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\bit (?:is|was) (?:believed|thought|felt|assumed|expected|understood|considered|argued|reported|hoped|suggested|recognized|recognised)\s+that\b|\b(?:mistakes|errors|choices|assumptions|concessions|compromises)\s+were made\b|\bthe (?:decision|conclusion|agreement|consensus|determination)\s+was (?:reached|made|taken|arrived at)\b|\b(?:it|this|that) was (?:decided|agreed|determined|concluded|resolved)\b|\b(?:steps?|actions?|measures?)\s+(?:was|were) taken\b'
+    ignore_case: true
+    fix: Put the actor in the subject slot.
+    examples:
+      - bad: It was decided that the loader would retry.
+        good: The maintainers made the loader retry.
+      - bad: Mistakes were made in the migration.
+        good: The migration script dropped two rows.
+    provenance:
+      source: vale-styles/prose-agency/AgentlessPassive.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Only the two shapes where the deletion is the point: a dummy or abstract
+        subject carrying the verb, and the stock agentless confessions. Passives
+        that name their agent ("the record was created by the importer") and state
+        descriptions ("the rule is disabled") stay clean. Measures the SENTENCE;
+        prose-density.passive-density measures the DOCUMENT, and neither subsumes
+        the other. .vale.ini keeps it at error for source comments.
+
+  - id: anthropomorphism
+    name: Name the mechanism, not a mind
+    kind: pattern
+    severity: error
+    message: 'anthropomorphism: {match} -- name the mechanism, not a mind'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:the )?(?:PC|app|apps|platform|service|computer|machine|program|script|parser|linter|compiler|gate|hook|loader|server|client|daemon|process|database|engine|object|software|hardware|system|tool|binary|agent|model|API|CLI|runtime|framework|library|module|function|algorithm)s?\s+(?:just |simply |already |also |never |always )?(?:sees|saw|tells|told|thinks|thought|wants|wanted|cares|realises|realizes|realised|realized|assumes|assumed|knows|knew|remembers|remembered|decides|decided|refuses|refused|demands|demanded|understands|understood|believes|believed|hopes|hoped|prefers|preferred|expects|expected|feels|felt|guesses|guessed|worries|worried|is happy|is confused|gets confused|is smart enough)\b'
+    ignore_case: true
+    fix: Replace the cognition verb with the mechanism -- matches, requires, selects, branches.
+    examples:
+      - bad: The parser knows the schema.
+        good: The parser validates against the schema.
+      - bad: The app understands your workflow.
+        good: The app records each step you run.
+    provenance:
+      source: vale-styles/prose-agency/Anthropomorphism.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        From Openly's Anthropomorphism, with the subject list extended to the nouns
+        this corpus uses (parser, linter, gate, hook, agent, model) and `behaves`
+        dropped -- "the loader behaves the same way" is ordinary English.
+        Subject-anchored like false-agency, so "the reviewer knows the schema"
+        stays clean. Covers MACHINES thinking; false-agency covers ABSTRACTIONS
+        acting. Also the mechanised half of the content-shape catalog's
+        "Anthropomorphism" entry.
+
+  - id: narrator-distance
+    name: Put the reader in the scene
+    kind: pattern
+    severity: error
+    message: 'narrator-from-a-distance: {match} -- put the reader in the scene, or name who acted'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '(?m)^\s*(?:[-*]\s+|>\s+)?(?:[Ll]ook,|[Ss]ee,|[Ll]isten,)\s|\b(?:[Pp]eople|[Ee]ngineers|[Dd]evelopers|[Tt]eams|[Uu]sers|[Mm]ost folks)\s+tend to\b|\b[Nn]obody\s+(?:designed|planned|intended|chose|decided|asked for)\b|\b(?:[Ee]veryone|[Nn]obody|[Nn]o one)\s+(?:knows|thinks|assumes|believes|wants)\b'
+    ignore_case: false
+    fix: Name the actor, or address the reader directly with a concrete action.
+    examples:
+      - bad: Look, developers tend to skip the lockfile.
+        good: You skip the lockfile when you run `install` without `--frozen`.
+    provenance:
+      source: vale-styles/prose-agency/NarratorDistance.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        The opener forms are anchored to line start, because these phrases are a
+        tell only in that position: "what people tend to forget is documented in
+        the runbook" mid-sentence is ordinary prose. `ignorecase` is absent from the
+        Vale source, so ignore_case is false and the case alternations inside the
+        pattern are load-bearing. Advisory rather than enforced at relaxed: a blog
+        or an essay legitimately uses the lecturer opener.
+        .vale.ini disables it for the package's own normative source files.
+
+  - id: unattributed-recommendation
+    name: Name who recommends it
+    kind: pattern
+    severity: error
+    message: 'unattributed recommendation: {match} -- name who recommends it, or give the instruction'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\bit(?:\s+is|''s|\s+was)\s+(?:(?:not|highly|strongly|generally)\s+)?(?:recommended|advised|suggested|encouraged|considered good practice|best practice|preferable|advisable)\b|\b(?:is|are)\s+(?:not\s+)?recommended\b|\bthe recommended (?:approach|way|method|practice|option) is\b|\b(?:best|common) practice (?:is|dictates|suggests)\b'
+    ignore_case: true
+    fix: Name the recommender, or drop the frame and give the instruction.
+    examples:
+      - bad: It is recommended that you rotate keys.
+        good: Rotate keys every 90 days.
+    provenance:
+      source: vale-styles/prose-agency/UnattributedRecommendation.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Harvested from Splunk's Recommendations and Datadog's recommendations,
+        which take opposite positions on the fix -- Splunk bans the frame and
+        directs the reader, Datadog rewrites it to name the company. Both agree the
+        agentless form is the defect, which is the part that generalises.
+        `we recommend` is deliberately absent: prose-craft.first-person-plural owns
+        the first-person plural, and in an ADR or CONTRIBUTING it is correct voice.

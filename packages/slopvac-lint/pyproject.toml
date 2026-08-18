@@ -1,0 +1,105 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slopvac"
+version = "0.1.0"
+description = "Score prose against AI-slop, Simplified Technical English, and Orwell rulesets. Deterministic, configurable, CI-ready."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "Sjors Robroek" }]
+keywords = ["linter", "prose", "documentation", "ai-slop", "ste", "vale"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Text Processing :: Linguistic",
+]
+dependencies = [
+  "click>=8.1",
+  "pydantic>=2.7",
+  "pathspec>=0.12",
+  "rich>=13.7",
+  "regex>=2024.5.15",
+  "pyyaml>=6.0",
+  # CommonMark block parsing. Replaces a hand-rolled line matcher: the reference
+  # implementation reports a source line map per block, which is what keeps a
+  # finding's line number pointing at the real file.
+  "markdown-it-py>=3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-cov>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/srobroek/slopvac"
+Repository = "https://github.com/srobroek/slopvac"
+Issues = "https://github.com/srobroek/slopvac/issues"
+
+[project.scripts]
+slopvac = "slopvac.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/slopvac"]
+
+# The rule YAML lives INSIDE the package tree so that an editable install resolves
+# it too: force-include applies to a built wheel only, and an editable install
+# would leave importlib.resources with no rules at all.
+#
+# There is no packaged wordlist. `data/` held an extracted ASD-STE100 dictionary
+# enforced as an allowlist, which made every unlisted word a finding; it is deleted
+# rather than disabled, and a project supplies its own blocklist via
+# `[vocabulary] path`. `examples/blocklist.toml` is a starter and is NOT packaged --
+# it is repo documentation, and shipping it would invite loading it as a default.
+#
+# NOTHING ELSE IS FORCE-INCLUDED. `vale/` and `vale-styles/` used to be, adding 107KB
+# across 51 files to every wheel, and no code read either one: the compiler builds a
+# style tree from the YAML ruleset at runtime and writes it to the cache. `vale/` is
+# a hand-run config for inspecting the generated output and `vale-styles/` is the
+# pre-port tree the YAML rules replaced (see docs/migration.md). Both are repo
+# history, not runtime data.
+
+[tool.hatch.build]
+artifacts = ["src/slopvac/rules/*.yml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 90
+target-version = "py311"
+
+[tool.ruff.lint]
+# E,F,I are the floor. B catches the mutable-default and loop-variable-capture
+# classes; UP keeps the syntax at the target version rather than the oldest one
+# still supported; RUF picks up the mutable-class-default and unused-noqa cases.
+select = ["E", "F", "I", "B", "UP", "RUF"]
+
+# E501 is off because the prose in this package's comments IS the documentation, and
+# a hard wrap mid-sentence to satisfy a column count makes it worse to read. The
+# formatter holds code to 90; a comment that runs long is a deliberate choice.
+#
+# RUF001 is off because the ambiguous characters ARE the subject matter. This package
+# matches em dashes, en dashes, and curly quotes in prose; every finding is a literal
+# in a pattern that exists to detect that literal. "Did you mean HYPHEN-MINUS" is
+# exactly the substitution the rule is written to catch.
+#
+# UP042 (inherit from StrEnum) is off because the two are not interchangeable in
+# f-strings. Measured: `json.dumps` gives `"x"` for both, but `f"{Member}"` gives
+# `Class.X` under `str, Enum` and `x` under `StrEnum`. Every message template and
+# report line in this package interpolates these members, so the switch would
+# silently rewrite user-visible output. Worth doing deliberately, not as a lint fix.
+ignore = ["E501", "RUF001", "UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+# A test asserts on the exact text a rule matches, and some of those strings are
+# the bad prose the rule exists to catch. Rewriting them to satisfy a linter would
+# change what the test measures.
+"tests/*" = ["E501", "RUF001"]

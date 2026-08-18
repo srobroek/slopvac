@@ -52,7 +52,7 @@ jobs:
         run: pip install "yamllint==1.37.1"
 
       - name: yamllint
-        run: yamllint -c .yamllint.yml .github/workflows/ apm.yml
+        run: yamllint -c .yamllint.yml .github/workflows/ packages/slopvac/apm.yml
 
   shell-lint:
     runs-on: ubuntu-latest
@@ -70,6 +70,77 @@ jobs:
           find . -name '*.sh' -not -path './.git/*' -print0 |
             xargs -0 shellcheck --severity=warning
 
+  python-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          enable-cache: true
+
+      # `check` only, not `format`. The rule provenance comments in this package are
+      # its documentation, and the formatter rewraps them; the selected rule set is
+      # the part that finds defects. It has already found a dead version branch, two
+      # duplicate set members that silently did nothing, and 16 `raise SystemExit`
+      # calls inside `except` with no `from None`, each printing a chained traceback
+      # over its own error message.
+      #
+      # The version is pinned. An unpinned linter turns a new release into a red
+      # build on an untouched branch.
+      - name: ruff
+        working-directory: packages/slopvac-lint
+        run: uvx ruff@0.16.3 check .
+
+  # Runs this repo's own action against this repo, from the working tree rather
+  # than a published tag. A composite action that breaks is only visible when it
+  # is executed, and no unit test executes one.
+  action:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write  # the SARIF upload
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0  # changed-files-only needs the merge base
+
+      - name: Run the action on this repo's docs
+        id: slopvac
+        uses: ./
+        with:
+          paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
+          source: ./packages/slopvac-lint  # the working tree, not the last release
+          sarif: "true"
+          # The docs do not pass their own gate yet, and a red required check
+          # every run trains people to ignore it. The annotations and the alerts
+          # are the deliverable here; flip this to true once the corpus is clean.
+          fail-on-findings: "false"
+
+      - name: Report what the action returned
+        env:
+          SCORE: ${{ steps.slopvac.outputs.score }}
+          FINDINGS: ${{ steps.slopvac.outputs.findings }}
+          ERRORS: ${{ steps.slopvac.outputs.errors }}
+          PASSED: ${{ steps.slopvac.outputs.passed }}
+          SARIF: ${{ steps.slopvac.outputs.sarif }}
+        run: |
+          set -euo pipefail
+          echo "score=$SCORE findings=$FINDINGS errors=$ERRORS passed=$PASSED"
+          # An empty output means the step exited before writing them, which is a
+          # broken action reported as a clean run.
+          test -n "$SCORE" || { echo "the action returned no score"; exit 1; }
+          test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
+          python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
+
   prose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -78,6 +149,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
         with:
           persist-credentials: false
+
+      # The gate step below runs the linter through uvx, which the runner image does not
+      # carry. Without this the step exits 127 on `uvx: command not found`, after vale has
+      # already installed and the styles have built.
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          enable-cache: true
 
       - name: Install vale
         run: |
@@ -91,16 +170,45 @@ jobs:
       - name: Gate this repo's own docs
         run: |
           set -euo pipefail
-          ./vale-styles/build.sh
-          python3 -m http.server 8899 --directory vale-styles/dist &
+          ./packages/slopvac-lint/vale-styles/build.sh
+          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
           for _ in $(seq 1 20); do
             curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
             sleep 0.5
           done
-          config=.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac-lint/vale/.vale.ini
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
-          bash .apm/skills/review-docs/scripts/slop-lint.sh \
-            --genre consumer \
-            README.md vale-styles/README.md README.md
+          uvx --from ./packages/slopvac-lint slopvac lint \
+            README.md packages/slopvac-lint/README.md \
+            packages/slopvac-lint/vale-styles/README.md
+
+  # The only required status check. Branch protection names this one job rather than
+  # every job, so adding a job above needs no change to the protection rule.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [workflow-lint, shell-lint, python-lint, action, prose]
+    if: always()
+    steps:
+      - name: Verify every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          # A skipped or cancelled job is not a pass. `always()` above is what lets
+          # this job report at all when an upstream job failed.
+          #
+          # The results arrive through the environment rather than a pipe: a heredoc
+          # would override piped stdin, which shellcheck reports as SC2259.
+          python3 - <<'PY'
+          import json, os, sys
+
+          needs = json.loads(os.environ["RESULTS"])
+          failed = [n for n, job in needs.items() if job.get("result") != "success"]
+          if failed:
+              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+              sys.exit(1)
+          print("every job passed")
+          PY

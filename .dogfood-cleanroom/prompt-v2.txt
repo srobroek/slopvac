@@ -1,0 +1,30 @@
+You wrote /tmp/svexp2/README.v1.md earlier. A prose linter has now graded it and it FAILED hard: score 4.2 out of 100, 121 findings (23 error, 70 warning, 28 suggestion) over 2104 words.
+
+Your job now: rewrite it as /tmp/svexp2/README.v2.md, fixing the findings.
+
+The full linter report is at /tmp/svexp2/lint-v1.txt. Read it. Every line names a file, a severity, a rule id, a line number, and what to do about it.
+
+The gates you must clear:
+- 0 errors (currently 23)
+- under 3.0 errors+warnings per 100 words (currently 4.42)
+- score at or above 70.0 (currently 4.2)
+- prose-format under 0.4 per 100 words (currently 1.05)
+- ste-descriptive under 1.0 per 100 words (currently 1.14)
+
+You may re-lint your own draft as many times as you like to check your work:
+  cd /Users/sjors/personal/dev/slopvac/packages/slopvac-lint && uv run slopvac /tmp/svexp2/README.v2.md
+Iterate until the gates pass or you stop making progress.
+
+SAME HARD CONSTRAINTS AS BEFORE. They still apply:
+1. Do NOT read the existing README.md in packages/slopvac-lint.
+2. Do NOT read src/slopvac/rules/, rules/*.yml, src/slopvac/profiles.py, or docs/rules.md. Work from the FINDINGS ONLY, not from the rule definitions. Do not go look up what a rule says -- the finding message is all you get, which is what a real user gets.
+3. Do NOT read any writing-style guidance: no CLAUDE.md, no .apm/, no write-docs files.
+4. Do NOT use any Skill.
+
+Do not delete content to game the score. The document must still cover everything v1 covered: what the tool is and who for, install, quickstart, all the commands and flags, the slopvac.toml shape, scoring, the rule model, exit codes. Every factual claim must stay true. Fixing prose means rewriting sentences, not dropping sections.
+
+One thing to fix on the facts too: v1's Quickstart shows a fabricated example output. Replace it with real output. Run the tool against /tmp/svexp2/sample.md or any file you create, and paste what it actually prints.
+
+Legal constraint unchanged: do not reproduce ASD-STE100 rule prose, examples, or wordlist entries. Rule numbers as facts are fine.
+
+When done, report the final score and which gates pass.

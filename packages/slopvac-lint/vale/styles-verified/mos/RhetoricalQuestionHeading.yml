@@ -1,0 +1,9 @@
+extends: existence
+message: "rhetorical question as a heading: '%s' -- name the thing instead"
+level: warning
+scope: heading
+ignorecase: false
+# Wikipedia MOS:HEAD. A heading is an index entry, and a question is not
+# scannable: "Active listening" beats "What is active listening?".
+raw:
+  - '^(?:What|Why|How|When|Who|Where|Which|Should|Can|Do|Does|Is|Are|Will)\b.*\?$'

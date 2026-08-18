@@ -1,0 +1,265 @@
+id: ste-sentences
+title: STE Sentences
+description: Governs sentence structure, omitted words, vertical lists, connectors, and determiners.
+weight: 1.0
+max_per_100_words:
+  strict: 1.0
+  normal: 2.0
+recommended_for: [reference, runbook, api-docs, readme, pr-description]
+rules:
+  - id: sentence-not-short-or-clear
+    name: Write short and clear sentences
+    kind: judgement
+    severity: suggestion
+    message: Check that this sentence carries one instruction or one topic.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does this sentence give exactly one instruction (in a procedure) or carry exactly one
+      topic (in description)? If it carries more, split it.
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          To rotate the signing key, first revoke the old key in the console, then generate a
+          replacement and update every service that reads it, and finally delete the old
+          secret.
+        good: >-
+          Rotate the signing key as follows: 1. Revoke the old key in the console.
+          2. Generate a replacement key. 3. Update every service that reads the key.
+          4. Delete the old secret.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.1'
+      note: >-
+        This rule carries no number of its own; the word counts live in the procedural and
+        descriptive chapters and are mechanized there as sentence-too-long-procedural and
+        sentence-too-long-descriptive. What is left here is the one-topic test, which is
+        judgement. Enforced at normal tier as a reviewer question, not as a finding.
+    fix: Split the sentence into one instruction or topic per sentence.
+
+  - id: omitted-word-or-contraction
+    name: Do not omit words or use contractions
+    kind: pattern
+    severity: warning
+    message: 'Omitted word or contraction "{match}". Write the full form.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: "\\b(?:do|does|did|is|are|was|were|has|have|had|can|could|will|would|should|must|ai)n['\u2019]t\\b|\\b(?:it|that|there|what|who|he|she|let)['\u2019]s\\b|\\b(?:I|you|we|they|it|that|there)['\u2019](?:re|ve|ll|d|m)\\b|^\\s*(?:If|When|Once)\\s+(?:installed|configured|enabled|disabled|set|present|missing|deleted|done|complete|completed|ready|needed|required|applicable)\\s*,"
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: If your token is expired, don't retry the request.
+        good: If your token is expired, do not retry the request.
+      - bad: If configured, the proxy rewrites the Host header.
+        good: If the proxy is configured, it rewrites the Host header.
+      - bad: It's the worker that drains the queue.
+        good: The worker drains the queue.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.2'
+      note: >-
+        Four alternates: negated contractions, "'s" contractions, other apostrophe
+        contractions, and the subject-elided conditional opener, which is the omission class
+        that actually recurs in runbooks. Both a straight apostrophe and a typographic one
+        are matched. The conditional-opener branch anchors on the line start rather than on
+        capitalization, so case folding is safe. Tested: all bad examples match (including
+        "Once enabled, ..."), all good examples do not, and the possessive "the worker's
+        queue" does not match, because the "'s" branch lists only pronouns and never reaches
+        a common noun. The first draft ran case-sensitively and missed "It's".
+    fix: Write the full word, or restore the omitted subject or article.
+
+  - id: complex-text-not-in-vertical-list
+    name: Use a vertical list for complex content
+    kind: metric
+    severity: warning
+    message: 'This sentence carries {value} coordinated items. Use a vertical list.'
+    scope: sentence
+    text_type: any
+    metric: coordinated_items
+    threshold: 3
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: >-
+          The manifest sets the image tag, the replica count, the resource limits, the
+          liveness probe, and the service account.
+        good: |-
+          The manifest sets these values:
+          - The image tag
+          - The replica count
+          - The resource limits
+          - The liveness probe
+          - The service account
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.3'
+      note: >-
+        The specification states the rule as a direction rather than a threshold, so the
+        four-item trigger is our operational choice: three coordinated items still read
+        cleanly inline, and the count is what a checker can measure. The formatting
+        sub-requirements of this rule are separate mechanizable rules below.
+    fix: Convert the coordinated series into a vertical list.
+
+  - id: vertical-list-lead-in-missing-colon
+    name: End the list lead-in with a colon
+    kind: structure
+    severity: warning
+    message: The sentence before a vertical list must end with a colon.
+    scope: paragraph
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: |-
+          The manifest sets these values.
+          - The image tag
+          - The replica count
+        good: |-
+          The manifest sets these values:
+          - The image tag
+          - The replica count
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.3'
+      note: >-
+        Split from the parent rule because it is fully mechanizable and carries a distinct
+        fix. The colon also terminates a sentence for word counting, so this rule is a
+        precondition for the metrics contract (see metrics.md).
+    fix: Replace the period at the end of the lead-in with a colon.
+
+  - id: vertical-list-item-punctuation
+    name: Punctuate list items consistently
+    kind: structure
+    severity: suggestion
+    message: 'List item punctuation is wrong: {detail}.'
+    scope: paragraph
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    exceptions:
+      - quotation
+      - code-span
+      - project-style-override
+    allowlist: []
+    examples:
+      - bad: |-
+          The manifest sets these values:
+          - the image tag,
+          - the replica count;
+          - the resource limits
+        good: |-
+          The manifest sets these values:
+          - The image tag
+          - The replica count
+          - The resource limits.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.3'
+      note: >-
+        Five checkable conditions in one rule: each item starts with an uppercase letter, no
+        item ends with a comma or a semicolon, a full-sentence item ends with a period, a
+        fragment item does not, and the last item ends with a period. The
+        project-style-override exception exists because most software style guides already
+        fix list punctuation differently, and a conflicting checker gets switched off.
+        Advisory at normal tier for that reason.
+    fix: Capitalize each item, remove commas and semicolons, and end the last item with a period.
+
+  - id: missing-connector-between-related-sentences
+    name: Connect related sentences
+    kind: judgement
+    severity: suggestion
+    message: Check whether these two sentences need a connecting word.
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the second sentence add a result, a contrast, or a next step to the first? If
+      yes, does a connecting word or phrase make that relation explicit?
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: The runner rejects the manifest. The image tag is missing.
+        good: The runner rejects the manifest, because the image tag is missing.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.4'
+      note: >-
+        Not mechanizable in either direction: a checker cannot detect a missing logical
+        relation, and an "add more connectors" heuristic degrades prose. Kept as a reviewer
+        question so the reviewer has one source of truth rather than inventing the rule.
+    fix: Add a connecting word or phrase that names the relation.
+
+  - id: missing-article-or-determiner
+    name: Use an article or a demonstrative before a noun
+    kind: pattern
+    severity: warning
+    message: 'Missing article before "{match}".'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '^\s*(?:[A-Z][a-z]+)\s+(?:config|manifest|worker|queue|token|endpoint|repository|branch|cache|index|schema|dashboard|runner|scheduler|cluster|node|pod|container|service|database)\b(?!\s+(?:is|are|can|will|has|have|must|does|do))'
+    ignore_case: false
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+      - identifier-fidelity
+      - heading
+      - general-statement
+    allowlist: []
+    examples:
+      - bad: Restart worker after you edit config.
+        good: Restart the worker after you edit the config.
+      - bad: Delete branch when the merge completes.
+        good: Delete the branch when the merge completes.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.5'
+      note: >-
+        This rule moved chapters between issues (it was a noun-chapter rule in Issue 7),
+        so any ruleset citing the old number is stale. Our pattern is narrow on purpose: it
+        anchors on a sentence-initial verb plus a closed list of software nouns, because a
+        general bare-noun detector fires on the legitimate article-free cases the
+        specification itself permits — general statements, abstract qualities, and a noun
+        followed by an alphanumeric identifier. The negative lookahead keeps it off
+        subject-position uses. Advisory at normal tier because the closed list is the only
+        thing holding the false-positive rate down. Tested: both bad examples match, both
+        good examples do not, and "Worker config is invalid" does not match (lookahead) nor
+        does the heading "Cache invalidation" (not in the noun list, and headings are
+        excepted).
+    fix: Add "the", "a", "an", "this", or "these" before the noun.

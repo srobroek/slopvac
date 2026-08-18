@@ -1,0 +1,7 @@
+extends: existence
+message: "hedges both ways: '%s' -- the halves cancel; state the one the evidence supports"
+level: warning
+scope: raw
+ignorecase: true
+raw:
+  - '\b(?:may|might|could|can|should|tends? to|is likely to)\s+\w+[^.!?]{0,80}?(?:,\s*)?\b(?:but|though|although|however|while|whereas|yet)\b[^.!?]{0,40}?\b(?:may|might|could|can|also|equally|sometimes)\b'

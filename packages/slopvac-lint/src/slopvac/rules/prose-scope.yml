@@ -1,0 +1,142 @@
+id: prose-scope
+title: Prose scope
+description: >-
+  Over-writing: real content in the wrong document. A rejected alternative
+  defended in place, an implementation cost the reader cannot act on, a
+  reassurance answering a worry nobody raised, a closing flourish.
+weight: 1.0
+recommended_for: [consumer-docs, change-comms]
+rules:
+  - id: rejected-alternative
+    name: Move the decision to an ADR, spec, or commit
+    kind: pattern
+    severity: error
+    message: 'rejected alternative: {match} -- state what it does; the decision belongs in an ADR, spec, or commit'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(?:rather than|instead of) [^.!?]{3,60}\bbecause\b|\bwe (?:chose|picked|selected|went with|settled on|opted for)\b|\bchosen over\b|\b(?:in favou?r of) [^.!?]{3,60}\bbecause\b|\b(?:deliberately|intentionally|on purpose) (?:does not|doesn''t|omits|avoids|skips)\b|\b(?:does not|doesn''t) (?:run|use|do|call|spawn) [^.!?]{0,40}\bbecause\b|\bfor the same reason\b|\bthe (?:earlier|first|original|previous|old|naive) (?:implementation|version|approach|design)\b|\bwould (?:have (?:been|required|meant|cost)|discard|break|force) [^.!?]{0,50}\b(?:instead|so|which)\b'
+    ignore_case: true
+    fix: Cut to the behaviour; move the decision to an ADR, a spec, or the commit that made it.
+    examples:
+      - bad: The loader uses a lockfile rather than a resolver because resolution is slow.
+        good: The loader reads the lockfile.
+    provenance:
+      source: vale-styles/prose-scope/RejectedAlternative.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Excluded at relaxed and disabled by glob for specs/, .specify/, ADR paths,
+        and CONTRIBUTING/constitution in .vale.ini: an ADR or spec IS the place for
+        this content, so the disposition inverts by genre rather than by trying to
+        detect the genre from the prose. Anchored to constructions that announce a
+        comparison against a road not taken, never to "instead" or "rather" alone --
+        those do ordinary work ("run this instead of the wrapper"). "in favour of"
+        needs a `because` clause, because a changelog line ("dropped X in favour of
+        Y") states the delta, which is that genre's whole job.
+        Mechanised half of the content-shape catalog's "Over-writing" entry; the
+        unnamed-alternative case is ai-tells-content-shape.unasked-for-rationale.
+
+  - id: implementation-leak
+    exceptions: [quotation]
+    name: Move a benchmark result out of the doc
+    kind: pattern
+    severity: error
+    message: 'implementation leak: {match} -- the reader cannot act on this; move it to the commit, ADR, or spec'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '(?<!<dd>)(?<![Tt]imeout of )(?<![Bb]udget of )(?<![Dd]eadline of )(?<![Ll]imit of )(?<![Ww]ithin )(?<![Aa]fter )(?<![Ee]very )\b\d+(?:\.\d+)?\s?(?:ms|milliseconds?|µs|microseconds?|ns|nanoseconds?)\b(?![^.!?]{0,30}\b(?:timeout|budget|deadline|limit|allowance|before (?:giving up|falling back))\b)|\b\d+(?:\.\d+)?\s?(?:s|sec|seconds?)\s+(?:per|each|faster|slower)\b|\b\d+(?:\.\d+)?x\s+(?:faster|slower|speedup|the (?:speed|cost))\b|(?<!at most )(?<!maximum of )(?<!up to )\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+(?:process(?:es)?|spawns?|subprocess(?:es)?|forks?|syscalls?|round[- ]trips?|invocations?|shell[- ]outs?)\b(?![^.!?]{0,25}\b(?:limit|maximum|concurrently|at a time)\b)|\bcosts? (?:one|two|three|a single|only) \w+ (?:startup|spawn|call|process)\b|\bzero (?:spawns?|subprocess(?:es)?|allocations?)\b'
+    ignore_case: true
+    fix: Delete the measurement, or move it to a benchmarks page that carries its conditions and a reproduction command.
+    examples:
+      - bad: The in-process walk beats the subprocess by 104x, taking 0.4 ms.
+        good: The loader walks the parent chain in process.
+    provenance:
+      source: vale-styles/prose-scope/ImplementationLeak.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        A unit must sit next to the number, so version strings, ports, exit codes,
+        and byte sizes in a config table stay clean. A stated ceiling is a
+        documented limit, not a benchmark, so "at most five subprocesses" is
+        excluded. `scope: paragraph` skips tables and list items, where a published
+        figure belongs: measured over an external corpus, 100 of 154 matches were
+        table rows or list items, all legitimate. A duration naming a timeout,
+        budget, or deadline is configuration the reader acts on, and a figure inside
+        an HTML `<dd>` stat tile is a deliverable; both are excluded by lookbehind.
+        Excluded at relaxed and by glob for specs/ADR paths, and a product whose
+        value IS its latency should turn it off rather than fight it.
+        GO->PYTHON REGEX NOTE: this pattern uses seven variable-position negative
+        LOOKBEHINDS. Go RE2 has no lookbehind at all, so Vale must be running these
+        through a non-RE2 path or dropping them silently -- verify that the Vale
+        rule actually enforces the exemptions before trusting the measurement.
+        Python `regex` supports variable-width lookbehind, so the port is exact and
+        may be STRICTER than the Vale original.
+
+  - id: unrequested-reassurance
+    name: State the positive, or say nothing
+    kind: pattern
+    severity: error
+    message: 'unrequested reassurance: {match} -- state what it does, or say nothing'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:nothing|none of (?:this|it|these))\s+(?:here\s+)?(?:needs?|requires?|has to be)\b|\bno\s+(?:\w+\s+)?(?:setup|configuration|config|install(?:ation)?|dependencies|boilerplate)\s+(?:is\s+)?(?:required|needed|necessary)\b|\bleaves? (?:nothing|no trace) behind\b|\b(?:with )?(?:zero|no) (?:setup|configuration|config|boilerplate|ceremony)\b|\bout of the box\b|\bworks? (?:as soon as|the moment|right away|immediately|out of)\b|\b(?:it |they )?just works?\b|\b(?:you|there) (?:do not|don''t|is no|are no) (?:have to|need to|need)\b|\b(?:do not|don''t) worry\b|\brest assured\b'
+    ignore_case: true
+    fix: Keep the positive statement alone, or delete the sentence -- a step that needs no setup has no setup step.
+    examples:
+      - bad: No configuration required -- it just works.
+        good: The linter reads `.slopvac.toml` when one is present.
+    provenance:
+      source: vale-styles/prose-scope/UnrequestedReassurance.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Anchored to the frame, never to "nothing" or "no" alone: "no rule matches"
+        is a measurement and "nothing is committed" states where files live. The
+        `no X required` band is narrowed on purpose -- "no signing needed" and "no
+        spec change needed" are factual scope notes, and a corpus scan found those
+        outnumber the sales register roughly two to one. Advisory at relaxed rather
+        than excluded: the defect is sales register, which a marketing page owns by
+        genre. Mechanised half of the content-shape catalog's "Unrequested
+        reassurance" entry.
+
+  - id: epigram
+    name: Cut the closing flourish
+    kind: pattern
+    severity: warning
+    message: 'epigram: {match} -- the section already made this point; cut the flourish'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b[Tt]he \w+ (\w+s) [\w'']+\. [Tt]he \w+ \1 [\w'']+\.|\b[Tt]he \w+ (?:is|are|does|has) [\w'' ]{2,20}\. [Tt]he \w+ (?:is|are|does|has) [\w'' ]{2,20}\.|[,;] not (?:yours|mine|theirs|ours|his|hers|its|the other way(?: round| around)?)\.'
+    ignore_case: false
+    fix: Delete it; the paragraph or table above already carried the content.
+    examples:
+      - bad: The gate finds tokens. The catalog finds voice.
+        good: The gate matches tokens; the catalog lists voice tells.
+      - bad: The scripts are its tools, not yours.
+        good: The skill invokes the scripts.
+    provenance:
+      source: vale-styles/prose-scope/Epigram.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Two matched forms: a parallel pair (N V O. N V O. with the same or a
+        mirrored verb) and a negated maxim (... X, not Y. as a standalone
+        sentence). The full stop inside each pattern distinguishes an epigram from
+        an ordinary two-clause sentence. `scope: paragraph`, not sentence: sentence
+        scope splits a parallel pair into its halves before the pattern can see
+        both, so the rule silently matched nothing -- verified by fixture. Kept at
+        warning upstream because the same shape occasionally states a real
+        contrast, so normal is advisory and relaxed excluded.
+        GO->PYTHON REGEX NOTE: the first alternative uses a BACKREFERENCE (`\1`) to
+        require the same verb in both halves. Go RE2 has no backreferences, so this
+        alternative cannot have been matching under a pure RE2 engine; the Python
+        `regex` module supports it, so the ported rule is stricter and this
+        alternative newly becomes live. Test it against the corpus before enforcing.

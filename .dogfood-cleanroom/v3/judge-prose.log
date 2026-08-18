@@ -1,0 +1,16 @@
+Findings written to `findings-prose.md`.
+
+**One rule in scope, and it fired — four times.**
+
+`concrete-floor` has two halves, and the split matters for how you read the result. On the first half ("does the paragraph name a number, identifier, path, command, or dated event?") this document passes nearly everywhere. The scoring section is dense with checkable particulars: severity weights 4/2/1, the 15-point cap, the 60-word floor, the 20-points-per-error count. The config section names every discovery file in order. I did not manufacture findings there, and I said so explicitly at the bottom of the report.
+
+All four findings are **second-half** failures — the clause asking whether the writer used the more specific term they already possessed. That test is unusually easy to apply here, because the document convicts itself from its own text:
+
+- **"twenty-odd such scores"** (455) — the exact number appears 120 lines earlier, "23 categories". The writer had 22 and wrote "twenty-odd".
+- **"hands most mechanical rules to Vale... the native engine runs the rest"** (46) — the document later states that `slopvac compile` "reports the routing in four counts", the first two being precisely these numbers. Counts exist; quantifiers were used.
+- **"The two alternatives lose for concrete reasons"** (284) — promises concreteness, delivers none. No glob, no path, no number, in a paragraph arguing against two specific rejected designs. The instances are already in the file (`docs/generated/**`, `**/vendor/**`).
+- **"A rule can invert that ordering"** (318) — the sole support for "the tiers do not form a strict ordering", and it names no rule id, in a document that qualifies every other rule as `<category>.<rule>`. This is the weakest of the four in the sense that a reader has no route to verify it at all.
+
+Two judgement calls worth flagging for you. I checked each finding against the closed exception list rather than assuming: `genuinely-general-claim` is the tempting escape for the "two alternatives" paragraph, but it argues a specific implementation choice against two named alternatives, so it does not qualify. Nothing here is quoted, redacted, or sitting in a summary layer.
+
+I also kept off the linter's territory throughout — no comment on dashes, voice, word choice, or sentence length, including in passages where the prose is visibly ragged (line 46 runs long, line 447 too). Those are either already clean by the mechanical pass or belong to another reviewer's scope.

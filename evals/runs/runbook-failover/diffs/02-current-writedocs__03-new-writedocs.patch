@@ -1,0 +1,321 @@
+--- 02-current-writedocs
++++ 03-new-writedocs
+@@ -1,241 +1,161 @@
+-# Runbook: fail Postgres primary over to replica
++# Runbook: fail Postgres over to the replica
+ 
+-Promotes `db-replica-1` to primary and repoints the connection pooler at it.
++Promoting the replica cannot be undone. After step 4 the old primary can never rejoin as a primary; you rebuild it from a base backup.
+ 
+-**Step 4 (promotion) is irreversible.** A promoted replica cannot rejoin the old primary's timeline. Rebuilding a replica from a base backup takes about 40 minutes on the current data volume.
++Read the whole runbook before you run anything. Expect 10 to 15 minutes of write downtime.
+ 
+-Writes are rejected from step 3 until step 5 completes. Expect 1 to 3 minutes of write downtime.
++## When to run this
+ 
+-## Before you start
++Run this when the primary `db-primary-1` is unreachable or unrecoverable, or when a maintainer asks for a planned failover.
+ 
+-Confirm you need a failover. A failover is the wrong tool for a slow primary, a lock pileup, or a single bad query. Check whether the primary is actually unreachable:
++Do not run this when the primary is reachable and only slow. A promotion on a live primary gives you two primaries accepting writes.
+ 
+-```bash
+-psql "$PRIMARY_URL" -c 'select 1'
+-```
++## Before you start
+ 
+-Do not fail over when replication lag exceeds 5 seconds (step 1) unless the primary is unrecoverable and you accept losing those transactions.
++- Open a second terminal. You need `db-primary-1`, `db-replica-1`, and `pgbouncer-1` at the same time.
++- Post in `#incident` that you are starting a failover on `db-primary-1`.
++- Confirm you can `sudo -u postgres psql` on `db-replica-1`.
+ 
+-Escalate instead of proceeding when either holds:
++If any check below fails and this runbook does not say what to do, stop and page the database owner (`@db-oncall` in PagerDuty).
+ 
+-- Both `db-replica-1` and `db-replica-2` are lagging by more than 30 seconds.
+-- The primary is reachable and serving reads, and you have not confirmed the cause.
++## Step 1. Check replication lag
+ 
+-Escalation path: page the database on-call in `#oncall-data` with `/page data`.
++On `db-replica-1`:
+ 
+-### Hosts and credentials
+-
+-| Name | Host | Role |
+-| --- | --- | --- |
+-| `db-primary` | `db-primary.prod.internal:5432` | Current primary |
+-| `db-replica-1` | `db-replica-1.prod.internal:5432` | Promotion target |
+-| `db-replica-2` | `db-replica-2.prod.internal:5432` | Second replica |
+-| `pgbouncer-1`, `pgbouncer-2` | `pgb-{1,2}.prod.internal:6432` | Connection pooler |
+-
+-Set these in your shell first:
+-
+ ```bash
+-export PRIMARY_URL="postgresql://postgres@db-primary.prod.internal:5432/postgres"
+-export REPLICA_URL="postgresql://postgres@db-replica-1.prod.internal:5432/postgres"
++sudo -u postgres psql -Atc "
++  SELECT pg_last_wal_receive_lsn(),
++         pg_last_wal_replay_lsn(),
++         EXTRACT(EPOCH FROM now() - pg_last_xact_replay_timestamp()) AS lag_seconds;"
+ ```
+ 
+-The password comes from `op read "op://prod/db-postgres/password"`.
++Read `lag_seconds`:
+ 
+-Open a scratch file and record the wall-clock time of each step. The incident review needs the promotion timestamp.
++- Under 5 seconds: continue to step 2.
++- 5 to 60 seconds: wait 60 seconds and run the query again. Continue when it drops under 5.
++- Over 60 seconds, or the value keeps rising: stop and page `@db-oncall`. Promoting now loses every transaction the replica has not replayed.
++- `NULL` with the primary down: the replica has replayed everything it received. Continue to step 2.
+ 
+-## Step 1: check replication lag
++Record the two LSN values in the incident channel. You need them to state the data loss window afterwards.
+ 
+-On the replica:
++## Step 2. Fence the old primary
+ 
+-```bash
+-psql "$REPLICA_URL" -x -c "
+-  select
+-    pg_last_wal_receive_lsn() as received,
+-    pg_last_wal_replay_lsn()  as replayed,
+-    extract(epoch from now() - pg_last_xact_replay_timestamp()) as lag_seconds"
+-```
++Fencing stops the old primary from accepting writes. Skipping it gives you split-brain: two servers accepting writes, with no automatic way to merge them.
+ 
+-| Reading | Action |
+-| --- | --- |
+-| `lag_seconds` under 5 | Continue to step 2. |
+-| `lag_seconds` 5 to 30 | Wait 60 seconds and re-run. Continue when it drops under 5. |
+-| `lag_seconds` over 30, primary reachable | Stop. Fix replication instead of failing over. |
+-| `lag_seconds` over 30, primary down and lag not shrinking | Data loss on promotion equals the lag. Get an incident commander's approval in the incident channel before step 4. |
+-| `lag_seconds` is null | The replica has replayed everything it received. Compare `received` and `replayed`; equal values mean it is caught up. Continue. |
++On `pgbouncer-1`, block client traffic to the old primary:
+ 
+-Record `replayed` in your scratch file. It is the recovery point.
+-
+-## Step 2: check the second replica
+-
+-`db-replica-2` follows the primary, not `db-replica-1`. It will need to be repointed after the failover.
+-
+ ```bash
+-psql "postgresql://postgres@db-replica-2.prod.internal:5432/postgres" \
+-  -c "select pg_last_wal_replay_lsn()"
++sudo -u postgres psql -p 6432 -U pgbouncer -c "PAUSE app_db;"
+ ```
+ 
+-Note the value. Do not act on it now. Step 7 covers repointing.
++Then on `db-primary-1`, stop Postgres:
+ 
+-## Step 3: fence the old primary
+-
+-Fencing stops the old primary from accepting writes. Skipping this risks two hosts accepting writes at once, which produces divergent data no tool reconciles.
+-
+-Reachable primary, stop Postgres:
+-
+ ```bash
+-ssh db-primary.prod.internal 'sudo systemctl stop postgresql@16-main'
+-ssh db-primary.prod.internal 'sudo systemctl is-active postgresql@16-main'   # expect: inactive
++sudo systemctl stop postgresql@16-main
++sudo systemctl mask postgresql@16-main
+ ```
+ 
+-Also disable the unit so a host reboot does not restart it:
++`mask` stops a reboot from restarting the old primary.
+ 
+-```bash
+-ssh db-primary.prod.internal 'sudo systemctl disable postgresql@16-main'
+-```
++If `db-primary-1` does not respond to SSH, fence it at the infrastructure layer instead. Detach its network interface or stop the instance in the cloud console. Do not continue until the host is confirmed down or detached; a host that answers on its data port is not fenced.
+ 
+-Unreachable primary, revoke its network access so it cannot come back and accept writes:
++Verify the fence from any application host:
+ 
+ ```bash
+-aws ec2 modify-instance-attribute \
+-  --instance-id "$PRIMARY_INSTANCE_ID" \
+-  --groups "$SG_QUARANTINE"
++psql "host=db-primary-1 port=5432 dbname=app_db connect_timeout=3" -c "SELECT 1"
+ ```
+ 
+-`SG_QUARANTINE` is `sg-0a4f19c7b2e38d5f1`. Find `PRIMARY_INSTANCE_ID` with:
++Expect a connection refused or a timeout. A successful `SELECT 1` means the host is not fenced. Return to the start of this step.
+ 
+-```bash
+-aws ec2 describe-instances \
+-  --filters "Name=tag:Name,Values=db-primary" "Name=instance-state-name,Values=running" \
+-  --query 'Reservations[].Instances[].InstanceId' --output text
+-```
++## Step 3. Confirm the replica is a replica
+ 
+-Verify the fence before continuing:
++On `db-replica-1`:
+ 
+ ```bash
+-psql "$PRIMARY_URL" -c 'select 1'    # expect: connection refused or timeout
++sudo -u postgres psql -Atc "SELECT pg_is_in_recovery();"
+ ```
+ 
+-A successful `select 1` here means the primary is still writable. Do not continue.
++`t` means it is still a standby; continue to step 4. `f` means it was already promoted; skip to step 5.
+ 
+-## Step 4: promote the replica (IRREVERSIBLE)
++## Step 4. Promote the replica
+ 
+-Confirm all three before running the command:
++This is the destructive step. The promotion writes a new timeline; `db-primary-1` can no longer stream from or to `db-replica-1`.
+ 
+-1. Step 1 showed acceptable lag, and you recorded the LSN.
+-2. Step 3's verification failed to connect to the old primary.
+-3. You are promoting `db-replica-1`, not `db-replica-2`.
++State in `#incident` that you are promoting, then run on `db-replica-1`:
+ 
+ ```bash
+-ssh db-replica-1.prod.internal 'sudo -u postgres /usr/lib/postgresql/16/bin/pg_ctl promote -D /var/lib/postgresql/16/main'
++sudo -u postgres pg_ctl promote -D /var/lib/postgresql/16/main
+ ```
+ 
+-Record the time. Verify:
++Wait for recovery to end:
+ 
+ ```bash
+-psql "$REPLICA_URL" -c 'select pg_is_in_recovery()'   # expect: f
+-psql "$REPLICA_URL" -c 'select timeline_id from pg_control_checkpoint()'
++sudo -u postgres psql -Atc "SELECT pg_is_in_recovery();"
+ ```
+ 
+-`pg_is_in_recovery()` returning `f` means promotion completed. The timeline increments by 1; note the new value.
++Expect `f` within 30 seconds. If it still returns `t` after 60 seconds, read the log and page `@db-oncall`:
+ 
+-Promotion still in recovery after 60 seconds, check the log:
+-
+ ```bash
+-ssh db-replica-1.prod.internal 'sudo tail -50 /var/log/postgresql/postgresql-16-main.log'
++sudo tail -n 50 /var/log/postgresql/postgresql-16-main.log
+ ```
+ 
+-A promotion that does not complete is a paging condition. Page the database on-call. Do not attempt to promote `db-replica-2` as well; two promoted hosts is the worst outcome of this procedure.
++## Step 5. Repoint the connection pooler
+ 
+-## Step 5: repoint the connection pooler
++On `pgbouncer-1`, edit the database line in `/etc/pgbouncer/pgbouncer.ini`:
+ 
+-Applications reach Postgres through pgbouncer. Update both pgbouncer hosts.
+-
+-```bash
+-for host in pgb-1 pgb-2; do
+-  ssh "$host.prod.internal" \
+-    "sudo sed -i 's/db-primary.prod.internal/db-replica-1.prod.internal/' /etc/pgbouncer/pgbouncer.ini"
+-  ssh "$host.prod.internal" 'sudo pgbouncer -R -d /etc/pgbouncer/pgbouncer.ini || sudo systemctl reload pgbouncer'
+-done
++```ini
++[databases]
++app_db = host=db-replica-1 port=5432 dbname=app_db
+ ```
+ 
+-`systemctl reload` sends SIGHUP, which applies the new host to new server connections and leaves client connections open.
++Reload and resume:
+ 
+-Confirm each pgbouncer now points at the promoted host:
+-
+ ```bash
+-for host in pgb-1 pgb-2; do
+-  echo "$host"
+-  psql "postgresql://pgbouncer@$host.prod.internal:6432/pgbouncer" -c 'show databases' | grep replica-1
+-done
++sudo pgbouncer -R -d /etc/pgbouncer/pgbouncer.ini
++sudo -u postgres psql -p 6432 -U pgbouncer -c "RESUME app_db;"
+ ```
+ 
+-Existing pooled server connections to the fenced primary are dead. Drop them:
++Confirm the pooler points at the new host:
+ 
+ ```bash
+-for host in pgb-1 pgb-2; do
+-  psql "postgresql://pgbouncer@$host.prod.internal:6432/pgbouncer" -c 'reconnect'
+-done
++sudo -u postgres psql -p 6432 -U pgbouncer -c "SHOW databases;" | grep app_db
+ ```
+ 
+-## Step 6: verify writes
++The `host` column must read `db-replica-1`.
+ 
+-```bash
+-psql "postgresql://app@pgb-1.prod.internal:6432/appdb" -c \
+-  "create table if not exists failover_probe (id serial primary key, at timestamptz default now())"
+-psql "postgresql://app@pgb-1.prod.internal:6432/appdb" -c \
+-  "insert into failover_probe default values returning id, at"
+-```
++## Step 6. Verify writes
+ 
+-The insert returning a row means writes are live. Repeat through `pgb-2`.
++Through the pooler, on any application host:
+ 
+-Check the application path as well:
+-
+ ```bash
+-curl -fsS https://api.prod.example.com/healthz/db
++psql "host=pgbouncer-1 port=6432 dbname=app_db" -c "
++  CREATE TABLE IF NOT EXISTS failover_check (at timestamptz);
++  INSERT INTO failover_check VALUES (now()) RETURNING at;"
+ ```
+ 
+-Drop the probe table:
++A returned timestamp means writes work. `ERROR: cannot execute INSERT in a read-only transaction` means the pooler still points at a standby; return to step 5.
+ 
+-```bash
+-psql "postgresql://app@pgb-1.prod.internal:6432/appdb" -c 'drop table failover_probe'
+-```
++Then check the application:
+ 
+-Writes still failing after both pgbouncers reload:
+-
+-- `server login failed` means the promoted host lacks the app role's `pg_hba.conf` entry. Check `/etc/postgresql/16/main/pg_hba.conf` on `db-replica-1`.
+-- `cannot execute INSERT in a read-only transaction` means step 4 did not complete, or pgbouncer is still routed at a replica. Re-check `pg_is_in_recovery()`.
+-
+-## Step 7: repoint the second replica
+-
+-`db-replica-2` is following a host that no longer accepts connections. Point it at the new primary:
+-
+ ```bash
+-ssh db-replica-2.prod.internal \
+-  "sudo -u postgres psql -c \"alter system set primary_conninfo = 'host=db-replica-1.prod.internal port=5432 user=replicator'\""
+-ssh db-replica-2.prod.internal 'sudo -u postgres psql -c "select pg_reload_conf()"'
++curl -fsS https://app.example.com/healthz
+ ```
+ 
+-Confirm it is streaming, from the new primary:
++Expect `{"db":"ok"}`. Watch the application error rate for 5 minutes in Grafana, dashboard `app-overview`.
+ 
+-```bash
+-psql "$REPLICA_URL" -x -c 'select client_addr, state, sent_lsn, replay_lsn from pg_stat_replication'
+-```
++Drop the marker table when you are done:
+ 
+-`state` of `streaming` means it reattached. A `db-replica-2` that diverged from the new timeline needs a rebuild:
+-
+ ```bash
+-ssh db-replica-2.prod.internal 'sudo systemctl stop postgresql@16-main'
+-ssh db-replica-2.prod.internal 'sudo -u postgres pg_rewind \
+-  --target-pgdata=/var/lib/postgresql/16/main \
+-  --source-server="host=db-replica-1.prod.internal user=postgres"'
+-ssh db-replica-2.prod.internal 'sudo systemctl start postgresql@16-main'
++psql "host=pgbouncer-1 port=6432 dbname=app_db" -c "DROP TABLE failover_check;"
+ ```
+ 
+-The cluster runs with one replica until this completes. A second failover has no target in that window.
++## Step 7. Close out
+ 
+-## After
++- Post in `#incident`: the promotion time, the LSN values from step 1, and the write downtime.
++- Update the PagerDuty incident with a link to this runbook.
++- File a ticket to rebuild `db-primary-1` as a standby of `db-replica-1` with `pg_basebackup`. Do not unmask its service unit until that ticket is worked.
++- Update monitoring so `db-replica-1` is alerted as the primary.
+ 
+-- Post the promotion timestamp and the LSN from step 1 in the incident channel.
+-- Update the DNS record `db-primary.prod.internal` to the promoted host's address, then revert step 5 to the DNS name at the next maintenance window.
+-- Leave the old primary fenced. Do not restart it. It holds a diverged timeline, and starting it invites a split brain.
+-- File the rebuild of the old primary as a replica as a follow-up ticket.
++## Rollback
++
++There is no rollback after step 4. To return service to `db-primary-1`, rebuild it as a standby of `db-replica-1`, then run this runbook again in the other direction.

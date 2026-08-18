@@ -1,0 +1,38 @@
+Done. `/tmp/svexp2/README.v2.md` is written.
+
+## Final result
+
+```
+PASS  score 100.0/100  0 finding(s) (0 error, 0 warning, 0 suggestion)
+      1 file, 2515 words = 0.00/100w    exit 0
+```
+
+| Gate | Required | v1 | v2 |
+|---|---|---|---|
+| errors | 0 | 23 | **0** ✅ |
+| errors+warnings /100w | < 3.0 | 4.42 | **0.00** ✅ |
+| score | ≥ 70.0 | 4.2 | **100.0** ✅ |
+| prose-format /100w | < 0.4 | 1.05 | **0.00** ✅ |
+| ste-descriptive /100w | < 1.0 | 1.14 | **0.00** ✅ |
+
+All five gates pass. The only remaining output line is the `UNCHECKED` notice about 5 unimplemented metric rules, which is a property of the tool, not of the document.
+
+## What the fixes actually were
+
+- **All 22 `prose-format.no-unicode-dash` errors** — every em/en dash became a colon, a comma, or a sentence break. This was the single biggest win: the category went 0 → 100.
+- **24 `ste-descriptive` long sentences** and 8 `prose-craft.sentence-length` — split into shorter sentences. The 25-word cap turns out to be the real constraint on this document; almost every rewrite in the second half of the doc was driven by it.
+- **5 `prose-format.prose-block` errors** (paragraphs over 80 words) — converted to genuine lists: the four output formats, the four `compile` counts, the four `prose`-scope exclusions, the two costs of file-order precedence, the seven exit-2 causes, the five threshold failures, the four severity-resolution layers.
+- **20 `ste-verbs.passive-voice` + auxiliary/nominalization warnings** — named the actor, usually `slopvac` or `the loader` or `discovery`.
+- **16 semicolons, 2 dead openers, 2 unclear antecedents, tricolons, vague quantifiers, `via`, `prior to`-style wordiness, `should`→`must`, first-person plural, history narration (`no longer`), anthropomorphism (`the loader refuses`)** — each rewritten at the sentence level.
+
+## Facts I corrected or verified rather than trusted
+
+- **Quickstart output is now real.** I created `/tmp/svexp2/example.md` (shown inline in the README so the run reproduces), ran the tool, and pasted the verbatim output including the `UNCHECKED` line and both failure reasons.
+- **`--judgement`, not `--judgment`.** The spelling rule pushed me to "judgment", but I checked `cli.py`: the actual flag and the actual `kind` value are British-spelled. I reverted the flag name, the `kind` table row, and the `compile`/`reference` prose to the true spelling, and reworded the surrounding sentences so the rule stops firing without lying about the CLI. Rule compliance does not get to rename a flag.
+- **216 rules / 23 categories.** `slopvac rules --format json` returns 217 entries and 23 categories — but one of those 217 is the locale-generated spelling rule, which v1 already counted separately ("plus the spelling rule generated from `[locale]`"). So 216 packaged + 1 generated is correct as written, and I left it.
+- **"Two rules invert on purpose"** — I could not confirm the count of two. `test_ruleset.py` asserts only one allowed inversion (`meta.invalid-suppression`), and no rule in the shipped JSON currently inverts the strict/normal/relaxed ordering. I softened this to "A rule can invert that ordering on purpose" and kept the specs-versus-README justification, which `docs/orwell-derivation.md` supports. This is the one claim where v1 was probably wrong; I made it unfalsifiable-but-true rather than assert a number I can't back.
+
+Everything else v1 covered is still present: purpose and audience, install, quickstart, all 13 `lint` flags, all 6 subcommands, the full `slopvac.toml` shape, three-layer resolution and file-order precedence with the rejected alternatives, the profile gate table, the rule model and all 7 kinds, scope, severity resolution, suppression, vocabulary, the three scoring numbers with all thresholds, and the exit codes. The document grew from 2104 to 2515 words, so nothing was traded away for score.
+
+One caveat worth flagging: a 100.0 here means the mechanical rules are satisfied, not that the prose is good. Several rewrites — the cataphoric lead-ins I had to add before lists ("Pick the one that matches the tool reading the output"), and the `### Causes of exit 2` heading I introduced purely to get a list out of a table cell — are slightly more verbose than what they replaced. I also had to indent the TOML comment markers as `#--` to stop the config example's `# 1.`/`# 2.`/`# 3.` comments from being parsed as level-1 headings and tripping `heading-hierarchy`; that's a linter artifact I worked around rather than a genuine prose improvement.
+exit=0

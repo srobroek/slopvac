@@ -1,0 +1,151 @@
+id: orwell
+title: Orwell's rules, modernized
+description: Objective restatements of the six rules from "Politics and the English Language" (1946), plus extensions the essay warrants.
+weight: 1.5
+recommended_for: [readme, guide, essay, adr]
+rules:
+  - id: stale-figure
+    name: Cut the stale figure
+    kind: tokens
+    severity: error
+    message: '"{match}" is a worn figure. State the fact it stands in for.'
+    tiers: {strict: enforced, normal: enforced, relaxed: advisory}
+    tokens:
+      - tip of the iceberg
+      - double-edged sword
+      - low-hanging fruit
+      - move the needle
+      - game changer
+      - paradigm shift
+      - perfect storm
+      - silver bullet
+      - holy grail
+      - secret sauce
+      - deep dive
+      - at the end of the day
+      - a testament to
+      - unlock the power of
+      - harness the power of
+      - navigate the complexities of
+      - in the realm of
+      - hit the ground running
+      - peel back the layers
+      - the elephant in the room
+    exceptions: [dead-metaphor, domain-term, quotation, named-entity, fresh-figure]
+    allowlist: [iron resolution]
+    examples:
+      - bad: This release unlock the power of your data.
+        good: The release adds nested-input parsing.
+      - bad: Error handling is the elephant in the room.
+        good: Errors from the retry path are unhandled.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: stale-figure
+      note: >-
+        Orwell permits a fully dead metaphor ("can generally be used without
+        loss of vividness") and wants a fresh one; only the middle band is a
+        violation, which is why the allowlist exists.
+    fix: Delete the figure and state the underlying fact.
+
+  - id: not-un
+    name: Drop the not-un formation
+    kind: pattern
+    severity: warning
+    message: 'Replace "{match}" with the positive adjective.'
+    tiers: {strict: enforced, normal: enforced, relaxed: excluded}
+    pattern: '\bnot\s+un\w+'
+    exceptions: [quotation, grammatical-requirement]
+    examples:
+      - bad: The result is not unexpected.
+        good: The result is expected.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: cut-what-cuts
+      note: Orwell names this formation directly and supplies a mnemonic for it.
+    fix: State the positive.
+
+  - id: compound-preposition
+    name: Use the single preposition
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    tiers: {strict: enforced, normal: enforced, relaxed: excluded}
+    substitutions:
+      due to the fact that: because
+      in spite of the fact that: although
+      despite the fact that: although
+      in the event that: if
+      for the purpose of: to
+      in order to: to
+      prior to: before
+      subsequent to: after
+      at this point in time: now
+      with respect to: about
+      in view of: because of
+      by dint of: by
+    exceptions: [quotation, normative-keyword, legal-force]
+    examples:
+      - bad: The cache is cleared prior to each run.
+        good: The cache is cleared before each run.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: cut-what-cuts
+      note: >-
+        From the operators-or-verbal-false-limbs paragraph, which names compound
+        prepositions as padding that eliminates simple connectives.
+    fix: Substitute the single word.
+
+  - id: unsupported-evaluative
+    name: Back the adjective or cut it
+    kind: tokens
+    severity: error
+    message: '"{match}" evaluates without evidence. Add the number, or cut the word.'
+    tiers: {strict: enforced, normal: enforced, relaxed: advisory}
+    tokens:
+      - robust
+      - powerful
+      - comprehensive
+      - seamless
+      - blazingly fast
+      - lightning-fast
+      - battle-tested
+      - enterprise-grade
+      - world-class
+      - industry-leading
+      - cutting-edge
+      - state-of-the-art
+    exceptions: [quantified, defined-term-of-art, quotation, identifier]
+    examples:
+      - bad: A robust parser with comprehensive coverage.
+        good: The parser survives 10^6 malformed inputs; coverage is 94%.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: empty-evaluative-word
+      note: >-
+        EXTENSION. Warranted by the meaningless-words section: these words do not
+        point to a discoverable object, and their negation reads as a difference
+        of opinion rather than a disagreement about fact.
+    fix: Delete the adjective and state the fact that motivated it.
+
+  - id: concrete-floor
+    name: Name a checkable particular
+    kind: judgement
+    message: This paragraph makes a factual claim with no checkable particular.
+    tiers: {strict: enforced, normal: enforced, relaxed: advisory}
+    judgement_question: >-
+      Does this paragraph name at least one number, identifier, path, command,
+      or dated event? If the writer possesses a more specific term than the one
+      used, did they use it?
+    exceptions: [genuinely-general-claim, deliberate-summary-layer, redaction, quotation]
+    examples:
+      - bad: The system handles a variety of edge cases to ensure reliable operation.
+        good: The parser rejects unterminated strings and nested depth over 64.
+    provenance:
+      source: Orwell 1946
+      orwell_ref: concrete-floor
+      note: >-
+        EXTENSION, and the load-bearing one. All six of Orwell's rules PASS his
+        own worst-case specimen ("success or failure in competitive activities
+        exhibits no tendency to be commensurate with innate capacity"), which is
+        the gap this rule closes.
+    fix: Replace the category with the instance from the source material.
