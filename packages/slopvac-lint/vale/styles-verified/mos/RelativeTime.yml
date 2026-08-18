@@ -1,0 +1,10 @@
+extends: existence
+message: "relative time reference: '%s' -- give the date or version"
+level: warning
+scope: raw
+ignorecase: true
+# MOS:RELTIME. A document outlives the moment it was written, so a relative
+# reference decays into a false claim. `now` and `since` are absent: both have
+# non-temporal senses ("now the parser reads it", "since it is cached").
+raw:
+  - '\b(?:recently|lately|currently|presently|to date|in the past|traditionally|in the future|to this day|at present|nowadays|as of late|these days|going forward|soon|in the coming (?:weeks|months|releases))\b|\b(?:this|last|next) (?:year|month|week|quarter|winter|spring|summer|autumn|fall|release|version)\b|\b\d+ years? ago\b'

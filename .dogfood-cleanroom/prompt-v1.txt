@@ -1,0 +1,18 @@
+Write a README for the Python package at /Users/sjors/personal/dev/slopvac/packages/slopvac-lint.
+
+Write it to /tmp/svexp2/README.v1.md
+
+HARD CONSTRAINTS. These are the point of the exercise:
+
+1. Do NOT read the existing README.md in that directory. Not with Read, not with grep, not with cat, not with head. If you notice yourself about to, stop. The experiment is invalid if you look at it.
+2. Do NOT read anything under src/slopvac/rules/, and do NOT read rules/*.yml. Do not read src/slopvac/profiles.py. Do not read docs/rules.md. You must not learn what prose rules this tool enforces.
+3. Do NOT read any writing-style guidance of any kind: no CLAUDE.md, no .apm/, no write-docs context files, no STYLE or CONTRIBUTING files.
+4. Write in your own natural, default prose style. Do not try to write in a constrained or simplified register. Do not avoid em dashes, do not avoid any particular words. Just write the way you normally write.
+
+To learn what the tool DOES, read only these: pyproject.toml, src/slopvac/cli.py, src/slopvac/config.py, src/slopvac/engine.py, src/slopvac/score.py, src/slopvac/model.py, src/slopvac/rules.py, src/slopvac/report.py, and the tests/ directory.
+
+Cover: what the tool is and who it is for, install, quickstart, the CLI commands and useful flags, the slopvac.toml configuration shape, how scoring works, the rule model, and exit codes. Verify every claim against the source rather than guessing.
+
+Aim for 200-350 lines of markdown. No frontmatter.
+
+One legal constraint: this project restates ASD-STE100 rules independently. Do not reproduce ASD-STE100 rule prose, examples, or wordlist entries. Citing a rule number as a fact is fine.

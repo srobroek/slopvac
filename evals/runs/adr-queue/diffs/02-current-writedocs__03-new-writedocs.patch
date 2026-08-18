@@ -1,0 +1,86 @@
+--- 02-current-writedocs
++++ 03-new-writedocs
+@@ -1,57 +1,46 @@
+-# ADR 0014: Use a managed queue rather than self-hosting one
++# ADR 0012: Use a managed queue instead of self-hosting one
+ 
+-- **Status**: Accepted
+-- **Date**: 2026-07-30
+-- **Deciders**: Platform (2 engineers)
+-- **Supersedes**: none
++- Status: Accepted
++- Date: 2026-03-11
++- Deciders: Ana Reis, Tom Halvorsen
+ 
+ ## Context
+ 
+-The order pipeline needs a durable queue between the API and the fulfillment workers. Requirements:
++The order service hands work to an async worker: invoice rendering, email, and webhook fan-out. Expected volume is 2 million messages per month, with a peak of 400 messages per second during a daily 20-minute batch.
+ 
+-- At-least-once delivery with per-message acknowledgement.
+-- Survive the loss of one availability zone without operator action.
+-- Expected steady volume: 40 messages per second, about 100 million messages per month. Peak measured during the March promotion: 260 messages per second for 20 minutes.
+-- Message size p99: 4 KB.
+-
+ Constraints that decided this:
+ 
+-- The team is two engineers, both on the same on-call rotation, with no dedicated operations capacity. There is no second rotation to hand a broker to.
+-- An AWS account already carries the API, the database, and the workers. Adding a service inside it costs no new vendor review, no new billing relationship, and no new network path.
+-- The zone-outage requirement means any self-hosted option needs a multi-zone quorum, not a single node.
++1. Two engineers maintain the whole system, including on-call. There is no platform team.
++2. We already run in one AWS account, `prod-eu-central-1`, with the workers in three availability zones.
++3. A single-zone outage must not lose an accepted message and must not stop delivery. This comes from the SLA in `contracts/enterprise-tier.md`, which promises order confirmation within 15 minutes.
+ 
+ ## Decision
+ 
+-Use Amazon SQS standard queues, one queue per pipeline stage, each with a dead-letter queue after 5 receives.
++We use Amazon SQS. Standard queues for webhook fan-out, one FIFO queue for invoice numbering, and a dead-letter queue after 5 receives.
+ 
+ ## Consequences
+ 
+-- Zone failure is handled by the service. SQS replicates across zones within the region, and no runbook step exists for it.
+-- No broker to patch, no disk to size, no quorum to reason about. The on-call surface is the queue depth alarm and the dead-letter queue alarm.
+-- Standard queues do not order messages and can deliver a message more than once. Every consumer must be idempotent on the message's business key. This is a real cost: three existing handlers need an idempotency table before they can move onto the queue.
+-- No message priority. A priority need is served by a second queue, not a header.
+-- Maximum message size is 256 KB, and maximum retention is 14 days. Payloads above 256 KB must move to S3 with the queue carrying a pointer.
+-- Cost at expected volume: about $40 per month for 100 million requests, before batching. Batching 10 messages per call reduces the request count tenfold.
+-- The queue is reachable only from inside the account's IAM boundary. A future external publisher needs an API in front of it.
++- SQS replicates each message across the three availability zones of `eu-central-1`. A zone outage costs no messages and needs no action from us, which satisfies constraint 3.
++- No broker to patch, size, or fail over. Constraint 1 holds.
++- At 2 million messages per month the bill is about 0.80 EUR per month, on the 1-million-request free tier plus 0.40 EUR per million requests.
++- SQS delivers at least once on standard queues. Every consumer must be idempotent on the message's `id` field. This is the cost we accept in exchange for point 1.
++- Maximum message size is 256 KiB. Payloads above that go to S3 and travel as a key. Invoice PDFs already work this way.
++- Maximum in-flight messages per standard queue is 120,000. At the 400 per second peak with a 30-second visibility timeout, in-flight peaks near 12,000, which leaves a factor of 10.
++- SQS has no message ordering on standard queues and no topic-based routing. Fan-out to more than one consumer needs SNS or EventBridge in front.
++- The queue is reachable only from AWS credentials in `prod-eu-central-1`. Local development runs ElasticMQ, which is a second implementation to keep in step.
+ 
+-## Alternatives
++## Alternatives considered
+ 
+-### Self-hosted RabbitMQ or Kafka on EC2
++### Self-hosted RabbitMQ on EC2
+ 
+-Rejected on operational load.
++Rejected on operational load. A zone-tolerant setup needs a 3-node quorum-queue cluster across three availability zones, which the two of us would patch, monitor, upgrade, and fail over. Our previous RabbitMQ cluster in the billing service produced 4 of the 9 pages in the 2025 on-call log, all of them node or disk-alarm related. Constraint 1 cannot absorb that.
+ 
+-A multi-zone quorum needs 3 nodes minimum. That brings broker version upgrades, disk growth monitoring, certificate rotation, partition rebalancing (Kafka) or queue mirroring policy (RabbitMQ), and a documented recovery procedure for a lost quorum member. Each of those is a runbook two engineers must write, test, and be paged for.
++### Confluent Cloud Kafka
+ 
+-The 260 messages per second peak is far below what one broker node handles, so this option buys no throughput headroom we need. It buys ordering and priority, which the pipeline does not require: order arrival is already unordered upstream.
++Rejected on cost at our volume. The smallest multi-zone Basic cluster bills a base charge plus throughput, which came to about 380 EUR per month in the March 2026 pricing calculator for 2 million messages and 3 partitions. That is 475 times the SQS figure for the same volume. Kafka's replay and ordering would matter above roughly 50 million messages per month; we are two orders of magnitude below that.
+ 
+-### Amazon MSK (managed Kafka)
++## Revisit when
+ 
+-Rejected on cost at expected volume.
+-
+-MSK bills per broker-hour, not per message. A 3-broker `kafka.m5.large` cluster across three zones is about $390 per month plus storage, against about $40 per month for SQS at 100 million messages. The pipeline's 40 messages per second uses a small fraction of that provisioned capacity, so the premium buys ordering, replay, and consumer groups, none of which the pipeline uses today.
+-
+-Revisit this decision when any of the following becomes true:
+-
+-- A consumer needs to replay a stream from an arbitrary offset.
+-- Two or more consumer groups need independent reads of the same stream.
+-- Sustained volume exceeds roughly 1 billion messages per month, where per-request pricing approaches provisioned-broker cost.
++- Monthly volume passes 50 million messages, where Kafka's per-message cost drops below SQS.
++- A consumer needs to re-read a stream from an offset. SQS deletes an acknowledged message and cannot replay it.
++- We add a second cloud provider, which would make an AWS-only queue a coupling point.

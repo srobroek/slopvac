@@ -1,0 +1,499 @@
+id: ste-practices
+title: STE Writing Practices
+description: Covers rewriting when substitution fails, correct word sense, phrasal verbs, consistency, and the eight general recommendations.
+weight: 0.8
+max_per_100_words:
+  strict: 1.0
+  normal: 2.0
+recommended_for: [reference, runbook, api-docs, readme, pr-description]
+rules:
+  - id: word-swap-insufficient
+    name: Rewrite the sentence when a word swap fails
+    kind: judgement
+    severity: suggestion
+    message: Check whether this sentence needs a rewrite rather than a word swap.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      After you substitute the replacement word, is the sentence still grammatical, still
+      meaningful, and still carrying your original meaning? If any of the three fails, or the
+      word has no replacement at all, restructure the sentence instead.
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: The retry budget is contingent on the tenant tier.
+        good: The tenant tier sets the retry budget.
+      - bad: Increase the pool size so that it accommodates the peak load.
+        good: Increase the pool size until it is large enough for the peak load.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:9.1'
+      note: >-
+        This rule is the escape hatch for the whole substitution mechanism, and it is why a
+        substitution rule must never auto-apply without review. Two entries in the
+        specification's own recurring-error table have no lexical replacement at all and can
+        only be flagged. Kept as a judgement so the reviewer owns the rewrite decision.
+    fix: Restructure the sentence around a permitted verb, rather than swapping one word.
+
+  - id: word-sense-incorrect
+    name: Use each word in its correct sense
+    kind: judgement
+    severity: suggestion
+    message: Check that each word carries the sense the vocabulary records for it.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      For each vocabulary word in this sentence, does the sentence use the single sense the
+      vocabulary entry records, rather than another common sense of the same spelling?
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: When the load goes down, the autoscaler removes a replica.
+        good: When the load decreases, the autoscaler removes a replica.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:9.2'
+      note: >-
+        Near-duplicate of the word-sense rule in the words chapter; the specification states
+        it twice from different angles (vocabulary definition versus writing practice) and we
+        keep both entries so every rule number is traceable. A runtime should report only one.
+        Needs the sense gloss in the vocabulary dataset, which is the largest remaining
+        extraction job.
+    fix: Replace the word with one whose recorded sense matches your intent.
+
+  - id: phrasal-verb
+    name: Do not use a phrasal verb
+    kind: substitution
+    severity: warning
+    message: 'Phrasal verb "{match}". Use "{replacement}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    substitutions:
+      set up: configure
+      spin up: start
+      tear down: stop
+      bring up: start
+      bring down: stop
+      shut down: stop
+      turn off: disable
+      turn on: enable
+      back up: copy
+      roll back: revert
+      roll out: release
+      figure out: find
+      carry out: do
+      look into: examine
+      end up: become
+      take down: stop
+      throw away: discard
+      put off: delay
+      give up: stop
+      run into: find
+      come up with: write
+      point out: show
+      break down: fail
+      pick up: read
+      hold off: wait
+    ignore_case: true
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - api-name
+    allowlist: []
+    examples:
+      - bad: Set up the client before you spin up the worker pool.
+        good: Configure the client before you start the worker pool.
+      - bad: If the import breaks down, roll back the migration.
+        good: If the import fails, revert the migration.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:9.3'
+      note: >-
+        The pair list is ours and drawn from software prose. The specification's point is that
+        a phrasal verb carries a meaning its parts do not, so both parts being individually
+        permitted proves nothing. Two cautions for the implementer. First, several of these
+        exist as legitimate closed compounds or hyphenated nouns ("a backup", "a rollback",
+        "the setup"), so the matcher must require the two-token spaced form. Second, particle
+        separation ("set the client up") is not matched by a fixed pair and needs a parse; we
+        accept that miss rather than write a pattern that fires on "set the timeout up to
+        thirty seconds".
+    fix: Replace the phrasal verb with the single verb.
+
+  - id: inconsistent-wording-for-same-step
+    name: Word the same step the same way
+    kind: structure
+    severity: warning
+    message: 'This step is worded two ways in one document ("{match}" and "{other}").'
+    scope: document
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          Step 3. Apply the migration with the CLI.
+
+          Step 9. Use the CLI to run the migration.
+        good: >-
+          Step 3. Apply the migration with the CLI.
+
+          Step 9. Apply the migration with the CLI.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:9.4'
+      note: >-
+        Mechanizable as a near-duplicate detector across steps in one document: two steps with
+        a high token overlap but different verbs are the signal. Both wordings can be
+        individually correct; the defect is the variation, which makes a reader think two
+        different things happen.
+    fix: Pick one wording for the step and use it everywhere.
+
+  - id: omitted-conjunction-that
+    name: Keep the conjunction
+    kind: pattern
+    severity: suggestion
+    message: 'Add "that" after "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(?:make\s+sure|makes\s+sure|ensure[s]?|show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|mean[s]?|assume[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+    allowlist:
+      - check the config
+      - check the logs
+      - check the status
+      - note the value
+      - show the diff
+      - shows the diff
+    examples:
+      - bad: Make sure the migration completed before you restart the worker.
+        good: Make sure that the migration completed before you restart the worker.
+      - bad: The dashboard shows the queue is empty.
+        good: The dashboard shows that the queue is empty.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-1'
+      note: >-
+        A general recommendation, not a rule; the specification says so explicitly, which is
+        why severity is suggestion and the relaxed tier excludes it. The false-positive shape
+        is a direct object rather than a clause ("check the logs"), which is what the allowlist
+        controls. Tested: both bad examples match, both good examples do not, and
+        "check the config" is allowlisted rather than pattern-excluded because a lookahead for
+        every noun is unmaintainable.
+    fix: Insert "that" after the reporting verb.
+
+  - id: ambiguous-preposition-with
+    name: Keep the instrument sense clear
+    kind: judgement
+    severity: suggestion
+    message: Check which of the three senses "with" carries here.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does "with" mean an association, a shared action, or an instrument? If a reader could
+      pick more than one, name the instrument in a separate clause or state the condition
+      first.
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: Restart the worker with the drained queue.
+        good: When the queue is drained, restart the worker.
+      - bad: Deploy the service with the new sidecar.
+        good: Deploy the service that includes the new sidecar.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-2'
+      note: >-
+        A recommendation, and not mechanizable: the ambiguity is in the reading, not in the
+        surface form, and "with" is far too common to flag. Advisory at both upper tiers so it
+        surfaces in review without generating findings.
+    fix: Rewrite so the sense of "with" is explicit, or state the condition first.
+
+  - id: unclear-pronoun
+    name: Replace an unclear pronoun with the noun
+    kind: pattern
+    severity: suggestion
+    message: 'Pronoun "{match}" may have more than one referent.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(?:he|she|him|her|his|hers)\b|,\s+(?:they|them|it)\s+(?:can|will|may|might|must|becomes?|is|are)\b'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: If you attach the policy to the role, it can become invalid.
+        good: If you attach the policy to the role, the policy can become invalid.
+      - bad: The reviewer approves the change after he reads the diff.
+        good: The reviewer approves the change after reading the diff.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-3'
+      note: >-
+        Two alternates. The gendered-pronoun branch is objective and also satisfies the
+        inclusive-language recommendation, so those two entries share an implementation. The
+        second branch is a heuristic and deliberately narrow: it fires only on a pronoun in a
+        clause that follows a comma and precedes a modal, which is the shape the
+        specification's own ambiguity example takes. Broader pronoun detection produces
+        unusable noise. Tested: both bad examples match; both good examples do not.
+    fix: Replace the pronoun with the noun it refers to.
+
+  - id: unclear-demonstrative-this
+    name: Give the referent for a bare demonstrative
+    kind: pattern
+    severity: suggestion
+    message: 'Bare demonstrative "{match}". Name the thing it refers to.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '(?:^|[.!?]\s+|\(\s*)(?:This|These|That|Those)\s+(?:can|could|will|would|may|might|is|are|was|were|causes?|means?|makes?|prevents?|breaks?|fails?|happens?|occurs?)\b'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: The worker writes to the same table as the exporter. This can cause a deadlock.
+        good: >-
+          The worker writes to the same table as the exporter. Two writers on one table can
+          cause a deadlock.
+      - bad: Do not delete the lease file (this breaks the leader election).
+        good: Do not delete the lease file. Without the lease file, leader election fails.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-4'
+      note: >-
+        A bare demonstrative subject followed by a verb is a mechanizable proxy for "the
+        reader cannot tell what this refers to", and it is the highest-value item among the
+        eight recommendations for software prose, where it is endemic. Enforced at normal tier
+        for that reason, unlike the other recommendations. Tested: both bad examples match,
+        both good examples do not, and "This document tells you how to deploy" does not match,
+        because "document" is a noun rather than a verb from the list. Case folding is
+        required: the first draft ran case-sensitively and missed the lowercase demonstrative
+        inside parentheses, which is where the construction appears most often. Also tested
+        against "Set this value in the config" (no match) and "Use the flag that is required"
+        (no match, because the demonstrative is not sentence- or parenthesis-initial).
+    fix: Replace the demonstrative with the noun phrase it refers to.
+
+  - id: false-friend-term
+    name: Avoid a false friend
+    kind: substitution
+    severity: suggestion
+    message: '"{match}" reads differently to a non-native reader. Use "{replacement}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    substitutions:
+      eventual: possible
+      eventually: later
+      actual: current
+      actually: in fact
+      eventual consistency: eventual consistency
+      sensible: noticeable
+      comprehensive: complete
+      pretend: claim
+      assist to: help
+      individuate: identify
+      realize: build
+      exigency: requirement
+      argument list: parameter list
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+      - identifier-fidelity
+    allowlist:
+      - eventual consistency
+      - eventually consistent
+      - actual value
+      - actual result
+    examples:
+      - bad: The retry handles the eventual timeout.
+        good: The retry handles a possible timeout.
+      - bad: Set the actual version in the manifest.
+        good: Set the current version in the manifest.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-5'
+      note: >-
+        New in Issue 9. The pair list is ours, chosen for words that mislead a reader whose
+        first language is Romance or Germanic. Two of these collide with software terms of art
+        where the misleading sense is the correct one, so "eventual consistency" and
+        "actual value" are allowlisted and the identity mapping documents that the collision
+        is known rather than overlooked. Advisory at normal tier because these words are not
+        wrong in English, only risky in translation.
+    fix: Replace the word with the one that matches your intended sense.
+
+  - id: latin-abbreviation
+    name: Do not use a Latin abbreviation
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    substitutions:
+      e.g.: for example
+      i.e.: that is
+      etc.: and others
+      viz.: namely
+      cf.: compare
+      et al.: and others
+      N.B.: note
+      vs.: against
+      ibid.: in the same source
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+      - citation
+    allowlist: []
+    examples:
+      - bad: Discard the temporary files (e.g. lock files and partial downloads) after each run.
+        good: >-
+          Discard the temporary files after each run. These files include lock files and
+          partial downloads.
+      - bad: Set the retry limit, timeout, backoff, etc. in the client config.
+        good: Set the retry limit, the timeout, and the backoff in the client config.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-6'
+      note: >-
+        New in Issue 9, and the most mechanizable of the eight recommendations, which is why
+        it is enforced at normal tier despite being a recommendation. Note the specification's
+        own preferred handling of a trailing "etc." is often deletion rather than substitution,
+        because the list either matters or it does not; the fix text says so.
+    fix: Replace the abbreviation with the English words, or delete the trailing list.
+
+  - id: gendered-or-exclusionary-language
+    name: Use inclusive language
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    substitutions:
+      he: the reader
+      she: the reader
+      his: their
+      hers: theirs
+      him: them
+      manpower: staff
+      man-hours: hours of work
+      manned: staffed
+      chairman: chair
+      whitelist: allowlist
+      blacklist: denylist
+      master branch: main branch
+      sanity check: quick check
+      dummy value: placeholder value
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+      - identifier-fidelity
+    allowlist: []
+    examples:
+      - bad: Add the service account to the whitelist before he runs the job.
+        good: Add the service account to the allowlist before the operator runs the job.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-7'
+      note: >-
+        New in Issue 9. The specification bans gendered pronouns outright, so that half is a
+        rule in effect and shares an implementation with the unclear-pronoun rule. The
+        remaining pairs are ours, drawn from software terminology, and they go beyond what the
+        specification addresses; one vendor argues no checker rule is needed here at all,
+        because the controlled vocabulary contains no exclusionary terms, but our overlay adds
+        software terms that do. The identifier-fidelity exception matters: a Git default branch
+        name or an API field cannot be rewritten by prose tooling.
+    fix: Replace the term with the inclusive alternative, unless it is an identifier.
+
+  - id: possessive-form-unclear
+    name: Use the possessive only when it is clear
+    kind: pattern
+    severity: suggestion
+    message: 'Possessive "{match}" may be unclear. Consider "of the ...".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    pattern: "\\b\\w+s['’](?=\\s+\\w)|\\b\\w+['’]s\\s+\\w+['’]s\\b"
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+      - identifier-fidelity
+    allowlist: []
+    examples:
+      - bad: Check the workers' pools' retry limits.
+        good: Check the retry limit for each pool of workers.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:GR-8'
+      note: >-
+        New in Issue 9, and the specification permits the possessive; it only asks the writer
+        to drop it when unsure, and it gives no example pairs. So a rule that flagged every
+        possessive would contradict the source. The pattern therefore targets the two shapes
+        that are genuinely hard to parse: a plural possessive, and two stacked possessives.
+        Advisory at both upper tiers. Tested: the bad example matches; "the manufacturer's
+        instructions" does not match (singular, single); "the runner's config file" does not
+        match.
+    fix: Rewrite with "of the", or split the sentence.

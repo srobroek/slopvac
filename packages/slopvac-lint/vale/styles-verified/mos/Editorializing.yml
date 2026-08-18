@@ -1,0 +1,27 @@
+extends: existence
+message: "editorializing: '%s' -- presumes the reader's view; state the fact"
+level: warning
+ignorecase: true
+# MOS:EDITORIAL. These presume what the reader already knows or feels. `only` and
+# `just` are ABSENT: both are load-bearing in software prose ("only the first
+# match", "just the header"), and the article's own caveat is that they are a
+# problem when the expectation is unverifiable, which no pattern decides.
+tokens:
+  - notably
+  - it should be noted
+  - interestingly
+  - essentially
+  - utterly
+  - without a doubt
+  - needless to say
+  - it goes without saying
+  - happily
+  - sadly
+  - tragically
+  - unfortunately
+  - fortunately
+  - of course
+  - clearly
+  - obviously
+  - naturally
+  - as everyone knows

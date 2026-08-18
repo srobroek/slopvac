@@ -1,0 +1,14 @@
+extends: existence
+message: "hedge on a hedge: '%s' -- name what actually changes"
+level: warning
+scope: raw
+ignorecase: true
+# TIGHTENED. The defect is a hedge STACKED ON a hedge, not a hedge that happens to
+# have a quantifier in its object. "You may need several retries" is one hedge and
+# a real quantity; "may help reduce some of the noise" is a hedging verb chain
+# plus a quantifier plus a partitive, which is three layers and no claim.
+#
+# So the modal must be followed by a HEDGING VERB (help/tend/serve/work/seem/
+# appear/contribute), not any verb. That is what distinguishes the two.
+raw:
+  - '\b(?:may|might|could|would|should)\s+(?:help(?:s)?|tend(?:s)?|serve(?:s)?|work(?:s)?|seem(?:s)?|appear(?:s)?|contribute(?:s)?)\s+(?:to\s+)?\w+\s+(?:some|certain|various|several|many|most)\s+(?:of\s+)?(?:the\s+)?\w+|\b(?:may|might|could|would)\s+(?:help(?:s)?|tend(?:s)?|seem(?:s)?|appear(?:s)?)\s+to\s+\w+\s+(?:some|certain|various|several|many|most)\b|\bin\s+(?:some|certain|many|most)\s+cases?\b'

@@ -10,7 +10,7 @@ name: Check Vale styles
 on:
   pull_request:
     paths:
-      - "vale-styles/**"
+      - "packages/slopvac-lint/vale-styles/**"
       - ".github/workflows/check-vale-styles.yml"
 
 permissions:
@@ -41,7 +41,7 @@ jobs:
           vale --version
 
       - name: Build packages
-        run: ./vale-styles/build.sh
+        run: ./packages/slopvac-lint/vale-styles/build.sh
 
       # A style that syncs but resolves no rules lints every file as clean and
       # exits 0, so verify each package produces the findings it should before
@@ -49,7 +49,7 @@ jobs:
       - name: Verify each package syncs and fires
         run: |
           set -euo pipefail
-          python3 -m http.server 8899 --directory vale-styles/dist &
+          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
           server=$!
           trap 'kill "$server"' EXIT
           for _ in $(seq 1 20); do

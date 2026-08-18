@@ -1,7 +1,8 @@
 name: Tests
 
-# Runs the whole suite: pytest for the Vale rule behaviour, the prose-gate hook, and
-# the config scaffold; bats for the SubagentStart injector.
+# Runs the whole suite. The linter has its own job below, against every Python
+# version its metadata claims; this job covers the Vale sub-gate, whose styles are
+# fetched rather than committed.
 #
 # The rule tests drive the real `vale` binary against fixtures, because Vale has no
 # rule-test framework, so the styles have to be built and synced first. They are
@@ -51,39 +52,49 @@ jobs:
           python3 -m pip install --quiet ast-grep-cli
           ast-grep --version
 
-      - name: Install bats
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq bats
 
-      - name: Install pytest
-        run: python3 -m pip install --quiet pytest
+      # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
+      # and those tests import slopvac: installing the test runner alone collected every module
+      # as `ModuleNotFoundError: No module named 'slopvac'`. The `[dev]` extra brings click and
+      # the rest, which is what the lint-package job installs for the same reason.
+      - name: Install the package and pytest
+        run: python3 -m pip install --quiet -e "./packages/slopvac-lint[dev]"
 
       # A test that skips on a missing style reads as a pass, so build and sync the
       # styles from the working tree before running anything.
       - name: Build and sync styles from the working tree
         run: |
           set -euo pipefail
-          ./vale-styles/build.sh
-          python3 -m http.server 8899 --directory vale-styles/dist &
+          ./packages/slopvac-lint/vale-styles/build.sh
+          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
           for _ in $(seq 1 20); do
             curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
             sleep 0.5
           done
-          config=.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac-lint/vale/.vale.ini
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
-          for style in ai-tells ai-residue prose-agency prose-inflation prose-scope docs-discipline prose-format; do
-            test -d ".apm/skills/review-docs/vale/styles/$style" \
+          # Derived from the config rather than listed. A hardcoded list drifts the moment the
+          # config changes, and it did: this asserted seven styles after the config was reduced
+          # to one, so the step failed on `ai-residue did not sync` for a package it no longer
+          # fetches. Vale reports a clean file for a style it cannot resolve, so the check has to
+          # exist. It has to ask the config what to expect.
+          # `grep -oE` alone, without a `tr -d` of spaces and continuation backslashes: inside
+          # single quotes shellcheck reads the escaped backslash as an attempt to quote an
+          # apostrophe (SC1003), and the pattern does not need it -- a zip name holds neither.
+          styles=$(sed -n 's/^Packages *= *//p' "$config" \
+            | grep -oE '[A-Za-z0-9_-]+\.zip' | sed 's/\.zip//' | sort -u)
+          test -n "$styles" || { echo "the config names no packages"; exit 1; }
+          for style in $styles; do
+            test -d "packages/slopvac-lint/vale/styles/$style" \
               || { echo "$style did not sync"; exit 1; }
           done
 
       - name: pytest
         run: |
-          python3 -m pytest tests \
-            .apm/skills/review-docs/tests -q
+          python3 -m pytest packages/slopvac-lint/tests -q
 
-      - name: bats
-        run: bats tests/*.bats
 
       # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
       # loads but resolves nothing reports every file as clean. Lint a probe file
@@ -92,26 +103,155 @@ jobs:
       - name: Validate every rule loads
         run: |
           set -euo pipefail
-          config=.apm/skills/review-docs/vale/.vale.ini
+          config=packages/slopvac-lint/vale/.vale.ini
           printf 'The library leverages a robust parser.\n' > /tmp/probe.md
           out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
           printf '%s\n' "$out"
           printf '%s' "$out" | grep -q 'E201' && { echo 'a rule failed to load'; exit 1; }
-          printf '%s' "$out" | grep -q 'prose-inflation.SlopLexicon' \
+          # Any rule from the styles the config fetches, not one named style. This grepped for
+          # `prose-inflation.SlopLexicon` after the config was reduced to ai-tells alone, so the
+          # probe reported its finding correctly and the step still failed. Vale reports a clean
+          # file for a style it cannot resolve, so the check has to exist. It has to name what
+          # the config actually enables.
+          printf '%s' "$out" | grep -qE '\b(ai-tells|prose-[a-z]+|ste-[a-z]+|docs-[a-z]+)\.' \
             || { echo 'styles did not resolve'; exit 1; }
-          expected="$(find vale-styles -name '*.yml' -not -path '*/dist/*' | wc -l)"
+          expected="$(find packages/slopvac-lint/vale-styles -name '*.yml' -not -path '*/dist/*' | wc -l)"
           echo "$expected rules shipped"
           vale --config="$config" ls-config >/dev/null
 
       - name: Validate hook JSON
         run: |
           set -euo pipefail
-          for f in hooks/hooks.json \
-                   .apm/hooks/hooks.json \
-                   .claude-plugin/plugin.json \
-                   .codex-plugin/plugin.json \
-                   .claude-plugin/marketplace.json \
-                   .codex-plugin/marketplace.json; do
+          # Discovered, not listed. The list named packages/slopvac/hooks/hooks.json and
+          # packages/slopvac/.apm/hooks/hooks.json, neither of which exists: the hook config
+          # moved to .codex/hooks.json and the step failed on FileNotFoundError rather than on
+          # malformed JSON. A list of paths in a workflow drifts from the tree it describes.
+          #
+          # Every tracked plugin, marketplace, and hook manifest, so a new one is covered without
+          # editing this step.
+          files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
+            '*hooks.json' | sort -u)"
+          test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
+          for f in $files; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
             echo "ok $f"
           done
+
+  # The linter is a published package with its own dependencies, so it is tested
+  # in its own job against the Python versions its metadata claims to support. A
+  # `requires-python` floor nobody exercises is a claim, not a fact.
+  lint-package:
+    name: slopvac (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install
+        working-directory: packages/slopvac-lint
+        run: uv pip install --system -e ".[dev]"
+
+      # The same install the `test` job does. This job runs the same `pytest tests`, and a rule
+      # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
+      # without it -- which is a missing dependency reported as a test failure.
+      - name: Install vale
+        run: |
+          set -euo pipefail
+          version=3.15.2
+          curl -sSfL -o vale.tar.gz \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          tar -xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+          vale --version
+
+      - name: pytest
+        working-directory: packages/slopvac-lint
+        run: python3 -m pytest tests -q
+
+      # load_ruleset raises on a broken rule, so this proves the shipped ruleset
+      # is loadable outside the test harness too -- including the generated
+      # spelling rule for every locale.
+      - name: Ruleset loads for every locale
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          for locale in en-US en-GB und; do
+            printf 'Checking %s\n' "$locale"
+            slopvac rules --format json > /dev/null
+            printf 'A robust tool.\n' > /tmp/probe.md
+            set +e
+            slopvac /tmp/probe.md --no-vale --locale "$locale" > /dev/null
+            status=$?
+            set -e
+            test "$status" -ne 2 || { echo "locale $locale broke the run"; exit 1; }
+          done
+
+      # The committed reference must match the ruleset that produced it. A generated
+      # file with no check is a stale file with extra steps, and the failure it
+      # produces is the expensive kind: somebody plans against a rule that was
+      # renamed, retiered, or removed. `--check` exits 2 and prints a unified diff,
+      # so the log says which rules moved rather than just "drift".
+      #
+      # Runs on ONE Python version, not the whole matrix: the output is derived from
+      # the YAML rather than from anything interpreter-dependent, so N copies of the
+      # same comparison would only add N ways to spend CI minutes.
+      - name: The rules reference is current
+        if: matrix.python == '3.13'
+        working-directory: packages/slopvac-lint
+        run: slopvac reference --write docs/rules.md --check
+
+      - name: The README's own commands work
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          slopvac --version
+          slopvac rules --judgement --format json > /tmp/judgement.json
+          python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
+          slopvac explain orwell.stale-figure > /dev/null
+          slopvac init --path /tmp/slopvac.toml
+          slopvac /tmp/probe.md --no-vale --config /tmp/slopvac.toml || test $? -eq 1
+
+  # The only required status check for this workflow. Branch protection names this
+  # one job rather than every matrix leg, so adding a Python version needs no change
+  # to the protection rule.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [test, lint-package]
+    if: always()
+    steps:
+      - name: Verify every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          # A skipped or cancelled job is not a pass, and a matrix leg that never ran
+          # must not read as green. `always()` is what lets this job report at all
+          # when an upstream job failed.
+          python3 - <<'PY'
+          import json, os, sys
+
+          needs = json.loads(os.environ["RESULTS"])
+          failed = [n for n, job in needs.items() if job.get("result") != "success"]
+          if failed:
+              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+              sys.exit(1)
+          print("every job passed")
+          PY

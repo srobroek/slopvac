@@ -1,0 +1,39 @@
+id: ai-residue
+title: AI residue
+description: >-
+  Artifacts of the generating session that reached a shipped document. Never a
+  style judgement: a cutoff disclaimer or a tool citation token is a defect in
+  every genre.
+weight: 1.5
+recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+rules:
+  - id: chat-leakage
+    exceptions: [quotation]
+    name: Delete chat-session leakage
+    kind: pattern
+    severity: error
+    message: 'chat-session leakage: {match} -- delete it, then audit the surrounding prose'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '(\bas an AI\b|\bas a large language model\b|\bI''?m an AI\b|\bas of my (last )?(update|knowledge cut[- ]?off)\b|\bmy (training data|knowledge) (only )?(goes up to|extends to|cut[- ]?off)\b|\bI (cannot|can''?t|am unable to) (browse|access the internet|provide)\b|\bI (apologi[sz]e|hope this helps)\b|\bfeel free to ask\b|\bthis section would (contain|describe|explain)\b|\b(insert|your) [a-z ]{3,20} here\b|\bTODO: (add|write|fill)\b|oaicite|contentReference|\[cite:\s*\d+\]|grok_card|【\d+†[^】]*】)'
+    ignore_case: true
+    fix: Delete the artifact, then re-read the surrounding paragraphs, which came from the same session.
+    examples:
+      - bad: As of my last update, the loader retried twice.
+        good: The loader retries twice.
+      - bad: 'TODO: add the install steps.'
+        good: Install with `pip install slopvac`.
+    provenance:
+      source: vale-styles/ai-residue/ChatLeakage.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        E5 in the retired slop-lint.py. Enforced at every tier because the match
+        is never a register question. No published Vale style covers it: checked
+        tbhb/vale-ai-tells v1.25.0, where SycophancyMarkers is praise only and
+        SelfReference is cross-references only. The .vale.ini keeps it at error
+        for source files too. Go->Python regex conversion: the Vale source wrote
+        the CJK bracket citation range as `\x{3010}`, `\x{2020}`, `\x{3011}`;
+        rewritten as `【`, `†`, `】` for the Python `regex` module.

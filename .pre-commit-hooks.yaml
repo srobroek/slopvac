@@ -1,0 +1,31 @@
+- id: slopvac
+  name: slopvac prose gate
+  description: >-
+    Score staged prose against AI-slop, Simplified Technical English, and Orwell
+    rulesets.
+  entry: slopvac lint
+  language: python
+  types_or: [markdown, rst, plain-text, html]
+  # pre-commit passes filenames positionally, which is what `lint` wants. It runs
+  # only on staged files, so the gate sees the change rather than the repository.
+  require_serial: false
+
+- id: slopvac-strict
+  name: slopvac prose gate (strict)
+  description: >-
+    The strict tier, for reference material, runbooks, and procedures. Scope it
+    with `files:` in your .pre-commit-config.yaml.
+  entry: slopvac lint --profile strict
+  language: python
+  types_or: [markdown, rst, plain-text, html]
+  require_serial: false
+
+- id: slopvac-no-vale
+  name: slopvac prose gate (no Vale)
+  description: >-
+    Skips the Vale sub-gate, so the hook needs no external binary. The upstream
+    ai-tells rules do not run.
+  entry: slopvac lint --no-vale
+  language: python
+  types_or: [markdown, rst, plain-text, html]
+  require_serial: false

@@ -1,0 +1,10 @@
+extends: existence
+message: "redundant subset term: '%s' -- `including` already means the list is partial"
+level: warning
+scope: raw
+ignorecase: true
+# Wikipedia MOS:SUBSET. `including` does not introduce a complete list, so pairing
+# it with `etc.` or `and more` says the same thing twice. Where the list IS
+# complete the article's own fix is `consisting of` or `composed of`.
+raw:
+  - '\bincluding\b[^.!?]{1,80}?(?:,\s*)?(?:etc\.?|and (?:more|others|so on|the like|many more))\b|\bsuch as\b[^.!?]{1,80}?(?:,\s*)?(?:etc\.?|and (?:more|so on|the like))\b|\bincludes? (?:among others|but is not limited to)\b'

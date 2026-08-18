@@ -1,0 +1,156 @@
+# Webhook delivery
+
+We POST a JSON body to your endpoint when a subscribed event occurs. Each delivery carries an HMAC-SHA256 signature. A delivery is attempted up to 6 times.
+
+Delivery is at-least-once. Your receiver must be idempotent: the same event ID can arrive more than once.
+
+## Request
+
+```
+POST https://your-endpoint.example.com/hooks
+Content-Type: application/json
+User-Agent: Acme-Webhooks/1
+X-Acme-Event-Id: evt_01HQ8ZP4TXKM9N2VJ0BRWY7C3D
+X-Acme-Event-Type: invoice.paid
+X-Acme-Delivery-Id: dlv_01HQ8ZP5B6QN4RJ8XKD2WMFA7Y
+X-Acme-Attempt: 1
+X-Acme-Timestamp: 1769817600
+X-Acme-Signature: v1=6f3a1c9d84e0b27f5a1d3c8e9b04f76213ad5c8e9f0b1a2c3d4e5f60718293a4
+```
+
+```json
+{
+  "id": "evt_01HQ8ZP4TXKM9N2VJ0BRWY7C3D",
+  "type": "invoice.paid",
+  "created_at": "2026-07-30T12:00:00Z",
+  "api_version": "2026-05-01",
+  "data": {
+    "object": "invoice",
+    "id": "in_9f2c",
+    "amount_cents": 4900,
+    "currency": "usd",
+    "customer_id": "cus_31ab"
+  }
+}
+```
+
+### Headers
+
+| Header | Description |
+| --- | --- |
+| `X-Acme-Event-Id` | Identifies the event. Constant across retries. Use this as the idempotency key. |
+| `X-Acme-Event-Type` | Event type, matching `data.object` plus the action. |
+| `X-Acme-Delivery-Id` | Identifies this attempt series for one endpoint. |
+| `X-Acme-Attempt` | Attempt number, `1` through `6`. |
+| `X-Acme-Timestamp` | Unix seconds at which the signature was computed. |
+| `X-Acme-Signature` | Space-separated list of `v1=<hex>` signatures. |
+
+### Body fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | string | Event ID, matching `X-Acme-Event-Id`. |
+| `type` | string | Event type. |
+| `created_at` | string | RFC 3339 UTC timestamp of the event, not of the attempt. |
+| `api_version` | string | Schema version of `data`. |
+| `data` | object | Event payload. Shape depends on `type`. |
+
+`data` gains fields without a version change. Fields are removed and types are changed only under a new `api_version`.
+
+## Signature verification
+
+The signed payload is the timestamp, a `.`, and the raw request body:
+
+```
+signed_payload = X-Acme-Timestamp + "." + raw_body
+signature      = hex(hmac_sha256(endpoint_secret, signed_payload))
+```
+
+Compute HMAC over the bytes you received, before any JSON parsing or re-serialization. Key ordering and whitespace are part of the signed bytes.
+
+`X-Acme-Signature` can carry more than one `v1=` value during a secret rotation. Accept the delivery when any value matches.
+
+```python
+import hashlib
+import hmac
+import time
+
+MAX_SKEW_SECONDS = 300
+
+def verify(raw_body: bytes, timestamp: str, signature_header: str, secret: str) -> bool:
+    if abs(time.time() - int(timestamp)) > MAX_SKEW_SECONDS:
+        return False
+    signed = timestamp.encode() + b"." + raw_body
+    expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
+    candidates = [
+        part.split("=", 1)[1]
+        for part in signature_header.split()
+        if part.startswith("v1=")
+    ]
+    return any(hmac.compare_digest(expected, c) for c in candidates)
+```
+
+Compare with a constant-time function. Reject a timestamp more than 300 seconds from your clock to bound replay.
+
+The endpoint secret is shown once when you create the endpoint and starts with `whsec_`.
+
+## Response requirements
+
+Return a 2xx status within 10 seconds. Body content is ignored and is capped at 8 KB when logged.
+
+Acknowledge before you do the work. Write the event to a queue or table, return 200, and process asynchronously. A handler that does the work inline will exceed 10 seconds under a burst and cause retries of an event you already processed.
+
+## Retry schedule
+
+A delivery that does not return 2xx within 10 seconds is retried 5 times after the first attempt.
+
+| Attempt | Delay after previous attempt | Elapsed since attempt 1 |
+| --- | --- | --- |
+| 1 | — | 0s |
+| 2 | 10s | 10s |
+| 3 | 30s | 40s |
+| 4 | 2m | 2m 40s |
+| 5 | 10m | 12m 40s |
+| 6 | 1h | 1h 12m 40s |
+
+Each delay carries jitter of up to 20%. After attempt 6 fails, we drop the event and mark the endpoint's last delivery as failed. Retries of one event do not block delivery of other events.
+
+Every attempt is signed with the timestamp of that attempt, so a stored signature is not reusable across attempts.
+
+## Response codes we act on
+
+Codes your endpoint returns, and what we do:
+
+| Your response | Our behavior |
+| --- | --- |
+| `200`, `201`, `202`, `204` | Delivery succeeded. No retry. |
+| `301`, `302`, `307`, `308` | Not followed. Counted as a failure and retried. |
+| `400`, `422` | Retried on the schedule above. |
+| `401`, `403` | Retried on the schedule above. |
+| `404`, `410` | Retried on the schedule above. Sustained 410 for 24 hours disables the endpoint. |
+| `408`, `429` | Retried on the schedule above. `Retry-After` is ignored. |
+| `5xx` | Retried on the schedule above. |
+| Connection refused, DNS failure, or TLS handshake failure | Retried on the schedule above. |
+| No response within 10 seconds | Connection closed, counted as a failure, retried. |
+
+A 3xx is not followed because the redirect target is outside the signature's scope. Register the final URL.
+
+## Endpoint requirements
+
+- HTTPS with a certificate from a public CA. Self-signed certificates are rejected at the TLS handshake.
+- TLS 1.2 or later.
+- A publicly resolvable hostname. Private and loopback address ranges are refused.
+- Response to `POST` on the exact registered path, without a redirect.
+
+## Ordering
+
+Events are not ordered. `invoice.paid` can arrive before `invoice.created`. Order by `created_at` when your handling depends on sequence, and treat an event older than your stored state as already applied.
+
+## Replaying a delivery
+
+```bash
+curl -X POST https://api.example.com/v1/webhook_deliveries/dlv_01HQ8ZP5B6QN4RJ8XKD2WMFA7Y/replay \
+  -H "Authorization: Bearer $ACME_API_KEY"
+```
+
+A replay carries the original `X-Acme-Event-Id`, a new `X-Acme-Delivery-Id`, and `X-Acme-Attempt: 1`.

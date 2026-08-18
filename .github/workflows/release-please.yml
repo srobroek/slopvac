@@ -66,11 +66,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          ./vale-styles/build.sh
+          ./packages/slopvac-lint/vale-styles/build.sh
           if gh release view vale-styles >/dev/null 2>&1; then
-            gh release upload vale-styles vale-styles/dist/*.zip --clobber
+            gh release upload vale-styles packages/slopvac-lint/vale-styles/dist/*.zip --clobber
           else
-            gh release create vale-styles vale-styles/dist/*.zip \
+            gh release create vale-styles packages/slopvac-lint/vale-styles/dist/*.zip \
               --title "Vale styles" \
               --notes "Rolling release. Assets are replaced on every publish; see vale-styles/README.md." \
               --latest=false
@@ -83,4 +83,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.release.outputs.tag_name }}
-        run: gh release upload "$TAG" vale-styles/dist/*.zip --clobber
+        run: gh release upload "$TAG" packages/slopvac-lint/vale-styles/dist/*.zip --clobber

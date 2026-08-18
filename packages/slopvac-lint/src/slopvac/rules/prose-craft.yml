@@ -1,0 +1,1018 @@
+id: prose-craft
+title: Prose craft
+description: >-
+  Mechanical craft defects with one correct answer and no house-style position:
+  article agreement, initialism form, link text, directional references, tense,
+  spacing, wordiness. Most are accessibility or copy-edit rules rather than
+  generated-text signals.
+weight: 0.8
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: acronym-periods
+    name: Write an initialism unpunctuated
+    kind: pattern
+    severity: warning
+    message: 'initialism periods: {match} -- write it unpunctuated'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:[A-Z]\.){3,5}'
+    ignore_case: false
+    fix: Delete the periods.
+    examples:
+      - bad: The A.P.I. returns JSON.
+        good: The API returns JSON.
+    provenance:
+      source: vale-styles/prose-craft/AcronymPeriods.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Vale carries the regex under `tokens:` with `nonword: true`, so it is a
+        single regex rather than a literal-phrase list; mapped to kind=pattern, not
+        kind=tokens. The dotted form also breaks sentence splitting in every
+        downstream tool, including this linter, so it is enforced at every tier.
+
+  - id: ambiguity
+    name: Pick the reading you meant
+    kind: pattern
+    severity: warning
+    message: 'ambiguous: {match} -- pick the reading you meant'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:and/or|or/and)\b|\bhis/her\b|\b(?:bi[- ]?weekly|bi[- ]?monthly|bi[- ]?annual(?:ly)?)\b|\b12\s?(?:am|pm|a\.m\.|p\.m\.)\b|\b(?:last|next)\s+version\b'
+    ignore_case: true
+    fix: State the reading you meant -- "a and b", "a or b", or "a, b, or both".
+    examples:
+      - bad: Pass a path and/or a glob.
+        good: Pass a path, a glob, or both.
+      - bad: Runs bi-weekly.
+        good: Runs every two weeks.
+    provenance:
+      source: vale-styles/prose-craft/Ambiguity.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        "and/or" is the canonical case: it means three different things and the
+        writer had one in mind. Red Hat's DoNotUseTerms spells out all three
+        replacements, which makes it actionable rather than a taste call.
+        OpenStack's DangPrep (a sentence ending on a preposition) was tried and
+        REJECTED: measured on the source repo it fired three times, every one
+        correct English where the preposition belongs to a phrasal verb or an idiom
+        ("the section it calls for.", "rather than the reader having to.", "and so
+        on."). Distinguishing a stranded preposition from a phrasal one needs
+        parsing a regex cannot do.
+
+  - id: annotations
+    exceptions: [quotation]
+    name: Move an annotation to an issue
+    kind: pattern
+    severity: warning
+    message: 'annotation: {match} -- move it to an issue or a code comment'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:TODO|FIXME|XXX|HACK|TBD|WIP)\b(?=[\s:)\]]|$)'
+    ignore_case: false
+    fix: Move it to an issue or a code comment.
+    examples:
+      - bad: 'TODO: document the flag.'
+        good: The `--strict` flag raises every warning to an error.
+    provenance:
+      source: vale-styles/prose-craft/Annotations.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        DUPLICATES docs-discipline.status-language, which already bans TODO and WIP
+        in the CONSUMER genre. This rule exists to reach change comms, where
+        status-language is switched off because a commit message legitimately says
+        "not yet implemented" -- but never legitimately ships a "TODO: write this"
+        in a PR body. `NOTE` is deliberately absent: proselint bans it, and "NOTE:"
+        is a sanctioned admonition prefix in every docs toolchain.
+
+  - id: articles
+    name: Match the article to the initialism's pronunciation
+    kind: substitution
+    severity: warning
+    message: "article: use '{replacement}' instead of '{match}' (the article follows pronunciation)"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    ignore_case: false
+    substitutions:
+      '\ba FAQ\b': an FAQ
+      '\ba FTP\b': an FTP
+      '\ba HTML\b': an HTML
+      '\ba HTTP\b': an HTTP
+      '\ba HTTPS\b': an HTTPS
+      '\ba LLM\b': an LLM
+      '\ba LTS\b': an LTS
+      '\ba MP3\b': an MP3
+      '\ba NDA\b': an NDA
+      '\ba RFC\b': an RFC
+      '\ba RSS\b': an RSS
+      '\ba RPC\b': an RPC
+      '\ba SDK\b': an SDK
+      '\ba SQL\b': an SQL
+      '\ba SSH\b': an SSH
+      '\ba SSL\b': an SSL
+      '\ba SVG\b': an SVG
+      '\ba SSD\b': an SSD
+      '\ba API\b': an API
+      '\ba IDE\b': an IDE
+      '\ba XML\b': an XML
+      '\ba XSS\b': an XSS
+      '\ban URL\b': a URL
+      '\ban URI\b': a URI
+      '\ban UUID\b': a UUID
+      '\ban USB\b': a USB
+      '\ban UI\b': a UI
+      '\ban UX\b': a UX
+      '\ban UTF\b': a UTF
+      '\ban GUI\b': a GUI
+      '\ban GPU\b': a GPU
+      '\ban PDF\b': a PDF
+      '\ban CPU\b': a CPU
+      '\ban CSV\b': a CSV
+      '\ban JSON\b': a JSON
+      '\ban RAM\b': a RAM
+      '\ban YAML\b': a YAML
+      '\ban one[- ]?time\b': a one-time
+    fix: Use the article the initialism's spoken form takes.
+    examples:
+      - bad: a HTML file
+        good: an HTML file
+      - bad: an URL
+        good: a URL
+    provenance:
+      source: vale-styles/prose-craft/Articles.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Purely mechanical -- there is no house-style position to take -- and a
+        reliable marker of text assembled rather than read aloud. Vale sets
+        `ignorecase: false` explicitly, which is load-bearing: case-insensitive
+        matching would flag "A FAQ" at the start of a sentence with the wrong
+        replacement casing.
+
+  - id: command-prompt
+    name: Drop the shell prompt from a command
+    kind: pattern
+    severity: warning
+    message: 'shell prompt: {match} -- drop the prompt so the command can be copied'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '(?m)^[ \t]*(?:\$|>|❯|PS[ \t]*[A-Za-z]:\\[^\n>]*>)[ \t]+[A-Za-z_./~-]'
+    ignore_case: false
+    fix: Show the command alone; name the shell in the fence's language tag if it matters.
+    examples:
+      - bad: $ npm install
+        good: npm install
+    provenance:
+      source: vale-styles/prose-craft/CommandPrompt.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        `scope: raw` because the prompt lives inside a fence, which the prose parser
+        skips. Canonical's 015-No-prompts-in-comments and Krystal's
+        CommandLinePrompts both implement this; Krystal uses a Tengo script to find
+        fences, but a line-anchored regex over raw text reaches the same lines
+        without the dependency. `#` is excluded from the prompt set: in a fenced
+        block it is far more often a comment than a root prompt.
+
+  - id: conflict-markers
+    name: Resolve the merge conflict
+    kind: pattern
+    severity: error
+    message: 'merge conflict marker: {match} -- resolve the conflict'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '(?m)^(?:<{7}(?:\s|$)|={7}$|>{7}(?:\s|$))'
+    ignore_case: false
+    fix: Resolve the conflict and delete the markers.
+    examples:
+      - bad: <<<<<<< HEAD
+        good: The loader reads the lockfile.
+    provenance:
+      source: vale-styles/prose-craft/ConflictMarkers.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Always a defect, never a style question, so enforced at every tier. It
+        survives review more often than it should because a rendered markdown view
+        hides it inside the diff noise. `scope: raw` so it reaches inside code
+        fences, where a botched merge usually lands.
+
+  - id: dead-opener
+    name: Start the sentence with its real subject
+    kind: pattern
+    severity: warning
+    message: 'dead opener: {match} -- start the sentence with its real subject'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '(?m)(?:^|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))\s*[Tt]here\s+(?:is|are|was|were|will be|has been|have been)\b|(?m)(?:^|(?<=[.!?;]\s))\s*[Ii]t\s+(?:is|was)\s+(?:important|worth|essential|critical|necessary|useful|helpful|possible|interesting|notable|clear|obvious|apparent|recommended|advisable)\s+(?:to\s+)?(?:note|mention|remember|point out|observe|understand|see|say)?\b'
+    ignore_case: false
+    fix: Move the real subject into the subject slot.
+    examples:
+      - bad: There is a flag that controls this.
+        good: The `--strict` flag controls this.
+      - bad: It is important to note that the loader retries.
+        good: The loader retries twice.
+    provenance:
+      source: vale-styles/prose-craft/DeadOpener.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Existential there is matched sentence- or clause-initial only: "there is no
+        way to know" mid-sentence stays clean, as does "check whether there is a
+        lockfile". write-good ships this as ThereIs at error and So at error; `So` is
+        deliberately absent, because a sentence-initial "So" is a legitimate
+        connective in this register and it fired twice on correct prose in
+        calibration.
+        GO->PYTHON REGEX NOTE: uses four LOOKBEHINDS, which Go RE2 does not support
+        at all. Python `regex` supports them, so the ported rule is exact; verify
+        that the Vale original was not silently matching nothing on these branches.
+
+  - id: directional-ref
+    exceptions: [quotation]
+    name: Link the heading by name instead of by position
+    kind: substitution
+    severity: warning
+    message: "directional reference: use '{replacement}' instead of '{match}', or link the heading by name"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    ignore_case: true
+    substitutions:
+      '(?:as )?(?:shown|described|outlined|listed|defined|detailed|specified|explained|discussed|noted) below': in the following section
+      'the below (?:table|section|figure|diagram|image|example|list|code|command|step)s?': the following one
+      '(?:the |this )?(?:table|section|figure|diagram|example|screenshot|chart|step|command|code) below': the following one
+      'see below': see the named section
+      '(?:as )?(?:shown|described|outlined|listed|defined|detailed|specified|explained|discussed|mentioned|noted) above': earlier on this page
+      'the above (?:table|section|figure|diagram|image|example|list|code|command|step)s?': the preceding one
+      '(?:the |this )?(?:table|section|figure|diagram|example|screenshot|chart|step|command|code) above': the preceding one
+      'see above': see the named section
+      '(?:to|on|in) the (?:left|right)(?: side)?(?: of)?': the named element
+      '(?:left|right)[- ]hand side': the named element
+      '(?:left|right) side of the (?:page|screen|window)': the named element
+      'in the (?:left|right) (?:column|panel|sidebar|nav|navigation|menu|pane)': the named element
+      'scroll (?:left|right)': the named element
+    fix: Name or link the target section, table, or element.
+    examples:
+      - bad: See the table below.
+        good: See the Rule tiers table.
+    provenance:
+      source: vale-styles/prose-craft/DirectionalRef.yml
+      url: https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics
+      note: >-
+        WCAG 2.2 SC 1.3.3: position breaks for every reader who zooms, reflows, uses
+        a screen reader, or reads the source out of order, and for the reader of a
+        single section extracted into search results or an AI summary. Modelled on
+        Elastic's DirectionalLanguage rather than neighbor's: neighbor matches a bare
+        `bar` via `(side)?bar`, which fired on the word "bar" in ordinary prose, so
+        every entry here needs a directional word. Enforced at every tier because it
+        is an accessibility defect, not a register preference.
+        Overlaps the formatting catalog's "Cross-reference signposting" tell; that
+        tell's remaining forms ("as we'll see", "recall that") are
+        ai-tells-formatting.cross-reference-signposting.
+
+  - id: first-person-plural
+    exceptions: [quotation]
+    name: Name the artifact, not the vendor
+    kind: pattern
+    severity: warning
+    message: 'first-person plural: {match} -- name the artifact instead of the vendor'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(?:[Ww]e|[Ww]e''(?:ve|re|ll|d))\s+(?=\w)|\b[Oo]ur\s+(?=\w)|\b[Ll]et''s\b'
+    ignore_case: false
+    fix: Put the artifact in the subject slot.
+    examples:
+      - bad: We read one config file.
+        good: slopvac reads one config file.
+    provenance:
+      source: vale-styles/prose-craft/FirstPersonPlural.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        GENRE-SCOPED, and the exclusions matter more than the rule, so relaxed is
+        excluded. A commit message legitimately says "we dropped X"; an ADR says "we
+        chose Postgres"; a CONTRIBUTING says "we review within a week". Off for
+        change comms and internal docs, and the packaged Vale config turns it off
+        for those paths. `us` is deliberately absent ("let us know", "tells us" are
+        too common in correct use), and `I`/`me`/`my` are absent because a personal
+        blog voice is not this defect.
+
+  - id: future-tense
+    name: Describe what it does now
+    kind: pattern
+    severity: warning
+    message: 'future tense: {match} -- describe what it does now'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(?:will|shall)\s+(?:not\s+)?(?=[a-z])|\b(?:we|it|this|that|you|they)''ll\b|\b(?:is|are) going to\s+(?=[a-z])'
+    ignore_case: false
+    fix: Put the verb in the present tense.
+    examples:
+      - bad: The loader will retry twice.
+        good: The loader retries twice.
+    provenance:
+      source: vale-styles/prose-craft/FutureTense.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        A doc describes what the artifact does now, so the present tense is both
+        shorter and true at read time. "Will" also hides the roadmap case: "the flag
+        will support globs" reads as documentation and is a promise.
+        docs-discipline.status-language owns the explicit roadmap forms ("will
+        eventually", "in a future release"); this rule owns the bare future tense,
+        which is a tense choice rather than a status claim. From Openly's
+        FutureTense, minus its `[\w][ll]` token, which matches any word containing
+        "ll" including "will" itself, "all", and "install". Excluded at relaxed: a
+        spec or an RFC states future obligations by genre.
+
+  - id: gerund-heading
+    name: Use the imperative in a task heading
+    kind: pattern
+    severity: warning
+    message: 'gerund heading: {match} -- use the imperative (''Install'', not ''Installing'')'
+    scope: heading
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '^\w+ing\s+(?:a|an|the|your|this|these)\s+\w+'
+    ignore_case: false
+    allowlist:
+      - Logging
+      - Caching
+      - Testing
+      - Linting
+      - Versioning
+      - Licensing
+      - Tracing
+      - Profiling
+      - Debugging
+      - Formatting
+      - Packaging
+      - Onboarding
+      - Troubleshooting
+      - String
+      - Spring
+      - Ring
+      - Bring
+      - Thing
+      - Swing
+      - Ping
+      - King
+      - Wing
+      - Sting
+      - Everything
+      - Something
+      - Nothing
+      - Anything
+      - During
+      - Existing
+      - Using
+    fix: Rewrite the heading in the imperative.
+    examples:
+      - bad: Installing the plugin
+        good: Install the plugin
+    provenance:
+      source: vale-styles/prose-craft/GerundHeading.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Vale carries the regex under `tokens:`, so it is a single regex and maps to
+        kind=pattern, not kind=tokens. A gerund WITH a direct object is a task
+        heading; a bare gerund is a topic heading ("Logging", "Troubleshooting") and
+        stays clean, which is why the pattern needs the object rather than
+        `^\w+ing\b`. Vale's `exceptions:` list is mapped to `allowlist` and not to
+        `exceptions`: our schema's `exceptions` is a closed set of NAMED suppression
+        reasons a writer may cite, while Vale's list is literal strings that never
+        fire -- which is exactly our `allowlist`. Excluded at relaxed: heading mood
+        is a house-style choice.
+
+  - id: hyphens
+    name: Drop the hyphen after an -ly adverb
+    kind: pattern
+    severity: warning
+    message: 'adverb hyphen: {match} -- an -ly adverb takes no hyphen'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b[^\s-]+ly-\w+\b'
+    ignore_case: false
+    fix: Delete the hyphen.
+    examples:
+      - bad: a newly-added flag
+        good: a newly added flag
+    provenance:
+      source: vale-styles/prose-craft/Hyphens.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Vale carries the regex under `tokens:` with `nonword: true`; mapped to
+        kind=pattern. One correct answer, no house-style position, so enforced at
+        every tier: an -ly adverb can only modify the adjective after it, so the
+        hyphen adds no information.
+
+  - id: latinisms
+    exceptions: [quotation]
+    name: Use the English phrase
+    kind: substitution
+    severity: warning
+    message: "Latin abbreviation: use '{replacement}' instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    ignore_case: true
+    substitutions:
+      '\b(?:e\.g\.|eg\.|e\.g)(?=[\s,])': for example
+      '\b(?:i\.e\.|ie\.|i\.e)(?=[\s,])': that is
+      '\betc\.?(?=[\s,)]|$)': and so on
+      '\bviz\.': namely
+      '\bvs\.?(?=\s)': versus
+      '\bcf\.': compare
+      '\bN\.B\.': note
+      '\bad hoc\b': as needed
+      '\bper se\b': in itself
+      '\bvia\b': through, using
+    fix: Write the English phrase.
+    examples:
+      - bad: 'Pass a glob, e.g. `*.md`.'
+        good: 'Pass a glob, for example `*.md`.'
+    provenance:
+      source: vale-styles/prose-craft/Latinisms.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        "e.g." and "i.e." are routinely swapped for each other, and a screen reader
+        says "ee gee". Google, Microsoft, IBM, and Elastic all replace them, which is
+        as close to settled as documentation style gets. `etc.` is included on
+        purpose: it means the writer had a list and stopped. Advisory at relaxed:
+        `via` and `ad hoc` are ordinary register in an essay.
+
+  - id: link-text
+    name: Name the destination in the link text
+    kind: pattern
+    severity: warning
+    message: 'link text: {match} -- name the destination in the link text'
+    scope: raw
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\[[^\]]*\b(?:here|this|this link|this page|this document|click here|read more|learn more|find out more|see (?:here|more)|more|link|page|the docs?|documentation|website|site)\b[^\]]*\]\('
+    ignore_case: true
+    fix: Replace the label with the target's name.
+    examples:
+      - bad: See [here](https://example.com/install).
+        good: See the [install guide](https://example.com/install).
+    provenance:
+      source: vale-styles/prose-craft/LinkText.yml
+      url: https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context
+      note: >-
+        A screen reader can list a page's links out of context, so "here" becomes an
+        entry with no destination; every reader loses, because link text is what a
+        scanning eye lands on. `scope: raw` because the pattern is markdown syntax,
+        not prose, and the parsed text node would give only the label without the
+        brackets. The label set is the union of Datadog's links, Canonical's
+        027-non-descriptive-link-text, and Krystal's MeaningfulLinkWords. Canonical
+        also matches reStructuredText and MyST roles; those are absent because Vale
+        has no parser for either without an external converter -- our engine may add
+        them. Enforced at every tier as an accessibility defect.
+
+  - id: misnomer
+    name: Drop the word the initialism already contains
+    kind: pattern
+    severity: warning
+    message: 'misnomer: {match} -- the initialism already contains that word'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:ATM machine|PIN number|GUI interface|CLI interface|API interface|HIV virus|LCD display|LED display|PDF format|ISBN number|RPC call|SQL language|IP protocol|DNS server system|SSL layer|TLS layer|CSS stylesheet|HTTP protocol|HTTPS protocol|URL locator|URI identifier|RAM memory|ROM memory|CPU unit|GPU unit|SIM card module|UUID identifier|JSON notation|YAML language|HTML language|XML language|CSV values|SaaS service|IDE environment|VM machine|SSH shell|TCP protocol|UTC time|DST time|RSS feed syndication|OTP password|MFA authentication|2FA authentication|SDK kit|LAN network|WAN network|VPN network|NIC card|BIOS system|RAS syndrome)\b'
+    ignore_case: true
+    fix: Delete the trailing noun.
+    examples:
+      - bad: the API interface
+        good: the API
+    provenance:
+      source: vale-styles/prose-craft/Misnomer.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        RAS syndrome. Split from Redundancy.yml because the cause differs and so
+        does the diagnosis: a grammatical redundancy ("past history") is a slip in
+        the sentence, a misnomer is a gap in what the writer knows the initialism
+        expands to, so it tells you to check the surrounding text for more of the
+        same. CRAFT AXIS despite a very low human base rate (0.1 hits per 10k
+        words): a model that has seen the expansion is LESS likely to make this
+        error than a human writing quickly, so as a generated-text signal it points
+        the wrong way.
+
+  - id: negative-requirement
+    name: State what is required
+    kind: pattern
+    severity: warning
+    message: 'negative requirement: {match} -- state what is required, not what is forbidden'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(?:cannot|can''t|will not|won''t|do not|don''t|does not|doesn''t|unable to|not possible|not available|not accessible|no way)\b[^.!?\n]{1,60}\b(?:without|unless|until you)\b'
+    ignore_case: true
+    fix: Invert the sentence to state the requirement.
+    examples:
+      - bad: You cannot deploy without a token.
+        good: Deploying requires a token.
+    provenance:
+      source: vale-styles/prose-craft/NegativeRequirement.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Double negatives cost every reader a pass, and non-native readers more than
+        one. Excluded at relaxed and off for internal docs by default: a spec states
+        constraints negatively on purpose ("the loader MUST NOT retry without a
+        backoff") and that is the genre's job.
+
+  - id: optional-plural
+    name: Use the plural
+    kind: pattern
+    severity: warning
+    message: 'optional plural: {match} -- use the plural'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b\w+\((?:s|es)\)|\b\w+/s\b'
+    ignore_case: false
+    fix: Write the plural.
+    examples:
+      - bad: Select the file(s).
+        good: Select the files.
+    provenance:
+      source: vale-styles/prose-craft/OptionalPlural.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into
+        one alternation for kind=pattern. Covers "(es)" and the slashed form, which
+        Google's rule misses. The reader has to resolve the parenthetical and the
+        resolution never matters.
+
+  - id: ordinals
+    name: Write the word ordinal, or let the list carry the order
+    kind: pattern
+    severity: warning
+    message: 'ordinal: {match} -- use ''first'', or let the list carry the order'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:firstly|secondly|thirdly|fourthly|fifthly|lastly)\b|(?<!\w)\d{1,2}(?:st|nd|rd|th)\b'
+    ignore_case: true
+    fix: Use "first", or drop the ordinal and let the list marker carry it.
+    examples:
+      - bad: Firstly, install the plugin.
+        good: Install the plugin.
+    provenance:
+      source: vale-styles/prose-craft/Ordinals.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Two shapes: "firstly" adds -ly to a word that is already the ordinal, and
+        the numeric form reads as a date fragment in running prose. The lookbehind
+        excludes a bare year-like number. Advisory at relaxed: "1st" is correct in a
+        table cell or a date.
+        GO->PYTHON REGEX NOTE: `(?<!\w)` is a lookbehind, unsupported by Go RE2.
+
+  - id: politeness
+    name: State the step, not a request
+    kind: pattern
+    severity: warning
+    message: 'politeness: {match} -- an instruction is not a request; state the step'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\bplease\b|\bthank(?:s| you)\b|\bkindly\s+(?=\w)|\b(?:sorry|we(?:''re| are) sorry|apologies)\b|\bunfortunately\b|\bfeel free to\b'
+    ignore_case: true
+    fix: Delete the courtesy word and state the step.
+    examples:
+      - bad: Please run the migration first.
+        good: Run the migration first.
+    provenance:
+      source: vale-styles/prose-craft/Politeness.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Red Hat, OpenStack, Splunk, and Krystal all ban it, and each gives the same
+        reason: politeness in a procedure reads as uncertainty about whether the step
+        is required. `sorry` and `unfortunately` are here too -- both narrate the
+        author's feelings about a limitation rather than stating the limitation, and
+        both are a common shape in generated apologia. Excluded at relaxed: a blog
+        or a support reply is polite by genre.
+
+  - id: redundancy
+    name: Cut the repeated half
+    kind: pattern
+    severity: warning
+    message: 'redundant: {match} -- cut the repeated half'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:past history|future plans?|end result|final outcome|new innovations?|free gifts?|added bonus|component parts?|basic fundamentals?|close proximity|advance (?:warning|planning)|unexpected surprise|personal opinion|brief summary|final conclusion|empty space)\b|\b(?:merge|combine|collaborate|join|link|connect|assemble|group|aggregate|consolidate)\s+together\b|\b(?:revert|refer|return|reply|recall|repeat|retreat)\s+back\b|\bplan(?:ning|ned)?\s+ahead\b|\brise\s+up\b|\bdescend\s+down\b|\bthe reasons? why\b|\bin order to be able to\b|\b(?:generally|usually|normally|often)\s+always\b|\b(?:exact|precise|accurate)\s+estimate\b|\bincreasingly\s+less\b|\bfound\s+missing\b|\bconspicuous(?:ly)?\s+absen(?:t|ce)\b|\bmandatory\s+(?:choice|option)\b|\bcompletely\s+obsolescent\b|\babsolutely\s+(?:essential|necessary)\b|\bcompletely\s+(?:eliminate|destroy|finish)\b'
+    ignore_case: true
+    fix: Delete the repeated half.
+    examples:
+      - bad: merge together
+        good: merge
+      - bad: the reason why
+        good: the reason
+    provenance:
+      source: vale-styles/prose-craft/Redundancy.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        CRAFT AXIS on a measured base rate: 0.1 hits per 10k words across 147,473
+        words of human-written technical documentation. Rare, but rare because it is
+        a slip anyone makes and most editors catch, not because a model produces it
+        more often. Grammatical redundancy, not a naming error -- see misnomer for
+        "ATM machine", a different defect with a different cause.
+
+  - id: relative-date
+    name: Give the absolute date or version
+    kind: pattern
+    severity: warning
+    message: 'relative date: {match} -- give the absolute date or version'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '\b(?:recently|lately|nowadays|these days|of late|historically)\b|\b(?:last|this|next|past|coming|previous|upcoming)\s+(?:week|month|quarter|year|release|version|sprint)\b|\b(?:a|one|two|three|several|few)\s+(?:days?|weeks?|months?|years?)\s+ago\b|\b(?:in|since|as of)\s+(?:the\s+)?(?:last|past|recent|coming)\s+(?:few\s+)?(?:days?|weeks?|months?|years?)\b|\b(?:yesterday|today|tomorrow)\b|\bthe other (?:day|week)\b'
+    ignore_case: true
+    fix: Give the absolute date or the version number.
+    examples:
+      - bad: The flag was added recently.
+        good: The flag was added in v3.1.0.
+    provenance:
+      source: vale-styles/prose-craft/RelativeDate.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        A relative date is correct on the day it is written and wrong every day
+        after; the document does not carry its own write date, so neither a reader
+        nor a model reading it later can resolve the offset. Modelled on MediaWiki's
+        RelativeDates, whose own regex matches any month name not followed by a
+        digit; this one matches the relative expressions instead, which is the actual
+        defect. `soon` and `shortly` are deliberately absent so a roadmap phrase
+        reports once, under docs-discipline.status-language, rather than twice.
+
+  - id: self-reference
+    name: Start with the first new fact
+    kind: pattern
+    severity: warning
+    message: 'self-reference: {match} -- the heading already says this; start with the first new fact'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:this|the (?:following|preceding|current|next|previous))\s+(?:section|chapter|subsection|topic|module|assembly|part)\b|\bin the (?:sections?|chapters?) that follows?\b'
+    ignore_case: true
+    fix: Delete the navigation clause.
+    examples:
+      - bad: This section explains the loader.
+        good: The loader resolves every path in the manifest.
+    provenance:
+      source: vale-styles/prose-craft/SelfReference.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        `page` and `document` are deliberately absent from the noun list: Vale's
+        `text` scope hands over the PARSED text node, so a markdown link label
+        arrives with its brackets stripped and no lookbehind can distinguish `[this
+        page](...)` from prose. prose-craft.link-text owns the link case, and
+        dropping the two nouns was cheaper than re-implementing markdown skipping
+        under `scope: raw`. OUR ENGINE MAY BE ABLE TO RESTORE THEM, because it
+        parses the document itself rather than receiving a text node.
+        `this document` and `this guide` are also absent: a README legitimately says
+        "this document describes the released package" once, and
+        prose-inflation.document-preamble owns the opening frame.
+        Mechanised half of the structure catalog's "Heading echo" tell.
+
+  - id: sentence-length
+    name: Split a long sentence
+    kind: metric
+    severity: warning
+    message: 'sentence of {match} words > 34 -- split it, or convert the enumeration to a list'
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    metric: sentence_words
+    threshold: 34
+    comparison: gt
+    fix: Split the sentence, or turn the enumeration into a list.
+    provenance:
+      source: vale-styles/prose-craft/SentenceLength.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Converted from Vale `extends: occurrence` with `max: 34`, `token:
+        \b(\w+)\b`, `scope: sentence`. Threshold 34 is deliberately ABOVE
+        Microsoft's 30 and Red Hat's 32: measured on the source repo's tracked
+        prose, 30 flagged 12 sentences, most of them correct enumerations, and 34
+        flags the ones that are genuinely two sentences. Raise it rather than disable
+        it if a corpus disagrees. Complements prose-format.prose-block, which
+        measures the paragraph; a document can pass one and fail the other, and the
+        fixes differ.
+
+  - id: spacing
+    name: Use one space after a period
+    kind: pattern
+    severity: warning
+    message: 'sentence spacing: {match} -- use exactly one space after the period'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '(?<!\d)[a-z][.?!] {2,}[A-Z]|(?<!\d)[a-z][.?!][A-Z][a-z]'
+    ignore_case: false
+    fix: Use exactly one space.
+    examples:
+      - bad: The loader retries.Twice.
+        good: The loader retries. Twice.
+    provenance:
+      source: vale-styles/prose-craft/Spacing.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into
+        one alternation for kind=pattern. The zero-space form ("Word.Next") is a
+        paste artifact; the two-space form is a typewriter habit that markdown
+        renderers collapse anyway, so it survives only in the source diff. The
+        lookbehind excludes a version or decimal, and `nonword` keeps the match off
+        word boundaries so a filename does not trip it.
+        GO->PYTHON REGEX NOTE: `(?<!\d)` is a lookbehind, unsupported by Go RE2.
+
+  - id: unclear-antecedent
+    name: Name the noun the demonstrative points at
+    kind: pattern
+    severity: warning
+    message: 'unclear antecedent: {match} -- name the noun the demonstrative points at'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '(?m)(?:^\s*|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))(?:This|That|These|Those)\s+(?:is|are|was|were|means?|makes?|gives?|lets?|causes?|happens?|works?|matters?|helps?)\b'
+    ignore_case: false
+    fix: Add the noun after the demonstrative.
+    examples:
+      - bad: This is why it fails.
+        good: This lookahead is why it fails.
+    provenance:
+      source: vale-styles/prose-craft/UnclearAntecedent.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        From Openly's UnclearAntecedent, tightened. Openly matches only `This
+        is|are`; `That`, `These`, and `Those` have the same failure, and requiring a
+        copula or a light verb keeps "This flag controls retries" -- a demonstrative
+        WITH its noun -- clean. Advisory at relaxed: an essay carries a referent
+        forward across sentences by design.
+        GO->PYTHON REGEX NOTE: three lookbehinds, unsupported by Go RE2.
+
+  - id: versions
+    name: State version order, not magnitude
+    kind: substitution
+    severity: warning
+    message: "version comparison: use '{replacement}' instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    ignore_case: true
+    substitutions:
+      '(?:and|or) higher': and later
+      '(?:and|or) newer': and later
+      '(?:and|or) lower': and earlier
+      '(?:and|or) older': and earlier
+      '(?:higher|newer) versions?': later version
+      '(?:lower|older) versions?': earlier version
+    fix: Use "and later" or "and earlier".
+    examples:
+      - bad: Python 3.2 and higher
+        good: Python 3.2 and later
+    provenance:
+      source: vale-styles/prose-craft/Versions.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        "3.2 and higher" is ambiguous once versions stop sorting numerically: is 3.10
+        higher than 3.9? Enforced at every tier because it is a correctness defect,
+        not a register preference.
+
+  - id: wordiness
+    exceptions: [quotation]
+    name: Use the short word
+    kind: substitution
+    severity: warning
+    message: "wordy: use '{replacement}' instead of '{match}'"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    ignore_case: true
+    substitutions:
+      'a (?:large |small |good |fair )?(?:number|amount) of': many
+      'a (?:large )?majority of': most
+      'a myriad of': myriad
+      'a variety of': several kinds of
+      'along the lines of': like
+      'an adequate number of': enough
+      'an appreciable number of': many
+      'any and all': all
+      'are in agreement': agree
+      'as a matter of fact': in fact
+      'as a means (?:of|to)': to
+      'as a result of': because of
+      'as of yet': yet
+      'at a later date': later
+      'at all times': always
+      'at the present time': now
+      'at this (?:point in )?time': now
+      'by means of': by
+      'by virtue of the fact that': because
+      'by virtue of': through
+      'despite the fact that': although
+      'due to the fact that': because
+      'during the (?:course|period) of': during
+      'each and every': every
+      'for all intents and purposes': effectively
+      'for the purpose of': to
+      'for the reason that': because
+      'give consideration to': consider
+      'has the ability to': can
+      'have a tendency to': tend to
+      'in a manner of speaking': effectively
+      'in accordance with': under
+      'in advance of': before
+      'in all likelihood': probably
+      'in an effort to': to
+      'in close proximity to': near
+      'in conjunction with': with
+      'in excess of': more than
+      'in light of the fact that': because
+      'in order to': to
+      'in regard to': about
+      'in some instances': sometimes
+      'in spite of the fact that': although
+      'in terms of': for
+      'in the (?:course|process) of': during
+      'in the absence of': without
+      'in the case of': for
+      'in the event that': if
+      'in the final analysis': finally
+      'in the majority of instances': usually
+      'in the near future': soon
+      'in the neighborhood of': about
+      'in the vicinity of': near
+      'is able to': can
+      'is applicable to': applies to
+      'is authorized to': may
+      'is capable of': can
+      'is in a position to': can
+      'is unable to': cannot
+      'it is essential that': must
+      'it is necessary that': must
+      'null and void': void
+      'on a (?:daily|weekly|monthly|yearly) basis': daily|weekly|monthly|yearly
+      'on the grounds that': because
+      'owing to the fact that': because
+      'point in time': time
+      'prior to': before
+      'provided that': if
+      'pursuant to': under
+      'subsequent to': after
+      'take into consideration': consider
+      'the (?:manner|way) in which': how
+      'the majority of': most
+      'the question as to whether': whether
+      'this day and age': now
+      'under the provisions of': under
+      'until such time as': until
+      'various different': different
+      'whether or not': whether
+      'with regard to': about
+      'with respect to': about
+      'with the exception of': except for
+      'with the result that': so
+      'accentuate(?:s|d)?': stress
+      'accomplish(?:es|ed)?': do|carry out
+      'acquiesce': agree
+      'additionally': also
+      'adversely impact': hurt
+      'ameliorate': improve
+      'ascertain(?:s|ed)?': find out
+      'attributable to': caused by
+      'cognizant of': aware of
+      'commence(?:s|d)?': start
+      'component part': component
+      'demonstrate(?:s|d)?': show
+      'disseminate(?:s|d)?': send|share
+      'endeavor to': try to
+      'expend': spend
+      'expedite(?:s|d)?': speed up
+      'facilitate(?:s|d)?': help|ease
+      'finaliz(?:e|es|ed)': finish
+      'incumbent upon': up to
+      'initiate(?:s|d)?': start
+      'necessitate(?:s|d)?': need|require
+      'promulgate': publish
+      'remuneration': pay
+      'strategiz(?:e|es|ed)': plan
+      'subsequently': later
+      'transpire(?:s|d)?': happen
+      'utilizations?': use
+      'utiliz(?:e|es|ed)': use
+      'utilizing': using
+    fix: Substitute the short word.
+    examples:
+      - bad: in order to validate
+        good: to validate
+      - bad: utilize the loader
+        good: use the loader
+    provenance:
+      source: vale-styles/prose-craft/Wordiness.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        Merged from three upstream maps that overlap heavily: Microsoft's Wordiness
+        (119 entries), Red Hat's SimpleWords (107), and write-good's TooWordy (216
+        bare tokens with no replacement). Keeps the SUBSTITUTION form on purpose --
+        a finding that names the replacement is actionable, one that says "too wordy"
+        is not, and 122 of write-good's tokens ship without a replacement at all.
+        Trimmed on three grounds: technical homographs (`implement`, `monitor`,
+        `validate`, `evaluate`, `terminate`, `maximum`, `minimum`, `objective`,
+        `requirement`, `indicate`, `retain` are the correct words in a software
+        corpus and write-good flags all of them), connectives (`however`,
+        `therefore`, `nevertheless`, `regarding`, `similar to`, `on the other hand`
+        are ordinary English), and register-neutral verbs (`provide`, `contains`,
+        `maintain`, `permit`, `determine`, `notify`, `encounter` read the same as
+        their "plain" replacements, so swapping them is taste).
+        Four replacement values carry a `|` alternation the Vale message renders
+        literally ("do|carry out"); our engine should present those as a choice, not
+        as a literal string.
+
+  - id: plural-abbreviation
+    name: Drop the apostrophe from a plural initialism
+    kind: pattern
+    severity: warning
+    message: 'plural initialism: {match} -- drop the apostrophe'
+    scope: prose
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: advisory
+    pattern: '\b[A-Z]{2,}''s'
+    ignore_case: false
+    fix: Delete the apostrophe.
+    examples:
+      - bad: three API's
+        good: three APIs
+        note: >-
+          "the API's rate limit" is a correct possessive and must NOT fire. The
+          pattern alone cannot tell the two apart.
+    provenance:
+      source: vale-styles/prose-craft/PluralAbbreviation.yml
+      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      note: >-
+        PARTIAL CONVERSION. The Vale rule is `extends: sequence` with three tokens:
+        `\b[A-Z]{2,}`, `'s`, and a third that NEGATES on a following noun
+        (`tag: NN|NNS|NNP|NNPS`), because a genuine possessive has one. Our schema
+        has no POS-keyed sequence kind, and kind=vocabulary is a
+        controlled-vocabulary lookup rather than a tag-sequence negation. Only the
+        first two tokens are reproduced here, so the rule WILL fire on every correct
+        possessive. It is therefore advisory at every tier, including strict, and
+        must not be promoted until the engine gains a POS checker. The Vale
+        `sequence` form stays live as the accurate implementation.

@@ -1,0 +1,17 @@
+extends: existence
+message: "unsupported attribution: '%s' -- name the source or own the claim"
+level: warning
+scope: raw
+ignorecase: true
+# Wikipedia's weasel-word "false authority" and "numerically vague attribution"
+# classes. Distinct from VagueQuantifier: the fix here is a citation, not a count.
+#
+# `data shows` and `studies show` are ABSENT. Both are legitimate when a figure
+# follows ("the data shows a 12 ms regression"), and separating that from the
+# weasel use needs a negative lookahead, which Go RE2 does not have. Vale happened
+# to accept one, but relying on undocumented engine behaviour breaks on upgrade.
+#
+# Each branch requires the vague plural PLUS a reporting verb, so "some people"
+# alone does not fire -- it is the attribution shape that carries the evasion.
+raw:
+  - '\b(?:some|many|most|a few|certain)\s+(?:people|users|developers|teams|experts|observers|critics|commentators|sources)\s+(?:say|says|said|think|thinks|believe|believes|argue|argues|claim|claims|report|reports|note|notes|feel|feels|suggest|suggests)\b|\b(?:experts|researchers|scientists|analysts|observers|critics|studies|reports|sources|authorities|publications)\s+(?:say|says|said|agree|agrees|believe|believes|suggest|suggests|indicate|indicates|show|shows|note|notes|claim|claims|declare|declares|confirm|confirms)\b|\bit\s+(?:is|was|has been)\s+(?:said|thought|believed|assumed|claimed|alleged|reported|argued|suggested|decided|felt|understood|widely known|generally accepted|commonly held)\b|\b(?:evidence|research|science)\s+(?:suggests?|indicates?|shows?|proves?|tells us)\b|\bthe\s+international\s+community\b|\bmistakes\s+were\s+made\b'

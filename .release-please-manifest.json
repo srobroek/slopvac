@@ -1,3 +1,5 @@
 {
-  ".": "1.0.1"
+  ".": "1.0.1",
+  "packages/slopvac": "1.0.1",
+  "packages/slopvac-lint": "0.1.0"
 }

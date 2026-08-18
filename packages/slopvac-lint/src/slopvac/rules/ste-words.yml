@@ -1,0 +1,564 @@
+id: ste-words
+title: STE Words
+description: Restricts which words a document may use, in which part of speech, and in which spelling.
+weight: 1.0
+max_per_100_words:
+  strict: 0.5
+  normal: 1.5
+recommended_for: [reference, runbook, api-docs, readme, pr-description]
+rules:
+  - id: word-outside-controlled-vocabulary
+    name: Do not use a word this project refuses
+    kind: vocabulary
+    severity: warning
+    message: '"{match}" is on this project''s word blocklist.'
+    scope: prose
+    text_type: any
+    tiers:
+      # A BLOCKLIST RULE, AND IT CHECKS NOTHING UNTIL A PROJECT OPTS IN. It reads
+      # `[vocabulary] path` from the slopvac config and reports as native-unrun when
+      # that is unset, which is the default.
+      #
+      # It used to read a packaged ASD-STE100 dictionary as an ALLOWLIST, so every
+      # word outside 859 approved ones was a finding. At `strict` this rule alone
+      # raised 78 of 154 findings on a correct specification -- 8.29 per 100 words
+      # against a 1.5 budget -- rejecting `verify`, `size`, `stored`, and `compute`;
+      # all 8 corpus documents scored 0.0 at strict against 87 to 99 at relaxed.
+      # Half the hits were words with NO dictionary entry at all, which no override
+      # could reach, so the dictionary was deleted rather than tuned. The full
+      # measurement is in vocabulary.py.
+      #
+      # ENFORCED at strict now, and that is not a tightening. The old advisory tier
+      # existed to contain a wordlist nobody chose; a project that writes its own
+      # blocklist and states a reason per word has asked for it to be enforced.
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - registered-domain-term
+    allowlist: []
+    examples:
+      # From examples/blocklist.toml. Not machine-verified -- a vocabulary rule has
+      # no pattern to compile, so `_verify_examples` skips it and the words a
+      # project refuses are its own.
+      - bad: The operator will utilize the retry budget to quickly drain the queue.
+        good: The operator uses the retry budget to drain the queue in under a minute.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.1'
+      note: >-
+        Rule 1.1 restricts words to a controlled list plus domain nouns and verbs. We check
+        the INVERSE of its first clause and no part of the other two: a project states which
+        words it refuses, and every other word is permitted. That is a weaker check than the
+        specification describes, and deliberately so -- the clause as written needs a
+        populated domain-term registry to be usable, and enforcing the list without one
+        rejected ordinary software vocabulary at 8.29 findings per 100 words. No ASD content
+        is shipped or read.
+    fix: Use the replacement the blocklist names, or rewrite the sentence.
+
+  - id: approved-word-substitution
+    name: Use the controlled replacement word
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    substitutions:
+      utilize: use
+      utilise: use
+      ensure: make sure
+      perform: do
+      commence: start
+      initiate: start
+      terminate: stop
+      leverage: use
+      facilitate: help
+      obtain: get
+      require: need
+      prior to: before
+      subsequent to: after
+      in order to: to
+      due to the fact that: because
+      a number of: some
+      at this point in time: now
+    ignore_case: true
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - api-name
+    allowlist: []
+    examples:
+      - bad: The client utilizes exponential backoff prior to the third retry.
+        good: The client uses exponential backoff before the third retry.
+      - bad: Ensure that the migration completed before you restart the worker.
+        good: Make sure that the migration completed before you restart the worker.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.1'
+      note: >-
+        The pair set is ours. It seeds from the specification's own recurring-error table
+        (a factual list of 39 word pairs) and adds software-documentation entries. Full
+        pair set lives in seed-vocabulary.json; this rule file carries an illustrative
+        subset so the YAML stays reviewable. Advisory at relaxed tier because a longer
+        synonym is understood, only inconsistent.
+    fix: Replace the flagged word with the listed replacement.
+
+  - id: obligation-word-substitution
+    name: Use one obligation word
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    substitutions:
+      shall: must
+      should: must
+    # CASE-SENSITIVE ON PURPOSE, and this is the whole reason the pair is not in
+    # `approved-word-substitution` above. RFC 2119 gives `SHOULD` a normative
+    # strength weaker than `MUST`, so an all-caps hit told a specification author
+    # to strengthen a requirement they had deliberately left optional. The lint
+    # was not noise there; it was wrong. An independent eval corpus caught it on a
+    # W3C-register document that opens with the RFC 2119 boilerplate.
+    #
+    # Lowercase `should` in ordinary prose is still hedged obligation and STE
+    # still wants one word for one meaning, so the rule keeps firing there.
+    ignore_case: false
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - normative-keyword
+    allowlist: []
+    examples:
+      - bad: The worker should retry the request before it reports a failure.
+        good: The worker must retry the request before it reports a failure.
+      - bad: Callers shall close the handle.
+        good: Callers must close the handle.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.1'
+      note: >-
+        Advisory at normal tier: outside a specification the distinction between
+        obligation words is a consistency question rather than a defect, and a
+        document that uses `should` throughout is understood.
+    fix: >-
+      Replace with "must" where the requirement is real. Where it is genuinely
+      optional, say so plainly ("optional", "you can") rather than hedging the
+      obligation word. In a document using RFC 2119 keywords, write them in
+      capitals.
+
+  - id: word-used-in-wrong-part-of-speech
+    name: Use the word only in its permitted part of speech
+    kind: vocabulary
+    severity: warning
+    message: '"{match}" is permitted as {allowed_pos} but not as {found_pos}.'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - api-name
+    allowlist: []
+    examples:
+      - bad: Test the endpoint with an expired token.
+        good: Do a test of the endpoint with an expired token.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.2'
+      note: >-
+        Needs the POS-keyed vocabulary and a part-of-speech tagger. A flat word list cannot
+        express this rule, which is why our schema keys on (word, pos). Advisory at normal
+        because tagger error on imperative-initial verbs is the largest single
+        false-positive source we found.
+    fix: Rewrite so the word carries its permitted part of speech, or choose a different word.
+
+  - id: word-used-outside-permitted-sense
+    name: Use the word only in its permitted sense
+    kind: judgement
+    severity: suggestion
+    message: Check that each controlled word carries its permitted meaning.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does every controlled word in this sentence carry the single meaning recorded in the
+      vocabulary entry, rather than another dictionary meaning of the same spelling?
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: Follow the security policy when you rotate the signing key.
+        good: Obey the security policy when you rotate the signing key.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.3'
+      note: >-
+        Sense, not spelling. No regex distinguishes "follow" meaning "come after" from
+        "follow" meaning "comply with", so this stays a reviewer question rather than a
+        fabricated pattern.
+    fix: Replace the word with one whose permitted sense matches your intent.
+
+  - id: verb-or-adjective-form-not-permitted
+    name: Use only permitted word forms
+    kind: vocabulary
+    severity: warning
+    message: '"{match}" is not a permitted form of "{lemma}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+    allowlist: []
+    examples:
+      - bad: The queue is the deletablest of the three resources.
+        good: You can delete the queue more easily than the other two resources.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.4'
+      note: >-
+        Requires the inflected-form basis of the vocabulary (base, third person singular,
+        past, past participle for verbs; base, comparative, superlative for adjectives),
+        not the headword basis.
+    fix: Use a listed form of the word, or rewrite the sentence.
+
+  - id: domain-noun-category-membership
+    name: Confirm the domain noun belongs to a declared category
+    kind: judgement
+    severity: suggestion
+    message: Check that each out-of-vocabulary noun belongs to a declared domain-noun category.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      For each noun in this sentence that is not in the controlled vocabulary, does it name
+      a specified concept inside one of the declared domain-noun categories for this
+      project?
+    exceptions:
+      - code-span
+      - identifier-fidelity
+    allowlist: []
+    examples:
+      - bad: The doohickey drains the queue every minute.
+        good: The reaper job drains the queue every minute.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.5'
+      note: >-
+        The specification states its own category example lists are not exhaustive, so
+        absence from a list proves nothing. Membership is therefore a judgement, and the
+        category set itself is project configuration (see domain-categories.md).
+    fix: Register the term in a domain-noun category, or replace it with a vocabulary word.
+
+  - id: unapproved-word-not-a-domain-noun
+    name: Allow an out-of-vocabulary word only as a domain noun
+    kind: judgement
+    severity: suggestion
+    message: Check that this out-of-vocabulary word is a domain noun or part of one.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain
+      noun? If it is neither, it must be replaced.
+    exceptions:
+      - code-span
+      - identifier-fidelity
+      - quotation
+    allowlist: []
+    examples:
+      - bad: The orchestrator obviates manual reconciliation.
+        good: The orchestrator removes the need for manual reconciliation.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.6'
+      note: >-
+        This is the escape hatch that makes word-outside-controlled-vocabulary usable. The
+        two rules run as a pair: the vocabulary rule finds the candidate, this question
+        decides whether the candidate is legitimate domain vocabulary.
+    fix: Register the domain noun, or replace the word.
+
+  - id: noun-used-as-verb
+    name: Do not use a domain noun as a verb
+    kind: substitution
+    severity: warning
+    message: 'Do not use "{match}" as a verb. Use "{replacement}".'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    # Only unambiguous VERB inflections. The bare lemma is deliberately absent:
+    # `email`, `diff`, and `screenshot` are all commoner as nouns, and a
+    # substitution map cannot tell "sends it by email" (correct) from "emails it"
+    # (the violation). Including the lemma made this rule fire on its own fix.
+    substitutions:
+      emailed: sent by email
+      emailing: sending by email
+      diffed: compared
+      diffing: comparing
+      screenshotted: took a screenshot of
+      whiteboarded: drew on a whiteboard
+      architected: designed
+      architecting: designing
+      impacted: changed
+      impacting: changing
+    ignore_case: true
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - api-name
+    allowlist: []
+    examples:
+      - bad: The runner emailed the coverage report to the reviewers.
+        good: The runner sent the coverage report to the reviewers by email.
+      - bad: We architected the retry path around a token bucket.
+        good: We designed the retry path around a token bucket.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.7'
+      note: >-
+        The pair list is ours and is deliberately short: only nouns whose verbal use is
+        both common in software prose and cleanly replaceable. A general "no noun as verb"
+        detector needs a tagger and produces heavy false positives on words like "log" and
+        "build", so those are excluded on purpose.
+    fix: Rewrite with a verb, and keep the noun as a noun.
+
+  - id: domain-noun-not-organization-approved
+    name: Use the domain term your project already uses
+    kind: judgement
+    severity: suggestion
+    message: Check that this term is the one your project's glossary defines.
+    scope: document
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the project glossary, API reference, or schema already name this thing? If yes,
+      does the document use that exact name?
+    exceptions:
+      - quotation
+    allowlist: []
+    examples:
+      - bad: The job runner picks up the next work item.
+        good: The worker picks up the next task.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.8'
+      note: >-
+        The authority is the project's own glossary, so this cannot be a shipped word list.
+        Partially mechanizable once a glossary file exists, as an unknown-synonym check.
+    fix: Replace the term with the glossary term.
+
+  - id: domain-noun-too-long-or-unclear
+    name: Choose a short and clear domain term
+    kind: judgement
+    severity: suggestion
+    message: Check that this new domain term is short and understandable.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      When you had to invent this term, is it three words or fewer, and would a reader
+      outside your team understand it without a definition?
+    exceptions: []
+    allowlist: []
+    examples:
+      - bad: Restart the primary regional inbound request admission controller service.
+        good: Restart the admission controller.
+      - bad: Set the distributed idempotency deduplication cache retention window.
+        good: Set the deduplication cache retention.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.9'
+      note: >-
+        The three-word length half of this rule is mechanized by
+        ste-nouns/multiword-noun-too-long; the "easy to understand" half is not
+        mechanizable, so this entry carries only the judgement.
+    fix: Shorten the term to three words or fewer, or define it once and use a short form.
+
+  - id: slang-or-jargon-term
+    name: Do not use slang or jargon as a domain term
+    kind: tokens
+    severity: warning
+    message: '"{match}" is slang or jargon. Use a plain term.'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    tokens:
+      - footgun
+      - gotcha
+      - hacky
+      - kludge
+      - jank
+      - janky
+      - yak shaving
+      - bikeshed
+      - bikeshedding
+      - dogfood
+      - dogfooding
+      - nuke
+      - blow away
+      - yeet
+      - magic sauce
+      - secret sauce
+      - happy path
+      - wonky
+      - flaky-ish
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: The retry loop has a gotcha when the token expires mid-request.
+        good: The retry loop fails when the token expires during a request.
+      - bad: Nuke the cache directory and start again.
+        good: Delete the cache directory and start again.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.10'
+      note: >-
+        Token list is ours, drawn from software-documentation jargon rather than the
+        specification's aerospace examples. Regional-dialect detection is out of scope for
+        a token list and is left to the vocabulary rule.
+    fix: Replace the slang term with a plain description of the behaviour.
+
+  - id: inconsistent-term-for-same-thing
+    name: Use one term per thing
+    kind: structure
+    severity: warning
+    message: 'This document calls the same thing "{match}" and "{other}".'
+    scope: document
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    exceptions:
+      - quotation
+      - glossary-definition
+    allowlist: []
+    examples:
+      - bad: The worker reads the task queue. Later, the job runner drains the work list.
+        good: The worker reads the task queue. Later, the worker drains the task queue.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.11'
+      note: >-
+        Mechanizable only against a configured synonym-group list; without one, the checker
+        cannot know that "task queue" and "work list" are the same thing. Enforced at
+        normal tier because term drift inside one document is a comprehension failure, not
+        a style preference.
+    fix: Pick one term and use it in every sentence.
+
+  - id: domain-verb-category-membership
+    name: Confirm the domain verb belongs to a declared category
+    kind: judgement
+    severity: suggestion
+    message: Check that this out-of-vocabulary verb is a declared domain verb used in its own context.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Could this sentence be written with vocabulary verbs alone? If yes, the domain verb
+      is not permitted. If no, does the verb belong to a declared domain-verb category and
+      carry its category meaning in this sentence?
+    exceptions:
+      - code-span
+      - api-name
+    allowlist: []
+    examples:
+      - bad: The parser ingests the manifest and hydrates the config object.
+        good: The parser reads the manifest and fills the config object.
+      - bad: If you observe a checksum mismatch, delete the artifact.
+        good: If you find a checksum mismatch, delete the artifact.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.12'
+      note: >-
+        Two reasons this cannot be a word list. First, the specification puts vocabulary
+        verbs ahead of domain verbs, which requires knowing whether a paraphrase exists.
+        Second, the same verb is legal or illegal by sense: the specification's own example
+        has one verb permitted in a machine-subject sentence and refused in a
+        reader-subject sentence. Our second example above reproduces that shape with our
+        own wording.
+    fix: Rewrite with a vocabulary verb, or register the verb in a domain-verb category.
+
+  - id: verb-used-as-noun
+    name: Do not use a domain verb as a noun
+    kind: pattern
+    severity: warning
+    message: 'Do not use "{match}" as a noun. Use the noun form.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:a|an|the)\s+(?:install|uninstall|deploy|rerun|resend|reboot|ask|spend|solve)\b'
+    ignore_case: true
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+      - api-name
+    allowlist: []
+    examples:
+      - bad: The deploy failed because the image tag was missing.
+        good: The deployment failed because the image tag was missing.
+      - bad: Start a rerun of the failed job.
+        good: Run the failed job again.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:1.13'
+      note: >-
+        Anchored on a determiner plus a closed list, not on a general nominalization
+        detector. The word boundary keeps it off the legitimate noun forms: "the
+        deployment" and "the installation" do not match, because the pattern requires a
+        boundary immediately after the verb.
+    fix: Replace the verb-as-noun with the noun form, or rewrite with the verb.
+

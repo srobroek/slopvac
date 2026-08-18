@@ -1,0 +1,215 @@
+--- 01-unguided
++++ 02-current-writedocs
+@@ -1,78 +1,171 @@
+-# Migrating from v1 to v2
++# Migrating a config file from v1 to v2
+ 
+-## Introduction
++v2 renames three keys, removes one, and replaces the flat `plugin_*` namespace with nested `[plugin.<name>]` tables.
+ 
+-We're excited to announce that v2 of the config format is here! This release represents a significant improvement in how configuration is structured, and while it does introduce some breaking changes, we think you'll find the migration well worth the effort.
++`appctl migrate-config` performs the renames and the removal. It does not perform the nesting. Do that part by hand using the mapping below.
+ 
+-In this guide, we'll walk you through everything you need to know.
++v2 rejects a v1 config with an error naming the first unmigrated key. There is no compatibility mode.
+ 
+-## What's Changed
++## 1. Back up the file
+ 
+-The v2 format brings three main categories of change:
++```bash
++cp appctl.toml appctl.toml.v1.bak
++```
+ 
+-1. **Renamed keys** — three keys have new names
+-2. **Removed key** — one key is no longer supported
+-3. **Nested tables** — the flat namespace has been replaced with proper nesting
++## 2. Run the converter
+ 
+-Let's dive into each of these.
++```bash
++appctl migrate-config appctl.toml
++```
+ 
+-## Renamed Keys
++The converter writes in place and prints each change:
+ 
+-| v1 | v2 |
+-|---|---|
+-| `cache_dir` | `cache.directory` |
+-| `max_conn` | `pool.max` |
+-| `log_lvl` | `logging.level` |
++```
++appctl.toml: renamed timeout -> request_timeout_seconds
++appctl.toml: renamed max_conn -> max_connections
++appctl.toml: renamed log -> log_level
++appctl.toml: removed legacy_auth (no v2 equivalent)
++appctl.toml: 3 plugin_* keys need manual nesting, see below
++appctl.toml: version = 2
++```
+ 
+-The good news is that these are handled automatically by our converter (see below).
++Preview without writing:
+ 
+-## Removed Key
++```bash
++appctl migrate-config --dry-run appctl.toml
++```
+ 
+-The `legacy_mode` key has been removed entirely. If you were relying on it, you'll unfortunately need to restructure your configuration. In most cases this simply means moving to the equivalent v2 behavior, which is now the default.
++## 3. Renamed keys
+ 
+-## Nested Tables
++The converter handles these. The table is here so you can verify its output and update any script that reads the file.
+ 
+-This is the big one. Previously, all configuration lived in a single flat namespace:
++| v1 key | v2 key | Note |
++| --- | --- | --- |
++| `timeout` | `request_timeout_seconds` | Value unchanged. Still an integer in seconds. |
++| `max_conn` | `max_connections` | Value unchanged. |
++| `log` | `log_level` | Value unchanged. Accepts `debug`, `info`, `warn`, `error`. |
+ 
++## 4. Removed key
++
++`legacy_auth` is removed. v2 fails to load a config that still contains it.
++
++`legacy_auth = true` in v1 sent credentials in the query string. v2 sends them in the `Authorization` header, which is what `legacy_auth = false` did. Set your credentials with `auth_token` and remove nothing else:
++
+ ```toml
+-cache_dir = "/tmp/cache"
+-cache_ttl = 3600
+-pool_max = 10
++auth_token = "${APPCTL_TOKEN}"
+ ```
+ 
+-In v2, related settings are grouped into nested tables:
++A server that only accepts query-string credentials cannot be reached by v2.
+ 
++## 5. Nest the plugin keys by hand
++
++v1 held plugin settings in a flat namespace, one key per setting, with the plugin name inside the key:
++
+ ```toml
+-[cache]
+-directory = "/tmp/cache"
+-ttl = 3600
++plugin_cache_enabled = true
++plugin_cache_ttl = 300
++plugin_cache_backend = "redis"
++plugin_metrics_enabled = true
++plugin_metrics_port = 9090
++plugin_tracing_enabled = false
++```
+ 
+-[pool]
+-max = 10
++v2 holds one table per plugin:
++
++```toml
++[plugin.cache]
++enabled = true
++ttl = 300
++backend = "redis"
++
++[plugin.metrics]
++enabled = true
++port = 9090
++
++[plugin.tracing]
++enabled = false
+ ```
+ 
+-Unfortunately, the converter can't handle this transformation automatically — the nesting requires semantic understanding that a mechanical tool simply can't provide. You'll need to restructure these by hand.
++The rule: `plugin_<name>_<setting>` becomes key `<setting>` under table `[plugin.<name>]`. Setting names and values are unchanged.
+ 
+-## Using the Converter
++Plugin names containing an underscore are the one case the rule does not resolve on its own. `plugin_rate_limit_enabled` splits either as plugin `rate` setting `limit_enabled` or plugin `rate_limit` setting `enabled`. Check the plugin's own name with `appctl plugin list` and nest accordingly:
+ 
+-For the renames, we've provided an automated converter:
++```toml
++[plugin.rate_limit]
++enabled = true
++```
+ 
++This ambiguity is why the converter leaves the nesting alone.
++
++## 6. Validate
++
+ ```bash
+-myapp config migrate --in config.v1.toml --out config.v2.toml
++appctl config validate
+ ```
+ 
+-This will handle the three key renames for you. It won't touch the nesting, so you'll still have some manual work to do afterward.
++Output on success:
+ 
+-## Verifying Your Migration
++```
++appctl.toml: valid (version 2, 3 plugins configured)
++```
+ 
+-Once you've made your changes, validate the result:
++Errors name the key and the line:
+ 
++```
++appctl.toml:14: unknown key 'plugin_cache_ttl' (v2 expects [plugin.cache] ttl)
++appctl.toml:3: key 'legacy_auth' was removed in v2
++```
++
++Print the loaded configuration to confirm the plugin tables resolved:
++
+ ```bash
+-myapp config validate
++appctl config show --resolved
+ ```
+ 
+-## Wrapping Up
++## Full example
+ 
+-And that's it! Migration should be straightforward for most users. If you run into any issues, don't hesitate to open an issue — we're here to help.
++v1:
+ 
+-Happy migrating! 🎉
++```toml
++version = 1
++endpoint = "https://api.example.com"
++timeout = 30
++max_conn = 10
++log = "info"
++legacy_auth = false
++auth_token = "${APPCTL_TOKEN}"
++
++plugin_cache_enabled = true
++plugin_cache_ttl = 300
++plugin_metrics_enabled = true
++plugin_metrics_port = 9090
++```
++
++v2:
++
++```toml
++version = 2
++endpoint = "https://api.example.com"
++request_timeout_seconds = 30
++max_connections = 10
++log_level = "info"
++auth_token = "${APPCTL_TOKEN}"
++
++[plugin.cache]
++enabled = true
++ttl = 300
++
++[plugin.metrics]
++enabled = true
++port = 9090
++```
++
++## Rolling back
++
++v1 binaries read the backup unchanged:
++
++```bash
++mv appctl.toml.v1.bak appctl.toml
++```
++
++A v1 binary rejects a v2 file on the `version = 2` line, so a partial rollout needs the pinned config alongside the pinned binary.

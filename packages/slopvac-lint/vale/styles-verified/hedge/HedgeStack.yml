@@ -1,0 +1,7 @@
+extends: existence
+message: "stacked hedge: '%s' -- one hedge or none; commit to the claim or cut it"
+level: warning
+scope: raw
+ignorecase: true
+raw:
+  - '\b(?:may|might|could|can|would|should)\s+(?:possibly|potentially|perhaps|maybe|probably|likely|conceivably|arguably|presumably)\b|\b(?:possibly|potentially|perhaps|maybe|probably|arguably|presumably)\s+(?:\w+\s+){0,2}?(?:may|might|could|would|should)\b|\b(?:may|might|could|would|should)\s+(?:help(?:s)? to|tend(?:s)? to|seem(?:s)? to|appear(?:s)? to)\b|\b(?:roughly|approximately|about|around)\s+(?:approximately|about|around|some)\s+\d'

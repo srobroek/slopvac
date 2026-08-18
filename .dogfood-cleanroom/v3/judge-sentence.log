@@ -1,0 +1,21 @@
+Written to `findings-sentence.md`.
+
+**One correction to the premise of the task:** all 24 rules in `rules-sentence.json` are `scope: sentence`. There are no `scope: document` rules in my slice — the 17 ratio/shape checks belong to another reviewer. I noted this at the top of the file rather than silently reporting document-level findings I wasn't holding rules for.
+
+**Results: 18 of 24 rules fired, 31 findings.**
+
+Six did not apply, and I've said why rather than padding:
+- `false-range` — the only "from X to Y" spans are numeric (0 to 100, 100 to 70). Genuinely clean.
+- `intensifier-tics-remainder` — the adverbs are each backed by a number nearby.
+- `parentheses-misuse` — the one prose parenthetical is an abbreviation expansion, a permitted purpose.
+- The three counting rules are `severity: off` by construction. They constrain the tokenizer and cannot fire against a document.
+
+The strongest cluster is `ste-words` (8 findings) — undefined jargon doing load-bearing work. Two cases stand out because the document depends on them:
+- Line 10, `- AI-slop tells.` fires twice, on both `vague-attribution-remainder` and `domain-noun-category-membership`. It's one of three cited sources for the entire ruleset, and it's the only one a reader cannot locate. Lines 11 and 12 name ASD-STE100 and Orwell 1946 precisely.
+- Line 319, "agentless passive voice" is the single justification offered for tiers not forming an ordering, and it rests on an undefined out-of-vocabulary adjective.
+
+The register findings concentrate around the scoring and precedence sections, where chosen constants (15, 6, weights 4/2/1) are presented as behaviour the system exhibits on its own, with no chooser and no rationale — in the sections whose whole purpose is to justify those choices.
+
+Two judgement calls worth flagging for whoever fixes this:
+- Line 476 fires on both `absolute-assertion-remainder` and `overloaded-sentence`. I reported it twice deliberately, since the fixes differ (narrow the scope vs. split the clause), but one rewrite could settle both.
+- `word-swap-insufficient` (line 260) is the thinnest finding I kept. It's real — "dominant edit anyone makes" is an unmeasured frequency claim on a gerund subject — but it borders on the word-choice territory the linter owns. I kept it because the rule is specifically about swaps that *fail*, and no single-word swap fixes it.

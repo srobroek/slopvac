@@ -1,0 +1,45 @@
+You are editing one document to clear a mechanical linter. You are an editor, not a reviewer. Do not produce a report.
+
+The document:  /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/README.v3.md
+The findings:  /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/findings-mechanical.md
+Write to:      /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/README.v4.md
+
+CONTEXT YOU NEED
+
+README.v3.md is itself a rewrite. A previous editor addressed 62 judgement findings from four independent reviewers and produced this text. Those fixes are GOOD and must survive. What that editor was never shown was the mechanical ruleset, so the rewrite traded judgement defects for pattern defects: it now scores 75.8/100 where the document it replaced scored 87.3.
+
+Your job is the missing half. Clear the mechanical findings WITHOUT undoing the judgement work.
+
+WHAT THE FINDINGS ARE
+
+Every entry names a rule id, a line, what fired, and the line as written. These are deterministic. The pattern matched; there is nothing to agree or disagree with about whether it matched. You may still judge that a fix would cost more than it buys — see step 4.
+
+The four that dominate:
+
+- `ste-sentences.complex-text-not-in-vertical-list` (15) — a sentence carrying a series of coordinate items. The fix is a bulleted list, not a shorter sentence.
+- `ste-descriptive.sentence-too-long-descriptive` (7) — over the descriptive word cap. Split it. Note the word count is ASD-STE100's, not a whitespace split: a number with its unit, an abbreviation, a quoted span, parenthesized text, and a hyphenated word each count as ONE word.
+- `ste-nouns.multiword-noun-too-long` (7) — four or more stackable words in a row. Break the stack with a preposition or an article, or cut a word.
+- `ste-punctuation.semicolon-used` (3) — write two sentences.
+
+HOW TO WORK
+
+1. Read README.v3.md in full first. You are editing a document whose structure was deliberately chosen; understand it before you touch a line.
+2. Read findings-mechanical.md in full.
+3. Edit. Prefer the smallest change that clears the finding. A sentence that needs splitting gets split, not rewritten.
+4. Where you decline a fix, do not silently skip it: keep the text and note it at the very end of README.v4.md under `## Findings not applied`, one line each, giving the rule id, the line, and your one-sentence reason. A finding whose only available fix would damage the prose is a legitimate decline. An unexplained non-fix cannot be audited.
+
+WHAT MUST NOT CHANGE
+
+- Every factual claim, number, file path, command, flag, rule id, exit code, and code block survives exactly. This is a technical README for a real tool. Never invent a number.
+- Text inside a code fence is not prose. Do not edit it, and do not count it against a finding.
+- Keep the heading hierarchy. You may convert a sentence into a list, split a paragraph, or split a sentence in two. Do not merge or reorder sections: the previous pass chose that order to fix document-scope findings, and undoing it would reintroduce them.
+- Do not add content. This is an edit, not an expansion. The `## Findings not applied` section is the one exception.
+- Carry over README.v3.md's own `## Findings not applied` section if it has one, unchanged, above yours.
+
+CONSTRAINTS
+
+1. Do NOT read any other file in the .dogfood-cleanroom directory. Not subject.md, not DIFFS.md, not any other README version, not any prompt, log, or judgement finding file, not the rule JSON. Only README.v3.md and findings-mechanical.md.
+2. Do NOT read the slopvac source, the rule YAML, or any writing-style guidance. Do NOT run slopvac. The findings file is your only view of the ruleset, deliberately: an editor with the source starts writing to the regex.
+3. Do NOT use any Skill.
+4. Do NOT edit README.v3.md. It is read-only.
+5. Spelling is en-US. `--judgement` and `kind: judgement` are code identifiers and keep that spelling.

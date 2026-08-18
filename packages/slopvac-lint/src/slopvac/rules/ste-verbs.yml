@@ -1,0 +1,307 @@
+id: ste-verbs
+title: STE Verbs
+description: Restricts verb tense and form to simple constructions and requires the active voice.
+weight: 1.0
+max_per_100_words:
+  strict: 0.5
+  normal: 1.5
+recommended_for: [reference, runbook, api-docs, readme, pr-description]
+rules:
+  - id: verb-form-not-listed
+    name: Use only listed verb forms
+    kind: vocabulary
+    severity: warning
+    message: '"{match}" is not a listed form of "{lemma}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    exceptions:
+      - identifier-fidelity
+      - code-span
+      - quotation
+    allowlist: []
+    examples:
+      - bad: The runner had been retrying the request for ten minutes.
+        good: The runner retried the request for ten minutes.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.1'
+      note: >-
+        Overlaps ste-words/verb-or-adjective-form-not-permitted but scopes to verbs only,
+        where the inflection data is richest. Both read the same vocabulary dataset; a
+        runtime should report only the more specific finding.
+    fix: Use a listed form of the verb.
+
+  - id: complex-tense
+    name: Use simple tenses only
+    kind: pattern
+    severity: error
+    message: 'Complex verb construction "{match}". Use a simple present, past, or future tense.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:ha(?:ve|s|d)|having)\s+(?:been\s+)?\w+(?:ed|en|ne|wn|un|de|lt|pt|ft)\b|\b(?:am|is|are|was|were|be|been|being)\s+\w+ing\b|\b(?:will|would|shall)\s+have\s+\w+'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - changelog-entry
+    allowlist:
+      - has released
+      - have released
+    examples:
+      - bad: The migration has completed, so the worker has started.
+        good: The migration completed, so the worker started.
+      - bad: The scheduler is draining the queue while the node is restarting.
+        good: The scheduler drains the queue while the node restarts.
+      - bad: By the next release, the flag will have been removed.
+        good: The next release removes the flag.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.2'
+      note: >-
+        Three alternates: perfect tenses via a "have" auxiliary plus a participle suffix,
+        progressive tenses via a "be" auxiliary plus "-ing", and future perfect. Tested
+        against all three bad examples above (each matches) and against the three good
+        examples (none match). Also tested against the false-positive traps "the release
+        is running" (matches, and correctly so, since it is progressive) and "the config
+        is required" (does not match, because "required" is not in the suffix set — this is
+        the deliberate limit that keeps the rule off passive-voice territory, which
+        passive-voice owns). The changelog-entry exception exists because release notes
+        conventionally use the present perfect for shipped changes.
+    fix: Rewrite in the simple present, simple past, or simple future tense.
+
+  - id: past-participle-not-adjectival
+    name: Use a past participle only as an adjective
+    kind: judgement
+    severity: suggestion
+    message: Check that this past participle acts as an adjective, not as part of a verb.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this past participle sit before a noun, or after a form of "be", "become", or
+      "stay", describing a condition? If it sits after another auxiliary, it is part of a
+      verb construction and is not permitted.
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: The corrupted index had been rebuilt by the maintenance job.
+        good: The maintenance job rebuilds the corrupted index.
+      - bad: Delete each file that has been marked stale.
+        good: Delete each stale file.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.3'
+      note: >-
+        The mechanizable half of this rule is already covered by complex-tense and
+        passive-voice; what remains is the position test, which needs a parse rather than a
+        regex. Note the specification permits some participle-shaped words as adjectives in
+        their own right even when the matching verb is not permitted, so a naive "no
+        participles" check would be wrong.
+    fix: Move the participle before the noun it describes, or rewrite in the active voice.
+
+  - id: auxiliary-stacking
+    name: Do not stack auxiliaries
+    kind: pattern
+    severity: warning
+    message: 'Auxiliary stack "{match}". Give the action directly.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:can|could|may|might|must|shall|should|will|would)\s+(?:be|have|been|get)\s+(?:\w+(?:ed|en)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b|\b(?:is|are|was|were)\s+to\s+be\s+(?:\w+(?:ed|en)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b|\bha(?:s|ve|d)\s+to\s+be\s+(?:\w+(?:ed|en)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: The token must be rotated before the audit.
+        good: Rotate the token before the audit.
+      - bad: The index is to be rebuilt after the import.
+        good: Rebuild the index after the import.
+      - bad: The cache can be cleared with one command.
+        good: You can clear the cache with one command.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.4'
+      note: >-
+        Tested: all bad examples match, all good examples do not. Also tested against
+        "you must rotate the token" (no match, correct — a modal plus a bare verb is
+        permitted) and "the job can fail" (no match, correct). The explicit irregular-participle
+        list is required: the first draft used the "-ed|-en" suffix set alone and silently
+        missed "is to be rebuilt" and "has to be set", both common in runbooks.
+    fix: Rewrite as an imperative, or name the actor and use the active voice.
+
+  - id: gerund-outside-noun-use
+    name: Use an -ing form only as a noun or a noun modifier
+    kind: judgement
+    severity: suggestion
+    message: Check that this -ing form works as a noun or as part of a noun, not as a verb.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Is this -ing word a noun (the name of a thing or a process), or a modifier inside a
+      domain noun? If it carries the action of the clause, rewrite it.
+    exceptions:
+      - quotation
+      - code-span
+      - registered-domain-term
+    allowlist: []
+    examples:
+      - bad: Restart the worker, making sure the queue is empty first.
+        good: Make sure that the queue is empty. Then restart the worker.
+      - bad: You can reduce cost by caching the response.
+        good: To reduce cost, cache the response.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.5'
+      note: >-
+        The progressive-tense half is caught by complex-tense. What is left is participial
+        clauses and gerund objects, which need a parse to separate from legitimate noun
+        uses such as "the logging config" or "load balancing". Judgement rather than a
+        regex for exactly that reason: a bare "-ing" pattern would fire on every legal
+        compound term in software documentation.
+    fix: Rewrite the clause with a finite verb, or split it into a separate sentence.
+
+  - id: passive-voice
+    name: Use the active voice
+    kind: pattern
+    severity: warning
+    message: 'Passive voice "{match}". Name the actor and use the active voice.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    # TWO BRANCHES, because an -ed/-en word after `be` is a participle OR an
+    # adjective and nothing lexical separates them.
+    #
+    #   1. `<participle> by` -- an explicit agent PROVES the passive, so no guard
+    #      applies. This branch keeps "is undeployed by the operator" and "is
+    #      unchecked by the guard" reported; branch 2's prefix guard would suppress
+    #      them.
+    #   2. no agent, so the adjectival guard runs: a CLOSED LIST of -ed words that
+    #      are adjectives rather than participles.
+    #
+    # The guard is a closed list and not a `(?:un|de)\w*ed` prefix test, which is
+    # what I tried first. `de-` is productive on ordinary verbs -- deleted, deployed,
+    # declared, decided -- so the prefix form suppressed real passives. The ruleset's
+    # own self-verification caught it immediately, on this rule's own `bad` example
+    # ("The stale branches were deleted last night."), which is the argument for
+    # keeping executable examples attached to every rule.
+    #
+    # The `nt|lt|ft` suffixes this pattern used to carry are GONE. They matched
+    # adjectives, not participles: measured on the independent corpus and this repo's
+    # own docs they fired on redundant, different, transient, important, consistent,
+    # permanent, current, significant, excellent, and "are irreducibly judgement".
+    # Every irregular participle they were meant to reach (built, kept, left, meant,
+    # dealt, felt, lost) is in the explicit list below, so dropping them cost no true
+    # positive: verified against 14 known passives and 17 known adjectives, now at 0
+    # false positives and 0 misses.
+    #
+    # `\w{3,}` rather than `\w+`, so `is red` and `is ten` cannot reach the class.
+    pattern: '\b(?:am|is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(?:(?:\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\s+by\b|(?!(?:unlimited|unbounded|unordered|unchanged|undefined|untracked|tired|dedicated|detailed|complicated|interested|involved|related|advanced|limited|fixed|mixed|varied|skilled|aged|red|used|decorrelated|deprecated)\b)(\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b)'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - unknown-agent
+    allowlist:
+      - is required
+      - are required
+      - is deprecated
+      - are deprecated
+      - is based
+      - are based
+      - is intended
+      - are intended
+      - is limited
+      - are limited
+      - is supported
+      - are supported
+      - is expected
+      - are expected
+    examples:
+      - bad: The manifest is validated by the admission controller.
+        good: The admission controller validates the manifest.
+      - bad: The stale branches were deleted last night.
+        good: The cleanup job deleted the stale branches last night.
+      - bad: The retry limit is set in the client config.
+        good: Set the retry limit in the client config.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.6'
+      note: >-
+        Issue 9 permits the passive in descriptive text only when the actor is genuinely
+        unknown, which is the unknown-agent exception. Tested: the three bad examples match
+        and the three good examples do not. The allowlist is the false-positive control and
+        it matters: adjectival predicates share the surface shape of a passive
+        ("is deprecated" is a state, not an action by a hidden actor), and without the
+        allowlist this rule is the single noisiest in the set. Confidence is highest when
+        the match ends in "by", so a runtime should raise severity on that branch and lower
+        it otherwise.
+    fix: Name the actor as the subject, or rewrite as an imperative.
+
+  - id: nominalized-action
+    name: State an action with a verb
+    kind: pattern
+    severity: warning
+    message: 'Nominalized action "{match}". Use the verb.'
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:do|does|did|perform[s]?|make[s]?|carry\s+out|conduct[s]?|provide[s]?|give[s]?|take[s]?)\s+(?:a|an|the)?\s*\w+(?:tion|sion|ment|ance|ence|al|ing)\b'
+    ignore_case: true
+    exceptions:
+      - quotation
+      - code-span
+      - api-name
+    allowlist:
+      - do a test
+      - does a test
+      - make sure
+      - makes sure
+      - take a screenshot
+    examples:
+      - bad: The operator performs a validation of the manifest before each deployment.
+        good: The operator validates the manifest before each deployment.
+      - bad: Do a verification of the checksum after the download.
+        good: Verify the checksum after the download.
+      - bad: The gate provides protection against a bad merge.
+        good: The gate prevents a bad merge.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:3.7'
+      note: >-
+        Anchored on a light verb plus a nominalization suffix, not on the suffix alone. The
+        suffix-alone version fires on every legitimate noun in software prose
+        ("the configuration", "the deployment") and would be disabled within a day. Tested:
+        the three bad examples match, the three good examples do not, and the trap
+        sentences "the deployment failed" and "check the configuration" do not match.
+        "do a test" is allowlisted because the controlled vocabulary permits the noun form
+        of "test" and refuses the verb form, so the nominalized shape is the prescribed
+        rewrite there.
+    fix: Replace the light verb and its noun with the single verb that names the action.

@@ -1,0 +1,16 @@
+Written to `findings-paragraph.md`.
+
+**18 of 25 rules fired** (19 blocks — `epigram-closer-remainder` twice). Seven did not apply, and I said so with reasons rather than manufacturing findings.
+
+The two dominant defects are both systematic, not local:
+
+1. **`cataphoric-lead-in-remainder`** — ~18 numbered forecasts ("Three sources feed", "Two design commitments", "Five failures are possible"), nearly always above a list that shows its own length. This is the loudest machine signature in the text.
+2. **`unasked-for-rationale`** — six naked design defences (`because a generated changelog is not authored prose`, `by design` twice, `that absence is the design`, `on purpose`, `for exactly that reason`) that a disagreeing reader gains nothing from.
+
+Also notable: `heading-echo` fires on four of five command subsections, all opening "This command ...". And `missing-key-word-structure` catches one object called *wordlist / dictionary / vocabulary / blocklist* across three adjacent paragraphs.
+
+Three caveats on my own report:
+
+- **The scope note in the brief did not match the file.** It said to pay particular attention to 17 rules with `scope: document`. All 25 rules in `rules-paragraph.json` are `scope: paragraph`; there are zero document-scope rules in this shard. I evaluated the 25 I actually have and flagged the discrepancy at the top of the findings. If those 17 ratio checks were meant to be in my shard, they were not, and nobody has covered them.
+- **`risk-level-word-missing-or-wrong` is my weakest finding.** I marked it "fires weakly" in the text. It is `text_type: safety` and this is a README, not a runbook, so a reviewer may reasonably rule it out of scope entirely. I included it because `--force` is the document's only destructive operation and matches the rule's second bad example verbatim in shape.
+- **`information-not-gradual` and the forward-reference claims rest on line numbers I read off the file**, e.g. Vale at 28 before its explanation at 44. Those are worth a spot-check before anyone edits on them.

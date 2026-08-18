@@ -1,0 +1,106 @@
+# A working word blocklist. Copy it, cut what you disagree with, add your own.
+#
+# Point slopvac at it:
+#
+#     [vocabulary]
+#     path = "docs/blocklist.toml"
+#
+# WHAT BELONGS HERE. A word your project refuses, as one part of speech, for a
+# reason you can state. Nothing else. The blocklist is not a style guide and not a
+# controlled vocabulary -- a word absent from this file is fine by definition, and
+# there is no way to express "only these words are allowed". That is deliberate:
+# this package shipped an allowlist once, and it produced 828 findings on ordinary
+# software prose for words that simply had no entry.
+#
+# EVERY ENTRY NEEDS A `reason`. The loader refuses the file otherwise. An
+# undocumented refusal cannot be reviewed or argued with, and six months on nobody
+# remembers whether it was a considered decision or a bad afternoon.
+#
+# FIELDS
+#   word         required. Matched case-insensitively.
+#   pos          required. noun, verb, adjective, adverb, preposition,
+#                conjunction, pronoun, article.
+#
+#                THE PART OF SPEECH IS THE POINT. `deploy` is a good verb and a
+#                bad noun, and one entry per sense is what lets you say so.
+#                Vale's tagger enforces it, so "the deploy failed" is flagged and
+#                "deploy the worker" is not.
+#   reason       required. Why this project refuses it.
+#   replacement  optional. What to write instead. Omit it when the fix depends on
+#                the sentence -- a wrong suggestion is worse than none, because a
+#                reader applies it without thinking.
+#
+# .yml and .json load too, if you have a wordlist in one already.
+
+# --- Verb-as-noun -------------------------------------------------------------
+# The verb is fine; the noun is a verb wearing a noun's clothes. Each of these has
+# a real noun already, and using the verb form loses it.
+
+[[entries]]
+word = "deploy"
+pos = "noun"
+replacement = "deployment"
+reason = "The verb is fine. The noun form is a verb used as a noun, and `deployment` already exists."
+
+[[entries]]
+word = "return"
+pos = "noun"
+replacement = "return value"
+reason = "Ambiguous alone: a return value, a return trip, or a tax return. The compound says which."
+
+# --- Verbs with a clearer form ------------------------------------------------
+
+[[entries]]
+word = "execute"
+pos = "verb"
+replacement = "run"
+reason = "`run` is shorter and means the same thing here."
+
+[[entries]]
+word = "branch"
+pos = "verb"
+replacement = "create a branch"
+reason = "Reads as a control-flow branch. The noun is the object, so name the action."
+
+[[entries]]
+word = "request"
+pos = "verb"
+replacement = "send a request"
+reason = "The noun carries the meaning; the verb makes the reader supply the missing action."
+
+[[entries]]
+word = "file"
+pos = "verb"
+replacement = "put in a file"
+reason = "Reads as legal filing. The noun is unambiguous, the verb is not."
+
+[[entries]]
+word = "key"
+pos = "verb"
+replacement = "type"
+reason = "Dated, and collides with the noun that appears in every API document."
+
+# --- Words that judge the reader instead of describing the work ---------------
+# No `replacement`, because the fix is to state the fact the word was standing in
+# for. `simple` and `easy` are the two that most reliably survive review and then
+# read as an insult to whoever the step was not easy for.
+
+[[entries]]
+word = "simple"
+pos = "adjective"
+reason = "Judges the reader's experience rather than the work. State the step count instead."
+
+[[entries]]
+word = "easy"
+pos = "adjective"
+reason = "Same failure as `simple`. If it is easy, the instructions show that without the claim."
+
+[[entries]]
+word = "quickly"
+pos = "adverb"
+reason = "Unmeasurable. Give the duration."
+
+[[entries]]
+word = "correctly"
+pos = "adverb"
+reason = "Tells the reader nothing about what correct means. State the expected result."

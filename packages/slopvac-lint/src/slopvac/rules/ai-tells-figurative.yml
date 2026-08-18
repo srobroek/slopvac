@@ -1,0 +1,453 @@
+# Two categories in one multi-document file, ported from the orphaned
+# `ai-tells` Vale rules that never reached this engine.
+#
+# Source: the 23 `styles/ai-tells/*.yml` rules that existed only on the
+# retired `agentic-packages` branch `chore/context-engineering-audit` and in
+# the archived `bailiff/.vale-styles/ai-tells/`. Seven of the 23 are NOT here,
+# because `docs/exclusions.md` already adjudicated them against a 488-file
+# corpus and said not to port them: SemicolonUsage (612 hits, ordinary
+# punctuation), ColonUsage (128, same class), ShipOveruse (53, the literal
+# verb), FormalRegister (flags `implement`), RedundantPrecaution (one idiom per
+# file), GrowthMetaphors (domain-narrow), AICompoundPhrases (kept in Vale at
+# warning). Porting those would reverse a measured decision.
+#
+# The figurative-verb family is one rule per verb rather than one combined
+# rule, because the scope caveat differs per verb: `runs` is ordinary in
+# plumbing prose, `strikes` in labour prose, `wins` in sports prose. A reader
+# who disables one must not lose the other nine.
+---
+id: ai-tells-figurative
+title: AI tells -- figurative verbs
+description: >-
+  A verb doing rhetorical work in place of an observation. The generated
+  register reaches for a spatial or athletic metaphor where the literal
+  relation was available: what something is, where it is, what it lacks.
+weight: 1.2
+recommended_for: [consumer-docs, internal-docs, change-comms]
+rules:
+  - id: figurative-sits
+    name: Name the literal relation
+    kind: pattern
+    severity: warning
+    message: 'figurative "sits": {match} -- write the literal relation: is at, rests with, is unused'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\bsit(?:s|ting)? (?:squarely |firmly |neatly |cleanly |comfortably |uncomfortably |uneasily |awkwardly |snugly )?at the (?:intersection|center|centre|core|nexus|crux|crossroads|confluence|junction|foundation|edge|apex|boundary) of\b|\bsit(?:s|ting)? somewhere (?:between|in|along|on|near|toward|around|beyond)\b|\bsit(?:s|ting)? (?:squarely|firmly|neatly|cleanly|comfortably|uncomfortably|uneasily|awkwardly|snugly|precariously) (?:within|inside|in|at|on|alongside|atop|above|below|beneath|beside|between|with|next|among|amid|outside)\b|\bsit(?:s|ting)? (?:alongside|atop|astride)\b|\bsit(?:s|ting)? with\b|\bsit(?:s|ting)? (?:squarely |firmly |neatly |comfortably )?within\b|\bjust sit(?:s|ting)? there\b|\bsit(?:s|ting)? in isolation\b|\bsit(?:s|ting)? (?:idle|unused|untouched|unresolved|unaddressed|unfinished|dormant|neglected|stale|forgotten|abandoned)\b|\bsit(?:s|ting)? (?:right|well|poorly|badly|wrong)\b|\bsit(?:s|ting)? (?:heavy|heavily)\b|\bsit(?:s|ting)? (?:at odds|in tension|in conflict|in opposition) (?:with|to)\b|\bsit(?:s|ting)? in (?:limbo|purgatory|a holding pattern|the balance|a gr[ae]y area|no man''s land)\b|\bsit(?:s|ting)? front and cent(?:er|re)\b|\bsit(?:s|ting)? on the fence\b|\bsit(?:s|ting)? (?:just |right |directly )?(?:above|below|beneath|underneath|on top of) the (?:\w+ )?(?:layer|stack|tier|level|hierarchy|pipeline|chain)\b|\bsit(?:s|ting)? at the top of the (?:agenda|priority|priorities|to-?do|backlog|pile|queue)\b'
+    fix: Replace with the literal relation, or delete the sentence if it carries no fact.
+    examples:
+      - bad: The loader sits at the intersection of parsing and validation.
+        good: The loader parses the file, then validates it.
+      - bad: Twelve tickets sit unresolved.
+        good: Twelve tickets are open.
+    provenance:
+      source: ai-tells/FigurativeSits.yml
+      note: >-
+        Disable for furniture or seating prose. Widest of the family (17
+        branches) because `sit` carries the most distinct figurative senses:
+        position, idleness, discomfort, and priority. The nearest owned rule,
+        `ai-tells-register.figurative-verb-verdict-core`, is a 10-token list
+        about VERDICTS and does not reach any of these.
+
+  - id: figurative-runs
+    name: Name the actual behaviour
+    kind: pattern
+    severity: warning
+    message: 'figurative "runs": {match} -- name the behaviour, not the motion'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\brun(?:s|ning)? deep(?:er)?\b|\brun(?:s|ning)? counter to\b|\brun(?:s|ning)? afoul of\b|\brun(?:s|ning)? roughshod over\b|\brun(?:s|ning)? the (?:full )?(?:gamut|spectrum)\b|\brun(?:s|ning)? the show\b|\brun(?:s|ning)? the risk of\b|\brun(?:s|ning)? interference\b|\brun(?:s|ning)? (?:circles|rings) around\b|\brun(?:s|ning)? on (?:fumes|empty|borrowed time)\b|\bran on (?:fumes|empty|borrowed time)\b|\brun(?:s|ning)? dry\b|\bran dry\b|\brun(?:s|ning)? (?:its|their) course\b|\bran (?:its|their) course\b|\brun(?:s|ning)? out of runway\b|\bran out of runway\b|\b(?:run(?:s|ning)?|ran) (?:under|underneath|beneath|behind|through) (?:the (?:whole|entire) \w+|it all)\b|\b(?:themes?|threads?|currents?|undercurrents?|tensions?|assumptions?|through-?lines?) (?:that )?(?:runs?|ran|running) (?:through|under|beneath|across)\b|\b(?:run(?:s|ning)?|ran) beneath the surface\b|\bhit the ground running\b|\boff and running\b'
+    fix: State what happens, or which assumption the code actually makes.
+    examples:
+      - bad: The disagreement runs deeper than the API surface.
+        good: The two teams disagree about who owns retries.
+      - bad: This runs counter to the retry policy.
+        good: This contradicts the retry policy.
+    provenance:
+      source: ai-tells/FigurativeRuns.yml
+      note: >-
+        Disable for athletics or plumbing prose. `hit the ground running` also
+        appears in `prose-inflation.business-jargon`; the duplicate is
+        deliberate so disabling one style does not lose the idiom.
+
+  - id: figurative-falls
+    name: Name the shortfall or the membership
+    kind: pattern
+    severity: warning
+    message: 'figurative "falls": {match} -- name the shortfall, or say which set it belongs to'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\bfall(?:s|ing)? short\b|\bfall(?:s|ing)? flat\b|\bfall(?:s|ing)? apart\b|\bfall(?:s|ing)? to pieces\b|\bfall(?:s|ing)? through(?:\b|$)|\bfall(?:s|ing)? behind\b|\bfall(?:s|ing)? under (?:the (?:category|heading|umbrella|banner|purview|remit|scope|rubric)|\w+ jurisdiction)\b|\bfall(?:s|ing)? (?:squarely |neatly |cleanly |broadly )?within (?:the )?(?:scope|remit|purview|bounds|category|realm|domain|ambit)\b|\bfall(?:s|ing)? outside (?:the )?(?:scope|remit|purview|bounds|category|realm|domain)\b|\bfall(?:s|ing)? into place\b|\bfall(?:s|ing)? into line\b|\bfall(?:s|ing)? into the (?:trap|habit|pattern|category) of\b|\b(?:responsibility|responsibilities|the task|the job|the duty|the burden|the onus|the decision|the choice|the call|the blame|the work|it all) falls? (?:to|on|upon)\b|\bfall(?:s|ing)? by the wayside\b|\bfall(?:s|ing)? through the cracks\b|\bfall(?:s|ing)? on deaf ears\b|\bfall(?:s|ing)? out of (?:favor|favour|use|fashion|style)\b|\bfall(?:s|ing)? off (?:the|a) (?:radar|cliff|map|table|rails)\b|\bfall(?:s|ing)? into (?:disrepair|disuse|obscurity|oblivion|neglect)\b|\bfall(?:s|ing)? (?:victim|prey) to\b'
+    fix: Give the number it misses by, or name the set and the owner.
+    examples:
+      - bad: The cache falls short of the target.
+        good: The cache hits 71% against a 90% target.
+      - bad: Retries fall within the scope of this document.
+        good: This document covers retries.
+    provenance:
+      source: ai-tells/FigurativeFalls.yml
+      note: >-
+        Disable for gravity or accident prose. The membership branches
+        (`falls under the category`) are the ones worth keeping in reference
+        documentation: they are always a longer way to write "is".
+
+  - id: figurative-draws
+    name: Name the source or the comparison
+    kind: pattern
+    severity: warning
+    message: 'figurative "draws": {match} -- name the source, or state the comparison directly'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\bdraw(?:s|ing)? (?:heavily |largely |partly |loosely )?(?:on|upon) (?:the |its |a |an |our |their |years of |decades of |a rich |a long )?\w+|\bdrew (?:heavily |largely |partly |loosely )?(?:on|upon)\b|\bdraw(?:s|ing)? inspiration from\b|\bdrew inspiration from\b|\bdraw(?:s|ing)? (?:a|an|the|clear|sharp) (?:distinction|parallel|comparison|analogy|contrast|line|connection)\b|\bdrew (?:a|an|the|clear|sharp) (?:distinction|parallel|comparison|analogy|contrast|line|connection)\b|\bdraw(?:s|ing)? comparisons\b|\bdraw(?:s|ing)? (?:attention|scrutiny|criticism|praise|fire|the eye|the reader''?s eye|focus) (?:to|toward|towards)?\b|\bdrew (?:attention|scrutiny|criticism|praise|fire|the eye|focus)\b|\bdraw(?:s|ing)? to a (?:close|end)\b|\bdrew to a (?:close|end)\b'
+    fix: Cite the source, or state the two things and how they differ.
+    examples:
+      - bad: The design draws on years of operational experience.
+        good: The design follows the 2024 incident review.
+      - bad: This draws a distinction between retries and backoff.
+        good: A retry repeats the call; backoff sets the delay between retries.
+    provenance:
+      source: ai-tells/FigurativeDraws.yml
+      note: >-
+        Disable for art or cartography prose. The `draws on` branch has the
+        loosest tail in the family (`\w+` after an optional determiner),
+        which is why it ships at warning rather than error.
+
+  - id: figurative-casts
+    name: State the doubt or the effect
+    kind: pattern
+    severity: warning
+    message: 'figurative "casts": {match} -- state the doubt and what supports it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\bcast(?:s|ing)? (?:serious |real |some |considerable )?doubt (?:on|over|upon)\b|\bcast(?:s|ing)? a (?:long |dark |lingering )?shadow (?:on|over|across)?\b|\bcast(?:s|ing)? a pall\b|\bcast(?:s|ing)? aspersions\b|\bcast(?:s|ing)? (?:new )?light on\b|\bcast(?:s|ing)? (?:it|this|that|them|the \w+) in a (?:new|different|positive|negative|favorable|favourable) light\b|\bcast(?:s|ing)? a wide net\b|\bcast(?:s|ing)? the net wide\b|\bcast(?:s|ing)? aside\b'
+    fix: Name the observation, then the doubt it creates.
+    examples:
+      - bad: The benchmark casts doubt on the caching claim.
+        good: The benchmark shows no cache hits, so the caching claim is unverified.
+    provenance:
+      source: ai-tells/FigurativeCasts.yml
+      note: Disable for fishing, metalworking, or theatre-casting prose.
+
+  - id: figurative-strikes
+    name: State the effect or the tradeoff
+    kind: pattern
+    severity: warning
+    message: 'figurative "strikes": {match} -- state the effect or the tradeoff directly'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\b(?:strike|strikes|striking) a (?:chord|nerve)\b|\bstruck a (?:chord|nerve)\b|\b(?:strike|strikes|striking) (?:the right|a|an?) (?:note|tone|chord)\b|\bstruck (?:the right|a|an?) (?:note|tone|chord)\b|\b(?:strike|strikes|striking) at the (?:core|center|centre|root) of\b|\bstruck at the (?:core|center|centre|root) of\b|\b(?:strike|strikes|striking) close to home\b|\b(?:strike|strikes|striking) gold\b|\bstruck gold\b|\bstrike while the iron is hot\b'
+    fix: Name the effect, or the two things traded off and which one this takes.
+    examples:
+      - bad: The migration guide strikes the right tone.
+        good: The migration guide gives a command for each of the four steps.
+      - bad: The bug strikes at the core of the retry design.
+        good: The bug makes every retry reuse the expired token.
+    provenance:
+      source: ai-tells/FigurativeStrikes.yml
+      note: >-
+        Disable for labour-action or percussion prose. `strikes a balance` is
+        NOT covered: the source rule's noun list is note/tone/chord, and this
+        port does not widen it. The loader's example check is what established
+        that, after a first draft asserted the opposite.
+
+  - id: figurative-wins
+    name: State the benefit or the outcome
+    kind: pattern
+    severity: warning
+    message: 'figurative "wins": {match} -- state the benefit and its size'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\bwin(?:s|ning)? the day\b|\bwon the day\b|\bwin(?:s|ning)? out\b|\bwon out\b|\bwin(?:s|ning)? hands down\b|\bcom(?:es|ing)? out on top\b|\bcame out on top\b|\bwin(?:s|ning)? hearts and minds\b|\ban? (?:quick|easy|clear|big|huge|major|real|cheap|early|guaranteed|obvious) win\b|\b(?:quick|easy|cheap|early) wins\b|\b(?:chalk|notch|score|rack|bank|log)(?:s|ed|ing)? up (?:a|another|some|several)? ?wins?\b|\bfor the win\b|\ba winning (?:formula|combination|combo|strategy|streak|hand|recipe|play|move)\b|\bthe winning (?:formula|combination|combo|strategy|hand|recipe|play|move)\b|\bwin-win\b|\bwin/win\b'
+    fix: Replace the win with the measurement that makes it one.
+    examples:
+      - bad: Caching the manifest is an easy win.
+        good: Caching the manifest removes 300 ms from every cold start.
+    provenance:
+      source: ai-tells/FigurativeWins.yml
+      note: >-
+        Disable for sports or games prose. `win-win` also appears in
+        `prose-inflation.business-jargon`; kept in both so either style stands
+        alone. Zero of the 16 branches were reachable by any owned rule.
+
+  - id: figurative-lends
+    name: State what it adds or enables
+    kind: pattern
+    severity: warning
+    message: 'figurative "lends": {match} -- say what it adds, or what it makes possible'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\blend(?:s|ing)? itself (?:well |neatly |naturally |readily )?to\b|\blend(?:s|ing)? themselves (?:well |neatly |naturally |readily )?to\b|\blend(?:s|ing)? (?:credence|credibility|weight|gravitas|authority|legitimacy|support|nuance|texture|color|colour|depth|clarity)\b|\blent (?:credence|credibility|weight|gravitas|authority|legitimacy|support|nuance|texture|color|colour|depth|clarity)\b|\blend(?:s|ing)? an (?:air|aura|element|element of surprise|impression) (?:of|to)\b|\blend(?:s|ing)? a hand\b'
+    fix: Name the property, or say what the reader can now do.
+    examples:
+      - bad: The schema lends itself to incremental validation.
+        good: The schema validates one field at a time.
+    provenance:
+      source: ai-tells/FigurativeLends.yml
+      note: Disable for library-lending or finance prose.
+
+  - id: figurative-rides
+    name: Name the dependency or the mechanism
+    kind: pattern
+    severity: warning
+    message: 'figurative "rides": {match} -- name what depends on what'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\b(?:ride|rides|riding) on (?:whether|a single|(?:this |that )?one \w+|(?:the|this|that) (?:assumption|premise|hope|outcome|answer|result|success)|an assumption)\b|\b(?:everything|it all|a lot|much|the whole \w+) (?:ride|rides|riding) on\b|\b(?:ride|rides|riding) along\b|\b(?:ride|rides|riding) shotgun\b|\bhitch(?:es|ed|ing)? a ride\b|\balong for the ride\b|\bfree ride\b|\b(?:ride|rides|riding) on top of\b|\b(?:ride|rides|riding) (?:the|a|that) wave\b|\b(?:ride|rides|riding) (?:on the |the )?coattails\b|\b(?:ride|rides|riding) the momentum\b|\b(?:ride|rides|riding) high\b|\b(?:ride|rides|riding) the (?:index|cache|(?:hot|fast|slow|happy|read|write|critical) path|pipeline|queue|wire|backbone|mainline|gradient|event loop|fast lane)\b|\b(?:ride|rides|riding) herd on\b|\blet it ride\b'
+    fix: 'State the dependency as a condition: X works only when Y holds.'
+    examples:
+      - bad: Correctness rides on whether the clock is monotonic.
+        good: Correctness requires a monotonic clock.
+    provenance:
+      source: ai-tells/FigurativeRides.yml
+      note: >-
+        Disable for transit or equestrian prose. The `rides the <path>` branch
+        is the one that fires in performance writing, where the literal
+        mechanism (a cache hit, a branch taken) is always available.
+
+  - id: figurative-loud
+    name: Name the behaviour, not the volume
+    kind: pattern
+    severity: warning
+    message: 'figurative "loud": {match} -- name what it actually does'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, dead-metaphor, domain-term]
+    pattern: '\bloudly (?:announces?|proclaims?|declares?|complains?|protests?|objects?|warns?|signals?|advertises?|broadcasts?|fails?|logs?|flags?|insists?|demands?|trumpets?|telegraphs?)\b|\b(?:fails?|failing|failed|breaks?|breaking|broke|errors?|erroring|errored|crashes?|complains?|complained) loudly\b|\b(?:sends?|sending|sent|throws?|throwing|threw|emits?|emitting|emitted) (?:a|an|off a|out a) loud (?:signal|warning|message|alarm|alert)\b|\ba loud (?:signal|warning|message) (?:about|that|to)\b|\bloud and clear\b'
+    fix: Say which channel it writes to and at what level.
+    examples:
+      - bad: The parser fails loudly on a bad header.
+        good: The parser exits 2 and writes the offending line to stderr.
+    provenance:
+      source: ai-tells/FigurativeLoud.yml
+      note: >-
+        Disable for audio prose. `fails loudly` is the instance worth catching:
+        it is a design claim with no observable in it, and the observable
+        (exit code, stream, level) is what a reader needs.
+
+  - id: resonate-overuse
+    name: Name what connects and why
+    kind: pattern
+    severity: warning
+    message: 'figurative "resonate": {match} -- name what connects, and with whom'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, domain-term]
+    pattern: '\bresonat(?:e|es|ed|ing)\b'
+    fix: State who agreed with what, or delete the sentence.
+    examples:
+      - bad: The argument resonates with maintainers.
+        good: Three maintainers said the argument matched their experience.
+    provenance:
+      source: ai-tells/ResonateOveruse.yml
+      note: >-
+        Disable for physics or audio prose, where the word is literal. Single
+        token on purpose: every figurative use is the same defect, an
+        agreement claim with no agreeing party named.
+
+  - id: colloquial-assessment
+    name: State the assessment directly
+    kind: pattern
+    severity: warning
+    message: 'colloquial assessment: {match} -- state the judgement and the evidence for it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation]
+    pattern: '\bthe (?:joke|point|argument|line|metaphor|analogy|comparison|critique|distinction|observation|framing|insight|takeaway|punchline|callback|bit|reference|callout) (?:really |actually |just |finally )?lands?\b|\bthe (?:joke|point|argument|line|metaphor|analogy|comparison|critique|distinction|observation|framing|insight|takeaway|punchline|callback|bit|reference|callout) (?:really|actually|just|finally) landed\b|\b(?:really|actually) lands\b|\b(?:really|actually) landed\b|\bland(?:s|ed)? flat\b|\bwhere (?:it|this|that|everything|the whole thing) (?:really |finally |ultimately |just |all )?lands?\b|\bis the move\b|\bwas the move\b|\b(?:that|this)''?s the move\b|\bthe (?:right|smart|obvious) move\b|\bthe play here\b|\bthe move here\b|\bwhat (?:really|truly|actually|genuinely) matters\b|\bwhat matters most\b|\ball that (?:really |truly |actually )?matters\b|\bthe only thing that (?:really |truly |actually )?matters\b'
+    fix: Name the criterion, then say which option meets it.
+    examples:
+      - bad: Batching the writes is the move here.
+        good: Batching the writes cuts the transaction count from 400 to 4.
+      - bad: What really matters is the retry budget.
+        good: The retry budget decides whether the job finishes inside the window.
+    provenance:
+      source: ai-tells/ColloquialAssessments.yml
+      note: >-
+        Overlaps `ai-tells-register.figurative-verb-verdict-core` on exactly
+        one token (`the point lands`); the other 21 branches, including the
+        whole `is the move` and `what really matters` families, were
+        unreachable by any owned rule.
+---
+id: prose-promotion
+title: Prose promotion
+description: >-
+  Promotional register: travel-brochure puffery, strategy-deck vocabulary, and
+  the adjective-noun and verb habits that carry a claim no measurement backs.
+weight: 1.2
+recommended_for: [consumer-docs, change-comms]
+rules:
+  - id: promotional-puffery
+    name: Use neutral, specific language
+    kind: pattern
+    severity: error
+    message: 'puffery: {match} -- replace with the fact that would justify it'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    exceptions: [quotation, named-entity]
+    pattern: '\bnestled (?:in|between|among|alongside|within) (?:the|a)?\b|\b(?:in|at) the heart of\b|\brich cultural heritage\b|\brich (?:history and|and diverse|and vibrant)\b|\bvibrant (?:community|culture|ecosystem|atmosphere)\b|\bnatural beauty\b|\ba (?:hub for|hub of|dynamic hub|thriving hub|cultural hub)\b|\ba beacon (?:of|for)\b|\ba treasure trove (?:of|for)\b|\ba (?:shining|prime) example\b|\ba masterclass in\b|\ba testament to (?:the|its)\b|\brenowned for (?:its|their|her|his)\b|\bwidely (?:regarded as|recognized as|considered)\b|\bis home to\b|\bhas emerged as (?:a|the)\b|\bhas established itself as\b|\bcontinues to (?:evolve|thrive|grow|inspire)\b|\bleft an indelible (?:mark|impact)\b|\bleaving an indelible mark\b|\bleft a lasting (?:impact|impression)\b|\bleaving a lasting impact\b|\b(?:a lasting|enduring) legacy\b|\benduring impact\b'
+    fix: Delete the phrase, or replace it with the number or fact behind it.
+    examples:
+      - bad: The library has emerged as a hub for astronomy tooling.
+        good: Four astronomy tools depend on the library.
+      - bad: The rewrite left a lasting impact on latency.
+        good: The rewrite cut p99 latency from 800 ms to 120 ms.
+    provenance:
+      source: ai-tells/PromotionalPuffery.yml
+      note: >-
+        The register `prose-inflation.slop-lexicon` does not reach: that rule
+        owns single marketing ADJECTIVES (robust, seamless), while this owns
+        multi-word travel-and-biography CONSTRUCTIONS. Zero of 55 source
+        tokens were matched by any owned rule, which is why it ships at error
+        rather than warning -- unlike `AICompoundPhrases`, none of these
+        phrases has an ordinary technical use.
+
+  - id: strategy-buzzwords
+    name: Describe the mechanism
+    kind: pattern
+    severity: error
+    message: 'strategy buzzword: {match} -- describe the actual mechanism or advantage'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    exceptions: [quotation, defined-term-of-art]
+    pattern: '\bflywheel effect\b|\b(?:growth|data|content|engagement|customer|revenue|sales|marketing|business|virtuous|self-?reinforcing) flywheels?\b|\b(?:build|building|built|create|creates|created|creating|spin|spins|spinning|start|starts|started|starting) (?:a |the |our |its |their )?flywheels?\b|\b(?:competitive|economic|defensible|durable|structural|wide|deep|business|data|regulatory|technological|distribution) moats?\b|\b(?:build|building|built|widen|widens|widening|widened|deepen|deepens|deepening|deepened|create|creates|created|creating) (?:a |the |our |its |their |wider |deeper )?moats?\b|\bmoats? (?:around|against) (?:the |our |its |their |your )?(?:business|company|product|platform|franchise|market|position|revenue|profits?|margins?|data|ecosystem|core)\b|\bnorth[- ]star metric\b|\bnorth-star\b|\b(?:our|your|their|its) north star\b|\bnetwork effects?\b|\bfirst[- ]mover advantage\b|\b(?:market|customer|data|talent|competitive|global|massive|enterprise) land[- ]grab\b|\bland[- ]grab for\b'
+    fix: Name the loop or the barrier, and what makes it hold.
+    examples:
+      - bad: Caching builds a data moat.
+        good: The cache holds 8 TB no competitor can re-derive without our sensor feed.
+      - bad: Adoption creates a growth flywheel.
+        good: Each new user contributes a review, which raises search ranking.
+    provenance:
+      source: ai-tells/StrategyBuzzwords.yml
+      note: >-
+        `north star` alone is in `prose-inflation.business-jargon`; the
+        flywheel, moat, network-effect, and land-grab bands are not, and they
+        are the ones that appear in generated strategy prose. Exception
+        `defined-term-of-art` exists because `network effect` is a real term
+        in economics writing.
+
+  - id: promotional-adjective-noun
+    name: Cut the promotional adjective
+    kind: pattern
+    severity: warning
+    message: 'promotional adjective: {match} -- delete it, or give the measurement'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, quantified]
+    pattern: '\b(?:multifaceted|intricate|transformative|groundbreaking|unparalleled|unprecedented|pivotal|innovative|sophisticated) [a-z]+\b'
+    fix: Delete the adjective. If the claim matters, replace it with the number behind it.
+    examples:
+      - bad: An intricate dependency graph.
+        good: A dependency graph with 340 edges.
+      - bad: This is a pivotal release.
+        good: This release removes the last Python 3.9 dependency.
+    provenance:
+      source: ai-tells/AIAdjectiveNounPairs.yml
+      note: >-
+        The source rule is Vale `extends: sequence` with a `JJ` + `NN|NNS`
+        tag pair. This engine has no part-of-speech tagging outside
+        `kind: vocabulary`, so the noun side is approximated by a following
+        lowercase word -- narrower than the tagger on hyphenated and
+        capitalised nouns, and that under-match is the safe direction.
+        `holistic`, `seamless`, and `comprehensive` are omitted: already owned
+        by `prose-inflation.slop-lexicon`, and a second rule on the same token
+        would double-count in the density budget.
+
+  - id: promotional-verbs
+    name: Use the direct verb
+    kind: tokens
+    severity: warning
+    message: 'promotional verb: {match} -- use the direct verb'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    exceptions: [quotation, domain-term]
+    tokens:
+      - navigate
+      - navigates
+      - navigating
+      - navigated
+      - showcase
+      - showcases
+      - showcasing
+      - embark
+      - embarks
+      - embarking
+      - foster
+      - fosters
+      - fostering
+      - spearhead
+      - spearheads
+      - spearheading
+    fix: >-
+      Use the plain verb: "showcase" is "show", "harness" is "use", "embark on"
+      is "start", "foster" is "encourage" or "cause".
+    examples:
+      - bad: The demo showcases the new parser.
+        good: The demo runs the new parser on three files.
+      - bad: We embark on a migration.
+        good: The migration starts on 3 March.
+    provenance:
+      source: ai-tells/OverusedVocabularyVerbs.yml
+      note: >-
+        The source rule is `extends: sequence` with verb tags; without a
+        tagger this is a token list, so a noun use fires too ("navigate" in UI
+        prose). `domain-term` is the exception for those. `leverage` is
+        omitted as already in `prose-inflation.slop-lexicon`. The `harness`
+        forms are omitted on a MEASUREMENT: the only hit across 50 files in
+        this repo was `### Any harness, without installing APM` in the README,
+        the noun sense. Same defect that disqualified `ai-tells.FormalRegister`
+        for `implement`.

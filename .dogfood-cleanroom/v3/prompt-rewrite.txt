@@ -1,0 +1,34 @@
+You are rewriting one document to address a review. You are an editor, not a reviewer. Do not produce a report.
+
+The document:  /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/subject.md
+The review:    /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/findings-merged.md
+Write to:      /Users/sjors/personal/dev/slopvac/.dogfood-cleanroom/v3/README.v3.md
+
+The review holds 62 findings from four independent read-only reviewers, each of whom held a different scope (sentence, paragraph, document, prose). Every finding names a rule id, a line range, the quoted text, why it fired, and a concrete fix. Findings are ordered by line.
+
+Your job: produce README.v3.md, a full rewrite of subject.md that addresses the findings.
+
+HOW TO WORK
+
+1. Read subject.md in full first, so you understand the document as a whole before you change any part of it.
+2. Read findings-merged.md in full.
+3. Rewrite. Address every finding you agree with. Where you DISAGREE with a finding, do not silently ignore it: leave the text as it was and note the disagreement at the very end of README.v3.md under a heading `## Findings not applied`, one line each, giving the rule id, the line, and your one-sentence reason. A reviewer can be wrong. An unexplained non-fix cannot be audited.
+4. The document-scope findings are shape and ratio problems over the whole text. Those are not fixed by editing one sentence. Expect to restructure.
+
+WHAT MUST NOT CHANGE
+
+- Every factual claim, number, file path, command, flag, rule id, exit code, and code block must survive exactly. This is a technical README for a real tool. If a finding asks for a number the document does not contain, do NOT invent one -- record it under `## Findings not applied` instead.
+- Markdown structure: keep the heading hierarchy and the code fences. You may merge, split, or reorder sections where a document-scope finding calls for it.
+- Do not add content that is not in subject.md. This is a rewrite, not an expansion. The one exception is the `## Findings not applied` section.
+
+CONSTRAINTS
+
+1. Do NOT read any other file in the .dogfood-cleanroom directory. Not DIFFS.md, not the other README versions, not any prompt, log, or lint report, not the judgement rule JSON. Only subject.md and findings-merged.md.
+2. Do NOT read the slopvac source, the rule YAML, or any writing-style guidance.
+3. Do NOT use any Skill.
+4. Do NOT edit subject.md. It is read-only.
+5. Spelling is en-US. `--judgement` and `kind: judgement` are code identifiers and keep that spelling.
+
+Legal: do not reproduce ASD-STE100 rule prose, examples, or wordlist entries. Rule numbers as facts are fine.
+
+Write README.v3.md and stop. Your final message should be a short note on what you restructured and how many findings you did not apply.

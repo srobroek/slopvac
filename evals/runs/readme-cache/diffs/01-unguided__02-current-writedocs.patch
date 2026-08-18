@@ -1,0 +1,240 @@
+--- 01-unguided
++++ 02-current-writedocs
+@@ -1,108 +1,175 @@
+ # fluxcache
+ 
+-**Semantic caching for LLM applications — because your users don't phrase things the same way twice.**
++Caches LLM responses and returns a cached response when a new prompt is semantically similar to a stored one.
+ 
+-Traditional caches miss constantly in LLM workloads. Users rarely ask the same question with identical wording, so an exact-match cache sits there with a near-zero hit rate while you pay for every single call. fluxcache solves this by embedding incoming prompts and matching them against previously cached queries within a configurable similarity threshold — unlocking the cost savings that exact-match caching promises but never delivers.
++fluxcache embeds each prompt and compares that embedding against stored prompt embeddings by cosine similarity. A match at or above the threshold is a hit, and the stored response is returned. A miss calls your function and stores the result under the new prompt.
+ 
+-## Why fluxcache?
++## Install
+ 
+-- 🚀 **Blazing fast** — sub-millisecond lookups on the in-memory backend
+-- 🎯 **Semantically aware** — catches paraphrases, typos, and reorderings that exact caches miss
+-- 🔧 **Highly configurable** — thresholds, TTLs, namespacing, and custom scoring
+-- 🏗️ **Production ready** — battle-tested Redis backend for distributed deployments
+-- 🪶 **Lightweight** — minimal dependencies, no vendor lock-in
+-
+-## Installation
+-
+ ```bash
+ pip install fluxcache
+ ```
+ 
+-## Quick Start
++Redis backend:
+ 
+-Getting started is dead simple. It ships with sensible defaults so you can have semantic caching running in just a few lines of code:
++```bash
++pip install "fluxcache[redis]"
++```
+ 
++## Quickstart
++
+ ```python
+-from fluxcache import FluxCache
++from fluxcache import Cache
+ 
+-cache = FluxCache()
++cache = Cache(threshold=0.92, ttl=3600)
+ 
+-result = cache.get("What is the capital of France?")
+-if result is None:
+-    result = call_your_llm("What is the capital of France?")
+-    cache.set("What is the capital of France?", result)
++@cache.wrap
++def ask(prompt: str) -> str:
++    return call_your_model(prompt)
++
++ask("What is the capital of France?")   # miss, calls the model
++ask("what's the capital of france?")    # hit, returns the stored response
+ ```
+ 
+-That's it! The second time a user asks "What's France's capital city?" — a completely different string — fluxcache will recognize the semantic similarity and return your cached response.
++`cache.wrap` keys on the first positional argument. Pass `key=` to key on something else:
+ 
+-## Configuration
++```python
++@cache.wrap(key=lambda messages: messages[-1]["content"])
++def chat(messages: list[dict]) -> str:
++    return call_your_model(messages)
++```
+ 
+-While the defaults work great for most use cases, fluxcache exposes all the knobs that real applications need as they scale:
++## Threshold
+ 
++`threshold` is the minimum cosine similarity for a hit, in the range `0.0` to `1.0`. Default is `0.95`.
++
++| Threshold | Effect |
++| --- | --- |
++| 1.0 | Exact-embedding matches only |
++| 0.95 | Paraphrases and punctuation or case differences |
++| 0.85 | Same topic, different question |
++| Below 0.8 | Unrelated prompts return each other's responses |
++
++Inspect a lookup before trusting a threshold:
++
+ ```python
+-cache = FluxCache(
+-    threshold=0.92,          # similarity threshold for a hit
+-    ttl=3600,                # seconds before an entry expires
+-    namespace="chat-v2",     # isolate cache domains
+-    backend="redis",         # or "memory"
+-    redis_url="redis://localhost:6379",
+-)
++result = cache.lookup("what's the capital of france?")
++print(result.hit, result.score, result.matched_prompt)
+ ```
+ 
+-### Similarity Threshold
++## TTL
+ 
+-The threshold is arguably the most important knob you'll tune. Setting it too low means you may potentially serve semantically unrelated responses; setting it too high and you're essentially back to exact matching. Most teams find that somewhere in the 0.85–0.95 range tends to work reasonably well, though your results may vary depending on your domain.
++`ttl` is the lifetime of an entry in seconds. `ttl=None` stores entries without expiry.
+ 
+-### Custom Scoring
++```python
++cache = Cache(ttl=86400)                 # one day
++cache = Cache(ttl=None)                  # no expiry
++```
+ 
+-Need more control? You can leverage the custom scoring hook to implement your own similarity logic:
++Per-entry override:
+ 
+ ```python
+-def my_scorer(query_embedding, cached_embedding, metadata):
+-    base = cosine_similarity(query_embedding, cached_embedding)
+-    if metadata.get("user_id") != current_user_id:
+-        return 0.0
+-    return base
++cache.set("What is the capital of France?", "Paris", ttl=60)
++```
+ 
+-cache = FluxCache(scorer=my_scorer)
++## Namespaces
++
++A namespace isolates entries. A lookup in one namespace never matches an entry in another. Use one per model, per tenant, or per prompt template version.
++
++```python
++gpt = Cache(namespace="gpt-4o")
++claude = Cache(namespace="claude-opus")
++
++gpt.set("ping", "pong")
++claude.lookup("ping").hit    # False
+ ```
+ 
+-This is particularly useful for multi-tenant applications where cache isolation is mission-critical.
++Clear one namespace without touching the others:
+ 
++```python
++gpt.clear()
++```
++
+ ## Backends
+ 
+-| Backend | Best For | Persistence |
+-|---|---|---|
+-| `memory` | Development, single-process apps | ❌ |
+-| `redis` | Production, distributed deployments | ✅ |
++### In-memory
+ 
+-The Redis backend was designed from the ground up to handle the demands of modern high-throughput applications, while the in-memory backend keeps local development effortless.
++The default. Entries live in the process and disappear when it exits. Similarity search is a linear scan over stored embeddings.
+ 
+-## How It Works
++```python
++from fluxcache import Cache, MemoryBackend
+ 
+-At its core, fluxcache is elegantly simple:
++cache = Cache(backend=MemoryBackend(max_entries=10_000))
++```
+ 
+-1. **Embed** — the incoming prompt is converted to a vector
+-2. **Search** — the vector is compared against cached entries
+-3. **Decide** — if the best match exceeds your threshold, it's a hit
++`max_entries` evicts least-recently-used entries once exceeded. `max_entries=None` stores without a bound.
+ 
+-Think of it like a librarian who understands what you *mean*, not just what you *said*.
++### Redis
+ 
+-## Contributing
++Entries are shared across processes and survive restarts. Requires Redis 6.2 or later.
+ 
+-Contributions are welcome! Whether you're fixing a typo or building a whole new backend, we'd love to have your help. Please open an issue first to discuss any significant changes.
++```python
++from fluxcache import Cache, RedisBackend
+ 
+-## Roadmap
++cache = Cache(backend=RedisBackend(url="redis://localhost:6379/0"))
++```
+ 
+-- [ ] Pluggable embedding providers (coming soon!)
+-- [ ] Async API support
+-- [ ] Prometheus metrics
+-- [ ] Cache warming utilities
++`RedisBackend` writes one hash per entry and one embedding index per namespace, all under the key prefix `fluxcache:`. TTL is enforced by Redis key expiry.
+ 
+-## License
++## Custom scoring
+ 
+-MIT
++`scorer` replaces cosine similarity. It receives the query embedding and a candidate embedding as `list[float]` and returns a float compared against `threshold`.
+ 
+----
++```python
++import numpy as np
++from fluxcache import Cache
+ 
+-*Built with ❤️ for the LLM community*
++def dot(query, candidate):
++    return float(np.dot(query, candidate))
++
++cache = Cache(scorer=dot, threshold=0.9)
++```
++
++## Embeddings
++
++The default embedder calls OpenAI `text-embedding-3-small` and reads `OPENAI_API_KEY` from the environment. Supply any callable that maps a string to `list[float]`:
++
++```python
++from sentence_transformers import SentenceTransformer
++from fluxcache import Cache
++
++model = SentenceTransformer("all-MiniLM-L6-v2")
++cache = Cache(embedder=lambda text: model.encode(text).tolist())
++```
++
++Embeddings from different models are not comparable. Change the namespace when you change the embedder.
++
++## API
++
++| Member | Description |
++| --- | --- |
++| `Cache(threshold, ttl, namespace, backend, embedder, scorer)` | Constructs a cache |
++| `Cache.wrap(fn)` / `Cache.wrap(key=...)` | Decorator that caches a function's return value |
++| `Cache.lookup(prompt)` | Returns `Result(hit, score, response, matched_prompt)` |
++| `Cache.set(prompt, response, ttl=None)` | Stores an entry |
++| `Cache.delete(prompt)` | Removes the exact-prompt entry |
++| `Cache.clear()` | Removes every entry in the namespace |
++| `Cache.stats()` | Returns `Stats(hits, misses, entries)` |
++
++## Async
++
++`AsyncCache` mirrors the `Cache` API with awaitable methods and an `await`-able embedder.
++
++```python
++from fluxcache import AsyncCache
++
++cache = AsyncCache(threshold=0.92)
++
++@cache.wrap
++async def ask(prompt: str) -> str:
++    return await call_your_model(prompt)
++```
++
++## License
++
++MPL-2.0

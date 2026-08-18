@@ -1,0 +1,29 @@
+extends: existence
+message: "puffery: '%s' -- state the fact that earns the adjective"
+level: warning
+ignorecase: true
+# Wikipedia MOS:PUFFERY, verbatim list, minus tokens that carry a literal
+# technical sense in software prose: `leading` (a leading slash), `hit` (a cache
+# hit), `unique` (a unique index), `notable` (already ours), `popular` (kept: it
+# is the canonical filler rationale this project already bans).
+tokens:
+  - legendary
+  - greatest
+  - acclaimed
+  - iconic
+  - visionary
+  - outstanding
+  - award-winning
+  - landmark
+  - innovative
+  - extraordinary
+  - brilliant
+  - renowned
+  - remarkable
+  - prestigious
+  - virtuoso
+  - awesome
+  - pioneering
+  - phenomenal
+  - best-in-class
+  - world-class

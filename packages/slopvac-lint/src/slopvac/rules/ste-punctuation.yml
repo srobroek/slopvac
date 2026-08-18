@@ -1,0 +1,277 @@
+id: ste-punctuation
+title: STE Punctuation and Word Count
+description: Bans the semicolon, constrains hyphens and parentheses, and defines what counts as one word.
+weight: 1.0
+max_per_100_words:
+  strict: 1.0
+  normal: 1.5
+recommended_for: [reference, runbook, api-docs, readme, pr-description]
+rules:
+  - id: semicolon-used
+    name: Do not use a semicolon
+    kind: pattern
+    severity: warning
+    message: The semicolon is not permitted. Write two sentences.
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: ';'
+    ignore_case: false
+    exceptions:
+      - code-span
+      - quotation
+      - identifier-fidelity
+      - table-cell
+    allowlist: []
+    examples:
+      - bad: The worker drains the queue; the exporter writes the report.
+        good: The worker drains the queue. The exporter writes the report.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.1'
+      note: >-
+        The specification's stated reason is that the semicolon permits very long sentences
+        and is easy to misuse. The code-span exception is not optional in software
+        documentation: shell commands, CSS, SQL, and PATH values all carry semicolons, and a
+        checker that flags those is unusable. Advisory at relaxed tier because a semicolon
+        does not block comprehension.
+    fix: Replace the semicolon with a period and capitalize the next word.
+
+  - id: hyphen-missing-in-compound-modifier
+    name: Hyphenate a compound modifier before a noun
+    kind: pattern
+    severity: suggestion
+    message: 'Hyphenate the compound modifier "{match}".'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    pattern: '\b(?:read|write|command|line|end|user|client|server|side|open|closed|long|short|high|low|first|second|third|multi|single|cross|zero|non|self|pre|post|re|semi|well|fully|partially)\s+(?:only|line|side|term|level|latency|throughput|source|party|region|account|tenant|downtime|running|facing|driven|based|aware|safe|ready|bound|scoped|hosted|managed|generated|defined)\s+(?=[a-z]+\b)'
+    ignore_case: true
+    exceptions:
+      - code-span
+      - identifier-fidelity
+      - quotation
+      - api-name
+    allowlist: []
+    examples:
+      - bad: The replica serves read only traffic during the migration.
+        good: The replica serves read-only traffic during the migration.
+      - bad: Use the command line client for the first run.
+        good: Use the command-line client for the first run.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.2'
+      note: >-
+        The specification enumerates five hyphenation cases; only the first (a multi-word
+        adjective before a noun) recurs in software prose, and it is open-ended, which is why
+        we implement it as a closed two-part word list rather than as a general rule. Phase-1
+        analysis flagged this open-endedness as a false-positive driver, and the closed list
+        is the mitigation. Advisory at normal tier and excluded at relaxed: a missing hyphen
+        rarely blocks comprehension. Tested: both bad examples match, both good examples do
+        not (the hyphen breaks the whitespace requirement), and "read the config file" does
+        not match, because "the" is not in the second list.
+    fix: Join the two modifier words with a hyphen.
+
+  - id: hyphen-group-too-long
+    name: Do not hyphenate more than three words
+    kind: pattern
+    severity: warning
+    message: 'This hyphen group joins more than three words ("{match}").'
+    scope: prose
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b[A-Za-z]+(?:-[A-Za-z]+){3,}\b'
+    ignore_case: true
+    exceptions:
+      - code-span
+      - identifier-fidelity
+      - quotation
+      - api-name
+      - registered-domain-term
+    allowlist: []
+    examples:
+      - bad: Use the read-only-replica-failover path during the migration.
+        good: Use the failover path for the read-only replica during the migration.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.2'
+      note: >-
+        Split out from the hyphenation rule because it is the one part that is fully
+        mechanizable with no word list. Package names, CSS classes, and Kubernetes resource
+        names routinely exceed three segments, so identifier-fidelity and api-name are
+        load-bearing exceptions and a runtime must resolve them before this rule runs.
+        Tested: the bad example matches (four segments); "read-only" and "command-line-client"
+        do not match (two and three segments).
+    fix: Break the group with a preposition, or register it as a domain term.
+
+  - id: parentheses-misuse
+    name: Use parentheses only for the listed purposes
+    kind: judgement
+    severity: suggestion
+    message: Check that this parenthetical serves a listed purpose.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this parenthetical give a cross-reference, an item identifier, a step number, an
+      abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it
+      carries a second idea, promote it to its own sentence.
+    exceptions:
+      - code-span
+      - quotation
+    allowlist: []
+    examples:
+      - bad: >-
+          Rotate the signing key (we found that most teams forget this until an audit, which
+          is why the runbook exists).
+        good: >-
+          Rotate the signing key. Most teams do this only after an audit finds the old key.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.3'
+      note: >-
+        Judgement rather than a pattern, and deliberately so: the specification gives seven
+        permitted purposes and no counter-example, so there is nothing to anchor a regex on.
+        A length-based proxy (flag any parenthetical over N words) would fire on legitimate
+        explanations. Advisory at both upper tiers for the same reason.
+    fix: Promote the parenthetical to its own sentence, or delete it.
+
+  - id: colon-terminates-sentence-for-count
+    name: Count a list lead-in as its own sentence
+    kind: metric
+    severity: error
+    message: 'The lead-in before the colon has {value} words. Use the sentence cap.'
+    scope: sentence
+    text_type: any
+    metric: lead_in_words
+    threshold: 20
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: >-
+          Before you promote the release candidate to production, make sure that each of the
+          following six preconditions holds true without exception:
+        good: 'Check these preconditions before you promote the release candidate:'
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.4'
+      note: >-
+        This is a counting rule expressed as a length rule. The threshold shown is the
+        procedural cap; a runtime must select twenty or twenty-five from the text type of the
+        lead-in, exactly as the two sentence-length rules do. Each list item is then counted
+        as its own sentence against the same cap. metrics.md gives the algorithm and states
+        why this sentence unit differs from the paragraph-sentence unit.
+    fix: Shorten the lead-in, or move detail into the list items.
+
+  - id: parenthetical-counts-as-one-word
+    name: Count a parenthetical as one word
+    kind: judgement
+    severity: 'off'
+    message: Parenthesized text counts as one word in the containing sentence.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      This is a counting definition, not a prohibition. Does the word counter collapse each
+      parenthetical to one token, and also count the parenthetical's own words as a separate
+      sentence?
+    exceptions: []
+    allowlist: []
+    examples:
+      - bad: Restart the worker (the pod restarts in about ten seconds) after each config change.
+        good: Restart the worker (the pod restarts in about ten seconds) after each config change.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.5'
+      note: >-
+        Severity is off and the example pair is identical on purpose: this rule produces no
+        finding, it constrains the tokenizer. It appears in the ruleset so the counting
+        contract is traceable to a rule number rather than buried in code. The specification
+        also treats the parenthetical as its own sentence for its own word count, which
+        metrics.md implements.
+    fix: No rewrite. Implement the counting rule in the tokenizer.
+
+  - id: hyphenated-word-counts-as-one-word
+    name: Count a hyphenated word as one word
+    kind: judgement
+    severity: 'off'
+    message: A hyphenated word counts as one word.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      Does the word counter treat a hyphenated group as a single token, so that a
+      three-segment compound counts once and not three times?
+    exceptions: []
+    allowlist: []
+    examples:
+      - bad: The read-only replica serves the dashboard.
+        good: The read-only replica serves the dashboard.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.7'
+      note: >-
+        Also a tokenizer constraint with no finding. Combined with the hyphenation rule it
+        creates an incentive the implementer should know about: hyphenating a compound reduces
+        the counted length, so a word cap can be satisfied by punctuation alone. That is
+        permitted by the specification and is why the three-word hyphen-group cap exists as a
+        separate enforced rule.
+    fix: No rewrite. Implement the counting rule in the tokenizer.
+
+  - id: elements-counting-as-one-word
+    name: Count numbers, units, abbreviations, quotes, and names as one word
+    kind: judgement
+    severity: 'off'
+    message: Each of these elements counts as one word.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    judgement_question: >-
+      Does the word counter collapse each of these to one token: a number, a number with its
+      unit, an abbreviation, an alphanumeric identifier, a quoted span, a title or heading or
+      label text, and a proper name of a person, group, organization, or place? And does it
+      skip step and paragraph numbers entirely?
+    exceptions: []
+    allowlist: []
+    examples:
+      - bad: Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
+        good: Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:8.6'
+      note: >-
+        The single most important entry in this file, and the reason metrics.md exists. Under
+        this rule the example sentence counts eleven words, not fifteen. A whitespace
+        tokenizer over-counts and fires the twenty-word cap on compliant text. The
+        counted-as-one list changed between issues (Issue 9 binds a number to its unit and
+        adds proper names), so an implementation must target one issue; ours targets Issue 9.
+        The carve-out for step and paragraph numbers is the part implementers miss most.
+    fix: No rewrite. Implement the counting rules in the tokenizer.

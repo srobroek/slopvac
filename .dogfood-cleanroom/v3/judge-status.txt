@@ -1,0 +1,3 @@
+document exit=0
+paragraph exit=0
+sentence exit=0

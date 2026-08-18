@@ -1,0 +1,213 @@
+{
+  "topic": "error-message",
+  "profile": "normal",
+  "conditions": {
+    "01-unguided": {
+      "raw_words": 146,
+      "new": {
+        "score": 0.0,
+        "findings": 25,
+        "errors": 3,
+        "warnings": 21,
+        "suggestions": 1,
+        "per_100_words": 17.606,
+        "words": 142,
+        "passed": false,
+        "failure_reasons": [
+          "3 error(s), limit 0",
+          "17.61 findings per 100 words, budget 3.0",
+          "score 0.0, minimum 70.0",
+          "ai-tells-formatting at 1.41 per 100 words, budget 1.0",
+          "prose-craft at 4.22 per 100 words, budget 1.5",
+          "prose-format at 0.70 per 100 words, budget 0.4",
+          "prose-inflation at 2.11 per 100 words, budget 0.6",
+          "prose-scope at 0.70 per 100 words, budget 0.6",
+          "ste-sentences at 2.11 per 100 words, budget 1.5",
+          "ste-verbs at 2.11 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "ai-tells-formatting": {
+            "findings": 2,
+            "errors": 0,
+            "score": 27.6
+          },
+          "orwell": {
+            "findings": 1,
+            "errors": 1,
+            "score": 11.2
+          },
+          "prose-craft": {
+            "findings": 6,
+            "errors": 0,
+            "score": 0.0
+          },
+          "prose-discipline": {
+            "findings": 1,
+            "errors": 0,
+            "score": 52.3
+          },
+          "prose-format": {
+            "findings": 1,
+            "errors": 1,
+            "score": 0.0
+          },
+          "prose-inflation": {
+            "findings": 3,
+            "errors": 1,
+            "score": 0.0
+          },
+          "prose-scope": {
+            "findings": 1,
+            "errors": 0,
+            "score": 38.6
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 60.5
+          },
+          "ste-practices": {
+            "findings": 1,
+            "errors": 0,
+            "score": 85.9
+          },
+          "ste-sentences": {
+            "findings": 3,
+            "errors": 0,
+            "score": 27.6
+          },
+          "ste-verbs": {
+            "findings": 3,
+            "errors": 0,
+            "score": 0.0
+          },
+          "ste-words": {
+            "findings": 2,
+            "errors": 0,
+            "score": 49.5
+          }
+        },
+        "rules": {
+          "prose-craft.first-person-plural": 5,
+          "ste-sentences.omitted-word-or-contraction": 3,
+          "prose-inflation.borderline-hype": 2,
+          "ste-verbs.passive-voice": 2,
+          "ste-words.approved-word-substitution": 2,
+          "ai-tells-formatting.emoji-list-markers": 1,
+          "ai-tells-formatting.title-case-heading": 1,
+          "orwell.unsupported-evaluative": 1,
+          "prose-craft.politeness": 1,
+          "prose-discipline.phrasal-verb": 1,
+          "prose-format.no-unicode-dash": 1,
+          "prose-inflation.slop-lexicon": 1,
+          "prose-scope.unrequested-reassurance": 1,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-practices.omitted-conjunction-that": 1,
+          "ste-verbs.auxiliary-stacking": 1
+        }
+      }
+    },
+    "02-current-writedocs": {
+      "raw_words": 360,
+      "new": {
+        "score": 41.7,
+        "findings": 8,
+        "errors": 0,
+        "warnings": 8,
+        "suggestions": 0,
+        "per_100_words": 3.32,
+        "words": 241,
+        "passed": false,
+        "failure_reasons": [
+          "3.32 findings per 100 words, budget 3.0",
+          "score 41.7, minimum 70.0",
+          "prose-craft at 1.66 per 100 words, budget 1.5"
+        ],
+        "categories": {
+          "prose-craft": {
+            "findings": 4,
+            "errors": 0,
+            "score": 41.7
+          },
+          "prose-inflation": {
+            "findings": 1,
+            "errors": 0,
+            "score": 61.1
+          },
+          "ste-procedural": {
+            "findings": 1,
+            "errors": 0,
+            "score": 75.1
+          },
+          "ste-verbs": {
+            "findings": 2,
+            "errors": 0,
+            "score": 54.6
+          }
+        },
+        "rules": {
+          "prose-craft.gerund-heading": 2,
+          "ste-verbs.passive-voice": 2,
+          "prose-craft.future-tense": 1,
+          "prose-craft.negative-requirement": 1,
+          "prose-inflation.vague-quantifier": 1,
+          "ste-procedural.condition-after-command": 1
+        }
+      }
+    },
+    "03-new-writedocs": {
+      "raw_words": 310,
+      "new": {
+        "score": 45.9,
+        "findings": 7,
+        "errors": 0,
+        "warnings": 6,
+        "suggestions": 1,
+        "per_100_words": 3.286,
+        "words": 213,
+        "passed": false,
+        "failure_reasons": [
+          "3.29 findings per 100 words, budget 3.0",
+          "score 45.9, minimum 70.0",
+          "ste-procedural at 1.41 per 100 words, budget 1.0"
+        ],
+        "categories": {
+          "prose-craft": {
+            "findings": 1,
+            "errors": 0,
+            "score": 81.2
+          },
+          "ste-descriptive": {
+            "findings": 1,
+            "errors": 0,
+            "score": 71.8
+          },
+          "ste-procedural": {
+            "findings": 3,
+            "errors": 0,
+            "score": 27.6
+          },
+          "ste-punctuation": {
+            "findings": 1,
+            "errors": 0,
+            "score": 90.6
+          },
+          "ste-verbs": {
+            "findings": 1,
+            "errors": 0,
+            "score": 71.8
+          }
+        },
+        "rules": {
+          "prose-craft.sentence-length": 1,
+          "ste-descriptive.sentence-too-long-descriptive": 1,
+          "ste-procedural.condition-after-command": 1,
+          "ste-procedural.multiple-instructions-per-sentence": 1,
+          "ste-procedural.sentence-too-long-procedural": 1,
+          "ste-punctuation.semicolon-used": 1,
+          "ste-verbs.passive-voice": 1
+        }
+      }
+    }
+  }
+}

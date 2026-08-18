@@ -1,0 +1,189 @@
+id: ste-procedural
+title: STE Procedural Writing
+description: Governs instruction length, one action per step, imperative mood, condition order, and notes.
+weight: 1.2
+max_per_100_words:
+  strict: 1.0
+  normal: 2.0
+recommended_for: [runbook, api-docs, reference]
+rules:
+  - id: sentence-too-long-procedural
+    name: Keep an instruction to twenty words
+    kind: metric
+    severity: error
+    message: 'This instruction has {value} words. Use twenty or fewer.'
+    scope: sentence
+    text_type: procedural
+    metric: sentence_words
+    threshold: 20
+    comparison: gt
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: >-
+          Open the client config, set the retry limit to five, set the backoff to two
+          seconds, and then restart every worker in the pool before you run the smoke test.
+        good: >-
+          Set the retry limit to five and the backoff to two seconds in the client config.
+          Restart every worker in the pool. Then run the smoke test.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:5.1'
+      note: >-
+        The twenty-word cap depends entirely on the word-counting contract in metrics.md.
+        A whitespace tokenizer over-counts and fires on compliant sentences, which is why
+        sentence_words is defined before this rule is implemented. Enforced at every tier,
+        including relaxed: a long instruction is the failure mode that costs a reader most.
+    fix: Split the instruction into separate numbered steps.
+
+  - id: multiple-instructions-per-sentence
+    name: Write one instruction per sentence
+    kind: pattern
+    severity: warning
+    message: 'This step carries more than one instruction ("{match}").'
+    scope: sentence
+    text_type: procedural
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '^\s*(?:[A-Z][a-z]+)\b[^.:!?]*?,?\s+(?:and\s+then|then|and\s+(?:also\s+)?(?:restart|delete|remove|run|set|open|close|apply|commit|push|deploy|verify|check|update|install|configure|enable|disable|rotate|revoke|copy|move|rename|start|stop))\b'
+    ignore_case: false
+    exceptions:
+      - quotation
+      - code-span
+      - simultaneous-actions
+    allowlist: []
+    examples:
+      - bad: Delete the stale branch and then push the new tag.
+        good: Delete the stale branch. Then push the new tag.
+      - bad: Edit the manifest and restart the worker.
+        good: Edit the manifest. Restart the worker.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:5.2'
+      note: >-
+        The rule permits two actions in one sentence when they happen at the same time,
+        which is the simultaneous-actions exception; a checker cannot detect simultaneity,
+        so the exception is reviewer-applied. The pattern anchors on an imperative-initial
+        line plus a coordinating connector followed by a second imperative verb from a
+        closed list, rather than on "and" alone, which would fire on every coordinated
+        object. Tested: both bad examples match; both good examples do not; and "Set the
+        retry limit and the backoff in the client config" does not match, because "the" is
+        not a verb in the list.
+    fix: Split the step so each sentence gives one instruction.
+
+  - id: instruction-not-imperative
+    name: Write instructions in the imperative
+    kind: pattern
+    severity: warning
+    message: 'This step is not in the imperative ("{match}").'
+    scope: sentence
+    text_type: procedural
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '^\s*(?:(?:The|This|That|A|An)\s+\w+(?:\s+\w+)?\s+(?:must|should|shall|needs?\s+to|has\s+to|is\s+required\s+to|will\s+need\s+to)\b|(?:You|The\s+user|The\s+operator|The\s+reader)\s+(?:must|should|shall|will|can|may)\s+\w+|It\s+is\s+(?:necessary|recommended|required|advisable)\s+to\b)'
+    ignore_case: false
+    exceptions:
+      - quotation
+      - code-span
+      - note-block
+    allowlist: []
+    examples:
+      - bad: The operator must rotate the signing key each quarter.
+        good: Rotate the signing key each quarter.
+      - bad: It is necessary to clear the cache before the import.
+        good: Clear the cache before the import.
+      - bad: The token should be revoked after the audit.
+        good: Revoke the token after the audit.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:5.3'
+      note: >-
+        Three alternates covering the three ways a step loses its imperative: a subject plus
+        an obligation modal, a reader-as-subject construction, and an impersonal
+        "it is necessary to" opener. Deliberately not a general "does the sentence start with
+        a verb" test, which needs a tagger and misfires on every legitimate descriptive
+        sentence inside a procedure. note-block is excepted because notes are descriptive by
+        rule and must not be imperative. Tested: all three bad examples match, all three good
+        examples do not, and the descriptive "The worker drains the queue" does not match.
+    fix: Rewrite the step as a direct command to the reader.
+
+  - id: condition-after-command
+    name: Put the condition before the command
+    kind: pattern
+    severity: warning
+    message: 'The condition follows the command ("{match}"). Put the condition first.'
+    scope: sentence
+    text_type: procedural
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '^\s*[A-Z][a-z]+\b[^.!?]*?\s+(if|when|once|unless|after|before|while)\s+[^.!?]*[.!?]?\s*$'
+    ignore_case: false
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: Restart the worker if the queue depth is above one thousand.
+        good: If the queue depth is above one thousand, restart the worker.
+      - bad: Clear the cache when the import completes.
+        good: When the import completes, clear the cache.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:5.4'
+      note: >-
+        Issue 9 makes condition-first an obligation and then adds the comma; Issue 7
+        regulated only the comma, conditional on the writer's chosen order. A checker built
+        from the older wording misses the ordering half, so this rule enforces the ordering
+        and comma-after-leading-condition is a separate punctuation rule. Tested: both bad
+        examples match, both good examples do not.
+    fix: Move the condition clause to the front and follow it with a comma.
+
+  - id: note-gives-instruction
+    name: Keep notes free of instructions
+    kind: pattern
+    severity: warning
+    message: 'This note gives an instruction ("{match}"). A note only gives information.'
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: enforced
+    pattern: '^\s*(?:>\s*)?(?:\*\*)?(?:NOTE|Note)(?:\*\*)?\s*[:.]?\s*(?:Do\s+not\b|Always\b|Never\b|Make\s+sure\b|Be\s+sure\b|Remember\s+to\b|You\s+must\b|Ensure\b|Set\b|Run\b|Restart\b|Delete\b|Install\b|Configure\b|Verify\b|Check\b)'
+    ignore_case: false
+    exceptions:
+      - quotation
+      - code-span
+    allowlist: []
+    examples:
+      - bad: 'NOTE: Always clear the cache before you run the import.'
+        good: >-
+          Clear the cache before you run the import. NOTE: The import reads the cache at
+          startup.
+      - bad: 'NOTE: Do not run two imports at the same time.'
+        good: >-
+          Do not run two imports at the same time. NOTE: Two imports write to the same
+          table.
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:5.5'
+      note: >-
+        A note that carries an instruction is a real defect and not a style point: readers
+        skip notes, so the instruction is lost. Enforced at every tier for that reason. The
+        pattern anchors on a note marker followed by an imperative or obligation opener, and
+        tolerates Markdown emphasis and blockquote markers. Tested: both bad examples match,
+        both good examples do not (the imperative sits before the marker), and
+        "NOTE: The import reads the cache at startup" does not match.
+    fix: Move the instruction into a numbered step and leave only information in the note.

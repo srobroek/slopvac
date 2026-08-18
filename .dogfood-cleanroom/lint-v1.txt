@@ -1,0 +1,148 @@
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 3: This sentence has 28 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 12: This sentence has 28 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 17: This sentence has 27 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md SUGGESTION ai-tells-structure.emphasis-paragraph-metric line 26: emphasis paragraph of 5 words -- rejoin the sentence; let the fact carry the weight
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 32: This sentence has 31 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md SUGGESTION ai-tells-structure.emphasis-paragraph-metric line 59: emphasis paragraph of 8 words -- rejoin the sentence; let the fact carry the weight
+/tmp/svexp2/README.v1.md SUGGESTION ai-tells-structure.emphasis-paragraph-metric line 75: emphasis paragraph of 6 words -- rejoin the sentence; let the fact carry the weight
+/tmp/svexp2/README.v1.md ERROR prose-format.prose-block line 93: prose block of 109 words > 80 -- convert to a list or table
+/tmp/svexp2/README.v1.md ERROR prose-format.prose-block line 125: prose block of 106 words > 80 -- convert to a list or table
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 125: This sentence has 29 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 125: This sentence has 43 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 137: This sentence has 27 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 197: This sentence has 26 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 211: This sentence has 27 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 216: This sentence has 31 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 216: This sentence has 31 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md SUGGESTION ai-tells-structure.emphasis-paragraph-metric line 237: emphasis paragraph of 5 words -- rejoin the sentence; let the fact carry the weight
+/tmp/svexp2/README.v1.md ERROR prose-format.prose-block line 250: prose block of 96 words > 80 -- convert to a list or table
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 250: This sentence has 27 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 250: This sentence has 29 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 259: This sentence has 38 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 274: This sentence has 31 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 280: This sentence has 38 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 294: This sentence has 27 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 294: This sentence has 33 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md ERROR prose-format.prose-block line 304: prose block of 119 words > 80 -- convert to a list or table
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 304: This sentence has 29 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 304: This sentence has 30 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md ERROR prose-format.prose-block line 329: prose block of 81 words > 80 -- convert to a list or table
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 329: This sentence has 44 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 336: This sentence has 32 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.colon-terminates-sentence-for-count line 336: The lead-in before the colon has 32 words. Use the sentence cap.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 341: This sentence has 40 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md WARNING ste-descriptive.sentence-too-long-descriptive line 348: This sentence has 26 words. Use twenty-five or fewer.
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 5: em/en dash: – -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 7: Passive voice "is drawn". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 9: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 12: sentence of 39 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 18: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING prose-craft.versions line 26: version comparison: use 'a simpler word' instead of 'or newer'
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 33: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 43: Passive voice "is treated". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 67: Passive voice "are walked". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 68: Passive voice "are excluded by". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 69: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 82: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md SUGGESTION ste-practices.phrasal-verb line 83: Phrasal verb "the match". Use "disable".
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 85: em/en dash: – -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 87: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 101: Passive voice "are omitted". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 101: Passive voice "is categorised by". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-words.spelling line 101: Use the en-US spelling "categorized".
+/tmp/svexp2/README.v1.md SUGGESTION ai-tells-structure.tricolon-abuse-core line 113: tricolon: examples, provenance, and the -- cut to the one or two that carry load; break the symmetry
+/tmp/svexp2/README.v1.md WARNING ste-words.spelling line 126: Use the en-US spelling "judgment".
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 128: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 130: sentence of 41 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md WARNING prose-craft.future-tense line 131: future tense: will not  -- describe what it does now
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 131: Passive voice "is discovered". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 132: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-words.spelling line 137: Use the en-US spelling "judgment".
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 138: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 148: Passive voice "are rejected". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING prose-craft.dead-opener line 199: dead opener: There is -- start the sentence with its real subject
+/tmp/svexp2/README.v1.md WARNING ai-tells-formatting.heading-hierarchy line 202: heading hierarchy: -- fix the level; delete the rule before it
+/tmp/svexp2/README.v1.md WARNING prose-craft.latinisms line 211: Latin abbreviation: use 'a simpler word' instead of 'via'
+/tmp/svexp2/README.v1.md ERROR prose-discipline.hedged-hedge line 211: "can be several patterns" hedges a hedge. Keep at most one, or state the claim plainly.
+/tmp/svexp2/README.v1.md SUGGESTION prose-inflation.vague-quantifier line 212: vague quantifier: several -- give the count, or name the cases
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 217: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 219: Passive voice "was rejected". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 220: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 220: Passive voice "was rejected". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.nominalized-action line 220: Nominalized action "makes relaxing". Use the verb.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 251: Passive voice "is compiled". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 251: Passive voice "is executed". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 252: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING docs-discipline.history-narration line 253: history narration: no longer -- deltas belong in change comms, not a doc body
+/tmp/svexp2/README.v1.md WARNING prose-agency.anthropomorphism line 254: anthropomorphism: the loader refuses -- name the mechanism, not a mind
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 255: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 268: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.hyphen-group-too-long line 269: This hyphen group joins more than three words ("Part-of-speech-keyed").
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 272: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md SUGGESTION ste-words.obligation-word-substitution line 274: Use "must" rather than "should".
+/tmp/svexp2/README.v1.md SUGGESTION ai-tells-structure.tricolon-abuse-core line 275: tricolon: code, URLs, and front -- cut to the one or two that carry load; break the symmetry
+/tmp/svexp2/README.v1.md SUGGESTION prose-inflation.vague-quantifier line 277: vague quantifier: usually -- give the count, or name the cases
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 282: sentence of 37 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 283: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-procedural.instruction-not-imperative line 286: This step is not in the imperative ("A suppression must").
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 294: Passive voice "is reported". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 295: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING prose-craft.dead-opener line 304: dead opener: There is -- start the sentence with its real subject
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 304: sentence of 53 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md WARNING ste-verbs.auxiliary-stacking line 310: Auxiliary stack "can be overridden". Give the action directly.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 310: Passive voice "be overridden". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 311: Passive voice "is loaded". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 311: Passive voice "is read". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 318: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 319: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-words.spelling line 319: Use the en-US spelling "judgment".
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 320: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING prose-craft.unclear-antecedent line 320: unclear antecedent: This is -- name the noun the demonstrative points at
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 322: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 322: em/en dash: – -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING prose-craft.unclear-antecedent line 323: unclear antecedent: This is -- name the noun the demonstrative points at
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 331: sentence of 44 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md WARNING ste-procedural.multiple-instructions-per-sentence line 331: This step carries more than one instruction ("Suggestions are then").
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 333: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 336: sentence of 45 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 336: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 337: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 337: Passive voice "are scored". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md WARNING ste-procedural.condition-after-command line 343: The condition follows the command ("Averaging alone is too kind, since twenty-odd categories that found nothing score 100 each and drown the two that found errors; the document figure alone loses the signal that one category is far over budget while the rest are clean."). Put the condition first.
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 343: sentence of 40 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 344: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md SUGGESTION prose-inflation.vague-quantifier line 348: vague quantifier: several -- give the count, or name the cases
+/tmp/svexp2/README.v1.md WARNING prose-craft.sentence-length line 352: sentence of 40 words > 34 -- split it, or convert the enumeration to a list
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 359: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md ERROR prose-format.no-unicode-dash line 359: em/en dash: — -- write `--` instead, or a comma, colon, or two sentences
+/tmp/svexp2/README.v1.md SUGGESTION ste-punctuation.semicolon-used line 365: The semicolon is not permitted. Write two sentences.
+/tmp/svexp2/README.v1.md WARNING ste-procedural.condition-after-command line 368: The condition follows the command ("Warnings alone stay at 0 unless the project sets ************."). Put the condition first.
+/tmp/svexp2/README.v1.md WARNING ste-verbs.passive-voice line 369: Passive voice "was checked". Name the actor and use the active voice.
+/tmp/svexp2/README.v1.md SUGGESTION ste-words.obligation-word-substitution line 369: Use "must" rather than "should".
+UNCHECKED /tmp/svexp2/README.v1.md: 5 metric rule(s) have no implementation in either engine, so they did NOT run: ai-tells-content-shape.adjective-per-noun-spray, ai-tells-formatting.inline-header-list, ai-tells-register.uniform-paragraph-mass, ste-nouns.multiword-noun-too-long, ste-sentences.complex-text-not-in-vertical-list
+
+slopvac
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━┳━━━━━━┳━━━━━━━┳━━━━━━━┓
+┃ category            ┃ findings ┃ err ┃ warn ┃ /100w ┃ score ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━╇━━━━━━╇━━━━━━━╇━━━━━━━┩
+│ ai-tells-formatting │        1 │   0 │    1 │  0.05 │    97 │
+│ ai-tells-structure  │        6 │   0 │    0 │  0.28 │    99 │
+│ docs-discipline     │        1 │   0 │    1 │  0.05 │    94 │
+│ prose-agency        │        1 │   0 │    1 │  0.05 │    96 │
+│ prose-craft         │       15 │   0 │   15 │  0.71 │    72 │
+│ prose-discipline    │        1 │   1 │    0 │  0.05 │    93 │
+│ prose-format        │       22 │  22 │    0 │  1.05 │     0 │
+│ prose-inflation     │        3 │   0 │    0 │  0.14 │   100 │
+│ ste-descriptive     │       24 │   0 │   24 │  1.14 │    40 │
+│ ste-practices       │        1 │   0 │    0 │  0.05 │   100 │
+│ ste-procedural      │        4 │   0 │    4 │  0.19 │    89 │
+│ ste-punctuation     │       16 │   0 │    0 │  0.76 │    98 │
+│ ste-verbs           │       20 │   0 │   20 │  0.95 │    49 │
+│ ste-words           │        6 │   0 │    4 │  0.28 │    92 │
+└─────────────────────┴──────────┴─────┴──────┴───────┴───────┘
+FAIL  score 4.2/100  121 finding(s) (23 error, 70 warning, 28 suggestion) across 1 file(s), 2104 words  = 5.75/100w
+  x /tmp/svexp2/README.v1.md: 23 error(s), limit 0
+  x /tmp/svexp2/README.v1.md: 4.42 errors+warnings per 100 words, budget 3.0
+  x /tmp/svexp2/README.v1.md: score 4.2, minimum 70.0
+  x /tmp/svexp2/README.v1.md: prose-format at 1.05 errors+warnings per 100 words, budget 0.4
+  x /tmp/svexp2/README.v1.md: ste-descriptive at 1.14 errors+warnings per 100 words, budget 1.0

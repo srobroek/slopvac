@@ -1,0 +1,7 @@
+extends: existence
+message: "additive hedge: '%s' -- keep the claim that carries load"
+level: warning
+scope: raw
+ignorecase: true
+raw:
+  - '\bnot\s+(?:just|only|merely|simply)\b[^.!?]{1,60}?\bbut\s+(?:also|even)\b'
