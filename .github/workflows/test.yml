@@ -122,12 +122,17 @@ jobs:
       - name: Validate hook JSON
         run: |
           set -euo pipefail
-          for f in packages/slopvac/hooks/hooks.json \
-                   packages/slopvac/.apm/hooks/hooks.json \
-                   .claude-plugin/plugin.json \
-                   .codex-plugin/plugin.json \
-                   .claude-plugin/marketplace.json \
-                   .codex-plugin/marketplace.json; do
+          # Discovered, not listed. The list named packages/slopvac/hooks/hooks.json and
+          # packages/slopvac/.apm/hooks/hooks.json, neither of which exists: the hook config
+          # moved to .codex/hooks.json and the step failed on FileNotFoundError rather than on
+          # malformed JSON. A list of paths in a workflow drifts from the tree it describes.
+          #
+          # Every tracked plugin, marketplace, and hook manifest, so a new one is covered without
+          # editing this step.
+          files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
+            '*hooks.json' | sort -u)"
+          test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
+          for f in $files; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
             echo "ok $f"
           done
