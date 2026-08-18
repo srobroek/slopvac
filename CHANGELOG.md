@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1](https://github.com/srobroek/slopvac/compare/slopvac-repo--v2.0.0...slopvac-repo--v2.0.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** require both app credentials before minting a token ([8adb558](https://github.com/srobroek/slopvac/commit/8adb55854e2e120276c0f2d60dfb9c720ab92820))
+* **release:** give the APM package its own release-please component ([#16](https://github.com/srobroek/slopvac/issues/16)) ([7c577b2](https://github.com/srobroek/slopvac/commit/7c577b2eddc22d0d4dbf5d5be155afa2a79ffdc2))
+
 ## [2.0.0](https://github.com/srobroek/slopvac/compare/slopvac-repo--v1.0.1...slopvac-repo--v2.0.0) (2026-08-18)
 
 
