@@ -64,13 +64,13 @@ Civil and military operations, only for projects that document them.
 **Missing, and needed for software (4 new).** Aerospace has no equivalent, so no source category
 covers these:
 
-1. **Version-control and change-management objects** — commit, branch, tag, merge, rebase, pull
+1. **Version-control and change-management objects**: commit, branch, tag, merge, rebase, pull
    request, diff, patch, revision.
-2. **Interface and protocol surfaces** — endpoint, route, header, payload, token, claim, scope,
+2. **Interface and protocol surfaces**: endpoint, route, header, payload, token, claim, scope,
    webhook, socket, stream.
-3. **Data and storage structures** — schema, index, key, field, record, blob, bucket, shard,
+3. **Data and storage structures**: schema, index, key, field, record, blob, bucket, shard,
    partition, snapshot, migration.
-4. **Runtime and deployment topology** — container, pod, node, cluster, replica, region, zone,
+4. **Runtime and deployment topology**: container, pod, node, cluster, replica, region, zone,
    environment, tenant, namespace.
 
 ## Domain-verb categories
@@ -90,9 +90,9 @@ navigation, automotive and railway, and energy and oil and gas do not.
 
 **Missing, and needed (2 new).** No source category covers:
 
-1. **Build and release actions** — build, compile, lint, test, package, publish, deploy, promote,
+1. **Build and release actions**: build, compile, lint, test, package, publish, deploy, promote,
    roll back, tag.
-2. **Concurrency and lifecycle actions** — spawn, schedule, drain, throttle, retry, back off,
+2. **Concurrency and lifecycle actions**: spawn, schedule, drain, throttle, retry, back off,
    fail over, reconcile, expire, evict.
 
 The source refuses several of these verbs outright: `build`, `run`, `log`, `execute`, `enable`,

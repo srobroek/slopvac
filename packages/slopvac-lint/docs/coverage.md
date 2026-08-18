@@ -106,7 +106,7 @@ a decidable reviewer question instead of a regex.
 also covers regional dialect, which we do not implement, because a dialect list for software
 prose is not maintainable; the slang and jargon half is a token list. Rule 1.5's 22-category
 noun taxonomy is replaced by a 9-category subset plus 4 new software categories, mapped in
-`domain-categories.md` — 11 of the 22 are physical-artifact categories with no software
+`domain-categories.md` -- 11 of the 22 are physical-artifact categories with no software
 analogue.
 
 **One recommendation is deliberately weaker than the source.** GR-8 permits the possessive and
@@ -121,8 +121,8 @@ Nine rules read a word list. None ships, so all nine check nothing until a proje
 
 That is a deliberate reversal. The package shipped the extracted Issue 9 list and enforced it
 as an **allowlist**, so every word outside 859 approved ones was a finding. Measured on eight
-independently written documents, that rule alone was 51% of all findings at strict — 443 of 864
-— and drove all eight to a score of 0.0 while the same documents scored 87 to 99 at relaxed.
+independently written documents, that rule alone was 51% of all findings at strict -- 443 of 864
+-- and drove all eight to a score of 0.0 while the same documents scored 87 to 99 at relaxed.
 The defect was structural rather than a matter of calibration:
 
 - **Absence is not disapproval.** 828 hits across 421 words had no entry at all: `reviewer`,
@@ -140,9 +140,9 @@ each with a reason. A word absent from that file is fine by definition.
 |---|---|---|
 | 1.1 `word-outside-controlled-vocabulary` | Word, POS | Only from a project blocklist; nothing ships |
 | 1.2 `word-used-in-wrong-part-of-speech` | POS-keyed entries, plus a tagger | Tagger is Vale's; the entries are the project's |
-| 1.4 `verb-or-adjective-form-not-permitted` | Inflected forms | **No** — and no longer planned |
-| 3.1 `verb-form-not-listed` | Inflected forms | **No** — and no longer planned |
-| 1.3, 9.2 word-sense rules | Approved-meaning gloss | **No** — authored prose, never shippable |
+| 1.4 `verb-or-adjective-form-not-permitted` | Inflected forms | **No**: and no longer planned |
+| 3.1 `verb-form-not-listed` | Inflected forms | **No**: and no longer planned |
+| 1.3, 9.2 word-sense rules | Approved-meaning gloss | **No**: authored prose, never shippable |
 | 1.1 `approved-word-substitution` | Replacement per word | 39 pairs from the published recurring-error table. This rule is independent of the blocklist and still runs |
 | 1.5, 1.6, 1.12 domain-term rules | A project domain-term registry | Project configuration, not shipped data |
 
@@ -191,8 +191,8 @@ Software documentation is full of tokens that look like prose violations. A semi
 command. A four-segment hyphenated package name. A British spelling inside an API field name. A
 CSS property. Each fires a rule that is correct about prose and wrong about code.
 
-**Mitigation.** Four exception classes — `code-span`, `identifier-fidelity`, `api-name`,
-`table-cell` — resolved by the runtime before any rule runs, not by individual patterns. 41 of
+**Mitigation.** Four exception classes -- `code-span`, `identifier-fidelity`, `api-name`,
+`table-cell` -- resolved by the runtime before any rule runs, not by individual patterns. 41 of
 the 65 rules declare at least one. A fenced code block never enters the tokenizer at all.
 
 ### 5. Open-ended compound-modifier hyphenation

@@ -36,7 +36,7 @@ table, a list, a blockquote, and a code span:
 `text` | `summary` | `heading` | `heading.h1`..`h6` | `table` | `table.header` |
 `table.cell` | `list` | `paragraph` | `sentence` | `raw` | `alt`
 
-### 2. `scope: sentence` is BLIND to list items, blockquotes, headings, and table cells
+### 2. `scope: sentence` cannot see list items, blockquotes, headings, or table cells
 
 It selects paragraph blocks only, then splits those into sentences. Every other
 block type is dropped, with no error.

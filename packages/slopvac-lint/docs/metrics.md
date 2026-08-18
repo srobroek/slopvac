@@ -24,7 +24,7 @@ Apply the collapse phases in order. Each phase replaces a matched span with a si
 and removes it from the input of later phases. Order matters, because the spans nest: a
 quoted title contains numbers, and a parenthetical contains abbreviations.
 
-### Phase 0 — Strip uncounted numbering (rule 8.6 carve-out)
+### Phase 0: Strip uncounted numbering (rule 8.6 carve-out)
 
 Delete a leading step or paragraph identifier before anything else. It is not counted at all,
 which is different from counting as one.
@@ -38,7 +38,7 @@ Delete, at the start of the sentence only:
 This is the phase implementers skip most often. Skipping it adds one word to every numbered
 step in the document, so a 20-word step measures 21.
 
-### Phase 1 — Collapse code and identifiers to one token each
+### Phase 1: Collapse code and identifiers to one token each
 
 Not from the source specification, which predates none of this but addresses none of it
 either. This phase is our addition for software documentation, and it is a superset of the
@@ -53,7 +53,7 @@ Collapse to one token:
 
 A fenced code block is not a sentence and never enters the tokenizer.
 
-### Phase 2 — Collapse quoted spans to one token (rule 8.6, item 5)
+### Phase 2: Collapse quoted spans to one token (rule 8.6, item 5)
 
 A span in double, single, or typographic quotes counts as one word regardless of length. The
 specification also treats an all-caps run and a font-distinguished run as quoted text; in
@@ -63,7 +63,7 @@ literal value, not when it is emphasis.
 Consequence worth stating: a 40-word quoted error message counts as one word. That is correct
 and intentional, because the writer cannot edit a quotation.
 
-### Phase 3 — Collapse titles, headings, and label text to one token (rule 8.6, item 6)
+### Phase 3: Collapse titles, headings, and label text to one token (rule 8.6, item 6)
 
 A referenced document title, section heading, or label text counts as one word. Detect it
 from an explicit reference frame (`refer to`, `see`, `in the`) followed by a title-cased run
@@ -72,7 +72,7 @@ of two or more words, or from a quoted span already collapsed in phase 2.
 This class needs a project configuration list to work well. Without one, implement it as
 quoted-span-only and accept the undercount of unquoted titles.
 
-### Phase 4 — Collapse proper names to one token (rule 8.6, item 7)
+### Phase 4: Collapse proper names to one token (rule 8.6, item 7)
 
 A personal name, an organization name, or a place name counts as one word however many words
 it spans. Detect a run of two or more capitalized tokens, permitting internal lowercase
@@ -81,7 +81,7 @@ function words (`of`, `and`, `for`, `the`).
 New in Issue 9. Under Issue 7 these did not collapse, so a counter written against the older
 issue reports higher counts on the same text.
 
-### Phase 5 — Collapse parentheticals to one token (rule 8.5)
+### Phase 5: Collapse parentheticals to one token (rule 8.5)
 
 A parenthesized span counts as one word in the containing sentence. This holds whether it
 contains an identifier, an abbreviation, or a full clause.
@@ -90,34 +90,34 @@ The parenthetical's own content is then counted a second time, as a separate sen
 the same cap. So a parenthetical is both one word outside and N words inside. Implement it as
 a second measurement, not as a replacement for the first.
 
-### Phase 6 — Collapse a number with its unit to one token (rule 8.6, item 2)
+### Phase 6: Collapse a number with its unit to one token (rule 8.6, item 2)
 
 A numeral or spelled-out number, optionally followed by a unit, counts as one word.
 
-- `30 s`, `30 seconds`, `10 °C`, `10 degrees Celsius`, `20 kg`, `512 MiB` — one word each
-- `twenty-one`, `forty-seven` — one word each (a spelled number collapses too)
-- `13` and `16` in a range — one word each, so `thru`/`to` between them still counts
+- `30 s`, `30 seconds`, `10 °C`, `10 degrees Celsius`, `20 kg`, `512 MiB` -- one word each
+- `twenty-one`, `forty-seven` -- one word each (a spelled number collapses too)
+- `13` and `16` in a range -- one word each, so `thru`/`to` between them still counts
 
 Issue 9 binds the number to its unit. Issue 7 counted the unit separately. This is the second
 place a counter must declare its target issue.
 
-### Phase 7 — Collapse abbreviations to one token (rule 8.6, item 3)
+### Phase 7: Collapse abbreviations to one token (rule 8.6, item 3)
 
 An acronym, an initialism, or a dotted abbreviation counts as one word: `HTTP`, `VPN`, `NASA`,
 `a.m.`, `No. 1`. When an abbreviation directly follows its number, the pair is one word, not
 two.
 
-### Phase 8 — Collapse hyphenated groups to one token (rule 8.7)
+### Phase 8: Collapse hyphenated groups to one token (rule 8.7)
 
 A hyphen-joined group counts as one word however many segments it has. `read-only`,
-`in-flight entertainment system` (2 words: the hyphenated group plus two bare words — the
+`in-flight entertainment system` (2 words: the hyphenated group plus two bare words -- the
 group is one), `main-gear-door retraction-winch handle` (3 words).
 
 This creates a real incentive: hyphenating a compound shortens the counted sentence. The
 specification permits it, and caps the group at three words in rule 8.2, which is why
 `hyphen-group-too-long` is enforced independently.
 
-### Phase 9 — Count what remains
+### Phase 9: Count what remains
 
 Split the residue on whitespace. Count non-empty tokens. Punctuation attached to a word
 (a trailing period, comma, or colon) does not produce a token of its own.
@@ -198,11 +198,13 @@ annotated as having five sentences, not seven.
 
 **Confidence: high.** Three annotated instances agree, drawn from two different rules, and the
 arithmetic is unambiguous in each. The specification never states the interaction in prose, so
-this remains an inference from examples rather than a quoted requirement — that is the only
-reason it is not stated as certain. The competing reading (unify the counts) is ruled out
+this remains an inference from examples rather than a quoted requirement -- that is the only
+reason it is not stated as certain.
+
+The competing reading (unify the counts) is ruled out
 positively, not merely disfavoured: under it, every annotation in the rule 6.6 example is
-wrong, and any four-bullet list would breach the six-sentence cap, which would make the
-specification's own compliant example non-compliant.
+wrong, and any four-bullet list would breach the six-sentence cap. The specification's own
+compliant example would then fail to comply.
 
 **Implementation.** Count `paragraph_sentences` by counting sentence-terminating punctuation
 and list-introducing colons at the paragraph's top level, and skip every line that begins with
@@ -239,7 +241,7 @@ classify(block):
        -> descriptive                 # cap 25
 ```
 
-Two properties of this ordering are load-bearing:
+This ordering depends on two properties:
 
 - A safety block takes the **procedural** cap of 20 even though its content is usually
   descriptive. Rule 5.1 states this directly.
@@ -247,7 +249,7 @@ Two properties of this ordering are load-bearing:
   states this directly.
 
 Imperative detection (steps 3 and 4) needs a verb list plus a no-subject test. Use the
-vocabulary's verb base forms as the lexicon. Where the mood is genuinely ambiguous, prefer
+vocabulary's verb base forms as the lexicon. Where the mood is ambiguous, prefer
 `descriptive`: the wider cap produces a miss rather than a false positive, and a false positive
 gets the rule disabled.
 

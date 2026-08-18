@@ -10,7 +10,7 @@ identical). Those are OURS. `vale/styles/ai-tells/` holds 76 files fetched from
 `tbhb/vale-ai-tells` and stays a Vale dependency.
 
 `packages/slopvac-lint/vale-styles/` on the current branch holds only 19 of the 61
-— the 42 in `prose-craft`, `prose-density`, `prose-inclusive`, and the five newer
+-- the 42 in `prose-craft`, `prose-density`, `prose-inclusive`, and the five newer
 `prose-agency`/`prose-inflation` rules exist only on the feature branch. **All 61
 were converted**, so the port is ahead of the current branch's `vale-styles/`.
 
@@ -76,10 +76,10 @@ Vale check, not two), which is why 61 files map to 59 rules and not more.
 | `prose-craft/SentenceLength.yml` | `prose-craft.sentence-length` | metric | `occurrence` -> `sentence_words` @ 34 |
 | `prose-craft/Spacing.yml` | `prose-craft.spacing` | pattern | 2 tokens merged; lookbehinds |
 | `prose-craft/UnclearAntecedent.yml` | `prose-craft.unclear-antecedent` | pattern | 3 lookbehinds |
-| `prose-craft/UndefinedAcronym.yml` | *kept in Vale only* | — | `extends: conditional`; see below |
+| `prose-craft/UndefinedAcronym.yml` | *kept in Vale only* | n/a | `extends: conditional`; see below |
 | `prose-craft/Versions.yml` | `prose-craft.versions` | substitution | 6 swaps |
 | `prose-craft/Wordiness.yml` | `prose-craft.wordiness` | substitution | 108 swaps |
-| `prose-density/PassiveDensity.yml` | *kept in Vale only* | — | `extends: script` (Tengo); see below |
+| `prose-density/PassiveDensity.yml` | *kept in Vale only* | n/a | `extends: script` (Tengo); see below |
 | `prose-inclusive/Ableist.yml` | `prose-inclusive.ableist` | substitution | 27 swaps |
 | `prose-inclusive/DeviceAssumption.yml` | `prose-inclusive.device-assumption` | substitution | 9 swaps |
 | `prose-inclusive/Exclusive.yml` | `prose-inclusive.exclusive` | substitution | 27 swaps; `master`/`slave` negative lookaheads |
@@ -158,7 +158,7 @@ Rule counts per emitted category: `ai-residue` 1, `docs-discipline` 3,
 
 Recorded in each rule's `provenance.note`. Go RE2 supports neither backreferences
 nor lookbehind, so these branches cannot have been matching under a pure RE2
-engine and become newly live in the port — each needs a corpus run before it is
+engine and become newly live in the port -- each needs a corpus run before it is
 enforced:
 
 | Rule | Feature | Effect |

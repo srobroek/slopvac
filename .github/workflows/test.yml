@@ -71,7 +71,18 @@ jobs:
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
-          for style in ai-tells ai-residue prose-agency prose-inflation prose-scope docs-discipline prose-format; do
+          # Derived from the config rather than listed. A hardcoded list drifts the moment the
+          # config changes, and it did: this asserted seven styles after the config was reduced
+          # to one, so the step failed on `ai-residue did not sync` for a package it no longer
+          # fetches. Vale reports a clean file for a style it cannot resolve, so the check has to
+          # exist. It has to ask the config what to expect.
+          # `grep -oE` alone, without a `tr -d` of spaces and continuation backslashes: inside
+          # single quotes shellcheck reads the escaped backslash as an attempt to quote an
+          # apostrophe (SC1003), and the pattern does not need it -- a zip name holds neither.
+          styles=$(sed -n 's/^Packages *= *//p' "$config" \
+            | grep -oE '[A-Za-z0-9_-]+\.zip' | sed 's/\.zip//' | sort -u)
+          test -n "$styles" || { echo "the config names no packages"; exit 1; }
+          for style in $styles; do
             test -d "packages/slopvac-lint/vale/styles/$style" \
               || { echo "$style did not sync"; exit 1; }
           done

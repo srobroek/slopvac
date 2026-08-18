@@ -2,8 +2,8 @@
 
 Source texts read in full:
 
-- George Orwell, "Politics and the English Language", *Horizon*, April 1946 — <https://www.orwell.ru/library/essays/politics/english/e_polit/>
-- Duke Graduate School Scientific Writing Resource, "Orwell's 6 Rules" — <https://sites.duke.edu/scientificwriting/orwells-6-rules/> (rule text only; the page carries no gloss)
+- George Orwell, "Politics and the English Language", *Horizon*, April 1946 -- <https://www.orwell.ru/library/essays/politics/english/e_polit/>
+- Duke Graduate School Scientific Writing Resource, "Orwell's 6 Rules" -- <https://sites.duke.edu/scientificwriting/orwells-6-rules/> (rule text only; the page carries no gloss)
 
 Scope: a Vale regex ruleset plus an agentic reviewer that judges AI-generated
 prose. Blocks marked **EXTENSION** go beyond Orwell; each names its warrant in
@@ -29,7 +29,7 @@ Introducing the rules:
 
 > "But one can often be in doubt about the effect of a word or a phrase, and one needs rules that one can rely on when instinct fails. I think the following rules will cover most cases"
 
-The rules are therefore a fallback for the case where judgement is absent — the
+The rules are therefore a fallback for the case where judgement is absent -- the
 exact case a linter and an automated reviewer occupy.
 
 Immediately before that, the standard the rules serve:
@@ -103,12 +103,12 @@ versus "peculiar deadness" fails. "Black" versus "white" passes.
 
 ### The catalogue of examples
 
-Orwell's five specimens and his own diagnosis of each — the diagnosis is the
+Orwell's five specimens and his own diagnosis of each -- the diagnosis is the
 part a reviewer can reuse as a rubric.
 
 | # | Source | Orwell's diagnosis (quoted) |
 | --- | --- | --- |
-| 1 | Prof. Harold Laski, *Freedom of Expression* | "uses five negatives in fifty three words. One of these is superfluous, making nonsense of the whole passage, and in addition there is the slip — alien for akin" |
+| 1 | Prof. Harold Laski, *Freedom of Expression* | "uses five negatives in fifty three words. One of these is superfluous, making nonsense of the whole passage, and in addition there is the slip -- alien for akin" |
 | 2 | Prof. Lancelot Hogben, *Interglossia* | "plays ducks and drakes with a battery which is able to write prescriptions, and, while disapproving of the everyday phrase put up with, is unwilling to look egregious up in the dictionary and see what it means" |
 | 3 | Essay on psychology in *Politics* (New York) | "if one takes an uncharitable attitude towards it, is simply meaningless: probably one could work out its intended meaning by reading the whole of the article in which it occurs" |
 | 4 | Communist pamphlet | "the writer knows more or less what he wants to say, but an accumulation of stale phrases chokes him like tea leaves blocking a sink" |
@@ -144,13 +144,13 @@ Orwell's translation into "modern English of the worst sort":
 
 > "Objective considerations of contemporary phenomena compel the conclusion that success or failure in competitive activities exhibits no tendency to be commensurate with innate capacity, but that a considerable element of the unpredictable must invariably be taken into account."
 
-His measurement of the two — quantities, not impressions:
+His measurement of the two -- quantities, not impressions:
 
 > "The first contains forty-nine words but only sixty syllables, and all its words are those of everyday life. The second contains thirty-eight words of ninety syllables: eighteen of those words are from Latin roots, and one from Greek. The first sentence contains six vivid images, and only one phrase ('time and chance') that could be called vague. The second contains not a single fresh, arresting phrase, and in spite of its ninety syllables it gives only a shortened version of the meaning contained in the first."
 
 The mechanism named exactly:
 
-> "in the middle the concrete illustrations — race, battle, bread — dissolve into the vague phrases 'success or failure in competitive activities'. This had to be so, because no modern writer of the kind I am discussing — no one capable of using phrases like 'objective considerations of contemporary phenomena' — would ever tabulate his thoughts in that precise and detailed way."
+> "in the middle the concrete illustrations -- race, battle, bread -- dissolve into the vague phrases 'success or failure in competitive activities'. This had to be so, because no modern writer of the kind I am discussing -- no one capable of using phrases like 'objective considerations of contemporary phenomena' -- would ever tabulate his thoughts in that precise and detailed way."
 
 Four countable metrics fall straight out: syllables per word, count of
 Latin/Greek-rooted words, count of concrete referents, count of vague phrases.
@@ -162,7 +162,7 @@ The production process he is describing:
 
 And the image-clash diagnostic:
 
-> "The sole aim of a metaphor is to call up a visual image. When these images clash — as in The Fascist octopus has sung its swan song, the jackboot is thrown into the melting pot — it can be taken as certain that the writer is not seeing a mental image of the objects he is naming; in other words he is not really thinking."
+> "The sole aim of a metaphor is to call up a visual image. When these images clash -- as in The Fascist octopus has sung its swan song, the jackboot is thrown into the melting pot -- it can be taken as certain that the writer is not seeing a mental image of the objects he is naming; in other words he is not really thinking."
 
 Why euphemism specifically:
 
@@ -202,8 +202,7 @@ list or that returns more than a threshold number of verbatim web matches; write
 a fresh image or drop the image entirely.
 
 **Objective test:** Is the figure on the token list? If it is a candidate not yet
-listed, quote it exactly and count corpus hits. Orwell's own criterion —
-"which you are used to seeing in print" — is frequency, so frequency is the
+listed, quote it exactly and count corpus hits. Orwell's own criterion -- "which you are used to seeing in print" -- is frequency, so frequency is the
 measurement. A figure is stale when it is neither fully lexicalized (a dead
 metaphor that "has in effect reverted to being an ordinary word") nor original.
 Decision procedure, in order:
@@ -223,9 +222,9 @@ the AI-era layer:
 **AI failure mode:** LLM prose is trained on the stale band and reproduces it as
 default register. Three characteristic forms:
 
-- **Opening scaffolds.** "In today's rapidly evolving landscape of distributed systems…" — the figure ("landscape") carries no image and no information.
+- **Opening scaffolds.** "In today's rapidly evolving landscape of distributed systems…" -- the figure ("landscape") carries no image and no information.
 - **Closing elevation.** "This stands as a testament to the power of thoughtful design." A figure used to signal that the section has ended.
-- **Compulsory metaphor per abstraction.** Every noun gets an image whether or not one clarifies: "the beating heart of the pipeline", "the connective tissue between services", "the north star metric". Orwell's diagnosis applies directly — "he is not seeing a mental image of the objects he is naming".
+- **Compulsory metaphor per abstraction.** Every noun gets an image whether or not one clarifies: "the beating heart of the pipeline", "the connective tissue between services", "the north star metric". Orwell's diagnosis applies directly -- "he is not seeing a mental image of the objects he is naming".
 
 **Named exceptions:**
 
@@ -254,7 +253,7 @@ list), is there an entry in the substitution table? If yes, substitute it and as
 the single question: **does the sentence now assert anything different?** If the
 assertion is unchanged, the long word is a violation. The count reported is
 `n_substitutable_long_words`. Orwell's own guard is the ceiling: "using the
-fewest and shortest words that will cover one's meaning" — and explicitly *not*
+fewest and shortest words that will cover one's meaning" -- and explicitly *not*
 Saxon-for-Latin as a reflex ("Nor does it even imply in every case preferring the
 Saxon word to the Latin one").
 
@@ -264,7 +263,7 @@ one 2.37. Report the document's mean and flag paragraphs above the configured
 ceiling.
 
 **Mechanizable?** YES. Vale `substitution` extension point with a bounded
-map — the substitution is proposed mechanically, the denotation check is the
+map -- the substitution is proposed mechanically, the denotation check is the
 reviewer's. Starter map:
 
 ```
@@ -300,7 +299,7 @@ authority signal, and inflate uniformly rather than at points of precision.
 
 - "We utilize a comprehensive methodology to facilitate optimal resource utilization." Four long words, zero added meaning; "we use a method to use resources well" carries the same claim.
 - Nominalized chains: "the implementation of the initialization of the configuration" for "configuring at startup".
-- Register-matching to the prompt: asked for a formal tone, the model raises syllable count instead of raising precision — exactly Orwell's "air of scientific impartiality to biased judgements".
+- Register-matching to the prompt: asked for a formal tone, the model raises syllable count instead of raising precision -- exactly Orwell's "air of scientific impartiality to biased judgements".
 
 **Named exceptions:**
 
@@ -356,7 +355,7 @@ anticlimax closers:   \b(?:greatly to be desired|cannot be left out of account|a
 padding is the model's turn-taking and hedging behaviour leaking into prose.
 
 - **Restating the prompt.** "It is important to note that when it comes to configuring the cache, there are several factors that should be considered." Zero propositions; deleting the whole sentence loses nothing.
-- **Terminal summary paragraph.** A closing paragraph that re-asserts the section with no new predicate — "In summary, the approach described above provides a way to…".
+- **Terminal summary paragraph.** A closing paragraph that re-asserts the section with no new predicate -- "In summary, the approach described above provides a way to…".
 - **Bilateral hedging.** "This may potentially help to somewhat reduce latency in certain cases." Four hedges stacked; either the claim has evidence (state it with the number) or it does not (delete it).
 
 **Named exceptions:**
@@ -391,7 +390,7 @@ Condition (d) is the Duke resource's own carve-out; its site carries a dedicated
 page, "Passive Voice in Scientific Writing", alongside the six rules, which is
 evidence that the field treats blanket passive-avoidance as wrong.
 
-**Mechanizable?** PARTIAL — and this is the split that matters most for false
+**Mechanizable?** PARTIAL -- and this is the split that matters most for false
 positives. Detection is mechanizable; adjudication is not.
 
 Detection regex (over-broad on purpose; every hit goes to the reviewer, none is
@@ -439,7 +438,7 @@ where the actor was deliberately omitted to soften a claim, that is a
 
 **MODERNIZED.** Two changes to Orwell's framing, each stated with its reason.
 
-- **The "foreign phrase" clause is retired as written.** Orwell's own argument for it is register-based — such phrases "are used to give an air of culture and elegance" — and his examples are Latin, French, and German phrases functioning as class markers in 1946 English. Applied to a modern multilingual readership the clause reads as a proscription on non-English words, which is both xenophobic in effect and useless as a test. What survives is the *mechanism*, not the target: **a word chosen for the register it signals rather than the meaning it carries is a violation.** Orwell already carved out the abbreviations he found useful — "Except for the useful abbreviations i. e., e. g. and etc." — so a carve-out list is his own device.
+- **The "foreign phrase" clause is retired as written.** Orwell's own argument for it is register-based -- such phrases "are used to give an air of culture and elegance" -- and his examples are Latin, French, and German phrases functioning as class markers in 1946 English. Applied to a modern multilingual readership the clause reads as a proscription on non-English words, which is both xenophobic in effect and useless as a test. What survives is the *mechanism*, not the target: **a word chosen for the register it signals rather than the meaning it carries is a violation.** Orwell already carved out the abbreviations he found useful -- "Except for the useful abbreviations i. e., e. g. and etc." -- so a carve-out list is his own device.
 - **The "scientific word" clause is re-aimed.** In 1946 "scientific" was the borrowed-authority register. Today the borrowed-authority registers are corporate-strategy diction, AI-industry diction, and technical vocabulary used outside its domain. Orwell's diagnosis transfers exactly: language used "to give an air of scientific impartiality to biased judgements".
 
 **Restated rule:** Use the plain word unless the term is a defined term of art
@@ -477,12 +476,12 @@ has no specific content, so jargon density is a proxy for hollowness.
 1. **Defined term of art.** Defined at first use, or in a glossary, or in a cited normative reference; and no plain synonym exists.
 2. **Identifier fidelity.** The term appears verbatim in code, an API, a CLI flag, a config key, a log line, or a UI label.
 3. **Quotation.** Attributed quotation, code block, or transcript.
-4. **Standard abbreviation.** Orwell's own list — i.e., e.g., etc. — plus abbreviations expanded at first use.
+4. **Standard abbreviation.** Orwell's own list -- i.e., e.g., etc. -- plus abbreviations expanded at first use.
 5. **Proper noun.** Product, standard, organization, protocol, or person name in any language.
 6. **Non-English word with no English equivalent** that the document defines at first use. This is the deliberate replacement for Orwell's foreign-phrase blanket: the test is equivalence, never origin.
 
 **Fix move:** Replace with the plain word. If the term is a genuine term of art,
-define it at first use and keep it consistent thereafter — do not alternate
+define it at first use and keep it consistent thereafter -- do not alternate
 between the term and a paraphrase.
 
 ---
@@ -491,14 +490,14 @@ between the term and a paraphrase.
 
 **Orwell's original:** "Break any of these rules sooner than say anything outright barbarous."
 
-**STRICTER THAN ORWELL — deliberately.** Orwell's sixth rule is an appeal to
+**STRICTER THAN ORWELL -- deliberately.** Orwell's sixth rule is an appeal to
 taste; "outright barbarous" is not decidable, and in an automated pipeline an
 undecidable override collapses the other five. It also, in his construction,
 overrides *any* rule for *any* aesthetic reason. We keep the escape hatch and
 narrow it to the closed exception lists already attached to rules 1-5 and 7-10.
 Warrant for narrowing rather than deleting: Orwell states the rules are for the
 case "when instinct fails", and he concedes "One could keep all of them and still
-write bad English" — so the rules are not self-sufficient and some override must
+write bad English" -- so the rules are not self-sufficient and some override must
 exist. What cannot survive automation is an *unnamed* one.
 
 **Restated rule:** Break a rule only by invoking one of that rule's named
@@ -520,14 +519,14 @@ reviewable signal.
 <!--\s*orwell-allow:\s*rule=(?<rule>[a-z-]+)\s+reason=(?<reason>[a-z-]+)\s*-->
 ```
 
-- **NO** for whether invoking the exception was *correct*. **Judgement question:** *Would a competent reader, shown the compliant rewrite and the exception claimed, agree the rewrite loses meaning, obligation, or fidelity that the exception protects?* This is the agentic reviewer's one irreducible call, and it is the only place taste-adjacent reasoning is admitted — bounded to adjudicating a named claim rather than forming a free-floating opinion.
+- **NO** for whether invoking the exception was *correct*. **Judgement question:** *Would a competent reader, shown the compliant rewrite and the exception claimed, agree the rewrite loses meaning, obligation, or fidelity that the exception protects?* This is the agentic reviewer's one irreducible call, and it is the only place taste-adjacent reasoning is admitted -- bounded to adjudicating a named claim rather than forming a free-floating opinion.
 
 **AI failure mode:** Given a rule and an escape hatch, LLMs invoke the hatch to
 preserve their default register rather than to protect meaning.
 
 - **Blanket exception claims.** Annotating an entire document `reason=term-of-art` so that all jargon findings vanish.
 - **Reason laundering.** Claiming `reason=safety-redundancy` for a padded summary paragraph.
-- **Self-granted aesthetics.** "Kept for readability" or "kept for flow" — a re-import of Orwell's taste clause under a new name. Reject: not on any list.
+- **Self-granted aesthetics.** "Kept for readability" or "kept for flow" -- a re-import of Orwell's taste clause under a new name. Reject: not on any list.
 
 **Named exceptions:** none. This rule has no escape hatch; that is what makes it
 the terminal rule.
@@ -535,19 +534,18 @@ the terminal rule.
 **Fix move:** Replace the annotation with the compliant rewrite, or replace the
 reason with one that is on the list and defensible against the judgement
 question. Where no listed reason fits, the writer opens an issue to amend the
-exception list — the list changes by review, not by annotation.
+exception list -- the list changes by review, not by annotation.
 
 ---
 
 ## Rule 7 candidates
 
-Each block is **EXTENSION** in the sense that it is not one of the six rules —
-but each is warranted by a named passage of the essay that the six rules do not
+Each block is **EXTENSION** in the sense that it is not one of the six rules -- but each is warranted by a named passage of the essay that the six rules do not
 reach. Four candidates. Discarded candidates and why are listed at the end.
 
 ---
 
-### 7. `empty-evaluative-word` — EXTENSION
+### 7. `empty-evaluative-word`: EXTENSION
 
 **Warrant in the essay:** the entire MEANINGLESS WORDS section. The gap is
 precise: Rule 5 tells you to swap a jargon word for "an everyday English
@@ -564,8 +562,8 @@ fact.
 **Objective test:** Orwell's own test, stated as a procedure. Take the word W in
 its sentence. Write the sentence with W negated or with W's opposite. Then ask:
 **would a reader treat the two sentences as contradicting each other about a
-checkable fact?** Orwell's demonstration — "The outstanding feature of Mr. X's
-work is its living quality" versus "its peculiar deadness" — is that the reader
+checkable fact?** Orwell's demonstration -- "The outstanding feature of Mr. X's
+work is its living quality" versus "its peculiar deadness" -- is that the reader
 "accepts this as a simple difference opinion", where with "black and white … he
 would see at once that language was being used in an improper way".
 
@@ -585,13 +583,13 @@ the evidence-proximity check.
 defect of LLM prose, because the model is optimized for reader approval and
 evaluative adjectives are the cheapest form of it.
 
-- "A robust, scalable architecture with comprehensive test coverage." Three claims, zero numbers. Negate each: "a fragile, non-scalable architecture with patchy coverage" — the reader cannot check either version, which is Orwell's test failing.
+- "A robust, scalable architecture with comprehensive test coverage." Three claims, zero numbers. Negate each: "a fragile, non-scalable architecture with patchy coverage" -- the reader cannot check either version, which is Orwell's test failing.
 - "This provides a significant performance improvement." Significant against what baseline, measured how.
 - "We carefully considered the tradeoffs and chose a thoughtful design." Describes claimed effort, not the artifact.
 
 **Named exceptions:**
 
-1. **Quantified.** A number, benchmark result, or citation in the same sentence or the next one. "Robust" survives as "survives 10^6 malformed inputs without crashing" — at which point the adjective is redundant and rule `cut-what-cuts` removes it anyway.
+1. **Quantified.** A number, benchmark result, or citation in the same sentence or the next one. "Robust" survives as "survives 10^6 malformed inputs without crashing" -- at which point the adjective is redundant and rule `cut-what-cuts` removes it anyway.
 2. **Defined term of art.** "Robust" in control theory, "significant" as a statistical result with the test and p-value named, "scalable" with the scaling dimension and limit stated.
 3. **Quotation.** Attributed praise, user quote, review excerpt.
 4. **Identifier.** The word is part of a name (`RobustScaler`, `--comprehensive`).
@@ -601,14 +599,14 @@ such fact exists, delete the sentence.
 
 ---
 
-### 8. `image-collision` — EXTENSION
+### 8. `image-collision`: EXTENSION
 
 **Warrant in the essay:** two passages the six rules do not cover. In DYING
 METAPHORS: "incompatible metaphors are frequently mixed, a sure sign that the
 writer is not interested in what he is saying." And the diagnostic paragraph:
 "The sole aim of a metaphor is to call up a visual image. When these images
-clash — as in The Fascist octopus has sung its swan song, the jackboot is thrown
-into the melting pot — it can be taken as certain that the writer is not seeing a
+clash -- as in The Fascist octopus has sung its swan song, the jackboot is thrown
+into the melting pot -- it can be taken as certain that the writer is not seeing a
 mental image of the objects he is naming; in other words he is not really
 thinking." Rule 1 bars *stale* figures. A collision can be assembled from two
 fresh figures, or from two dead ones that rule 1 explicitly permits, and rule 1
@@ -624,7 +622,7 @@ moment?** Two distinct domains in one sentence is a finding; three is a
 violation regardless of domain. Countable: `distinct_source_domains_per_sentence`.
 
 **Mechanizable?** PARTIAL. Mechanizable half: tag each token in the metaphor
-lists with a `domain:` field, then count distinct domains per sentence — pure
+lists with a `domain:` field, then count distinct domains per sentence -- pure
 arithmetic once the lexicon is annotated, and it catches Orwell's own examples
 (octopus = biology, swan song = biology-as-music, jackboot = combat, melting pot
 = metallurgy). Non-mechanizable half: unlisted or novel figures. **Judgement
@@ -633,7 +631,7 @@ question:** *Draw the sentence as one picture. Does it draw?*
 **AI failure mode:** LLM figures are retrieved per-clause without a global image,
 so collisions are the norm rather than the accident.
 
-- "This unlocks a foundational pillar that lets teams hit the ground running at scale." Lock, architecture, running, magnitude — four domains, no picture.
+- "This unlocks a foundational pillar that lets teams hit the ground running at scale." Lock, architecture, running, magnitude -- four domains, no picture.
 - "The rollout was a double-edged sword that snowballed into a perfect storm." Blade, snow, weather.
 - "We need to move the needle on this by boiling the ocean of technical debt." Gauge, cooking, finance.
 
@@ -649,11 +647,11 @@ others, and restate what they were carrying literally.
 
 ---
 
-### 9. `concrete-floor` — EXTENSION
+### 9. `concrete-floor`: EXTENSION
 
 **Warrant in the essay:** the Ecclesiastes demonstration, which is the essay's
 central exhibit and is not covered by any of the six rules. Orwell: "in the
-middle the concrete illustrations — race, battle, bread — dissolve into the vague
+middle the concrete illustrations -- race, battle, bread -- dissolve into the vague
 phrases 'success or failure in competitive activities'." And earlier, as a
 general law: "As soon as certain topics are raised, the concrete melts into the
 abstract." Crucially, "success or failure in competitive activities" contains no
@@ -662,16 +660,16 @@ strictly cuttable (rule 3 passes), no passive (rule 4 passes), and no jargon or
 foreign phrase (rule 5 passes). All six rules pass a sentence Orwell wrote as his
 worst-case specimen. That is the gap.
 
-**Restated rule:** Every claim must name at least one checkable particular — a
-number, a named entity, a command, a file path, or a specific event — and an
+**Restated rule:** Every claim must name at least one checkable particular -- a
+number, a named entity, a command, a file path, or a specific event -- and an
 abstraction may not stand in for a particular the writer possesses.
 
 **Objective test:** Per paragraph, count **concrete referents**: numbers with
 units, proper nouns, identifiers, file paths, commands, dated events, quoted
 strings. A paragraph making a factual claim with zero concrete referents is a
-violation. Orwell's own scoring of the pair — "The first sentence contains six
+violation. Orwell's own scoring of the pair -- "The first sentence contains six
 vivid images, and only one phrase … that could be called vague. The second
-contains not a single fresh, arresting phrase" — is exactly this count.
+contains not a single fresh, arresting phrase" -- is exactly this count.
 
 Second test, for the substitution case: **does the writer possess a more specific
 term than the one used?** If the source material names "race, battle, bread" and
@@ -683,8 +681,8 @@ Auxiliary countable metric, also Orwell's: **syllables per word** (his 1.22 vs
 from Latin roots, and one from Greek").
 
 **Mechanizable?** PARTIAL. Mechanizable half: counting concrete referents per
-paragraph is straightforward — `\d`, capitalized non-sentence-initial tokens,
-backticked spans, path-shaped tokens — and so is flagging abstraction-bearing
+paragraph is straightforward -- `\d`, capitalized non-sentence-initial tokens,
+backticked spans, path-shaped tokens -- and so is flagging abstraction-bearing
 suffixes at high density:
 
 ```
@@ -697,7 +695,7 @@ question:** *Name the actual thing. Did the text name it, or did it name the
 category the thing belongs to?*
 
 **AI failure mode:** the model has no particulars, so it generates the category.
-This is the mechanism behind LLM confabulation-by-vagueness — the text is
+This is the mechanism behind LLM confabulation-by-vagueness -- the text is
 unfalsifiable rather than false.
 
 - "The system handles a variety of edge cases to ensure reliable operation across different environments." No case, no environment, no measure of reliability.
@@ -707,17 +705,17 @@ unfalsifiable rather than false.
 **Named exceptions:**
 
 1. **Genuinely general claim.** A statement about a whole class where naming an instance would mislead (a definition, an invariant, a theorem).
-2. **Deliberate summary layer.** An abstract, TL;DR, or overview section that a following section makes concrete — the annotation must name the section that discharges it.
+2. **Deliberate summary layer.** An abstract, TL;DR, or overview section that a following section makes concrete -- the annotation must name the section that discharges it.
 3. **Redaction.** The particular is withheld for security, privacy, or confidentiality, and the text says so.
 4. **Quotation.** Quoted source.
 
 **Fix move:** Replace the category with the instance from the source material. If
-the writer has no instance, delete the claim rather than abstract it — an
+the writer has no instance, delete the claim rather than abstract it -- an
 abstraction is not a substitute for missing evidence.
 
 ---
 
-### 10. `name-the-agent` — EXTENSION
+### 10. `name-the-agent`: EXTENSION
 
 **Warrant in the essay:** the euphemism passage, which the six rules do not
 reach. "Defenceless villages are bombarded from the air … this is called
@@ -739,7 +737,7 @@ an abstraction for the actor.
 consequential event, all decidable:
 
 1. **Who acted?** Is a person, team, service, or process named as grammatical subject or in an adjacent clause?
-2. **What happened, literally?** If the sentence were rewritten with the literal event, would it read as materially worse? Orwell's test — "pacification" vs "villages are bombarded from the air". A gap in severity between the euphemism and the literal statement is the finding.
+2. **What happened, literally?** If the sentence were rewritten with the literal event, would it read as materially worse? Orwell's test -- "pacification" vs "villages are bombarded from the air". A gap in severity between the euphemism and the literal statement is the finding.
 3. **Who bore it?** Is the affected party named?
 
 Countable: `unattributed_consequence_sentences`.
@@ -767,13 +765,13 @@ so consequential text arrives actorless.
 
 **Named exceptions:**
 
-1. **Blameless-postmortem convention.** Where the organization's stated policy is to name the *system* rather than the individual, the system must still be named — anonymity of a person is an exception, absence of an actor is not.
+1. **Blameless-postmortem convention.** Where the organization's stated policy is to name the *system* rather than the individual, the system must still be named -- anonymity of a person is an exception, absence of an actor is not.
 2. **Unknown actor.** No source identifies who acted; the text says the cause is unknown.
 3. **Legal constraint.** Counsel or regulation forbids attribution, and the text says an attribution is withheld.
 4. **Privacy.** Naming would identify a private individual without cause.
 5. **Quotation.** Quoted source, including quoted euphemism under analysis.
 
-**Fix move:** Rewrite as *actor — act — affected party*, using the literal name
+**Fix move:** Rewrite as *actor -- act -- affected party*, using the literal name
 of the act. Where an exception applies, keep the actor slot filled with the
 narrowest nameable entity (team, service, policy) rather than deleting it.
 
@@ -804,18 +802,18 @@ high-level readability rules kept (issue comments, internal notes, chat-adjacent
 prose, drafts).
 
 `E` = enforced at that tier. `A` = advisory (reported, non-blocking).
-`—` = excluded.
+`--` = excluded.
 
 | ID | strict | normal | relaxed | Relaxed-tier justification |
 | --- | --- | --- | --- | --- |
 | `stale-figure` | E | E | A | Kept advisory: a cliché in a note costs the reader nothing, but the token list is free to run and the signal is useful. |
-| `short-word-first` | E | E | — | Excluded at relaxed: word choice in throwaway prose has no downstream reader, and the substitution map produces the most false positives of any rule. |
+| `short-word-first` | E | E | n/a | Excluded at relaxed: word choice in throwaway prose has no downstream reader, and the substitution map produces the most false positives of any rule. |
 | `cut-what-cuts` | E | E | A | Kept advisory and narrowed to the padding families only: LLM-generated padding wastes the reader's attention even in a note, but general cuttability is not worth a draft author's time. |
-| `active-unless-agentless` | A | E | — | **Advisory at strict**, which inverts the tier ordering on purpose — see Conflict C1; agentless passive is correct in specs, so enforcing it there manufactures noise. Excluded at relaxed because voice is not a comprehension barrier in short text. |
+| `active-unless-agentless` | A | E | n/a | **Advisory at strict**, which inverts the tier ordering on purpose -- see Conflict C1; agentless passive is correct in specs, so enforcing it there manufactures noise. Excluded at relaxed because voice is not a comprehension barrier in short text. |
 | `plain-word-first` | E | E | A | Kept advisory: jargon density is the best single proxy for empty text, so it earns its place even in loose writing, but term-of-art traffic is heaviest in informal technical notes. |
 | `named-exception-only` | E | E | E | Enforced at every tier. It is the contract that makes the other rules auditable; an unnamed suppression at any tier defeats the ruleset. Cost is zero where nothing is suppressed. |
 | `empty-evaluative-word` | E | E | A | Kept advisory: it is the highest-yield rule against LLM text at any tier, and the negation test is cheap to run in one's head. Not enforced because an unsupported adjective in a note is not a defect. |
-| `image-collision` | E | E | — | Excluded at relaxed: it needs a domain-annotated lexicon and a picture test, which is the most expensive check per finding for the least harm in loose prose. |
+| `image-collision` | E | E | n/a | Excluded at relaxed: it needs a domain-annotated lexicon and a picture test, which is the most expensive check per finding for the least harm in loose prose. |
 | `concrete-floor` | E | E | A | Kept advisory: zero-referent paragraphs are the signature of a model with nothing to say, and the count is mechanical. Not enforced because notes legitimately gesture at things named elsewhere. |
 | `name-the-agent` | E | E | E | **Enforced at every tier.** Actor erasure in an incident note, a status update, or a comment causes exactly the harm Orwell describes, and loose registers are where it hides. This is the one content rule that does not relax. |
 
@@ -833,14 +831,14 @@ explicitly:
 
 ## Conflicts with technical writing
 
-### C1 — Rule 4 (avoid the passive) versus legitimate agentless passive
+### C1: Rule 4 (avoid the passive) versus legitimate agentless passive
 
 **The conflict.** Orwell: "Never use the passive where you can use the active."
 Specification prose has no actor to name. "The request is rejected with 400" is
 correct for every conforming implementation; "The server rejects the request with
 400" over-specifies, and "You will receive a 400" mis-assigns the actor. Orwell's
 own objection is narrower than his rule: in OPERATORS he complains that "the
-passive voice is wherever possible used in preference to the active" — the
+passive voice is wherever possible used in preference to the active" -- the
 defect is *preference*, not use. The Duke resource that hosts the six rules also
 hosts a separate page, "Passive Voice in Scientific Writing", which is direct
 evidence that the field does not read rule 4 literally.
@@ -853,7 +851,7 @@ because the actor is present in the sentence and can be promoted to subject at n
 cost. Passive rate is tracked as a ratio, not banned: a spec section above the
 configured ceiling gets a document-level finding, not a per-sentence flood.
 
-### C2 — Rule 2 (never use a long word) versus precise technical terms
+### C2: Rule 2 (never use a long word) versus precise technical terms
 
 **The conflict.** "Idempotent", "serializable", "monotonic", "eventual
 consistency", "cardinality" have no short synonyms. Replacing them loses the
@@ -871,7 +869,7 @@ per-word finding. A term of art used *outside its domain* is not covered by this
 rule at all; it is a `plain-word-first` violation, because the defect is borrowed
 authority rather than length.
 
-### C3 — Rule 3 (cut a word if possible) versus safety-critical redundancy
+### C3: Rule 3 (cut a word if possible) versus safety-critical redundancy
 
 **The conflict.** "If it is possible to cut a word out, always cut it out" is
 false for text where a misread has physical or legal consequence. Runbooks repeat
@@ -888,7 +886,7 @@ precondition, or an object of a destructive action is exempt. Outside that scope
 the overwhelming majority of repetition in AI text is padding, not safety; the
 exception is narrow, named, and auditable via `suppressions_per_1000_words`.
 
-### C4 — Rule 1 (no figure you are used to seeing in print) versus standardized documentation phrasing
+### C4: Rule 1 (no figure you are used to seeing in print) versus standardized documentation phrasing
 
 **The conflict.** Documentation deliberately reuses phrasing, because a reader
 scanning twenty pages needs the same construction to mean the same thing.
@@ -904,7 +902,7 @@ ordinary word and can generally be used without loss of vividness." Structural
 repetition of a documented phrase pattern is a `cut-what-cuts` question at most,
 never a `stale-figure` finding.
 
-### C5 — Rule 5 (no jargon where an everyday word exists) versus identifier fidelity
+### C5: Rule 5 (no jargon where an everyday word exists) versus identifier fidelity
 
 **The conflict.** Documentation must reproduce the artifact's own vocabulary
 exactly. If the flag is `--utilize-cache`, the prose says `--utilize-cache`.
@@ -913,10 +911,10 @@ Paraphrasing an identifier into plain English makes the document wrong.
 **Resolution we adopt.** The **identifier fidelity** exception is unconditional
 and does not require annotation when the token appears inside backticks, a code
 fence, or a link to the artifact. Outside code formatting, the annotation is
-required — which has the useful side effect of pressuring writers to mark
+required -- which has the useful side effect of pressuring writers to mark
 identifiers as code.
 
-### C6 — Rule 6's taste clause versus automated review
+### C6: Rule 6's taste clause versus automated review
 
 **The conflict.** "Break any of these rules sooner than say anything outright
 barbarous" cannot be evaluated by a linter, and an LLM reviewer given this rule
@@ -924,8 +922,8 @@ will use it to protect its own defaults. Left as written, rule 6 nullifies rules
 1-5 in an automated pipeline.
 
 **Resolution we adopt.** Replace it with `named-exception-only`. The escape hatch
-survives; the appeal to taste does not. The single judgement retained — *does the
-compliant rewrite lose what the named exception protects* — is bounded to
+survives; the appeal to taste does not. The single judgement retained -- *does the
+compliant rewrite lose what the named exception protects* -- is bounded to
 adjudicating a claim the writer has already made in writing, which is reviewable
 and auditable, unlike a free-standing aesthetic veto.
 
@@ -935,11 +933,10 @@ and auditable, unlike a free-standing aesthetic veto.
 
 Every token Orwell names, transcribed from the essay, in Vale-pasteable form,
 with a modern-equivalents list beside each 1946 list. Orwell's lists are
-verbatim; the modern lists are **EXTENSION**, warranted by his own method —
-"There is a long list of flyblown metaphors which could similarly be got rid of
+verbatim; the modern lists are **EXTENSION**, warranted by his own method -- "There is a long list of flyblown metaphors which could similarly be got rid of
 if enough people would interest themselves in the job."
 
-### L1 — Dying metaphors (Orwell, verbatim)
+### L1: Dying metaphors (Orwell, verbatim)
 
 Source: DYING METAPHORS paragraph, plus the closing paragraph's additions
 ("jackboot, Achilles' heel, hotbed, melting pot, acid test, veritable inferno"),
@@ -979,7 +976,7 @@ tokens:
 Note on `iron resolution`: Orwell cites it as an *acceptable* dead metaphor.
 It belongs on the allowlist, not here.
 
-### L1M — Dying metaphors, modern equivalents — EXTENSION
+### L1M: Dying metaphors, modern equivalents: EXTENSION
 
 The 2020s stale band, with the LLM-characteristic subset marked.
 
@@ -1042,7 +1039,7 @@ rapidly evolving landscape`, `in the realm of`, `a testament to`, `tapestry of`,
 `delve into`, `it's worth noting that`, `navigate the complexities of`, `unlock
 the power of`, `harness the power of`.
 
-### L2 — Verbal false limbs / operators (Orwell, verbatim)
+### L2: Verbal false limbs / operators (Orwell, verbatim)
 
 ```yaml
 tokens:
@@ -1093,12 +1090,11 @@ noun_for_gerund: \bby\s+\w+(?:tion|sion|ment)\s+of\b
 Orwell's example coinages, cited as the pattern to reject:
 `deregionalize`, `impermissible`, `extramarital`, `non-fragmentary`.
 
-The simple verbs Orwell names as the targets these constructions displace —
-useful as the substitution *right-hand side*: `break`, `stop`, `spoil`, `mend`,
+The simple verbs Orwell names as the targets these constructions displace -- useful as the substitution *right-hand side*: `break`, `stop`, `spoil`, `mend`,
 `kill`. And the general-purpose verbs whose presence signals the construction:
 `prove`, `serve`, `form`, `play`, `render`.
 
-### L2M — Verbal false limbs, modern equivalents — EXTENSION
+### L2M: Verbal false limbs, modern equivalents: EXTENSION
 
 ```yaml
 tokens:
@@ -1168,11 +1164,11 @@ at this point in time: now
 in terms of: ""
 ```
 
-### L3 — Pretentious diction (Orwell, verbatim)
+### L3: Pretentious diction (Orwell, verbatim)
 
 Four sub-lists, kept separate because Orwell assigns each a distinct function.
 
-Dress-up nouns and verbs — "used to dress up a simple statement and give an air
+Dress-up nouns and verbs -- "used to dress up a simple statement and give an air
 of scientific impartiality to biased judgements":
 
 ```yaml
@@ -1227,7 +1223,7 @@ tokens:
   - clarion
 ```
 
-Unnecessary Latinate substitutions — Orwell's own examples:
+Unnecessary Latinate substitutions -- Orwell's own examples:
 
 ```yaml
 tokens:
@@ -1243,7 +1239,7 @@ tokens:
 Non-English phrases Orwell lists. **Retained for historical completeness only.**
 Per the modernization note under `plain-word-first`, this list is *not* shipped as
 a Vale rule; the test is plain-equivalence, never word origin. Orwell's own
-carve-out — "Except for the useful abbreviations i. e., e. g. and etc." — is
+carve-out -- "Except for the useful abbreviations i. e., e. g. and etc." -- is
 preserved as an allowlist.
 
 ```yaml
@@ -1266,7 +1262,7 @@ Party-jargon list Orwell gives as an example of factional vocabulary
 (`hyena`, `hangman`, `cannibal`, `petty bourgeois`, `these gentry`, `lackey`,
 `flunkey`, `mad dog`, `White Guard`). **Not shipped**: it is a 1946 political
 lexicon with no modern analogue that survives the objectivity requirement. Its
-*mechanism* — in-group vocabulary substituting for argument — is caught by
+*mechanism* -- in-group vocabulary substituting for argument -- is caught by
 `empty-evaluative-word`.
 
 Orwell's flower-name footnote (`snapdragon`→`antirrhinum`,
@@ -1274,7 +1270,7 @@ Orwell's flower-name footnote (`snapdragon`→`antirrhinum`,
 list, but the clearest statement of the underlying test: "It is hard to see any
 practical reason for this change of fashion".
 
-### L3M — Pretentious diction, modern equivalents — EXTENSION
+### L3M: Pretentious diction, modern equivalents: EXTENSION
 
 Corporate-strategy register:
 
@@ -1376,7 +1372,7 @@ disseminate: send
 aggregate: total
 ```
 
-Technical terms used outside their domain — the modern equivalent of Orwell's
+Technical terms used outside their domain -- the modern equivalent of Orwell's
 "strayed scientific words":
 
 ```yaml
@@ -1399,11 +1395,11 @@ tokens:
 
 These are terms of art *inside* their field and violations *outside* it. The Vale
 rule needs a scope filter, or the rule ships advisory-only with the message "term
-of art — confirm the domain".
+of art -- confirm the domain".
 
-### L4 — Meaningless words (Orwell, verbatim)
+### L4: Meaningless words (Orwell, verbatim)
 
-Art-criticism set — "strictly meaningless, in the sense that they not only do not
+Art-criticism set -- "strictly meaningless, in the sense that they not only do not
 point to any discoverable object":
 
 ```yaml
@@ -1419,7 +1415,7 @@ tokens:
   - living quality
 ```
 
-Political set — words with "several different meanings which cannot be reconciled
+Political set -- words with "several different meanings which cannot be reconciled
 with one another":
 
 ```yaml
@@ -1446,7 +1442,7 @@ Whitmanesque in range … an inexorably serene timelessness"), quoted in full in
 the taxonomy section above. It is the reference specimen for the reviewer's
 negation test.
 
-### L4M — Meaningless words, modern equivalents — EXTENSION
+### L4M: Meaningless words, modern equivalents: EXTENSION
 
 Unsupported evaluatives. This is the highest-yield list against LLM text.
 
@@ -1492,7 +1488,7 @@ tokens:
   - of course
 ```
 
-Contested abstractions — the modern analogue of Orwell's political set. Each has
+Contested abstractions -- the modern analogue of Orwell's political set. Each has
 multiple irreconcilable definitions and requires definition at first use:
 
 ```yaml
@@ -1516,7 +1512,7 @@ tokens:
   - enterprise
 ```
 
-### L5 — Euphemism list — EXTENSION
+### L5: Euphemism list: EXTENSION
 
 Warranted by the pacification passage. Orwell's three examples first, verbatim:
 
@@ -1560,7 +1556,7 @@ tokens:
   - enhanced interrogation
 ```
 
-### L6 — Allowlist (dead metaphors and permitted forms)
+### L6: Allowlist (dead metaphors and permitted forms)
 
 Warranted directly: a dead metaphor "can generally be used without loss of
 vividness", and Orwell's abbreviation carve-out.
@@ -1593,7 +1589,7 @@ abbreviations_allowed:
   - etc.
 ```
 
-### L7 — Reviewer metrics
+### L7: Reviewer metrics
 
 Countable measures, each traceable to a passage in the essay.
 
