@@ -1,19 +1,20 @@
 r"""The native execution path: what Vale cannot run, plus what Vale cannot own.
 
-VALE IS THE EXECUTION ENGINE. `compile_vale` routes 132 of the 148 mechanical
-rules to it, so this module is no longer the main checker. What remains is of two
-kinds, and the second is why the lexical and metric paths still exist:
+VALE IS THE EXECUTION ENGINE. `compile_vale` routes most of the mechanical rules
+to it, so this module is no longer the main checker. `slopvac compile` prints the
+live split. What remains is of two kinds, and the second is why the lexical and
+metric paths still exist:
 
   ALWAYS OURS -- severity precedence (`severity_for`), rule selection per profile
   and config layer (`_active`), and the suppression annotation contract. Vale has
   no notion of any of them; the compiler asks THIS class what level a rule
   resolves to before it writes the ini.
 
-  OURS ONLY BECAUSE VALE REFUSED IT -- 16 rules at the shipped profiles. Two are
+  OURS ONLY BECAUSE VALE REFUSED IT -- see `slopvac compile` for the count. Two are
   `kind: pattern` whose regex Go will not compile (`\U`-escaped emoji ranges), so
-  `_run_lexical` stays for exactly those. Four are `kind: vocabulary`, five are
-  metrics with no Vale expression, and five are structure rules needing
-  cross-block comparison. `compile_ruleset` names each one and its reason.
+  `_run_lexical` stays for exactly those. The rest are vocabulary rules, metrics
+  with no Vale expression, and structure rules needing cross-block comparison.
+  `compile_ruleset` names each one and its reason.
 
 The routing is not a static list: `slopvac compile` prints it, and a rule
 moves here the moment Vale rejects its pattern, which is tested by execution on
@@ -130,10 +131,9 @@ def count_clause_boundaries(text: str) -> int:
 # boundary guards change which spans match, they do not merely narrow them:
 #   `Set width to 30" and height to 12"` paired the two INCH marks into a span,
 #   which would have silenced every finding between them.
-# There is deliberately NO straight-single branch. `'` is the apostrophe, so
-# "Don't use it; the team's build" parses as the quotation `'t use it; the team'`
-# — a rule-silencing span in ordinary English. A single-quoted phrase is rare in
-# technical prose and not worth that trade.
+# No straight-single branch: `'` is the apostrophe, so "Don't use it; the team's
+# build" would parse as the quotation `'t use it; the team'` and silence every rule
+# across it.
 _QUOTED_SPAN = re.compile(
     r"""
       (?<![\w"”])  "  [^"\n]{1,200}  (?<!\s)  "  (?![\w])   # straight double

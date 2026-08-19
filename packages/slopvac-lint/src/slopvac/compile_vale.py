@@ -980,9 +980,7 @@ def compile_ruleset(
             # probe, every payload is written, including the ones Vale refuses to
             # compile. A later run whose config fingerprints the same way finds the
             # manifest, trusts it, and hands Vale a style directory holding an
-            # unloadable rule. Vale answers E201 and then lints NOTHING while
-            # exiting 0, so every file reads clean and the score falls back to the
-            # native rules with no sign that it did.
+            # unloadable rule -- the E201 failure in the module docstring.
             #
             # That is not hypothetical: it is how this project's own README came to
             # report 90.7 and 91.5 when the real figure was 82.6. The entry was
@@ -1138,10 +1136,8 @@ def compile_ruleset(
     #
     # A reader is never shown a half-built tree. Clearing first left a window --
     # ~200 rule files wide -- in which a concurrent run resolved a config whose
-    # rules were partly absent. Vale rejects the config (E201) and then lints
-    # NOTHING while still exiting 0, so every file reads clean and the score is
-    # silently native-rules-only. That is the exact failure this project exists to
-    # prevent, and it cost a session's worth of trust in its own README score.
+    # rules were partly absent, which is the E201 failure in the module docstring.
+    # It cost a session's worth of trust in this project's own README score.
     #
     # And a crash leaves no cache entry at all. The manifest is the last thing
     # written, so a run killed mid-write used to leave a directory that looked

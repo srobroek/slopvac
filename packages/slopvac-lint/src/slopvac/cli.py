@@ -370,7 +370,7 @@ class _DefaultGroup(click.Group):
 def main(context: click.Context) -> None:
     """Lint prose for AI slop, Simplified Technical English, and Orwell rules.
 
-    `slopvac FILE...` lints. `slopvac rules` lists what it checks.
+    `slopvac FILE...` lints. `slopvac rules` lists the rules.
     """
     if context.invoked_subcommand is None:
         click.echo(context.get_help())
@@ -868,7 +868,9 @@ def explain(
     # `message` is a template. Printed raw it shows `{replacement}`, which reads as a
     # bug; the slots are shown as `<name>` so it is clear they are filled per finding.
     console.print("\n" + rule.message.replace("{", "<").replace("}", ">"))
-    if rule.fix:
+    # A `fix` that only restates the message is noise. `ste-words.spelling` printed
+    # 'Use the en-US spelling "<replacement>".' and then 'Fix: Use the en-US spelling.'
+    if rule.fix and rule.fix.rstrip(".").lower() not in rule.message.rstrip(".").lower():
         console.print(f"\n[bold]Fix[/]: {rule.fix}")
     if rule.judgement_question:
         console.print(f"\n[bold]Decide by asking[/]: {rule.judgement_question}")
@@ -932,7 +934,8 @@ def init_config(profile: str, force: bool, path: Path) -> None:
 @click.option(
     "--no-validate",
     is_flag=True,
-    help="Skip handing each rule to Vale. Faster, and the routing is then unproven.",
+    help="Skip validating each rule against Vale. Faster, but the routing is "
+    "unverified.",
 )
 @click.option("--format", "output_format", type=click.Choice(["text", "json"]), default="text")
 def compile_styles(
@@ -1036,8 +1039,8 @@ def compile_styles(
 @click.option(
     "--prune",
     is_flag=True,
-    help=f"Delete all but the {CACHE_KEEP} most recently used trees. A lint does "
-    f"this on its own; use this to reclaim the disk now.",
+    help=f"Delete all but the {CACHE_KEEP} most recently used trees. Lint prunes "
+    f"on its own; this forces it now.",
 )
 @click.option("--all", "prune_all", is_flag=True, help="Delete every compiled tree.")
 def cache(prune: bool, prune_all: bool) -> None:

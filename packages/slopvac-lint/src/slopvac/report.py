@@ -18,9 +18,8 @@ that, all of them in this repo:
   the encoder serialised as whatever `str()` gave, so a field that should have
   been a string got a `PosixPath` repr in some runs and not others.
 
-The models are the schema, so `slopvac schema` can emit JSON Schema for both and
-CI can publish it. That is the point: a consumer validates against the same
-definition the tool serialises from.
+The models are the schema: a consumer validates against the same definition the
+tool serialises from, and pins `schema_version` in the JSON output.
 
 SARIF FIELD NAMES ARE camelCase because the specification says so, and the
 `alias` on each field is what keeps the Python side snake_case. Serialisation
@@ -132,9 +131,8 @@ class SarifMultiformatMessage(BaseModel):
 class SarifRuleProperties(BaseModel):
     """Rule metadata GitHub shows in the alert detail pane.
 
-    A reference the rule does not carry is ABSENT rather than null -- a null in
-    that pane renders as an empty row, so `exclude_none` on serialisation is
-    load-bearing rather than cosmetic.
+    A reference the rule does not carry is ABSENT rather than null: `exclude_none`
+    on serialisation is required, or the pane renders an empty row.
     """
 
     model_config = ConfigDict(extra="forbid")
