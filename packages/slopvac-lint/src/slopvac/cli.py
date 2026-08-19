@@ -368,9 +368,9 @@ class _DefaultGroup(click.Group):
 @click.version_option(__version__, prog_name="slopvac")
 @click.pass_context
 def main(context: click.Context) -> None:
-    """Score prose against AI-slop, Simplified Technical English, and Orwell rules.
+    """Lint prose for AI slop, Simplified Technical English, and Orwell rules.
 
-    Run with paths to lint them; `slopvac rules` lists the ruleset.
+    `slopvac FILE...` lints. `slopvac rules` lists what it checks.
     """
     if context.invoked_subcommand is None:
         click.echo(context.get_help())
@@ -413,7 +413,7 @@ def main(context: click.Context) -> None:
     type=click.Choice(["text", "json", "github", "sarif", "html"]),
     default="text",
     help="text for humans, json for tooling, github for Action annotations, "
-    "html for a self-contained report.",
+    "sarif for code scanning, html for a standalone report.",
 )
 @click.option(
     "--out",
@@ -751,10 +751,9 @@ def list_rules(
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
 ) -> None:
-    """List the ruleset, with each rule's disposition at a profile.
+    """List the rules and whether each is on at a profile.
 
-    `--judgement` is what the agentic reviewer reads: the rules carried as
-    decidable questions because no pattern reaches them.
+    `--judgement` lists only the rules a reader must decide.
     """
     console = _console(False)
     try:
@@ -830,7 +829,7 @@ def explain(
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
 ) -> None:
-    """Show one rule in full: why it exists, its exceptions, and its examples."""
+    """Show one rule in full."""
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -866,7 +865,9 @@ def explain(
     console.print(f"[bold]{rule.qualified_id}[/] -- {rule.name}")
     console.print(f"kind: {rule.kind.value}   severity: {rule.severity.value}   scope: {rule.scope.value}")
     console.print("tiers: " + "  ".join(f"{k}={v.value}" for k, v in rule.tiers.items()))
-    console.print(f"\n{rule.message}")
+    # `message` is a template. Printed raw it shows `{replacement}`, which reads as a
+    # bug; the slots are shown as `<name>` so it is clear they are filled per finding.
+    console.print("\n" + rule.message.replace("{", "<").replace("}", ">"))
     if rule.fix:
         console.print(f"\n[bold]Fix[/]: {rule.fix}")
     if rule.judgement_question:
@@ -901,7 +902,7 @@ def explain(
     show_default=True,
 )
 def init_config(profile: str, force: bool, path: Path) -> None:
-    """Write a starter slopvac.toml with the common overrides commented out."""
+    """Write a starter slopvac.toml."""
     console = _console(False)
     if path.exists() and not force:
         console.print(f"[yellow]{path} exists[/]; pass --force to overwrite.")
@@ -919,8 +920,7 @@ def init_config(profile: str, force: bool, path: Path) -> None:
 @click.option(
     "--outdir",
     type=click.Path(path_type=Path),
-    help="Where to write the styles. Default: the run cache, keyed by a hash of "
-    "the rules and the resolved config.",
+    help="Where to write the styles. Default: the run cache.",
 )
 @click.option("--profile", type=click.Choice([p.value for p in Profile]), default=None)
 @click.option(
@@ -943,10 +943,9 @@ def compile_styles(
     no_validate: bool,
     output_format: str,
 ) -> None:
-    """Write the Vale styles and print which engine runs each rule.
+    """Write the Vale styles and show which engine runs each rule.
 
-    Use this to inspect the routing, or to run Vale by hand against the generated
-    config: `vale --config=<outdir>/.vale.ini docs/`.
+    To run Vale by hand: `vale --config=<outdir>/.vale.ini docs/`.
     """
     console = _console(False)
     discovered = config_path or find_config(Path.cwd())
@@ -1021,17 +1020,16 @@ def compile_styles(
     table.add_column("engine")
     table.add_column("rules", justify="right")
     table.add_column("why")
-    table.add_row("vale", str(result.vale_count), "compiled and proven to load")
-    table.add_row("native", str(result.native_count), "vale cannot express it; see below")
-    table.add_row("none (judgement)", str(len(result.judgement_rules)), "not mechanizable")
-    table.add_row("none (off)", str(len(result.disabled_rules)), "disabled by this config")
+    table.add_row("vale", str(result.vale_count), "compiled, load proven")
+    table.add_row("native", str(result.native_count), "vale cannot express it")
+    table.add_row("none (judgement)", str(len(result.judgement_rules)), "needs a reader")
+    table.add_row("none (off)", str(len(result.disabled_rules)), "off in this config")
     console.print(table)
 
     if result.native_rules:
-        console.print("\n[bold]rules that stay native[/]")
+        console.print("\n[bold]native rules[/]")
         for entry in result.native_rules:
-            console.print(f"  {entry.rule_id} [{entry.kind}]")
-            console.print(f"    {entry.reason}")
+            console.print(f"  {entry.rule_id}  [dim]{entry.reason}[/]")
 
 
 @main.command("cache")
@@ -1043,11 +1041,10 @@ def compile_styles(
 )
 @click.option("--all", "prune_all", is_flag=True, help="Delete every compiled tree.")
 def cache(prune: bool, prune_all: bool) -> None:
-    """Show the compiled-style cache, and prune it.
+    """Show the compiled-style cache, or prune it.
 
-    A tree is keyed by a hash of the rules and the resolved config, so a ruleset
-    edit, a severity change, or a blocklist edit mints a new one. Nothing is ever
-    served stale -- the key would differ -- so pruning is only about disk.
+    A tree's key hashes the rules and the config, so nothing is served stale.
+    Pruning only frees disk.
     """
     console = _console(False)
     root = cache_root()
@@ -1108,12 +1105,9 @@ if __name__ == "__main__":
 )
 @click.option("--rules-dir", multiple=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
 def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]) -> None:
-    """Generate the rules reference, split into checked and judgement rules.
+    """Generate the markdown rules reference.
 
-    `--check` is what makes the committed copy trustworthy. A generated document
-    with no check is a stale file with extra steps, and the failure it produces is
-    the expensive kind: somebody plans against a rule that was renamed, retiered,
-    or removed. So CI regenerates and compares rather than trusting the commit.
+    `--check` fails when the committed copy has drifted.
     """
     console = _console(False)
     try:

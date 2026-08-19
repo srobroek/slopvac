@@ -127,7 +127,7 @@ def count_clause_boundaries(text: str) -> int:
 # dots ride along, which is what makes `DATABASE_URL`, `RFC 2119`, and `TLS1.3`
 # count as all-caps while `Ensure` does not.
 # A quotation opens at a word boundary and closes against a non-space. The
-# boundary guards are load-bearing, not defensive:
+# boundary guards change which spans match, they do not merely narrow them:
 #   `Set width to 30" and height to 12"` paired the two INCH marks into a span,
 #   which would have silenced every finding between them.
 # There is deliberately NO straight-single branch. `'` is the apostrophe, so
@@ -474,7 +474,7 @@ class Engine:
         the level in both directions, so `severity = "error"` promotes and
         `severity = "warning"` demotes.
 
-        AUTHORED is the load-bearing word, and getting it wrong made the advisory
+        AUTHORED is the word that decides this, and getting it wrong made the advisory
         tier almost meaningless. `ResolvedConfig.categories` is SEEDED from the
         profile's own defaults, so a category severity is not evidence that anybody
         asked for it -- and letting it override the advisory demotion below meant
