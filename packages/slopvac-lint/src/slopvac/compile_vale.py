@@ -232,8 +232,7 @@ METRIC_TOKENS = {
 }
 
 MISSING_METRIC_REASON = (
-    "no Vale expression for metric '{metric}': it needs a measurement Vale's "
-    "occurrence counter and Tengo scripting do not reach, so it stays native"
+    "metric '{metric}' is beyond Vale's occurrence counter and Tengo"
 )
 
 # A metric that only applies to one KIND of sentence cannot go to Vale, however
@@ -269,16 +268,11 @@ TEXT_TYPE_AWARE_METRICS = frozenset({"sentence_words"})
 WORD_COUNTING_METRICS = frozenset({"paragraph_words"})
 
 WORD_COUNT_REASON = (
-    "metric counts words as ASD-STE100 8.4-8.7 define them and an inline code span is "
-    "one word, which Vale's occurrence counter reports as zero because markdown "
-    "scoping drops the span before counting, so the compiled rule reports a different "
-    "number from the native one for the same paragraph"
+    "Vale counts an inline code span as zero words, ASD-STE100 8.4-8.7 as one"
 )
 
 TEXT_TYPE_REASON = (
-    "metric is scoped to text_type={text_type}, which Vale cannot determine: its "
-    "occurrence counter sees a sentence's words but not whether that sentence is an "
-    "instruction or an explanation, so the rule stays native"
+    "Vale cannot tell an instruction from an explanation (text_type={text_type})"
 )
 
 
@@ -423,9 +417,8 @@ DENSITY_MESSAGE_METRICS = frozenset(
 )
 
 DENSITY_MESSAGE_REASON = (
-    "metric '{metric}' is a density whose message states the measured figure, and "
-    "Vale's script extension point returns a match rather than a number, so the "
-    "rule stays native to keep the count in the message"
+    "the message quotes the measured '{metric}', and a Vale script returns a match, "
+    "not a number"
 )
 
 
@@ -812,9 +805,8 @@ def _elect_vocabulary_owner(
             NativeRule(
                 rule.qualified_id,
                 rule.kind.value,
-                f"the controlled-vocabulary sweep is compiled once, under "
-                f"{chosen.qualified_id}; this rule's own distinction needs evidence "
-                f"the (word, part-of-speech) dictionary does not carry",
+                f"the vocabulary sweep is compiled once, under "
+                f"{chosen.qualified_id}",
             )
         )
     return [chosen]
@@ -988,9 +980,7 @@ def compile_ruleset(
             # probe, every payload is written, including the ones Vale refuses to
             # compile. A later run whose config fingerprints the same way finds the
             # manifest, trusts it, and hands Vale a style directory holding an
-            # unloadable rule. Vale answers E201 and then lints NOTHING while
-            # exiting 0, so every file reads clean and the score falls back to the
-            # native rules with no sign that it did.
+            # unloadable rule -- the E201 failure in the module docstring.
             #
             # That is not hypothetical: it is how this project's own README came to
             # report 90.7 and 91.5 when the real figure was 82.6. The entry was
@@ -1060,8 +1050,7 @@ def compile_ruleset(
             reason = (
                 MISSING_METRIC_REASON.format(metric=rule.metric)
                 if rule.kind is RuleKind.METRIC
-                else f"no Vale extension point expresses kind={rule.kind.value} "
-                f"rule '{rule.id}'"
+                else f"no Vale extension point for a {rule.kind.value} rule"
             )
             result.native_rules.append(NativeRule(rule.qualified_id, rule.kind.value, reason))
             continue
@@ -1095,8 +1084,7 @@ def compile_ruleset(
                     # No square brackets in this string: the CLI renders native
                     # reasons through rich, which reads `[vocabulary]` as a style tag
                     # and silently deletes it, so the message named no setting at all.
-                    "no word blocklist is configured, so this rule has nothing to "
-                    "check. Set vocabulary.path in your slopvac config to enable it "
+                    "no word blocklist, so nothing to check; set vocabulary.path "
                     "-- see examples/blocklist.toml",
                 )
             )
@@ -1136,8 +1124,7 @@ def compile_ruleset(
                 NativeRule(
                     rule_id,
                     kind,
-                    f"Vale will not compile this pattern, and one unloadable rule "
-                    f"aborts the whole run: {reason}",
+                    f"Vale rejected the pattern: {reason}",
                 )
             )
 
@@ -1149,10 +1136,8 @@ def compile_ruleset(
     #
     # A reader is never shown a half-built tree. Clearing first left a window --
     # ~200 rule files wide -- in which a concurrent run resolved a config whose
-    # rules were partly absent. Vale rejects the config (E201) and then lints
-    # NOTHING while still exiting 0, so every file reads clean and the score is
-    # silently native-rules-only. That is the exact failure this project exists to
-    # prevent, and it cost a session's worth of trust in its own README score.
+    # rules were partly absent, which is the E201 failure in the module docstring.
+    # It cost a session's worth of trust in this project's own README score.
     #
     # And a crash leaves no cache entry at all. The manifest is the last thing
     # written, so a run killed mid-write used to leave a directory that looked

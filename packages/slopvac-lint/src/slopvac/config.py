@@ -35,7 +35,7 @@ PYPROJECT = "pyproject.toml"
 
 class Severity(str, Enum):
     """A finding's weight. `off` is a level rather than a deletion so that a
-    disabled rule still appears in `slopvac rules --show-disabled`."""
+    disabled rule still resolves, and `slopvac rules` can report it as off."""
 
     OFF = "off"
     SUGGESTION = "suggestion"

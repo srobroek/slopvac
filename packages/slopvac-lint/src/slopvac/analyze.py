@@ -264,7 +264,7 @@ def classify_text_type(text: str) -> TextType:
     DESCRIPTIVE (25) even inside a procedure, an imperative is PROCEDURAL (20),
     and everything else is DESCRIPTIVE (25).
 
-    Order is load-bearing: a warning is often phrased descriptively but still
+    Order decides the outcome: a warning is often phrased descriptively but still
     takes the procedural cap, and a note inside a procedure takes the descriptive
     cap despite its surroundings.
     """
@@ -690,12 +690,9 @@ def longest_noun_stack(text: str) -> int:
 
     A run counts ONLY IF at least one of its words carries a noun suffix. That
     condition is what makes the measure usable without a part-of-speech tagger.
-    Adjacency alone counts far too much: measured on this project's own README,
-    the bare adjacency version produced 73 findings, including 5 for
-    `Score prose against three rulesets` and 7 for
-    `This is a very good simple test case here today` -- runs of verbs, adjectives,
-    and adverbs that no reader would call a noun stack. Requiring a noun-suffix
-    anchor took both to 0 while still reporting 5 for
+    Adjacency alone counts far too much: on this project's own README it produced
+    73 findings, mostly runs of verbs, adjectives, and adverbs. The suffix anchor
+    took those to 0 and still reported
     `container orchestration platform migration strategy`.
 
     Under-reports on purpose. A stack of short Germanic nouns carries no suffix
