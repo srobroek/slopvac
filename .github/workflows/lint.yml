@@ -180,11 +180,13 @@ jobs:
           base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
           sed -i "s|$base|http://localhost:8899/|g" "$config"
           vale --config="$config" sync
+          # `docs/` is passed as a directory, not as a list of files. The two
+          # specimen files inside it are excluded in `slopvac.toml`, so a new doc
+          # is gated the moment it is added instead of being silently unchecked.
           uvx --from ./packages/slopvac-lint slopvac lint \
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/vale-styles/README.md \
-            packages/slopvac-lint/docs/migration.md \
-            packages/slopvac-lint/docs/exclusions.md
+            packages/slopvac-lint/docs
 
   # The only required status check. Branch protection names this one job rather than
   # every job, so adding a job above needs no change to the protection rule.
