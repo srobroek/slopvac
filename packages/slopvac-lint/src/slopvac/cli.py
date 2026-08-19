@@ -144,9 +144,17 @@ def _lint_one(
         # to be applied on this side or it holds for only half the ruleset. Before
         # this, the project's own steering document drew 7 errors and every one was
         # the phrase it was forbidding: a style guide could not pass its own gate.
+        # Vale reads no annotation either, so a `slopvac-allow` comment is applied
+        # here for the same reason. The engine is rebuilt WITHOUT `only`: the rules
+        # being filtered are by definition the ones Vale took, so the partitioned
+        # engine above does not hold them and could not validate a reason against
+        # their exception lists.
         findings.extend(
-            drop_quoted_illustrations(
-                vale_result.findings_for(str(path)), document, ruleset
+            Engine(ruleset.rules, resolved).drop_suppressed(
+                drop_quoted_illustrations(
+                    vale_result.findings_for(str(path)), document, ruleset
+                ),
+                document,
             )
         )
         unchecked.extend(vale_result.unchecked)
