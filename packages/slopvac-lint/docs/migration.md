@@ -6,7 +6,7 @@
 `.gitignore` and `README.md` are tracked there. The 61 non-`ai-tells` rule files
 in that tree are byte-identical to `vale-styles/` on branch
 `origin/feat/craft-inclusive-density-styles` (verified by `git ls-tree` diff, 61/61
-identical). Those are OURS. `vale/styles/ai-tells/` holds 76 files fetched from
+identical). The 61 are this project's own. `vale/styles/ai-tells/` holds 76 files fetched from
 `tbhb/vale-ai-tells` and stays a Vale dependency.
 
 `packages/slopvac-lint/vale-styles/` on the current branch holds only 19 of the 61
@@ -52,7 +52,7 @@ Vale check, not two), which is why 61 files map to 59 rules and not more.
 | `prose-inflation/BorderlineHype.yml` | `prose-inflation.borderline-hype` | pattern | |
 | `prose-craft/AcronymPeriods.yml` | `prose-craft.acronym-periods` | pattern | Vale `tokens:` holds a regex |
 | `prose-craft/Ambiguity.yml` | `prose-craft.ambiguity` | pattern | |
-| `prose-craft/Annotations.yml` | `prose-craft.annotations` | pattern | DUPLICATE, see below |
+| `prose-craft/Annotations.yml` | `prose-craft.annotations` | pattern | DUPLICATE, listed under Duplicated across engines |
 | `prose-craft/Articles.yml` | `prose-craft.articles` | substitution | 37 swaps |
 | `prose-craft/CommandPrompt.yml` | `prose-craft.command-prompt` | pattern | `scope: raw` |
 | `prose-craft/ConflictMarkers.yml` | `prose-craft.conflict-markers` | pattern | `scope: raw` |
@@ -76,10 +76,10 @@ Vale check, not two), which is why 61 files map to 59 rules and not more.
 | `prose-craft/SentenceLength.yml` | `prose-craft.sentence-length` | metric | `occurrence` -> `sentence_words` @ 34 |
 | `prose-craft/Spacing.yml` | `prose-craft.spacing` | pattern | 2 tokens merged; lookbehinds |
 | `prose-craft/UnclearAntecedent.yml` | `prose-craft.unclear-antecedent` | pattern | 3 lookbehinds |
-| `prose-craft/UndefinedAcronym.yml` | *kept in Vale only* | n/a | `extends: conditional`; see below |
+| `prose-craft/UndefinedAcronym.yml` | *kept in Vale only* | n/a | `extends: conditional`, listed under Not converted |
 | `prose-craft/Versions.yml` | `prose-craft.versions` | substitution | 6 swaps |
 | `prose-craft/Wordiness.yml` | `prose-craft.wordiness` | substitution | 108 swaps |
-| `prose-density/PassiveDensity.yml` | *kept in Vale only* | n/a | `extends: script` (Tengo); see below |
+| `prose-density/PassiveDensity.yml` | *kept in Vale only* | n/a | `extends: script` (Tengo), listed under Not converted |
 | `prose-inclusive/Ableist.yml` | `prose-inclusive.ableist` | substitution | 27 swaps |
 | `prose-inclusive/DeviceAssumption.yml` | `prose-inclusive.device-assumption` | substitution | 9 swaps |
 | `prose-inclusive/Exclusive.yml` | `prose-inclusive.exclusive` | substitution | 27 swaps; `master`/`slave` negative lookaheads |
@@ -88,21 +88,21 @@ Vale check, not two), which is why 61 files map to 59 rules and not more.
 
 | Rule | Reason |
 |---|---|
-| `prose-craft/UndefinedAcronym.yml` | `extends: conditional` -- a two-pattern rule where `first` may appear only after `second` has established it. Our schema has no conditional kind and no cross-position state. Its 111-finding measurement and 100-entry exception list are recorded in the rule file and must not be lost; port it when the engine gains a `conditional` kind. |
+| `prose-craft/UndefinedAcronym.yml` | `extends: conditional` -- a two-pattern rule where `first` may appear only after `second` has established it. The rule schema has no conditional kind and no cross-position state. Its 111-finding measurement and 100-entry exception list are recorded in the rule file and must not be lost; port it when the engine gains a `conditional` kind. |
 | `prose-density/PassiveDensity.yml` | `extends: script` (Tengo). The Python engine can compute this natively as `kind: metric`, `metric: passive_sentence_ratio`, `threshold: 35`, `scope: document`, but the 32-measure benchmark table and the p50/p75/p90/p95 distribution (7/13/23/31, max 46) were calibrated against THIS Tengo splitter replicated in Python. Porting without re-running that calibration changes the number silently. NOT converted; flagged as the highest-value follow-up. |
 
 ## Duplicated across engines
 
 Vale continues to run as a sub-gate for the upstream `ai-tells` package (76 rules,
 13 with dispositions recorded in `exclusions.md`). Duplication is therefore
-between OUR engine and UPSTREAM Vale, never our engine against itself.
+between THIS engine and UPSTREAM Vale, never the engine against itself.
 
-| Our rule | Upstream Vale rule(s) | Acceptable? |
+| Ported rule | Upstream Vale rules | Acceptable? |
 |---|---|---|
 | `ai-tells-structure.contrastive-inversion-frames` | `ContrastiveNegation`, `ContrastiveFormulas` | Deduplicate: disable both upstream rules once ours is calibrated. Upstream's are at error and `ContrastiveNegation` is already `NO` for the package's own normative files. |
-| `ai-tells-structure.tricolon-abuse-core` | `VerbTricolon` (demoted to warning), `VerbTricolonDensity` | Deduplicate: keep upstream, drop ours. Upstream carries the density variant we do not have. |
+| `ai-tells-structure.tricolon-abuse-core` | `VerbTricolon` (demoted to warning), `VerbTricolonDensity` | Deduplicate: keep upstream, drop ours. Upstream carries a density variant with no ported equivalent. |
 | `ai-tells-structure.summary-closer-frames` | `ConclusionMarkers`, `WrapUpHeadings` | Deduplicate: disable ours; upstream splits body from heading. |
-| `ai-tells-register.figurative-verb-verdict-core` | 16 `Figurative*` rules | Deduplicate: disable OURS. Upstream's one-rule-per-verb form gives better messages. Keep our judgement remainder. |
+| `ai-tells-register.figurative-verb-verdict-core` | 16 `Figurative*` rules | Deduplicate: disable OURS. Upstream's one-rule-per-verb form gives better messages. Keep the ported judgement remainder. |
 | `ai-tells-register.sycophantic-meta-residue` | `SycophancyMarkers`, `AffirmativeFormulas`, `ClosingPleasantries` | Deduplicate: disable ours. `AffirmativeFormulas` is already trusted at error for source comments. |
 | `ai-tells-register.urgency-inflation-core` | `UrgencyInflation` | Deduplicate: disable ours. |
 | `ai-tells-register.organic-consequence-core` | `OrganicConsequence` | Deduplicate: disable ours. |
@@ -110,10 +110,10 @@ between OUR engine and UPSTREAM Vale, never our engine against itself.
 | `ai-tells-content-shape.superficial-ing-analysis` | `ParticipialPadding` | Deduplicate: disable ours. |
 | `prose-craft.annotations` | `docs-discipline.status-language` (ours) | ACCEPTABLE. Genre-split by design: `status-language` is off for change comms, where a commit legitimately says "not yet implemented" but never ships "TODO: write this". |
 | `prose-format.no-unicode-dash` + `ai-tells-formatting.em-dash-density` | `EmDashUsage` (disabled) | ACCEPTABLE. Presence and density are different checks; upstream is disabled on a measurement. |
-| `prose-format.emoji-heading` + `ai-tells-formatting.emoji-list-markers` | none | ACCEPTABLE. Different scopes (`heading` vs `raw` list position). |
-| `prose-craft.directional-ref` + `ai-tells-formatting.cross-reference-signposting` | `RestatementMarkers`, `SelfReference` | ACCEPTABLE between ours (position vs reading-order, different fixes). Deduplicate against upstream. |
+| `prose-format.emoji-heading` + `ai-tells-formatting.emoji-list-markers` | none | ACCEPTABLE. Different scopes: `heading` against `raw` list position. |
+| `prose-craft.directional-ref` + `ai-tells-formatting.cross-reference-signposting` | `RestatementMarkers`, `SelfReference` | ACCEPTABLE between the two ported rules: position against reading-order, and different fixes. Deduplicate against upstream. |
 
-Net: **9 of our agentic pattern/token rules should be disabled in favour of the
+Net: **9 ported agentic pattern/token rules should be disabled in favour of the
 upstream Vale rule** once the port runs alongside Vale. They are emitted anyway
 so the catalog is complete and the engine can run standalone.
 
@@ -156,10 +156,10 @@ Rule counts per emitted category: `ai-residue` 1, `docs-discipline` 3,
 
 ## Go RE2 -> Python `regex` divergences
 
-Recorded in each rule's `provenance.note`. Go RE2 supports neither backreferences
-nor lookbehind, so these branches cannot have been matching under a pure RE2
-engine and become newly live in the port -- each needs a corpus run before it is
-enforced:
+Recorded in each rule's `provenance.note`. Go RE2 supports neither
+backreferences nor lookbehind. These branches therefore cannot have been
+matching under a pure RE2 engine, and they become newly live in the port. Each
+needs a corpus run before it is enforced:
 
 | Rule | Feature | Effect |
 |---|---|---|
