@@ -348,20 +348,31 @@ def _ratio_script(pattern: str, scale: int, bound: int, min_words: int = 40) -> 
         "{\n  matches = append(matches, {begin: 0, end: 1})\n}\n"
     )
 
+# A fenced block is skipped, because a `# comment` in shell or YAML is not a
+# heading. The native path gets this from parsed blocks; this script sees raw
+# lines, so it has to track the fence itself. Without the tracking, a code
+# sample containing a `#` comment registered as an h1 and made the next real
+# `###` report as a level skip.
 _HEADING_HIERARCHY_SCRIPT = """\
 text := import("text")
 matches := []
 prev := 0
+fenced := false
 lines := text.split(scope, "\\n")
 offset := 0
 for line in lines {
-  m := text.re_find("^(#+)[ ]", line, 1)
-  if m != undefined {
-    lvl := len(m[0][1].text)
-    if prev > 0 && lvl > prev + 1 {
-      matches = append(matches, {begin: offset, end: offset + len(line)})
+  f := text.re_find("^[ ]{0,3}(```|~~~)", line, 1)
+  if f != undefined {
+    fenced = !fenced
+  } else if !fenced {
+    m := text.re_find("^(#+)[ ]", line, 1)
+    if m != undefined {
+      lvl := len(m[0][1].text)
+      if prev > 0 && lvl > prev + 1 {
+        matches = append(matches, {begin: offset, end: offset + len(line)})
+      }
+      prev = lvl
     }
-    prev = lvl
   }
   offset = offset + len(line) + 1
 }
