@@ -19,16 +19,30 @@ exclude = [
   # the linter reads 530 specimens as 530 errors, and a fix would have to be made in a generator
   # that has no prose to fix.
   "packages/slopvac-lint/docs/rules.md",
-  # Design notes, derivations, and coverage tables, not shipped prose. They quote the tells they
-  # discuss -- `orwell-derivation.md` blockquotes Orwell, whose own sentences are what the rules
-  # were written against, and `vale-traps.md` tables regex patterns holding the flagged terms.
+  # The rest of `docs/`, named one file at a time rather than as `docs/**`. The blanket form was
+  # wider than its own justification: of the eleven files, only `rules.md` and
+  # `orwell-derivation.md` quote their own specimens, and the other nine carried 0-3 errors each.
+  # `migration.md` (62.0 -> 89.7) and `exclusions.md` (61.8 -> 75.0) were fixed and are now gated.
+  # Each file below still needs its own measurement before it comes out; the list is the work
+  # queue.
   #
-  # Demoting a category per file was tried first and does not work: a category cap lowers a
-  # rule's severity but the finding still counts toward `max_errors`, so the files reported zero
-  # score failures and 29 errors. Excluding the tree is the honest version of the same decision.
+  # Blockquotes Orwell at length. His sentences are the corpus the rules were written against, so
+  # the gate reads the source material back as 26 errors. Measured at 57.6.
+  "packages/slopvac-lint/docs/orwell-derivation.md",
+  # Tables the regex patterns it documents, so the patterns' own flagged terms are the content.
+  "packages/slopvac-lint/docs/vale-traps.md",
+  # Design notes and coverage tables, not shipped prose. Measured 68.1, 71.0, 75.1, 76.4, 79.0,
+  # and 83.1 against a 70.0 floor, with three errors spread across the first three.
+  "packages/slopvac-lint/docs/domain-categories.md",
+  "packages/slopvac-lint/docs/coverage.md",
+  "packages/slopvac-lint/docs/counter-signals.md",
+  "packages/slopvac-lint/docs/ste-principles.md",
+  "packages/slopvac-lint/docs/triage.md",
+  "packages/slopvac-lint/docs/metrics.md",
   #
-  # The gate keeps every README, which is the prose a reader of this project actually meets.
-  "packages/slopvac-lint/docs/**",
+  # Demoting a category per file was tried first and does not work: a category cap lowers a rule's
+  # severity but the finding still counts toward `max_errors`, so the files reported zero score
+  # failures and 29 errors. Naming the files is the honest version of the same decision.
 ]
 
 [thresholds]

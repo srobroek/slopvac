@@ -6,7 +6,7 @@ Corpus where quoted: 488 tracked `*.md` in the source repo.
 
 | Vale rule | Disposition | Measurement / reason | Carry over? |
 |---|---|---|---|
-| `ai-tells.OverusedVocabulary` | `NO` | ~190 tokens of the 2023-mid-2024 lexical era-band our own appendix records as retired (delve, tapestry, testament, intricate, pivotal, meticulous, underscores, multifaceted, myriad, plethora), plus a creative-writing tail (gossamer, labyrinthine) and words with ordinary technical uses (comprehensive, granular, scalable). `prose-inflation.SlopLexicon` owns the maintained ban list. | Yes. Kept disabled. `prose-inflation.slop-lexicon` is the replacement and is enforced at every tier. |
+| `ai-tells.OverusedVocabulary` | `NO` | ~190 tokens of the 2023-mid-2024 lexical era-band this project's own appendix records as retired (`delve`, `tapestry`, `testament`, `intricate`, `pivotal`, `meticulous`, `underscores`, `multifaceted`, `myriad`, `plethora`), plus a creative-writing tail (`gossamer`, `labyrinthine`) and words with ordinary technical uses (`comprehensive`, `granular`, `scalable`). `prose-inflation.SlopLexicon` owns the maintained ban list. | Yes. Kept disabled. `prose-inflation.slop-lexicon` is the replacement and is enforced at every tier. |
 | `ai-tells.FormalRegister` | `NO` | Flags implement / implementation / implementing / framework / frameworks. Correct words in this corpus. | Yes. Kept disabled. Same class as the `prose-craft.wordiness` technical-homograph trim. |
 | `ai-tells.RedundantPrecaution` | `NO` | One idiom per rule file (over-fitted). | Yes. Kept disabled. No replacement. |
 | `ai-tells.GrowthMetaphors` | `NO` | Startup-as-organism metaphors (domain-narrow). | Yes. Kept disabled. No replacement. |
