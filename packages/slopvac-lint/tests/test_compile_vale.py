@@ -202,7 +202,7 @@ def test_lookbehind_pattern_stays_native_when_vale_rejects_it(ruleset, tmp_path,
     )
     native = result.native_reasons()
     rejected = {
-        rule_id for rule_id, reason in native.items() if "will not compile" in reason
+        rule_id for rule_id, reason in native.items() if "Vale rejected" in reason
     }
     assert rejected, "expected at least one pattern Vale refuses"
     for rule_id in rejected:

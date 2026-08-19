@@ -30,7 +30,7 @@ rules:
         usable: it matches ONLY the real Unicode characters, not the literal `--`
         this house style writes (measured 6,743 uses of `--` against 2,124 real
         dashes, so the upstream rule fired ~40 times per document on the house
-        convention and buried every other finding). `scope: raw` is load-bearing:
+        convention and buried every other finding). `scope: raw` is required here:
         Vale's default scope skips code fences, indented code, and inline code,
         which is where a pasted Unicode dash does the most damage. Measured on a
         fixture carrying one dash in each position, the default scope found 1 of 4

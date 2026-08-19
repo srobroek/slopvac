@@ -134,8 +134,14 @@ def run_compiled_vale(
     # E201 means a rule file was rejected, and Vale then lints nothing at all.
     # The compiler probes for this, so reaching it here means a rule broke after
     # compilation -- loud, because the alternative is a silent all-clean run.
-    combined = completed.stdout + completed.stderr
-    if "E201" in combined or "error parsing regexp" in combined:
+    #
+    # STDERR ONLY, and this cost a whole Vale layer to learn: Vale reports a rule
+    # error on stderr, but its JSON findings on STDOUT quote the matched source text
+    # back. Scanning both meant any document that mentions E201 or an "error parsing
+    # regexp" tripped the guard on itself, lost every Vale finding, and scored HIGHER
+    # for it. Measured on this package's own extracted comments: 769 findings dropped,
+    # score 65.7 -> 71.4.
+    if "E201" in completed.stderr or "error parsing regexp" in completed.stderr:
         result.unchecked.append(
             "Vale rejected a compiled rule (E201) and therefore linted NOTHING. "
             "Run `slopvac compile --outdir <dir>` and check that directory."
@@ -192,8 +198,8 @@ def unchecked_for_skipped(compiled) -> list[str]:
 
     Skipping Vale now skips most of the ruleset, so the rules that would have run
     are reported as unchecked rather than dropped. A gate that silently stops
-    checking 132 of 148 mechanical rules while still printing a score is the
-    exact failure mode this project refuses to ship.
+    checking most of its rules while still printing a score is the exact failure
+    mode this project refuses to ship.
     """
     if not compiled.vale_rules:
         return []
