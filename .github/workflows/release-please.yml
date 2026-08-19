@@ -5,8 +5,14 @@ name: Release Please
 # Vale style packages to the rolling `vale-styles` tag the scaffolded .vale.ini
 # points at, so a released rule change reaches consumers on their next `vale sync`.
 #
-# Version fan-out: release-please owns apm.yml, both plugin.json files, and both
-# marketplace.json files, declared as extra-files in
+# ONE VERSION, ONE TAG. Everything here releases in lockstep behind a plain
+# `vX.Y.Z`, from a single root package in release-please-config.json. The earlier
+# shape carried three components tagged `slopvac--v*`, `slopvac-apm--v*`, and
+# `slopvac-repo--v*`, and they drifted: the linter reached 1.0.0 while the plugins
+# were at 2.0.1, so no single tag named the state of the repository.
+#
+# Version fan-out: release-please owns pyproject.toml, __init__.py, apm.yml, both
+# plugin.json files, and both marketplace.json files, declared as extra-files in
 # release-please-config.json. Those are what a native `/plugin marketplace add`
 # resolves, so a stale version there is a user-visible defect.
 #
