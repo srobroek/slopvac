@@ -1,7 +1,9 @@
 # Measured exclusions from `.vale.ini`
 
-Source: `packages/slopvac/.apm/skills/review-docs/vale/.vale.ini:56-118`.
-All 13 rule-level dispositions against the upstream `tbhb/vale-ai-tells` package.
+Source: `packages/slopvac-lint/vale/.vale.ini`. The path this table was first
+measured against, `packages/slopvac/.apm/skills/review-docs/vale/.vale.ini`, was
+removed when the agent package became skills and steering only.
+All 14 rule-level dispositions against the upstream `tbhb/vale-ai-tells` package.
 Corpus where quoted: 488 tracked `*.md` in the source repo.
 
 | Vale rule | Disposition | Measurement / reason | Carry over? |
@@ -11,6 +13,7 @@ Corpus where quoted: 488 tracked `*.md` in the source repo.
 | `ai-tells.RedundantPrecaution` | `NO` | One idiom per rule file (over-fitted). | Yes. Kept disabled. No replacement. |
 | `ai-tells.GrowthMetaphors` | `NO` | Startup-as-organism metaphors (domain-narrow). | Yes. Kept disabled. No replacement. |
 | `ai-tells.EmDashUsage` | `NO` | Token list includes the literal `--`, this repo's sanctioned dash form: 6,743 `--` against 2,124 real Unicode dashes, so it fired ~40 times per document on the house convention and buried every other finding. | Yes. Kept disabled. Replaced by `prose-format.no-unicode-dash` (presence, error) plus `ai-tells-formatting.em-dash-density` (density, threshold INFERRED not measured). |
+| `ai-tells.DoubleHyphen` | `NO` | Upstream split the literal `--` half of `EmDashUsage` into a separate rule after the row above was measured, so the `EmDashUsage = NO` line stopped covering it and it ran at its shipped `error` level. A bare `--` existence check fires on the exact form `prose-format.no-unicode-dash` mandates, so the two gates contradicted each other. Measured on the first 60 tracked `*.md`: 57 hits across 6 files, third-noisiest rule of 579 findings, every one a sanctioned ASCII dash; silencing it drops the run to 522 and moves no other rule. A CLI flag such as `--check` trips it equally. | Yes. Disabled. Same replacement as `EmDashUsage`: `prose-format.no-unicode-dash` owns dash policy, and the house style writes `--` on purpose. |
 | `ai-tells.FormalTransitions` | `NO` | "Specifically", "likewise", "therefore", "additionally" at error. Ordinary English connectives used correctly here; the rule encodes a preference for shorter connectors, not a generated-text signal. | Yes. Kept disabled. This is why `ai-tells-content-shape.textbook-connector-runs` carries only the ADJACENCY claim (two consecutive sentence openings) and no bare token list. |
 | `ai-tells.SemicolonUsage` | `NO` | 612 hits; matches are ordinary correct punctuation (a semicolon joining two independent clauses in a steering rule). Encodes a preference about punctuation frequency, not an AI tell. | Yes. Kept disabled. No replacement; do not port. |
 | `ai-tells.ColonUsage` | `NO` | 128 hits; same class ("Note: Serena"). | Yes. Kept disabled. No replacement; do not port. |
