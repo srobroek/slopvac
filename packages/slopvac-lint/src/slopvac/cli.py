@@ -1127,7 +1127,7 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
         console.print(f"[red]rule error[/]: {exc}")
         raise SystemExit(EXIT_ERROR) from None
 
-    rendered = render_reference(ruleset, version=__version__)
+    rendered = render_reference(ruleset)
 
     if check:
         if destination is None:
