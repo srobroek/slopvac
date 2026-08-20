@@ -17,15 +17,20 @@ name: Publish slopvac
 # environment name as part of the trusted identity, so renaming it breaks
 # publishing.
 #
-# TRIGGER. Runs on a tag matching the linter's release-please component, which is
-# what keeps the published version and the tag in step. Also runnable by hand for
-# a re-run after a partial failure -- release-please can publish only part of a
-# batch, and a dry run proves the build before the tag exists.
+# TRIGGER. Runs on the repository's release tag. Everything here versions in
+# lockstep behind one `vX.Y.Z`, so the tag that publishes the linter is the same
+# tag that releases the agent package and the plugins. The legacy
+# `slopvac--v*` form is still matched, so tags cut before the lockstep change
+# still resolve. Also runnable by hand for a re-run after a partial failure, and
+# a dry run proves the build before the tag exists.
 
 on:
   push:
     tags:
-      - "slopvac--v*"
+      # `v[0-9]*`, not `v*`: the rolling styles release is tagged `vale-styles`,
+      # which `v*` matches. That would fire a PyPI publish on every styles push.
+      - "v[0-9]*"
+      - "slopvac--v[0-9]*"
   workflow_dispatch:
     inputs:
       dry-run:
