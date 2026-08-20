@@ -28,4 +28,7 @@ marketplace:
   versioning:
     strategy: tag_pattern
   build:
-    tagPattern: '{name}--v{version}'
+    # `v{version}`, matching the lockstep tag release-please now cuts. The old
+    # `{name}--v{version}` resolved to `slopvac--v0.1.1`, a tag that will never
+    # exist, so apm would have found no release to install.
+    tagPattern: 'v{version}'
