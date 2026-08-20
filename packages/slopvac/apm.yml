@@ -1,5 +1,5 @@
 name: slopvac
-version: 0.1.0
+version: 0.2.0
 description: >-
   Prose rules for agents. Two skills -- write-docs authors a document against
   its genre's rules, review-docs judges the result and returns a verdict -- plus
@@ -8,10 +8,6 @@ description: >-
 author: Sjors Robroek
 license: Apache-2.0
 type: hybrid
-# NO `target:` FIELD. It said `target: all`, which apm deprecates with a warning
-# on every command and will make a hard error. Omitting it is not a behaviour
-# change: apm folds legacy `all` to the empty list, which is what an absent field
-# already means, so `--target` and auto-detection decide either way.
 includes: auto
 category: docs
 tags:
@@ -25,9 +21,6 @@ scripts:
   rules: uvx slopvac rules
   init: uvx slopvac init
 marketplace:
-  # Required, and its absence failed `apm pack` outright rather than defaulting.
-  # The value matches what both committed marketplace.json files already carry, so
-  # declaring it reproduces the current output instead of changing it.
   owner:
     name: Sjors Robroek
   outputs:
@@ -36,7 +29,4 @@ marketplace:
   versioning:
     strategy: tag_pattern
   build:
-    # `v{version}`, matching the lockstep tag release-please now cuts. The old
-    # `{name}--v{version}` resolved to `slopvac--v0.1.1`, a tag that will never
-    # exist, so apm would have found no release to install.
-    tagPattern: 'v{version}'
+    tagPattern: v{version}
