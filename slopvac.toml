@@ -19,26 +19,18 @@ exclude = [
   # the linter reads 530 specimens as 530 errors, and a fix would have to be made in a generator
   # that has no prose to fix.
   "packages/slopvac-lint/docs/rules.md",
-  # The rest of `docs/`, named one file at a time rather than as `docs/**`. The blanket form was
-  # wider than its own justification: of the eleven files, only `rules.md` and
-  # `orwell-derivation.md` quote their own specimens, and the other nine carried 0-3 errors each.
-  # `migration.md` (62.0 -> 89.7) and `exclusions.md` (61.8 -> 75.0) were fixed and are now gated.
-  # Each file below still needs its own measurement before it comes out; the list is the work
-  # queue.
-  #
   # Blockquotes Orwell at length. His sentences are the corpus the rules were written against, so
-  # the gate reads the source material back as 26 errors. Measured at 57.6.
+  # the gate reads the source material back as 26 errors. Measured at 57.8.
   "packages/slopvac-lint/docs/orwell-derivation.md",
-  # Tables the regex patterns it documents, so the patterns' own flagged terms are the content.
-  "packages/slopvac-lint/docs/vale-traps.md",
-  # Design notes and coverage tables, not shipped prose. Measured 68.1, 71.0, 75.1, 76.4, 79.0,
-  # and 83.1 against a 70.0 floor, with three errors spread across the first three.
-  "packages/slopvac-lint/docs/domain-categories.md",
-  "packages/slopvac-lint/docs/coverage.md",
-  "packages/slopvac-lint/docs/counter-signals.md",
-  "packages/slopvac-lint/docs/ste-principles.md",
-  "packages/slopvac-lint/docs/triage.md",
-  "packages/slopvac-lint/docs/metrics.md",
+  #
+  # The nine other files under `docs/` are NOT excluded. The blanket `docs/**` form was wider than
+  # its own justification: only the two files above quote their own specimens, and every other file
+  # now passes and is gated by the `prose` job. Three of them needed a rewrite; the rest were
+  # failing on linter defects rather than their prose, and fixing the defects was the real work:
+  #
+  #   - a `-ly` pattern with no adverb test flagged `family-friendly` and `supply-chain`
+  #   - the Vale heading-hierarchy script counted a `#` comment inside a fence as an h1
+  #   - Vale matched `scope: prose` rules inside inline code, which the native engine masks
   #
   # Demoting a category per file was tried first and does not work: a category cap lowers a rule's
   # severity but the finding still counts toward `max_errors`, so the files reported zero score

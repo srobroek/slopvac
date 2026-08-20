@@ -163,6 +163,20 @@ def _inside_quotation(text: str, start: int, end: int) -> bool:
     )
 
 
+# An inline code span, single or double backtick. Line-scoped like the quotation
+# span above, because an unclosed backtick in running prose would otherwise pair
+# with one several paragraphs away.
+_CODE_SPAN = re.compile(r"``[^`\n]{1,200}``|`[^`\n]{1,200}`")
+
+
+def _inside_code_span(text: str, start: int, end: int) -> bool:
+    """Is this match wholly inside an inline code span on the same line?"""
+    return any(
+        span.start() < start and end <= span.end() - 1
+        for span in _CODE_SPAN.finditer(text)
+    )
+
+
 def drop_quoted_illustrations(
     findings: list[Finding], document: Document, ruleset: Any
 ) -> list[Finding]:
@@ -180,18 +194,32 @@ def drop_quoted_illustrations(
     for finding in findings:
         rule = ruleset.by_id(finding.rule_id)
         index = finding.line - 1
-        if (
+        locatable = (
             rule is not None
-            and "quotation" in rule.exceptions
             and finding.matched_text
             and 0 <= index < len(document.raw_lines)
-        ):
+        )
+        if locatable:
             line = document.raw_lines[index]
             start = line.find(finding.matched_text)
-            if start != -1 and _inside_quotation(
-                line, start, start + len(finding.matched_text)
-            ):
-                continue
+            end = start + len(finding.matched_text)
+            if start != -1:
+                if "quotation" in rule.exceptions and _inside_quotation(
+                    line, start, end
+                ):
+                    continue
+                # A `scope: prose` rule must not reach inside inline code. The
+                # native engine gets this free -- it masks every code span before
+                # matching -- but Vale's `text` scope sees the backticks and their
+                # contents, so the same rule reported on one engine and not the
+                # other. `docs/vale-traps.md` drew an error on the word inside
+                # `` `\bmaster(?! branch)\b` ``: a documented regex, not prose.
+                #
+                # `scope: raw` is exempt: those rules exist to reach into code
+                # (a pasted prompt, a curly quote in a fence) and filtering them
+                # here would delete their whole purpose.
+                if rule.scope is not Scope.RAW and _inside_code_span(line, start, end):
+                    continue
         kept.append(finding)
     return kept
 
@@ -531,6 +559,32 @@ class Engine:
 
     # --- suppressions ---------------------------------------------------------
 
+    @staticmethod
+    def _annotation_targets(raw_lines: list[str], annotation_line: int) -> list[int]:
+        """The line numbers one annotation on `annotation_line` applies to.
+
+        Blank lines and further annotations are skipped, so an annotation reaches
+        the next line that can carry a finding. When that line opens a markdown
+        table, every row of the table is a target.
+        """
+        index = annotation_line  # 0-based index of the line AFTER the annotation
+        while index < len(raw_lines):
+            stripped = raw_lines[index].strip()
+            if stripped and not stripped.startswith("<!--"):
+                break
+            index += 1
+        else:
+            return []
+
+        first = index + 1
+        if not raw_lines[index].lstrip().startswith("|"):
+            return [first]
+
+        last = index
+        while last + 1 < len(raw_lines) and raw_lines[last + 1].lstrip().startswith("|"):
+            last += 1
+        return list(range(first, last + 2))
+
     def _scan_suppressions(
         self, document: Document
     ) -> tuple[dict[int, list[Suppression]], set[int], list[Finding]]:
@@ -555,17 +609,27 @@ class Engine:
             if block_disabled:
                 disabled.add(number)
             if DISABLE_LINE.search(line):
-                disabled.add(number + 1)
+                disabled.update(self._annotation_targets(document.raw_lines, number))
 
             for match in SUPPRESSION.finditer(line):
                 rule_id = match.group("rule")
                 reason = match.group("reason")
                 # An annotation applies to the following line, matching the
-                # disable-next-line convention readers already expect.
-                target = number + 1
-                by_line.setdefault(target, []).append(
-                    Suppression(rule=rule_id, reason=reason, line=number)
-                )
+                # disable-next-line convention readers already expect. "Following"
+                # is the next line with content, not literally the next line: an
+                # annotation is normally separated from a table or a fenced block
+                # by a blank line, and targeting the blank one suppressed nothing.
+                #
+                # A TABLE IS ONE TARGET. CommonMark ends a table at any HTML block,
+                # so an annotation cannot be put on the row it applies to -- the
+                # comment splits the table and every row below it reports as one
+                # paragraph instead. An annotation above the table therefore covers
+                # the whole table, which is also the only granularity a writer can
+                # express.
+                for target in self._annotation_targets(document.raw_lines, number):
+                    by_line.setdefault(target, []).append(
+                        Suppression(rule=rule_id, reason=reason, line=number)
+                    )
 
                 rule = known.get(rule_id)
                 if rule is None:
@@ -668,6 +732,37 @@ class Engine:
             for rule in self.rules
             if rule.kind is RuleKind.METRIC and (rule.metric or "") not in NATIVE_METRICS
         )
+
+    def drop_suppressed(self, findings: list[Finding], document: Document) -> list[Finding]:
+        """Apply the annotation contract to findings this engine did not raise.
+
+        Vale reads no annotation, so without this a `slopvac-allow` comment held for
+        only the half of the ruleset the native engine runs, and which half a rule
+        lands in is an implementation detail no author can predict. It is the same
+        asymmetry `drop_quoted_illustrations` exists to close, for the other half of
+        the contract.
+
+        An annotation naming a rule this engine does not know cannot be validated
+        here, so it is honoured as written: the alternative is an annotation that
+        reports as invalid AND fails to suppress.
+        """
+        suppressions, disabled, _ = self._scan_suppressions(document)
+        if not suppressions and not disabled:
+            return findings
+        known = {rule.qualified_id: rule for rule in self.rules}
+        kept = []
+        for finding in findings:
+            rule = known.get(finding.rule_id)
+            if rule is not None:
+                if self._suppressed(rule, finding.line, suppressions, disabled):
+                    continue
+            elif finding.line in disabled or any(
+                entry.rule == finding.rule_id and entry.reason is not None
+                for entry in suppressions.get(finding.line, [])
+            ):
+                continue
+            kept.append(finding)
+        return kept
 
     def run(self, document: Document) -> list[Finding]:
         suppressions, disabled, findings = self._scan_suppressions(document)

@@ -420,6 +420,22 @@ rules:
       relaxed: enforced
     pattern: '\b[^\s-]+ly-\w+\b'
     ignore_case: false
+    # A word ending in `ly` is not necessarily an adverb, and the pattern cannot
+    # tell the difference without a tagger: RE2 has no lookahead, so the stem
+    # cannot be excluded in the regex either. Entries are whole compounds because
+    # that is what the allowlist matches -- a bare `family` would suppress nothing.
+    allowlist:
+      - family-friendly
+      - supply-chain
+      - supply-chains
+      - reply-to
+      - curly-quotes
+      - curly-quote
+      # `read-only-replica`, `Not-only-but-also`: `only` is the tail of the word
+      # before the hyphen, not an adverb modifying the word after it.
+      - only-replica
+      - only-but
+      - exactly-once
     fix: Delete the hyphen.
     examples:
       - bad: a newly-added flag
