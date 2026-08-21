@@ -1,5 +1,5 @@
 name: slopvac
-version: 0.2.0
+version: 1.0.1
 description: >-
   Prose rules for agents. Two skills -- write-docs authors a document against
   its genre's rules, review-docs judges the result and returns a verdict -- plus
