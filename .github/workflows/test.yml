@@ -137,6 +137,33 @@ jobs:
             echo "ok $f"
           done
 
+      - name: Validate plugin package contract
+        run: python3 -m unittest discover -s tests -p 'test_plugin_package.py'
+
+      - name: Exercise the APM package lifecycle
+        env:
+          SLOPVAC_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet apm-cli==0.28.0
+          smoke="$(mktemp -d)"
+          replay="$(mktemp -d)"
+          cd "$smoke"
+          cat > apm.yml <<YAML
+          name: slopvac-package-smoke
+          version: 0.0.0
+          dependencies:
+            apm:
+              - git: https://github.com/srobroek/slopvac
+                ref: $SLOPVAC_REF
+          targets: [claude, codex]
+          YAML
+          apm install --target claude,codex --no-audit
+          apm install --target claude,codex --frozen --no-audit
+          apm audit --ci --no-policy
+          apm pack --archive --output "$replay"
+          apm compile --all
+
   # The linter is a published package with its own dependencies, so it is tested
   # in its own job against the Python versions its metadata claims to support. A
   # `requires-python` floor nobody exercises is a claim, not a fact.
