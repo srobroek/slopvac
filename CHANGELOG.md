@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/srobroek/slopvac/compare/v0.2.0...v1.0.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* **apm:** restore the packaged plugin skills ([#29](https://github.com/srobroek/slopvac/issues/29)) ([bec61bb](https://github.com/srobroek/slopvac/commit/bec61bb89a88603363109ee11769c195df837531))
+
 ## [0.2.0](https://github.com/srobroek/slopvac/compare/v0.1.0...v0.2.0) (2026-08-20)
 
 
