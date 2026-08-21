@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "slopvac",
-      "description": "Remove AI writing patterns from prose. Two skills (write-docs authors, review-docs gates), a deterministic Vale gate over six granular style packages, a SubagentStart hook that carries the rules into every subagent, and a PostToolUse hook that gates edited prose. Requires the vale binary on PATH.",
+      "description": "Author and review prose with the write-docs and review-docs skills.",
       "version": "0.2.0",
       "tags": [
         "skill",
@@ -15,7 +15,7 @@
         "linting",
         "prose"
       ],
-      "source": "./",
+      "source": "./packages/slopvac",
       "license": "Apache-2.0",
       "author": {
         "name": "Sjors Robroek"
