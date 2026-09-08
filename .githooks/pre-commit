@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Install this hook in a worktree with ./scripts/install-agnix-hooks.sh. The
-# installer preserves the prior hook path and keeps existing pre-commit hooks in
-# the chain before validating the staged index.
+# installer preserves the prior hook path, chains pre-commit, and forwards every
+# other existing hook type before validating the staged index.
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"

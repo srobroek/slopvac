@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Exercise the staged agnix gate against staged and CI-style snapshots."""
+"""Exercise the staged agnix gate and its worktree hook installation."""
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -10,7 +11,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check-agnix-staged.sh"
+INSTALLER = ROOT / "scripts" / "install-agnix-hooks.sh"
 CONFIG = ROOT / ".agnix.toml"
+TRACKED_PRE_COMMIT = ROOT / ".githooks" / "pre-commit"
 VALID_SKILL = """---
 name: fixture
 description: Validate the fixture skill
@@ -57,6 +60,19 @@ def expect_status(
     )
 
 
+def write_hook(path: Path, label: str) -> None:
+    path.write_text(
+        "#!/usr/bin/env bash\n"
+        "set -eu\n"
+        f"printf '%s\\n' '{label}' >> \"$HOOK_LOG\"\n"
+    )
+    path.chmod(0o755)
+
+
+def config_value(name: str, cwd: Path, env: dict[str, str]) -> str:
+    return git("config", "--worktree", "--get", name, cwd=cwd, env=env).stdout.rstrip("\n")
+
+
 def main() -> None:
     with tempfile.TemporaryDirectory(prefix="agnix-hook-test-") as temporary:
         worktree = Path(temporary)
@@ -74,12 +90,32 @@ def main() -> None:
         git("init", "--quiet", cwd=worktree, env=env)
         git("config", "user.email", "agnix-hook-test@example.invalid", cwd=worktree, env=env)
         git("config", "user.name", "agnix-hook-test", cwd=worktree, env=env)
-        (worktree / "hooks").mkdir()
-        git("config", "core.hooksPath", str(worktree / "hooks"), cwd=worktree, env=env)
+        hooks = worktree / "hooks\nscanner"
+        hooks.mkdir()
+        git("config", "core.hooksPath", str(hooks), cwd=worktree, env=env)
+        hook_log = worktree / "hook log\n.txt"
+        hook_env = dict(env, HOOK_LOG=str(hook_log))
+        write_hook(hooks / "pre-commit", "old-pre-commit")
+        write_hook(hooks / "commit-msg", "old-commit-msg")
+        write_hook(hooks / "pre-push", "old-pre-push")
+
         (worktree / ".agnix.toml").write_text(CONFIG.read_text())
         skill = worktree / "SKILL.md"
         skill.write_text(VALID_SKILL)
-        git("add", ".agnix.toml", "SKILL.md", cwd=worktree, env=env)
+        for source in (CHECKER, INSTALLER, TRACKED_PRE_COMMIT):
+            destination = worktree / source.relative_to(ROOT)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        git(
+            "add",
+            ".agnix.toml",
+            "SKILL.md",
+            ".githooks/pre-commit",
+            "scripts/check-agnix-staged.sh",
+            "scripts/install-agnix-hooks.sh",
+            cwd=worktree,
+            env=env,
+        )
         git("commit", "--quiet", "--no-verify", "-m", "base", cwd=worktree, env=env)
         base = git("rev-parse", "HEAD", cwd=worktree, env=env).stdout.strip()
 
@@ -106,7 +142,51 @@ def main() -> None:
         git("read-tree", "HEAD", cwd=worktree, env=ci_env)
         expect_status("valid CI baseline", run([str(CHECKER)], worktree, ci_env), 0)
 
-    print("agnix staged and CI baseline checks passed")
+        installer = worktree / "scripts/install-agnix-hooks.sh"
+        expect_status("initial hook installation", run([str(installer)], worktree, hook_env), 0)
+        managed_hooks = Path(config_value("agnix.hooksPath", worktree, env))
+        if config_value("core.hooksPath", worktree, env) != str(managed_hooks):
+            raise RuntimeError("installer did not select its private hook directory")
+        if config_value("agnix.previousHooksPath", worktree, env) != str(hooks):
+            raise RuntimeError("installer did not record the original hook directory")
+        for name in ("commit-msg", "pre-push"):
+            target = managed_hooks / name
+            if not target.is_symlink() or Path(os.readlink(target)) != hooks / name:
+                raise RuntimeError(f"installer did not preserve {name}")
+
+        git("commit", "--quiet", "--allow-empty", "-m", "hook-chain", cwd=worktree, env=hook_env)
+        expect_status("preserved pre-push hook", run([str(managed_hooks / "pre-push")], worktree, hook_env), 0)
+        log_lines = hook_log.read_text().splitlines()
+        for label in ("old-pre-commit", "old-commit-msg", "old-pre-push"):
+            if label not in log_lines:
+                raise RuntimeError(f"original {label} hook did not run")
+
+        expect_status("idempotent hook installation", run([str(installer)], worktree, hook_env), 0)
+        if config_value("agnix.previousHooksPath", worktree, env) != str(hooks):
+            raise RuntimeError("reinstall replaced the original hook directory")
+
+        new_hooks = worktree / "new hooks\nscanner"
+        new_hooks.mkdir()
+        write_hook(new_hooks / "pre-commit", "new-pre-commit")
+        write_hook(new_hooks / "commit-msg", "new-commit-msg")
+        write_hook(new_hooks / "pre-push", "new-pre-push")
+        git("config", "--worktree", "core.hooksPath", str(new_hooks), cwd=worktree, env=env)
+        expect_status("selected scanner installation", run([str(installer)], worktree, hook_env), 0)
+        if config_value("agnix.previousHooksPath", worktree, env) != str(new_hooks):
+            raise RuntimeError("installer did not capture the newly selected scanner")
+        for name in ("commit-msg", "pre-push"):
+            target = managed_hooks / name
+            if not target.is_symlink() or Path(os.readlink(target)) != new_hooks / name:
+                raise RuntimeError(f"installer did not update {name} for the new scanner")
+
+        git("commit", "--quiet", "--allow-empty", "-m", "new-hook-chain", cwd=worktree, env=hook_env)
+        expect_status("new pre-push hook", run([str(managed_hooks / "pre-push")], worktree, hook_env), 0)
+        log_lines = hook_log.read_text().splitlines()
+        for label in ("new-pre-commit", "new-commit-msg", "new-pre-push"):
+            if label not in log_lines:
+                raise RuntimeError(f"new {label} hook did not run")
+
+    print("agnix staged, CI baseline, and all-hook installation checks passed")
 
 
 if __name__ == "__main__":
