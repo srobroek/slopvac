@@ -1,35 +1,28 @@
 name: Lint
-
 # Workflow, YAML, and shell hygiene, plus this repo's own prose gate run against its
 # own documentation.
-
 on:
   pull_request:
   push:
     branches: [main]
-
 permissions:
   contents: read
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   workflow-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
-
       - name: Install actionlint
         run: |
           set -euo pipefail
@@ -38,52 +31,42 @@ jobs:
             "https://github.com/rhysd/actionlint/releases/download/v${version}/actionlint_${version}_linux_amd64.tar.gz"
           tar -xzf actionlint.tar.gz actionlint
           sudo install -m 0755 actionlint /usr/local/bin/actionlint
-
       - name: actionlint
         run: actionlint .github/workflows/*.yml
-
       - name: Install zizmor
         run: pip install "zizmor==1.6.0"
-
       - name: zizmor
         run: zizmor .github/workflows/*.yml
-
       - name: Install yamllint
         run: pip install "yamllint==1.37.1"
-
       - name: yamllint
-        run: yamllint -c .yamllint.yml .github/workflows/ packages/slopvac/apm.yml
-
+        run: yamllint -c .yamllint.yml .github/workflows/
   shell-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       - name: shellcheck
         run: |
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           find . -name '*.sh' -not -path './.git/*' -print0 |
             xargs -0 shellcheck --severity=warning
-
   python-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-
       # `check` only, not `format`. The rule provenance comments in this package are
       # its documentation, and the formatter rewraps them; the selected rule set is
       # the part that finds defects. It has already found a dead version branch, two
@@ -96,7 +79,6 @@ jobs:
       - name: ruff
         working-directory: packages/slopvac-lint
         run: uvx ruff@0.16.3 check .
-
   # Runs this repo's own action against this repo, from the working tree rather
   # than a published tag. A composite action that breaks is only visible when it
   # is executed, and no unit test executes one.
@@ -105,26 +87,24 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write  # the SARIF upload
+      security-events: write # the SARIF upload
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          fetch-depth: 0  # changed-files-only needs the merge base
-
+          fetch-depth: 0 # changed-files-only needs the merge base
       - name: Run the action on this repo's docs
         id: slopvac
         uses: ./
         with:
           paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
-          source: ./packages/slopvac-lint  # the working tree, not the last release
+          source: ./packages/slopvac-lint # the working tree, not the last release
           sarif: "true"
           # The docs do not pass their own gate yet, and a red required check
           # every run trains people to ignore it. The annotations and the alerts
           # are the deliverable here; flip this to true once the corpus is clean.
           fail-on-findings: "false"
-
       - name: Report what the action returned
         env:
           SCORE: ${{ steps.slopvac.outputs.score }}
@@ -140,24 +120,21 @@ jobs:
           test -n "$SCORE" || { echo "the action returned no score"; exit 1; }
           test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
           python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
-
   prose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       # The gate step below runs the linter through uvx, which the runner image does not
       # carry. Without this the step exits 127 on `uvx: command not found`, after vale has
       # already installed and the styles have built.
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-
       - name: Install vale
         run: |
           set -euo pipefail
@@ -166,7 +143,6 @@ jobs:
             "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
           tar -xzf vale.tar.gz vale
           sudo install -m 0755 vale /usr/local/bin/vale
-
       - name: Gate this repo's own docs
         run: |
           set -euo pipefail
@@ -187,7 +163,6 @@ jobs:
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/vale-styles/README.md \
             packages/slopvac-lint/docs
-
   # The only required status check. Branch protection names this one job rather than
   # every job, so adding a job above needs no change to the protection rule.
   gate:
@@ -206,6 +181,520 @@ jobs:
           #
           # The results arrive through the environment rather than a pipe: a heredoc
           # would override piped stdin, which shellcheck reports as SC2259.
+          python3 - <<'PY'
+          import json, os, sys
+
+          needs = json.loads(os.environ["RESULTS"])
+          failed = [n for n, job in needs.items() if job.get("result") != "success"]
+          if failed:
+              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+              sys.exit(1)
+          print("every job passed")
+          PY
+---
+name: Publish slopvac
+# Publishes the linter to PyPI through Trusted Publishing (OIDC), so no API token
+# is stored anywhere. The identity PyPI must be configured to trust is the
+# combination below, and every field has to match exactly:
+#
+#   Owner:               srobroek
+#   Repository:          slopvac
+#   Workflow filename:   publish-lint.yml
+#   Environment:         pypi
+#
+# Set that up once at https://pypi.org/manage/account/publishing/ as a "pending
+# publisher" BEFORE the first release, which also reserves the project name.
+#
+# The `pypi` environment is not decoration: it is where a required reviewer is
+# configured, so a release cannot reach PyPI without an approval. PyPI matches the
+# environment name as part of the trusted identity, so renaming it breaks
+# publishing.
+#
+# TRIGGER. Runs on the repository's release tag. Everything here versions in
+# lockstep behind one `vX.Y.Z`, so the tag that publishes the linter is the same
+# tag that releases the native plugins. Also runnable by hand for a re-run after
+# a partial failure, and a dry run proves the build before the tag exists.
+on:
+  push:
+    tags:
+      # `v[0-9]*`, not `v*`: the rolling styles release is tagged `vale-styles`,
+      # which `v*` matches. That would fire a PyPI publish on every styles push.
+      - "v[0-9]*"
+    inputs:
+      dry-run:
+        description: Build and check, but publish nowhere.
+        type: boolean
+        default: true
+      target:
+        description: Where to publish when dry-run is false.
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.14"
+      - name: Build
+        working-directory: packages/slopvac-lint
+        run: uvx --from build pyproject-build --sdist --wheel --outdir dist
+      - name: Check metadata
+        working-directory: packages/slopvac-lint
+        run: uvx twine check --strict dist/*
+      # The rules and the wordlist are data the linter cannot run without, and
+      # hatchling includes them by path. A wheel that builds without them installs
+      # cleanly and then fails on first use, so assert they are present.
+      - name: Assert the wheel carries its data
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob, sys, zipfile
+
+          wheel = glob.glob("dist/*.whl")[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          rules = [n for n in names if "/rules/" in n and n.endswith(".yml")]
+          problems = []
+          if len(rules) < 15:
+              problems.append(f"only {len(rules)} rule files in the wheel")
+
+          # NO WORDLIST IS SHIPPED, and this asserts the ABSENCE. The wheel used to
+          # carry an extracted ASD-STE100 dictionary enforced as an allowlist, which
+          # made every unlisted word a finding; a project now supplies its own
+          # blocklist via `[vocabulary] path`. Re-adding a packaged default would
+          # restore that behaviour silently, so it fails the release instead.
+          shipped_data = [n for n in names if "/data/" in n]
+          if shipped_data:
+              problems.append(f"the wheel ships a wordlist again: {shipped_data}")
+          if any("examples/" in n for n in names):
+              problems.append("examples/ is repo documentation and must not be packaged")
+
+          if problems:
+              sys.exit("wheel is incomplete: " + "; ".join(problems))
+          print(f"wheel carries {len(rules)} rule files and no packaged wordlist")
+          PY
+      # Install the built wheel in a clean environment and run it, so a packaging
+      # mistake fails here rather than for the first user.
+      - name: Smoke-test the built wheel
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          uv venv /tmp/smoke
+          VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
+          /tmp/smoke/bin/slopvac --version
+          /tmp/smoke/bin/slopvac rules --format json > /tmp/rules.json
+          python3 - <<'PY'
+          import json, sys
+
+          data = json.load(open("/tmp/rules.json"))
+          if len(data["rules"]) < 150:
+              sys.exit(f"only {len(data['rules'])} rules loaded from the wheel")
+          print(f"{len(data['rules'])} rules in {len(data['categories'])} categories")
+          PY
+
+          printf 'A robust and comprehensive tool that will supercharge you.\n' > /tmp/probe.md
+          set +e
+          /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale --format json > /tmp/probe.json
+          status=$?
+          set -e
+          test "$status" -eq 2 || { echo "expected exit 2, got $status"; exit 1; }
+          python3 - <<'PY'
+          import json
+
+          report = json.load(open("/tmp/probe.json"))
+          assert report["summary"]["passed"] is False, report
+          assert report["documents"][0]["unchecked"], report
+          assert report["documents"][0]["findings"], report
+          PY
+      - name: Upload distributions
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: packages/slopvac-lint/dist/
+          if-no-files-found: error
+  test-pypi:
+    name: Publish to TestPyPI
+    needs: build
+    if: >-
+      github.event_name == 'workflow_dispatch' && !inputs.dry-run && inputs.target == 'testpypi'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/slopvac
+    permissions:
+      id-token: write # the OIDC token Trusted Publishing exchanges for an upload
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          repository-url: https://test.pypi.org/legacy/
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    if: >-
+      github.event_name == 'push' || (github.event_name == 'workflow_dispatch' &&
+
+       !inputs.dry-run &&
+       inputs.target == 'pypi')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi
+      url: https://pypi.org/p/slopvac
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          # Re-tagging an already-published version is a no-op instead of a 400.
+          # PyPI never overwrites a release, so this only skips, never replaces.
+          skip-existing: true
+---
+name: Release Please
+# Maintains a release PR from Conventional Commits, updates CHANGELOG.md and every
+# version-carrying file, and tags a release on merge. On release it publishes the
+# Vale style packages to the rolling `vale-styles` tag the scaffolded .vale.ini
+# points at, so a released rule change reaches consumers on their next `vale sync`.
+#
+# ONE VERSION, ONE TAG. Everything here releases in lockstep behind a plain
+# `vX.Y.Z`, from a single root package in release-please-config.json.
+#
+# Version fan-out: release-please owns pyproject.toml, __init__.py, package.json,
+# plugin.json files, and native marketplace.json files declared as extra-files in
+# release-please-config.json. Those files are what native marketplace installs
+# resolve, so a stale version there is a user-visible defect.
+#
+# TOKEN: the release PR is authored with a GitHub App token
+# (RELEASE_APP_CLIENT_ID + RELEASE_APP_PRIVATE_KEY), not the default GITHUB_TOKEN.
+# GitHub does not trigger workflows from GITHUB_TOKEN commits, so required PR checks
+# would sit as no-ops and the release PR would stay blocked. Falls back to
+# GITHUB_TOKEN when the App is not configured, which still opens a release PR --
+# its checks then need a manual re-run.
+# App permissions required: Contents RW + Pull requests RW.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # `secrets` is unavailable in a step-level `if`, which actionlint reports, so the key reaches
+    # the condition below through job env instead.
+    env:
+      HAS_APP_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY != '' }}
+    steps:
+      # Both credentials, not just the id. The guard checked the client id alone, so setting
+      # that variable without the key made this step fail with `The 'private-key' input must be
+      # set to a non-empty string` instead of falling back to GITHUB_TOKEN -- a half-configured
+      # repository broke the release rather than degrading.
+      - name: Mint release-app token
+        id: app-token
+        if: ${{ vars.RELEASE_APP_CLIENT_ID != '' && env.HAS_APP_KEY == 'true' }}
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          # `client-id`, not `app-id`: the action deprecated the latter. The two take
+          # different values -- the client id is the `Iv2...` string, not the numeric
+          # app id -- so the variable holds the client id to match its own name.
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
+        with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - name: Checkout
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # The styles publish on release rather than on every push to vale-styles/, so
+      # the rolling tag only ever carries reviewed rules.
+      - name: Publish Vale styles
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ./packages/slopvac-lint/vale-styles/build.sh
+          if gh release view vale-styles >/dev/null 2>&1; then
+            gh release upload vale-styles packages/slopvac-lint/vale-styles/dist/*.zip --clobber
+          else
+            gh release create vale-styles packages/slopvac-lint/vale-styles/dist/*.zip \
+              --title "Vale styles" \
+              --notes "Rolling release. Assets are replaced on every publish; see vale-styles/README.md." \
+              --latest=false
+          fi
+      # Attach the same zips to the version tag, so a consumer can pin an exact
+      # rule set instead of tracking the rolling tag.
+      - name: Attach styles to the version release
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag_name }}
+        run: gh release upload "$TAG" packages/slopvac-lint/vale-styles/dist/*.zip --clobber
+---
+name: Tests
+# Runs the whole suite. The linter has its own job below, against every Python
+# version its metadata claims; this job covers the Vale sub-gate, whose styles are
+# fetched rather than committed.
+#
+# The rule tests drive the real `vale` binary against fixtures, because Vale has no
+# rule-test framework, so the styles have to be built and synced first. They are
+# skipped rather than failed when vale is absent, which would make a broken install
+# look like a pass -- hence the explicit version check below.
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.14"
+      - name: Install vale
+        run: |
+          set -euo pipefail
+          version=3.15.2
+          curl -sSfL -o vale.tar.gz \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          tar -xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+          vale --version
+      - name: Install ast-grep
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet ast-grep-cli
+          ast-grep --version
+      # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
+      # and those tests import slopvac: installing the test runner alone collected every module
+      # as `ModuleNotFoundError: No module named 'slopvac'`. The `[dev]` extra brings click and
+      # the rest, which is what the lint-package job installs for the same reason.
+      - name: Install the package and pytest
+        run: python3 -m pip install --quiet -e "./packages/slopvac-lint[dev]"
+      # A test that skips on a missing style reads as a pass, so build and sync the
+      # styles from the working tree before running anything.
+      - name: Build and sync styles from the working tree
+        run: |
+          set -euo pipefail
+          ./packages/slopvac-lint/vale-styles/build.sh
+          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
+          for _ in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
+            sleep 0.5
+          done
+          config=packages/slopvac-lint/vale/.vale.ini
+          base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
+          sed -i "s|$base|http://localhost:8899/|g" "$config"
+          vale --config="$config" sync
+          # Derived from the config rather than listed. A hardcoded list drifts the moment the
+          # config changes, and it did: this asserted seven styles after the config was reduced
+          # to one, so the step failed on `ai-residue did not sync` for a package it no longer
+          # fetches. Vale reports a clean file for a style it cannot resolve, so the check has to
+          # exist. It has to ask the config what to expect.
+          # `grep -oE` alone, without a `tr -d` of spaces and continuation backslashes: inside
+          # single quotes shellcheck reads the escaped backslash as an attempt to quote an
+          # apostrophe (SC1003), and the pattern does not need it -- a zip name holds neither.
+          styles=$(sed -n 's/^Packages *= *//p' "$config" \
+            | grep -oE '[A-Za-z0-9_-]+\.zip' | sed 's/\.zip//' | sort -u)
+          test -n "$styles" || { echo "the config names no packages"; exit 1; }
+          for style in $styles; do
+            test -d "packages/slopvac-lint/vale/styles/$style" \
+              || { echo "$style did not sync"; exit 1; }
+          done
+      - name: pytest
+        run: |
+          python3 -m pytest packages/slopvac-lint/tests -q
+      # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
+      # loads but resolves nothing reports every file as clean. Lint a probe file
+      # with every style enabled: E201 fails the step, and the rule count proves the
+      # styles actually resolved.
+      - name: Validate every rule loads
+        run: |
+          set -euo pipefail
+          config=packages/slopvac-lint/vale/.vale.ini
+          printf 'The library leverages a robust parser.\n' > /tmp/probe.md
+          out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
+          printf '%s\n' "$out"
+          printf '%s' "$out" | grep -q 'E201' && { echo 'a rule failed to load'; exit 1; }
+          # Any rule from the styles the config fetches, not one named style. This grepped for
+          # `prose-inflation.SlopLexicon` after the config was reduced to ai-tells alone, so the
+          # probe reported its finding correctly and the step still failed. Vale reports a clean
+          # file for a style it cannot resolve, so the check has to exist. It has to name what
+          # the config actually enables.
+          printf '%s' "$out" | grep -qE '\b(ai-tells|prose-[a-z]+|ste-[a-z]+|docs-[a-z]+)\.' \
+            || { echo 'styles did not resolve'; exit 1; }
+          expected="$(find packages/slopvac-lint/vale-styles -name '*.yml' -not -path '*/dist/*' | wc -l)"
+          echo "$expected rules shipped"
+          vale --config="$config" ls-config >/dev/null
+      - name: Validate hook JSON
+        run: |
+          set -euo pipefail
+          # Discover manifests instead of maintaining a path list. A hardcoded list drifts when
+          # the repository gains or removes a plugin or hook manifest.
+          #
+          # Every tracked plugin, marketplace, and hook manifest is covered without editing this
+          # step.
+          #
+          files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
+            '*hooks.json' | sort -u)"
+          test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
+          for f in $files; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
+            echo "ok $f"
+          done
+      - name: Validate plugin package contract
+        run: python3 -m unittest discover -s tests -p 'test_plugin_package.py'
+  # The linter is a published package with its own dependencies, so it is tested
+  # in its own job against the Python versions its metadata claims to support. A
+  # `requires-python` floor nobody exercises is a claim, not a fact.
+  lint-package:
+    name: slopvac (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        working-directory: packages/slopvac-lint
+        run: uv pip install --system -e ".[dev]"
+      # The same install the `test` job does. This job runs the same `pytest tests`, and a rule
+      # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
+      # without it -- which is a missing dependency reported as a test failure.
+      - name: Install vale
+        run: |
+          set -euo pipefail
+          version=3.15.2
+          curl -sSfL -o vale.tar.gz \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          tar -xzf vale.tar.gz vale
+          sudo install -m 0755 vale /usr/local/bin/vale
+          vale --version
+      - name: pytest
+        working-directory: packages/slopvac-lint
+        run: python3 -m pytest tests -q
+      # load_ruleset raises on a broken rule, so this proves the shipped ruleset
+      # is loadable outside the test harness too -- including the generated
+      # spelling rule for every locale.
+      - name: Ruleset loads for every locale
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          for locale in en-US en-GB und; do
+            printf 'Checking %s\n' "$locale"
+            slopvac rules --format json > /dev/null
+            printf 'A robust tool.\n' > /tmp/probe.md
+            set +e
+            slopvac /tmp/probe.md --locale "$locale" > /dev/null
+            status=$?
+            set -e
+            test "$status" -ne 2 || { echo "locale $locale broke the run"; exit 1; }
+          done
+      # The committed reference must match the ruleset that produced it. A generated
+      # file with no check is a stale file with extra steps, and the failure it
+      # produces is the expensive kind: somebody plans against a rule that was
+      # renamed, retiered, or removed. `--check` exits 2 and prints a unified diff,
+      # so the log says which rules moved rather than just "drift".
+      #
+      # Runs on ONE Python version, not the whole matrix: the output is derived from
+      # the YAML rather than from anything interpreter-dependent, so N copies of the
+      # same comparison would only add N ways to spend CI minutes.
+      - name: The rules reference is current
+        if: matrix.python == '3.13'
+        working-directory: packages/slopvac-lint
+        run: slopvac reference --write docs/rules.md --check
+      - name: The README's own commands work
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          slopvac --version
+          slopvac rules --judgement --format json > /tmp/judgement.json
+          python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
+          slopvac explain orwell.stale-figure > /dev/null
+          slopvac init --path /tmp/slopvac.toml
+          slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
+  # The only required status check for this workflow. Branch protection names this
+  # one job rather than every matrix leg, so adding a Python version needs no change
+  # to the protection rule.
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [test, lint-package]
+    if: always()
+    steps:
+      - name: Verify every job passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          # A skipped or cancelled job is not a pass, and a matrix leg that never ran
+          # must not read as green. `always()` is what lets this job report at all
+          # when an upstream job failed.
           python3 - <<'PY'
           import json, os, sys
 
