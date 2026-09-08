@@ -204,6 +204,7 @@ To use a local checkout:
 ```sh
 git clone https://github.com/srobroek/slopvac
 omp plugin link ./slopvac/packages/slopvac
+```
 
 ### Claude Code
 
@@ -331,6 +332,18 @@ text with `ast-grep` instead.
 
 See [vale-styles/README.md](packages/slopvac-lint/vale-styles/README.md) for the
 full rule set.
+
+## Development setup
+
+Install `agnix` 0.52.2, then enable the staged instruction check in each worktree:
+
+```sh
+cargo install --locked agnix-cli --version 0.52.2
+./scripts/install-agnix-hooks.sh
+```
+
+The installer configures the hook path per worktree and preserves existing hooks. The
+hook validates the Git index before each commit.
 
 ## License
 
