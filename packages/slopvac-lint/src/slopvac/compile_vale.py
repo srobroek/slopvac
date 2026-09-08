@@ -47,6 +47,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -542,6 +543,17 @@ def _needs_existence_fallback(substitutions: dict[str, str]) -> bool:
     return any(not key[-1:].isalnum() and key[-1:] not in ")]}" for key in substitutions)
 
 
+def _vale_pattern(pattern: str) -> str:
+    # Consume escaped backslashes as pairs so a literal \U stays literal.
+    return re.sub(
+        r"\\(?:\\|U([0-9a-fA-F]{8}))",
+        lambda match: (
+            re.escape(chr(int(match[1], 16))) if match[1] else match[0]
+        ),
+        pattern,
+    )
+
+
 def _payload_for(rule: Rule, level: str) -> dict | None:
     """One Vale rule as a dict, or None when no extension point fits."""
     scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
@@ -553,7 +565,7 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
             "level": level,
             "scope": scope,
             "ignorecase": rule.ignore_case,
-            "tokens": list(rule.tokens),
+            "tokens": [_vale_pattern(token) for token in rule.tokens],
         }
     elif rule.kind is RuleKind.PATTERN and rule.pattern:
         payload = {
@@ -562,7 +574,7 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
             "level": level,
             "scope": scope,
             "ignorecase": rule.ignore_case,
-            "raw": [rule.pattern],
+            "raw": [_vale_pattern(rule.pattern)],
         }
     elif rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
         if _needs_existence_fallback(rule.substitutions):
@@ -582,7 +594,7 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
             # -- whose dots are unescaped regex -- matched "ice" inside "service".
             # A leading boundary plus a non-word-character trailing guard keeps a
             # key that legitimately ends in punctuation working.
-            alternation = "|".join(f"(?:{k})" for k in keys)
+            alternation = "|".join(f"(?:{_vale_pattern(k)})" for k in keys)
             payload = {
                 "extends": "existence",
                 "message": text,
@@ -601,7 +613,9 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
                 "message": _message(rule),
                 "level": level,
                 "ignorecase": rule.ignore_case,
-                "swap": dict(rule.substitutions),
+                "swap": {
+                    _vale_pattern(key): value for key, value in rule.substitutions.items()
+                },
             }
     elif rule.kind is RuleKind.METRIC:
         # Checked BEFORE the token lookup: a text-type-scoped metric must stay
@@ -721,6 +735,11 @@ def _probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
                         reason = line.strip()
                         break
                 rejected[rule_id] = reason
+            elif completed.returncode != 0 or completed.stderr.strip():
+                raise ValeUnavailable(
+                    f"Vale validation failed ({completed.returncode}): "
+                    f"{completed.stderr.strip()}"
+                )
     return rejected
 
 
@@ -1263,11 +1282,13 @@ def resolved_checks(config_path: Path, binary: str = "vale") -> set[str] | None:
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
-    if completed.returncode != 0:
+    if completed.returncode != 0 or completed.stderr.strip():
         return None
     try:
         data = json.loads(completed.stdout)
     except json.JSONDecodeError:
         return None
-    checks = data.get("Checks")
-    return set(checks) if isinstance(checks, list) else None
+    checks = data.get("Checks") if isinstance(data, dict) else None
+    if not isinstance(checks, list) or any(not isinstance(check, str) for check in checks):
+        return None
+    return set(checks)

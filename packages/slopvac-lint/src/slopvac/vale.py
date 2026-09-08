@@ -148,8 +148,16 @@ def run_compiled_vale(
         )
         return result
 
+    if completed.returncode != 0 or completed.stderr.strip():
+        result.unchecked.append(
+            f"Vale failed ({completed.returncode}): {completed.stderr.strip()}; "
+            "its findings may be incomplete."
+        )
+        return result
+
     raw = completed.stdout.strip()
     if not raw:
+        result.unchecked.append("Vale returned no JSON report; its rules were not verified.")
         return result
     try:
         data = json.loads(raw)
@@ -167,7 +175,28 @@ def run_compiled_vale(
         return result
 
     for path, alerts in data.items():
+        if not isinstance(alerts, list):
+            result.unchecked.append(f"Vale returned invalid alerts for {path}.")
+            continue
         for alert in alerts:
+            if (
+                not isinstance(alert, dict)
+                or not isinstance(alert.get("Check"), str)
+                or not isinstance(alert.get("Message"), str)
+                or not isinstance(alert.get("Match"), str)
+                or not isinstance(alert.get("Line"), int)
+                or isinstance(alert.get("Line"), bool)
+                or alert["Line"] < 1
+                or not isinstance(alert.get("Span"), list)
+                or len(alert["Span"]) != 2
+                or any(
+                    not isinstance(value, int) or isinstance(value, bool) or value < 1
+                    for value in alert["Span"]
+                )
+                or not isinstance(alert.get("Severity"), str)
+            ):
+                result.unchecked.append(f"Vale returned a malformed alert for {path}.")
+                continue
             check = alert.get("Check", "")
             span = alert.get("Span") or [1]
             severity = severities.get(check)

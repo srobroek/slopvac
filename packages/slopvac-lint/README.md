@@ -24,13 +24,13 @@ pipx install slopvac
 your PATH. `slopvac` compiles its own YAML rules into a Vale style directory
 and generates the `.vale.ini` it passes to Vale.
 
-| Engine | Rules | Covers |
-| --- | --- | --- |
-| Vale | 132 | token, regex, and substitution matching; sentence and paragraph word counts; part-of-speech checks against your word blocklist; whole-document ratios |
-| built-in | 18 | patterns Go's regex engine rejects, metrics with no Vale form, and block-shape comparisons |
-| neither | 67 | rules stating a question a reviewer answers; `slopvac rules --judgement` lists them |
+| Engine | Covers |
+| --- | --- |
+| Vale | pattern matching, word counts, part-of-speech checks, document ratios |
+| built-in | patterns Vale rejects, metrics with no Vale form, block-shape comparisons |
+| reviewer | questions listed by `slopvac rules --judgement` |
 
-Without the binary the run still scores the 18 built-in rules and reports the rest
+Without the binary the run still scores the built-in rules and reports the rest
 as `UNCHECKED`, so a partial check never reads as a pass. `--no-vale` reports the
 same way.
 
@@ -292,12 +292,12 @@ Pruning is only ever about disk: it cannot cause a wrong result. Set
 
 | Code | Means |
 | --- | --- |
-| 0 | clean, or every threshold met |
+| 0 | every selected rule ran and every threshold passed |
 | 1 | a threshold failed |
-| 2 | the run could not be trusted: bad config, unloadable rules, missing tool |
+| 2 | incomplete check or invalid configuration |
 
-The 1/2 split is what makes a clean result meaningful. Exit 2 means the run checked
-nothing, which is not the same as passing.
+Exit 2 means that the check is incomplete or could not start. Partial findings remain
+available, but neither the document nor the summary reports a pass.
 
 ## Scoring
 

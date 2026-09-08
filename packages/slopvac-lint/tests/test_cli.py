@@ -1,10 +1,8 @@
 """CLI contract.
 
 The exit codes are what pre-commit, the GitHub Action, and the skill all branch
-on, so they are tested as a contract rather than as behaviour. Exit 2 in
-particular must never be reachable from prose alone: it means nothing was
-checked, and a caller that treats it as a failure-to-pass reports a score for a
-run that did not happen.
+on. Exit 2 means the check could not start or did not run every selected rule;
+partial findings remain available but cannot establish a pass.
 """
 
 from __future__ import annotations
@@ -68,7 +66,7 @@ def _write(tmp_path, name, text):
 
 def test_findings_exit_1(runner, tmp_path):
     path = _write(tmp_path, "slop.md", SLOP)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale"])
+    result = runner.invoke(main, ["lint", str(path)])
     assert result.exit_code == EXIT_FINDINGS
     assert "FAIL" in result.output
 
@@ -76,7 +74,7 @@ def test_findings_exit_1(runner, tmp_path):
 def test_clean_document_exits_0(runner, tmp_path):
     path = _write(tmp_path, "clean.md", CLEAN)
     result = runner.invoke(
-        main, ["lint", str(path), "--no-vale", "--profile", "relaxed"]
+        main, ["lint", str(path), "--profile", "relaxed"]
     )
     assert result.exit_code == EXIT_OK, result.output
 
@@ -86,7 +84,7 @@ def test_bare_path_is_treated_as_lint(runner, tmp_path):
     reports the filename as an unknown command and exits 2, which every caller
     reads as "the run could not be trusted"."""
     path = _write(tmp_path, "slop.md", SLOP)
-    result = runner.invoke(main, [str(path), "--no-vale"])
+    result = runner.invoke(main, [str(path)])
     assert result.exit_code == EXIT_FINDINGS
     assert "unknown command" not in result.output.lower()
 
@@ -449,7 +447,7 @@ def test_starter_config_is_valid(runner, tmp_path):
     target = tmp_path / "slopvac.toml"
     runner.invoke(main, ["init", "--path", str(target)])
     path = _write(tmp_path, "a.md", CLEAN)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--config", str(target)])
+    result = runner.invoke(main, ["lint", str(path), "--config", str(target)])
     assert result.exit_code in (EXIT_OK, EXIT_FINDINGS), result.output
 
 
@@ -466,6 +464,8 @@ def test_missing_vale_is_reported_not_silent(runner, tmp_path):
         ["lint", str(path), "--config", str(tmp_path / "slopvac.toml"), "--format", "json"],
     )
     document = json.loads(result.output)["documents"][0]
+    assert result.exit_code == EXIT_ERROR
+    assert document["passed"] is False
     assert any("not on PATH" in note for note in document["unchecked"])
 
 
@@ -504,6 +504,8 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
     runner = CliRunner()
     result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
     payload = json.loads(result.output)
+    assert result.exit_code == EXIT_ERROR
+    assert payload["summary"]["passed"] is False
     unchecked = " ".join(payload["documents"][0]["unchecked"])
 
     assert "--no-vale" in unchecked
@@ -612,6 +614,8 @@ def test_missing_vale_binary_is_reported_not_swallowed(tmp_path, monkeypatch):
     runner = CliRunner()
     result = runner.invoke(main, ["lint", str(path), "--format", "json"])
     payload = json.loads(result.output)
+    assert result.exit_code == EXIT_ERROR
+    assert payload["summary"]["passed"] is False
     unchecked = " ".join(payload["documents"][0]["unchecked"])
 
     assert "not on PATH" in unchecked
@@ -641,9 +645,13 @@ def test_options_reach_lint_without_naming_it(runner, tmp_path, argv, why):
     """
     path = tmp_path / "doc.md"
     path.write_text("The parser reads the file at /etc/hosts in 12 ms.\n")
-    result = runner.invoke(main, [a.format(path=str(path)) for a in argv])
-    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS), f"{why}: {result.output}"
-    assert "No such option" not in result.output, why
+    result = runner.invoke(
+        main, [a.format(path=str(path)) for a in argv] + ["--format", "json"]
+    )
+    report = json.loads(result.output)
+    assert result.exit_code == EXIT_ERROR, f"{why}: {result.output}"
+    assert report["documents"][0]["path"] == str(path)
+    assert report["documents"][0]["unchecked"]
 
 
 @pytest.mark.parametrize("argv", [["--help"], ["--version"], []])
@@ -731,7 +739,7 @@ def test_the_generated_spelling_rule_counts_as_known(runner, tmp_path):
     )
     path = _write(tmp_path, "doc.md", CLEAN)
     result = runner.invoke(
-        main, ["lint", str(path), "--config", str(config), "--no-vale"]
+        main, ["lint", str(path), "--config", str(config)]
     )
     assert result.exit_code != EXIT_ERROR, result.output
 
