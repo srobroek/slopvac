@@ -250,6 +250,16 @@ mkdir -p .kiro/skills
 cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
 ```
 
+### Repository development
+
+Enable the staged instruction check before committing:
+
+```sh
+./scripts/install-agnix-hooks.sh
+```
+
+The installer preserves existing hooks and validates the Git index.
+
 ## Dependencies
 
 | What | Needed for | Without it |
