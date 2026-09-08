@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.0.0](https://github.com/srobroek/slopvac/compare/v1.0.3...v2.0.0) (2026-09-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove the APM manifest and compiled instruction adapters.
+
+### Features
+
+* replace APM packaging with native skills ([04b18dd](https://github.com/srobroek/slopvac/commit/04b18dd00e6b6cb5282e1e980d95183e490b88b3))
+
+
+### Bug Fixes
+
+* **ci:** declare manual publish inputs ([0fd060a](https://github.com/srobroek/slopvac/commit/0fd060abd67811312c2e517b77d34ca21e24a404))
+* **ci:** harden staged instruction validation ([0423c89](https://github.com/srobroek/slopvac/commit/0423c89913ce5e69f43fc960d352ee053d067471))
+* fail closed when staged diff cannot be read ([c1b2020](https://github.com/srobroek/slopvac/commit/c1b20208174c60be3bb8ab1ea7fa9179e7229d94))
+* preserve every existing git hook ([320c7ae](https://github.com/srobroek/slopvac/commit/320c7ae7b13b36208693eee6b939c3f3673e5449))
+* reject hook path collisions ([#37](https://github.com/srobroek/slopvac/issues/37)) ([146d4fc](https://github.com/srobroek/slopvac/commit/146d4fc9800897268d1f04599ab022344014fe48))
+
+
+### Documentation
+
+* resolve current prose findings ([d0fe206](https://github.com/srobroek/slopvac/commit/d0fe20625c7d36a918b3e11374954cfc2ceb1f4f))
+* tighten development instructions ([f5ee697](https://github.com/srobroek/slopvac/commit/f5ee69770e3f88b6ca2e2f93f4f7e0d0e2bd482a))
+
 ## [1.0.3](https://github.com/srobroek/slopvac/compare/v1.0.2...v1.0.3) (2026-09-08)
 
 

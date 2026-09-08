@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slopvac"
-version = "1.0.3" # x-release-please-version
+version = "2.0.0" # x-release-please-version
 description = "Score prose against AI-slop, Simplified Technical English, and Orwell rulesets. Deterministic, configurable, CI-ready."
 readme = "README.md"
 license = "Apache-2.0"
