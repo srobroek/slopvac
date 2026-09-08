@@ -56,6 +56,16 @@
         },
         {
           "type": "json",
+          "path": "packages/slopvac/package.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "packages/slopvac/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
           "path": "packages/slopvac/.claude-plugin/plugin.json",
           "jsonpath": "$.version"
         },
