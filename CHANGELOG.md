@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/srobroek/slopvac/compare/v1.0.1...v1.0.2) (2026-09-08)
+
+
+### Bug Fixes
+
+* load documentation skills through native OMP discovery ([#31](https://github.com/srobroek/slopvac/issues/31)) ([7251091](https://github.com/srobroek/slopvac/commit/7251091112cf6846102fa9ff8adc346f49abebc4))
+
 ## [1.0.1](https://github.com/srobroek/slopvac/compare/v0.2.0...v1.0.1) (2026-08-21)
 
 
