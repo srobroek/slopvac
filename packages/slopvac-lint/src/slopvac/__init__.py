@@ -7,7 +7,7 @@ this package's `kind: judgement` rules as its source of truth rather than
 carrying a parallel prose catalog.
 """
 
-__version__ = "1.0.2"  # x-release-please-version
+__version__ = "1.0.3"  # x-release-please-version
 
 from .config import Config, Profile, Severity, load_config, resolve_for
 from .model import Category, DocumentScore, Finding, Rule, RuleKind
