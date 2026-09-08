@@ -1,35 +1,29 @@
 name: Lint
-
 # Workflow, YAML, and shell hygiene, plus this repo's own prose gate run against its
 # own documentation.
-
 on:
   pull_request:
   push:
     branches: [main]
-
 permissions:
   contents: read
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
   workflow-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
+          fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
-
       - name: Install actionlint
         run: |
           set -euo pipefail
@@ -38,52 +32,67 @@ jobs:
             "https://github.com/rhysd/actionlint/releases/download/v${version}/actionlint_${version}_linux_amd64.tar.gz"
           tar -xzf actionlint.tar.gz actionlint
           sudo install -m 0755 actionlint /usr/local/bin/actionlint
-
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
+        env:
+          BINSTALL_DISABLE_TELEMETRY: "true"
+      - name: Install agnix
+        run: cargo binstall agnix-cli@0.52.2 --no-confirm
+      - name: Test staged agnix gate
+        run: python3 scripts/test-agnix-hook.py
+      - name: Check PR agnix inputs
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          base="$BASE_SHA"
+          if [[ -z "$base" || "$base" == 0000000000000000000000000000000000000000 ]]; then
+            base="$(git rev-parse "${HEAD_SHA}^")"
+          fi
+          index="$(mktemp)"
+          rm -f "$index"
+          trap 'rm -f "$index"' EXIT
+          export GIT_INDEX_FILE="$index"
+          git read-tree "$HEAD_SHA"
+          export AGNIX_DIFF_BASE="$base"
+          ./scripts/check-agnix-staged.sh
       - name: actionlint
         run: actionlint .github/workflows/*.yml
-
       - name: Install zizmor
         run: pip install "zizmor==1.6.0"
-
       - name: zizmor
         run: zizmor .github/workflows/*.yml
-
       - name: Install yamllint
         run: pip install "yamllint==1.37.1"
-
       - name: yamllint
-        run: yamllint -c .yamllint.yml .github/workflows/ packages/slopvac/apm.yml
-
+        run: yamllint -c .yamllint.yml .github/workflows/
   shell-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       - name: shellcheck
         run: |
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           find . -name '*.sh' -not -path './.git/*' -print0 |
             xargs -0 shellcheck --severity=warning
-
   python-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-
       # `check` only, not `format`. The rule provenance comments in this package are
       # its documentation, and the formatter rewraps them; the selected rule set is
       # the part that finds defects. It has already found a dead version branch, two
@@ -96,7 +105,6 @@ jobs:
       - name: ruff
         working-directory: packages/slopvac-lint
         run: uvx ruff@0.16.3 check .
-
   # Runs this repo's own action against this repo, from the working tree rather
   # than a published tag. A composite action that breaks is only visible when it
   # is executed, and no unit test executes one.
@@ -105,26 +113,24 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write  # the SARIF upload
+      security-events: write # the SARIF upload
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          fetch-depth: 0  # changed-files-only needs the merge base
-
+          fetch-depth: 0 # changed-files-only needs the merge base
       - name: Run the action on this repo's docs
         id: slopvac
         uses: ./
         with:
           paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
-          source: ./packages/slopvac-lint  # the working tree, not the last release
+          source: ./packages/slopvac-lint # the working tree, not the last release
           sarif: "true"
           # The docs do not pass their own gate yet, and a red required check
           # every run trains people to ignore it. The annotations and the alerts
           # are the deliverable here; flip this to true once the corpus is clean.
           fail-on-findings: "false"
-
       - name: Report what the action returned
         env:
           SCORE: ${{ steps.slopvac.outputs.score }}
@@ -140,24 +146,21 @@ jobs:
           test -n "$SCORE" || { echo "the action returned no score"; exit 1; }
           test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
           python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
-
   prose:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
       # The gate step below runs the linter through uvx, which the runner image does not
       # carry. Without this the step exits 127 on `uvx: command not found`, after vale has
       # already installed and the styles have built.
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-
       - name: Install vale
         run: |
           set -euo pipefail
@@ -166,7 +169,6 @@ jobs:
             "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
           tar -xzf vale.tar.gz vale
           sudo install -m 0755 vale /usr/local/bin/vale
-
       - name: Gate this repo's own docs
         run: |
           set -euo pipefail
@@ -187,7 +189,6 @@ jobs:
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/vale-styles/README.md \
             packages/slopvac-lint/docs
-
   # The only required status check. Branch protection names this one job rather than
   # every job, so adding a job above needs no change to the protection rule.
   gate:

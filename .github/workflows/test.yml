@@ -27,12 +27,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
 
@@ -51,7 +51,6 @@ jobs:
           set -euo pipefail
           python3 -m pip install --quiet ast-grep-cli
           ast-grep --version
-
 
       # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
       # and those tests import slopvac: installing the test runner alone collected every module
@@ -95,7 +94,6 @@ jobs:
         run: |
           python3 -m pytest packages/slopvac-lint/tests -q
 
-
       # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
       # loads but resolves nothing reports every file as clean. Lint a probe file
       # with every style enabled: E201 fails the step, and the rule count proves the
@@ -122,13 +120,12 @@ jobs:
       - name: Validate hook JSON
         run: |
           set -euo pipefail
-          # Discovered, not listed. The list named packages/slopvac/hooks/hooks.json and
-          # packages/slopvac/.apm/hooks/hooks.json, neither of which exists: the hook config
-          # moved to .codex/hooks.json and the step failed on FileNotFoundError rather than on
-          # malformed JSON. A list of paths in a workflow drifts from the tree it describes.
+          # Discover manifests instead of maintaining a path list. A hardcoded list drifts when
+          # the repository gains or removes a plugin or hook manifest.
           #
-          # Every tracked plugin, marketplace, and hook manifest, so a new one is covered without
-          # editing this step.
+          # Every tracked plugin, marketplace, and hook manifest is covered without editing this
+          # step.
+          #
           files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
             '*hooks.json' | sort -u)"
           test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
@@ -139,33 +136,6 @@ jobs:
 
       - name: Validate plugin package contract
         run: python3 -m unittest discover -s tests -p 'test_plugin_package.py'
-
-      - name: Exercise the APM package lifecycle
-        env:
-          SLOPVAC_REF: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          python3 -m pip install --quiet apm-cli==0.28.0
-          smoke="$(mktemp -d)"
-          replay="$(mktemp -d)"
-          cd "$smoke"
-          cat > apm.yml <<YAML
-          name: slopvac-package-smoke
-          version: 0.0.0
-          dependencies:
-            apm:
-              - git: https://github.com/srobroek/slopvac
-                ref: $SLOPVAC_REF
-                path: packages/slopvac
-          targets: [claude, codex]
-          YAML
-          apm install --target claude,codex --no-audit
-          test -f .agents/skills/write-docs/SKILL.md
-          test -f .agents/skills/review-docs/SKILL.md
-          apm install --target claude,codex --frozen --no-audit
-          apm audit --ci --no-policy --no-drift
-          apm pack --archive --output "$replay"
-          apm compile --all
 
   # The linter is a published package with its own dependencies, so it is tested
   # in its own job against the Python versions its metadata claims to support. A
@@ -180,17 +150,17 @@ jobs:
         python: ["3.11", "3.12", "3.13", "3.14"]
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
 
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: ${{ matrix.python }}
 
