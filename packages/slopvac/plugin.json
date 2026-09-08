@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "slopvac",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Author and review prose with the write-docs and review-docs skills.",
   "license": "Apache-2.0"
 }

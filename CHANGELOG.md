@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/srobroek/slopvac/compare/v1.0.2...v1.0.3) (2026-09-08)
+
+
+### Bug Fixes
+
+* correct Unicode matching and reject incomplete checks ([#33](https://github.com/srobroek/slopvac/issues/33)) ([b183001](https://github.com/srobroek/slopvac/commit/b1830014847fd679c40abc06d65bd18099c2f8d5))
+
 ## [1.0.2](https://github.com/srobroek/slopvac/compare/v1.0.1...v1.0.2) (2026-09-08)
 
 
