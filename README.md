@@ -169,7 +169,7 @@ A document passes when both layers agree.
 
 ## Limits
 
-A clean lint run means the checked patterns were not found. Verify claims against
+A clean lint run means that the checked patterns were not found. Verify claims against
 code and cited sources. Model-based review can miss defects or flag correct prose.
 
 Read the text before you ship it. The gate removes the patterns you would otherwise
@@ -224,7 +224,7 @@ cp -R /tmp/slopvac/packages/slopvac/skills/* .claude/skills/
 
 ### Codex
 
-Install the native plugin:
+Install the native plugin from the slopvac marketplace with these commands:
 
 ```sh
 codex plugin marketplace add srobroek/slopvac
@@ -341,7 +341,7 @@ cargo install --locked agnix-cli --version 0.52.2
 ./scripts/install-agnix-hooks.sh
 ```
 
-The installer configures hooks per worktree and preserves all existing hooks.
+The installer sets a worktree hook path and preserves existing hooks.
 Before each commit, the hook validates the Git index.
 
 ## License
