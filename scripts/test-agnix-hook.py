@@ -153,6 +153,25 @@ def main() -> None:
             if not target.is_symlink() or Path(os.readlink(target)) != hooks / name:
                 raise RuntimeError(f"installer did not preserve {name}")
 
+        collision_payloads = {
+            "pre-commit": "operator-owned pre-commit\n",
+            "commit-msg": "operator-owned commit-msg\n",
+        }
+        for name, payload in collision_payloads.items():
+            target = managed_hooks / name
+            target.unlink()
+            target.write_text(payload)
+            collision = run([str(installer)], worktree, hook_env)
+            expect_status(f"{name} collision", collision, 1)
+            if target.read_text() != payload:
+                raise RuntimeError(f"installer changed the {name} collision")
+            if f"cannot install agnix hook {name}" not in collision.stderr:
+                raise RuntimeError(f"installer did not explain the {name} collision")
+            target.unlink()
+            replacement = worktree / ".githooks" / "pre-commit" if name == "pre-commit" else hooks / name
+            target.symlink_to(replacement)
+
+
         git("commit", "--quiet", "--allow-empty", "-m", "hook-chain", cwd=worktree, env=hook_env)
         expect_status("preserved pre-push hook", run([str(managed_hooks / "pre-push")], worktree, hook_env), 0)
         log_lines = hook_log.read_text().splitlines()

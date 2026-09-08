@@ -81,9 +81,31 @@ else
 	git config --worktree agnix.previousHooksPath "$source_hooks"
 fi
 
+# Determine every hook this installation would generate before touching the
+# managed directory. Refuse regular-file collisions so an operator-owned hook
+# cannot be replaced by `ln -sfn`.
+generated_hooks=("pre-commit")
+if [[ -d "$source_hooks" && "$source_hooks" != "$agnix_hooks" ]]; then
+	while IFS= read -r -d '' candidate; do
+		[[ -f "$candidate" && -x "$candidate" ]] || continue
+		name="${candidate##*/}"
+		[[ "$name" == "pre-commit" ]] && continue
+		generated_hooks+=("$name")
+	done < <(find "$source_hooks" -mindepth 1 -maxdepth 1 \( -type f -o -type l \) -print0)
+fi
+
+mkdir -p "$agnix_hooks"
+for name in "${generated_hooks[@]}"; do
+	target="$agnix_hooks/$name"
+	if [[ -e "$target" && ! -L "$target" ]]; then
+		printf 'cannot install agnix hook %s: non-symlink already exists at %s\n' \
+			"$name" "$target" >&2
+		exit 1
+	fi
+done
+
 git config --worktree agnix.hooksInstalled true
 git config --worktree agnix.hooksPath "$agnix_hooks"
-mkdir -p "$agnix_hooks"
 
 # The directory is private to this worktree. Remove only symlinks so an
 # operator's regular files there are not destroyed, then rebuild links from
