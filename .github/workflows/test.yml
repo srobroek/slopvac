@@ -227,7 +227,7 @@ jobs:
             slopvac rules --format json > /dev/null
             printf 'A robust tool.\n' > /tmp/probe.md
             set +e
-            slopvac /tmp/probe.md --no-vale --locale "$locale" > /dev/null
+            slopvac /tmp/probe.md --locale "$locale" > /dev/null
             status=$?
             set -e
             test "$status" -ne 2 || { echo "locale $locale broke the run"; exit 1; }
@@ -256,7 +256,7 @@ jobs:
           python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
           slopvac explain orwell.stale-figure > /dev/null
           slopvac init --path /tmp/slopvac.toml
-          slopvac /tmp/probe.md --no-vale --config /tmp/slopvac.toml || test $? -eq 1
+          slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 
   # The only required status check for this workflow. Branch protection names this
   # one job rather than every matrix leg, so adding a Python version needs no change

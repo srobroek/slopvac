@@ -133,12 +133,18 @@ jobs:
 
           printf 'A robust and comprehensive tool that will supercharge you.\n' > /tmp/probe.md
           set +e
-          /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale
+          /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale --format json > /tmp/probe.json
           status=$?
           set -e
-          # 1 means the prose failed, which is the expected result for that probe.
-          # 0 would mean the rules did not load; 2 would mean the run broke.
-          test "$status" -eq 1 || { echo "expected exit 1, got $status"; exit 1; }
+          test "$status" -eq 2 || { echo "expected exit 2, got $status"; exit 1; }
+          python3 - <<'PY'
+          import json
+
+          report = json.load(open("/tmp/probe.json"))
+          assert report["summary"]["passed"] is False, report
+          assert report["documents"][0]["unchecked"], report
+          assert report["documents"][0]["findings"], report
+          PY
 
       - name: Upload distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -39,7 +39,7 @@ from slopvac.config import (
     Severity,
     resolve_for,
 )
-from slopvac.model import RuleKind, TextType
+from slopvac.model import RuleKind, Scope, TextType
 from slopvac.rules import load_ruleset
 from slopvac.vocabulary import load_blocklist
 
@@ -188,26 +188,15 @@ def test_vocabulary_rules_compile_to_grouped_sequence_rules(compiled, ruleset):
 
 
 @needs_vale
-def test_lookbehind_pattern_stays_native_when_vale_rejects_it(ruleset, tmp_path, vocabulary):
-    """A pattern Vale will not compile must be routed native, never emitted.
-
-    One unloadable rule makes Vale abort and lint NOTHING, so emitting a rule that
-    fails to compile turns the whole run into a false pass. The routing decision
-    is made by asking Vale, so this asserts the mechanism on the real ruleset: the
-    two `\\U`-escaped emoji patterns are rejected by Go's regexp and stay native.
-    """
-    config = resolve_for(Config(), Path("README.md"))
+def test_rejected_pattern_stays_native(ruleset, tmp_path, vocabulary, monkeypatch):
+    rule = ruleset.by_id("prose-format.emoji-heading")
+    monkeypatch.setattr(rule, "pattern", r"(?a:\w+)")
     result = compile_ruleset(
-        ruleset, config, outdir=tmp_path / "out", validate=True, vocabulary=vocabulary, force=True
+        ruleset, resolve_for(Config(), Path("README.md")),
+        outdir=tmp_path / "out", validate=True, vocabulary=vocabulary, force=True,
     )
-    native = result.native_reasons()
-    rejected = {
-        rule_id for rule_id, reason in native.items() if "Vale rejected" in reason
-    }
-    assert rejected, "expected at least one pattern Vale refuses"
-    for rule_id in rejected:
-        assert rule_id not in result.vale_rules
-        assert "error parsing regexp" in native[rule_id]
+    assert rule.qualified_id not in result.vale_rules
+    assert "Vale rejected" in result.native_reasons()[rule.qualified_id]
 
 
 @needs_vale
@@ -495,6 +484,39 @@ def test_word_count_rule_is_silent_on_a_short_sentence(compiled, tmp_path):
 
 
 @needs_vale
+def test_emoji_rules_reject_emoji_not_ascii(compiled, tmp_path):
+    text = "# Scope\n\n# Examples\n\n# 🚀 Scope\n\n- Fine\n\n- 🚀 Fine\n"
+    alerts = _lint(compiled.config_path, text, tmp_path)
+    emoji = [
+        alert for alert in alerts
+        if alert["Check"] in {
+            "prose-format.emoji-heading",
+            "ai-tells-formatting.emoji-list-markers",
+        }
+    ]
+    assert sorted(alert["Check"] for alert in emoji) == [
+        "ai-tells-formatting.emoji-list-markers",
+        "prose-format.emoji-heading",
+    ]
+    assert all("🚀" in alert["Match"] for alert in emoji)
+
+
+@needs_vale
+def test_unicode_translation_preserves_literal_escapes(ruleset, tmp_path, monkeypatch):
+    rule = ruleset.by_id("prose-format.emoji-heading")
+    monkeypatch.setattr(rule, "scope", Scope.RAW)
+    monkeypatch.setattr(rule, "pattern", r"(?m)^a(?:\U0000002E|\\U0000002E)b$")
+    compiled = compile_ruleset(
+        ruleset, resolve_for(Config(), Path("README.md")),
+        outdir=tmp_path / "compiled", validate=False, force=True,
+    )
+    alerts = _lint(compiled.config_path, "a.b\naXb\na\\U0000002Eb\n", tmp_path)
+    assert sorted(
+        alert["Match"] for alert in alerts if alert["Check"] == rule.qualified_id
+    ) == ["a.b", r"a\U0000002Eb"]
+
+
+@needs_vale
 def test_every_compiled_lexical_rule_fires_on_its_own_example(compiled, ruleset, tmp_path):
     """The compiler-wide version of the check `rules.py` already runs natively.
 
@@ -568,7 +590,7 @@ def test_vocabulary_sequence_rule_respects_the_part_of_speech(vocabulary, tmp_pa
         encoding="utf-8",
     )
 
-    assert _checks(config, "He closed the socket yesterday.\n", tmp_path)
+    assert _checks(config, "We close the socket.\n", tmp_path)
     assert not _checks(config, "The value is close to the limit.\n", tmp_path)
 
 

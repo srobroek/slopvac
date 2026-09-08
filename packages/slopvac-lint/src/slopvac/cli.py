@@ -718,6 +718,8 @@ def lint(
     else:
         _report_text(scores, console, verbose)
 
+    if any(score.unchecked for score in scores):
+        raise SystemExit(EXIT_ERROR)
     raise SystemExit(EXIT_OK if all(s.passed for s in scores) else EXIT_FINDINGS)
 
 

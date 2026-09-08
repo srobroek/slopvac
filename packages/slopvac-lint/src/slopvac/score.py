@@ -289,6 +289,8 @@ def score_document(
     suggestions = sum(1 for f in findings if f.severity is Severity.SUGGESTION)
 
     reasons: list[str] = []
+    if unchecked:
+        reasons.append("incomplete check: " + "; ".join(unchecked))
     thresholds = config.thresholds
     if thresholds.max_errors is not None and errors > thresholds.max_errors:
         reasons.append(
