@@ -40,6 +40,13 @@ if [[ -n "${AGNIX_DIFF_BASE:-}" ]]; then
 	fi
 	diff_args+=("$diff_base")
 fi
+
+diff_file="$(mktemp "${TMPDIR:-/tmp}/agnix-diff.XXXXXX")"
+trap 'rm -f -- "$diff_file"' EXIT
+if ! git diff "${diff_args[@]}" -- >"$diff_file"; then
+	printf 'unable to read the staged diff; refusing to skip agnix validation.\n' >&2
+	exit 1
+fi
 while IFS= read -r -d '' status && IFS= read -r -d '' path; do
 	# A deleted tracked file can be a dependency that an agentic file still references.
 	# Rescan the surviving agentic inputs before applying path filters so ignored and
@@ -55,19 +62,22 @@ while IFS= read -r -d '' status && IFS= read -r -d '' path; do
 		continue
 	fi
 	staged_paths+=("$path")
-done < <(git diff "${diff_args[@]}" --)
+done <"$diff_file"
 
 if ((config_changed)); then
 	staged_paths=()
+	if ! git ls-files -z --cached -- >"$diff_file"; then
+		printf 'unable to read staged paths; refusing to skip agnix validation.\n' >&2
+		exit 1
+	fi
 	while IFS= read -r -d '' path; do
 		is_ignored_path "$path" && continue
 		is_agentic_path "$path" || continue
 		staged_paths+=("$path")
-	done < <(git ls-files -z --cached --)
+	done <"$diff_file"
 	((${#staged_paths[@]} > 0)) || staged_paths=(.agnix.toml)
 fi
 
-# Unrelated commits do not require agnix to be installed or runnable.
 if ((${#staged_paths[@]} == 0)); then
 	exit 0
 fi
@@ -109,7 +119,7 @@ if [[ "${AGNIX_USE_MISE:-0}" == "1" ]]; then
 fi
 
 staged_root="$(mktemp -d "${TMPDIR:-/tmp}/agnix-staged.XXXXXX")"
-trap 'rm -rf "$staged_root"' EXIT
+trap 'rm -r -- "$staged_root" "$diff_file"' EXIT
 
 python3 - "$staged_root" <<'PY'
 import os
