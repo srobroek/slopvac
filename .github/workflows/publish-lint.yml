@@ -28,6 +28,7 @@ on:
    # `v[0-9]*`, not `v*`: the rolling styles release is tagged `vale-styles`,
    # which `v*` matches. That would fire a PyPI publish on every styles push.
    - "v[0-9]*"
+ workflow_dispatch:
   inputs:
    dry-run:
     description: Build and check, but publish nowhere.
