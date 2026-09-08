@@ -90,9 +90,8 @@ def main() -> None:
         git("init", "--quiet", cwd=worktree, env=env)
         git("config", "user.email", "agnix-hook-test@example.invalid", cwd=worktree, env=env)
         git("config", "user.name", "agnix-hook-test", cwd=worktree, env=env)
-        hooks = worktree / "hooks\nscanner"
-        hooks.mkdir()
-        git("config", "core.hooksPath", str(hooks), cwd=worktree, env=env)
+        hooks = worktree / ".git" / "hooks"
+        hooks.mkdir(exist_ok=True)
         hook_log = worktree / "hook log\n.txt"
         hook_env = dict(env, HOOK_LOG=str(hook_log))
         write_hook(hooks / "pre-commit", "old-pre-commit")
