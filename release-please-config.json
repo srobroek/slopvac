@@ -50,11 +50,6 @@
         "packages/slopvac-lint/pyproject.toml",
         "packages/slopvac-lint/src/slopvac/__init__.py",
         {
-          "type": "yaml",
-          "path": "packages/slopvac/apm.yml",
-          "jsonpath": "$.version"
-        },
-        {
           "type": "json",
           "path": "packages/slopvac/package.json",
           "jsonpath": "$.version"

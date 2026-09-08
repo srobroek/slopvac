@@ -6,15 +6,12 @@ name: Release Please
 # points at, so a released rule change reaches consumers on their next `vale sync`.
 #
 # ONE VERSION, ONE TAG. Everything here releases in lockstep behind a plain
-# `vX.Y.Z`, from a single root package in release-please-config.json. The earlier
-# shape carried three components tagged `slopvac--v*`, `slopvac-apm--v*`, and
-# `slopvac-repo--v*`, and they drifted: the linter reached 1.0.0 while the plugins
-# were at 2.0.1, so no single tag named the state of the repository.
+# `vX.Y.Z`, from a single root package in release-please-config.json.
 #
-# Version fan-out: release-please owns pyproject.toml, __init__.py, apm.yml, both
-# plugin.json files, and both marketplace.json files, declared as extra-files in
-# release-please-config.json. Those are what a native `/plugin marketplace add`
-# resolves, so a stale version there is a user-visible defect.
+# Version fan-out: release-please owns pyproject.toml, __init__.py, package.json,
+# plugin.json files, and native marketplace.json files declared as extra-files in
+# release-please-config.json. Those files are what native marketplace installs
+# resolve, so a stale version there is a user-visible defect.
 #
 # TOKEN: the release PR is authored with a GitHub App token
 # (RELEASE_APP_CLIENT_ID + RELEASE_APP_PRIVATE_KEY), not the default GITHUB_TOKEN.
@@ -53,7 +50,7 @@ jobs:
       - name: Mint release-app token
         id: app-token
         if: ${{ vars.RELEASE_APP_CLIENT_ID != '' && env.HAS_APP_KEY == 'true' }}
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           # `client-id`, not `app-id`: the action deprecated the latter. The two take
           # different values -- the client id is the `Iv2...` string, not the numeric
@@ -63,7 +60,7 @@ jobs:
 
       - name: Run release-please
         id: release
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         with:
           token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
@@ -71,7 +68,7 @@ jobs:
 
       - name: Checkout
         if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
 

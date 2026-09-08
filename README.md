@@ -13,8 +13,7 @@ genre's rules.
 
 `review-docs` gates a document with a deterministic
 [Vale](https://vale.sh) pass, judges the register against a catalog of tells no regex
-reaches, and returns a verdict. Either can alone. Hooks carry the same rules into
-every subagent and gate prose files as they are edited.
+reaches, and returns a verdict. Use either skill alone.
 
 Works with Oh My Pi, Claude Code, Codex, and Kiro.
 
@@ -44,26 +43,18 @@ codex plugin marketplace add srobroek/slopvac
 codex plugin add slopvac@slopvac
 ```
 
-**Kiro, or anywhere you already use [APM](https://microsoft.github.io/apm/)**
-
-```sh
-apm marketplace add srobroek/slopvac --name slopvac --global
-apm install slopvac@slopvac --target kiro --global   # or claude, or codex
-```
-
-No APM installed? `uvx --from apm-cli apm ...` runs those two commands from PyPI.
-Project scope, installing by hand, and the per-harness detail are under
+Project scope, local checkouts, and direct-copy instructions are under
 [Install](#install).
 
 Then ask the agent: *"write the README for this package"*, or *"review this
-README"*. It scaffolds a `.vale.ini` on first use and asks before writing.
+README"*.
 
 ## How it works
 
 You ask the agent for a document, or to review one. The agent runs the gate and the
 judgement pass.
 
-### Writing a document
+### Write a document
 
 ```mermaid
 flowchart TD
@@ -101,17 +92,13 @@ it does, name who acted,<br/>one idea per sentence, no over-writing"]
     class HANDOFF out
 ```
 
-### Reviewing a document
+### Review a document
 
 ```mermaid
 flowchart TD
-    IN["From <b>write-docs</b>, or you asking<br/>directly, or a PostToolUse hook<br/>after a prose file
- is edited"]
+    IN["From <b>write-docs</b>, or you asking<br/>directly"]
 
-    IN --> SETUP{"Project<br/>.vale.ini?"}
-    SETUP -->|absent| SCAFFOLD["Scaffold it, asking first,<br/>then fetch the styles"]
-    SETUP -->|present| GATE
-    SCAFFOLD --> GATE
+    IN --> GATE
 
     GATE["<b>1. Deterministic gate</b><br/>Vale, 23 rules over 7 packages<br/>deleted actors, claims pas
 t evidence,<br/>over-writing, status language, formatting"]
@@ -145,15 +132,10 @@ absent, nothing more"]
     class IN you
     class GATE det
     class REG,CUT jud
-    class CLAIMS,SETUP,SCAFFOLD,V work
+    class CLAIMS,V work
     class REVISE bad
     class PASS,SHIP good
 ```
-
-The `SubagentStart` hook injects the rules
-into every subagent, because a subagent inherits main-session steering weakly.
-`PostToolUse` gates prose files after an edit, accumulating changes and returning
-`file:line` findings once they cross a threshold.
 
 ## Patterns it catches
 
@@ -187,12 +169,8 @@ A document passes when both layers agree.
 
 ## Limits
 
-A clean run means the checked patterns are absent, and nothing more. Neither layer
-reads for truth. A sentence can pass every rule and still be wrong: it may name a
-function absent from the code, describe a flag that never shipped, contradict the
-paragraph above it, or cite a source that does not exist. Judgement of the register
-is a model reading a catalog, so it misses tells and occasionally objects to prose
-that is fine.
+A clean lint run means that the checked patterns were not found. Verify claims against
+code and cited sources. Model-based review can miss defects or flag correct prose.
 
 Read the text before you ship it. The gate removes the patterns you would otherwise
 spend attention on, so that the attention goes to whether the document is correct.
@@ -224,104 +202,62 @@ To use a local checkout:
 
 ```sh
 git clone https://github.com/srobroek/slopvac
-omp plugin link ./slopvac/packages/slopvac --scope project
+omp plugin link ./slopvac/packages/slopvac
 ```
 
 ### Claude Code
 
-Native plugin:
+Run these commands to install the native plugin from the marketplace:
 
 ```
 /plugin marketplace add srobroek/slopvac
+/plugin install slopvac@slopvac
 ```
 
-With APM:
-
-```sh
-apm marketplace add srobroek/slopvac --name slopvac
-apm install slopvac@slopvac --target claude --global   # every project
-apm install slopvac@slopvac --target claude            # this project only
-```
-
-By hand, into `~/.claude` for every project or `.claude` for one:
+To install by hand in one project, copy skills into `.claude/skills`:
 
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
-mkdir -p .claude/skills .claude/hooks
-cp -R /tmp/slopvac/.apm/skills/* .claude/skills/
-cp -R /tmp/slopvac/scripts .claude/hooks/slopvac/
+mkdir -p .claude/skills
+cp -R /tmp/slopvac/packages/slopvac/skills/* .claude/skills/
 ```
-
-Then copy the events and matcher from `hooks/hooks.json` into
-`.claude/settings.json`.
 
 ### Codex
 
-Native plugin:
-
-```
-plugin marketplace add srobroek/slopvac
-```
-
-With APM:
+Install the native plugin from the slopvac marketplace with these commands:
 
 ```sh
-apm marketplace add srobroek/slopvac --name slopvac
-apm install slopvac@slopvac --target codex --global
+codex plugin marketplace add srobroek/slopvac
+codex plugin add slopvac@slopvac
 ```
 
-By hand: as above, replacing `.claude` with `.codex`.
-
-### Kiro
-
-With APM:
-
-```sh
-apm marketplace add srobroek/slopvac --name slopvac
-apm install slopvac@slopvac --target kiro --global
-```
-
-Install writes the skills, the steering, and the hook manifests Kiro reads
-natively. Do not run `apm compile --target kiro`: it additionally writes a root
-`AGENTS.md` that Kiro does not read as steering, and overwrites one already there.
-
-By hand, into `~/.kiro` for every project or `.kiro` for one:
+To install by hand in one project, copy skills into `.codex/skills`:
 
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
-mkdir -p .kiro/skills .kiro/hooks
-cp -R /tmp/slopvac/.apm/skills/* .kiro/skills/
-cp -R /tmp/slopvac/scripts .kiro/hooks/slopvac/
+mkdir -p .codex/skills
+cp -R /tmp/slopvac/packages/slopvac/skills/* .codex/skills/
 ```
 
-Kiro reads one file per hook under `.kiro/hooks/`; copy the events and matcher from
-`hooks/hooks.json`.
+### Kiro
 
-### Any harness, without installing APM
-
-`uvx` runs APM from PyPI:
+Kiro loads skills from `.kiro/skills`. Copy the canonical skills into one project:
 
 ```sh
-uvx --from apm-cli apm marketplace add srobroek/slopvac --name slopvac
-uvx --from apm-cli apm install slopvac@slopvac --target kiro --global
+git clone https://github.com/srobroek/slopvac /tmp/slopvac
+mkdir -p .kiro/skills
+cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
 ```
-
-`--global` installs to `~/.claude`, `~/.codex`, or `~/.kiro`. Drop it to install
-into the current project, which is what you want when the config belongs in version
-control with the code. Target all three at once with `--target claude,codex,kiro`.
 
 ## Dependencies
 
 | What | Needed for | Without it |
 | --- | --- | --- |
 | [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | Without it the gate exits with the install command printed; the skill still applies its judgement rules by reading |
-| `python3` 3.12+ | The `PostToolUse` hook and the finding reporter, both stdlib only | The hook exits quietly; the gate is unaffected |
-| `jq` | The `SubagentStart` hook, to build its JSON payload | That hook warns on stderr and skips, so a spawn is never blocked |
 | [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
-| `bash` 3.2+ | The gate and scaffold scripts. Stock macOS bash is the floor, so no `mapfile` | none |
-| `git` | Resolving the repo root and honouring `.gitignore` | Ignored files get linted too |
+| `git` | Direct-copy installs from the repository | Native plugin installs are unaffected |
 
-The skills need none of this to be installed by APM; the gate needs `vale` at the
+Each harness loads these Markdown files. The gate needs `vale` at the
 point it runs.
 
 ### Rule sources
@@ -339,13 +275,12 @@ Development adds `pytest`, `bats`, `actionlint`, `zizmor`, `yamllint`, and
 ## Configuration
 
 The gate reads one file, `.vale.ini` at your project root, and the project owns it.
-The agent scaffolds it on first use and asks before writing. It is committed; the
-fetched `.vale-styles/` directory is not.
+The fetched `.vale-styles/` directory is not committed.
 
 Take new upstream rules with `vale --config=.vale.ini sync`. Every URL in the file
 points at a rolling release tag, so a sync is the whole update.
 
-### Overriding a rule
+### Override a rule
 
 Put the line inside the section it applies to, normally `[*.{md,mdx}]`: a rule line
 binds to the section above it, so one appended at the end of the file attaches to
@@ -396,6 +331,18 @@ text with `ast-grep` instead.
 
 See [vale-styles/README.md](packages/slopvac-lint/vale-styles/README.md) for the
 full rule set.
+
+## Development setup
+
+Install `agnix` 0.52.2, then enable the staged instruction check in each worktree:
+
+```sh
+cargo install --locked agnix-cli --version 0.52.2
+./scripts/install-agnix-hooks.sh
+```
+
+The installer sets a worktree hook path and preserves existing hooks.
+Before each commit, the hook validates the Git index.
 
 ## License
 
