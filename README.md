@@ -16,12 +16,19 @@ genre's rules.
 reaches, and returns a verdict. Either can alone. Hooks carry the same rules into
 every subagent and gate prose files as they are edited.
 
-Works with Claude Code, Codex, and Kiro.
+Works with Oh My Pi, Claude Code, Codex, and Kiro.
 
 ## Quick start
 
 Needs [`vale`](https://vale.sh) on `PATH` (`brew install vale`, or
 `mise use -g vale`).
+
+**Oh My Pi**
+
+```sh
+omp plugin marketplace add srobroek/slopvac
+omp plugin install slopvac@slopvac --scope user
+```
 
 **Claude Code**
 
@@ -199,6 +206,26 @@ mise use -g vale     # or: brew install vale
 ```
 
 `ast-grep` is optional and extends the gate to JSX text nodes.
+
+### Oh My Pi
+
+Install the native skills through the marketplace:
+
+```sh
+omp plugin marketplace add srobroek/slopvac
+omp plugin install slopvac@slopvac --scope user
+```
+
+Use `--scope project` for one project. Start a new session after installation.
+The `write-docs` and `review-docs` skills load through the `agent-plugins` provider;
+the `claude-plugins` provider can remain disabled.
+
+To use a local checkout:
+
+```sh
+git clone https://github.com/srobroek/slopvac
+omp plugin link ./slopvac/packages/slopvac --scope project
+```
 
 ### Claude Code
 
