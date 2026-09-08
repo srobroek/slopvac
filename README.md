@@ -13,7 +13,7 @@ genre's rules.
 
 `review-docs` gates a document with a deterministic
 [Vale](https://vale.sh) pass, judges the register against a catalog of tells no regex
-reaches, and returns a verdict. You can use either skill alone.
+reaches, and returns a verdict. Use either skill alone.
 
 Works with Oh My Pi, Claude Code, Codex, and Kiro.
 
@@ -169,9 +169,8 @@ A document passes when both layers agree.
 
 ## Limits
 
-A clean lint run means the checked patterns were not found. The agent must
-still verify claims against code and cited sources. Model-based review can
-miss defects or flag correct prose.
+A clean lint run means the checked patterns were not found. Verify claims against
+code and cited sources. Model-based review can miss defects or flag correct prose.
 
 Read the text before you ship it. The gate removes the patterns you would otherwise
 spend attention on, so that the attention goes to whether the document is correct.
@@ -208,14 +207,14 @@ omp plugin link ./slopvac/packages/slopvac
 
 ### Claude Code
 
-Install the native plugin:
+Run these commands to install the native plugin from the marketplace:
 
 ```
 /plugin marketplace add srobroek/slopvac
 /plugin install slopvac@slopvac
 ```
 
-By hand, into `.claude/skills` for one project:
+To install by hand in one project, copy skills into `.claude/skills`:
 
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
@@ -232,7 +231,7 @@ codex plugin marketplace add srobroek/slopvac
 codex plugin add slopvac@slopvac
 ```
 
-By hand, into `.codex/skills` for one project:
+To install by hand in one project, copy skills into `.codex/skills`:
 
 ```sh
 git clone https://github.com/srobroek/slopvac /tmp/slopvac
@@ -250,16 +249,6 @@ mkdir -p .kiro/skills
 cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
 ```
 
-### Repository development
-
-Enable the staged instruction check before committing:
-
-```sh
-./scripts/install-agnix-hooks.sh
-```
-
-The installer preserves existing hooks and validates the Git index.
-
 ## Dependencies
 
 | What | Needed for | Without it |
@@ -268,7 +257,7 @@ The installer preserves existing hooks and validates the Git index.
 | [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
 | `git` | Direct-copy installs from the repository | Native plugin installs are unaffected |
 
-The skills are Markdown files loaded by each harness. The gate needs `vale` at the
+Each harness loads these Markdown files. The gate needs `vale` at the
 point it runs.
 
 ### Rule sources
@@ -352,8 +341,8 @@ cargo install --locked agnix-cli --version 0.52.2
 ./scripts/install-agnix-hooks.sh
 ```
 
-The installer configures the hook path per worktree and preserves existing hooks. The
-hook validates the Git index before each commit.
+The installer configures hooks per worktree and preserves all existing hooks.
+Before each commit, the hook validates the Git index.
 
 ## License
 
