@@ -1682,7 +1682,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '(?m)^\s*(?:[-*+]\s+)?[\U0001F300-\U0001FAFF☀-➿⬀-⯿]️?\s'
+    pattern: '(?m)^[ \t]*(?:[-*+][ \t]+)?[\U0001F300-\U0001FAFF☀-➿⬀-⯿]️?[ \t]'
     ignore_case: false
     fix: Delete the emoji; use a plain list marker.
     examples:
