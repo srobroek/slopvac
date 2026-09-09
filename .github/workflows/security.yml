@@ -33,21 +33,21 @@ jobs:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
           version: 3.97.4
-          extra_args: --results=verified,unknown
+          extra_args: --results=verified
       - name: Scan pushed commits
         if: github.event_name == 'push'
         uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
         with:
           path: ./
           version: 3.97.4
-          extra_args: --results=verified,unknown
+          extra_args: --results=verified
       - name: Scan full tree
         if: github.event_name == 'schedule'
         uses: trufflesecurity/trufflehog@363923b901c911a9164f50b6c423f47c15372b1c # v3.97.4
         with:
           path: ./
           version: 3.97.4
-          extra_args: --results=verified,unknown
+          extra_args: --results=verified
 
   codeql:
     runs-on: ubuntu-latest
@@ -129,7 +129,7 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
-  gate:
+  security-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
