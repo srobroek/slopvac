@@ -67,6 +67,111 @@ jobs:
         run: pip install "yamllint==1.37.1"
       - name: yamllint
         run: yamllint -c .yamllint.yml .github/workflows/
+  typos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: typos
+        uses: crate-ci/typos@d43b6c087ac471e2ea7b8af622ff15f05c0c365b # v1.50.1
+        with:
+          files: .
+          config: _typos.toml
+
+  lychee:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: lychee
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --config .lychee.toml --no-progress README.md
+            packages/slopvac-lint/README.md packages/slopvac/README.md
+            packages/slopvac-lint/docs packages/slopvac/skills
+          lycheeVersion: v0.24.2
+          fail: "true"
+
+  markdownlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: markdownlint
+        run: npx --yes markdownlint-cli2@0.18.1
+
+  taplo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - name: taplo format
+        run: uvx taplo@0.9.3 fmt --check
+      - name: taplo check
+        run: uvx taplo@0.9.3 check
+
+  pinact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify action pins
+        uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
+        with:
+          fix: "false"
+          skip_push: "true"
+
+  prek:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
+      - name: Install typos
+        run: cargo binstall typos-cli@1.50.1 --no-confirm
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - name: Run configured hooks
+        run: uvx prek@0.5.2 run --all-files
+
+  lizard:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Measure source complexity
+        run: uvx lizard==1.24.0 packages/slopvac-lint/src -C 15 -w
+
   shell-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -122,15 +227,13 @@ jobs:
           fetch-depth: 0 # changed-files-only needs the merge base
       - name: Run the action on this repo's docs
         id: slopvac
-        uses: ./
+        uses: ./ # zizmor: ignore[self-repository]
         with:
-          paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
+          paths: .
+          config: slopvac.toml
           source: ./packages/slopvac-lint # the working tree, not the last release
           sarif: "true"
-          # The docs do not pass their own gate yet, and a red required check
-          # every run trains people to ignore it. The annotations and the alerts
-          # are the deliverable here; flip this to true once the corpus is clean.
-          fail-on-findings: "false"
+          fail-on-findings: "true"
       - name: Report what the action returned
         env:
           SCORE: ${{ steps.slopvac.outputs.score }}
@@ -178,7 +281,18 @@ jobs:
   gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [workflow-lint, shell-lint, python-lint, action, prose]
+    needs:
+      - workflow-lint
+      - typos
+      - lychee
+      - markdownlint
+      - taplo
+      - pinact
+      - prek
+      - shell-lint
+      - python-lint
+      - action
+      - prose
     if: always()
     steps:
       - name: Verify every job passed
