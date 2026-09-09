@@ -12,8 +12,8 @@ by `score.py`, so the report cannot drift from the measurement.
 | `02-current-writedocs` | the 56-line write-docs skill as it stood at `7587435~1`, extracted from git rather than paraphrased |
 | `03-new-writedocs` | the new steering: STE sentence construction, Orwell restated, attribution and precision, hedging |
 
-Each condition ran as a separate agent with its ruleset quoted inline and an
-instruction to load no skill and run no linter, so a condition measures its
+Each condition ran as a separate agent with its ruleset quoted inline. The agent
+was told to load no skill and run no linter, so a condition measures its
 ruleset rather than what the environment leaks. No condition saw a lint report:
 that is condition 04, not yet run.
 
@@ -67,7 +67,7 @@ outright.
 
 ## What the new rules made worse
 
-This is the more useful half.
+The regressions are the more useful half of the comparison.
 
 | Rule | 01 | 03 | Reading |
 | --- | --- | --- | --- |
@@ -132,6 +132,6 @@ methodology had. It is mitigated only in that the linter was calibrated against 
 different corpus than the eval documents, and that the findings above are mostly
 against the ruleset rather than for it.
 
-Condition 04, regenerating from a lint report, is not yet run. That is the
-condition that tests whether the report is actionable, which is a different
-question from whether the rules are right.
+Condition 04, regenerating from a lint report, is not yet run. Condition 04
+tests whether the report is actionable, which is a different question from
+whether the rules are right.

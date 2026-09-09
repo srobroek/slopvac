@@ -44,13 +44,10 @@ hoped for.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import re
 import shutil
-import subprocess
-import tempfile
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -59,6 +56,8 @@ import yaml
 
 from .config import ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType
+from .vale_cache import cache_root, fingerprint, prune_cache
+from .vale_probe import ValeUnavailable, probe_payloads
 
 # Our scope vocabulary to Vale's. Vale has no document scope: a whole-document
 # rule is a `script` with `scope: raw`, which is the only extension point that
@@ -681,69 +680,6 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
     return payload
 
 
-# --- RE2 acceptance -----------------------------------------------------------
-
-
-class ValeUnavailable(Exception):
-    """Vale is needed to validate a compiled rule and is not usable."""
-
-
-def _probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
-    """Which payloads Vale refuses, mapped to the reason it gave.
-
-    Vale's own compiler is the authority on what Vale accepts, so each payload is
-    handed to it rather than inspected for constructs a table thinks are
-    unsupported. That inspection was wrong twice: RE2's documented lack of
-    lookbehind does not apply, because Vale rewrites the pattern before RE2 sees
-    it, and `(?<=the )gizmo` fires.
-
-    One rule at a time, because a style directory holding one bad rule makes Vale
-    abort the whole run -- so a batch probe reports every rule as broken.
-    """
-    rejected: dict[str, str] = {}
-    with tempfile.TemporaryDirectory(prefix="slopvac-probe-") as temp:
-        root = Path(temp)
-        style = root / "styles" / "probe"
-        style.mkdir(parents=True)
-        (root / ".vale.ini").write_text(
-            "StylesPath = styles\nMinAlertLevel = suggestion\n[*.md]\nBasedOnStyles = probe\n",
-            encoding="utf-8",
-        )
-        target = root / "probe.md"
-        target.write_text("Probe text for rule validation.\n", encoding="utf-8")
-
-        for rule_id, payload in payloads.items():
-            for stale in style.iterdir():
-                stale.unlink()
-            (style / "R.yml").write_text(
-                yaml.safe_dump(payload, sort_keys=False, allow_unicode=True, width=10**6),
-                encoding="utf-8",
-            )
-            try:
-                completed = subprocess.run(
-                    [binary, f"--config={root / '.vale.ini'}", "--no-exit", str(target)],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
-            except (OSError, subprocess.TimeoutExpired) as exc:
-                raise ValeUnavailable(str(exc)) from exc
-            output = completed.stdout + completed.stderr
-            if "E201" in output or "error parsing regexp" in output:
-                reason = "Vale rejected the pattern"
-                for line in output.splitlines():
-                    if "error parsing regexp" in line:
-                        reason = line.strip()
-                        break
-                rejected[rule_id] = reason
-            elif completed.returncode != 0 or completed.stderr.strip():
-                raise ValeUnavailable(
-                    f"Vale validation failed ({completed.returncode}): "
-                    f"{completed.stderr.strip()}"
-                )
-    return rejected
-
-
 # --- vocabulary ---------------------------------------------------------------
 
 
@@ -843,134 +779,29 @@ def _elect_vocabulary_owner(
     return [chosen]
 
 
-# --- cache --------------------------------------------------------------------
-
-
-def _compiler_source_digest() -> str:
-    """Hash this module's own source, for the cache key.
-
-    Read from `__file__` rather than tracked as a hand-bumped version constant,
-    because a constant only invalidates when someone REMEMBERS to bump it, and the
-    failure it guards against is silent. Falls back to the package version if the
-    source is unreadable (a zipimport or a frozen build), which is weaker but never
-    worse than the input-only key it replaces.
-    """
-    try:
-        return hashlib.sha256(Path(__file__).read_bytes()).hexdigest()[:16]
-    except OSError:
-        from . import __version__
-
-        return f"v{__version__}"
-
-
-_COMPILER_SOURCE_DIGEST = _compiler_source_digest()
-
-
-def cache_root() -> Path:
-    """Where compiled styles live.
-
-    Overridable through `SLOPVAC_CACHE_DIR`, then `XDG_CACHE_HOME`, then the
-    platform temp dir. A user-writable location matters because the compile runs
-    on every lint and a read-only cache would recompile every time.
-    """
-    override = os.environ.get("SLOPVAC_CACHE_DIR")
-    if override:
-        return Path(override)
-    xdg = os.environ.get("XDG_CACHE_HOME")
-    if xdg:
-        return Path(xdg) / "slopvac"
-    return Path(tempfile.gettempdir()) / "slopvac-cache"
-
-
-# How many compiled trees to keep. Each is ~400KB, so 16 is a few megabytes and
-# covers the profiles and locales one project alternates between, plus a handful of
-# other checkouts, without a second compile. The number that matters is not the
-# disk: it is that every ruleset edit, severity change, and blocklist edit mints a
-# new key, so an unpruned cache grows with development activity rather than use.
-# One developer machine reached 209 trees and 83MB.
-CACHE_KEEP = 16
-
-
-def prune_cache(root: Path | None = None, keep: int = CACHE_KEEP) -> list[Path]:
-    """Delete all but the `keep` most recently used compiled trees.
-
-    Returns what it removed. Never raises: a cache that cannot be pruned is a
-    disk-space problem, and failing a lint over one would be worse than the leak.
-
-    Recency is the directory's own mtime, refreshed on every cache hit, so the tree
-    a project keeps hitting survives no matter how long ago it was compiled. Sorted
-    by name as a tiebreak, because two trees written in the same mtime granule must
-    still order deterministically or the survivor set varies between runs.
-    """
-    root = cache_root() if root is None else root
-    removed: list[Path] = []
-    try:
-        entries = [p for p in root.iterdir() if (p / "manifest.json").is_file()]
-    except OSError:
-        return removed
-    if len(entries) <= keep:
-        return removed
-
-    def recency(path: Path) -> tuple[float, str]:
-        try:
-            return (path.stat().st_mtime, path.name)
-        except OSError:
-            return (0.0, path.name)
-
-    for stale in sorted(entries, key=recency, reverse=True)[keep:]:
-        try:
-            shutil.rmtree(stale)
-        except OSError:
-            continue
-        removed.append(stale)
-    return removed
-
-
-def _fingerprint(
-    rules: list[Rule],
-    config: ResolvedConfig,
-    levels: dict[str, str],
-    vocabulary=None,
-) -> str:
-    """Hash of everything that changes the output.
-
-    Keyed on the resolved LEVELS rather than the raw config, because that is what
-    reaches the ini: two configs that resolve every rule to the same severity
-    produce identical output and should share a cache entry.
-    """
-    digest = hashlib.sha256()
-    # THE COMPILER'S OWN SOURCE IS PART OF THE KEY. Rules, levels, and profile are
-    # the compiler's INPUT; the generated style also depends on the code that
-    # translates them, so keying on input alone serves a stale style after every
-    # compiler change. This cost real debugging time: the fix that stops a
-    # text-type-scoped metric from reaching Vale appeared to do NOTHING -- three
-    # rescores of the whole corpus came back byte-identical, including counts that
-    # had to change -- because the fingerprint was unchanged and the cached style
-    # still held the rule. A silently stale cache is indistinguishable from a fix
-    # that does not work, which is the more expensive failure of the two.
-    digest.update(_COMPILER_SOURCE_DIGEST.encode())
-    for rule in sorted(rules, key=lambda r: r.qualified_id):
-        digest.update(rule.qualified_id.encode())
-        digest.update(rule.model_dump_json(exclude={"category"}).encode())
-    for rule_id in sorted(levels):
-        digest.update(f"{rule_id}={levels[rule_id]}".encode())
-    digest.update(config.profile.value.encode())
-    # THE BLOCKLIST IS PART OF THE KEY TOO, and for the same reason: its words are
-    # baked into the generated `sequence` rules, so adding one and re-running would
-    # otherwise hit a cache entry compiled without it. The failure mode is the one
-    # documented above -- an edit that appears to do nothing -- and it would land on
-    # a USER editing their own wordlist rather than on us editing the compiler,
-    # which makes it harder to diagnose, not easier.
-    #
-    # Hashed from the entries rather than the file bytes, so reformatting the file
-    # or moving it between TOML and YAML does not invalidate a still-correct style.
-    if vocabulary is not None:
-        for entry in sorted(vocabulary.blocked(), key=lambda e: (e.word, e.pos.value)):
-            digest.update(f"{entry.word}:{entry.pos.value}".encode())
-    return digest.hexdigest()[:16]
-
-
 # --- the compiler -------------------------------------------------------------
+
+
+def compiled_levels(ruleset, resolved_config: ResolvedConfig) -> dict[str, str]:
+    """The Vale level per rule this config compiles: active rules that are not off.
+
+    This is the compile-affecting part of a resolved config. Two files whose
+    levels differ need two compiles, because a rule absent from the style tree
+    cannot be recovered by re-resolving its severity afterwards.
+    """
+    from .engine import Engine
+
+    engine = Engine(ruleset.rules, resolved_config)
+    active = {r.qualified_id for r in engine.rules}
+    levels: dict[str, str] = {}
+    for rule in ruleset.rules:
+        if rule.qualified_id not in active:
+            continue
+        severity = engine.severity_for(rule)
+        if severity is Severity.OFF:
+            continue
+        levels[rule.qualified_id] = severity.value
+    return levels
 
 
 def compile_ruleset(
@@ -989,21 +820,9 @@ def compile_ruleset(
     Turning it off makes the compile fast and the output unverified, which is
     only correct in a test that already knows the answer.
     """
-    from .engine import Engine
+    levels = compiled_levels(ruleset, resolved_config)
 
-    engine = Engine(ruleset.rules, resolved_config)
-    active = {r.qualified_id for r in engine.rules}
-
-    levels: dict[str, str] = {}
-    for rule in ruleset.rules:
-        if rule.qualified_id not in active:
-            continue
-        severity = engine.severity_for(rule)
-        if severity is Severity.OFF:
-            continue
-        levels[rule.qualified_id] = severity.value
-
-    fingerprint = _fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
+    key = fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
     cached_here = outdir is None
     if outdir is None:
         if not validate:
@@ -1022,7 +841,7 @@ def compile_ruleset(
                 "because a tree that was never probed may contain a rule Vale "
                 "refuses to load, and one such rule makes Vale lint nothing at all"
             )
-        outdir = cache_root() / fingerprint
+        outdir = cache_root() / key
     outdir = Path(outdir)
     manifest_path = outdir / "manifest.json"
 
@@ -1031,7 +850,7 @@ def compile_ruleset(
             cached = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             cached = None
-        if cached and cached.get("fingerprint") == fingerprint:
+        if cached and cached.get("fingerprint") == key:
             # Mark the hit, so pruning keeps what is in use rather than what was
             # compiled most recently. A project that alternates two profiles would
             # otherwise lose whichever it compiled first, however often it runs.
@@ -1144,7 +963,7 @@ def compile_ruleset(
         resolved_binary = shutil.which(binary)
         if resolved_binary is None:
             raise ValeUnavailable(f"`{binary}` is not on PATH")
-        rejected = _probe_payloads(payloads, resolved_binary)
+        rejected = probe_payloads(payloads, resolved_binary)
         for rule_id, reason in rejected.items():
             payloads.pop(rule_id, None)
             kind = "pattern"
@@ -1197,7 +1016,7 @@ def compile_ruleset(
     (staging / "manifest.json").write_text(
         json.dumps(
             {
-                "fingerprint": fingerprint,
+                "fingerprint": key,
                 "vale_rules": result.vale_rules,
                 "native_rules": [n.__dict__ for n in result.native_rules],
                 "judgement_rules": result.judgement_rules,
@@ -1262,34 +1081,3 @@ def _render_ini(rule_ids: list[str], levels: dict[str, str]) -> str:
     for rule_id in rule_ids:
         lines.append(f"{rule_id} = {levels.get(rule_id, 'warning')}")
     return "\n".join(lines) + "\n"
-
-
-def resolved_checks(config_path: Path, binary: str = "vale") -> set[str] | None:
-    """The rules Vale actually resolved, from `vale ls-config`.
-
-    Used to detect the silent case the brief names: the compiler wrote N rules
-    and Vale resolved fewer. Returns None when Vale cannot be asked, which the
-    caller reports as unchecked rather than treating as agreement.
-    """
-    resolved = shutil.which(binary)
-    if resolved is None:
-        return None
-    try:
-        completed = subprocess.run(
-            [resolved, f"--config={config_path}", "ls-config"],
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    if completed.returncode != 0 or completed.stderr.strip():
-        return None
-    try:
-        data = json.loads(completed.stdout)
-    except json.JSONDecodeError:
-        return None
-    checks = data.get("Checks") if isinstance(data, dict) else None
-    if not isinstance(checks, list) or any(not isinstance(check, str) for check in checks):
-        return None
-    return set(checks)

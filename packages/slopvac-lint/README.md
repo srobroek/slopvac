@@ -225,7 +225,7 @@ reason = "Judges the reader's experience rather than the work."
 `examples/blocklist.toml` is a working starter. `.yml` and `.json` load too.
 
 **The part of speech is the point.** `deploy` is a good verb and a bad noun, and
-one entry per sense is what lets you say so: `slopvac` reports "the deploy failed"
+one entry per sense records the difference: `slopvac` reports "the deploy failed"
 and passes "deploy the worker". Vale's tagger decides which is which.
 
 **`reason` is required.** `slopvac` refuses a file without one, because nobody but
@@ -234,13 +234,12 @@ omit it when the fix depends on the sentence, because a reader applies a suggest
 without thinking.
 
 A word absent from the file is fine by definition. Nothing expresses "only these
-words are allowed", and that gap is deliberate: this package once shipped an
-ASD-STE100 word list enforced that way, and on ordinary software prose it produced
-828 findings for words that merely had no entry, half of everything it reported.
-That list is gone rather than switched off. A blocklist you wrote is the only word
+words are allowed". An earlier release shipped an ASD-STE100 word list enforced
+that way; on ordinary software prose it produced 828 findings for words that had
+no entry, half of everything it reported. A blocklist you wrote is the only word
 list that knows your domain.
 
-## Suppressing a finding
+## Suppress a finding
 
 A suppression must name an exception from the rule's own list:
 
@@ -286,9 +285,8 @@ slopvac cache --prune    # keep the 16 most recently used
 slopvac cache --all      # delete every tree
 ```
 
-A lint prunes on its own, keeping the 16 trees used most recently. A cache hit
-counts as use. A tree that a project keeps hitting therefore survives, however
-old it is.
+A lint prunes on its own and keeps the 16 trees used last. A cache hit
+counts as use, so a tree that a project keeps hitting survives at any age.
 Pruning is only ever about disk: it cannot cause a wrong result. Set
 `SLOPVAC_CACHE_DIR` to move it; it defaults under `XDG_CACHE_HOME`.
 
@@ -418,9 +416,9 @@ the obvious alternative is what most prose linters do.
 
 Nearly every prose linter reports a count. A count makes a long document worse
 than a short one for writing at the same quality, so the incentive it creates is
-to write less rather than to write better, and any threshold set against a count
-either passes a 3,000-word document with forty problems or fails a 200-word one
-with three.
+to write less rather than to write better. A threshold set against a count either
+passes a 3,000-word document with forty problems or fails a 200-word one with
+three.
 
 So the gate is **findings per 100 words**, and the score follows from that density
 against the profile's budget. A long document earns proportionally more
@@ -488,7 +486,7 @@ reason=<name> -->` requires a reason from the rule's own closed list. `slopvac` 
 any other reason rather than honors it, so a blanket suppression shows up in a
 diff.
 
-### What this deliberately does not do
+### The limits of a clean run
 
 A clean run means the checked patterns are absent, and nothing more. It is not a
 review. The linter does not read for truth: a sentence can pass every rule and

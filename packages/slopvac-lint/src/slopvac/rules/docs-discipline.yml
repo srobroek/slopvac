@@ -27,7 +27,7 @@ rules:
         good: The parser reads Markdown.
     provenance:
       source: vale-styles/docs-discipline/StatusLanguage.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         E1 in the retired slop-lint.py. The negative lookahead on `currently`
         exempts runtime-state description (currently running/active/...), which is
@@ -56,7 +56,7 @@ rules:
         good: The loader resolves paths.
     provenance:
       source: vale-styles/docs-discipline/HistoryNarration.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         E4 in the retired slop-lint.py. Excluded at relaxed because it encodes a
         genre assumption: a changelog, release note, or migration guide exists to
@@ -82,7 +82,7 @@ rules:
         good: The threshold is 34 words.
     provenance:
       source: vale-styles/docs-discipline/InternalRefs.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         E3 in the retired slop-lint.py, and a CONSUMER-genre rule only, so
         excluded at relaxed. Scope is deliberately prose and not raw: the original

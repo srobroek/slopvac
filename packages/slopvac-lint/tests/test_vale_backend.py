@@ -3,9 +3,10 @@ import subprocess
 
 import pytest
 
-from slopvac.compile_vale import CompileResult, resolved_checks
+from slopvac.compile_vale import CompileResult
 from slopvac.config import Severity
 from slopvac.vale import run_compiled_vale
+from slopvac.vale_probe import resolved_checks
 
 
 @pytest.mark.parametrize(

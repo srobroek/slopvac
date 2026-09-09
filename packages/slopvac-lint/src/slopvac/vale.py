@@ -91,7 +91,7 @@ def run_compiled_vale(
     # A rule that fails to load is absent from `ls-config` while Vale still exits
     # 0 on every file. Comparing the resolved set against what we wrote is the
     # only way that reads as a gap rather than as clean prose.
-    from .compile_vale import resolved_checks
+    from .vale_probe import resolved_checks
 
     expected = set(compiled.vale_rules)
     actual = resolved_checks(config_path, binary)

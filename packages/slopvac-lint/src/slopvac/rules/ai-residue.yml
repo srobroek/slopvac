@@ -28,7 +28,7 @@ rules:
         good: Install with `pip install slopvac`.
     provenance:
       source: vale-styles/ai-residue/ChatLeakage.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         E5 in the retired slop-lint.py. Enforced at every tier because the match
         is never a register question. No published Vale style covers it: checked

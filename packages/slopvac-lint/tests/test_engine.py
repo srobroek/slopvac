@@ -28,12 +28,12 @@ from slopvac.config import (
     resolve_for,
 )
 from slopvac.engine import (
-    NATIVE_METRICS,
     Engine,
     _inside_quotation,
     _is_all_caps,
     count_clause_boundaries,
 )
+from slopvac.metrics import NATIVE_METRICS
 from slopvac.model import TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
@@ -900,7 +900,7 @@ def test_no_profile_promotes_a_rule_it_marks_advisory():
         for rule in ruleset.rules:
             if rule.tier_for(profile.value) is not Tier.ADVISORY:
                 continue
-            if not engine._active(rule):
+            if not engine.is_active(rule):
                 continue
             assert engine.severity_for(rule) is Severity.SUGGESTION, (
                 f"{rule.qualified_id} is advisory at {profile.value} but reports as "
