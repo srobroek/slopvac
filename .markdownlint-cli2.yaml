@@ -52,3 +52,6 @@ globs:
   # setup, so the finding would come back on a branch nobody touched.
   - "!.agents/**"
   - "!.beads/**"
+  # Marketplace skill instructions follow the harness grammar rather than the
+  # repository's Markdown house style.
+  - "!packages/slopvac/skills/**"

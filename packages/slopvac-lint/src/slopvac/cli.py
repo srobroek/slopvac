@@ -159,7 +159,9 @@ def main(context: click.Context) -> None:
 )
 @click.option("--min-score", type=float, help="Fail below this 0-100 score.")
 @click.option(
-    "--max-per-100-words", type=float, help="Fail above this finding density."
+    "--max-per-100-words",
+    type=float,
+    help="Fail above severity-weighted error/warning density (1.0/0.5).",
 )
 @click.option(
     "--locale",
@@ -196,81 +198,90 @@ def lint(
 ) -> None:
     """Lint files or directories."""
     console = _console(no_color)
-    # `--out` alone means an HTML report; `--out` with an explicit `--format`
-    # writes that format. Click records which one the caller did.
-    format_given = (
+    run = _load_lint_context(
+        console,
+        targets,
+        profile=profile,
+        config_path=config_path,
+        rules_dir=rules_dir,
+        only_categories=only_categories,
+        disabled=disabled,
+        min_score=min_score,
+        max_per_100_words=max_per_100_words,
+        locale_tag=locale_tag,
+    )
+    if not run.paths:
+        console.print("[yellow]no lintable files matched[/]")
+        raise SystemExit(EXIT_OK)
+    if explain_config:
+        _print_resolved_config(run, console)
+        raise SystemExit(EXIT_OK)
+
+    scores = _run_lint_or_exit(run, console, no_vale=no_vale)
+    emit_report(
+        scores,
+        run.ruleset,
+        console,
+        output_format=output_format,
+        out_path=out_path,
+        open_report=open_report,
+        format_given=_format_was_given(),
+        verbose=verbose,
+    )
+    if any(score.unchecked for score in scores):
+        raise SystemExit(EXIT_ERROR)
+    raise SystemExit(EXIT_OK if all(score.passed for score in scores) else EXIT_FINDINGS)
+
+
+def _format_was_given() -> bool:
+    return (
         click.get_current_context().get_parameter_source("output_format")
         is not click.core.ParameterSource.DEFAULT
     )
 
+
+def _load_lint_context(console: Console, targets: tuple[str, ...], **options):
     try:
-        run = load_run_context(
-            targets,
-            profile=profile,
-            config_path=config_path,
-            rules_dir=rules_dir,
-            only_categories=only_categories,
-            disabled=disabled,
-            min_score=min_score,
-            max_per_100_words=max_per_100_words,
-            locale_tag=locale_tag,
+        return load_run_context(targets, **options)
+    except PipelineError as exc:
+        for message in exc.messages:
+            console.print(message)
+        raise SystemExit(exc.code) from None
+
+
+def _run_lint_or_exit(run, console: Console, *, no_vale: bool):
+    try:
+        return run_lint(run, no_vale=no_vale)
+    except PipelineError as exc:
+        for message in exc.messages:
+            console.print(message)
+        raise SystemExit(exc.code) from None
+
+
+def _print_resolved_config(run, console: Console) -> None:
+    for path in run.paths:
+        resolved = resolve_for(run.config, path)
+        console.print(f"[bold]{path}[/]")
+        console.print(f"  profile: {resolved.profile.value}")
+        if resolved.applied_overrides:
+            console.print(f"  overrides: {', '.join(resolved.applied_overrides)}")
+        console.print(
+            f"  thresholds: {resolved.thresholds.model_dump(exclude_none=True)}"
         )
-    except PipelineError as exc:
-        for message in exc.messages:
-            console.print(message)
-        raise SystemExit(exc.code) from None
-
-    if not run.paths:
-        console.print("[yellow]no lintable files matched[/]")
-        raise SystemExit(EXIT_OK)
-
-    if explain_config:
-        for path in run.paths:
-            resolved = resolve_for(run.config, path)
-            console.print(f"[bold]{path}[/]")
-            console.print(f"  profile: {resolved.profile.value}")
-            if resolved.applied_overrides:
-                console.print(f"  overrides: {', '.join(resolved.applied_overrides)}")
-            console.print(f"  thresholds: {resolved.thresholds.model_dump(exclude_none=True)}")
-            blocklist = resolve_blocklist_path(resolved.vocabulary, run.config.root)
-            if blocklist is not None:
-                console.print(f"  blocklist: {blocklist}")
-            off = [
-                n
-                for n, c in resolved.categories.items()
-                if c.severity is Severity.OFF
-            ]
-            if off:
-                console.print(f"  disabled: {', '.join(sorted(off))}")
-
-            # WHICH BLOCK WON, per setting. Resolution is a cascade in file order,
-            # so with two overlapping globs the answer to "why is this rule still
-            # on" is otherwise an inference over every block in the file -- and the
-            # BROADER pattern wins if it comes later, which is the opposite of what
-            # a reader assumes. Listing only settings some layer actually touched:
-            # the ~30 untouched profile defaults would bury the handful that matter.
-            if resolved.provenance:
-                console.print("  set by:")
-                for setting, where in sorted(resolved.provenance.items()):
-                    console.print(f"    {setting}: {where}")
-        raise SystemExit(EXIT_OK)
-
-    try:
-        scores = run_lint(run, no_vale=no_vale)
-    except PipelineError as exc:
-        for message in exc.messages:
-            console.print(message)
-        raise SystemExit(exc.code) from None
-
-    emit_report(
-        scores, run.ruleset, console,
-        output_format=output_format, out_path=out_path, open_report=open_report,
-        format_given=format_given, verbose=verbose,
-    )
-
-    if any(score.unchecked for score in scores):
-        raise SystemExit(EXIT_ERROR)
-    raise SystemExit(EXIT_OK if all(s.passed for s in scores) else EXIT_FINDINGS)
+        blocklist = resolve_blocklist_path(resolved.vocabulary, run.config.root)
+        if blocklist is not None:
+            console.print(f"  blocklist: {blocklist}")
+        off = sorted(
+            name
+            for name, category in resolved.categories.items()
+            if category.severity is Severity.OFF
+        )
+        if off:
+            console.print(f"  disabled: {', '.join(off)}")
+        if resolved.provenance:
+            console.print("  set by:")
+            for setting, where in sorted(resolved.provenance.items()):
+                console.print(f"    {setting}: {where}")
 
 
 def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
@@ -295,13 +306,27 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
 
 
 @main.command("rules")
-@click.option("--profile", type=click.Choice([p.value for p in Profile]), default="normal")
+@click.option(
+    "--profile", type=click.Choice([p.value for p in Profile]), default="normal"
+)
 @click.option("--category", "only", multiple=True, help="Limit to these categories.")
-@click.option("--kind", type=click.Choice([k.value for k in RuleKind]), help="Filter by kind.")
+@click.option(
+    "--kind", type=click.Choice([k.value for k in RuleKind]), help="Filter by kind."
+)
 @click.option("--judgement", is_flag=True, help="Only the rules a linter cannot check.")
-@click.option("--format", "output_format", type=click.Choice(["text", "json"]), default="text")
-@click.option("--config", "config_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("--rules-dir", multiple=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option(
+    "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
+)
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+)
+@click.option(
+    "--rules-dir",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
 def list_rules(
     profile: str,
     only: tuple[str, ...],
@@ -373,7 +398,9 @@ def list_rules(
             rule.kind.value,
             rule.tier_for(profile).value,
             rule.severity.value,
-            rule.provenance.ste_ref or rule.provenance.orwell_ref or rule.provenance.source,
+            rule.provenance.ste_ref
+            or rule.provenance.orwell_ref
+            or rule.provenance.source,
         )
     console.print(table)
     console.print(f"{len(selected)} rule(s) in {len(ruleset.categories)} category(ies)")
@@ -381,9 +408,19 @@ def list_rules(
 
 @main.command()
 @click.argument("rule_id")
-@click.option("--format", "output_format", type=click.Choice(["text", "json"]), default="text")
-@click.option("--config", "config_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("--rules-dir", multiple=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option(
+    "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
+)
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+)
+@click.option(
+    "--rules-dir",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
 def explain(
     rule_id: str,
     output_format: str,
@@ -424,7 +461,9 @@ def explain(
         raise SystemExit(EXIT_OK)
 
     console.print(f"[bold]{rule.qualified_id}[/] -- {rule.name}")
-    console.print(f"kind: {rule.kind.value}   severity: {rule.severity.value}   scope: {rule.scope.value}")
+    console.print(
+        f"kind: {rule.kind.value}   severity: {rule.severity.value}   scope: {rule.scope.value}"
+    )
     console.print("tiers: " + "  ".join(f"{k}={v.value}" for k, v in rule.tiers.items()))
     # `message` is a template. Printed raw it shows `{replacement}`, which reads as a
     # bug; the slots are shown as `<name>` so it is clear they are filled per finding.
@@ -450,13 +489,17 @@ def explain(
                 console.print(f"  [green]+[/] {example.good}")
     console.print(f"\n[bold]Source[/]: {rule.provenance.source}")
     if rule.provenance.ste_ref:
-        console.print(f"  ASD-STE100 rule {rule.provenance.ste_ref.split(':', 1)[1]} (Issue {rule.provenance.ste_ref.split(':', 1)[0]})")
+        console.print(
+            f"  ASD-STE100 rule {rule.provenance.ste_ref.split(':', 1)[1]} (Issue {rule.provenance.ste_ref.split(':', 1)[0]})"
+        )
     if rule.provenance.note:
         console.print(f"  {rule.provenance.note}")
 
 
 @main.command("init")
-@click.option("--profile", type=click.Choice([p.value for p in Profile]), default="normal")
+@click.option(
+    "--profile", type=click.Choice([p.value for p in Profile]), default="normal"
+)
 @click.option("--force", is_flag=True, help="Overwrite an existing config.")
 @click.option(
     "--path",
@@ -490,14 +533,19 @@ def init_config(profile: str, force: bool, path: Path) -> None:
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
 )
-@click.option("--rules-dir", multiple=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option(
+    "--rules-dir",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
 @click.option(
     "--no-validate",
     is_flag=True,
-    help="Skip validating each rule against Vale. Faster, but the routing is "
-    "unverified.",
+    help="Skip validating each rule against Vale. Faster, but the routing is unverified.",
 )
-@click.option("--format", "output_format", type=click.Choice(["text", "json"]), default="text")
+@click.option(
+    "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
+)
 def compile_styles(
     outdir: Path | None,
     profile: str | None,
@@ -662,7 +710,11 @@ def cache(prune: bool, prune_all: bool) -> None:
     is_flag=True,
     help="Exit 2 if the file at --write differs from what would be generated.",
 )
-@click.option("--rules-dir", multiple=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option(
+    "--rules-dir",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
 def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]) -> None:
     """Generate the markdown rules reference.
 

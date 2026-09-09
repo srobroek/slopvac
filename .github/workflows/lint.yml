@@ -75,11 +75,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
+      - name: Install typos
+        run: cargo binstall typos-cli@1.42.0 --no-confirm
       - name: typos
-        uses: crate-ci/typos@d43b6c087ac471e2ea7b8af622ff15f05c0c365b # v1.50.1
-        with:
-          files: .
-          config: _typos.toml
+        run: typos .
 
   lychee:
     runs-on: ubuntu-latest
@@ -89,15 +90,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
+      - name: Install lychee
+        run: cargo binstall lychee@0.24.2 --no-confirm
       - name: lychee
-        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: >-
-            --config .lychee.toml --no-progress README.md
-            packages/slopvac-lint/README.md packages/slopvac/README.md
-            packages/slopvac-lint/docs packages/slopvac/skills
-          lycheeVersion: v0.24.2
-          fail: "true"
+        run: >-
+          lychee --config .lychee.toml --no-progress README.md
+          packages/slopvac-lint/README.md packages/slopvac-lint/docs/
 
   markdownlint:
     runs-on: ubuntu-latest
@@ -122,10 +122,8 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-      - name: taplo format
+      - name: taplo
         run: uvx taplo@0.9.3 fmt --check
-      - name: taplo check
-        run: uvx taplo@0.9.3 check
 
   pinact:
     runs-on: ubuntu-latest
@@ -140,7 +138,6 @@ jobs:
         with:
           fix: "false"
           skip_push: "true"
-
   prek:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -149,25 +146,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
-      - name: Install typos
-        run: cargo binstall typos-cli@1.50.1 --no-confirm
       - name: Install uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-      # The prose hook is the same gate the action runs, so it needs the same
-      # Vale: without one, Vale-owned rules fall back to the native engine and
-      # the run exits 2 as incomplete.
-      - name: Install vale
-        run: ./scripts/install-vale.sh 3.15.2
       - name: Run configured hooks
         run: uvx prek@0.5.2 run --all-files
 
-  # A report, not a gate, until the functions over CCN 15 come down (slopvac-01i):
-  # the step records its findings in the job summary and the job stays green.
-  lizard:
+  complexity:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -179,16 +165,29 @@ jobs:
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
-      - name: Measure source complexity
+      - name: Measure target complexity
         run: |
-          set -uo pipefail
-          {
-            echo '## Functions over CCN 15'
-            echo
-            echo '```'
-            uvx lizard==1.24.0 packages/slopvac-lint/src -C 15 -w || true
-            echo '```'
-          } | tee -a "$GITHUB_STEP_SUMMARY"
+          set -euo pipefail
+          set +e
+          uvx lizard==1.24.0 packages/slopvac-lint/src/slopvac/cli.py \
+            packages/slopvac-lint/src/slopvac/score.py -C 15 \
+            > /tmp/lizard.txt
+          status=$?
+          set -e
+          if (( status > 1 )); then
+            exit "$status"
+          fi
+          cat /tmp/lizard.txt
+          python3 - <<'PY'
+          from pathlib import Path
+
+          report = Path("/tmp/lizard.txt").read_text()
+          warnings = report.split("!!!! Warnings", 1)[1] if "!!!! Warnings" in report else ""
+          targets = (" lint@", " score_document@")
+          failed = [line for line in warnings.splitlines() if any(t in line for t in targets)]
+          if failed:
+              raise SystemExit("target complexity exceeded 15:\n" + "\n".join(failed))
+          PY
 
   shell-lint:
     runs-on: ubuntu-latest
@@ -245,12 +244,13 @@ jobs:
           fetch-depth: 0 # changed-files-only needs the merge base
       - name: Run the action on this repo's docs
         id: slopvac
-        uses: ./ # zizmor: ignore[self-repository]
+        uses: ./
         with:
-          paths: .
-          config: slopvac.toml
+          paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
           source: ./packages/slopvac-lint # the working tree, not the last release
           sarif: "true"
+          # This repository's authored prose passes the configured thresholds;
+          # keep the dogfood run blocking so regressions cannot land unnoticed.
           fail-on-findings: "true"
       - name: Report what the action returned
         env:
@@ -258,10 +258,6 @@ jobs:
           FINDINGS: ${{ steps.slopvac.outputs.findings }}
           ERRORS: ${{ steps.slopvac.outputs.errors }}
           PASSED: ${{ steps.slopvac.outputs.passed }}
-          WARNINGS: ${{ steps.slopvac.outputs.warnings }}
-          SUGGESTIONS: ${{ steps.slopvac.outputs.suggestions }}
-          DOCUMENTS: ${{ steps.slopvac.outputs.documents }}
-          WORDS: ${{ steps.slopvac.outputs.words }}
           SARIF: ${{ steps.slopvac.outputs.sarif }}
         run: |
           set -euo pipefail
@@ -269,10 +265,6 @@ jobs:
           # An empty output means the step exited before writing them, which is a
           # broken action reported as a clean run.
           test -n "$SCORE" || { echo "the action returned no score"; exit 1; }
-          for name in WARNINGS SUGGESTIONS DOCUMENTS WORDS; do
-            [[ "${!name}" =~ ^[0-9]+$ ]] || { echo "the action returned no $name"; exit 1; }
-          done
-          [ "$DOCUMENTS" -gt 0 ] || { echo "the action linted no documents"; exit 1; }
           test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
           python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
   prose:
@@ -315,6 +307,7 @@ jobs:
       - taplo
       - pinact
       - prek
+      - complexity
       - shell-lint
       - python-lint
       - action

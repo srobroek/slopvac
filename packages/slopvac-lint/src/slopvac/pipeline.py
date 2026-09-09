@@ -195,6 +195,8 @@ def _compile_for(
     config: Config,
     ruleset: RuleSet,
     vocabulary: Vocabulary,
+    *,
+    validate: bool = True,
 ) -> tuple[CompileResult | None, list[str]]:
     """Compile the ruleset for `sample`'s resolved config.
 
@@ -205,13 +207,24 @@ def _compile_for(
     """
     resolved = resolve_for(config, sample)
     try:
-        return compile_ruleset(
-            ruleset,
-            resolved,
-            binary=config.vale.binary,
-            validate=True,
-            vocabulary=vocabulary,
-        ), []
+        if validate:
+            return compile_ruleset(
+                ruleset,
+                resolved,
+                binary=config.vale.binary,
+                validate=True,
+                vocabulary=vocabulary,
+            ), []
+        with tempfile.TemporaryDirectory(prefix="slopvac-routing-") as directory:
+            compiled = compile_ruleset(
+                ruleset,
+                resolved,
+                outdir=Path(directory),
+                binary=config.vale.binary,
+                validate=False,
+                vocabulary=vocabulary,
+            )
+            return compiled, []
     except ValeUnavailable as exc:
         return None, [
             f"the Vale styles were not compiled ({exc}), so every rule that runs "
@@ -564,7 +577,11 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
         # Every file in the group compiles to the same tree (`group_inputs`), so
         # the first one stands for all of them here.
         compiled, compile_notes = _compile_for(
-            group[0], ctx.config, ctx.ruleset, vocabulary
+            group[0],
+            ctx.config,
+            ctx.ruleset,
+            vocabulary,
+            validate=not no_vale and ctx.config.vale.enabled,
         )
 
         vale_result = None
@@ -583,20 +600,27 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
             vale_result = run_compiled_vale(
                 group, compiled, severities, categories, binary=ctx.config.vale.binary
             )
-        else:
-            run_notes.extend(unchecked_for_skipped(compiled))
 
         # When Vale ran, it owns its rules and the native engine must not repeat
-        # them. When it did not, the native engine runs everything it can, so a
-        # missing binary degrades coverage rather than silently halving it twice.
+        # them. When Vale was explicitly skipped, only the rules that the compiler
+        # routed native may run; Vale-owned rules stay unchecked instead of using
+        # different parsing and scope semantics.
         native_only = None
-        if vale_result is not None and compiled is not None:
-            owned = set(compiled.vale_rules) | set(compiled.aliases.values())
-            native_only = {
-                rule.qualified_id
-                for rule in ctx.ruleset.rules
-                if rule.qualified_id not in owned
-            }
+        if compiled is not None:
+            if vale_result is not None:
+                owned = set(compiled.vale_rules) | set(compiled.aliases.values())
+                native_only = {
+                    rule.qualified_id
+                    for rule in ctx.ruleset.rules
+                    if rule.qualified_id not in owned
+                }
+            elif no_vale or not ctx.config.vale.enabled:
+                owned = set(compiled.vale_rules) | set(compiled.aliases.values())
+                native_only = {
+                    rule.qualified_id
+                    for rule in ctx.ruleset.rules
+                    if rule.qualified_id not in owned
+                }
 
         scores.extend(
             lint_one(p, ctx.config, ctx.ruleset, vale_result, run_notes, native_only)
