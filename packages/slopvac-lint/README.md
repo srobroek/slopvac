@@ -322,8 +322,8 @@ score but must not fail a run**.
 ### Density: the n-per-100-words figure
 
 A raw count cannot compare a 40-word error message against a 4,000-word guide.
-One finding is 2.5 per 100 words in the first and 0.025 in the second. The
-For documents of 60 words or more, the measurement is a density:
+One finding is 2.5 per 100 words in the first and 0.025 in the second.
+For documents of 60 words or more, this measurement is the density:
 
 ```
 density = findings / words * 100
