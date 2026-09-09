@@ -174,9 +174,7 @@ def drop_quoted_illustrations(
         start = line.find(finding.matched_text)
         end = start + len(finding.matched_text)
         if start != -1:
-            if "quotation" in rule.exceptions and _inside_quotation(
-                line, start, end
-            ):
+            if "quotation" in rule.exceptions and _inside_quotation(line, start, end):
                 continue
             # A `scope: prose` rule must not reach inside inline code. The
             # native engine gets this free -- it masks every code span before
@@ -239,13 +237,40 @@ def _is_all_caps(matched: str) -> bool:
 # closed on purpose: a longer list starts exempting real prose.
 _SCAFFOLD_WORDS = frozenset(
     {
-        "is", "are", "was", "were", "be", "been", "being", "am",
-        "the", "a", "an", "this", "that", "these", "those",
-        "and", "or", "not", "to", "of", "in", "on", "for", "with", "as", "at",
-        "it", "its", "if", "then", "by", "from",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "am",
+        "the",
+        "a",
+        "an",
+        "this",
+        "that",
+        "these",
+        "those",
+        "and",
+        "or",
+        "not",
+        "to",
+        "of",
+        "in",
+        "on",
+        "for",
+        "with",
+        "as",
+        "at",
+        "it",
+        "its",
+        "if",
+        "then",
+        "by",
+        "from",
     }
 )
-
 
 
 def format_message(template: str, **fields: object) -> str:
@@ -513,7 +538,6 @@ class Engine:
     ) -> bool:
         return is_suppressed(rule, line, suppressions, disabled)
 
-
     # --- pattern compilation --------------------------------------------------
 
     def _pattern_for(self, rule: Rule) -> re.Pattern[str] | None:
@@ -564,7 +588,9 @@ class Engine:
             if rule.kind is RuleKind.METRIC and (rule.metric or "") not in NATIVE_METRICS
         )
 
-    def drop_suppressed(self, findings: list[Finding], document: Document) -> list[Finding]:
+    def drop_suppressed(
+        self, findings: list[Finding], document: Document
+    ) -> list[Finding]:
         """Apply the annotation contract to findings this engine did not raise.
 
         Vale reads no annotation, so without this a `slopvac-allow` comment held for
@@ -600,13 +626,9 @@ class Engine:
 
         for rule in self.rules:
             if rule.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION):
-                findings.extend(
-                    self._run_lexical(rule, document, suppressions, disabled)
-                )
+                findings.extend(self._run_lexical(rule, document, suppressions, disabled))
             elif rule.kind is RuleKind.METRIC:
-                findings.extend(
-                    self._run_metric(rule, document, suppressions, disabled)
-                )
+                findings.extend(self._run_metric(rule, document, suppressions, disabled))
             elif rule.kind is RuleKind.STRUCTURE:
                 findings.extend(
                     self._run_structure(rule, document, suppressions, disabled)
@@ -711,7 +733,10 @@ class Engine:
                 return
             results.append(
                 self._metric_finding(
-                    rule, document, line, severity,
+                    rule,
+                    document,
+                    line,
+                    severity,
                     format_message(rule.message, match=match, replacement=replacement),
                 )
             )
@@ -721,11 +746,16 @@ class Engine:
             for sentence in document.sentences:
                 count = measure(sentence.text)
                 if exceeds(count, threshold):
-                    report(sentence.line, str(count + offset), str(int(threshold) + offset))
+                    report(
+                        sentence.line, str(count + offset), str(int(threshold) + offset)
+                    )
 
         if metric == "sentence_words":
             for sentence in document.sentences:
-                if rule.text_type is not TextType.ANY and sentence.text_type is not rule.text_type:
+                if (
+                    rule.text_type is not TextType.ANY
+                    and sentence.text_type is not rule.text_type
+                ):
                     continue
                 # An explicit threshold on the rule wins; otherwise the cap comes
                 # from the sentence's own text type, so one rule covers 20/25.
@@ -872,9 +902,14 @@ class Engine:
                     if not self._suppressed(rule, block.lines[0], suppressions, disabled):
                         results.append(
                             self._metric_finding(
-                                rule, document, block.lines[0], severity,
-                                format_message(rule.message, 
-                                    match=f"h{block.level}", replacement=f"h{previous + 1}"
+                                rule,
+                                document,
+                                block.lines[0],
+                                severity,
+                                format_message(
+                                    rule.message,
+                                    match=f"h{block.level}",
+                                    replacement=f"h{previous + 1}",
                                 ),
                             )
                         )

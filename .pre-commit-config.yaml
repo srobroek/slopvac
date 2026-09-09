@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: uvx ruff@0.16.3 check packages/slopvac-lint
+        language: system
+        pass_filenames: false
+        files: ^packages/slopvac-lint/.*\.py$
