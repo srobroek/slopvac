@@ -6,8 +6,8 @@ another:
   per_100_words         the raw density, every finding. Comparable across documents
                         of any length, and the honest measurement -- it is a count,
                         not a judgement.
-  gating_per_100_words  errors and warnings only. What the BUDGET is checked
-                        against.
+  gating_per_100_words  severity-weighted errors and warnings (1.0/0.5). What the
+                        BUDGET is checked against.
   score                 0-100, from gating density against the profile's budget,
                         less a bounded suggestion penalty. What a CI badge shows
                         and what a `min_score` gate reads.

@@ -504,6 +504,8 @@ class Engine:
         if (
             category is not None
             and category.minimum_severity is not None
+            and severity is not Severity.OFF
+            and (not advisory or self._authored(f"categories.{rule.category}"))
             and severity.rank < category.minimum_severity.rank
         ):
             severity = category.minimum_severity

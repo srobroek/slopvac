@@ -158,7 +158,11 @@ def main(context: click.Context) -> None:
     "names one.",
 )
 @click.option("--min-score", type=float, help="Fail below this 0-100 score.")
-@click.option("--max-per-100-words", type=float, help="Fail above this finding density.")
+@click.option(
+    "--max-per-100-words",
+    type=float,
+    help="Fail above severity-weighted error/warning density (1.0/0.5).",
+)
 @click.option(
     "--locale",
     "locale_tag",
