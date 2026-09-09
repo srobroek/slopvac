@@ -25,7 +25,7 @@ rules:
         good: The loader reads the lockfile.
     provenance:
       source: vale-styles/prose-scope/RejectedAlternative.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Excluded at relaxed and disabled by glob for specs/, .specify/, ADR paths,
         and CONTRIBUTING/constitution in .vale.ini: an ADR or spec IS the place for
@@ -57,7 +57,7 @@ rules:
         good: The loader walks the parent chain in process.
     provenance:
       source: vale-styles/prose-scope/ImplementationLeak.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         A unit must sit next to the number, so version strings, ports, exit codes,
         and byte sizes in a config table stay clean. A stated ceiling is a
@@ -94,7 +94,7 @@ rules:
         good: The linter reads `.slopvac.toml` when one is present.
     provenance:
       source: vale-styles/prose-scope/UnrequestedReassurance.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Anchored to the frame, never to "nothing" or "no" alone: "no rule matches"
         is a measurement and "nothing is committed" states where files live. The
@@ -125,7 +125,7 @@ rules:
         good: The skill invokes the scripts.
     provenance:
       source: vale-styles/prose-scope/Epigram.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Two matched forms: a parallel pair (N V O. N V O. with the same or a
         mirrored verb) and a negated maxim (... X, not Y. as a standalone

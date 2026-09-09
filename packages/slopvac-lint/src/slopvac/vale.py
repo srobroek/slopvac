@@ -91,7 +91,7 @@ def run_compiled_vale(
     # A rule that fails to load is absent from `ls-config` while Vale still exits
     # 0 on every file. Comparing the resolved set against what we wrote is the
     # only way that reads as a gap rather than as clean prose.
-    from .compile_vale import resolved_checks
+    from .vale_probe import resolved_checks
 
     expected = set(compiled.vale_rules)
     actual = resolved_checks(config_path, binary)
@@ -197,26 +197,28 @@ def run_compiled_vale(
             ):
                 result.unchecked.append(f"Vale returned a malformed alert for {path}.")
                 continue
-            check = alert.get("Check", "")
-            span = alert.get("Span") or [1]
+            check: str = alert["Check"]
+            line: int = alert["Line"]
+            span: list[int] = alert["Span"]
             severity = severities.get(check)
             if severity is None:
                 # Vale reported a rule we did not compile. Keep it at the level
                 # Vale chose rather than dropping it: a finding nobody claims is
                 # still a finding, and silently discarding it would hide a
                 # stray style on the StylesPath.
-                severity = SEVERITY_MAP.get(alert.get("Severity", "warning"), Severity.WARNING)
+                severity = SEVERITY_MAP.get(alert["Severity"], Severity.WARNING)
+            category: str = categories.get(check, check.split(".", 1)[0])
             result.by_path.setdefault(path, []).append(
                 Finding(
                     path=path,
-                    line=alert.get("Line", 1),
-                    column=span[0] if span else 1,
-                    end_column=span[1] if len(span) > 1 else None,
+                    line=line,
+                    column=span[0],
+                    end_column=span[1],
                     rule_id=check,
-                    category=categories.get(check, check.split(".", 1)[0]),
+                    category=category,
                     severity=severity,
-                    message=(alert.get("Message") or "").strip(),
-                    matched_text=alert.get("Match", ""),
+                    message=alert["Message"].strip(),
+                    matched_text=alert["Match"],
                 )
             )
     return result

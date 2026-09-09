@@ -17,6 +17,4 @@ exclude = [
     "medium\\.com",
     # The Vale styles are published as release assets by a workflow in this repo,
     # so on a branch that adds a style the URL is correct and does not exist yet.
-    # The `check-vale-styles` workflow is what proves these resolve.
-    "releases/download/vale-styles/",
 ]

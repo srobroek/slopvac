@@ -64,8 +64,8 @@ inputs:
     default: "true"
   vale:
     description: >-
-      Install Vale and run the upstream ai-tells rules as well. Without it those
-      rules report as UNCHECKED rather than passing silently.
+      Install Vale and run the Vale-backed rules as well. When false the linter
+      runs with --no-vale: those rules report as UNCHECKED and the run exits 2.
     required: false
     default: "true"
   vale-version:
@@ -127,17 +127,16 @@ runs:
       shell: bash
       env:
         VALE_VERSION: ${{ inputs.vale-version }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
         set -euo pipefail
-        curl -sSfL -o /tmp/vale.tar.gz \
-          "https://github.com/errata-ai/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
-        tar -xzf /tmp/vale.tar.gz -C /tmp vale
-        sudo install -m 0755 /tmp/vale /usr/local/bin/vale
-        vale --version
+        "$ACTION_PATH/scripts/install-vale.sh" "$VALE_VERSION"
 
     # A shallow clone has no merge base, so the diff would silently return every
     # file. Detect that and say so rather than linting the whole repo under a
-    # changed-files-only label.
+    # changed-files-only label. Paths travel through a NUL-delimited file, never
+    # a space-joined string: a changed file with a space in its name would
+    # otherwise arrive as two paths that do not exist.
     - name: Resolve target paths
       id: targets
       shell: bash
@@ -147,36 +146,37 @@ runs:
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
       run: |
         set -euo pipefail
+        list="${RUNNER_TEMP}/slopvac-paths"
+        echo "list=$list" >> "$GITHUB_OUTPUT"
         if [ "$CHANGED_ONLY" != "true" ]; then
-          echo "paths=$INPUT_PATHS" >> "$GITHUB_OUTPUT"
+          read -r -a inputs <<< "$INPUT_PATHS"
+          printf '%s\0' "${inputs[@]}" > "$list"
           exit 0
         fi
         if [ -z "${BASE_SHA:-}" ]; then
           echo "::warning title=slopvac::changed-files-only needs a pull_request event; linting ${INPUT_PATHS} instead"
-          echo "paths=$INPUT_PATHS" >> "$GITHUB_OUTPUT"
+          read -r -a inputs <<< "$INPUT_PATHS"
+          printf '%s\0' "${inputs[@]}" > "$list"
           exit 0
         fi
         if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
           echo "::error title=slopvac::the merge base is not in this clone. Set fetch-depth: 0 on actions/checkout, or set changed-files-only: false."
           exit 1
         fi
-        mapfile -t files < <(
-          git diff --name-only --diff-filter=d "$BASE_SHA"...HEAD -- \
-            '*.md' '*.mdx' '*.markdown' '*.txt' '*.rst' '*.html'
-        )
-        if [ "${#files[@]}" -eq 0 ]; then
+        git diff -z --name-only --diff-filter=d "$BASE_SHA"...HEAD -- \
+          '*.md' '*.mdx' '*.markdown' '*.txt' '*.rst' '*.html' > "$list"
+        if [ ! -s "$list" ]; then
           echo "::notice title=slopvac::no prose files changed"
-          echo "paths=" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-        printf '%s\n' "${files[@]}"
-        echo "paths=${files[*]}" >> "$GITHUB_OUTPUT"
+        tr '\0' '\n' < "$list"
 
     - name: Lint
       id: lint
       shell: bash
       env:
-        PATHS: ${{ steps.targets.outputs.paths }}
+        PATH_LIST: ${{ steps.targets.outputs.list }}
+        VALE: ${{ inputs.vale }}
         PROFILE: ${{ inputs.profile }}
         CONFIG: ${{ inputs.config }}
         MIN_SCORE: ${{ inputs.min-score }}
@@ -191,7 +191,12 @@ runs:
       run: |
         set -uo pipefail
 
-        if [ -z "${PATHS// /}" ]; then
+        targets=()
+        while IFS= read -r -d '' target; do
+          [ -n "$target" ] && targets+=("$target")
+        done < "$PATH_LIST"
+
+        if [ "${#targets[@]}" -eq 0 ]; then
           {
             echo "score=100"
             echo "findings=0"
@@ -233,23 +238,31 @@ runs:
         [ -n "$MIN_SCORE" ] && cmd+=(--min-score "$MIN_SCORE")
         [ -n "$MAX_PER_100" ] && cmd+=(--max-per-100-words "$MAX_PER_100")
         [ -n "$RULES_DIR" ] && cmd+=(--rules-dir "$RULES_DIR")
+        [ "$VALE" != "true" ] && cmd+=(--no-vale)
 
-        read -r -a targets <<< "$PATHS"
+        # A rendering that fails is an action failure, never a quiet omission:
+        # exit 0 and 1 are the linter's verdicts, anything else means no report.
+        render() {
+          local format="$1" destination="$2"
+          "${cmd[@]}" --format "$format" "${targets[@]}" > "$destination"
+          local code=$?
+          if [ "$code" -ge 2 ] || [ ! -s "$destination" ]; then
+            echo "::error title=slopvac::the ${format} report could not be produced (exit ${code})."
+            cat "$destination" 2>/dev/null || true
+            exit 2
+          fi
+          return "$code"
+        }
 
         # JSON is the source of truth for the outputs; the other formats are
         # rendered from the same run so the numbers cannot disagree.
-        "${cmd[@]}" --format json "${targets[@]}" > /tmp/slopvac.json
+        render json /tmp/slopvac.json
         status=$?
 
-        # Exit 2 means the run itself failed. Never report that as a score.
-        if [ "$status" -ge 2 ]; then
-          echo "::error title=slopvac::the linter could not run (exit ${status}). Prose was NOT checked."
-          cat /tmp/slopvac.json 2>/dev/null || true
-          exit "$status"
-        fi
-
-        python3 - <<'PY' >> "$GITHUB_OUTPUT"
-        import json, os
+        # One reader for both the outputs and the step summary: a shape the
+        # reader cannot parse is an action failure, never a quiet exit 0.
+        if ! python3 - <<'PY' >> "$GITHUB_OUTPUT"
+        import json
         with open("/tmp/slopvac.json") as handle:
             data = json.load(handle)
         summary = data["summary"]
@@ -260,8 +273,12 @@ runs:
         print(f"passed={'true' if summary['passed'] else 'false'}")
         print("json=/tmp/slopvac.json")
         PY
+        then
+          echo "::error title=slopvac::the JSON report could not be read. Prose was NOT checked."
+          exit 2
+        fi
 
-        python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+        if ! python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
         import json
         with open("/tmp/slopvac.json") as handle:
             data = json.load(handle)
@@ -288,13 +305,18 @@ runs:
             for note in document.get("unchecked", []):
                 print(f"- UNCHECKED `{document['path']}`: {note}")
         PY
+        then
+          echo "::error title=slopvac::the step summary could not be written from the report."
+          exit 2
+        fi
 
         if [ "$ANNOTATE" = "true" ]; then
-          "${cmd[@]}" --format github "${targets[@]}" || true
+          render github /tmp/slopvac.github
+          cat /tmp/slopvac.github
         fi
 
         if [ "$SARIF" = "true" ]; then
-          "${cmd[@]}" --format sarif "${targets[@]}" > "$SARIF_FILE" || true
+          render sarif "$SARIF_FILE"
           echo "wrote $SARIF_FILE"
           echo "sarif=$SARIF_FILE" >> "$GITHUB_OUTPUT"
         else

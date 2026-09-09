@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 import pathspec
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 
 CONFIG_NAMES = ("slopvac.toml", ".slopvac.toml")
 PYPROJECT = "pyproject.toml"
@@ -268,6 +268,7 @@ class Override(BaseModel):
     #: the project's. Overridable for that reason: without it the only options are
     #: one wordlist for the whole repository or none.
     vocabulary: VocabularySettings | None = None
+    _spec: pathspec.PathSpec = PrivateAttr()
 
     @model_validator(mode="after")
     def _compile_spec(self) -> Override:
@@ -320,6 +321,7 @@ class Config(BaseModel):
     # Set by the loader, not by the file.
     source: Path | None = Field(default=None, exclude=True)
     root: Path | None = Field(default=None, exclude=True)
+    _exclude_spec: pathspec.PathSpec = PrivateAttr()
 
     @model_validator(mode="after")
     def _compile_exclude(self) -> Config:

@@ -1,7 +1,7 @@
 # Document-level metrics from `counter-signals.md`
 
 Source: `packages/slopvac/.apm/skills/review-docs/references/ai-tells/counter-signals.md`.
-These are INVERSE signals: a linter cannot flag an absence per line, so each
+The counter-signals are INVERSE signals: a linter cannot flag an absence per line, so each
 becomes `kind: metric`, `scope: document`. Every threshold below is INFERRED from
 the catalog's wording, not measured. Calibrate against the same 147,473-word
 human-written corpus used for the slop-axis base rates before enforcing any of

@@ -28,12 +28,12 @@ from slopvac.config import (
     resolve_for,
 )
 from slopvac.engine import (
-    NATIVE_METRICS,
     Engine,
     _inside_quotation,
     _is_all_caps,
     count_clause_boundaries,
 )
+from slopvac.metrics import NATIVE_METRICS
 from slopvac.model import TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
@@ -347,6 +347,45 @@ def test_missing_reason_is_reported():
         "It is the tip of the iceberg.\n"
     )
     assert [f for f in findings if f.rule_id == "meta.invalid-suppression"]
+
+
+def test_empty_exception_list_accepts_no_reason():
+    """A rule with no exceptions has no escape hatch; any reason is reported."""
+    findings = _run(
+        "<!-- slopvac-allow: rule=prose-inflation.intensifier reason=quotation -->\n"
+        "This is a very unique design.\n"
+    )
+    assert [f for f in findings if f.rule_id == "meta.invalid-suppression"]
+    assert [f for f in findings if f.rule_id == "prose-inflation.intensifier"]
+
+
+def test_unknown_rule_in_suppression_is_reported():
+    findings = _run(
+        "<!-- slopvac-allow: rule=nope.nothing reason=quotation -->\nBody.\n"
+    )
+    assert [f for f in findings if f.rule_id == "meta.invalid-suppression"]
+
+
+def test_real_rule_off_in_this_profile_is_not_an_unknown_rule():
+    findings = _run(
+        "<!-- slopvac-allow: rule=ai-tells-structure.staccato-negative-parallel-frames"
+        " reason=quotation -->\nBody.\n",
+        profile=Profile.RELAXED,
+    )
+    assert not [f for f in findings if f.rule_id == "meta.invalid-suppression"]
+
+
+def test_html_input_has_words_and_line_numbers():
+    document = parse(
+        "t.html",
+        "<html><body>\n<p>Intro.</p>\n<p>This is a very unique design.</p>\n"
+        "<pre>very unique code</pre>\n</body></html>\n",
+    )
+    assert document.words >= 7
+    ruleset = load_ruleset()
+    engine = Engine(ruleset.rules, resolve_for(_config(), Path("/repo/t.html")))
+    hits = [f for f in engine.run(document) if f.rule_id == "prose-inflation.intensifier"]
+    assert [f.line for f in hits] == [3]
 
 
 def test_disable_block_suppresses_a_range():
@@ -861,7 +900,7 @@ def test_no_profile_promotes_a_rule_it_marks_advisory():
         for rule in ruleset.rules:
             if rule.tier_for(profile.value) is not Tier.ADVISORY:
                 continue
-            if not engine._active(rule):
+            if not engine.is_active(rule):
                 continue
             assert engine.severity_for(rule) is Severity.SUGGESTION, (
                 f"{rule.qualified_id} is advisory at {profile.value} but reports as "
@@ -1081,6 +1120,24 @@ def test_a_density_metric_is_not_compiled_to_vale_as_well():
     from slopvac.compile_vale import DENSITY_MESSAGE_METRICS
 
     assert DENSITY_MESSAGE_METRICS <= NATIVE_METRICS
+
+
+def test_every_shipped_metric_is_measurable():
+    """A metric name is a string shared by three tables: the rule YAML, the native
+    engine, and the Vale plan. A rule naming a metric no engine measures ships as
+    UNCHECKED on every run, so the shipped ruleset may name only measurable ones."""
+    from slopvac.compile_vale import METRIC_TOKENS
+    from slopvac.model import RuleKind
+
+    named = {
+        rule.metric
+        for rule in load_ruleset().rules
+        if rule.kind is RuleKind.METRIC and rule.metric
+    }
+    assert named <= NATIVE_METRICS | set(METRIC_TOKENS), named - (
+        NATIVE_METRICS | set(METRIC_TOKENS)
+    )
+
 
 
 def test_a_clause_boundary_ends_a_noun_stack():

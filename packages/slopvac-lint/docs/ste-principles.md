@@ -1,6 +1,6 @@
 # Drafting principles
 
-Hold these while writing. The linter owns every word list, substitution, and length check. These are the habits that shape a sentence before a linter sees it.
+Hold these while writing. The linter owns every word list, substitution, and length check. The principles below are the habits that shape a sentence before the linter runs.
 
 1. Give one idea per sentence. If you can split it at a clause boundary without loss, split it.
 2. Give one instruction per step. A step with a second action gets half done.

@@ -15,4 +15,3 @@ rules:
   document-start: disable
 
 ignore: |
-  vale-styles/*/*.yml

@@ -68,7 +68,7 @@ Delete chat-session leakage
 - **Scope.** prose
 - **Fix.** Delete the artifact, then re-read the surrounding paragraphs, which came from the same session.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/ai-residue/ChatLeakage.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/ai-residue/ChatLeakage.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 E5 in the retired slop-lint.py. Enforced at every tier because the match is never a register question. No published Vale style covers it: checked tbhb/vale-ai-tells v1.25.0, where SycophancyMarkers is praise only and SelfReference is cross-references only. The .vale.ini keeps it at error for source files too. Go->Python regex conversion: the Vale source wrote the CJK bracket citation range as `\x{3010}`, `\x{2020}`, `\x{3011}`; rewritten as `【`, `†`, `】` for the Python `regex` module.
 
@@ -771,7 +771,7 @@ Keep deltas out of a doc body
 - **Scope.** prose
 - **Fix.** Delete the delta; a changelog or release note carries it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/docs-discipline/HistoryNarration.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/docs-discipline/HistoryNarration.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 E4 in the retired slop-lint.py. Excluded at relaxed because it encodes a genre assumption: a changelog, release note, or migration guide exists to narrate the delta, so the rule is wrong for the change-comms genre by construction.
 
@@ -785,7 +785,7 @@ Keep internal references out of consumer docs
 - **Scope.** prose
 - **Fix.** State the behaviour; drop the pointer to internal process.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/docs-discipline/InternalRefs.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/docs-discipline/InternalRefs.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 E3 in the retired slop-lint.py, and a CONSUMER-genre rule only, so excluded at relaxed. Scope is deliberately prose and not raw: the original scanned whole lines so a spec path inside a link target was caught, but measured on the source corpus that cost 5 false positives per README (`--no-constitution` in a command example, `.specify/` in a code span) against one real prose hit. Link targets are validated by lychee in CI. .vale.ini disables it for specs/, .specify/, ADR paths, CONTRIBUTING, constitution, and the two package READMEs that document the rule itself.
 
@@ -799,7 +799,7 @@ State what the artifact does at HEAD
 - **Scope.** prose
 - **Fix.** Delete the passage, or state the behaviour the code has now.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/docs-discipline/StatusLanguage.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/docs-discipline/StatusLanguage.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 E1 in the retired slop-lint.py. The negative lookahead on `currently` exempts runtime-state description (currently running/active/...), which is legitimate present tense, not doc status. Relaxed is advisory rather than excluded because a false status claim is a factual defect, not a register preference. .vale.ini turns it off for the package's own normative source files, which quote the ban list they enforce. Go->Python: the lookahead `(?!...)` is RE2-safe and ports unchanged.
 
@@ -881,7 +881,7 @@ Name who acted in a passive
 - **Scope.** prose
 - **Fix.** Put the actor in the subject slot.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-agency/AgentlessPassive.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-agency/AgentlessPassive.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Only the two shapes where the deletion is the point: a dummy or abstract subject carrying the verb, and the stock agentless confessions. Passives that name their agent ("the record was created by the importer") and state descriptions ("the rule is disabled") stay clean. Measures the SENTENCE; prose-density.passive-density measures the DOCUMENT, and neither subsumes the other. .vale.ini keeps it at error for source comments.
 
@@ -894,7 +894,7 @@ Name the mechanism, not a mind
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Replace the cognition verb with the mechanism -- matches, requires, selects, branches.
-- **Source.** vale-styles/prose-agency/Anthropomorphism.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-agency/Anthropomorphism.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 From Openly's Anthropomorphism, with the subject list extended to the nouns this corpus uses (parser, linter, gate, hook, agent, model) and `behaves` dropped -- "the loader behaves the same way" is ordinary English. Subject-anchored like false-agency, so "the reviewer knows the schema" stays clean. Covers MACHINES thinking; false-agency covers ABSTRACTIONS acting. Also the mechanised half of the content-shape catalog's "Anthropomorphism" entry.
 
@@ -907,7 +907,7 @@ Name who acted
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Name the human, or use "you" and put the reader in the seat. For the product-agency half, say what the thing has or what the reader does.
-- **Source.** vale-styles/prose-agency/FalseAgency.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-agency/FalseAgency.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Enforced at every tier: a deleted actor is a defect in any register. Subject-anchored, not verb-anchored -- "the data tells us" is the tell, "tells" alone is not -- which keeps "the loader resolves paths" clean. The `allows you to` band is anchored on the pronoun so "the config allows two retries" stays clean. Also the mechanised half of the register catalog's "False agency" entry and of Splunk's UserFocus; see ai-tells-register.false-agency-remainder for the judgement remainder. .vale.ini keeps it at error for source comments.
 
@@ -920,7 +920,7 @@ Put the reader in the scene
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Name the actor, or address the reader directly with a concrete action.
-- **Source.** vale-styles/prose-agency/NarratorDistance.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-agency/NarratorDistance.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 The opener forms are anchored to line start, because these phrases are a tell only in that position: "what people tend to forget is documented in the runbook" mid-sentence is ordinary prose. `ignorecase` is absent from the Vale source, so ignore_case is false and the case alternations inside the pattern are load-bearing. Advisory rather than enforced at relaxed: a blog or an essay legitimately uses the lecturer opener. .vale.ini disables it for the package's own normative source files.
 
@@ -933,7 +933,7 @@ Name who recommends it
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Name the recommender, or drop the frame and give the instruction.
-- **Source.** vale-styles/prose-agency/UnattributedRecommendation.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-agency/UnattributedRecommendation.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Harvested from Splunk's Recommendations and Datadog's recommendations, which take opposite positions on the fix -- Splunk bans the frame and directs the reader, Datadog rewrites it to name the company. Both agree the agentless form is the defect, which is the part that generalises. `we recommend` is deliberately absent: prose-craft.first-person-plural owns the first-person plural, and in an ADR or CONTRIBUTING it is correct voice.
 
@@ -952,7 +952,7 @@ Write an initialism unpunctuated
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the periods.
-- **Source.** vale-styles/prose-craft/AcronymPeriods.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/AcronymPeriods.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Vale carries the regex under `tokens:` with `nonword: true`, so it is a single regex rather than a literal-phrase list; mapped to kind=pattern, not kind=tokens. The dotted form also breaks sentence splitting in every downstream tool, including this linter, so it is enforced at every tier.
 
@@ -965,7 +965,7 @@ Pick the reading you meant
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** State the reading you meant -- "a and b", "a or b", or "a, b, or both".
-- **Source.** vale-styles/prose-craft/Ambiguity.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Ambiguity.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 "and/or" is the canonical case: it means three different things and the writer had one in mind. Red Hat's DoNotUseTerms spells out all three replacements, which makes it actionable rather than a taste call. OpenStack's DangPrep (a sentence ending on a preposition) was tried and REJECTED: measured on the source repo it fired three times, every one correct English where the preposition belongs to a phrasal verb or an idiom ("the section it calls for.", "rather than the reader having to.", "and so on."). Distinguishing a stranded preposition from a phrasal one needs parsing a regex cannot do.
 
@@ -979,7 +979,7 @@ Move an annotation to an issue
 - **Scope.** prose
 - **Fix.** Move it to an issue or a code comment.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-craft/Annotations.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Annotations.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 DUPLICATES docs-discipline.status-language, which already bans TODO and WIP in the CONSUMER genre. This rule exists to reach change comms, where status-language is switched off because a commit message legitimately says "not yet implemented" -- but never legitimately ships a "TODO: write this" in a PR body. `NOTE` is deliberately absent: proselint bans it, and "NOTE:" is a sanctioned admonition prefix in every docs toolchain.
 
@@ -992,7 +992,7 @@ Match the article to the initialism's pronunciation
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use the article the initialism's spoken form takes.
-- **Source.** vale-styles/prose-craft/Articles.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Articles.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Purely mechanical -- there is no house-style position to take -- and a reliable marker of text assembled rather than read aloud. Vale sets `ignorecase: false` explicitly, which is load-bearing: case-insensitive matching would flag "A FAQ" at the start of a sentence with the wrong replacement casing.
 
@@ -1005,9 +1005,9 @@ Drop the shell prompt from a command
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Show the command alone; name the shell in the fence's language tag if it matters.
-- **Source.** vale-styles/prose-craft/CommandPrompt.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/CommandPrompt.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
-`scope: raw` because the prompt lives inside a fence, which the prose parser skips. Canonical's 015-No-prompts-in-comments and Krystal's CommandLinePrompts both implement this; Krystal uses a Tengo script to find fences, but a line-anchored regex over raw text reaches the same lines without the dependency. `#` is excluded from the prompt set: in a fenced block it is far more often a comment than a root prompt.
+`scope: raw` because the prompt lives inside a fence, which the prose parser skips. Canonical's 015-No-prompts-in-comments and Krystal's CommandLinePrompts both implement this; Krystal uses a Tengo script to find fences, but a line-anchored regex over raw text reaches the same lines without the dependency. `#` is excluded from the prompt set: in a fenced block it is far more often a comment than a root prompt. A bare `>` is excluded too: at line start in raw markdown it is a blockquote far more often than a cmd.exe prompt, and the rule fired on every quoted line of AGENTS.md. The PowerShell prompt keeps its `>` because the drive prefix disambiguates it.
 
 #### `prose-craft.conflict-markers`
 
@@ -1018,7 +1018,7 @@ Resolve the merge conflict
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Resolve the conflict and delete the markers.
-- **Source.** vale-styles/prose-craft/ConflictMarkers.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/ConflictMarkers.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Always a defect, never a style question, so enforced at every tier. It survives review more often than it should because a rendered markdown view hides it inside the diff noise. `scope: raw` so it reaches inside code fences, where a botched merge usually lands.
 
@@ -1031,7 +1031,7 @@ Start the sentence with its real subject
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Move the real subject into the subject slot.
-- **Source.** vale-styles/prose-craft/DeadOpener.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/DeadOpener.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Existential there is matched sentence- or clause-initial only: "there is no way to know" mid-sentence stays clean, as does "check whether there is a lockfile". write-good ships this as ThereIs at error and So at error; `So` is deliberately absent, because a sentence-initial "So" is a legitimate connective in this register and it fired twice on correct prose in calibration. GO->PYTHON REGEX NOTE: uses four LOOKBEHINDS, which Go RE2 does not support at all. Python `regex` supports them, so the ported rule is exact; verify that the Vale original was not silently matching nothing on these branches.
 
@@ -1059,7 +1059,7 @@ Name the artifact, not the vendor
 - **Scope.** prose
 - **Fix.** Put the artifact in the subject slot.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-craft/FirstPersonPlural.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/FirstPersonPlural.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 GENRE-SCOPED, and the exclusions matter more than the rule, so relaxed is excluded. A commit message legitimately says "we dropped X"; an ADR says "we chose Postgres"; a CONTRIBUTING says "we review within a week". Off for change comms and internal docs, and the packaged Vale config turns it off for those paths. `us` is deliberately absent ("let us know", "tells us" are too common in correct use), and `I`/`me`/`my` are absent because a personal blog voice is not this defect.
 
@@ -1072,7 +1072,7 @@ Describe what it does now
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Put the verb in the present tense.
-- **Source.** vale-styles/prose-craft/FutureTense.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/FutureTense.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 A doc describes what the artifact does now, so the present tense is both shorter and true at read time. "Will" also hides the roadmap case: "the flag will support globs" reads as documentation and is a promise. docs-discipline.status-language owns the explicit roadmap forms ("will eventually", "in a future release"); this rule owns the bare future tense, which is a tense choice rather than a status claim. From Openly's FutureTense, minus its `[\w][ll]` token, which matches any word containing "ll" including "will" itself, "all", and "install". Excluded at relaxed: a spec or an RFC states future obligations by genre.
 
@@ -1085,7 +1085,7 @@ Use the imperative in a task heading
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** heading
 - **Fix.** Rewrite the heading in the imperative.
-- **Source.** vale-styles/prose-craft/GerundHeading.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/GerundHeading.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Vale carries the regex under `tokens:`, so it is a single regex and maps to kind=pattern, not kind=tokens. A gerund WITH a direct object is a task heading; a bare gerund is a topic heading ("Logging", "Troubleshooting") and stays clean, which is why the pattern needs the object rather than `^\w+ing\b`. Vale's `exceptions:` list is mapped to `allowlist` and not to `exceptions`: our schema's `exceptions` is a closed set of NAMED suppression reasons a writer may cite, while Vale's list is literal strings that never fire -- which is exactly our `allowlist`. Excluded at relaxed: heading mood is a house-style choice.
 
@@ -1098,7 +1098,7 @@ Drop the hyphen after an -ly adverb
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the hyphen.
-- **Source.** vale-styles/prose-craft/Hyphens.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Hyphens.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Vale carries the regex under `tokens:` with `nonword: true`; mapped to kind=pattern. One correct answer, no house-style position, so enforced at every tier: an -ly adverb can only modify the adjective after it, so the hyphen adds no information.
 
@@ -1112,7 +1112,7 @@ Use the English phrase
 - **Scope.** prose
 - **Fix.** Write the English phrase.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-craft/Latinisms.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Latinisms.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 "e.g." and "i.e." are routinely swapped for each other, and a screen reader says "ee gee". Google, Microsoft, IBM, and Elastic all replace them, which is as close to settled as documentation style gets. `etc.` is included on purpose: it means the writer had a list and stopped. Advisory at relaxed: `via` and `ad hoc` are ordinary register in an essay.
 
@@ -1138,7 +1138,7 @@ Drop the word the initialism already contains
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the trailing noun.
-- **Source.** vale-styles/prose-craft/Misnomer.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Misnomer.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 RAS syndrome. Split from Redundancy.yml because the cause differs and so does the diagnosis: a grammatical redundancy ("past history") is a slip in the sentence, a misnomer is a gap in what the writer knows the initialism expands to, so it tells you to check the surrounding text for more of the same. CRAFT AXIS despite a very low human base rate (0.1 hits per 10k words): a model that has seen the expansion is LESS likely to make this error than a human writing quickly, so as a generated-text signal it points the wrong way.
 
@@ -1151,7 +1151,7 @@ State what is required
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Invert the sentence to state the requirement.
-- **Source.** vale-styles/prose-craft/NegativeRequirement.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/NegativeRequirement.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Double negatives cost every reader a pass, and non-native readers more than one. Excluded at relaxed and off for internal docs by default: a spec states constraints negatively on purpose ("the loader MUST NOT retry without a backoff") and that is the genre's job.
 
@@ -1164,7 +1164,7 @@ Use the plural
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Write the plural.
-- **Source.** vale-styles/prose-craft/OptionalPlural.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/OptionalPlural.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into one alternation for kind=pattern. Covers "(es)" and the slashed form, which Google's rule misses. The reader has to resolve the parenthetical and the resolution never matters.
 
@@ -1177,7 +1177,7 @@ Write the word ordinal, or let the list carry the order
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Use "first", or drop the ordinal and let the list marker carry it.
-- **Source.** vale-styles/prose-craft/Ordinals.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Ordinals.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Two shapes: "firstly" adds -ly to a word that is already the ordinal, and the numeric form reads as a date fragment in running prose. The lookbehind excludes a bare year-like number. Advisory at relaxed: "1st" is correct in a table cell or a date. GO->PYTHON REGEX NOTE: `(?<!\w)` is a lookbehind, unsupported by Go RE2.
 
@@ -1190,7 +1190,7 @@ Drop the apostrophe from a plural initialism
 - **strict / normal / relaxed.** advisory / advisory / advisory
 - **Scope.** prose
 - **Fix.** Delete the apostrophe.
-- **Source.** vale-styles/prose-craft/PluralAbbreviation.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/PluralAbbreviation.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 PARTIAL CONVERSION. The Vale rule is `extends: sequence` with three tokens: `\b[A-Z]{2,}`, `'s`, and a third that NEGATES on a following noun (`tag: NN|NNS|NNP|NNPS`), because a genuine possessive has one. Our schema has no POS-keyed sequence kind, and kind=vocabulary is a controlled-vocabulary lookup rather than a tag-sequence negation. Only the first two tokens are reproduced here, so the rule WILL fire on every correct possessive. It is therefore advisory at every tier, including strict, and must not be promoted until the engine gains a POS checker. The Vale `sequence` form stays live as the accurate implementation.
 
@@ -1203,7 +1203,7 @@ State the step, not a request
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Delete the courtesy word and state the step.
-- **Source.** vale-styles/prose-craft/Politeness.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Politeness.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Red Hat, OpenStack, Splunk, and Krystal all ban it, and each gives the same reason: politeness in a procedure reads as uncertainty about whether the step is required. `sorry` and `unfortunately` are here too -- both narrate the author's feelings about a limitation rather than stating the limitation, and both are a common shape in generated apologia. Excluded at relaxed: a blog or a support reply is polite by genre.
 
@@ -1216,7 +1216,7 @@ Cut the repeated half
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the repeated half.
-- **Source.** vale-styles/prose-craft/Redundancy.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Redundancy.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 CRAFT AXIS on a measured base rate: 0.1 hits per 10k words across 147,473 words of human-written technical documentation. Rare, but rare because it is a slip anyone makes and most editors catch, not because a model produces it more often. Grammatical redundancy, not a naming error -- see misnomer for "ATM machine", a different defect with a different cause.
 
@@ -1229,7 +1229,7 @@ Give the absolute date or version
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Give the absolute date or the version number.
-- **Source.** vale-styles/prose-craft/RelativeDate.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/RelativeDate.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 A relative date is correct on the day it is written and wrong every day after; the document does not carry its own write date, so neither a reader nor a model reading it later can resolve the offset. Modelled on MediaWiki's RelativeDates, whose own regex matches any month name not followed by a digit; this one matches the relative expressions instead, which is the actual defect. `soon` and `shortly` are deliberately absent so a roadmap phrase reports once, under docs-discipline.status-language, rather than twice.
 
@@ -1242,7 +1242,7 @@ Start with the first new fact
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the navigation clause.
-- **Source.** vale-styles/prose-craft/SelfReference.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/SelfReference.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 `page` and `document` are deliberately absent from the noun list: Vale's `text` scope hands over the PARSED text node, so a markdown link label arrives with its brackets stripped and no lookbehind can distinguish `[this page](...)` from prose. prose-craft.link-text owns the link case, and dropping the two nouns was cheaper than re-implementing markdown skipping under `scope: raw`. OUR ENGINE MAY BE ABLE TO RESTORE THEM, because it parses the document itself rather than receiving a text node. `this document` and `this guide` are also absent: a README legitimately says "this document describes the released package" once, and prose-inflation.document-preamble owns the opening frame. Mechanised half of the structure catalog's "Heading echo" tell.
 
@@ -1255,7 +1255,7 @@ Split a long sentence
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
 - **Fix.** Split the sentence, or turn the enumeration into a list.
-- **Source.** vale-styles/prose-craft/SentenceLength.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/SentenceLength.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Converted from Vale `extends: occurrence` with `max: 34`, `token: \b(\w+)\b`, `scope: sentence`. Threshold 34 is deliberately ABOVE Microsoft's 30 and Red Hat's 32: measured on the source repo's tracked prose, 30 flagged 12 sentences, most of them correct enumerations, and 34 flags the ones that are genuinely two sentences. Raise it rather than disable it if a corpus disagrees. Complements prose-format.prose-block, which measures the paragraph; a document can pass one and fail the other, and the fixes differ.
 
@@ -1268,7 +1268,7 @@ Use one space after a period
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use exactly one space.
-- **Source.** vale-styles/prose-craft/Spacing.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Spacing.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into one alternation for kind=pattern. The zero-space form ("Word.Next") is a paste artifact; the two-space form is a typewriter habit that markdown renderers collapse anyway, so it survives only in the source diff. The lookbehind excludes a version or decimal, and `nonword` keeps the match off word boundaries so a filename does not trip it. GO->PYTHON REGEX NOTE: `(?<!\d)` is a lookbehind, unsupported by Go RE2.
 
@@ -1281,7 +1281,7 @@ Name the noun the demonstrative points at
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Add the noun after the demonstrative.
-- **Source.** vale-styles/prose-craft/UnclearAntecedent.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/UnclearAntecedent.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 From Openly's UnclearAntecedent, tightened. Openly matches only `This is|are`; `That`, `These`, and `Those` have the same failure, and requiring a copula or a light verb keeps "This flag controls retries" -- a demonstrative WITH its noun -- clean. Advisory at relaxed: an essay carries a referent forward across sentences by design. GO->PYTHON REGEX NOTE: three lookbehinds, unsupported by Go RE2.
 
@@ -1294,7 +1294,7 @@ State version order, not magnitude
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use "and later" or "and earlier".
-- **Source.** vale-styles/prose-craft/Versions.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Versions.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 "3.2 and higher" is ambiguous once versions stop sorting numerically: is 3.10 higher than 3.9? Enforced at every tier because it is a correctness defect, not a register preference.
 
@@ -1308,7 +1308,7 @@ Use the short word
 - **Scope.** prose
 - **Fix.** Substitute the short word.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-craft/Wordiness.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-craft/Wordiness.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Merged from three upstream maps that overlap heavily: Microsoft's Wordiness (119 entries), Red Hat's SimpleWords (107), and write-good's TooWordy (216 bare tokens with no replacement). Keeps the SUBSTITUTION form on purpose -- a finding that names the replacement is actionable, one that says "too wordy" is not, and 122 of write-good's tokens ship without a replacement at all. Trimmed on three grounds: technical homographs (`implement`, `monitor`, `validate`, `evaluate`, `terminate`, `maximum`, `minimum`, `objective`, `requirement`, `indicate`, `retain` are the correct words in a software corpus and write-good flags all of them), connectives (`however`, `therefore`, `nevertheless`, `regarding`, `similar to`, `on the other hand` are ordinary English), and register-neutral verbs (`provide`, `contains`, `maintain`, `permit`, `determine`, `notify`, `encounter` read the same as their "plain" replacements, so swapping them is taste). Four replacement values carry a `|` alternation the Vale message renders literally ("do|carry out"); our engine should present those as a choice, not as a literal string.
 
@@ -1431,7 +1431,7 @@ Delete emoji from a heading
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** heading
 - **Fix.** Delete the emoji; the heading text carries the meaning.
-- **Source.** vale-styles/prose-format/EmojiHeading.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-format/EmojiHeading.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 W2 in the retired slop-lint.py. Vale's `scope: heading` replaced the original manual leading-`#` test. Also the mechanised half of the formatting catalog's "Emoji as list markers or in headings" entry -- the list-marker half needs judgement, see ai-tells-formatting.emoji-list-markers. Go->Python: `\x{1F300}` becomes `\U0001F300`.
 
@@ -1444,7 +1444,7 @@ Write ASCII double-hyphen instead of an em or en dash
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Replace with `--`, a comma, a colon, or two sentences. For a range, write "to".
-- **Source.** vale-styles/prose-format/NoUnicodeDash.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-format/NoUnicodeDash.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Replaces the disabled ai-tells.EmDashUsage. The difference that makes it usable: it matches ONLY the real Unicode characters, not the literal `--` this house style writes (measured 6,743 uses of `--` against 2,124 real dashes, so the upstream rule fired ~40 times per document on the house convention and buried every other finding). `scope: raw` is required here: Vale's default scope skips code fences, indented code, and inline code, which is where a pasted Unicode dash does the most damage. Measured on a fixture carrying one dash in each position, the default scope found 1 of 4 and raw found all 4. Also measured for source comments: 172 hits, all real U+2014/U+2013 (206 Unicode dashes against 2,591 ASCII `--` across the same 55 files), which is why .vale.ini puts it in the source allowlist at error. Go->Python: Vale's `\x{2014}` hex-brace form is rewritten as `—`.
 
@@ -1457,7 +1457,7 @@ Convert a long paragraph to a list or table
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** paragraph
 - **Fix.** Split the paragraph, or turn the enumeration into a list or a table.
-- **Source.** vale-styles/prose-format/ProseBlock.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-format/ProseBlock.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 W1 in the retired slop-lint.py, converted from Vale `extends: occurrence` with `max: 80`, `token: \b(\w+)\b`, `scope: paragraph`. Vale's paragraph scope replaced the original line-prefix heuristic, which miscounted wrapped list-item continuations and markdown syntax as prose words. The Vale message needed `%d` and not `%s`, because occurrence populates an int and `%s` renders it as `%!s(int=N)`; our schema interpolates `{match}` with no format verb, so the trap does not carry over. Advisory at relaxed: an essay or a spec legitimately carries a long paragraph. Complements prose-craft.sentence-length, which measures the sentence.
 
@@ -1476,7 +1476,7 @@ Replace a disability metaphor with the plainer word
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use the plainer word that was meant.
-- **Source.** vale-styles/prose-inclusive/Ableist.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inclusive/Ableist.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Two shapes in one rule: a slur applied to a person, and a disability standing in for a shortcoming. The second is the one that reaches technical prose, and it is always replaceable by the plainer word that was meant, which is why the rule is enforced at every tier. `disabled` is deliberately ABSENT: Microsoft's Accessibility rule includes it and fired twice on the source corpus, both times on a config state ("the rule is disabled"); Elastic dropped it for the same reason.
 
@@ -1502,7 +1502,7 @@ Replace an exclusionary term with its settled form
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use the settled replacement.
-- **Source.** vale-styles/prose-inclusive/Exclusive.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inclusive/Exclusive.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 The bar is a documented industry replacement, not a contested etymology: master/slave, blacklist/whitelist, and the hire-title metaphors are all in Linux kernel, IETF, or Google style guidance. The lookaheads on `master` and `slave` come from Red Hat's ConsciousLanguage; neighbor's version is a bare `\bmaster\b` and would flag "master boot record" and a quoted "master branch of a Git repository", both correct technical terms. Keeping the negative lookaheads is the difference between a rule people leave on and one they switch off. `stakeholder`, `target audience`, `combat`, and `tackle` are deliberately ABSENT: neighbor flags all four, they have no settled replacement, they fired twice on ordinary prose in the source corpus, and a rule a reader disagrees with gets the whole style disabled. GO->PYTHON REGEX NOTE: the `master`/`slave` exemptions are negative LOOKAHEADS, which Go RE2 also lacks -- verify the Vale original actually enforces them before trusting the false-positive claim. Python `regex` supports them, so the port is exact.
 
@@ -1521,7 +1521,7 @@ Keep the claim that carries load
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Keep the half that carries the claim; delete the negation.
-- **Source.** vale-styles/prose-inflation/AdditiveHedge.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/AdditiveHedge.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Both halves are claimed, and the negation exists only to inflate the second. Kept at error for source comments in .vale.ini. This is the mechanised form of the structure catalog's "Not-only-but-also" tell; the broader contrastive-inversion family is ai-tells-structure.contrastive-inversion.
 
@@ -1534,7 +1534,7 @@ Answer the question or cut the passage
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Answer the question, or delete the passage that raises it.
-- **Source.** vale-styles/prose-inflation/Apologizing.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/Apologizing.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 The academic register's hedge: the sentence announces that the document will not answer its own question. Distinct from ai-residue.chat-leakage, which catches assistant self-reference ("I apologize"); this is third-person deferral and survives a copy-edit that strips the first person. Excluded at relaxed because it encodes a genre assumption -- a research note or a spec's open-questions section legitimately defers, and "outside the scope of this document" is a correct scope statement there. Mechanised half of the structure catalog's "Hollow acknowledgment" tell.
 
@@ -1548,7 +1548,7 @@ Back the claim with a number or example
 - **Scope.** prose
 - **Fix.** Delete the word, or add the number or example that justifies it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-inflation/BorderlineHype.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/BorderlineHype.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Warning, not error: each token has a legitimate use, so the finding is a prompt to check rather than a defect -- hence advisory at normal and excluded at relaxed. The second band is the condescension band: a word telling the reader the thing is easy tells them nothing, and tells the reader for whom it was not easy that they are the problem. Named in MediaWiki's FreeOfFrustration and alex's Condescending, both of which include `simple`/`easy`, already covered by the first band, so only the assertion-of-obviousness half is added.
 
@@ -1561,7 +1561,7 @@ Use the plain verb
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use the plain verb -- "double down" is "commit", "circle back" is "return to".
-- **Source.** vale-styles/prose-inflation/BusinessJargon.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/BusinessJargon.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Three bands: meeting-register verbs, idioms whose literal reading is not the intended one, and verbed nouns plus vision vocabulary. The idiom band is a second defect on top of the register one: a reader who learned English elsewhere has to look it up. Harvested from neighbor's EnglishIdiom, proselint's CorporateSpeak, and Joblint's Visionary, minus entries already present and minus `greenfield`, which names a real project condition. Enforced at every tier and kept at error for source comments in .vale.ini.
 
@@ -1574,7 +1574,7 @@ Start with the first fact
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the sentence; the document starts on its first fact.
-- **Source.** vale-styles/prose-inflation/DocumentPreamble.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/DocumentPreamble.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 SLOP AXIS on a measured base rate, and the strongest ratio in the set: 0.7 hits per 10k words across 147,473 words of human-written technical documentation (slop-axis median 0.8), against 177 per 10k on a synthetic generated-slop fixture -- roughly 250x. Announcing the document's own subject before stating any of it is the canonical opening move of generated prose, which is why it is enforced at every tier. From Splunk's UserFocus; the `allows you to` half of that rule lives in prose-agency.false-agency. prose-craft.self-reference covers "this section" mid-document. Mechanised half of the structure catalog's "Meta-narration" tell.
 
@@ -1587,7 +1587,7 @@ One hedge or none
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Keep one hedge or none; commit to the claim or cut it.
-- **Source.** vale-styles/prose-inflation/HedgeStack.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/HedgeStack.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Deliberately COMBINATORIAL rather than a token list. hedgeclipper ships 400+ bare tokens including `can`, `about`, `always`, and `certain`; on any technical corpus that flags most sentences. A single hedge is often correct ("the loader may retry"); two stacked on the same verb is the tell. ai-tells.HedgingPhrases and ai-tells.DefensiveHedges own the fixed idioms ("it should be noted that") and stay in Vale. Advisory at relaxed: an essay hedges by genre.
 
@@ -1600,7 +1600,7 @@ Delete the degree adverb
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the adverb, or replace the adjective with a measurement.
-- **Source.** vale-styles/prose-inflation/Intensifier.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/Intensifier.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Deliberately EXCLUDED because each carries real meaning in a technical corpus: significantly/substantially/considerably (statistical and load-bearing next to a p-value), relatively/comparatively (express an actual comparison), largely/mostly/generally (scope qualifiers, see vague-quantifier), completely/entirely/fully (often the precise word, as in "fully qualified name"). Advisory at relaxed: an essay uses emphasis by genre.
 
@@ -1614,7 +1614,7 @@ Use the verb, not the noun
 - **Scope.** prose
 - **Fix.** Move the action back into the verb slot.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-inflation/NominalizedVerb.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/NominalizedVerb.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 SLOP AXIS on a measured base rate: 0.9 hits per 10k words across 147,473 words of human-written technical documentation, against a slop-axis median of 0.8. From Openly's VerbingNouns, widened past its perform/do/run trio to the full light-verb set and anchored so a real noun phrase ("the validation step") stays clean. `run`, `do`, and `make` are NOT treated as light verbs: "run the migration" and "make a backup" name a real action on a real object, and excluding them is what keeps the false-positive rate usable. This is the register prose-density.passive-density measures in aggregate, caught one phrase at a time. Advisory at relaxed: formal-report register is a genre.
 
@@ -1628,7 +1628,7 @@ Replace a marketing adjective with a measurable claim
 - **Scope.** prose
 - **Fix.** Delete the adjective, or replace it with the number, benchmark, or feature list that backs it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-inflation/SlopLexicon.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/SlopLexicon.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 E2 in the retired slop-lint.py. This is the maintained mechanical ban list, and it is why ai-tells.OverusedVocabulary ships disabled: that rule carries ~190 tokens of the retired 2023-mid-2024 era band plus a creative-writing tail and words with ordinary technical uses. Enforced at every tier and kept at error for source comments in .vale.ini -- a marketing adjective is a defect in any register.
 
@@ -1642,7 +1642,7 @@ Drop the intensifier from an absolute
 - **Scope.** prose
 - **Fix.** Delete the intensifier; the adjective already means the maximum.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-inflation/Uncomparables.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/Uncomparables.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 The Vale rule is an `existence` check carrying BOTH `raw` (the intensifier, consuming the trailing space so the message quotes the whole phrase) and `tokens` (the absolutes). Converted to one pattern with the 23-token list inlined as an alternation, which reproduces Vale's raw+tokens semantics exactly. `correct`, `possible`, and `sufficient` are deliberately absent from the token list: "more correct" and "least possible" are contested, and "more sufficient" is rare enough not to earn the false positives on "most possible configurations".
 
@@ -1656,7 +1656,7 @@ Name the specific thing
 - **Scope.** prose
 - **Fix.** Replace the significance claim with the specific thing it refers to.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-inflation/VagueDeclarative.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/VagueDeclarative.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 The tell is an abstract plural subject plus a bare significance predicate. The closing `\b` on each adjective keeps "the implications are documented in ADR-4" clean: a predicate that continues into a specific is not this tell. Kept at error for source comments in .vale.ini.
 
@@ -1670,7 +1670,7 @@ Give the count
 - **Scope.** prose
 - **Fix.** Supply the count, or name the cases.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-inflation/VagueQuantifier.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-inflation/VagueQuantifier.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 WARNING, not error, on a MEASURED base rate: 9.9 hits per 10k words across 147,473 words of human-written technical documentation -- the highest rate of any rule on the slop axis, against a median of 0.8. Humans reach for "several" and "usually" constantly, so a match prompts for the count rather than evidencing who wrote the sentence. That measurement is why normal is advisory and relaxed excluded. Deliberately EXCLUDED: significantly/substantially/considerably (load-bearing next to a figure), relatively/comparatively (state an actual comparison), all/none/every/each (exact), and `some` (too common in correct generic use). It stays in prose-inflation because the DEFECT is inflation; the level carries the epistemic weight, not the category name. Also the mechanised half of the content-shape catalog's "Fake specificity" entry -- see ai-tells-content-shape.fake-specificity for the remainder.
 
@@ -1720,7 +1720,7 @@ Use the direct verb
 - **Suppressible with.** `quotation`, `domain-term` — any other reason is reported rather than honoured
 - **Source.** ai-tells/OverusedVocabularyVerbs.yml
 
-The source rule is `extends: sequence` with verb tags; without a tagger this is a token list, so a noun use fires too ("navigate" in UI prose). `domain-term` is the exception for those. `leverage` is omitted as already in `prose-inflation.slop-lexicon`. The `harness` forms are omitted on a MEASUREMENT: the only hit across 50 files in this repo was `### Any harness, without installing APM` in the README, the noun sense. Same defect that disqualified `ai-tells.FormalRegister` for `implement`.
+The source rule is `extends: sequence` with verb tags; without a tagger this is a token list. `navigate` and its inflections are omitted because they are the standard UI instruction verb. `leverage` is omitted as already in `prose-inflation.slop-lexicon`. The `harness` forms are omitted on a MEASUREMENT: the only hit across 50 files in this repo was `### Any harness, without installing APM` in the README, the noun sense. Same defect that disqualified `ai-tells.FormalRegister` for `implement`.
 
 #### `prose-promotion.strategy-buzzwords`
 
@@ -1751,7 +1751,7 @@ Cut the closing flourish
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** paragraph
 - **Fix.** Delete it; the paragraph or table above already carried the content.
-- **Source.** vale-styles/prose-scope/Epigram.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-scope/Epigram.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Two matched forms: a parallel pair (N V O. N V O. with the same or a mirrored verb) and a negated maxim (... X, not Y. as a standalone sentence). The full stop inside each pattern distinguishes an epigram from an ordinary two-clause sentence. `scope: paragraph`, not sentence: sentence scope splits a parallel pair into its halves before the pattern can see both, so the rule silently matched nothing -- verified by fixture. Kept at warning upstream because the same shape occasionally states a real contrast, so normal is advisory and relaxed excluded. GO->PYTHON REGEX NOTE: the first alternative uses a BACKREFERENCE (`\1`) to require the same verb in both halves. Go RE2 has no backreferences, so this alternative cannot have been matching under a pure RE2 engine; the Python `regex` module supports it, so the ported rule is stricter and this alternative newly becomes live. Test it against the corpus before enforcing.
 
@@ -1765,7 +1765,7 @@ Move a benchmark result out of the doc
 - **Scope.** paragraph
 - **Fix.** Delete the measurement, or move it to a benchmarks page that carries its conditions and a reproduction command.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/prose-scope/ImplementationLeak.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-scope/ImplementationLeak.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 A unit must sit next to the number, so version strings, ports, exit codes, and byte sizes in a config table stay clean. A stated ceiling is a documented limit, not a benchmark, so "at most five subprocesses" is excluded. `scope: paragraph` skips tables and list items, where a published figure belongs: measured over an external corpus, 100 of 154 matches were table rows or list items, all legitimate. A duration naming a timeout, budget, or deadline is configuration the reader acts on, and a figure inside an HTML `<dd>` stat tile is a deliverable; both are excluded by lookbehind. Excluded at relaxed and by glob for specs/ADR paths, and a product whose value IS its latency should turn it off rather than fight it. GO->PYTHON REGEX NOTE: this pattern uses seven variable-position negative LOOKBEHINDS. Go RE2 has no lookbehind at all, so Vale must be running these through a non-RE2 path or dropping them silently -- verify that the Vale rule actually enforces the exemptions before trusting the measurement. Python `regex` supports variable-width lookbehind, so the port is exact and may be STRICTER than the Vale original.
 
@@ -1778,7 +1778,7 @@ Move the decision to an ADR, spec, or commit
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Cut to the behaviour; move the decision to an ADR, a spec, or the commit that made it.
-- **Source.** vale-styles/prose-scope/RejectedAlternative.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-scope/RejectedAlternative.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Excluded at relaxed and disabled by glob for specs/, .specify/, ADR paths, and CONTRIBUTING/constitution in .vale.ini: an ADR or spec IS the place for this content, so the disposition inverts by genre rather than by trying to detect the genre from the prose. Anchored to constructions that announce a comparison against a road not taken, never to "instead" or "rather" alone -- those do ordinary work ("run this instead of the wrapper"). "in favour of" needs a `because` clause, because a changelog line ("dropped X in favour of Y") states the delta, which is that genre's whole job. Mechanised half of the content-shape catalog's "Over-writing" entry; the unnamed-alternative case is ai-tells-content-shape.unasked-for-rationale.
 
@@ -1791,7 +1791,7 @@ State the positive, or say nothing
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Keep the positive statement alone, or delete the sentence -- a step that needs no setup has no setup step.
-- **Source.** vale-styles/prose-scope/UnrequestedReassurance.yml — <https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md>
+- **Source.** vale-styles/prose-scope/UnrequestedReassurance.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 
 Anchored to the frame, never to "nothing" or "no" alone: "no rule matches" is a measurement and "nothing is committed" states where files live. The `no X required` band is narrowed on purpose -- "no signing needed" and "no spec change needed" are factual scope notes, and a corpus scan found those outnumber the sales register roughly two to one. Advisory at relaxed rather than excluded: the defect is sales register, which a marketing page owns by genre. Mechanised half of the content-shape catalog's "Unrequested reassurance" entry.
 
@@ -2267,10 +2267,10 @@ Use simple tenses only
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
 - **Fix.** Rewrite in the simple present, simple past, or simple future tense.
-- **Suppressible with.** `quotation`, `code-span`, `changelog-entry` — any other reason is reported rather than honoured
+- **Suppressible with.** `quotation`, `code-span`, `changelog-entry`, `status-report` — any other reason is reported rather than honoured
 - **Source.** ASD-STE100 issue 9, rule 3.2
 
-Three alternates: perfect tenses via a "have" auxiliary plus a participle suffix, progressive tenses via a "be" auxiliary plus "-ing", and future perfect. Tested against all three bad examples above (each matches) and against the three good examples (none match). Also tested against the false-positive traps "the release is running" (matches, and correctly so, since it is progressive) and "the config is required" (does not match, because "required" is not in the suffix set — this is the deliberate limit that keeps the rule off passive-voice territory, which passive-voice owns). The changelog-entry exception exists because release notes conventionally use the present perfect for shipped changes.
+Three alternates: perfect tenses via a "have" auxiliary plus a participle suffix, progressive tenses via a "be" auxiliary plus "-ing", and future perfect. Tested against all three bad examples above (each matches) and against the three good examples (none match). Also tested against the false-positive traps "the release is running" (matches, and correctly so, since it is progressive) and "the config is required" (does not match, because "required" is not in the suffix set — this is the deliberate limit that keeps the rule off passive-voice territory, which passive-voice owns). The changelog-entry exception exists because release notes conventionally use the present perfect for shipped changes. status-report covers completion and status statements that use the same tense legitimately.
 
 #### `ste-verbs.nominalized-action`
 

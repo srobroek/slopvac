@@ -5,6 +5,9 @@
     rulesets.
   entry: slopvac lint
   language: python
+  # The repository root has no Python project, so the hook environment gets the
+  # linter from PyPI. release-please keeps the pin current.
+  additional_dependencies: ["slopvac==2.0.0"] # x-release-please-version
   types_or: [markdown, rst, plain-text, html]
   # pre-commit passes filenames positionally, which is what `lint` wants. It runs
   # only on staged files, so the gate sees the change rather than the repository.
@@ -17,15 +20,21 @@
     with `files:` in your .pre-commit-config.yaml.
   entry: slopvac lint --profile strict
   language: python
+  # The repository root has no Python project, so the hook environment gets the
+  # linter from PyPI. release-please keeps the pin current.
+  additional_dependencies: ["slopvac==2.0.0"] # x-release-please-version
   types_or: [markdown, rst, plain-text, html]
   require_serial: false
 
 - id: slopvac-no-vale
   name: slopvac prose gate (no Vale)
   description: >-
-    Skips the Vale sub-gate, so the hook needs no external binary. The upstream
-    ai-tells rules do not run.
+    Skips the Vale sub-gate, so the hook needs no external binary. Vale-backed
+    rules report as unchecked.
   entry: slopvac lint --no-vale
   language: python
+  # The repository root has no Python project, so the hook environment gets the
+  # linter from PyPI. release-please keeps the pin current.
+  additional_dependencies: ["slopvac==2.0.0"] # x-release-please-version
   types_or: [markdown, rst, plain-text, html]
   require_serial: false

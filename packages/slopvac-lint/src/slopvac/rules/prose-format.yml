@@ -24,7 +24,7 @@ rules:
         good: The loader retries -- twice.
     provenance:
       source: vale-styles/prose-format/NoUnicodeDash.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Replaces the disabled ai-tells.EmDashUsage. The difference that makes it
         usable: it matches ONLY the real Unicode characters, not the literal `--`
@@ -57,7 +57,7 @@ rules:
         good: '## Install'
     provenance:
       source: vale-styles/prose-format/EmojiHeading.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         W2 in the retired slop-lint.py. Vale's `scope: heading` replaced the
         original manual leading-`#` test. Also the mechanised half of the
@@ -82,7 +82,7 @@ rules:
     fix: Split the paragraph, or turn the enumeration into a list or a table.
     provenance:
       source: vale-styles/prose-format/ProseBlock.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         W1 in the retired slop-lint.py, converted from Vale `extends: occurrence`
         with `max: 80`, `token: \b(\w+)\b`, `scope: paragraph`. Vale's paragraph

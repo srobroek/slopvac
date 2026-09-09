@@ -1,9 +1,7 @@
 name: Release Please
 
 # Maintains a release PR from Conventional Commits, updates CHANGELOG.md and every
-# version-carrying file, and tags a release on merge. On release it publishes the
-# Vale style packages to the rolling `vale-styles` tag the scaffolded .vale.ini
-# points at, so a released rule change reaches consumers on their next `vale sync`.
+# version-carrying file, and tags a release on merge.
 #
 # ONE VERSION, ONE TAG. Everything here releases in lockstep behind a plain
 # `vX.Y.Z`, from a single root package in release-please-config.json.
@@ -65,36 +63,3 @@ jobs:
           token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-
-      - name: Checkout
-        if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-
-      # The styles publish on release rather than on every push to vale-styles/, so
-      # the rolling tag only ever carries reviewed rules.
-      - name: Publish Vale styles
-        if: ${{ steps.release.outputs.release_created }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          ./packages/slopvac-lint/vale-styles/build.sh
-          if gh release view vale-styles >/dev/null 2>&1; then
-            gh release upload vale-styles packages/slopvac-lint/vale-styles/dist/*.zip --clobber
-          else
-            gh release create vale-styles packages/slopvac-lint/vale-styles/dist/*.zip \
-              --title "Vale styles" \
-              --notes "Rolling release. Assets are replaced on every publish; see vale-styles/README.md." \
-              --latest=false
-          fi
-
-      # Attach the same zips to the version tag, so a consumer can pin an exact
-      # rule set instead of tracking the rolling tag.
-      - name: Attach styles to the version release
-        if: ${{ steps.release.outputs.release_created }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.release.outputs.tag_name }}
-        run: gh release upload "$TAG" packages/slopvac-lint/vale-styles/dist/*.zip --clobber

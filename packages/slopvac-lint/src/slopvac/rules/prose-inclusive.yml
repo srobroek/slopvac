@@ -53,7 +53,7 @@ rules:
         good: Nobody answered the complaint.
     provenance:
       source: vale-styles/prose-inclusive/Ableist.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Two shapes in one rule: a slur applied to a person, and a disability
         standing in for a shortcoming. The second is the one that reaches technical
@@ -158,7 +158,7 @@ rules:
           ("Master Subscription Agreement") are exempt by lookahead.
     provenance:
       source: vale-styles/prose-inclusive/Exclusive.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         The bar is a documented industry replacement, not a contested etymology:
         master/slave, blacklist/whitelist, and the hire-title metaphors are all in

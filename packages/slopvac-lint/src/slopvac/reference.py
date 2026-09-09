@@ -130,7 +130,7 @@ def _rule_section(rule: Rule) -> list[str]:
             # these rules the fix IS deletion. Rendered as words rather than as a
             # bare `**This.**` with nothing after it, which reads as a truncated
             # document rather than as an instruction.
-            good = example.good.strip()
+            good = (example.good or "").strip()
             lines.append(
                 f"  > **This.** {good}" if good else "  > **This.** *(delete it)*"
             )

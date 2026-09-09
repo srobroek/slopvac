@@ -25,10 +25,7 @@ from slopvac.analyze import count_words
 from slopvac.compile_vale import (
     STE_WORD_TOKEN,
     _occurrence_bound,
-    cache_root,
     compile_ruleset,
-    prune_cache,
-    resolved_checks,
     vocabulary_sequence_rules,
 )
 from slopvac.config import (
@@ -41,6 +38,8 @@ from slopvac.config import (
 )
 from slopvac.model import RuleKind, Scope, TextType
 from slopvac.rules import load_ruleset
+from slopvac.vale_cache import cache_root, prune_cache
+from slopvac.vale_probe import resolved_checks
 from slopvac.vocabulary import load_blocklist
 
 VALE = shutil.which("vale")

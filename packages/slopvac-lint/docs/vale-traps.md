@@ -4,7 +4,7 @@ Vale 3.15.2, macOS arm64. Every entry is reproduced from a minimal case, and eve
 one was found by execution rather than by reading Vale's docs.
 
 A trap belongs here when the failure is SILENT. The rule loads, Vale exits 0, and
-every file reports clean. That is indistinguishable from a pass, which is the
+every file reports clean. A silent failure is indistinguishable from a pass, which is the
 failure this project exists to prevent. Vale reports `E201` for a *deprecated*
 scope and says nothing about any other mistake below.
 
@@ -19,7 +19,7 @@ trap 1 cannot reach a generated style. The rest are asserted in
 ### 1. An invalid `scope:` disables the rule silently
 
 `scope: prose` is the worst case, because `prose` is the DEFAULT value of `scope` in
-our own rule model. Emitting our scope name verbatim would have disabled every rule
+slopvac's rule model. Emitting that scope name verbatim would have disabled every rule
 that never sets one -- the majority -- while every fixture reported clean.
 
 ```yaml
@@ -133,7 +133,7 @@ raw:
   - '\b(?!(?:early|only|family|supply|assembly)-)[^\s-]+ly-\w+\b'
 ```
 
-This is the trap that ships a rule reading as guarded while the guard does nothing.
+The unquoted guard is the trap that ships a rule reading as guarded while the guard does nothing.
 
 ### 9. A literal `%` in a `raw:` pattern kills the rule, not just the message
 

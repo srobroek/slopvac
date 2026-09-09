@@ -162,32 +162,16 @@ jobs:
         with:
           enable-cache: true
       - name: Install vale
-        run: |
-          set -euo pipefail
-          version=3.15.2
-          curl -sSfL -o vale.tar.gz \
-            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
-          tar -xzf vale.tar.gz vale
-          sudo install -m 0755 vale /usr/local/bin/vale
+        run: ./scripts/install-vale.sh 3.15.2
       - name: Gate this repo's own docs
         run: |
           set -euo pipefail
-          ./packages/slopvac-lint/vale-styles/build.sh
-          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
-          for _ in $(seq 1 20); do
-            curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
-            sleep 0.5
-          done
-          config=packages/slopvac-lint/vale/.vale.ini
-          base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
-          sed -i "s|$base|http://localhost:8899/|g" "$config"
-          vale --config="$config" sync
           # `docs/` is passed as a directory, not as a list of files. The two
           # specimen files inside it are excluded in `slopvac.toml`, so a new doc
           # is gated the moment it is added instead of being silently unchecked.
           uvx --from ./packages/slopvac-lint slopvac lint \
-            README.md packages/slopvac-lint/README.md \
-            packages/slopvac-lint/vale-styles/README.md \
+            README.md packages/slopvac-lint/README.md packages/slopvac/README.md \
+            packages/slopvac/skills \
             packages/slopvac-lint/docs
   # The only required status check. Branch protection names this one job rather than
   # every job, so adding a job above needs no change to the protection rule.

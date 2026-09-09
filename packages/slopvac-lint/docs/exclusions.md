@@ -1,5 +1,10 @@
 # Measured exclusions from `.vale.ini`
 
+<!-- slopvac-disable -->
+**Historical.** This file describes the Vale generation that 2.0 replaced. The
+shipped inventory is [`docs/rules.md`](rules.md) (232 rules, 25 categories).
+<!-- slopvac-enable -->
+
 Source: `packages/slopvac-lint/vale/.vale.ini`. The path this table was first
 measured against, `packages/slopvac/.apm/skills/review-docs/vale/.vale.ini`, was
 removed when the agent package became skills and steering only.

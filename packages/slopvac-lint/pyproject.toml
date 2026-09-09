@@ -59,12 +59,9 @@ packages = ["src/slopvac"]
 # `[vocabulary] path`. `examples/blocklist.toml` is a starter and is NOT packaged --
 # it is repo documentation, and shipping it would invite loading it as a default.
 #
-# NOTHING ELSE IS FORCE-INCLUDED. `vale/` and `vale-styles/` used to be, adding 107KB
-# across 51 files to every wheel, and no code read either one: the compiler builds a
-# style tree from the YAML ruleset at runtime and writes it to the cache. `vale/` is
-# a hand-run config for inspecting the generated output and `vale-styles/` is the
-# pre-port tree the YAML rules replaced (see docs/migration.md). Both are repo
-# history, not runtime data.
+# NOTHING ELSE IS FORCE-INCLUDED. The compiler builds the Vale style tree from the
+# YAML ruleset at runtime and writes it to the cache; `vale/styles-verified/` is a
+# test fixture, not runtime data.
 
 [tool.hatch.build]
 artifacts = ["src/slopvac/rules/*.yml"]

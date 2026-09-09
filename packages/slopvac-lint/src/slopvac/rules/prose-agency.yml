@@ -29,7 +29,7 @@ rules:
         good: Open rates fell from 31% to 22% over three weeks.
     provenance:
       source: vale-styles/prose-agency/FalseAgency.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Enforced at every tier: a deleted actor is a defect in any register.
         Subject-anchored, not verb-anchored -- "the data tells us" is the tell,
@@ -61,7 +61,7 @@ rules:
         good: The migration script dropped two rows.
     provenance:
       source: vale-styles/prose-agency/AgentlessPassive.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Only the two shapes where the deletion is the point: a dummy or abstract
         subject carrying the verb, and the stock agentless confessions. Passives
@@ -90,7 +90,7 @@ rules:
         good: The app records each step you run.
     provenance:
       source: vale-styles/prose-agency/Anthropomorphism.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         From Openly's Anthropomorphism, with the subject list extended to the nouns
         this corpus uses (parser, linter, gate, hook, agent, model) and `behaves`
@@ -118,7 +118,7 @@ rules:
         good: You skip the lockfile when you run `install` without `--frozen`.
     provenance:
       source: vale-styles/prose-agency/NarratorDistance.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         The opener forms are anchored to line start, because these phrases are a
         tell only in that position: "what people tend to forget is documented in
@@ -146,7 +146,7 @@ rules:
         good: Rotate keys every 90 days.
     provenance:
       source: vale-styles/prose-agency/UnattributedRecommendation.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Harvested from Splunk's Recommendations and Datadog's recommendations,
         which take opposite positions on the fix -- Splunk bans the frame and

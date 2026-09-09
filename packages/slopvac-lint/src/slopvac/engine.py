@@ -6,7 +6,7 @@ live split. What remains is of two kinds, and the second is why the lexical and
 metric paths still exist:
 
   ALWAYS OURS -- severity precedence (`severity_for`), rule selection per profile
-  and config layer (`_active`), and the suppression annotation contract. Vale has
+  and config layer (`is_active`), and the suppression annotation contract. Vale has
   no notion of any of them; the compiler asks THIS class what level a rule
   resolves to before it writes the ini.
 
@@ -20,10 +20,12 @@ The routing is not a static list: `slopvac compile` prints it, and a rule
 moves here the moment Vale rejects its pattern, which is tested by execution on
 every compile.
 
-A METRIC WITH NO IMPLEMENTATION IS REPORTED, NOT SKIPPED. Nine metric names in
-the shipped ruleset have no native branch, so those rules used to load, match
+A METRIC WITH NO IMPLEMENTATION IS REPORTED, NOT SKIPPED. A custom rule can name
+a metric neither engine measures; such a rule would otherwise load, match
 nothing, and report every document clean. `unimplemented_metrics` names them so
-the caller can surface them as `unchecked`.
+the caller can surface them as `unchecked`. Every shipped metric is measurable,
+which `tests/test_engine.py` asserts against `metrics.NATIVE_METRICS` and the
+Vale plan.
 
 SUPPRESSION IS AN ANNOTATION CONTRACT, not a comment convention. A suppression
 must name an exception from the rule's own closed list:
@@ -38,53 +40,21 @@ Orwell's own sixth rule has in an automated pipeline.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 import regex as re
 
 from .analyze import (
-    ABSTRACTION_SUFFIX,
-    ADJECTIVE_SUFFIX,
-    BOLD_COLON_BULLET,
-    BOLD_SPAN,
-    CONCRETE_REFERENT,
-    DASH_AS_ASIDE,
-    HEDGE,
-    NOUN_SUFFIX,
     BlockKind,
     Document,
     coordinated_items,
     count_words,
     longest_noun_stack,
-    stdev,
-    syllables,
 )
 from .config import ResolvedConfig, Severity
+from .metrics import NATIVE_METRICS, WORD_CAPS, _list_stem_lines, document_metric
 from .model import Finding, Rule, RuleKind, Scope, TextType, Tier
-
-SUPPRESSION = re.compile(
-    r"<!--\s*slopvac-allow:\s*rule=(?P<rule>[\w.-]+)(?:\s+reason=(?P<reason>[\w-]+))?\s*-->"
-)
-DISABLE_LINE = re.compile(r"<!--\s*slopvac-disable-next-line\s*-->")
-DISABLE_START = re.compile(r"<!--\s*slopvac-disable\s*-->")
-DISABLE_END = re.compile(r"<!--\s*slopvac-enable\s*-->")
-
-# STE 5.1 / 6.3 / 5.5: the cap depends on what kind of text the sentence is.
-WORD_CAPS = {
-    TextType.PROCEDURAL: 20,
-    TextType.SAFETY: 20,
-    TextType.DESCRIPTIVE: 25,
-    TextType.ANY: 25,
-}
-
-
-@dataclass
-class Suppression:
-    rule: str
-    reason: str | None
-    line: int
-
+from .suppression import Suppression, is_suppressed, scan_suppressions
 
 # A substitution key is a REGEX, not a literal, matching Vale's `swap` semantics:
 # `\bblind spots?\b`, `(?:and|or) higher`, and `\ba HTML\b` are all real keys in the
@@ -194,32 +164,32 @@ def drop_quoted_illustrations(
     for finding in findings:
         rule = ruleset.by_id(finding.rule_id)
         index = finding.line - 1
-        locatable = (
-            rule is not None
-            and finding.matched_text
-            and 0 <= index < len(document.raw_lines)
-        )
-        if locatable:
-            line = document.raw_lines[index]
-            start = line.find(finding.matched_text)
-            end = start + len(finding.matched_text)
-            if start != -1:
-                if "quotation" in rule.exceptions and _inside_quotation(
-                    line, start, end
-                ):
-                    continue
-                # A `scope: prose` rule must not reach inside inline code. The
-                # native engine gets this free -- it masks every code span before
-                # matching -- but Vale's `text` scope sees the backticks and their
-                # contents, so the same rule reported on one engine and not the
-                # other. `docs/vale-traps.md` drew an error on the word inside
-                # `` `\bmaster(?! branch)\b` ``: a documented regex, not prose.
-                #
-                # `scope: raw` is exempt: those rules exist to reach into code
-                # (a pasted prompt, a curly quote in a fence) and filtering them
-                # here would delete their whole purpose.
-                if rule.scope is not Scope.RAW and _inside_code_span(line, start, end):
-                    continue
+        if rule is None:
+            kept.append(finding)
+            continue
+        if not finding.matched_text or not (0 <= index < len(document.raw_lines)):
+            kept.append(finding)
+            continue
+        line = document.raw_lines[index]
+        start = line.find(finding.matched_text)
+        end = start + len(finding.matched_text)
+        if start != -1:
+            if "quotation" in rule.exceptions and _inside_quotation(
+                line, start, end
+            ):
+                continue
+            # A `scope: prose` rule must not reach inside inline code. The
+            # native engine gets this free -- it masks every code span before
+            # matching -- but Vale's `text` scope sees the backticks and their
+            # contents, so the same rule reported on one engine and not the
+            # other. `docs/vale-traps.md` drew an error on the word inside
+            # `` `\bmaster(?! branch)\b` ``: a documented regex, not prose.
+            #
+            # `scope: raw` is exempt: those rules exist to reach into code
+            # (a pasted prompt, a curly quote in a fence) and filtering them
+            # here would delete their whole purpose.
+            if rule.scope is not Scope.RAW and _inside_code_span(line, start, end):
+                continue
         kept.append(finding)
     return kept
 
@@ -273,51 +243,6 @@ _SCAFFOLD_WORDS = frozenset(
         "the", "a", "an", "this", "that", "these", "those",
         "and", "or", "not", "to", "of", "in", "on", "for", "with", "as", "at",
         "it", "its", "if", "then", "by", "from",
-    }
-)
-
-
-def _list_stem_lines(document: Document) -> set[int]:
-    """First lines of the paragraphs that introduce a list.
-
-    A stem is a paragraph that ends in a colon and is followed immediately by a list
-    item, with nothing between them. Both halves are required. The colon alone would
-    exclude any short paragraph an author happened to end that way, and adjacency
-    alone would exclude the sentence before every list whether it introduces one or
-    not.
-    """
-    stems: set[int] = set()
-    blocks = document.blocks
-    for index, block in enumerate(blocks):
-        if block.kind is not BlockKind.PARAGRAPH or not block.text.rstrip().endswith(":"):
-            continue
-        following = blocks[index + 1] if index + 1 < len(blocks) else None
-        if following is not None and following.kind is BlockKind.LIST_ITEM and block.lines:
-            stems.add(block.lines[0])
-    return stems
-
-
-# Metric names `_run_metric` knows how to measure. A rule naming anything else
-# cannot fire, so it is reported rather than run -- see `unimplemented_metrics`.
-NATIVE_METRICS = frozenset(
-    {
-        "sentence_words",
-        "clause_boundaries",
-        "paragraph_words",
-        "lead_in_words",
-        "paragraph_sentences",
-        "syllables_per_word",
-        "passive_ratio",
-        "hedge_per_100_words",
-        "abstraction_density",
-        "concrete_referents_per_paragraph",
-        "paragraph_words_stdev",
-        "adjectives_per_noun",
-        "consecutive_bold_colon_bullets",
-        "multiword_noun_words",
-        "coordinated_items",
-        "bold_spans_per_1000_words",
-        "dash_per_1000_words",
     }
 )
 
@@ -440,14 +365,15 @@ class Engine:
         what `severity_for` callers and the tests want.
         """
         self.config = config
-        self.rules = [r for r in rules if self._active(r)]
+        self._catalog = {r.qualified_id: r for r in rules}
+        self.rules = [r for r in rules if self.is_active(r)]
         if only is not None:
             self.rules = [r for r in self.rules if r.qualified_id in only]
         self._compiled: dict[str, re.Pattern[str]] = {}
 
     # --- rule selection -------------------------------------------------------
 
-    def _active(self, rule: Rule) -> bool:
+    def is_active(self, rule: Rule) -> bool:
         """A rule runs when its tier admits it and no config layer turned it off.
 
         `severity = "off"` is the ONE way to disable, at either level. There used to
@@ -559,32 +485,6 @@ class Engine:
 
     # --- suppressions ---------------------------------------------------------
 
-    @staticmethod
-    def _annotation_targets(raw_lines: list[str], annotation_line: int) -> list[int]:
-        """The line numbers one annotation on `annotation_line` applies to.
-
-        Blank lines and further annotations are skipped, so an annotation reaches
-        the next line that can carry a finding. When that line opens a markdown
-        table, every row of the table is a target.
-        """
-        index = annotation_line  # 0-based index of the line AFTER the annotation
-        while index < len(raw_lines):
-            stripped = raw_lines[index].strip()
-            if stripped and not stripped.startswith("<!--"):
-                break
-            index += 1
-        else:
-            return []
-
-        first = index + 1
-        if not raw_lines[index].lstrip().startswith("|"):
-            return [first]
-
-        last = index
-        while last + 1 < len(raw_lines) and raw_lines[last + 1].lstrip().startswith("|"):
-            last += 1
-        return list(range(first, last + 2))
-
     def _scan_suppressions(
         self, document: Document
     ) -> tuple[dict[int, list[Suppression]], set[int], list[Finding]]:
@@ -593,76 +493,11 @@ class Engine:
         Raw, not prose: the parser blanks HTML comments so they are not linted,
         which means the annotations are only visible here.
         """
-        by_line: dict[int, list[Suppression]] = {}
-        disabled: set[int] = set()
-        invalid: list[Finding] = []
-        block_disabled = False
-
-        known = {r.qualified_id: r for r in self.rules}
-
-        for index, line in enumerate(document.raw_lines):
-            number = index + 1
-            if DISABLE_START.search(line):
-                block_disabled = True
-            if DISABLE_END.search(line):
-                block_disabled = False
-            if block_disabled:
-                disabled.add(number)
-            if DISABLE_LINE.search(line):
-                disabled.update(self._annotation_targets(document.raw_lines, number))
-
-            for match in SUPPRESSION.finditer(line):
-                rule_id = match.group("rule")
-                reason = match.group("reason")
-                # An annotation applies to the following line, matching the
-                # disable-next-line convention readers already expect. "Following"
-                # is the next line with content, not literally the next line: an
-                # annotation is normally separated from a table or a fenced block
-                # by a blank line, and targeting the blank one suppressed nothing.
-                #
-                # A TABLE IS ONE TARGET. CommonMark ends a table at any HTML block,
-                # so an annotation cannot be put on the row it applies to -- the
-                # comment splits the table and every row below it reports as one
-                # paragraph instead. An annotation above the table therefore covers
-                # the whole table, which is also the only granularity a writer can
-                # express.
-                for target in self._annotation_targets(document.raw_lines, number):
-                    by_line.setdefault(target, []).append(
-                        Suppression(rule=rule_id, reason=reason, line=number)
-                    )
-
-                rule = known.get(rule_id)
-                if rule is None:
-                    continue  # rule not active here; nothing to validate against
-                if reason is None:
-                    invalid.append(
-                        Finding(
-                            path=document.path,
-                            line=number,
-                            rule_id="meta.invalid-suppression",
-                            category="meta",
-                            severity=Severity.ERROR,
-                            message=(
-                                f"suppression of {rule_id} names no reason. "
-                                f"Add reason=<one of: {', '.join(rule.exceptions) or 'none defined'}>."
-                            ),
-                        )
-                    )
-                elif rule.exceptions and reason not in rule.exceptions:
-                    invalid.append(
-                        Finding(
-                            path=document.path,
-                            line=number,
-                            rule_id="meta.invalid-suppression",
-                            category="meta",
-                            severity=Severity.ERROR,
-                            message=(
-                                f'reason "{reason}" is not an exception of {rule_id}. '
-                                f"Valid: {', '.join(rule.exceptions)}."
-                            ),
-                        )
-                    )
-        return by_line, disabled, invalid
+        return scan_suppressions(
+            document,
+            self._catalog,
+            {r.qualified_id for r in self.rules},
+        )
 
     def _suppressed(
         self,
@@ -671,17 +506,8 @@ class Engine:
         suppressions: dict[int, list[Suppression]],
         disabled: set[int],
     ) -> bool:
-        if line in disabled:
-            return True
-        for entry in suppressions.get(line, []):
-            if entry.rule != rule.qualified_id:
-                continue
-            if entry.reason is None:
-                continue  # malformed; already reported, does not suppress
-            if rule.exceptions and entry.reason not in rule.exceptions:
-                continue  # invalid; already reported, does not suppress
-            return True
-        return False
+        return is_suppressed(rule, line, suppressions, disabled)
+
 
     # --- pattern compilation --------------------------------------------------
 
@@ -874,6 +700,24 @@ class Engine:
         metric = rule.metric or ""
         threshold = rule.threshold or 0
 
+        def report(line: int, match: str, replacement: str) -> None:
+            """One finding at `line`, unless a suppression covers it."""
+            if self._suppressed(rule, line, suppressions, disabled):
+                return
+            results.append(
+                self._metric_finding(
+                    rule, document, line, severity,
+                    format_message(rule.message, match=match, replacement=replacement),
+                )
+            )
+
+        def per_sentence(measure, offset: int = 0) -> None:
+            """The shape shared by every per-sentence count: measure, compare, report."""
+            for sentence in document.sentences:
+                count = measure(sentence.text)
+                if exceeds(count, threshold):
+                    report(sentence.line, str(count + offset), str(int(threshold) + offset))
+
         if metric == "sentence_words":
             for sentence in document.sentences:
                 if rule.text_type is not TextType.ANY and sentence.text_type is not rule.text_type:
@@ -881,37 +725,14 @@ class Engine:
                 # An explicit threshold on the rule wins; otherwise the cap comes
                 # from the sentence's own text type, so one rule covers 20/25.
                 cap = threshold or WORD_CAPS[sentence.text_type]
-                if not exceeds(sentence.word_count, cap):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(rule.message, 
-                            match=str(sentence.word_count), replacement=str(int(cap))
-                        ),
-                    )
-                )
+                if exceeds(sentence.word_count, cap):
+                    report(sentence.line, str(sentence.word_count), str(int(cap)))
 
         elif metric == "clause_boundaries":
             # Counts IDEAS, not words. A 24-word sentence can carry four ideas and
             # a 30-word one can be a single clean list, so the word cap and this
             # are separate checks.
-            for sentence in document.sentences:
-                count = count_clause_boundaries(sentence.text)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(rule.message, 
-                            match=str(count + 1), replacement=str(int(threshold) + 1)
-                        ),
-                    )
-                )
+            per_sentence(count_clause_boundaries, offset=1)
 
         elif metric == "lead_in_words":
             # STE 6.4 counts the text before a list's colon as a sentence of its own.
@@ -936,22 +757,9 @@ class Engine:
                 head, separator, _ = sentence.text.partition(":")
                 if not separator:
                     continue
-                line_number = sentence.line
                 count = count_words(head)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, line_number, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, line_number, severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+                if exceeds(count, threshold):
+                    report(sentence.line, str(count), str(int(threshold)))
 
         elif metric == "paragraph_words":
             # Native because Vale reported a different number here. An inline code
@@ -985,73 +793,21 @@ class Engine:
                 # before it is advice they cannot take.
                 if count <= 1:
                     continue
-                if self._suppressed(rule, block.lines[0], suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, block.lines[0], severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+                report(block.lines[0], str(count), str(int(threshold)))
 
         elif metric == "paragraph_sentences":
             for block in document.paragraphs:
                 # STE 6.6 counts sentences per paragraph. A bulleted block does
                 # not contribute one sentence per bullet here -- list items are
                 # their own blocks, so they never reach this count.
-                if not exceeds(len(block.sentences), threshold):
-                    continue
-                if self._suppressed(rule, block.lines[0], suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, block.lines[0], severity,
-                        format_message(rule.message, 
-                            match=str(len(block.sentences)),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+                if exceeds(len(block.sentences), threshold):
+                    report(block.lines[0], str(len(block.sentences)), str(int(threshold)))
 
         elif metric == "multiword_noun_words":
-            for sentence in document.sentences:
-                count = longest_noun_stack(sentence.text)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+            per_sentence(longest_noun_stack)
 
         elif metric == "coordinated_items":
-            for sentence in document.sentences:
-                count = coordinated_items(sentence.text)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+            per_sentence(coordinated_items)
 
         elif metric in {
             "syllables_per_word",
@@ -1065,16 +821,9 @@ class Engine:
             "bold_spans_per_1000_words",
             "dash_per_1000_words",
         }:
-            value = self.document_metric(metric, document)
+            value = document_metric(metric, document)
             if exceeds(value, threshold):
-                results.append(
-                    self._metric_finding(
-                        rule, document, 1, severity,
-                        format_message(rule.message, 
-                            match=f"{value:.2f}", replacement=f"{threshold:.2f}"
-                        ),
-                    )
-                )
+                report(1, f"{value:.2f}", f"{threshold:.2f}")
         return results
 
     def _metric_finding(
@@ -1136,97 +885,4 @@ class Engine:
         Orwell's own arithmetic on the Ecclesiastes pair (1.22 good, 2.37 bad);
         passive ratio to his complaint about passive *preference* rather than use.
         """
-        sentences = document.sentences
-        text = document.prose_text()
-        words = [w for w in re.findall(r"[A-Za-z']+", text)]
-
-        if name == "syllables_per_word":
-            if not words:
-                return 0.0
-            return sum(syllables(w) for w in words) / len(words)
-
-        if name == "passive_ratio":
-            if not sentences:
-                return 0.0
-            passive = re.compile(
-                r"\b(?:am|is|are|was|were|be|been|being|get|gets|got)\s+"
-                r"(?:\w+ly\s+)?(?:\w+(?:ed|en)|born|built|done|found|given|held|"
-                r"kept|known|made|put|read|run|seen|sent|set|shown|told|written)\b",
-                re.I,
-            )
-            hits = sum(1 for s in sentences if passive.search(s.text))
-            return hits / len(sentences)
-
-        if name == "hedge_per_100_words":
-            if not words:
-                return 0.0
-            return len(HEDGE.findall(text)) / len(words) * 100
-
-        if name == "abstraction_density":
-            if not words:
-                return 0.0
-            return len(ABSTRACTION_SUFFIX.findall(text)) / len(words) * 100
-
-        if name == "concrete_referents_per_paragraph":
-            paragraphs = document.paragraphs
-            if not paragraphs:
-                return 0.0
-            total = sum(len(CONCRETE_REFERENT.findall(p.text)) for p in paragraphs)
-            return total / len(paragraphs)
-
-        if name == "paragraph_words_stdev":
-            # The burstiness counter-signal. A model writes paragraphs of uniform
-            # mass, so LOW dispersion is the finding -- note the rule compares with
-            # `lt`, unlike every other metric here.
-            #
-            # Guarded at fewer than three paragraphs. Two paragraphs have a
-            # dispersion but it means nothing, and a one-paragraph document would
-            # score 0.0 and fire on every short file. `stdev` already returns 0.0
-            # below two values, which is exactly the wrong answer for a rule whose
-            # comparison is `lt`, so the guard has to live here rather than there.
-            counts = [float(count_words(p.text)) for p in document.paragraphs]
-            if len(counts) < 3:
-                return float("inf")
-            return stdev(counts)
-
-        if name in {"bold_spans_per_1000_words", "dash_per_1000_words"}:
-            # Both measure the MARKUP, so both read `markup_text` rather than the
-            # prose projection, which strips the very characters they count. Both
-            # denominators are the prose word count, not a count of the markup text,
-            # so a document does not dilute its own density by adding code blocks.
-            if not words:
-                return 0.0
-            pattern = (
-                BOLD_SPAN if name == "bold_spans_per_1000_words" else DASH_AS_ASIDE
-            )
-            return len(pattern.findall(document.markup_text())) / len(words) * 1000
-
-        if name == "adjectives_per_noun":
-            # Suffix heuristics, not a tagger. See ADJECTIVE_SUFFIX for why, and
-            # read the number as a signal rather than a measurement: the rule ships
-            # advisory outside strict and its own threshold is marked INFERRED.
-            nouns = len(NOUN_SUFFIX.findall(text))
-            if not nouns:
-                return 0.0
-            return len(ADJECTIVE_SUFFIX.findall(text)) / nouns
-
-        if name == "consecutive_bold_colon_bullets":
-            # The LONGEST run, not the total. Four scattered bold-colon bullets
-            # across a long document are a formatting choice; four in a row are the
-            # tell, because that shape is what a model reaches for instead of prose
-            # or a table.
-            #
-            # Reads `raw_lines`, since the prose projection strips the emphasis
-            # markers this measures. A blank line does not break a run: markdown
-            # allows a loose list, and the run is about consecutive ITEMS.
-            longest = 0
-            run = 0
-            for line in document.raw_lines:
-                if BOLD_COLON_BULLET.match(line):
-                    run += 1
-                    longest = max(longest, run)
-                elif line.strip():
-                    run = 0
-            return float(longest)
-
-        return 0.0
+        return document_metric(name, document)

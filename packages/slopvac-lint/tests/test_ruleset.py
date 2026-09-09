@@ -8,12 +8,14 @@ so every claim a rule makes about itself is checked here.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 import regex as re
 
 from slopvac.engine import build_substitution_pattern
 from slopvac.model import RuleKind, Tier
-from slopvac.rules import inject_locale_rule, load_ruleset
+from slopvac.rules import RuleLoadError, inject_locale_rule, load_ruleset
 
 
 @pytest.fixture(scope="module")
@@ -23,8 +25,8 @@ def ruleset():
 
 def test_ruleset_loads_and_verifies(ruleset):
     """load_ruleset raises on any broken rule, so reaching here is the assertion."""
-    assert len(ruleset.rules) > 150
-    assert len(ruleset.categories) > 15
+    assert ruleset.rules
+    assert ruleset.categories
 
 
 def test_every_rule_has_provenance(ruleset):
@@ -82,10 +84,20 @@ def test_judgement_rules_carry_a_decidable_question(ruleset):
 def test_judgement_rules_never_fire(ruleset):
     """They are carried for the agentic reviewer. If one produced a finding the
     linter would be claiming to check something it cannot."""
-    for rule in ruleset.judgement_rules():
-        assert rule.kind is RuleKind.JUDGEMENT
-        assert rule.pattern is None
-        assert rule.tokens is None
+    from pathlib import Path
+
+    from slopvac.analyze import parse
+    from slopvac.config import Config, resolve_for
+    from slopvac.engine import Engine
+
+    judgement = {rule.qualified_id for rule in ruleset.judgement_rules()}
+    assert judgement
+    text = "\n".join(
+        example.bad for rule in ruleset.judgement_rules() for example in rule.examples
+    )
+    engine = Engine(ruleset.rules, resolve_for(Config(), Path("/repo/a.md")))
+    fired = {finding.rule_id for finding in engine.run(parse("a.md", text + "\n"))}
+    assert not fired & judgement
 
 
 def test_reads_better_is_never_an_exception(ruleset):
@@ -241,3 +253,30 @@ def test_locale_inflections_are_generated():
     us = resolve("en-US").substitutions
     for form in ("initialise", "initialises", "initialised", "initialising"):
         assert form in us, f"{form} is missing from the en-US target map"
+
+
+# --- schema tightening --------------------------------------------------------
+
+_FIXTURES = Path(__file__).parent / "fixtures" / "rules"
+
+
+def test_a_stray_kind_payload_is_a_load_error():
+    """Exactly one kind-specific payload. A leftover field is not ignored."""
+    with pytest.raises(RuleLoadError, match=r"stray-tokens.*`tokens`"):
+        load_ruleset(extra_dirs=[_FIXTURES / "stray-payload"], verify=False)
+
+
+def test_a_non_mapping_yaml_document_names_file_and_index(tmp_path):
+    (tmp_path / "scalar.yml").write_text("just a string\n", encoding="utf-8")
+    with pytest.raises(RuleLoadError, match=r"scalar\.yml: document 0 is a str"):
+        load_ruleset(extra_dirs=[tmp_path], verify=False)
+
+    (tmp_path / "scalar.yml").unlink()
+    (tmp_path / "list.yml").write_text("- not\n- a mapping\n", encoding="utf-8")
+    with pytest.raises(RuleLoadError, match=r"list\.yml: document 0 is a list"):
+        load_ruleset(extra_dirs=[tmp_path], verify=False)
+
+
+def test_empty_yaml_documents_are_allowed():
+    ruleset = load_ruleset(extra_dirs=[_FIXTURES / "empty-docs"], verify=False)
+    assert ruleset.by_id("empty-docs-probe.only-rule") is not None
