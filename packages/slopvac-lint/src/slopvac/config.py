@@ -93,6 +93,11 @@ class CategorySettings(BaseModel):
         "`severity = 'warning'` takes an error off the gate. A per-rule "
         "[rules.\"cat.rule\"] entry still wins over this.",
     )
+    minimum_severity: Severity | None = Field(
+        default=None,
+        description="Lowest level inherited rules in this category may report at. "
+        "A per-rule override remains the narrowest setting.",
+    )
     max_per_100_words: float | None = Field(
         default=None,
         ge=0,

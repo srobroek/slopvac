@@ -278,6 +278,22 @@ def test_category_severity_raises_severity():
     for rule in promoted:
         assert engine.severity_for(rule) is Severity.ERROR
 
+def test_category_minimum_severity_is_a_floor():
+    engine = _engine(
+        categories={"orwell": CategorySettings(minimum_severity=Severity.ERROR)}
+    )
+    rule = next(r for r in engine.rules if r.qualified_id == "orwell.not-un")
+    assert rule.severity is Severity.WARNING
+    assert engine.severity_for(rule) is Severity.ERROR
+
+
+def test_rule_override_can_opt_out_of_category_minimum():
+    engine = _engine(
+        categories={"orwell": CategorySettings(minimum_severity=Severity.ERROR)},
+        rules={"orwell.not-un": RuleSettings(severity=Severity.SUGGESTION)},
+    )
+    rule = next(r for r in engine.rules if r.qualified_id == "orwell.not-un")
+    assert engine.severity_for(rule) is Severity.SUGGESTION
 
 def test_rule_override_still_beats_category_severity():
     """Narrowest wins, so one rule can opt out of its category's severity."""

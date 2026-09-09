@@ -151,6 +151,11 @@ does turn its suggestions into gate failures. Narrowest wins: a rule override
 beats its category, which beats the profile's disposition, which beats the
 severity the rule ships with.
 
+A category can also set a **floor** without setting every rule to one level:
+`[categories.orwell]` with `minimum_severity = "warning"` lifts every rule in
+the category that would report below warning up to it. Rules already at error are
+left alone, and a rule override still wins, so one rule can opt out of the floor.
+
 A misspelled rule id or category name is an **error**, not a silent no-op,
 including inside an `[[overrides]]` block. `slopvac` refuses to lint and gives
 the closest real name, because the alternative failure is "I disabled it and the
