@@ -175,6 +175,8 @@ rules:
     examples:
       - bad: $ npm install
         good: npm install
+      - bad: ❯ git status
+        good: '> git status is what a quoted line looks like, not a prompt'
     provenance:
       source: vale-styles/prose-craft/CommandPrompt.yml
       url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
@@ -641,6 +643,8 @@ rules:
     examples:
       - bad: Please run the migration first.
         good: Run the migration first.
+      - bad: Kindly run the migration first.
+        good: Repos with release-please never hand-edit CHANGELOG.md.
     provenance:
       source: vale-styles/prose-craft/Politeness.yml
       url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md

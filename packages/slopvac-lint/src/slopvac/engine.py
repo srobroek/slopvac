@@ -20,10 +20,12 @@ The routing is not a static list: `slopvac compile` prints it, and a rule
 moves here the moment Vale rejects its pattern, which is tested by execution on
 every compile.
 
-A METRIC WITH NO IMPLEMENTATION IS REPORTED, NOT SKIPPED. Nine metric names in
-the shipped ruleset have no native branch, so those rules used to load, match
+A METRIC WITH NO IMPLEMENTATION IS REPORTED, NOT SKIPPED. A custom rule can name
+a metric neither engine measures; such a rule would otherwise load, match
 nothing, and report every document clean. `unimplemented_metrics` names them so
-the caller can surface them as `unchecked`.
+the caller can surface them as `unchecked`. Every shipped metric is measurable,
+which `tests/test_engine.py` asserts against `metrics.NATIVE_METRICS` and the
+Vale plan.
 
 SUPPRESSION IS AN ANNOTATION CONTRACT, not a comment convention. A suppression
 must name an exception from the rule's own closed list:

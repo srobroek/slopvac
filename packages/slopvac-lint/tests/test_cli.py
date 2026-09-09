@@ -850,3 +850,62 @@ def test_a_rule_turned_off_for_a_later_file_is_dropped_there(tmp_path):
     ids = lambda doc: {f["rule_id"] for f in doc["findings"]}  # noqa: E731
     assert "docs-discipline.internal-refs" in ids(by_path["a.md"])
     assert "docs-discipline.internal-refs" not in ids(by_path["b.md"])
+
+
+def _levels(report: dict, name: str) -> dict[str, str]:
+    doc = next(d for d in report["documents"] if Path(d["path"]).name == name)
+    return {f["rule_id"]: f["severity"] for f in doc["findings"]}
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+def test_a_later_file_demoting_a_vale_category_keeps_its_own_level(tmp_path):
+    """The case that exposed the grouping bug: the same category is a warning in
+    the first file and a suggestion in the second, in one invocation."""
+    _write(tmp_path, "a.md", _PROSE_WITH_INTERNAL_REF)
+    _write(tmp_path, "b.md", _PROSE_WITH_INTERNAL_REF)
+    (tmp_path / "slopvac.toml").write_text(
+        'profile = "normal"\n\n'
+        "[[overrides]]\n"
+        'files = ["b.md"]\n\n'
+        "[overrides.categories.docs-discipline]\n"
+        'severity = "suggestion"\n',
+        encoding="utf-8",
+    )
+    result = CliRunner().invoke(
+        main,
+        [
+            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
+            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+        ],
+        catch_exceptions=False,
+    )
+    report = json.loads(result.output)
+    assert _levels(report, "a.md")["docs-discipline.internal-refs"] == "warning"
+    assert _levels(report, "b.md")["docs-discipline.internal-refs"] == "suggestion"
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+def test_a_file_reports_the_same_levels_alone_and_inside_its_directory(tmp_path):
+    """How the caller selects a file must not change what it reports."""
+    _write(tmp_path, "a.md", _PROSE_WITH_INTERNAL_REF)
+    _write(tmp_path, "b.md", _PROSE_WITH_INTERNAL_REF)
+    (tmp_path / "slopvac.toml").write_text(
+        'profile = "normal"\n\n'
+        "[[overrides]]\n"
+        'files = ["b.md"]\n\n'
+        "[overrides.categories.docs-discipline]\n"
+        'severity = "suggestion"\n',
+        encoding="utf-8",
+    )
+    config = ["--config", str(tmp_path / "slopvac.toml"), "--format", "json"]
+    alone = json.loads(
+        CliRunner().invoke(
+            main, ["lint", str(tmp_path / "b.md"), *config], catch_exceptions=False
+        ).output
+    )
+    together = json.loads(
+        CliRunner().invoke(
+            main, ["lint", str(tmp_path), *config], catch_exceptions=False
+        ).output
+    )
+    assert _levels(alone, "b.md") == _levels(together, "b.md")
