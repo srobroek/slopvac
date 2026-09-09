@@ -16,12 +16,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
       - name: Install actionlint
@@ -67,12 +67,124 @@ jobs:
         run: pip install "yamllint==1.37.1"
       - name: yamllint
         run: yamllint -c .yamllint.yml .github/workflows/
+  typos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
+      - name: Install typos
+        run: cargo binstall typos-cli@1.42.0 --no-confirm
+      - name: typos
+        run: typos .
+
+  lychee:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@b874e25ea559687bec77e281e9b271aa1367b624 # v1.23.0
+      - name: Install lychee
+        run: cargo binstall lychee@0.24.2 --no-confirm
+      - name: lychee
+        run: >-
+          lychee --config .lychee.toml --no-progress README.md
+          packages/slopvac-lint/README.md packages/slopvac-lint/docs/
+
+  markdownlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: markdownlint
+        run: npx --yes markdownlint-cli2@0.18.1
+
+  taplo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - name: taplo
+        run: uvx taplo@0.9.3 fmt --check
+
+  pinact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify action pins
+        uses: suzuki-shunsuke/pinact-action@896d595f299e71d65b9d28349d6956abe144390a # v3.0.0
+        with:
+          fix: "false"
+          skip_push: "true"
+  prek:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
+      - name: Run configured hooks
+        run: uvx prek@0.5.2 run --all-files
+
+  complexity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Measure target complexity
+        run: |
+          set -euo pipefail
+          uvx lizard==1.24.0 packages/slopvac-lint/src/slopvac/cli.py \
+            packages/slopvac-lint/src/slopvac/score.py -C 15 \
+            > /tmp/lizard.txt || true
+          cat /tmp/lizard.txt
+          python3 - <<'PY'
+          from pathlib import Path
+
+          report = Path("/tmp/lizard.txt").read_text()
+          warnings = report.split("!!!! Warnings", 1)[1] if "!!!! Warnings" in report else ""
+          targets = (" lint@", " score_document@")
+          failed = [line for line in warnings.splitlines() if any(t in line for t in targets)]
+          if failed:
+              raise SystemExit("target complexity exceeded 15:\n" + "\n".join(failed))
+          PY
+
   shell-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: shellcheck
@@ -86,7 +198,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install uv
@@ -116,7 +228,7 @@ jobs:
       security-events: write # the SARIF upload
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0 # changed-files-only needs the merge base
@@ -127,10 +239,9 @@ jobs:
           paths: README.md packages/slopvac-lint/README.md packages/slopvac-lint/docs
           source: ./packages/slopvac-lint # the working tree, not the last release
           sarif: "true"
-          # The docs do not pass their own gate yet, and a red required check
-          # every run trains people to ignore it. The annotations and the alerts
-          # are the deliverable here; flip this to true once the corpus is clean.
-          fail-on-findings: "false"
+          # This repository's authored prose passes the configured thresholds;
+          # keep the dogfood run blocking so regressions cannot land unnoticed.
+          fail-on-findings: "true"
       - name: Report what the action returned
         env:
           SCORE: ${{ steps.slopvac.outputs.score }}
@@ -151,7 +262,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       # The gate step below runs the linter through uvx, which the runner image does not
@@ -178,7 +289,19 @@ jobs:
   gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [workflow-lint, shell-lint, python-lint, action, prose]
+    needs:
+      - workflow-lint
+      - typos
+      - lychee
+      - markdownlint
+      - taplo
+      - pinact
+      - prek
+      - complexity
+      - shell-lint
+      - python-lint
+      - action
+      - prose
     if: always()
     steps:
       - name: Verify every job passed

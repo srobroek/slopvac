@@ -101,6 +101,18 @@ outputs:
   errors:
     description: Error-severity finding count.
     value: ${{ steps.lint.outputs.errors }}
+  warnings:
+    description: Warning-severity finding count.
+    value: ${{ steps.lint.outputs.warnings }}
+  suggestions:
+    description: Suggestion-severity finding count.
+    value: ${{ steps.lint.outputs.suggestions }}
+  documents:
+    description: Number of documents linted.
+    value: ${{ steps.lint.outputs.documents }}
+  words:
+    description: Total words linted.
+    value: ${{ steps.lint.outputs.words }}
   per-100-words:
     description: Finding density per 100 words.
     value: ${{ steps.lint.outputs.per-100-words }}
@@ -201,6 +213,10 @@ runs:
             echo "score=100"
             echo "findings=0"
             echo "errors=0"
+            echo "warnings=0"
+            echo "suggestions=0"
+            echo "documents=0"
+            echo "words=0"
             echo "per-100-words=0"
             echo "passed=true"
             echo "json="
@@ -269,6 +285,10 @@ runs:
         print(f"score={summary['score']}")
         print(f"findings={summary['findings']}")
         print(f"errors={summary['errors']}")
+        print(f"warnings={summary['warnings']}")
+        print(f"suggestions={summary['suggestions']}")
+        print(f"documents={summary['documents']}")
+        print(f"words={summary['words']}")
         print(f"per-100-words={summary['per_100_words']}")
         print(f"passed={'true' if summary['passed'] else 'false'}")
         print("json=/tmp/slopvac.json")

@@ -91,7 +91,12 @@ class CategorySettings(BaseModel):
         description="The level every rule in this category reports at. Promotes as "
         "well as demotes: `severity = 'error'` makes a suggestion blocking, and "
         "`severity = 'warning'` takes an error off the gate. A per-rule "
-        "[rules.\"cat.rule\"] entry still wins over this.",
+        '[rules."cat.rule"] entry still wins over this.',
+    )
+    minimum_severity: Severity | None = Field(
+        default=None,
+        description="Lowest level inherited rules in this category may report at. "
+        "A per-rule override remains the narrowest setting.",
     )
     minimum_severity: Severity | None = Field(
         default=None,
@@ -307,6 +312,11 @@ class Config(BaseModel):
     vale: ValeSettings = Field(default_factory=ValeSettings)
     locale: LocaleSettings = Field(default_factory=LocaleSettings)
     vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
+    plugins: list[str] = Field(
+        default_factory=list,
+        description="Import paths for explicitly configured rule plugins. Reserved "
+        "for plugin loading; arbitrary untyped extension tables are rejected.",
+    )
     overrides: list[Override] = Field(default_factory=list)
 
     exclude: list[str] = Field(
@@ -668,11 +678,7 @@ def profile_thresholds(profile: Profile) -> Thresholds:
     is reported for information and gates nothing.
     """
     if profile is Profile.STRICT:
-        return Thresholds(
-            max_total_per_100_words=1.5, max_errors=0, min_score=85.0
-        )
+        return Thresholds(max_total_per_100_words=1.5, max_errors=0, min_score=85.0)
     if profile is Profile.NORMAL:
-        return Thresholds(
-            max_total_per_100_words=3.0, max_errors=0, min_score=70.0
-        )
+        return Thresholds(max_total_per_100_words=3.0, max_errors=0, min_score=70.0)
     return Thresholds(max_total_per_100_words=8.0, max_errors=None, min_score=None)
