@@ -40,6 +40,7 @@ from __future__ import annotations
 import itertools
 from dataclasses import dataclass, field
 from enum import Enum
+from html.parser import HTMLParser
 
 import regex as re
 from markdown_it import MarkdownIt
@@ -49,11 +50,13 @@ from .model import TextType
 # --- Markdown structure ------------------------------------------------------
 
 FRONT_MATTER = re.compile(r"^---\s*$")
-LIST_ITEM = re.compile(r"^(\s*)(?:[-*+]|\d+[.)])\s+(.*)$")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
-MD_LINK = re.compile(r"\[([^\]]*)\]\([^)]*\)")
-MD_IMAGE = re.compile(r"!\[([^\]]*)\]\([^)]*\)")
 INLINE_CODE = re.compile(r"`[^`\n]+`")
+
+
+# Not prose: machinery, and code, which the markdown side already leaves alone as
+# fences. The block is recorded as CODE so its lines count as code, not text.
+_SKIP_HTML_TAGS = frozenset({"script", "style", "noscript", "head", "template", "pre", "code", "kbd", "samp"})
 
 # `**x**` and `__x__`, non-greedy and single-line. A bold span does not straddle a
 # blank line, and the greedy form fused every span on a line into one match, which
@@ -90,17 +93,6 @@ UNIT = (
     r"USD|EUR|GBP"
     r")(?:\^?-?\d)?"
 )
-SPELLED_COMPOUND_NUMBER = re.compile(
-    r"^(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
-    r"thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|"
-    r"thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|"
-    r"billion)(?:[- ](?:zero|one|two|three|four|five|six|seven|eight|nine|ten|"
-    r"eleven|twelve|hundred|thousand|million|billion))*$",
-    re.I,
-)
-# An abbreviation: all-caps run, or dotted form. One word.
-ABBREVIATION = re.compile(r"^(?:[A-Z]{2,}(?:s)?|(?:[A-Za-z]\.){2,})$")
-HYPHENATED = re.compile(r"^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$")
 # Alphanumeric identifier: mixes letters and digits, or carries _ / : / .
 WORDLIKE = re.compile(r"[A-Za-z0-9]")
 
@@ -356,22 +348,85 @@ def _inline_prose(token) -> str:
     return "".join(parts).strip()
 
 
-def _is_autolink(token) -> bool:
-    return token.markup == "autolink"
+class _HtmlTextExtractor(HTMLParser):
+    """Visible text of an HTML document, aligned to source lines."""
+
+    def __init__(self, line_count: int) -> None:
+        super().__init__(convert_charrefs=True)
+        self.prose_lines = [""] * line_count
+        self._skip = 0
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag in _SKIP_HTML_TAGS:
+            self._skip += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in _SKIP_HTML_TAGS and self._skip:
+            self._skip -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self._skip or not data:
+            return
+        line, _column = self.getpos()
+        for offset, part in enumerate(data.split("\n")):
+            index = line - 1 + offset
+            if 0 <= index < len(self.prose_lines):
+                self.prose_lines[index] += part
+
+
+def _parse_html(path: str, raw: str) -> Document:
+    """Project an HTML file onto line-aligned prose so native rules can run.
+
+    CommonMark treats a `.html` file as `html_block` tokens and the markdown
+    walker skips those, which left every HTML document at zero words.
+    `html.py` is the report renderer, not a source projection, so this uses
+    stdlib `html.parser` and keeps `prose_lines` index-aligned with the source.
+    """
+    raw_lines = raw.split("\n")
+    extractor = _HtmlTextExtractor(len(raw_lines))
+    extractor.feed(raw)
+    extractor.close()
+    prose_lines = [line.strip() for line in extractor.prose_lines]
+    joined = HTML_COMMENT.sub(
+        lambda m: re.sub(r"[^\n]", " ", m.group(0)), "\n".join(prose_lines)
+    )
+    prose_lines = joined.split("\n")
+
+    blocks: list[Block] = []
+    for index, text in enumerate(prose_lines):
+        if not text:
+            continue
+        number = index + 1
+        block = Block(kind=BlockKind.PARAGRAPH, lines=(number, number), text=text)
+        block.sentences = split_sentences(text, number)
+        blocks.append(block)
+
+    return Document(
+        path=path,
+        raw=raw,
+        raw_lines=raw_lines,
+        prose_lines=prose_lines,
+        blocks=blocks,
+    )
 
 
 def parse(path: str, raw: str) -> Document:
-    """Parse markdown into blocks and a line-aligned prose projection.
+    """Parse markdown or HTML into blocks and a line-aligned prose projection.
 
     BLOCK STRUCTURE COMES FROM markdown-it-py, the CommonMark reference
     implementation, rather than from our own line matchers. It reports a
     `map` per block token, which is what keeps `prose_lines` aligned with the
     source so a finding's line number opens the right place in the real file.
 
+    A `.html` file is not CommonMark: the whole document is one `html_block`,
+    so those inputs take a visible-text projection instead.
+
     What stays ours is everything downstream: the STE word count, the sentence
     segmentation with its rule 8.4 colon case, and the procedural/descriptive
     split. CommonMark has no opinion on any of them.
     """
+    if path.lower().endswith((".html", ".htm")):
+        return _parse_html(path, raw)
     raw_lines = raw.split("\n")
     prose_lines = [""] * len(raw_lines)
     blocks: list[Block] = []
@@ -413,7 +468,7 @@ def parse(path: str, raw: str) -> Document:
         if token.type == "front_matter":
             continue
 
-        if token.type == "table_open":
+        if token.type == "table_open" and token.map is not None:
             table_cells = []
             table_start = token.map[0] + 1 + offset
             kind_stack.append(BlockKind.TABLE)
@@ -440,7 +495,7 @@ def parse(path: str, raw: str) -> Document:
             kind_stack.pop()
             continue
 
-        if token.type == "fence" or token.type == "code_block":
+        if (token.type == "fence" or token.type == "code_block") and token.map is not None:
             first = token.map[0] + 1 + offset
             last = token.map[1] + offset
             blocks.append(Block(kind=BlockKind.CODE, lines=(first, last), text=""))

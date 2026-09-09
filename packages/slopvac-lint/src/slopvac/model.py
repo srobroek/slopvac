@@ -212,6 +212,19 @@ class Rule(BaseModel):
             RuleKind.SUBSTITUTION: "substitutions",
             RuleKind.METRIC: "metric",
         }
+        owners = {
+            "tokens": RuleKind.TOKENS,
+            "pattern": RuleKind.PATTERN,
+            "substitutions": RuleKind.SUBSTITUTION,
+            "metric": RuleKind.METRIC,
+            "threshold": RuleKind.METRIC,
+            "judgement_question": RuleKind.JUDGEMENT,
+        }
+        for name, owner in owners.items():
+            if getattr(self, name) is not None and self.kind is not owner:
+                raise ValueError(
+                    f"{self.id}: `{name}` is not valid for kind={self.kind.value}"
+                )
         field = required.get(self.kind)
         if field and getattr(self, field) is None:
             raise ValueError(f"kind={self.kind.value} requires `{field}`")

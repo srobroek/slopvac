@@ -63,7 +63,18 @@ def _load_documents(text: str, origin: str) -> list[dict]:
         loaded = list(yaml.safe_load_all(text))
     except yaml.YAMLError as exc:
         raise RuleLoadError(f"{origin}: invalid YAML: {exc}") from exc
-    return [d for d in loaded if isinstance(d, dict)]
+    documents: list[dict] = []
+    for index, document in enumerate(loaded):
+        if document is None:
+            continue
+        if isinstance(document, dict):
+            documents.append(document)
+            continue
+        raise RuleLoadError(
+            f"{origin}: document {index} is a {type(document).__name__}, "
+            "not a mapping"
+        )
+    return documents
 
 
 def _build_category(data: dict, origin: str) -> Category:

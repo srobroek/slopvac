@@ -49,11 +49,14 @@ vale --config=build/vale/.vale.ini docs/
 A profile is the strictness dial. It sets which rules run, how loud each one is,
 and what gates the document must clear.
 
-| Profile | For | Sentence cap | Approved-word check |
+| Profile | For | Sentence cap | Word blocklist |
 | --- | --- | --- | --- |
-| `strict` | reference, specs, API docs, runbooks | 20 procedural / 25 descriptive | on |
-| `normal` | README, guides, decision records | 25 advisory | off |
-| `relaxed` | notes, comments, drafts | advisory | off |
+| `strict` | reference, specs, API docs, runbooks | 20 procedural / 25 descriptive | used when `vocabulary.path` is set |
+| `normal` | README, guides, decision records | 25 advisory | used when `vocabulary.path` is set |
+| `relaxed` | notes, comments, drafts | advisory | unused |
+
+The word-choice rules stay inert until `[vocabulary] path` names a file
+(`config.py`). No profile turns them on by itself.
 
 `normal` is the default. `strict` on an existing repository produces a wall of
 findings, which teaches people to ignore the tool.
@@ -124,7 +127,7 @@ profile = "normal"
 
 [thresholds]
 max_errors = 0
-min_score = 70
+ste-words = "off"
 
 [categories]
 ste-vocabulary = "off"
@@ -222,7 +225,7 @@ reason = "Judges the reader's experience rather than the work."
 `examples/blocklist.toml` is a working starter. `.yml` and `.json` load too.
 
 **The part of speech is the point.** `deploy` is a good verb and a bad noun, and
-one entry per sense is what lets you say so: `slopvac` reports "the deploy failed"
+one entry per sense records the difference: `slopvac` reports "the deploy failed"
 and passes "deploy the worker". Vale's tagger decides which is which.
 
 **`reason` is required.** `slopvac` refuses a file without one, because nobody but
@@ -231,13 +234,12 @@ omit it when the fix depends on the sentence, because a reader applies a suggest
 without thinking.
 
 A word absent from the file is fine by definition. Nothing expresses "only these
-words are allowed", and that gap is deliberate: this package once shipped an
-ASD-STE100 word list enforced that way, and on ordinary software prose it produced
-828 findings for words that merely had no entry, half of everything it reported.
-That list is gone rather than switched off. A blocklist you wrote is the only word
+words are allowed". An earlier release shipped an ASD-STE100 word list enforced
+that way; on ordinary software prose it produced 828 findings for words that had
+no entry, half of everything it reported. A blocklist you wrote is the only word
 list that knows your domain.
 
-## Suppressing a finding
+## Suppress a finding
 
 A suppression must name an exception from the rule's own list:
 
@@ -260,7 +262,8 @@ slopvac --open docs/                     # an HTML report, in your browser
 ```
 
 `--open` writes a self-contained page and opens it. `--out report.html` names the
-file instead of a temporary one, and implies HTML. The page needs no network and
+file instead of a temporary one, and implies HTML; `--format json --out report.json`
+writes that format to the file instead. The page needs no network and
 no assets, so it survives being attached to a CI run or mailed to a reviewer.
 
 The report leads with what did **not** run, before the score, and flags each
@@ -282,9 +285,8 @@ slopvac cache --prune    # keep the 16 most recently used
 slopvac cache --all      # delete every tree
 ```
 
-A lint prunes on its own, keeping the 16 trees used most recently. A cache hit
-counts as use. A tree that a project keeps hitting therefore survives, however
-old it is.
+A lint prunes on its own and keeps the 16 trees used last. A cache hit
+counts as use, so a tree that a project keeps hitting survives at any age.
 Pruning is only ever about disk: it cannot cause a wrong result. Set
 `SLOPVAC_CACHE_DIR` to move it; it defaults under `XDG_CACHE_HOME`.
 
@@ -301,17 +303,15 @@ available, but neither the document nor the summary reports a pass.
 
 ## Scoring
 
-Three numbers, because they answer different questions and none replaces another.
+Two numbers, because they answer different questions and neither replaces the other.
 
 | Number | Counts | Answers |
 | --- | --- | --- |
 | `per_100_words` | every finding | how dense is this document |
-| `gating_per_100_words` | errors and warnings | what the budget checks |
 | `score` | 0-100 | what a badge shows and `min_score` gates |
 
-Suggestions appear in the first number and not the second, because **a suggestion
-may lower a score but must not fail a run**. That one rule is why there are three
-numbers instead of one.
+The density budget (`max_total_per_100_words`) counts errors and warnings only:
+**a suggestion may lower a score but must not fail a run**.
 
 ### Density: the n-per-100-words figure
 
@@ -391,7 +391,7 @@ a lexical, substitution, or threshold rule needs no code.
 ```sh
 slopvac rules --profile strict
 slopvac rules --judgement          # what a linter cannot check
-slopvac explain ste-sentences.max-words
+slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
 
@@ -416,9 +416,9 @@ the obvious alternative is what most prose linters do.
 
 Nearly every prose linter reports a count. A count makes a long document worse
 than a short one for writing at the same quality, so the incentive it creates is
-to write less rather than to write better, and any threshold set against a count
-either passes a 3,000-word document with forty problems or fails a 200-word one
-with three.
+to write less rather than to write better. A threshold set against a count either
+passes a 3,000-word document with forty problems or fails a 200-word one with
+three.
 
 So the gate is **findings per 100 words**, and the score follows from that density
 against the profile's budget. A long document earns proportionally more
@@ -481,12 +481,12 @@ Absence from a deliberately incomplete dictionary is not disapproval. It is a
 Nobody but its author can argue with, or later remove, an entry that gives no
 reason.
 
-Suppression follows from the same position: `<!-- slopvac-disable-next-line rule:
-reason -->` requires a reason from the rule's own closed list. `slopvac` reports
+Suppression follows from the same position: `<!-- slopvac-allow: rule=<id>
+reason=<name> -->` requires a reason from the rule's own closed list. `slopvac` reports
 any other reason rather than honors it, so a blanket suppression shows up in a
 diff.
 
-### What this deliberately does not do
+### The limits of a clean run
 
 A clean run means the checked patterns are absent, and nothing more. It is not a
 review. The linter does not read for truth: a sentence can pass every rule and

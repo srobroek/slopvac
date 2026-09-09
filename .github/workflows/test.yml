@@ -2,12 +2,12 @@ name: Tests
 
 # Runs the whole suite. The linter has its own job below, against every Python
 # version its metadata claims; this job covers the Vale sub-gate, whose styles are
-# fetched rather than committed.
+# compiled from the YAML ruleset at run time.
 #
 # The rule tests drive the real `vale` binary against fixtures, because Vale has no
-# rule-test framework, so the styles have to be built and synced first. They are
-# skipped rather than failed when vale is absent, which would make a broken install
-# look like a pass -- hence the explicit version check below.
+# rule-test framework. They are skipped rather than failed when vale is absent,
+# which would make a broken install look like a pass -- hence the installer's
+# explicit version check.
 
 on:
   pull_request:
@@ -37,19 +37,12 @@ jobs:
           python-version: "3.14"
 
       - name: Install vale
-        run: |
-          set -euo pipefail
-          version=3.15.2
-          curl -sSfL -o vale.tar.gz \
-            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
-          tar -xzf vale.tar.gz vale
-          sudo install -m 0755 vale /usr/local/bin/vale
-          vale --version
+        run: ./scripts/install-vale.sh 3.15.2
 
       - name: Install ast-grep
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet ast-grep-cli
+          python3 -m pip install --quiet ast-grep-cli==0.45.3
           ast-grep --version
 
       # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
@@ -59,63 +52,9 @@ jobs:
       - name: Install the package and pytest
         run: python3 -m pip install --quiet -e "./packages/slopvac-lint[dev]"
 
-      # A test that skips on a missing style reads as a pass, so build and sync the
-      # styles from the working tree before running anything.
-      - name: Build and sync styles from the working tree
-        run: |
-          set -euo pipefail
-          ./packages/slopvac-lint/vale-styles/build.sh
-          python3 -m http.server 8899 --directory packages/slopvac-lint/vale-styles/dist &
-          for _ in $(seq 1 20); do
-            curl -sf -o /dev/null http://localhost:8899/prose-agency.zip && break
-            sleep 0.5
-          done
-          config=packages/slopvac-lint/vale/.vale.ini
-          base=https://github.com/srobroek/slopvac/releases/download/vale-styles/
-          sed -i "s|$base|http://localhost:8899/|g" "$config"
-          vale --config="$config" sync
-          # Derived from the config rather than listed. A hardcoded list drifts the moment the
-          # config changes, and it did: this asserted seven styles after the config was reduced
-          # to one, so the step failed on `ai-residue did not sync` for a package it no longer
-          # fetches. Vale reports a clean file for a style it cannot resolve, so the check has to
-          # exist. It has to ask the config what to expect.
-          # `grep -oE` alone, without a `tr -d` of spaces and continuation backslashes: inside
-          # single quotes shellcheck reads the escaped backslash as an attempt to quote an
-          # apostrophe (SC1003), and the pattern does not need it -- a zip name holds neither.
-          styles=$(sed -n 's/^Packages *= *//p' "$config" \
-            | grep -oE '[A-Za-z0-9_-]+\.zip' | sed 's/\.zip//' | sort -u)
-          test -n "$styles" || { echo "the config names no packages"; exit 1; }
-          for style in $styles; do
-            test -d "packages/slopvac-lint/vale/styles/$style" \
-              || { echo "$style did not sync"; exit 1; }
-          done
-
       - name: pytest
         run: |
           python3 -m pytest packages/slopvac-lint/tests -q
-
-      # A malformed rule surfaces as E201 when Vale first loads it, and a rule that
-      # loads but resolves nothing reports every file as clean. Lint a probe file
-      # with every style enabled: E201 fails the step, and the rule count proves the
-      # styles actually resolved.
-      - name: Validate every rule loads
-        run: |
-          set -euo pipefail
-          config=packages/slopvac-lint/vale/.vale.ini
-          printf 'The library leverages a robust parser.\n' > /tmp/probe.md
-          out="$(vale --config="$config" --no-exit /tmp/probe.md 2>&1)"
-          printf '%s\n' "$out"
-          printf '%s' "$out" | grep -q 'E201' && { echo 'a rule failed to load'; exit 1; }
-          # Any rule from the styles the config fetches, not one named style. This grepped for
-          # `prose-inflation.SlopLexicon` after the config was reduced to ai-tells alone, so the
-          # probe reported its finding correctly and the step still failed. Vale reports a clean
-          # file for a style it cannot resolve, so the check has to exist. It has to name what
-          # the config actually enables.
-          printf '%s' "$out" | grep -qE '\b(ai-tells|prose-[a-z]+|ste-[a-z]+|docs-[a-z]+)\.' \
-            || { echo 'styles did not resolve'; exit 1; }
-          expected="$(find packages/slopvac-lint/vale-styles -name '*.yml' -not -path '*/dist/*' | wc -l)"
-          echo "$expected rules shipped"
-          vale --config="$config" ls-config >/dev/null
 
       - name: Validate hook JSON
         run: |
@@ -172,14 +111,7 @@ jobs:
       # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
       # without it -- which is a missing dependency reported as a test failure.
       - name: Install vale
-        run: |
-          set -euo pipefail
-          version=3.15.2
-          curl -sSfL -o vale.tar.gz \
-            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
-          tar -xzf vale.tar.gz vale
-          sudo install -m 0755 vale /usr/local/bin/vale
-          vale --version
+        run: ./scripts/install-vale.sh 3.15.2
 
       - name: pytest
         working-directory: packages/slopvac-lint

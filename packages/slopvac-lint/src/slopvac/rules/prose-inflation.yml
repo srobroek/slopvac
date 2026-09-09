@@ -26,7 +26,7 @@ rules:
         good: A linter with 61 rules across 9 categories.
     provenance:
       source: vale-styles/prose-inflation/SlopLexicon.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         E2 in the retired slop-lint.py. This is the maintained mechanical ban list,
         and it is why ai-tells.OverusedVocabulary ships disabled: that rule carries
@@ -53,7 +53,7 @@ rules:
         good: The maintainers will return to the two open bugs.
     provenance:
       source: vale-styles/prose-inflation/BusinessJargon.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Three bands: meeting-register verbs, idioms whose literal reading is not the
         intended one, and verbed nouns plus vision vocabulary. The idiom band is a
@@ -82,7 +82,7 @@ rules:
         good: The lockfile adds 40 KB and removes one network round trip.
     provenance:
       source: vale-styles/prose-inflation/VagueDeclarative.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         The tell is an abstract plural subject plus a bare significance predicate.
         The closing `\b` on each adjective keeps "the implications are documented in
@@ -107,7 +107,7 @@ rules:
         good: The parser validates every field.
     provenance:
       source: vale-styles/prose-inflation/AdditiveHedge.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Both halves are claimed, and the negation exists only to inflate the
         second. Kept at error for source comments in .vale.ini. This is the
@@ -133,7 +133,7 @@ rules:
         good: This drops 40 findings on the same corpus.
     provenance:
       source: vale-styles/prose-inflation/HedgeStack.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Deliberately COMBINATORIAL rather than a token list. hedgeclipper ships
         400+ bare tokens including `can`, `about`, `always`, and `certain`; on any
@@ -161,7 +161,7 @@ rules:
         good: The loader reads 488 files in 0.4 s.
     provenance:
       source: vale-styles/prose-inflation/Intensifier.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Deliberately EXCLUDED because each carries real meaning in a technical
         corpus: significantly/substantially/considerably (statistical and
@@ -190,7 +190,7 @@ rules:
         good: A unique approach.
     provenance:
       source: vale-styles/prose-inflation/Uncomparables.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         The Vale rule is an `existence` check carrying BOTH `raw` (the intensifier,
         consuming the trailing space so the message quotes the whole phrase) and
@@ -220,7 +220,7 @@ rules:
         good: Three files failed.
     provenance:
       source: vale-styles/prose-inflation/VagueQuantifier.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         WARNING, not error, on a MEASURED base rate: 9.9 hits per 10k words across
         147,473 words of human-written technical documentation -- the highest rate of
@@ -257,7 +257,7 @@ rules:
         good: The loader supports globs.
     provenance:
       source: vale-styles/prose-inflation/NominalizedVerb.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         SLOP AXIS on a measured base rate: 0.9 hits per 10k words across 147,473
         words of human-written technical documentation, against a slop-axis median
@@ -287,7 +287,7 @@ rules:
         good: The loader resolves every path in the manifest.
     provenance:
       source: vale-styles/prose-inflation/DocumentPreamble.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         SLOP AXIS on a measured base rate, and the strongest ratio in the set:
         0.7 hits per 10k words across 147,473 words of human-written technical
@@ -317,7 +317,7 @@ rules:
         good: The loader reads 488 files in 0.4 s on the reference machine.
     provenance:
       source: vale-styles/prose-inflation/Apologizing.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         The academic register's hedge: the sentence announces that the document will
         not answer its own question. Distinct from ai-residue.chat-leakage, which
@@ -347,7 +347,7 @@ rules:
         good: The flag takes one argument, a glob.
     provenance:
       source: vale-styles/prose-inflation/BorderlineHype.yml
-      url: https://github.com/srobroek/slopvac/blob/main/vale-styles/README.md
+      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
       note: >-
         Warning, not error: each token has a legitimate use, so the finding is a
         prompt to check rather than a defect -- hence advisory at normal and excluded

@@ -1,0 +1,18 @@
+---
+---
+id: empty-docs-probe
+title: Empty docs probe
+description: Empty YAML documents before a valid category must still load.
+rules:
+  - id: only-rule
+    name: Keep a valid pattern
+    kind: pattern
+    message: unused
+    pattern: '\bxyzzy\b'
+    examples:
+      - bad: xyzzy
+        good: widget
+    provenance:
+      source: test
+---
+---

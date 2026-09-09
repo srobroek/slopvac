@@ -137,16 +137,19 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: excluded
-    pattern: '\b(\w+),\s+(\w+),\s+and\s+(\w+)\b(?=[\s.,;:]|$)'
+    pattern: '\b(\w+(?:-\w+)*),\s+(\w+(?:-\w+)*),\s+and\s+(\w+(?:-\w+)*(?:\s+\w+(?:-\w+)*)*)\b(?=[\s.,;:]|$)'
     ignore_case: true
     fix: Keep the one or two items that carry load and break the symmetry.
     examples:
       - bad: fast, reliable, and secure
         good: The gate reports every finding with a line number.
+      - bad: The system is fast, reliable, and battle-tested.
+        good: The gate reports every finding with a line number.
         note: >-
           A three-item technical enumeration ("create, update, and delete") is
           legitimate and this pattern cannot tell it apart -- see the measurement in
-          exclusions.md for ai-tells.VerbTricolon (149 hits).
+          exclusions.md for ai-tells.VerbTricolon (149 hits). The last item may
+          be hyphenated or multiword so a rhetorical "battle-tested" still fires.
     provenance:
       source: references/ai-tells/structure.md ("Rule of three / tricolon abuse")
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing

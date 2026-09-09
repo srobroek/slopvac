@@ -35,13 +35,13 @@ Delete, at the start of the sentence only:
 - A dotted section number: `4.2.1`, `4.2.1.`
 - A step label: `Step 3.`, `Step 3:`
 
-This is the phase implementers skip most often. Skipping it adds one word to every numbered
+Phase 0 is the phase implementers skip most often. Skipping it adds one word to every numbered
 step in the document, so a 20-word step measures 21.
 
 ### Phase 1: Collapse code and identifiers to one token each
 
 Not from the source specification, which predates none of this but addresses none of it
-either. This phase is our addition for software documentation, and it is a superset of the
+either. Phase 1 is slopvac's addition for software documentation, and it is a superset of the
 specification's alphanumeric-identifier class (rule 8.6, item 4).
 
 Collapse to one token:
@@ -56,12 +56,12 @@ A fenced code block is not a sentence and never enters the tokenizer.
 ### Phase 2: Collapse quoted spans to one token (rule 8.6, item 5)
 
 A span in double, single, or typographic quotes counts as one word regardless of length. The
-specification also treats an all-caps run and a font-distinguished run as quoted text; in
+specification also treats an all-caps run and a font-distinguished run as quoted text. In
 Markdown, treat a bold or italic span the same way only when it names a UI element or a
 literal value, not when it is emphasis.
 
-Consequence worth stating: a 40-word quoted error message counts as one word. That is correct
-and intentional, because the writer cannot edit a quotation.
+Consequence worth stating: a 40-word quoted error message counts as one word. The one-word
+count is intentional, because the writer cannot edit a quotation.
 
 ### Phase 3: Collapse titles, headings, and label text to one token (rule 8.6, item 6)
 
@@ -98,8 +98,8 @@ A numeral or spelled-out number, optionally followed by a unit, counts as one wo
 - `twenty-one`, `forty-seven` -- one word each (a spelled number collapses too)
 - `13` and `16` in a range -- one word each, so `thru`/`to` between them still counts
 
-Issue 9 binds the number to its unit. Issue 7 counted the unit separately. This is the second
-place a counter must declare its target issue.
+Issue 9 binds the number to its unit. Issue 7 counted the unit separately. Number-and-unit is
+the second place a counter must declare its target issue.
 
 ### Phase 7: Collapse abbreviations to one token (rule 8.6, item 3)
 
@@ -160,8 +160,8 @@ A sentence ends at any of:
 1. A period, question mark, or exclamation mark followed by whitespace and a capital letter,
    or by end of input.
 2. A list-introducing colon (section 2). Rule 8.4.
-3. The end of a vertical-list item. Rule 8.4 makes each item its own sentence, whether or not
-   the item ends in a period.
+3. The end of a vertical-list item. Rule 8.4 makes each item its own sentence, with or without
+   a closing period.
 4. A hard line break that ends a heading, a table cell, or a list item.
 
 Non-terminators, because each produces a false split:
@@ -212,8 +212,8 @@ a list marker. The word-count path does the opposite and visits each item.
 
 ## 5. Procedural, descriptive, or safety: the discriminator
 
-The caps differ by text type and the specification gives no mechanical test. This is ours. It
-runs per block, not per document, because a note inside a procedure is descriptive and a
+The caps differ by text type and the specification gives no mechanical test. The test below is
+slopvac's. It runs per block, not per document, because a note inside a procedure is descriptive and a
 warning inside a procedure is procedural.
 
 Evaluate in order and stop at the first match.
@@ -279,7 +279,7 @@ the specification's own worked counts, which label a four-word stack (three noun
 adjective) a violation. Count words.
 
 `coordinated_items` has no basis in the specification, which states rule 4.3 as a direction
-rather than a threshold. Four is our operational trigger, chosen because three inline items
+rather than a threshold. Four is slopvac's operational trigger, chosen because three inline items
 still read cleanly.
 
 ## 7. Thresholds the specification does not set

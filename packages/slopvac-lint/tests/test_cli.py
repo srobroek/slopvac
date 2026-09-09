@@ -8,11 +8,14 @@ partial findings remain available but cannot establish a pass.
 from __future__ import annotations
 
 import json
+import shutil
+from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
 
-from slopvac.cli import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK, main
+from slopvac.cli import main
+from slopvac.pipeline import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
 
 SLOP = """\
 # Getting Started
@@ -782,3 +785,127 @@ def test_bare_severity_string_works_for_a_category(runner, tmp_path):
     )
     findings = json.loads(result.output)["documents"][0]["findings"]
     assert not [f for f in findings if f["category"] == "orwell"]
+
+
+# --- per-file overrides reach the Vale compile ------------------------------
+
+_PROSE_WITH_INTERNAL_REF = (
+    "# Title\n\nThe change is described in the ADR for this decision.\n"
+)
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+def test_a_rule_turned_off_for_one_file_still_compiles_for_the_next(tmp_path):
+    """Vale compiles once per group; the first file's settings must not decide
+    which rules exist for the rest. `docs-discipline` is a Vale-owned category:
+    off for `a.md`, on for `b.md`, so a group keyed on `a.md` alone would drop
+    the finding on `b.md` with nothing left to recover it from."""
+    _write(tmp_path, "a.md", _PROSE_WITH_INTERNAL_REF)
+    _write(tmp_path, "b.md", _PROSE_WITH_INTERNAL_REF)
+    (tmp_path / "slopvac.toml").write_text(
+        'profile = "normal"\n\n'
+        "[[overrides]]\n"
+        'files = ["a.md"]\n\n'
+        "[overrides.categories.docs-discipline]\n"
+        'severity = "off"\n',
+        encoding="utf-8",
+    )
+    result = CliRunner().invoke(
+        main,
+        [
+            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
+            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+        ],
+        catch_exceptions=False,
+    )
+    report = json.loads(result.output)
+    by_path = {Path(doc["path"]).name: doc for doc in report["documents"]}
+    ids = lambda doc: {f["rule_id"] for f in doc["findings"]}  # noqa: E731
+    assert "docs-discipline.internal-refs" not in ids(by_path["a.md"])
+    assert "docs-discipline.internal-refs" in ids(by_path["b.md"])
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+def test_a_rule_turned_off_for_a_later_file_is_dropped_there(tmp_path):
+    _write(tmp_path, "a.md", _PROSE_WITH_INTERNAL_REF)
+    _write(tmp_path, "b.md", _PROSE_WITH_INTERNAL_REF)
+    (tmp_path / "slopvac.toml").write_text(
+        'profile = "normal"\n\n'
+        "[[overrides]]\n"
+        'files = ["b.md"]\n\n'
+        "[overrides.categories.docs-discipline]\n"
+        'severity = "off"\n',
+        encoding="utf-8",
+    )
+    result = CliRunner().invoke(
+        main,
+        [
+            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
+            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+        ],
+        catch_exceptions=False,
+    )
+    report = json.loads(result.output)
+    by_path = {Path(doc["path"]).name: doc for doc in report["documents"]}
+    ids = lambda doc: {f["rule_id"] for f in doc["findings"]}  # noqa: E731
+    assert "docs-discipline.internal-refs" in ids(by_path["a.md"])
+    assert "docs-discipline.internal-refs" not in ids(by_path["b.md"])
+
+
+def _levels(report: dict, name: str) -> dict[str, str]:
+    doc = next(d for d in report["documents"] if Path(d["path"]).name == name)
+    return {f["rule_id"]: f["severity"] for f in doc["findings"]}
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+def test_a_later_file_demoting_a_vale_category_keeps_its_own_level(tmp_path):
+    """The case that exposed the grouping bug: the same category is a warning in
+    the first file and a suggestion in the second, in one invocation."""
+    _write(tmp_path, "a.md", _PROSE_WITH_INTERNAL_REF)
+    _write(tmp_path, "b.md", _PROSE_WITH_INTERNAL_REF)
+    (tmp_path / "slopvac.toml").write_text(
+        'profile = "normal"\n\n'
+        "[[overrides]]\n"
+        'files = ["b.md"]\n\n'
+        "[overrides.categories.docs-discipline]\n"
+        'severity = "suggestion"\n',
+        encoding="utf-8",
+    )
+    result = CliRunner().invoke(
+        main,
+        [
+            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
+            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+        ],
+        catch_exceptions=False,
+    )
+    report = json.loads(result.output)
+    assert _levels(report, "a.md")["docs-discipline.internal-refs"] == "warning"
+    assert _levels(report, "b.md")["docs-discipline.internal-refs"] == "suggestion"
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+def test_a_file_reports_the_same_levels_alone_and_inside_its_directory(tmp_path):
+    """How the caller selects a file must not change what it reports."""
+    _write(tmp_path, "a.md", _PROSE_WITH_INTERNAL_REF)
+    _write(tmp_path, "b.md", _PROSE_WITH_INTERNAL_REF)
+    (tmp_path / "slopvac.toml").write_text(
+        'profile = "normal"\n\n'
+        "[[overrides]]\n"
+        'files = ["b.md"]\n\n'
+        "[overrides.categories.docs-discipline]\n"
+        'severity = "suggestion"\n',
+        encoding="utf-8",
+    )
+    config = ["--config", str(tmp_path / "slopvac.toml"), "--format", "json"]
+    alone = json.loads(
+        CliRunner().invoke(
+            main, ["lint", str(tmp_path / "b.md"), *config], catch_exceptions=False
+        ).output
+    )
+    together = json.loads(
+        CliRunner().invoke(
+            main, ["lint", str(tmp_path), *config], catch_exceptions=False
+        ).output
+    )
+    assert _levels(alone, "b.md") == _levels(together, "b.md")

@@ -10,8 +10,8 @@ warnings rather than re-reading the whole document. An error still means fix it.
 ## The two failures triage avoids
 
 Making every rule an error corrupts correct prose. An error makes an agent rewrite
-the passage, and a false one lands silently in the document. That is worse than a missed finding, which is why the
-hedging and weasel-word rules ship as warnings.
+the passage, and a false one lands silently in the document. A silent rewrite is worse than a
+missed finding, which is why the hedging and weasel-word rules ship as warnings.
 
 Making every review agentic burns a model pass over text that has nothing wrong
 with it. Scanning a clean 4,000-word guide to confirm it is clean is the common
@@ -73,18 +73,18 @@ A clean document yields nothing and costs nothing, which is the point: the
 expensive pass runs in proportion to what the cheap pass found.
 
 The document-scope judgement rules are separate and always run, because a ratio
-across the whole document is exactly what a per-span pattern cannot see. There are
-about 20 of them.
+across the whole document is exactly what a per-span pattern cannot see. About 20
+rules take that shape.
 
-## Recording a false positive
+## Record a false positive
 
 A `false-positive` verdict is only useful if it survives the session. The verdict
 report names the rule, the matched text, and the sentence, which is what a rule
-change needs. Three of these on one rule from different documents is the signal to
-tighten the pattern or drop the token.
+change needs. Three such reports on one rule from different documents are the
+signal to tighten the pattern or drop the token.
 
-The rules already carry two precedents for recording this rather than tuning it
-away: `KNOWN_MISSES` holds the true positives given up to remove false
-ones, and `ACCEPTED_SOFT_HITS` holds the false positives kept deliberately because
-the prompt is worth the noise. Both live in `tests/test_vale_rules.py` with the
-reason for each.
+The rules already carry two precedents for recording a miss rather than tuning it
+away. `KNOWN_MISSES` holds the true positives given up to remove false ones.
+`ACCEPTED_SOFT_HITS` holds the false positives kept deliberately because the prompt
+is worth the noise. Both live in `tests/test_vale_rules.py` with the reason for
+each.

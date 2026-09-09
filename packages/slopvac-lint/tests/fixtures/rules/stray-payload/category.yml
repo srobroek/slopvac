@@ -1,0 +1,16 @@
+id: payload-probe
+title: Payload probe
+description: Fixture that carries a field its kind does not use.
+rules:
+  - id: stray-tokens
+    name: Pattern with leftover tokens
+    kind: pattern
+    message: unused
+    pattern: foo
+    tokens:
+      - foo
+    examples:
+      - bad: foo
+        good: bar
+    provenance:
+      source: test

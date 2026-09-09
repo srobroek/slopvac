@@ -49,6 +49,7 @@
       "extra-files": [
         "packages/slopvac-lint/pyproject.toml",
         "packages/slopvac-lint/src/slopvac/__init__.py",
+        ".pre-commit-hooks.yaml",
         {
           "type": "json",
           "path": "packages/slopvac/package.json",
@@ -77,6 +78,11 @@
         {
           "type": "json",
           "path": ".codex-plugin/marketplace.json",
+          "jsonpath": "$.plugins[0].version"
+        },
+        {
+          "type": "json",
+          "path": ".omp-plugin/marketplace.json",
           "jsonpath": "$.plugins[0].version"
         }
       ]

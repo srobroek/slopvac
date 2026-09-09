@@ -68,7 +68,7 @@ ACCEPTED_SOFT_HITS = {
     ),
 }
 
-pytestmark = pytest.mark.skipif(
+needs_vale = pytest.mark.skipif(
     shutil.which("vale") is None, reason="vale is not on PATH"
 )
 
@@ -124,6 +124,7 @@ def _lines(path: Path) -> list[tuple[int, str]]:
     ]
 
 
+@needs_vale
 def test_every_rule_loads(tmp_path):
     """A rule that fails to load reports every file clean, which is
     indistinguishable from a pass. Vale reports E201 on stdout rather than
@@ -142,6 +143,7 @@ def test_every_rule_loads(tmp_path):
     )
 
 
+@needs_vale
 def test_positive_fixture_fires(tmp_path):
     """Every line in must-fire.md carries a defect one of the rules must catch."""
     config = _config(tmp_path)
@@ -155,6 +157,7 @@ def test_positive_fixture_fires(tmp_path):
     assert not missed, f"no rule fired on: {missed}"
 
 
+@needs_vale
 def test_weasel_fixture_fires(tmp_path):
     """Wikipedia's weasel-word classes: vague quantifiers, unsupported
     attributions, and comparatives with no baseline. The three have different
@@ -170,6 +173,7 @@ def test_weasel_fixture_fires(tmp_path):
     assert not missed, f"no rule fired on: {missed}"
 
 
+@needs_vale
 def test_mos_fixture_fires(tmp_path):
     """Wikipedia's Manual of Style: Words to watch, plus the Vocabulary section.
 
@@ -240,6 +244,7 @@ def test_no_lookaround_in_vale_patterns():
                 )
 
 
+@needs_vale
 def test_known_misses_are_still_missed(tmp_path):
     """A known miss that starts firing is good news, and this test failing is the
     signal to delete the entry rather than to widen the rule back."""
@@ -253,6 +258,7 @@ def test_known_misses_are_still_missed(tmp_path):
             )
 
 
+@needs_vale
 @pytest.mark.parametrize(
     "fixture", ["must-not-fire.md", "hard.md", "weasel-clean.md", "mos-clean.md"]
 )
@@ -325,3 +331,51 @@ def test_clause_spanning_rules_use_raw_scope():
                 f"{path.name} spans a clause boundary but does not set "
                 f"`scope: raw`, so it will silently never fire."
             )
+
+
+def _native_ids(text: str) -> set[str]:
+    from slopvac.analyze import parse
+    from slopvac.config import Config, resolve_for
+    from slopvac.engine import Engine
+    from slopvac.rules import load_ruleset
+
+    ruleset = load_ruleset()
+    resolved = resolve_for(Config(), Path("/repo/a.md"))
+    return {f.rule_id for f in Engine(ruleset.rules, resolved).run(parse("a.md", text))}
+
+
+def test_promotional_verbs_omit_navigate():
+    """`navigate` is the standard UI instruction, not promotional vocabulary."""
+    from slopvac.rules import load_ruleset
+
+    rule = load_ruleset().by_id("prose-promotion.promotional-verbs")
+    assert rule is not None
+    assert rule.tokens is not None
+    assert not any(token.startswith("navigat") for token in rule.tokens)
+    ids = _native_ids("Navigate to Settings and select Save.\n")
+    assert "prose-promotion.promotional-verbs" not in ids
+
+
+def test_tricolon_core_matches_hyphenated_final_item():
+    """The mechanical core used to stop at `\\w+`, so `battle-tested` missed."""
+    hyphenated = _native_ids("The system is fast, reliable, and battle-tested.\n")
+    assert "ai-tells-structure.tricolon-abuse-core" in hyphenated
+    technical = _native_ids("The API supports create, update, and delete operations.\n")
+    assert "ai-tells-structure.tricolon-abuse-core" in technical
+
+
+def test_complex_tense_accepts_status_report_suppression():
+    """Present perfect is legitimate in a status or completion statement."""
+    from slopvac.rules import load_ruleset
+
+    rule = load_ruleset().by_id("ste-verbs.complex-tense")
+    assert rule is not None
+    assert "status-report" in rule.exceptions
+    bare = _native_ids("The deployment has completed successfully.\n")
+    assert "ste-verbs.complex-tense" in bare
+    suppressed = _native_ids(
+        "<!-- slopvac-allow: rule=ste-verbs.complex-tense reason=status-report -->\n"
+        "The deployment has completed successfully.\n"
+    )
+    assert "ste-verbs.complex-tense" not in suppressed
+    assert "meta.invalid-suppression" not in suppressed

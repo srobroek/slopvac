@@ -8,7 +8,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check-agnix-staged.sh"
 INSTALLER = ROOT / "scripts" / "install-agnix-hooks.sh"
@@ -37,7 +36,7 @@ Use the tool.
 
 
 def run(command: list[str], cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(command, cwd=cwd, env=env, text=True, capture_output=True)
+    return subprocess.run(command, cwd=cwd, env=env, text=True, capture_output=True, check=False)
 
 
 def git(*args: str, cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
