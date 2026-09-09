@@ -426,11 +426,16 @@ to write less rather than to write better. A threshold set against a count eithe
 passes a 3,000-word document with forty problems or fails a 200-word one with
 three.
 
-The gate uses severity-weighted findings per 100 words. The score compares that
-density with the profile budget. Long documents earn proportionally more findings.
-counts, because one finding
-in a 20-word error message is 5.0 per 100 words and would fail every budget ever
-set.
+Scoring uses two inputs:
+
+- severity-weighted errors and warnings per 100 words
+- the profile budget for that density
+
+The budget converts density into a score.
+Long documents earn proportionally more findings.
+Documents under 60 words use absolute counts.
+For example, one finding in a 20-word error message equals 5.0 per 100 words.
+Density scoring would fail every budget in that case.
 
 ### Rules that fire deterministically, separated from rules that do not
 
