@@ -708,7 +708,11 @@ def test_a_failed_compile_leaves_no_cache_entry(ruleset, vocabulary, tmp_path, m
             ruleset, config, outdir=outdir, validate=False, vocabulary=vocabulary, force=True
         )
     assert not (outdir / "manifest.json").is_file()
-    leftovers = [p.name for p in tmp_path.iterdir() if p.name.startswith(".c.")]
+    # The publish lock file stays behind by design: a lock that removed itself
+    # would reopen the race it exists to close.
+    leftovers = [
+        p.name for p in tmp_path.iterdir() if p.name.startswith(".c.") and p.name != ".c.lock"
+    ]
     assert not leftovers or all("building" in n for n in leftovers), leftovers
 
 
@@ -911,3 +915,47 @@ def test_only_one_rule_owns_the_vocabulary_sweep(compiled, tmp_path):
             per_word.setdefault((alert["Line"], alert["Match"]), []).append(alert["Check"])
     for key, checks in per_word.items():
         assert len(checks) == 1, f"{key} reported by {checks}"
+
+
+# --- concurrent compiles share one published tree -----------------------------
+
+
+def test_a_compile_that_waits_on_a_peer_reuses_its_tree(ruleset, vocabulary, tmp_path):
+    """Two processes missing the cache for one key used to compile in parallel,
+    and the second one's publish moved the first tree aside while its owner was
+    handing it to Vale. Under the publish lock the waiter finds the peer's tree
+    and reuses it: nothing it compiled replaces what is already published."""
+    import threading
+
+    fcntl = pytest.importorskip("fcntl")
+    resolved = resolve_for(Config(), Path("README.md"))
+    outdir = tmp_path / "shared"
+    outdir.parent.mkdir(parents=True, exist_ok=True)
+    lock_fd = os.open(outdir.parent / f".{outdir.name}.lock", os.O_RDWR | os.O_CREAT, 0o644)
+    fcntl.flock(lock_fd, fcntl.LOCK_EX)
+
+    results: list = []
+    waiter = threading.Thread(
+        target=lambda: results.append(
+            compile_ruleset(ruleset, resolved, outdir=outdir, validate=False, vocabulary=vocabulary)
+        )
+    )
+    waiter.start()
+    waiter.join(timeout=2)
+    assert waiter.is_alive(), "the waiter compiled without taking the publish lock"
+
+    # The peer publishes while the waiter is blocked; the marker proves which
+    # tree survives.
+    winner = compile_ruleset(
+        ruleset, resolved, outdir=tmp_path / "winner", validate=False, vocabulary=vocabulary
+    )
+    shutil.copytree(winner.outdir, outdir)
+    (outdir / "published-by-peer").write_text("")
+    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+    os.close(lock_fd)
+
+    waiter.join(timeout=30)
+    assert not waiter.is_alive()
+    assert results[0].outdir == outdir
+    assert (outdir / "published-by-peer").exists(), "the waiter replaced the peer's tree"
+    assert not list(outdir.parent.glob(".shared.building-*"))

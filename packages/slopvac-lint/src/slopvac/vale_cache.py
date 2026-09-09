@@ -13,10 +13,46 @@ import hashlib
 import os
 import shutil
 import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager, suppress
 from pathlib import Path
 
 from .config import ResolvedConfig
 from .model import Rule
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows has no flock
+    fcntl = None
+
+
+@contextmanager
+def publish_lock(outdir: Path) -> Iterator[None]:
+    """Serialise every compile that publishes `outdir`.
+
+    Two processes that miss the cache for the same key used to compile in
+    parallel, and the second to finish moved the first one's published tree aside
+    while the first was already handing it to Vale: that run failed with an
+    incomplete result although each alone passes. Under the lock the second
+    process re-checks the manifest and reuses the tree instead.
+
+    The lock lives beside the tree, so a caller who named its own outdir is
+    serialised there too. Where `flock` is unavailable the compile runs unlocked,
+    which is the behaviour it had before.
+    """
+    if fcntl is None:
+        yield
+        return
+    outdir.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = outdir.parent / f".{outdir.name}.lock"
+    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        with suppress(OSError):
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
 
 
 def _compiler_source_digest() -> str:

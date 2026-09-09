@@ -56,7 +56,7 @@ import yaml
 
 from .config import ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType
-from .vale_cache import cache_root, fingerprint, prune_cache
+from .vale_cache import cache_root, fingerprint, prune_cache, publish_lock
 from .vale_probe import ValeUnavailable, probe_payloads
 
 # Our scope vocabulary to Vale's. Vale has no document scope: a whole-document
@@ -843,30 +843,73 @@ def compile_ruleset(
             )
         outdir = cache_root() / key
     outdir = Path(outdir)
+    if not force:
+        hit = _cached_result(outdir, key)
+        if hit is not None:
+            return hit
+
+    with publish_lock(outdir):
+        # A peer that held the lock may have published this key while this process
+        # waited; reuse its tree rather than compiling a second identical one and
+        # moving the first aside under a reader.
+        if not force:
+            hit = _cached_result(outdir, key)
+            if hit is not None:
+                return hit
+        return _compile_into(
+            ruleset,
+            resolved_config,
+            outdir,
+            key,
+            levels,
+            cached_here,
+            binary=binary,
+            validate=validate,
+            vocabulary=vocabulary,
+        )
+
+
+def _cached_result(outdir: Path, key: str) -> CompileResult | None:
+    """The published tree for `key`, or None when it is absent or stale."""
     manifest_path = outdir / "manifest.json"
+    if not manifest_path.is_file():
+        return None
+    try:
+        cached = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not cached or cached.get("fingerprint") != key:
+        return None
+    # Mark the hit, so pruning keeps what is in use rather than what was
+    # compiled most recently. A project that alternates two profiles would
+    # otherwise lose whichever it compiled first, however often it runs.
+    with suppress(OSError):
+        os.utime(outdir)
+    return CompileResult(
+        outdir=outdir,
+        config_path=outdir / ".vale.ini",
+        vale_rules=cached.get("vale_rules", []),
+        native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
+        judgement_rules=cached.get("judgement_rules", []),
+        disabled_rules=cached.get("disabled_rules", []),
+        notes=cached.get("notes", []),
+        aliases=cached.get("aliases", {}),
+    )
 
-    if not force and manifest_path.is_file():
-        try:
-            cached = json.loads(manifest_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            cached = None
-        if cached and cached.get("fingerprint") == key:
-            # Mark the hit, so pruning keeps what is in use rather than what was
-            # compiled most recently. A project that alternates two profiles would
-            # otherwise lose whichever it compiled first, however often it runs.
-            with suppress(OSError):
-                os.utime(outdir)
-            return CompileResult(
-                outdir=outdir,
-                config_path=outdir / ".vale.ini",
-                vale_rules=cached.get("vale_rules", []),
-                native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
-                judgement_rules=cached.get("judgement_rules", []),
-                disabled_rules=cached.get("disabled_rules", []),
-                notes=cached.get("notes", []),
-                aliases=cached.get("aliases", {}),
-            )
 
+def _compile_into(
+    ruleset,
+    resolved_config: ResolvedConfig,
+    outdir: Path,
+    key: str,
+    levels: dict[str, str],
+    cached_here: bool,
+    *,
+    binary: str,
+    validate: bool,
+    vocabulary,
+) -> CompileResult:
+    """Build the tree for `key` and publish it at `outdir`. The caller holds the lock."""
     result = CompileResult(outdir=outdir, config_path=outdir / ".vale.ini")
 
     payloads: dict[str, dict] = {}
@@ -1030,9 +1073,10 @@ def compile_ruleset(
     )
 
     # `os.replace` is atomic for a directory only when the target does not exist,
-    # so the old tree moves aside first and is removed after the swap. A loser in a
-    # race finds its own rename failing because the winner already published an
-    # identical tree -- the fingerprint says so -- so it keeps the winner's.
+    # so the old tree moves aside first and is removed after the swap. Only a
+    # `force` compile or a stale manifest reaches here with a tree in place: the
+    # publish lock and the re-check under it mean a peer's fresh tree is reused,
+    # never moved aside while that peer is handing it to Vale.
     previous = outdir.parent / f".{outdir.name}.replaced-{os.getpid()}"
     try:
         if outdir.exists():
