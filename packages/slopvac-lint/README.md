@@ -323,11 +323,12 @@ score but must not fail a run**.
 
 A raw count cannot compare a 40-word error message against a 4,000-word guide.
 One finding is 2.5 per 100 words in the first and 0.025 in the second. The
-measurement is therefore always a density:
+For documents of 60 words or more, the measurement is a density:
 
 ```
 density = findings / words * 100
 ```
+
 Below 60 words, density means nothing, so the scorer uses absolute counts for
 blocking findings. An error costs 20 points and a warning costs 10. Suggestions
 use a separate bounded penalty: 2.5 points each, up to 15 points total, and
