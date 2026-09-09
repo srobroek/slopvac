@@ -1,5 +1,10 @@
 # Migration map
 
+<!-- slopvac-disable -->
+**Historical.** This file describes the Vale generation that 2.0 replaced. The
+shipped inventory is [`docs/rules.md`](rules.md) (232 rules, 25 categories).
+<!-- slopvac-enable -->
+
 ## Provenance: which Vale styles are ours
 
 `vale/styles/` is entirely gitignored (`vale/styles/.gitignore:5` = `*/`); only

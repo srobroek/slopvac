@@ -6,21 +6,30 @@ AI generated documentation has a clear fingerprint. Contrastive inversions.
 Adjectives nothing measures. Rationale that belongs in a decision record, roadmap
 language for something that does not ship yet, and hedging on every claim.
 
-This package ships two skills.
+This repository ships the `slopvac` CLI and two skills.
+
+The CLI scores prose against 232 rules in 25 categories. Configure it with
+`slopvac.toml`. Profiles set the strictness. `<!-- slopvac-allow -->` comments
+suppress a finding when the reason is on that rule's list.
 
 `write-docs` classifies a document by genre and authors against that
 genre's rules.
 
-`review-docs` gates a document with a deterministic
-[Vale](https://vale.sh) pass, judges the register against a catalog of tells no regex
+`review-docs` runs `slopvac`, judges the register against tells no regex
 reaches, and returns a verdict. Use either skill alone.
 
 Works with Oh My Pi, Claude Code, Codex, and Kiro.
 
 ## Quick start
 
-Needs [`vale`](https://vale.sh) on `PATH` (`brew install vale`, or
-`mise use -g vale`).
+```sh
+uvx slopvac README.md
+```
+
+Vale 3.15 or later on `PATH` runs the optional Vale sub-gate
+(`brew install vale`, or `mise use -g vale`). Without it, or with
+`--no-vale`, Vale-backed rules report as unchecked and the run exits 2.
+Native findings stay in the report.
 
 **Oh My Pi**
 
@@ -100,8 +109,7 @@ flowchart TD
 
     IN --> GATE
 
-    GATE["<b>1. Deterministic gate</b><br/>Vale, 23 rules over 7 packages<br/>deleted actors, claims pas
-t evidence,<br/>over-writing, status language, formatting"]
+    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 232 rules in 25 categories<br/>optional Vale sub-gate"]
 
     GATE --> REG["<b>2. Register judgement</b><br/>read the tells catalog and apply it:<br/>voice, struc
 tural symmetry, dilution,<br/>and the counter-signals expert prose has"]
@@ -137,35 +145,45 @@ absent, nothing more"]
     class PASS,SHIP good
 ```
 
-## Patterns it catches
+## Categories
 
-Two layers, because half of this resists mechanization.
+`slopvac` ships **232 rules** across **25 categories**: 165 checked, 67 judgement.
+`slopvac rules` lists them. The generated reference is
+[`packages/slopvac-lint/docs/rules.md`](packages/slopvac-lint/docs/rules.md).
 
-**Deterministic.** 23 Vale rules across seven packages, each one regex over parsed
-prose, tested and calibrated against a real corpus.
+| Category | Checked | Judgement |
+| --- | --: | --: |
+| `ai-residue` | 1 | 0 |
+| `ai-tells-content-shape` | 5 | 9 |
+| `ai-tells-figurative` | 12 | 0 |
+| `ai-tells-formatting` | 9 | 1 |
+| `ai-tells-register` | 9 | 10 |
+| `ai-tells-structure` | 14 | 18 |
+| `docs-discipline` | 3 | 0 |
+| `orwell` | 4 | 1 |
+| `prose-agency` | 5 | 0 |
+| `prose-craft` | 28 | 0 |
+| `prose-discipline` | 7 | 5 |
+| `prose-format` | 3 | 0 |
+| `prose-inclusive` | 3 | 0 |
+| `prose-inflation` | 12 | 0 |
+| `prose-promotion` | 4 | 0 |
+| `prose-scope` | 4 | 0 |
+| `ste-descriptive` | 2 | 4 |
+| `ste-nouns` | 1 | 1 |
+| `ste-practices` | 9 | 3 |
+| `ste-procedural` | 5 | 0 |
+| `ste-punctuation` | 4 | 4 |
+| `ste-safety` | 2 | 1 |
+| `ste-sentences` | 5 | 2 |
+| `ste-verbs` | 5 | 2 |
+| `ste-words` | 9 | 6 |
 
-| Package | Rules | Catches |
-| --- | --- | --- |
-| `prose-agency` | `FalseAgency`, `AgentlessPassive`, `NarratorDistance` | The actor deleted: an abstraction acting, a passive with no agent, or narration from outside the scene |
-| `prose-inflation` | `SlopLexicon`, `BorderlineHype`, `VagueDeclarative`, `AdditiveHedge`, `BusinessJargon` | Claims past their evidence: marketing adjectives, significance without a specific, meeting-register verbs |
-| `prose-scope` | `RejectedAlternative`, `ImplementationLeak`, `UnrequestedReassurance`, `Epigram` | Over-writing: a decision defended in place, a cost the reader cannot act on, an unraised worry answered, or an epigram closing a section that already concluded |
-| `ai-residue` | `ChatLeakage` | Assistant output pasted into a shipped document |
-| `docs-discipline` | `StatusLanguage`, `HistoryNarration`, `InternalRefs` | Text describing something other than the released artifact |
-| `prose-format` | `EmojiHeading`, `NoUnicodeDash`, `ProseBlock` | Emoji headings, Unicode dashes, paragraphs that should be a list |
-| `ai-tells` | 76 upstream | [tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells), with the exclusions a software corpus needs applied |
+Checked rules produce findings. Judgement rules do not; a reviewing agent reads
+them from `slopvac rules --judgement`.
 
-**Agentic.** The skill reads a catalog of tells no regex reaches, and applies them
-by judgement:
-
-| Category | Examples |
-| --- | --- |
-| Register | Faux-candor pivots, punchy-fragment cadence, corporate-analytic filler, figurative-verb verdicts, sycophantic residue |
-| Structure | Contrastive inversion, tricolon abuse, false-suspense transitions, meta-narration, heading echo |
-| Formatting | Em-dash density, bold spray, inline-header lists, tables wrapping one sentence |
-| Content shape | Fabricated citations, fake specificity, one-point dilution, padded symmetry, vaporware description |
-| Counter-signals | What expert prose has and generated prose lacks: non-round numbers, named specifics, an unhedged stance, asymmetric structure |
-
-A document passes when both layers agree.
+A document passes when the CLI clears its thresholds and the review finds no
+clustered register tells.
 
 ## Limits
 
@@ -177,13 +195,46 @@ spend attention on, so that the attention goes to whether the document is correc
 
 ## Install
 
-Needs `vale` on `PATH`:
+### CLI
 
 ```sh
-mise use -g vale     # or: brew install vale
+uv tool install slopvac     # persistent
+uvx slopvac --help          # or run it without installing
+pipx install slopvac
 ```
 
-`ast-grep` is optional and extends the gate to JSX text nodes.
+Vale 3.15 or later on `PATH` runs the Vale sub-gate. The CLI still scores native
+rules when Vale is absent.
+
+The full CLI contract lives in
+[`packages/slopvac-lint/README.md`](packages/slopvac-lint/README.md).
+
+### pre-commit
+
+```yaml
+repos:
+  - repo: https://github.com/srobroek/slopvac
+    rev: v2.0.0
+    hooks:
+      - id: slopvac
+```
+
+Also: `slopvac-strict` (`--profile strict`) and `slopvac-no-vale` (`--no-vale`).
+`--no-vale` skips the Vale sub-gate. Vale-backed rules report as unchecked.
+
+### GitHub Action
+
+```yaml
+- uses: srobroek/slopvac@v2.0.0
+  with:
+    paths: README.md docs/
+    profile: normal
+```
+
+Inputs include `paths`, `profile`, `config`, `changed-files-only`, `min-score`,
+`max-per-100-words`, `fail-on-findings`, `annotate`, `sarif`, `vale`, `version`,
+and `source`. Outputs include `score`, `findings`, `errors`, `per-100-words`,
+`passed`, `json`, and `sarif`.
 
 ### Oh My Pi
 
@@ -249,88 +300,60 @@ mkdir -p .kiro/skills
 cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
 ```
 
-## Dependencies
-
-| What | Needed for | Without it |
-| --- | --- | --- |
-| [`vale`](https://vale.sh) 3.x | The whole deterministic gate. Everything else is configuration for it. | Without it the gate exits with the install command printed; the skill still applies its judgement rules by reading |
-| [`ast-grep`](https://ast-grep.github.io) | Extracting prose from `.tsx` and `.jsx`, which Vale cannot parse | Those files are reported as unchecked rather than passed silently |
-| `git` | Direct-copy installs from the repository | Native plugin installs are unaffected |
-
-Each harness loads these Markdown files. The gate needs `vale` at the
-point it runs.
-
-### Rule sources
-
-`vale sync` fetches the style packages listed under
-[Patterns it catches](#patterns-it-catches). All but one are built from `vale-styles/` in
-this repo; `ai-tells` comes from
-[tbhb/vale-ai-tells](https://github.com/tbhb/vale-ai-tells) (MIT), whose 76 rules
-arrive with the exclusions a software corpus needs already applied. The lexical rules in `prose-inflation` were harvested from
-[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) (MIT).
-
-Development adds `pytest`, `bats`, `actionlint`, `zizmor`, `yamllint`, and
-`shellcheck`, all pinned in the workflows.
-
 ## Configuration
 
-The gate reads one file, `.vale.ini` at your project root, and the project owns it.
-The fetched `.vale-styles/` directory is not committed.
+`slopvac init` writes a `slopvac.toml`. The CLI reads that file, or a
+`[tool.slopvac]` table in `pyproject.toml`. Keys:
 
-Take new upstream rules with `vale --config=.vale.ini sync`. Every URL in the file
-points at a rolling release tag, so a sync is the whole update.
-
-### Override a rule
-
-Put the line inside the section it applies to, normally `[*.{md,mdx}]`: a rule line
-binds to the section above it, so one appended at the end of the file attaches to
-the last section instead.
-
-```ini
-[*.{md,mdx}]
-BasedOnStyles = ai-residue, prose-agency, prose-inflation, prose-scope, docs-discipline, prose-format, ai-tells
-
-prose-scope.ImplementationLeak = NO        # latency is the product; we publish it
-prose-format.NoUnicodeDash = NO            # house style uses real em dashes
-prose-inflation.BusinessJargon = warning   # advisory, not a gate
-```
-
-| Scope | Change |
+| Key | Effect |
 | --- | --- |
-| One rule off | `rule = NO` |
-| Advisory only | `rule = warning` |
-| A whole style | drop it from that section's `BasedOnStyles` |
-| One path | `[**/generated/**]` then `BasedOnStyles =` |
-| One passage | `<!-- vale rule = NO -->` ... `<!-- vale rule = YES -->`, each on its own line |
+| `profile` | `strict`, `normal` (default), or `relaxed` |
+| `exclude` | gitignore-style paths the CLI never lints |
+| `[thresholds]` | `max_errors`, `max_warnings`, `max_total_per_100_words`, `min_score` |
+| `[categories]` | per-category `severity`, `max_per_100_words`, `weight` |
+| `[rules]` | per-rule `severity` (`off`, `suggestion`, `warning`, `error`) |
+| `[[overrides]]` | glob-scoped patches, applied in file order |
+| `[locale]` | `default` (`en-US`, `en-GB`, `und`) and `allow` |
+| `[vocabulary]` | `path` to a project blocklist; unset leaves word checks inert |
+| `[vale]` | `enabled`, `binary`, `config` for the Vale sub-gate |
 
-Decision records invert some rules: a spec, a design record, or CONTRIBUTING is
-where a rationale and its measurement belong, so those paths already exempt
-`prose-scope` and the internal-reference rule.
+Profiles set document gates (`config.py` `profile_thresholds`):
 
-## Using the styles without an agent
+| Profile | Density budget | Max errors | `min_score` |
+| --- | --- | --- | --- |
+| `strict` | 1.5 / 100 words | 0 | 85 |
+| `normal` | 3.0 / 100 words | 0 | 70 |
+| `relaxed` | 8.0 / 100 words | unlimited | none |
 
-Every package is a plain Vale style that installs on its own. A project that wants
-`prose-agency` and none of the house genre rules takes just that one:
+Suppress one finding with a reason from that rule's closed list:
 
-```ini
-StylesPath = .vale-styles
-MinAlertLevel = warning
-Packages = https://github.com/srobroek/slopvac/releases/download/vale-styles/prose-agency.zip
-
-[*.md]
-BasedOnStyles = prose-agency
+```markdown
+<!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-Vale parses Markdown, MDX, HTML, JSON, and YAML, and it is syntax-aware for source
-files: it lints comments and docstrings while skipping identifiers and string
-literals, so a field named `robust` stays clean. `.mdx` needs `[formats]`
-`mdx = md`, or Vale fails with `mdx2vast not found`.
-`.tsx` and `.jsx` have no parser and no working alias, and Vale reports zero
-findings and exits 0 for them, which reads as a pass, so the skill extracts their JSX
-text with `ast-grep` instead.
+`slopvac explain <id>` lists the valid reasons. A reason off the list is
+reported rather than honoured.
 
-See [vale-styles/README.md](packages/slopvac-lint/vale-styles/README.md) for the
-full rule set.
+Disable the next line, or a span:
+
+```markdown
+<!-- slopvac-disable-next-line -->
+<!-- slopvac-disable -->
+...
+<!-- slopvac-enable -->
+```
+
+## Exit codes
+
+| Code | Means |
+| --- | --- |
+| 0 | every selected rule ran and every threshold passed |
+| 1 | a threshold failed |
+| 2 | the run could not be trusted |
+
+Exit 2 covers a bad config, an unloadable ruleset, a missing tool, and a skipped
+Vale sub-gate (`--no-vale` or no `vale` binary). Native findings stay in the
+report. Treat exit 2 as an incomplete check, not a pass.
 
 ## Development setup
 

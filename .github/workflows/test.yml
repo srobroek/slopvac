@@ -37,19 +37,12 @@ jobs:
           python-version: "3.14"
 
       - name: Install vale
-        run: |
-          set -euo pipefail
-          version=3.15.2
-          curl -sSfL -o vale.tar.gz \
-            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
-          tar -xzf vale.tar.gz vale
-          sudo install -m 0755 vale /usr/local/bin/vale
-          vale --version
+        run: ./scripts/install-vale.sh 3.15.2
 
       - name: Install ast-grep
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet ast-grep-cli
+          python3 -m pip install --quiet ast-grep-cli==0.45.3
           ast-grep --version
 
       # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
@@ -172,14 +165,7 @@ jobs:
       # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
       # without it -- which is a missing dependency reported as a test failure.
       - name: Install vale
-        run: |
-          set -euo pipefail
-          version=3.15.2
-          curl -sSfL -o vale.tar.gz \
-            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
-          tar -xzf vale.tar.gz vale
-          sudo install -m 0755 vale /usr/local/bin/vale
-          vale --version
+        run: ./scripts/install-vale.sh 3.15.2
 
       - name: pytest
         working-directory: packages/slopvac-lint

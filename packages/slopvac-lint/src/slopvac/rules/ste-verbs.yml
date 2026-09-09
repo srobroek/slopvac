@@ -52,6 +52,7 @@ rules:
       - quotation
       - code-span
       - changelog-entry
+      - status-report
     allowlist:
       - has released
       - have released
@@ -74,7 +75,8 @@ rules:
         is required" (does not match, because "required" is not in the suffix set — this is
         the deliberate limit that keeps the rule off passive-voice territory, which
         passive-voice owns). The changelog-entry exception exists because release notes
-        conventionally use the present perfect for shipped changes.
+        conventionally use the present perfect for shipped changes. status-report covers
+        completion and status statements that use the same tense legitimately.
     fix: Rewrite in the simple present, simple past, or simple future tense.
 
   - id: past-participle-not-adjectival

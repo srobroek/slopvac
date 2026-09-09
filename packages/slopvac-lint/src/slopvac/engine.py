@@ -194,32 +194,32 @@ def drop_quoted_illustrations(
     for finding in findings:
         rule = ruleset.by_id(finding.rule_id)
         index = finding.line - 1
-        locatable = (
-            rule is not None
-            and finding.matched_text
-            and 0 <= index < len(document.raw_lines)
-        )
-        if locatable:
-            line = document.raw_lines[index]
-            start = line.find(finding.matched_text)
-            end = start + len(finding.matched_text)
-            if start != -1:
-                if "quotation" in rule.exceptions and _inside_quotation(
-                    line, start, end
-                ):
-                    continue
-                # A `scope: prose` rule must not reach inside inline code. The
-                # native engine gets this free -- it masks every code span before
-                # matching -- but Vale's `text` scope sees the backticks and their
-                # contents, so the same rule reported on one engine and not the
-                # other. `docs/vale-traps.md` drew an error on the word inside
-                # `` `\bmaster(?! branch)\b` ``: a documented regex, not prose.
-                #
-                # `scope: raw` is exempt: those rules exist to reach into code
-                # (a pasted prompt, a curly quote in a fence) and filtering them
-                # here would delete their whole purpose.
-                if rule.scope is not Scope.RAW and _inside_code_span(line, start, end):
-                    continue
+        if rule is None:
+            kept.append(finding)
+            continue
+        if not finding.matched_text or not (0 <= index < len(document.raw_lines)):
+            kept.append(finding)
+            continue
+        line = document.raw_lines[index]
+        start = line.find(finding.matched_text)
+        end = start + len(finding.matched_text)
+        if start != -1:
+            if "quotation" in rule.exceptions and _inside_quotation(
+                line, start, end
+            ):
+                continue
+            # A `scope: prose` rule must not reach inside inline code. The
+            # native engine gets this free -- it masks every code span before
+            # matching -- but Vale's `text` scope sees the backticks and their
+            # contents, so the same rule reported on one engine and not the
+            # other. `docs/vale-traps.md` drew an error on the word inside
+            # `` `\bmaster(?! branch)\b` ``: a documented regex, not prose.
+            #
+            # `scope: raw` is exempt: those rules exist to reach into code
+            # (a pasted prompt, a curly quote in a fence) and filtering them
+            # here would delete their whole purpose.
+            if rule.scope is not Scope.RAW and _inside_code_span(line, start, end):
+                continue
         kept.append(finding)
     return kept
 
@@ -440,6 +440,7 @@ class Engine:
         what `severity_for` callers and the tests want.
         """
         self.config = config
+        self._catalog = {r.qualified_id: r for r in rules}
         self.rules = [r for r in rules if self._active(r)]
         if only is not None:
             self.rules = [r for r in self.rules if r.qualified_id in only]
@@ -598,7 +599,7 @@ class Engine:
         invalid: list[Finding] = []
         block_disabled = False
 
-        known = {r.qualified_id: r for r in self.rules}
+        active = {r.qualified_id for r in self.rules}
 
         for index, line in enumerate(document.raw_lines):
             number = index + 1
@@ -631,9 +632,21 @@ class Engine:
                         Suppression(rule=rule_id, reason=reason, line=number)
                     )
 
-                rule = known.get(rule_id)
+                rule = self._catalog.get(rule_id)
                 if rule is None:
-                    continue  # rule not active here; nothing to validate against
+                    invalid.append(
+                        Finding(
+                            path=document.path,
+                            line=number,
+                            rule_id="meta.invalid-suppression",
+                            category="meta",
+                            severity=Severity.ERROR,
+                            message=f"suppression names unknown rule {rule_id}.",
+                        )
+                    )
+                    continue
+                if rule.qualified_id not in active:
+                    continue  # real rule, off in this profile; nothing to validate
                 if reason is None:
                     invalid.append(
                         Finding(
@@ -648,7 +661,7 @@ class Engine:
                             ),
                         )
                     )
-                elif rule.exceptions and reason not in rule.exceptions:
+                elif reason not in rule.exceptions:
                     invalid.append(
                         Finding(
                             path=document.path,
@@ -658,7 +671,7 @@ class Engine:
                             severity=Severity.ERROR,
                             message=(
                                 f'reason "{reason}" is not an exception of {rule_id}. '
-                                f"Valid: {', '.join(rule.exceptions)}."
+                                f"Valid: {', '.join(rule.exceptions) or 'none defined'}."
                             ),
                         )
                     )
@@ -678,7 +691,7 @@ class Engine:
                 continue
             if entry.reason is None:
                 continue  # malformed; already reported, does not suppress
-            if rule.exceptions and entry.reason not in rule.exceptions:
+            if entry.reason not in rule.exceptions:
                 continue  # invalid; already reported, does not suppress
             return True
         return False
@@ -874,6 +887,24 @@ class Engine:
         metric = rule.metric or ""
         threshold = rule.threshold or 0
 
+        def report(line: int, match: str, replacement: str) -> None:
+            """One finding at `line`, unless a suppression covers it."""
+            if self._suppressed(rule, line, suppressions, disabled):
+                return
+            results.append(
+                self._metric_finding(
+                    rule, document, line, severity,
+                    format_message(rule.message, match=match, replacement=replacement),
+                )
+            )
+
+        def per_sentence(measure, offset: int = 0) -> None:
+            """The shape shared by every per-sentence count: measure, compare, report."""
+            for sentence in document.sentences:
+                count = measure(sentence.text)
+                if exceeds(count, threshold):
+                    report(sentence.line, str(count + offset), str(int(threshold) + offset))
+
         if metric == "sentence_words":
             for sentence in document.sentences:
                 if rule.text_type is not TextType.ANY and sentence.text_type is not rule.text_type:
@@ -881,37 +912,14 @@ class Engine:
                 # An explicit threshold on the rule wins; otherwise the cap comes
                 # from the sentence's own text type, so one rule covers 20/25.
                 cap = threshold or WORD_CAPS[sentence.text_type]
-                if not exceeds(sentence.word_count, cap):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(rule.message, 
-                            match=str(sentence.word_count), replacement=str(int(cap))
-                        ),
-                    )
-                )
+                if exceeds(sentence.word_count, cap):
+                    report(sentence.line, str(sentence.word_count), str(int(cap)))
 
         elif metric == "clause_boundaries":
             # Counts IDEAS, not words. A 24-word sentence can carry four ideas and
             # a 30-word one can be a single clean list, so the word cap and this
             # are separate checks.
-            for sentence in document.sentences:
-                count = count_clause_boundaries(sentence.text)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(rule.message, 
-                            match=str(count + 1), replacement=str(int(threshold) + 1)
-                        ),
-                    )
-                )
+            per_sentence(count_clause_boundaries, offset=1)
 
         elif metric == "lead_in_words":
             # STE 6.4 counts the text before a list's colon as a sentence of its own.
@@ -936,22 +944,9 @@ class Engine:
                 head, separator, _ = sentence.text.partition(":")
                 if not separator:
                     continue
-                line_number = sentence.line
                 count = count_words(head)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, line_number, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, line_number, severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+                if exceeds(count, threshold):
+                    report(sentence.line, str(count), str(int(threshold)))
 
         elif metric == "paragraph_words":
             # Native because Vale reported a different number here. An inline code
@@ -985,73 +980,21 @@ class Engine:
                 # before it is advice they cannot take.
                 if count <= 1:
                     continue
-                if self._suppressed(rule, block.lines[0], suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, block.lines[0], severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+                report(block.lines[0], str(count), str(int(threshold)))
 
         elif metric == "paragraph_sentences":
             for block in document.paragraphs:
                 # STE 6.6 counts sentences per paragraph. A bulleted block does
                 # not contribute one sentence per bullet here -- list items are
                 # their own blocks, so they never reach this count.
-                if not exceeds(len(block.sentences), threshold):
-                    continue
-                if self._suppressed(rule, block.lines[0], suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, block.lines[0], severity,
-                        format_message(rule.message, 
-                            match=str(len(block.sentences)),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+                if exceeds(len(block.sentences), threshold):
+                    report(block.lines[0], str(len(block.sentences)), str(int(threshold)))
 
         elif metric == "multiword_noun_words":
-            for sentence in document.sentences:
-                count = longest_noun_stack(sentence.text)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+            per_sentence(longest_noun_stack)
 
         elif metric == "coordinated_items":
-            for sentence in document.sentences:
-                count = coordinated_items(sentence.text)
-                if not exceeds(count, threshold):
-                    continue
-                if self._suppressed(rule, sentence.line, suppressions, disabled):
-                    continue
-                results.append(
-                    self._metric_finding(
-                        rule, document, sentence.line, severity,
-                        format_message(
-                            rule.message,
-                            match=str(count),
-                            replacement=str(int(threshold)),
-                        ),
-                    )
-                )
+            per_sentence(coordinated_items)
 
         elif metric in {
             "syllables_per_word",
@@ -1067,14 +1010,7 @@ class Engine:
         }:
             value = self.document_metric(metric, document)
             if exceeds(value, threshold):
-                results.append(
-                    self._metric_finding(
-                        rule, document, 1, severity,
-                        format_message(rule.message, 
-                            match=f"{value:.2f}", replacement=f"{threshold:.2f}"
-                        ),
-                    )
-                )
+                report(1, f"{value:.2f}", f"{threshold:.2f}")
         return results
 
     def _metric_finding(

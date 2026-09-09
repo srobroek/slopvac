@@ -416,10 +416,6 @@ rules:
       relaxed: excluded
     exceptions: [quotation, domain-term]
     tokens:
-      - navigate
-      - navigates
-      - navigating
-      - navigated
       - showcase
       - showcases
       - showcasing
@@ -440,12 +436,14 @@ rules:
         good: The demo runs the new parser on three files.
       - bad: We embark on a migration.
         good: The migration starts on 3 March.
+      - bad: The team spearheads the rewrite.
+        good: The team leads the rewrite.
     provenance:
       source: ai-tells/OverusedVocabularyVerbs.yml
       note: >-
         The source rule is `extends: sequence` with verb tags; without a
-        tagger this is a token list, so a noun use fires too ("navigate" in UI
-        prose). `domain-term` is the exception for those. `leverage` is
+        tagger this is a token list. `navigate` and its inflections are omitted
+        because they are the standard UI instruction verb. `leverage` is
         omitted as already in `prose-inflation.slop-lexicon`. The `harness`
         forms are omitted on a MEASUREMENT: the only hit across 50 files in
         this repo was `### Any harness, without installing APM` in the README,

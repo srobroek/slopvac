@@ -82,8 +82,14 @@ def _collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
         elif path.is_file():
             found.append(path)
         else:
-            # A glob the shell did not expand.
-            matches = sorted(Path().glob(target))
+            # A glob the shell did not expand. pathlib's glob takes relative
+            # patterns only, so an absolute one is anchored at its root.
+            pattern = Path(target)
+            if pattern.is_absolute():
+                anchor = Path(pattern.anchor)
+                matches = sorted(anchor.glob(str(pattern.relative_to(anchor))))
+            else:
+                matches = sorted(Path().glob(target))
             if not matches:
                 raise click.ClickException(f"no such file or directory: {target}")
             found.extend(m for m in matches if m.is_file())
@@ -384,6 +390,88 @@ def main(context: click.Context) -> None:
         click.echo(context.get_help())
 
 
+def _emit_report(
+    scores: list[DocumentScore],
+    ruleset: RuleSet,
+    console: Console,
+    *,
+    output_format: str,
+    out_path: Path | None,
+    open_report: bool,
+    format_given: bool,
+    verbose: bool,
+) -> None:
+    """Render the run in one format and deliver it to stdout, a file, or a browser.
+
+    `--out` alone means an HTML report; `--out` with an explicit `--format` writes
+    that format. Text always goes to the console.
+    """
+    if output_format == "html" or open_report or (out_path is not None and not format_given):
+        page = render_html(summarize(scores), scores, __version__)
+        destination = out_path
+        if destination is None and open_report:
+            # A named temp file rather than stdout: a browser needs a path, and the
+            # file has to outlive this process, so NamedTemporaryFile(delete=False)
+            # is the shape. Keyed on nothing, so repeated runs do not collide.
+            handle = tempfile.NamedTemporaryFile(
+                prefix="slopvac-report-", suffix=".html", delete=False
+            )
+            destination = Path(handle.name)
+            handle.close()
+        if destination is not None:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(page, encoding="utf-8")
+            console.print(f"report: [bold]{destination}[/]")
+            if open_report:
+                # A browser that will not open is not a lint failure, so this
+                # reports and carries on to the exit code the prose earned.
+                if webbrowser.open(destination.resolve().as_uri()):
+                    console.print("opened in your browser")
+                else:
+                    console.print(
+                        "[yellow]could not open a browser[/]; the report is at the "
+                        "path above"
+                    )
+        else:
+            click.echo(page, nl=False)
+    elif output_format == "text":
+        _report_text(scores, console, verbose)
+    else:
+        if output_format == "json":
+            rendered = LintReport(
+                version=__version__, summary=summarize(scores), documents=scores
+            ).emit()
+        elif output_format == "github":
+            # Workflow-command annotations, so findings land on the PR diff.
+            summary = summarize(scores)
+            lines = [
+                f"::{'error' if finding.severity is Severity.ERROR else 'warning'} "
+                f"file={finding.path},line={finding.line},"
+                f"col={finding.column},title={finding.rule_id}::{finding.message}"
+                for score in scores
+                for finding in score.findings
+            ]
+            lines.append(
+                f"::notice title=slopvac::score {summary.score}/100, "
+                f"{summary.findings} finding(s), "
+                f"{summary.per_100_words:.2f} per 100 words"
+            )
+            rendered = "\n".join(lines)
+        else:
+            rendered = build_sarif(
+                scores,
+                ruleset.rules,
+                version=__version__,
+                tool_uri="https://github.com/srobroek/slopvac",
+            ).emit()
+        if out_path is not None:
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(rendered + "\n", encoding="utf-8")
+            console.print(f"report: [bold]{out_path}[/]")
+        else:
+            click.echo(rendered)
+
+
 @main.command()
 @click.argument("targets", nargs=-1, required=True)
 @click.option(
@@ -427,7 +515,8 @@ def main(context: click.Context) -> None:
     "--out",
     "out_path",
     type=click.Path(dir_okay=False, path_type=Path),
-    help="Write the report here instead of stdout. Implied by --open.",
+    help="Write the report here instead of stdout. Without --format the report "
+    "is HTML; with one, that format is written. Implied by --open.",
 )
 @click.option(
     "--open",
@@ -475,6 +564,12 @@ def lint(
 ) -> None:
     """Lint files or directories."""
     console = _console(no_color)
+    # `--out` alone means an HTML report; `--out` with an explicit `--format`
+    # writes that format. Click records which one the caller did.
+    format_given = (
+        click.get_current_context().get_parameter_source("output_format")
+        is not click.core.ParameterSource.DEFAULT
+    )
 
     first = Path(targets[0])
     discovered = config_path or find_config(first if first.exists() else Path.cwd())
@@ -657,66 +752,11 @@ def lint(
         for score in scores:
             score.unchecked.append(locale_note)
 
-    if output_format == "html" or open_report:
-        page = render_html(summarize(scores), scores, __version__)
-        destination = out_path
-        if destination is None and open_report:
-            # A named temp file rather than stdout: a browser needs a path, and the
-            # file has to outlive this process, so NamedTemporaryFile(delete=False)
-            # is the shape. Keyed on nothing, so repeated runs do not collide.
-            handle = tempfile.NamedTemporaryFile(
-                prefix="slopvac-report-", suffix=".html", delete=False
-            )
-            destination = Path(handle.name)
-            handle.close()
-        if destination is not None:
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(page, encoding="utf-8")
-            console.print(f"report: [bold]{destination}[/]")
-            if open_report:
-                # A browser that will not open is not a lint failure, so this
-                # reports and carries on to the exit code the prose earned.
-                if webbrowser.open(destination.resolve().as_uri()):
-                    console.print("opened in your browser")
-                else:
-                    console.print(
-                        "[yellow]could not open a browser[/]; the report is at the "
-                        "path above"
-                    )
-        else:
-            click.echo(page, nl=False)
-    elif output_format == "json":
-        click.echo(
-            LintReport(
-                version=__version__, summary=summarize(scores), documents=scores
-            ).emit()
-        )
-    elif output_format == "github":
-        # Workflow-command annotations, so findings land on the PR diff.
-        for score in scores:
-            for finding in score.findings:
-                level = "error" if finding.severity is Severity.ERROR else "warning"
-                click.echo(
-                    f"::{level} file={finding.path},line={finding.line},"
-                    f"col={finding.column},title={finding.rule_id}::{finding.message}"
-                )
-        summary = summarize(scores)
-        click.echo(
-            f"::notice title=slopvac::score {summary.score}/100, "
-            f"{summary.findings} finding(s), "
-            f"{summary.per_100_words:.2f} per 100 words"
-        )
-    elif output_format == "sarif":
-        click.echo(
-            build_sarif(
-                scores,
-                ruleset.rules,
-                version=__version__,
-                tool_uri="https://github.com/srobroek/slopvac",
-            ).emit()
-        )
-    else:
-        _report_text(scores, console, verbose)
+    _emit_report(
+        scores, ruleset, console,
+        output_format=output_format, out_path=out_path, open_report=open_report,
+        format_given=format_given, verbose=verbose,
+    )
 
     if any(score.unchecked for score in scores):
         raise SystemExit(EXIT_ERROR)
@@ -800,6 +840,7 @@ def list_rules(
                     "rules": [
                         {
                             **rule.model_dump(mode="json"),
+                            "rule_id": rule.qualified_id,
                             "tier": rule.tier_for(profile).value,
                         }
                         for rule in selected
@@ -1100,10 +1141,6 @@ def cache(prune: bool, prune_all: bool) -> None:
     raise SystemExit(EXIT_OK)
 
 
-if __name__ == "__main__":
-    main()
-
-
 @main.command("reference")
 @click.option(
     "--write",
@@ -1165,3 +1202,7 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
     destination.write_text(rendered)
     console.print(f"wrote [bold]{destination}[/] ({len(ruleset.rules)} rules)")
     raise SystemExit(EXIT_OK)
+
+
+if __name__ == "__main__":
+    main()

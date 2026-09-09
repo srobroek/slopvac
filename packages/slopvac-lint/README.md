@@ -49,11 +49,14 @@ vale --config=build/vale/.vale.ini docs/
 A profile is the strictness dial. It sets which rules run, how loud each one is,
 and what gates the document must clear.
 
-| Profile | For | Sentence cap | Approved-word check |
+| Profile | For | Sentence cap | Word blocklist |
 | --- | --- | --- | --- |
-| `strict` | reference, specs, API docs, runbooks | 20 procedural / 25 descriptive | on |
-| `normal` | README, guides, decision records | 25 advisory | off |
-| `relaxed` | notes, comments, drafts | advisory | off |
+| `strict` | reference, specs, API docs, runbooks | 20 procedural / 25 descriptive | used when `vocabulary.path` is set |
+| `normal` | README, guides, decision records | 25 advisory | used when `vocabulary.path` is set |
+| `relaxed` | notes, comments, drafts | advisory | unused |
+
+The word-choice rules stay inert until `[vocabulary] path` names a file
+(`config.py`). No profile turns them on by itself.
 
 `normal` is the default. `strict` on an existing repository produces a wall of
 findings, which teaches people to ignore the tool.
@@ -124,7 +127,7 @@ profile = "normal"
 
 [thresholds]
 max_errors = 0
-min_score = 70
+ste-words = "off"
 
 [categories]
 ste-vocabulary = "off"
@@ -260,7 +263,8 @@ slopvac --open docs/                     # an HTML report, in your browser
 ```
 
 `--open` writes a self-contained page and opens it. `--out report.html` names the
-file instead of a temporary one, and implies HTML. The page needs no network and
+file instead of a temporary one, and implies HTML; `--format json --out report.json`
+writes that format to the file instead. The page needs no network and
 no assets, so it survives being attached to a CI run or mailed to a reviewer.
 
 The report leads with what did **not** run, before the score, and flags each
@@ -301,17 +305,15 @@ available, but neither the document nor the summary reports a pass.
 
 ## Scoring
 
-Three numbers, because they answer different questions and none replaces another.
+Two numbers, because they answer different questions and neither replaces the other.
 
 | Number | Counts | Answers |
 | --- | --- | --- |
 | `per_100_words` | every finding | how dense is this document |
-| `gating_per_100_words` | errors and warnings | what the budget checks |
 | `score` | 0-100 | what a badge shows and `min_score` gates |
 
-Suggestions appear in the first number and not the second, because **a suggestion
-may lower a score but must not fail a run**. That one rule is why there are three
-numbers instead of one.
+The density budget (`max_total_per_100_words`) counts errors and warnings only:
+**a suggestion may lower a score but must not fail a run**.
 
 ### Density: the n-per-100-words figure
 
@@ -391,7 +393,7 @@ a lexical, substitution, or threshold rule needs no code.
 ```sh
 slopvac rules --profile strict
 slopvac rules --judgement          # what a linter cannot check
-slopvac explain ste-sentences.max-words
+slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
 
@@ -481,8 +483,8 @@ Absence from a deliberately incomplete dictionary is not disapproval. It is a
 Nobody but its author can argue with, or later remove, an entry that gives no
 reason.
 
-Suppression follows from the same position: `<!-- slopvac-disable-next-line rule:
-reason -->` requires a reason from the rule's own closed list. `slopvac` reports
+Suppression follows from the same position: `<!-- slopvac-allow: rule=<id>
+reason=<name> -->` requires a reason from the rule's own closed list. `slopvac` reports
 any other reason rather than honors it, so a blanket suppression shows up in a
 diff.
 

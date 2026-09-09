@@ -51,7 +51,7 @@ def run_gate(path: Path, profile: str) -> dict:
             "-m", "slopvac.cli", "lint", str(path),
             "--profile", profile, "--no-vale", "--format", "json",
         ],
-        capture_output=True, text=True, cwd=LINT,
+        capture_output=True, text=True, cwd=LINT, check=False,
     )
     if result.returncode >= 2:
         return {"error": result.stderr.strip() or result.stdout.strip()}

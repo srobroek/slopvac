@@ -557,6 +557,7 @@ def _vale_pattern(pattern: str) -> str:
 def _payload_for(rule: Rule, level: str) -> dict | None:
     """One Vale rule as a dict, or None when no extension point fits."""
     scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
+    payload: dict[str, object]
 
     if rule.kind is RuleKind.TOKENS and rule.tokens:
         payload = {

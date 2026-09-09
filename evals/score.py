@@ -11,7 +11,7 @@ one and not merely whether it fires:
 Usage:
     ./score.py                      score every run under runs/
     ./score.py --topic readme-cache score one topic
-    ./score.py --report             rewrite REPORT.md from the stored scores
+    ./score.py --report             print the stored scores as a markdown table
 
 Every number in REPORT.md comes from a scores.json written here, so the report
 cannot drift from the measurement. The raw counts are published beside the
@@ -29,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
-LINT = ROOT.parent / "packages" / "slopvac"
+LINT = ROOT.parent / "packages" / "slopvac-lint"
 
 # The four generation conditions, in the order they are reported.
 CONDITIONS = ("01-unguided", "02-current-writedocs", "03-new-writedocs", "04-regenerated")
@@ -73,7 +73,7 @@ def run_new_gate(path: Path, profile: str) -> dict:
             "-m", "slopvac.cli", "lint", str(path),
             "--profile", profile, "--no-vale", "--format", "json",
         ],
-        capture_output=True, text=True, cwd=LINT,
+        capture_output=True, text=True, cwd=LINT, check=False,
     )
     if result.returncode >= 2:
         return {"error": result.stderr.strip() or result.stdout.strip()}
@@ -125,12 +125,20 @@ def run_old_gate(path: Path, config: Path) -> dict:
 
     result = subprocess.run(
         ["vale", f"--config={config}", "--output=JSON", "--no-exit", str(path)],
-        capture_output=True, text=True,
+        capture_output=True, text=True, check=False,
     )
+    # `--no-exit` makes findings exit 0, so a non-zero status is Vale itself
+    # failing. Empty or unparsable output is the same failure: neither is a clean
+    # file, and recording zero findings would invent a result.
+    if result.returncode != 0:
+        return {"error": result.stderr.strip() or f"vale exited {result.returncode}"}
     raw = result.stdout.strip()
-    if not raw:
-        return {"findings": 0, "errors": 0, "warnings": 0, "rules": {}}
-    data = json.loads(raw)
+    try:
+        data = json.loads(raw) if raw else None
+    except json.JSONDecodeError as exc:
+        return {"error": f"vale output is not JSON: {exc}"}
+    if not isinstance(data, dict):
+        return {"error": "vale produced no JSON report"}
     alerts = [a for entries in data.values() for a in entries]
     counts: dict[str, int] = {}
     for alert in alerts:
@@ -186,9 +194,28 @@ def diff_conditions(topic: str) -> None:
             continue
         patch = subprocess.run(
             ["diff", "-u", "--label", left, "--label", right, str(a), str(b)],
-            capture_output=True, text=True,
+            capture_output=True, text=True, check=False,
         )
         (out / f"{left}__{right}.patch").write_text(patch.stdout, encoding="utf-8")
+
+
+def render_report(results: list[dict]) -> str:
+    """A markdown table of the stored scores, one row per topic and condition."""
+    lines = ["| topic | condition | old findings | new score | new findings |", "| --- | --- | --- | --- | --- |"]
+    for topic in results:
+        for condition in CONDITIONS:
+            entry = topic.get("conditions", {}).get(condition)
+            if entry is None:
+                continue
+            old = entry.get("old", {})
+            new = entry.get("new", {})
+            old_cell = old.get("unavailable") or old.get("error") or old.get("findings", "")
+            new_cell = new.get("error") or new.get("score", "")
+            lines.append(
+                f"| {topic.get('topic', '')} | {condition} | {old_cell} | {new_cell} | "
+                f"{new.get('findings', '') if 'error' not in new else ''} |"
+            )
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -199,8 +226,16 @@ def main() -> int:
         type=Path,
         help="A .vale.ini carrying the seven pre-split styles, for the old gate.",
     )
-    parser.add_argument("--report", action="store_true")
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Print the stored scores.json as a markdown table instead of re-scoring.",
+    )
     args = parser.parse_args()
+
+    if args.report:
+        print(render_report(json.loads((ROOT / "scores.json").read_text(encoding="utf-8"))))
+        return 0
 
     topics = [args.topic] if args.topic else sorted(
         p.name for p in RUNS.iterdir() if p.is_dir()

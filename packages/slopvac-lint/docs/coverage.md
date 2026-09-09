@@ -1,5 +1,10 @@
 # Coverage
 
+<!-- slopvac-disable -->
+**Historical.** This file describes the Vale generation that 2.0 replaced. The
+shipped inventory is [`docs/rules.md`](rules.md) (232 rules, 25 categories).
+<!-- slopvac-enable -->
+
 All 53 numbered rules and all 8 general recommendations have an entry. 65 rule entries cover
 61 source items, because three items split into more than one entry where the source rule
 carries two independent obligations.
