@@ -154,13 +154,18 @@ class Thresholds(BaseModel):
     """Document-level gates, evaluated after every finding is collected.
 
     These are the numbers the CI action reports on. `max_total_per_100_words` is
-    the headline score budget; the others catch a document that passes on density
-    while failing on a single unacceptable finding.
+    the headline severity-weighted density budget; the others catch a document
+    that passes on density while failing on a single unacceptable finding.
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    max_total_per_100_words: float | None = Field(default=None, ge=0)
+    max_total_per_100_words: float | None = Field(
+        default=None,
+        ge=0,
+        description="Severity-weighted error and warning density per 100 words; "
+        "errors count 1.0 and warnings 0.5.",
+    )
     max_errors: int | None = Field(default=0, ge=0)
     max_warnings: int | None = Field(default=None, ge=0)
     min_score: float | None = Field(
@@ -312,11 +317,6 @@ class Config(BaseModel):
     vale: ValeSettings = Field(default_factory=ValeSettings)
     locale: LocaleSettings = Field(default_factory=LocaleSettings)
     vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
-    plugins: list[str] = Field(
-        default_factory=list,
-        description="Import paths for explicitly configured rule plugins. Reserved "
-        "for plugin loading; arbitrary untyped extension tables are rejected.",
-    )
     overrides: list[Override] = Field(default_factory=list)
 
     exclude: list[str] = Field(
