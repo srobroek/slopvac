@@ -258,6 +258,10 @@ jobs:
           FINDINGS: ${{ steps.slopvac.outputs.findings }}
           ERRORS: ${{ steps.slopvac.outputs.errors }}
           PASSED: ${{ steps.slopvac.outputs.passed }}
+          WARNINGS: ${{ steps.slopvac.outputs.warnings }}
+          SUGGESTIONS: ${{ steps.slopvac.outputs.suggestions }}
+          DOCUMENTS: ${{ steps.slopvac.outputs.documents }}
+          WORDS: ${{ steps.slopvac.outputs.words }}
           SARIF: ${{ steps.slopvac.outputs.sarif }}
         run: |
           set -euo pipefail
@@ -265,6 +269,10 @@ jobs:
           # An empty output means the step exited before writing them, which is a
           # broken action reported as a clean run.
           test -n "$SCORE" || { echo "the action returned no score"; exit 1; }
+          for name in WARNINGS SUGGESTIONS DOCUMENTS WORDS; do
+            [[ "${!name}" =~ ^[0-9]+$ ]] || { echo "the action returned no $name"; exit 1; }
+          done
+          [ "$DOCUMENTS" -gt 0 ] || { echo "the action linted no documents"; exit 1; }
           test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
           python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
   prose:
