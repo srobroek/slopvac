@@ -15,6 +15,4 @@ exclude = [
   # Medium serves 403 to any non-browser client, so the check reports a live
   # article as dead. `docs/rules.md` cites one as a rule source.
   "medium\\.com",
-  # The Vale styles are published as release assets by a workflow in this repo,
-  # so on a branch that adds a style the URL is correct and does not exist yet.
 ]
