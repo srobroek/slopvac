@@ -9,14 +9,13 @@ served. `prune_cache` bounds the number of trees kept. Separate from
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import os
 import shutil
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-
-import fcntl
 
 from .config import ResolvedConfig
 from .model import Rule
