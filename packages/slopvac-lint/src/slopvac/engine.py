@@ -423,10 +423,9 @@ class Engine:
     def severity_for(self, rule: Rule) -> Severity:
         """Resolve the level this rule reports at.
 
-        Precedence, narrowest wins: rule override > AUTHORED category severity >
-        tier disposition > the rule's shipped severity. An authored severity SETS
-        the level in both directions, so `severity = "error"` promotes and
-        `severity = "warning"` demotes.
+        Precedence, narrowest wins: rule override > category severity floor >
+        AUTHORED category severity > tier disposition > shipped severity. A
+        per-rule override can opt out of its category floor.
 
         AUTHORED is the word that decides this, and getting it wrong made the advisory
         tier almost meaningless. `ResolvedConfig.categories` is SEEDED from the
@@ -477,6 +476,12 @@ class Engine:
         if category is not None and category.severity is not None:
             if not advisory or self._authored(f"categories.{rule.category}"):
                 severity = category.severity
+        if (
+            category is not None
+            and category.minimum_severity is not None
+            and severity.rank < category.minimum_severity.rank
+        ):
+            severity = category.minimum_severity
 
         override = self.config.rules.get(rule.qualified_id)
         if override is not None and override.severity is not None:
