@@ -6,7 +6,7 @@ repos:
     hooks:
       - id: slopvac
         name: slopvac prose gate
-        entry: uvx --from ./packages/slopvac-lint slopvac lint
+        entry: uv run --frozen --project packages/slopvac-lint slopvac lint
         language: system
         files: \.(md|mdx|txt|rst)$
         pass_filenames: true
