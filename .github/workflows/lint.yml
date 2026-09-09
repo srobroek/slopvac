@@ -165,8 +165,9 @@ jobs:
       - name: Run configured hooks
         run: uvx prek@0.5.2 run --all-files
 
+  # A report, not a gate, until the functions over CCN 15 come down (slopvac-01i):
+  # the step records its findings in the job summary and the job stays green.
   lizard:
-    continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -174,8 +175,20 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          enable-cache: true
       - name: Measure source complexity
-        run: uvx lizard==1.24.0 packages/slopvac-lint/src -C 15 -w
+        run: |
+          set -uo pipefail
+          {
+            echo '## Functions over CCN 15'
+            echo
+            echo '```'
+            uvx lizard==1.24.0 packages/slopvac-lint/src -C 15 -w || true
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
   shell-lint:
     runs-on: ubuntu-latest
