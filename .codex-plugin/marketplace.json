@@ -7,7 +7,7 @@
     {
       "name": "slopvac",
       "description": "Author and review prose with the write-docs and review-docs skills.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "tags": [
         "skill",
         "docs",
