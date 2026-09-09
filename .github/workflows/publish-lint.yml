@@ -127,7 +127,31 @@ jobs:
       print(f"{len(data['rules'])} rules in {len(data['categories'])} categories")
       PY
 
-      printf 'A robust and comprehensive tool that will supercharge you.\n' > /tmp/probe.md
+      cat > /tmp/probe.md <<'EOF'
+      # fluxcache
+
+      fluxcache matches a prompt against prompts already in the cache.
+
+      ## Install
+
+      ```sh
+      uv tool install fluxcache
+      ```
+
+      ## Configure
+
+      | Option | Default | Effect |
+      | --- | --- | --- |
+      | `threshold` | 0.85 | Minimum similarity for a cache hit |
+      | `ttl` | 3600 | Seconds an entry stays valid |
+
+      The server returns the stored response when two prompts are close enough in
+      meaning. This lowers the number of calls to the model.
+
+      ## License
+
+      Apache-2.0.
+      EOF
       set +e
       /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale --format json > /tmp/probe.json
       status=$?
