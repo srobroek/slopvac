@@ -6,8 +6,8 @@ another:
   per_100_words         the raw density, every finding. Comparable across documents
                         of any length, and the honest measurement -- it is a count,
                         not a judgement.
-  gating_per_100_words  errors and warnings only. What the BUDGET is checked
-                        against.
+  gating_per_100_words  severity-weighted errors and warnings (1.0/0.5). What the
+                        BUDGET is checked against.
   score                 0-100, from gating density against the profile's budget,
                         less a bounded suggestion penalty. What a CI badge shows
                         and what a `min_score` gate reads.
@@ -34,12 +34,11 @@ from __future__ import annotations
 from .config import ResolvedConfig, Severity
 from .model import CategoryScore, DocumentScore, Finding
 
-# An error is worth 4 suggestions. Chosen so that a single error cannot be
-# out-voted by cosmetic findings when both feed one score.
+# Severity is the multiplier used by both category and document gates.
 SEVERITY_WEIGHT = {
-    Severity.ERROR: 4.0,
-    Severity.WARNING: 2.0,
-    Severity.SUGGESTION: 1.0,
+    Severity.ERROR: 1.0,
+    Severity.WARNING: 0.5,
+    Severity.SUGGESTION: 0.1,
     Severity.OFF: 0.0,
 }
 
@@ -80,9 +79,7 @@ def _suggestion_penalty(suggestion_density: float) -> float:
     return MAX_SUGGESTION_PENALTY * share
 
 
-def _score_from_density(
-    weighted_density: float, budget: float | None
-) -> float:
+def _score_from_density(weighted_density: float, budget: float | None) -> float:
     """Map weighted density onto 0-100.
 
     At or below budget: 100 down to 70, linearly. A document inside its budget is
@@ -90,9 +87,10 @@ def _score_from_density(
     different from "clean".
     Above budget: 70 down to 0, reaching 0 at ZERO_SCORE_MULTIPLE x budget.
     """
-    if budget is None or budget <= 0:
-        # No budget: score on density alone against a nominal scale.
+    if budget is None:
         return max(0.0, 100.0 - weighted_density * 10.0)
+    if budget == 0:
+        return 100.0 if weighted_density == 0 else 0.0
 
     if weighted_density <= budget:
         return 100.0 - 30.0 * (weighted_density / budget)
@@ -105,18 +103,142 @@ def _score_from_density(
 
 
 def _score_from_counts(weighted_count: float) -> float:
-    """Score a document too short to measure by density.
+    """Score a document too short for a meaningful density measurement."""
+    return max(0.0, 100.0 - weighted_count * 20.0)
 
-    Density is meaningless below MIN_WORDS_FOR_DENSITY, but a short document with
-    five errors is not a clean document, and reporting 100/100 for it is worse
-    than reporting nothing. So the score comes off the weighted COUNT instead:
-    one suggestion costs 5, one error costs 20, and four errors reach zero.
 
-    Deliberately harsher per finding than the density path. A 40-word error
-    message has room for no defects at all, which is the same reasoning that puts
-    the 20-word cap on procedural text.
-    """
-    return max(0.0, 100.0 - weighted_count * 5.0)
+def _category_result(
+    name: str,
+    items: list[Finding],
+    words: int,
+    config: ResolvedConfig,
+    categories_meta: dict[str, float],
+) -> tuple[CategoryScore, float]:
+    settings = config.categories.get(name)
+    weight = categories_meta.get(name, 1.0)
+    if settings is not None and settings.weight is not None:
+        weight = settings.weight
+    if settings is not None and settings.severity is Severity.OFF:
+        weight = 0.0
+
+    errors = sum(f.severity is Severity.ERROR for f in items)
+    warnings = sum(f.severity is Severity.WARNING for f in items)
+    suggestions = sum(f.severity is Severity.SUGGESTION for f in items)
+    measurable = words >= MIN_WORDS_FOR_DENSITY and words > 0
+    density = len(items) / words * 100 if measurable else 0.0
+    gating_weight = sum(
+        SEVERITY_WEIGHT[f.severity]
+        for f in items
+        if f.severity is not Severity.SUGGESTION
+    )
+    gating = gating_weight / words * 100 if measurable else 0.0
+    suggestion_density = suggestions / words * 100 if measurable else suggestions
+    budget = settings.max_per_100_words if settings is not None else None
+    base_score = (
+        _score_from_density(gating, budget)
+        if measurable
+        else _score_from_counts(gating_weight)
+    )
+    score = max(0.0, base_score - _suggestion_penalty(suggestion_density))
+    return (
+        CategoryScore(
+            category=name,
+            findings=len(items),
+            errors=errors,
+            warnings=warnings,
+            suggestions=suggestions,
+            per_100_words=round(density, 3),
+            gating_per_100_words=round(gating, 3),
+            budget=budget,
+            score=round(score, 1),
+            over_budget=budget is not None and gating > budget,
+        ),
+        weight,
+    )
+
+
+def _weighted_category_score(entries: list[tuple[CategoryScore, float]]) -> float:
+    active = [(entry.score, weight) for entry, weight in entries if weight > 0]
+    if not active:
+        return 100.0
+    return sum(score * weight for score, weight in active) / sum(
+        weight for _, weight in active
+    )
+
+
+def _whole_document_score(
+    findings: list[Finding], words: int, budget: float | None
+) -> float:
+    blocking_weight = sum(
+        SEVERITY_WEIGHT[f.severity]
+        for f in findings
+        if f.severity is not Severity.SUGGESTION
+    )
+    suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
+    measurable = words >= MIN_WORDS_FOR_DENSITY and words > 0
+    base_score = (
+        _score_from_density(blocking_weight / words * 100, budget)
+        if measurable
+        else _score_from_counts(blocking_weight)
+    )
+    suggestion_density = suggestions / words * 100 if measurable else suggestions
+    return max(0.0, base_score - _suggestion_penalty(suggestion_density))
+
+
+def _blocking_density(findings: list[Finding], words: int) -> float:
+    if words < MIN_WORDS_FOR_DENSITY or not words:
+        return 0.0
+    return (
+        sum(
+            SEVERITY_WEIGHT[f.severity]
+            for f in findings
+            if f.severity is not Severity.SUGGESTION
+        )
+        / words
+        * 100
+    )
+
+
+def _failure_reasons(
+    findings: list[Finding],
+    category_scores: list[CategoryScore],
+    words: int,
+    overall: float,
+    config: ResolvedConfig,
+    unchecked: list[str],
+) -> list[str]:
+    errors = sum(f.severity is Severity.ERROR for f in findings)
+    warnings = sum(f.severity is Severity.WARNING for f in findings)
+    thresholds = config.thresholds
+    reasons = ["incomplete check: " + "; ".join(unchecked)] if unchecked else []
+    if thresholds.max_errors is not None and errors > thresholds.max_errors:
+        reasons.append(f"{errors} error(s), limit {thresholds.max_errors}")
+    if thresholds.max_warnings is not None and warnings > thresholds.max_warnings:
+        reasons.append(f"{warnings} warning(s), limit {thresholds.max_warnings}")
+
+    density = _blocking_density(findings, words)
+    if (
+        thresholds.max_total_per_100_words is not None
+        and words >= MIN_WORDS_FOR_DENSITY
+        and density > thresholds.max_total_per_100_words
+    ):
+        reasons.append(
+            f"{density:.2f} severity-weighted findings per 100 words, budget "
+            f"{thresholds.max_total_per_100_words}"
+        )
+    if (
+        thresholds.min_score is not None
+        and (errors or warnings)
+        and overall < thresholds.min_score
+    ):
+        reasons.append(f"score {overall:.1f}, minimum {thresholds.min_score}")
+    reasons.extend(
+        f"{entry.category} at {entry.gating_per_100_words:.2f} "
+        f"severity-weighted findings per 100 words, budget {entry.budget}"
+        for entry in category_scores
+        if entry.over_budget
+    )
+    return reasons
 
 
 def score_document(
@@ -129,207 +251,33 @@ def score_document(
     categories_meta: dict[str, float],
     unchecked: list[str] | None = None,
 ) -> DocumentScore:
-    """Build the full result for one file.
-
-    `categories_meta` maps category id -> its shipped weight, so a category the
-    document produced no findings for still appears in the report at score 100.
-    """
-    profile = config.profile.value
-    per_100 = (
-        len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0
-    )
-
+    """Build the full result for one file."""
+    unchecked = unchecked or []
     by_category: dict[str, list[Finding]] = {name: [] for name in categories_meta}
     for finding in findings:
         by_category.setdefault(finding.category, []).append(finding)
 
-    category_scores: list[CategoryScore] = []
-    weighted_total = 0.0
-    weight_sum = 0.0
-
-    for name, items in sorted(by_category.items()):
-        settings = config.categories.get(name)
-        weight = categories_meta.get(name, 1.0)
-        if settings is not None and settings.weight is not None:
-            weight = settings.weight
-        # A category turned off scores nothing and must not enter the average at
-        # 100, which would let a relaxed profile inflate the overall figure with
-        # ~15 categories nobody checked. The profiles say this twice, as
-        # `severity = "off"` AND `weight = 0.0`, and the pair only agrees while
-        # nobody overrides half of it: a project promoting `ste-nouns = "warning"`
-        # at `relaxed` inherits the 0.0 and gets findings that cannot move the
-        # score or fail the run -- the same silent-ignore the promotion path was
-        # just fixed for. Deriving it from the severity instead keeps the two in
-        # step.
-        if settings is not None and settings.severity is Severity.OFF:
-            weight = 0.0
-
-        errors = sum(1 for f in items if f.severity is Severity.ERROR)
-        warnings = sum(1 for f in items if f.severity is Severity.WARNING)
-        suggestions = sum(1 for f in items if f.severity is Severity.SUGGESTION)
-
-        measurable = words >= MIN_WORDS_FOR_DENSITY and words
-        # THREE densities, and conflating any two of them was the calibration bug.
-        #   density  every finding, raw. REPORTED, because the report is a
-        #            measurement and a count is the honest form of it.
-        #   gating   errors and warnings only. Checked against the BUDGET.
-        #   weighted severity-weighted. Feeds the SCORE.
-        #
-        # A SUGGESTION must not be able to fail a run on its own. An advisory rule
-        # resolves to SUGGESTION (`engine.severity_for`), so while the budget counted
-        # raw findings, a rule the profile explicitly does not stand behind failed
-        # the run anyway -- and demoting its severity changed nothing, because the
-        # demotion moved the score but not the count the budget read. Measured: the
-        # controlled-vocabulary rule is advisory at every profile and still put
-        # `ste-words` at 8.29 per 100 words against a 1.5 budget on a correct
-        # specification, which drove all 8 independent-corpus documents to 0.0.
-        density = len(items) / words * 100 if measurable else 0.0
-        gating = (
-            sum(1 for f in items if f.severity is not Severity.SUGGESTION)
-            / words
-            * 100
-            if measurable
-            else 0.0
-        )
-        # The SCORE runs on gating weight, with suggestions applied afterwards as a
-        # bounded penalty (see MAX_SUGGESTION_PENALTY). Feeding them into the same
-        # density let them consume the whole scale.
-        weighted = (
-            sum(
-                SEVERITY_WEIGHT[f.severity]
-                for f in items
-                if f.severity is not Severity.SUGGESTION
-            )
-            / words
-            * 100
-            if measurable
-            else 0.0
-        )
-        suggestion_density = (
-            sum(1 for f in items if f.severity is Severity.SUGGESTION) / words * 100
-            if measurable
-            else 0.0
-        )
-
-        budget = None
-        if settings is not None and settings.max_per_100_words is not None:
-            budget = settings.max_per_100_words
-
-        # Below the density floor, score on the weighted COUNT: a 10-word
-        # document with five errors is not clean, and density cannot say so.
-        if words < MIN_WORDS_FOR_DENSITY or not words:
-            weighted_count = sum(SEVERITY_WEIGHT[f.severity] for f in items)
-            score = _score_from_counts(weighted_count)
-        else:
-            score = max(
-                0.0,
-                _score_from_density(weighted, budget)
-                - _suggestion_penalty(suggestion_density),
-            )
-        category_scores.append(
-            CategoryScore(
-                category=name,
-                findings=len(items),
-                errors=errors,
-                warnings=warnings,
-                suggestions=suggestions,
-                per_100_words=round(density, 3),
-                gating_per_100_words=round(gating, 3),
-                budget=budget,
-                score=round(score, 1),
-                over_budget=budget is not None and gating > budget,
-            )
-        )
-
-        # A zero-weight category is informational and must not move the overall
-        # score, so it contributes to neither numerator nor denominator.
-        if weight > 0:
-            weighted_total += score * weight
-            weight_sum += weight
-
-    overall = weighted_total / weight_sum if weight_sum else 100.0
-
-    # A weighted mean over every category DILUTES: 23 categories that found
-    # nothing score 100 each and drown the two that found errors, so a document
-    # with five errors read as 92.7. The overall score is therefore taken from the
-    # whole document's own findings, using the same two paths as a category, and
-    # the per-category means only pull it down further.
-    #
-    # Both directions matter. Averaging alone is too kind; using the document
-    # figure alone loses the signal that one category is far over its budget while
-    # the rest are clean. So take the lower.
-    document_weighted = sum(
-        SEVERITY_WEIGHT[f.severity]
-        for f in findings
-        if f.severity is not Severity.SUGGESTION
+    entries = [
+        _category_result(name, items, words, config, categories_meta)
+        for name, items in sorted(by_category.items())
+    ]
+    category_scores = [entry for entry, _ in entries]
+    overall = min(
+        _weighted_category_score(entries),
+        _whole_document_score(findings, words, config.thresholds.max_total_per_100_words),
     )
-    if words >= MIN_WORDS_FOR_DENSITY and words:
-        document_suggestions = (
-            sum(1 for f in findings if f.severity is Severity.SUGGESTION) / words * 100
-        )
-        document_score = max(
-            0.0,
-            _score_from_density(
-                document_weighted / words * 100,
-                config.thresholds.max_total_per_100_words,
-            )
-            - _suggestion_penalty(document_suggestions),
-        )
-    else:
-        # Below the density floor every finding counts, suggestions included: a
-        # 40-word message has no room for any, and the count path is already
-        # calibrated to be harsher (see `_score_from_counts`).
-        document_score = _score_from_counts(
-            sum(SEVERITY_WEIGHT[f.severity] for f in findings)
-        )
-    overall = min(overall, document_score)
-
-    errors = sum(1 for f in findings if f.severity is Severity.ERROR)
-    warnings = sum(1 for f in findings if f.severity is Severity.WARNING)
-    suggestions = sum(1 for f in findings if f.severity is Severity.SUGGESTION)
-
-    reasons: list[str] = []
-    if unchecked:
-        reasons.append("incomplete check: " + "; ".join(unchecked))
-    thresholds = config.thresholds
-    if thresholds.max_errors is not None and errors > thresholds.max_errors:
-        reasons.append(
-            f"{errors} error(s), limit {thresholds.max_errors}"
-        )
-    if thresholds.max_warnings is not None and warnings > thresholds.max_warnings:
-        reasons.append(
-            f"{warnings} warning(s), limit {thresholds.max_warnings}"
-        )
-    # Checked on errors and warnings, for the reason given at the category budget
-    # above: a suggestion must not fail a run. The reason line quotes the figure
-    # that was checked, and names it, so it can be reconciled against the raw
-    # `per_100_words` in the same report.
-    gating_per_100 = (
-        (errors + warnings) / words * 100
-        if words >= MIN_WORDS_FOR_DENSITY and words
-        else 0.0
+    errors = sum(f.severity is Severity.ERROR for f in findings)
+    warnings = sum(f.severity is Severity.WARNING for f in findings)
+    suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
+    reasons = _failure_reasons(
+        findings, category_scores, words, overall, config, unchecked
     )
-    if (
-        thresholds.max_total_per_100_words is not None
-        and words >= MIN_WORDS_FOR_DENSITY
-        and gating_per_100 > thresholds.max_total_per_100_words
-    ):
-        reasons.append(
-            f"{gating_per_100:.2f} errors+warnings per 100 words, budget "
-            f"{thresholds.max_total_per_100_words}"
-        )
-    if thresholds.min_score is not None and overall < thresholds.min_score:
-        reasons.append(f"score {overall:.1f}, minimum {thresholds.min_score}")
-    for entry in category_scores:
-        if entry.over_budget:
-            reasons.append(
-                f"{entry.category} at {entry.gating_per_100_words:.2f} "
-                f"errors+warnings per 100 words, budget {entry.budget}"
-            )
-
+    per_100 = (
+        len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0
+    )
     return DocumentScore(
         path=path,
-        profile=profile,
+        profile=config.profile.value,
         words=words,
         sentences=sentences,
         paragraphs=paragraphs,
@@ -343,5 +291,5 @@ def score_document(
         score=round(overall, 1),
         passed=not reasons,
         failure_reasons=reasons,
-        unchecked=unchecked or [],
+        unchecked=unchecked,
     )

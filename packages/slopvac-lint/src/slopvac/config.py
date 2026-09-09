@@ -91,7 +91,12 @@ class CategorySettings(BaseModel):
         description="The level every rule in this category reports at. Promotes as "
         "well as demotes: `severity = 'error'` makes a suggestion blocking, and "
         "`severity = 'warning'` takes an error off the gate. A per-rule "
-        "[rules.\"cat.rule\"] entry still wins over this.",
+        '[rules."cat.rule"] entry still wins over this.',
+    )
+    minimum_severity: Severity | None = Field(
+        default=None,
+        description="Lowest level inherited rules in this category may report at. "
+        "A per-rule override remains the narrowest setting.",
     )
     minimum_severity: Severity | None = Field(
         default=None,
@@ -149,13 +154,18 @@ class Thresholds(BaseModel):
     """Document-level gates, evaluated after every finding is collected.
 
     These are the numbers the CI action reports on. `max_total_per_100_words` is
-    the headline score budget; the others catch a document that passes on density
-    while failing on a single unacceptable finding.
+    the headline severity-weighted density budget; the others catch a document
+    that passes on density while failing on a single unacceptable finding.
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    max_total_per_100_words: float | None = Field(default=None, ge=0)
+    max_total_per_100_words: float | None = Field(
+        default=None,
+        ge=0,
+        description="Severity-weighted error and warning density per 100 words; "
+        "errors count 1.0 and warnings 0.5.",
+    )
     max_errors: int | None = Field(default=0, ge=0)
     max_warnings: int | None = Field(default=None, ge=0)
     min_score: float | None = Field(
@@ -668,11 +678,7 @@ def profile_thresholds(profile: Profile) -> Thresholds:
     is reported for information and gates nothing.
     """
     if profile is Profile.STRICT:
-        return Thresholds(
-            max_total_per_100_words=1.5, max_errors=0, min_score=85.0
-        )
+        return Thresholds(max_total_per_100_words=1.5, max_errors=0, min_score=85.0)
     if profile is Profile.NORMAL:
-        return Thresholds(
-            max_total_per_100_words=3.0, max_errors=0, min_score=70.0
-        )
+        return Thresholds(max_total_per_100_words=3.0, max_errors=0, min_score=70.0)
     return Thresholds(max_total_per_100_words=8.0, max_errors=None, min_score=None)

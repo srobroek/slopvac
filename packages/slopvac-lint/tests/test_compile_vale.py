@@ -38,7 +38,7 @@ from slopvac.config import (
 )
 from slopvac.model import RuleKind, Scope, TextType
 from slopvac.rules import load_ruleset
-from slopvac.vale_cache import cache_root, prune_cache
+from slopvac.vale_cache import cache_lock, cache_root, prune_cache
 from slopvac.vale_probe import resolved_checks
 from slopvac.vocabulary import load_blocklist
 
@@ -710,6 +710,20 @@ def test_a_failed_compile_leaves_no_cache_entry(ruleset, vocabulary, tmp_path, m
     assert not (outdir / "manifest.json").is_file()
     leftovers = [p.name for p in tmp_path.iterdir() if p.name.startswith(".c.")]
     assert not leftovers or all("building" in n for n in leftovers), leftovers
+
+def test_cache_lock_serializes_publishers(tmp_path):
+    """A cache lock must exclude a second publisher until the first releases it."""
+    state = tmp_path / "state"
+    state.mkdir()
+    with cache_lock(tmp_path):
+        marker = state / "held"
+        marker.write_text("first", encoding="utf-8")
+        with pytest.raises(BlockingIOError):
+            import fcntl
+
+            with (tmp_path / ".slopvac.lock").open("a+") as handle:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        assert marker.read_text(encoding="utf-8") == "first"
 
 
 def test_changing_a_severity_invalidates_the_cache(ruleset, vocabulary, tmp_path):
