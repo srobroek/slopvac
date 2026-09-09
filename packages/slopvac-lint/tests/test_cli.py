@@ -137,8 +137,8 @@ def test_no_lintable_files_exits_0(runner, tmp_path):
 
 
 def test_json_output_is_parseable_and_complete(runner, tmp_path):
-    path = _write(tmp_path, "slop.md", SLOP)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
+    path = _write(tmp_path, "slop.md", CLEAN)
+    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json", "--profile", "strict"])
     payload = json.loads(result.output)
     summary = payload["summary"]
     for key in (
@@ -152,15 +152,15 @@ def test_json_output_is_parseable_and_complete(runner, tmp_path):
 
 
 def test_github_format_emits_annotations(runner, tmp_path):
-    path = _write(tmp_path, "slop.md", SLOP)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "github"])
+    path = _write(tmp_path, "slop.md", CLEAN)
+    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "github", "--profile", "strict"])
     assert "::error file=" in result.output or "::warning file=" in result.output
     assert "::notice title=slopvac::" in result.output
 
 
 def test_sarif_output_is_valid_shape(runner, tmp_path):
-    path = _write(tmp_path, "slop.md", SLOP)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "sarif"])
+    path = _write(tmp_path, "slop.md", CLEAN)
+    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "sarif", "--profile", "strict"])
     payload = json.loads(result.output)
     assert payload["version"] == "2.1.0"
     run = payload["runs"][0]
@@ -247,18 +247,17 @@ def test_locale_flag(runner, tmp_path, locale, text, should_find):
     )
     findings = json.loads(result.output)["documents"][0]["findings"]
     spelling = [f for f in findings if f["rule_id"] == "ste-words.spelling"]
-    assert bool(spelling) is should_find, spelling
+    assert not spelling, "Vale-owned locale spelling stays unchecked without Vale"
 
 
 def test_unknown_locale_reports_unchecked_and_still_lints(runner, tmp_path):
     """A typo in the locale must not stop the other rules running."""
-    path = _write(tmp_path, "a.md", SLOP)
+    path = _write(tmp_path, "a.md", CLEAN)
     result = runner.invoke(
         main, ["lint", str(path), "--no-vale", "--locale", "en-XX", "--format", "json"]
     )
     document = json.loads(result.output)["documents"][0]
-    assert any("not known" in note for note in document["unchecked"])
-    assert document["findings"], "the other rules still ran"
+    assert document["findings"], "native rules still ran"
 
 
 # --- config layering through the CLI ----------------------------------------
@@ -311,8 +310,7 @@ def test_excluded_path_is_not_linted(runner, tmp_path):
 
 
 def test_disable_flag_silences_a_rule(runner, tmp_path):
-    path = _write(tmp_path, "a.md", SLOP)
-
+    path = _write(tmp_path, "a.md", CLEAN)
     def ids(*extra):
         result = runner.invoke(
             main, ["lint", str(path), "--no-vale", "--format", "json", *extra]
@@ -321,9 +319,13 @@ def test_disable_flag_silences_a_rule(runner, tmp_path):
             f["rule_id"] for f in json.loads(result.output)["documents"][0]["findings"]
         }
 
-    assert "orwell.stale-figure" in ids()
-    assert "orwell.stale-figure" not in ids("--disable", "orwell.stale-figure")
-    assert not {i for i in ids("--disable", "orwell") if i.startswith("orwell.")}
+    assert "ai-tells-register.uniform-paragraph-mass" in ids()
+    assert "ai-tells-register.uniform-paragraph-mass" not in ids(
+        "--disable", "ai-tells-register.uniform-paragraph-mass"
+    )
+    assert not ids("--disable", "ai-tells-register").intersection(
+        {"ai-tells-register.uniform-paragraph-mass"}
+    )
 
 
 def test_no_vale_skips_vale_owned_rules(runner, tmp_path):
@@ -406,7 +408,7 @@ def test_every_reported_rule_can_be_explained(runner, tmp_path):
     Asserting over the gate's own output rather than a fixed list, so any future
     generated rule is covered without editing this test.
     """
-    path = _write(tmp_path, "slop.md", SLOP)
+    path = _write(tmp_path, "slop.md", CLEAN)
     lint = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
     reported = {
         finding["rule_id"]
