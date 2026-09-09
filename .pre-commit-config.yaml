@@ -1,0 +1,27 @@
+# Install with `prek install --git-dir "$(git rev-parse --git-dir)"` before
+# running scripts/install-agnix-hooks.sh. Keep core.hooksPath set: the installer
+# chains the generated prek shim through .githooks/pre-commit so both hooks run.
+repos:
+  - repo: local
+    hooks:
+      - id: slopvac
+        name: slopvac prose gate
+        entry: uv run --frozen --project packages/slopvac-lint slopvac lint
+        language: system
+        files: \.(md|mdx|txt|rst)$
+        pass_filenames: true
+        # One process at a time: parallel batches compile and publish the same
+        # Vale cache tree and race each other into an incomplete run (exit 2).
+        require_serial: true
+      - id: typos
+        name: typos
+        entry: typos
+        language: system
+        files: \.(md|mdx|txt|rst|toml|yaml|yml)$
+        exclude: ^CHANGELOG\.md$
+      - id: taplo
+        name: taplo format
+        entry: uvx taplo@0.9.3 fmt --check
+        language: system
+        files: \.toml$
+        pass_filenames: true

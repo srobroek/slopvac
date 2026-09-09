@@ -10,8 +10,8 @@ TRIGGER
 + finishing any significant piece of prose -- run this before calling it done
 + "review this README", "deslop this", "does this read like AI", "check the docs"
 + reviewing text someone else drafted, human or model
-- authoring from scratch, or choosing a genre → write-docs (it calls this skill at the end)
-- code comments and docstrings → language conventions
++ authoring from scratch, or choosing a genre → write-docs (it calls this skill at the end)
++ code comments and docstrings → language conventions
 
 `slopvac` owns every mechanical rule. This skill owns the judgement the
 linter cannot make, and the verdict. Neither carries a copy of the other's rules:
@@ -136,11 +136,11 @@ MUST Default to REVISE. A document that produced no findings has cleared the
 mechanical bar and nothing else. Before looking for a reason to pass, look for
 a reason to cut.
 
-- MUST Delete every sentence a reader would act identically without. Ask it of each sentence individually, not of the paragraph.
-- MUST Name the weakest claim in the document and say so, even when the document is good. A review that finds nothing has not read for truth.
-- MUST Check every command, path, flag, and version against the repo. A command nobody has run is an unverified claim.
-- MUST Read the headings alone, in order. They must read as an outline of what the artifact does. If two say the same thing, or one promises what its section withholds, the structure is wrong rather than the prose.
-- MUST Cut the longest paragraph by a third and see what the cut removed. The usual result is that nothing of substance left.
++ MUST Delete every sentence a reader would act identically without. Ask it of each sentence individually, not of the paragraph.
++ MUST Name the weakest claim in the document and say so, even when the document is good. A review that finds nothing has not read for truth.
++ MUST Check every command, path, flag, and version against the repo. A command nobody has run is an unverified claim.
++ MUST Read the headings alone, in order. They must read as an outline of what the artifact does. If two say the same thing, or one promises what its section withholds, the structure is wrong rather than the prose.
++ MUST Cut the longest paragraph by a third and see what the cut removed. The usual result is that nothing of substance left.
 
 DEFAULT Say what you would delete, as a specific line rather than a category.
 "Cut lines 33-36" beats "tighten the intro".
@@ -193,22 +193,22 @@ False positives: <none | rule · matched text · sentence>
 
 `REVISE` when any of these hold:
 
-- the gate reports an error
-- the score is below the profile's floor
-- three or more judgement checks fail in one passage
-- any claim fails against HEAD
-- a section would survive being cut
++ the gate reports an error
++ the score is below the profile's floor
++ three or more judgement checks fail in one passage
++ any claim fails against HEAD
++ a section would survive being cut
 
 The threshold sits at three because no single tell proves anything -- humans
 wrote the training data -- but tells cluster.
 
 `PASS` requires all of:
 
-- gate clean
-- nothing in `unchecked`
-- every command executed
-- every claim checked against code
-- no paragraph you would delete
++ gate clean
++ nothing in `unchecked`
++ every command executed
++ every claim checked against code
++ no paragraph you would delete
 
 State in `Action` what you checked rather than that you checked.
 
