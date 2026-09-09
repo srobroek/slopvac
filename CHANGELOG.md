@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.1.0](https://github.com/srobroek/slopvac/compare/v2.0.0...v2.1.0) (2026-09-09)
+
+
+### Features
+
+* **action:** expose warnings, suggestions, documents and words ([#43](https://github.com/srobroek/slopvac/issues/43)) ([962cb83](https://github.com/srobroek/slopvac/commit/962cb8318e03845c6a1ac18acfbfbef4c03ee7c3))
+* **lint:** category severity floor ([#39](https://github.com/srobroek/slopvac/issues/39)) ([f6b44ff](https://github.com/srobroek/slopvac/commit/f6b44ffffea453e75b8bc989258eb5796537157e))
+
+
+### Bug Fixes
+
+* **lint:** apply the 2026-09-09 review, split the large modules, drop the legacy Vale tree ([#38](https://github.com/srobroek/slopvac/issues/38)) ([18c37dc](https://github.com/srobroek/slopvac/commit/18c37dcaf2d11ef43ab9cf4610cae0664e2644af))
+* **release:** stop stamping the OMP marketplace symlink ([#45](https://github.com/srobroek/slopvac/issues/45)) ([0ce2f1c](https://github.com/srobroek/slopvac/commit/0ce2f1c6fabd1c2c8c6ad5b4057cf408c55f0eeb))
+
 ## [2.0.0](https://github.com/srobroek/slopvac/compare/v1.0.3...v2.0.0) (2026-09-08)
 
 

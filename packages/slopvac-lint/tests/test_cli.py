@@ -326,6 +326,21 @@ def test_disable_flag_silences_a_rule(runner, tmp_path):
     assert not {i for i in ids("--disable", "orwell") if i.startswith("orwell.")}
 
 
+def test_no_vale_skips_vale_owned_rules(runner, tmp_path):
+    """`--no-vale` must not substitute native semantics for Vale-owned rules."""
+    path = _write(
+        tmp_path,
+        "table.md",
+        "# Terms\n\n| Term | Meaning |\n| --- | --- |\n| \\\"Promote to master\\\" | A relation example. |\n",
+    )
+    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
+    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS, EXIT_ERROR), result.output
+    document = json.loads(result.output)["documents"][0]
+    ids = {finding["rule_id"] for finding in document["findings"]}
+    assert "prose-inclusive.exclusive" not in ids
+    assert any("--no-vale skipped" in note for note in document["unchecked"])
+
+
 def test_explain_config_reports_what_applies(runner, tmp_path):
     _write(
         tmp_path,
