@@ -431,11 +431,11 @@ Scoring uses two inputs:
 - severity-weighted errors and warnings per 100 words
 - the profile budget for that density
 
-The budget converts density into a score. A long document
-earns proportionally more findings. Under 60 words, scoring switches to absolute
-counts, because one finding
-in a 20-word error message is 5.0 per 100 words and would fail every budget ever
-set.
+The budget converts density into a score.
+Long documents earn proportionally more findings.
+Documents under 60 words use absolute counts.
+For example, one finding in a 20-word error message equals 5.0 per 100 words.
+Density scoring would fail every budget in that case.
 
 ### Rules that fire deterministically, separated from rules that do not
 
