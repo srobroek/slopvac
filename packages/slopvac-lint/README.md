@@ -315,23 +315,24 @@ Two numbers, because they answer different questions and neither replaces the ot
 | `per_100_words` | every finding | how dense is this document |
 | `score` | 0-100 | what a badge shows and `min_score` gates |
 
-The density budget (`max_total_per_100_words`) counts errors and warnings only:
-**a suggestion may lower a score but must not fail a run**.
+The density budget (`max_total_per_100_words`) counts severity-weighted errors
+and warnings: errors count 1.0 and warnings 0.5. **A suggestion may lower a
+score but must not fail a run**.
 
 ### Density: the n-per-100-words figure
 
 A raw count cannot compare a 40-word error message against a 4,000-word guide.
-One finding is 2.5 per 100 words in the first and 0.025 in the second. The
-measurement is therefore always a density:
+One finding is 2.5 per 100 words in the first and 0.025 in the second.
+For documents of 60 words or more, this measurement is the density:
 
 ```
 density = findings / words * 100
 ```
 
-Below 60 words density means nothing, so the scorer switches to absolute counts.
-Every finding counts there, suggestions included, and the count path is harsher on
-purpose: one suggestion costs 5 points, one error costs 20, and four errors reach
-0. A 40-word message has room for no defects.
+Below 60 words, density means nothing, so the scorer uses absolute counts for
+blocking findings. An error costs 20 points and a warning costs 10. Suggestions
+use a separate bounded penalty: 2.5 points each, up to 15 points total, and
+cannot fail a run on their own.
 
 ### Per-category score
 
@@ -425,9 +426,10 @@ to write less rather than to write better. A threshold set against a count eithe
 passes a 3,000-word document with forty problems or fails a 200-word one with
 three.
 
-So the gate is **findings per 100 words**, and the score follows from that density
-against the profile's budget. A long document earns proportionally more
-findings. Under 60 words, scoring switches to absolute counts, because one finding
+So the gate is **severity-weighted errors and warnings per 100 words**, and the
+score follows from that density against the profile's budget. A long document
+earns proportionally more findings. Under 60 words, scoring switches to absolute
+counts, because one finding
 in a 20-word error message is 5.0 per 100 words and would fail every budget ever
 set.
 

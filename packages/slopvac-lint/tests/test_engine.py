@@ -34,7 +34,7 @@ from slopvac.engine import (
     count_clause_boundaries,
 )
 from slopvac.metrics import NATIVE_METRICS
-from slopvac.model import TextType, Tier
+from slopvac.model import Finding, TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
 
@@ -119,7 +119,11 @@ def test_text_type(text, expected):
 @pytest.mark.parametrize(
     "text,expected,why",
     [
-        ("Read the file, parse it, and emit the report.", 1, "a list of actions is one idea"),
+        (
+            "Read the file, parse it, and emit the report.",
+            1,
+            "a list of actions is one idea",
+        ),
         ("The parser reads the file; it emits a report.", 1, "a semicolon joins two"),
         (
             "The parser reads the file, and it normalizes paths; then it emits the "
@@ -155,21 +159,20 @@ def test_line_numbers_survive_stripping():
     """A finding must open the right line in the real file, so the prose
     projection stays aligned with the source."""
     document = parse("t.md", "one\n\n```\ncode\n```\n\nrobust here\n")
-    index = next(
-        i for i, line in enumerate(document.prose_lines) if "robust" in line
-    )
+    index = next(i for i, line in enumerate(document.prose_lines) if "robust" in line)
     assert document.raw_lines[index] == "robust here"
 
 
 def test_front_matter_is_parsed_not_linted():
-    document = parse("t.md", '---\ntitle: robust thing\n---\n\nBody.\n')
+    document = parse("t.md", "---\ntitle: robust thing\n---\n\nBody.\n")
     assert document.front_matter["title"] == "robust thing"
     assert "robust" not in document.prose_text()
 
 
 def test_suppression_comment_is_not_linted():
     document = parse(
-        "t.md", "<!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->\nBody.\n"
+        "t.md",
+        "<!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->\nBody.\n",
     )
     assert "slopvac-allow" not in document.prose_text()
 
@@ -191,7 +194,9 @@ def test_override_patches_per_field_not_per_table():
         overrides=[
             Override(
                 files=["docs/**"],
-                categories={"prose-inflation": CategorySettings(severity=Severity.WARNING)},
+                categories={
+                    "prose-inflation": CategorySettings(severity=Severity.WARNING)
+                },
             )
         ],
     )
@@ -214,9 +219,7 @@ def test_later_override_wins_and_both_are_recorded():
 
 
 def test_non_matching_override_is_ignored():
-    config = _config(
-        overrides=[Override(files=["docs/**"], profile=Profile.STRICT)]
-    )
+    config = _config(overrides=[Override(files=["docs/**"], profile=Profile.STRICT)])
     assert resolve_for(config, Path("/repo/README.md")).profile is Profile.NORMAL
 
 
@@ -237,9 +240,7 @@ def test_locale_resolves_per_path():
         overrides=[Override(files=["docs/en-gb/**"], locale={"default": "en-GB"})]
     )
     assert resolve_for(config, Path("/repo/README.md")).locale.default == "en-US"
-    assert (
-        resolve_for(config, Path("/repo/docs/en-gb/a.md")).locale.default == "en-GB"
-    )
+    assert resolve_for(config, Path("/repo/docs/en-gb/a.md")).locale.default == "en-GB"
 
 
 # --- severity precedence -----------------------------------------------------
@@ -278,6 +279,7 @@ def test_category_severity_raises_severity():
     for rule in promoted:
         assert engine.severity_for(rule) is Severity.ERROR
 
+
 def test_category_minimum_severity_is_a_floor():
     engine = _engine(
         categories={"orwell": CategorySettings(minimum_severity=Severity.ERROR)}
@@ -295,6 +297,20 @@ def test_rule_override_can_opt_out_of_category_minimum():
     rule = next(r for r in engine.rules if r.qualified_id == "orwell.not-un")
     assert engine.severity_for(rule) is Severity.SUGGESTION
 
+
+def test_minimum_severity_does_not_resurrect_disabled_category():
+    engine = _engine(
+        categories={
+            "orwell": CategorySettings(
+                severity=Severity.OFF,
+                minimum_severity=Severity.ERROR,
+            )
+        }
+    )
+    rule = next(r for r in load_ruleset().rules if r.qualified_id == "orwell.not-un")
+    assert engine.severity_for(rule) is Severity.OFF
+
+
 def test_rule_override_still_beats_category_severity():
     """Narrowest wins, so one rule can opt out of its category's severity."""
     engine = _engine(
@@ -303,7 +319,6 @@ def test_rule_override_still_beats_category_severity():
     )
     rule = next(r for r in engine.rules if r.qualified_id == "orwell.stale-figure")
     assert engine.severity_for(rule) is Severity.WARNING
-    pytest.skip("no suggestion-level rule in prose-craft to test against")
 
 
 def test_rule_override_wins_over_category():
@@ -376,9 +391,7 @@ def test_empty_exception_list_accepts_no_reason():
 
 
 def test_unknown_rule_in_suppression_is_reported():
-    findings = _run(
-        "<!-- slopvac-allow: rule=nope.nothing reason=quotation -->\nBody.\n"
-    )
+    findings = _run("<!-- slopvac-allow: rule=nope.nothing reason=quotation -->\nBody.\n")
     assert [f for f in findings if f.rule_id == "meta.invalid-suppression"]
 
 
@@ -473,6 +486,60 @@ def test_min_score_gate():
     assert any("score" in reason for reason in result.failure_reasons)
 
 
+def test_warning_counts_as_half_an_error_in_density_gate():
+    warning = Finding(
+        path="a.md",
+        line=1,
+        column=1,
+        rule_id="fixture.warning",
+        category="fixture",
+        severity=Severity.WARNING,
+        message="warning",
+    )
+    result = _score(
+        [warning],
+        100,
+        categories_meta={"fixture": 1.0},
+        categories={"fixture": CategorySettings(max_per_100_words=0.5)},
+        thresholds=Thresholds(max_errors=None, min_score=None),
+    )
+    entry = next(c for c in result.categories if c.category == "fixture")
+    assert entry.gating_per_100_words == 0.5
+    assert not entry.over_budget
+
+
+def test_zero_budget_is_exact_zero_tolerance():
+    findings = _run("It is the tip of the iceberg.")
+    result = _score(
+        findings,
+        100,
+        categories={"orwell": CategorySettings(max_per_100_words=0)},
+    )
+    entry = next(c for c in result.categories if c.category == "orwell")
+    assert entry.score == 0.0
+    assert entry.over_budget
+
+
+def test_suggestions_alone_cannot_fail_min_score():
+    suggestion = Finding(
+        path="a.md",
+        line=1,
+        column=1,
+        rule_id="fixture.suggestion",
+        category="fixture",
+        severity=Severity.SUGGESTION,
+        message="suggestion",
+    )
+    result = _score(
+        [suggestion] * 20,
+        100,
+        categories_meta={"fixture": 1.0},
+        thresholds=Thresholds(max_errors=None, min_score=99.9),
+    )
+    assert result.score < 99.9
+    assert result.passed
+
+
 def test_zero_weight_category_leaves_the_category_average_alone():
     """A zero-weight category is informational: it contributes to neither the
     numerator nor the denominator of the per-category mean.
@@ -483,9 +550,7 @@ def test_zero_weight_category_leaves_the_category_average_alone():
     """
     findings = _run("It is the tip of the iceberg.")
     weighted = _score(findings, 200)
-    unweighted = _score(
-        findings, 200, categories={"orwell": CategorySettings(weight=0)}
-    )
+    unweighted = _score(findings, 200, categories={"orwell": CategorySettings(weight=0)})
     assert unweighted.score <= weighted.score, "zero-weighting must not flatter"
 
     # The category itself is still reported, so a reader sees what was excluded.
@@ -500,9 +565,7 @@ def test_zero_weighting_everything_cannot_score_a_slop_document_100():
         "platform will supercharge your workflow."
     )
     assert findings
-    zeroed = {
-        name: CategorySettings(weight=0) for name in load_ruleset().categories
-    }
+    zeroed = {name: CategorySettings(weight=0) for name in load_ruleset().categories}
     result = _score(findings, 200, categories=zeroed)
     assert result.score < 100.0
 
@@ -581,7 +644,8 @@ def test_all_caps_normative_keywords_are_not_rewritten():
         profile=Profile.STRICT,
     )
     offenders = [
-        f for f in findings
+        f
+        for f in findings
         if f.rule_id.endswith("obligation-word-substitution")
         or f.rule_id.endswith("approved-word-substitution")
     ]
@@ -597,13 +661,13 @@ def test_lowercase_obligation_word_still_fires():
         "The worker should retry the request before it reports a failure.",
         profile=Profile.STRICT,
     )
-    assert any(
-        f.rule_id.endswith("obligation-word-substitution") for f in findings
-    ), "lowercase `should` no longer reports; the carve-out is too wide"
+    assert any(f.rule_id.endswith("obligation-word-substitution") for f in findings), (
+        "lowercase `should` no longer reports; the carve-out is too wide"
+    )
 
 
 def test_named_contract_is_not_a_relation_term():
-    """"Master Subscription Agreement" is an instrument's proper name.
+    """ "Master Subscription Agreement" is an instrument's proper name.
 
     Also from `evals/independent/`: the legal-register document drew advice to
     rename a contract the writer does not own. The relation sense still reports.
@@ -663,10 +727,7 @@ def test_all_caps_words_do_not_draw_prose_findings():
         "You should ENSURE the value is correct.\n",
         profile=Profile.STRICT,
     )
-    caps_hits = [
-        f for f in findings
-        if f.matched_text and _is_all_caps(f.matched_text)
-    ]
+    caps_hits = [f for f in findings if f.matched_text and _is_all_caps(f.matched_text)]
     assert not caps_hits, "an all-caps token drew a prose finding: " + ", ".join(
         f"{f.rule_id} on {f.matched_text!r}" for f in caps_hits
     )
@@ -832,7 +893,10 @@ def test_a_list_stem_is_not_an_emphasis_paragraph():
 def test_a_short_paragraph_ending_in_a_colon_with_no_list_still_fires():
     """The colon alone is not the exclusion. Both halves are required, or every
     short paragraph an author happened to end that way escapes the rule."""
-    document = parse("t.md", "A lead-in long enough to clear the bound sits here.\n\nHere is the thing:\n\nAnd prose continues after it, at length, with no list.\n")
+    document = parse(
+        "t.md",
+        "A lead-in long enough to clear the bound sits here.\n\nHere is the thing:\n\nAnd prose continues after it, at length, with no list.\n",
+    )
     findings = [
         f
         for f in _engine().run(document)
@@ -1153,7 +1217,6 @@ def test_every_shipped_metric_is_measurable():
     assert named <= NATIVE_METRICS | set(METRIC_TOKENS), named - (
         NATIVE_METRICS | set(METRIC_TOKENS)
     )
-
 
 
 def test_a_clause_boundary_ends_a_noun_stack():
