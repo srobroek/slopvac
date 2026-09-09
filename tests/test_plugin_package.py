@@ -27,6 +27,27 @@ class PluginPackageContractTest(unittest.TestCase):
                 if declared_path := manifest.get(key):
                     self.assertTrue((source / declared_path).exists(), declared_path)
 
+    def test_omp_marketplace_uses_native_skill_root(self) -> None:
+        marketplace = json.loads(
+            (ROOT / ".omp-plugin" / "marketplace.json").read_text()
+        )
+        entry = marketplace["plugins"][0]
+
+        self.assertEqual(entry["source"], "./packages/slopvac")
+        source = ROOT / entry["source"]
+        manifest = json.loads((source / "plugin.json").read_text())
+        self.assertEqual(
+            manifest["$schema"],
+            "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+        )
+
+        skills = source / "skills"
+        self.assertEqual(
+            {path.parent.name for path in skills.glob("*/SKILL.md")},
+            {"review-docs", "write-docs"},
+        )
+        self.assertFalse((source / ".apm" / "skills").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
