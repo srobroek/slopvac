@@ -10,6 +10,9 @@ repos:
         language: system
         files: \.(md|mdx|txt|rst)$
         pass_filenames: true
+        # One process at a time: parallel batches compile and publish the same
+        # Vale cache tree and race each other into an incomplete run (exit 2).
+        require_serial: true
       - id: typos
         name: typos
         entry: typos
