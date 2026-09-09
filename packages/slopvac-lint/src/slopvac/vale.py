@@ -227,16 +227,16 @@ def run_compiled_vale(
 def unchecked_for_skipped(compiled) -> list[str]:
     """The note that `--no-vale` produces.
 
-    Skipping Vale now skips most of the ruleset, so the rules that would have run
-    are reported as unchecked rather than dropped. A gate that silently stops
-    checking most of its rules while still printing a score is the exact failure
-    mode this project refuses to ship.
+    Skipping Vale hands the rules it owns to the native engine, which measures
+    them with its own parser. The two agree on this project's corpus, and the
+    engine follows Vale's scoping where the two were measured apart, but Vale is
+    the engine of record: the note says which one produced the score.
     """
     if not compiled.vale_rules:
         return []
     return [
-        f"--no-vale skipped the Vale engine, so {len(compiled.vale_rules)} of the "
-        f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
-        f"did NOT run. The score below reflects only the "
-        f"{len(compiled.native_rules)} rules that stayed native."
+        f"--no-vale skipped the Vale engine, so the {len(compiled.vale_rules)} rules "
+        f"it owns ran natively instead. That is a fallback measurement, not the gate "
+        f"of record, so this check is reported incomplete; a finding the native run "
+        f"adds or misses against a Vale run is a bug to report."
     ]

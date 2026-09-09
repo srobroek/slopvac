@@ -51,6 +51,7 @@ from .analyze import (
     count_words,
     longest_noun_stack,
 )
+from .compile_vale import measures_vale_sentences
 from .config import ResolvedConfig, Severity
 from .metrics import NATIVE_METRICS, WORD_CAPS, _list_stem_lines, document_metric
 from .model import Finding, Rule, RuleKind, Scope, TextType, Tier
@@ -716,15 +717,24 @@ class Engine:
                 )
             )
 
+        # A rule Vale owns is measured over the sentences Vale measures: those of
+        # paragraphs. Every other block's sentences stay in for the native-only
+        # metrics, whose shipped behaviour this is. See `measures_vale_sentences`.
+        sentences = (
+            [s for block in document.paragraphs for s in block.sentences]
+            if measures_vale_sentences(rule)
+            else document.sentences
+        )
+
         def per_sentence(measure, offset: int = 0) -> None:
             """The shape shared by every per-sentence count: measure, compare, report."""
-            for sentence in document.sentences:
+            for sentence in sentences:
                 count = measure(sentence.text)
                 if exceeds(count, threshold):
                     report(sentence.line, str(count + offset), str(int(threshold) + offset))
 
         if metric == "sentence_words":
-            for sentence in document.sentences:
+            for sentence in sentences:
                 if rule.text_type is not TextType.ANY and sentence.text_type is not rule.text_type:
                     continue
                 # An explicit threshold on the rule wins; otherwise the cap comes

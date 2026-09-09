@@ -512,7 +512,7 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
     unchecked = " ".join(payload["documents"][0]["unchecked"])
 
     assert "--no-vale" in unchecked
-    assert "did NOT run" in unchecked
+    assert "ran natively" in unchecked
 
 
 def test_unimplemented_metrics_are_reported_not_skipped(tmp_path):

@@ -1174,3 +1174,45 @@ def test_the_stack_rule_still_reports_a_real_stack():
     """The companion to every false-positive fix above. Each round widened
     STACK_BREAKER, and a list wide enough to silence everything silences this too."""
     assert longest_noun_stack("container orchestration platform migration strategy") == 5
+
+
+# --- the native fallback measures what the compiled rule measures ---------------
+
+RUN_ON = (
+    "The gate runs, and it reports, but the queue waits, so the shepherd lands it, "
+    "and the run closes, then it stops."
+)
+
+
+@pytest.mark.parametrize(
+    "wrap",
+    [
+        pytest.param("# {}\n\nx\n", id="heading"),
+        pytest.param("# T\n\n- {}\n", id="list-item"),
+        pytest.param("# T\n\n> {}\n", id="blockquote"),
+        pytest.param("# T\n\n| a | b |\n| --- | --- |\n| x | {} |\n", id="table-cell"),
+    ],
+)
+def test_a_vale_owned_sentence_metric_measures_paragraphs_only(wrap):
+    """Vale's `sentence` scope covers paragraph sentences only, and `run-on`
+    compiles to it. The native fallback used to count every block's sentences, so
+    `--no-vale` reported a run-on in a table header that a Vale run never did."""
+    engine = _engine(profile=Profile.STRICT)
+    ids = [f.rule_id for f in engine.run(parse("a.md", wrap.format(RUN_ON)))]
+    assert "prose-discipline.run-on" not in ids
+
+
+def test_a_run_on_in_a_paragraph_is_still_reported():
+    engine = _engine(profile=Profile.STRICT)
+    ids = [f.rule_id for f in engine.run(parse("a.md", f"# T\n\n{RUN_ON}\n"))]
+    assert "prose-discipline.run-on" in ids
+
+
+def test_a_native_only_sentence_metric_keeps_every_block():
+    """`ste-descriptive.sentence-too-long-descriptive` is text-type scoped, so it
+    never compiles; its shipped behaviour measures list items and cells too, and
+    parity with Vale must not narrow it."""
+    long_sentence = " ".join(["word"] * 30) + "."
+    engine = _engine(profile=Profile.STRICT)
+    ids = [f.rule_id for f in engine.run(parse("a.md", f"# T\n\n- {long_sentence}\n"))]
+    assert "ste-descriptive.sentence-too-long-descriptive" in ids

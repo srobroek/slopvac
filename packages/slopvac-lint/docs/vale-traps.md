@@ -107,7 +107,7 @@ Vale is not using stock RE2 for `raw:`. All of these compile and fire:
 | --- | --- |
 | `(?<![\w-])customers?` | "The customer called" |
 | `\b(\w+)\s+\1\b` | "The the config is set" |
-| `\bmaster(?! branch)\b` | "Promote to master", not "master branch" |
+| `\bmerge(?! request)\b` | "Merge the branch", not "merge request" |
 | `(?<!\d )(?<!\d%% )\bmost\s+users\b` | stacked lookbehinds, once `%` is escaped |
 | `(?<!\d+ )\bmost users\b` | variable-length lookbehind |
 | `(?<=[.!?]\s+)ZQ\w+` | every sentence-initial hit, any gap width |

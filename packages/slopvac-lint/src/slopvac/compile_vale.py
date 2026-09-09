@@ -267,6 +267,27 @@ TEXT_TYPE_AWARE_METRICS = frozenset({"sentence_words"})
 # measured, that is the point to widen it.
 WORD_COUNTING_METRICS = frozenset({"paragraph_words"})
 
+
+def measures_vale_sentences(rule: Rule) -> bool:
+    """Does this metric rule compile to a Vale `occurrence` check over sentences?
+
+    Vale's `sentence` scope covers the sentences of PARAGRAPHS only: measured with
+    the compiled `prose-discipline.run-on` and `prose-craft.sentence-length`, a
+    40-word sentence fires in a paragraph and stays silent in a heading, a list
+    item, a blockquote, and a table cell. The native engine measures every block's
+    sentences, so a rule that Vale owns reported different findings under
+    `--no-vale` than the shipped gate does with Vale present. The engine consults
+    this to measure what the compiled rule measures.
+    """
+    if rule.kind is not RuleKind.METRIC or rule.scope is not Scope.SENTENCE:
+        return False
+    if rule.metric in TEXT_TYPE_AWARE_METRICS and rule.text_type is not TextType.ANY:
+        return False
+    if rule.metric in DENSITY_MESSAGE_METRICS or rule.metric in WORD_COUNTING_METRICS:
+        return False
+    return (rule.metric or "") in METRIC_TOKENS
+
+
 WORD_COUNT_REASON = (
     "Vale counts an inline code span as zero words, ASD-STE100 8.4-8.7 as one"
 )
