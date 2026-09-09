@@ -279,6 +279,7 @@ def test_category_severity_raises_severity():
     for rule in promoted:
         assert engine.severity_for(rule) is Severity.ERROR
 
+
 def test_category_minimum_severity_is_a_floor():
     engine = _engine(
         categories={"orwell": CategorySettings(minimum_severity=Severity.ERROR)}
@@ -297,7 +298,6 @@ def test_rule_override_can_opt_out_of_category_minimum():
     assert engine.severity_for(rule) is Severity.SUGGESTION
 
 
-
 def test_minimum_severity_does_not_resurrect_disabled_category():
     engine = _engine(
         categories={
@@ -309,8 +309,6 @@ def test_minimum_severity_does_not_resurrect_disabled_category():
     )
     rule = next(r for r in load_ruleset().rules if r.qualified_id == "orwell.not-un")
     assert engine.severity_for(rule) is Severity.OFF
-
-
 
 
 def test_rule_override_still_beats_category_severity():
