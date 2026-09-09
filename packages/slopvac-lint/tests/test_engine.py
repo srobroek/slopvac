@@ -321,7 +321,6 @@ def test_rule_override_still_beats_category_severity():
     )
     rule = next(r for r in engine.rules if r.qualified_id == "orwell.stale-figure")
     assert engine.severity_for(rule) is Severity.WARNING
-    pytest.skip("no suggestion-level rule in prose-craft to test against")
 
 
 def test_rule_override_wins_over_category():
