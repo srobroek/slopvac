@@ -7,7 +7,7 @@
   language: python
   # The repository root has no Python project, so the hook environment gets the
   # linter from PyPI. release-please keeps the pin current.
-  additional_dependencies: ["slopvac==2.0.0"] # x-release-please-version
+  additional_dependencies: ["slopvac==2.1.0"] # x-release-please-version
   types_or: [markdown, rst, plain-text, html]
   # pre-commit passes filenames positionally, which is what `lint` wants. It runs
   # only on staged files, so the gate sees the change rather than the repository.
@@ -22,7 +22,7 @@
   language: python
   # The repository root has no Python project, so the hook environment gets the
   # linter from PyPI. release-please keeps the pin current.
-  additional_dependencies: ["slopvac==2.0.0"] # x-release-please-version
+  additional_dependencies: ["slopvac==2.1.0"] # x-release-please-version
   types_or: [markdown, rst, plain-text, html]
   require_serial: false
 
@@ -35,6 +35,6 @@
   language: python
   # The repository root has no Python project, so the hook environment gets the
   # linter from PyPI. release-please keeps the pin current.
-  additional_dependencies: ["slopvac==2.0.0"] # x-release-please-version
+  additional_dependencies: ["slopvac==2.1.0"] # x-release-please-version
   types_or: [markdown, rst, plain-text, html]
   require_serial: false

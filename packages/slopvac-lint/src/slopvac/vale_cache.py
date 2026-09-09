@@ -13,7 +13,10 @@ import hashlib
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
+
+import fcntl
 
 from .config import ResolvedConfig
 from .model import Rule
@@ -57,6 +60,18 @@ def cache_root() -> Path:
     if xdg:
         return Path(xdg) / "slopvac"
     return Path(tempfile.gettempdir()) / "slopvac-cache"
+
+
+@contextmanager
+def cache_lock(root: Path):
+    """Serialize publication and pruning for one shared cache root."""
+    root.mkdir(parents=True, exist_ok=True)
+    with (root / ".slopvac.lock").open("a+") as handle:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 # How many compiled trees to keep. Each is ~400KB, so 16 is a few megabytes and

@@ -56,7 +56,7 @@ import yaml
 
 from .config import ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType
-from .vale_cache import cache_root, fingerprint, prune_cache
+from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
 from .vale_probe import ValeUnavailable, probe_payloads
 
 # Our scope vocabulary to Vale's. Vale has no document scope: a whole-document
@@ -1029,28 +1029,51 @@ def compile_ruleset(
         encoding="utf-8",
     )
 
-    # `os.replace` is atomic for a directory only when the target does not exist,
-    # so the old tree moves aside first and is removed after the swap. A loser in a
-    # race finds its own rename failing because the winner already published an
-    # identical tree -- the fingerprint says so -- so it keeps the winner's.
-    previous = outdir.parent / f".{outdir.name}.replaced-{os.getpid()}"
-    try:
-        if outdir.exists():
-            os.replace(outdir, previous)
-        try:
-            os.replace(staging, outdir)
-        except OSError:
-            if not (outdir / "manifest.json").is_file():
-                raise
-            shutil.rmtree(staging, ignore_errors=True)
-    finally:
-        shutil.rmtree(previous, ignore_errors=True)
+    # Serialize publication so concurrent compilers never move the same cache
+    # tree aside at the same time. A second shared-cache compiler also rechecks
+    # the manifest under the lock and keeps the complete tree the first compiler
+    # published.
+    with cache_lock(outdir.parent):
+        if not force and manifest_path.is_file():
+            try:
+                cached = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                cached = None
+            if cached and cached.get("fingerprint") == key:
+                shutil.rmtree(staging, ignore_errors=True)
+                with suppress(OSError):
+                    os.utime(outdir)
+                return CompileResult(
+                    outdir=outdir,
+                    config_path=outdir / ".vale.ini",
+                    vale_rules=cached.get("vale_rules", []),
+                    native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
+                    judgement_rules=cached.get("judgement_rules", []),
+                    disabled_rules=cached.get("disabled_rules", []),
+                    notes=cached.get("notes", []),
+                    aliases=cached.get("aliases", {}),
+                )
 
-    # Prune only when this run owns the shared cache. A caller who named its own
-    # outdir gets no housekeeping: that directory is theirs, and deleting siblings
-    # of a path the user chose would be a surprise.
-    if cached_here:
-        result.pruned = prune_cache(outdir.parent)
+        # `os.replace` is atomic for a directory only when the target does not
+        # exist, so the old tree moves aside first and is removed after the swap.
+        previous = outdir.parent / f".{outdir.name}.replaced-{os.getpid()}"
+        try:
+            if outdir.exists():
+                os.replace(outdir, previous)
+            try:
+                os.replace(staging, outdir)
+            except OSError:
+                if not (outdir / "manifest.json").is_file():
+                    raise
+                shutil.rmtree(staging, ignore_errors=True)
+        finally:
+            shutil.rmtree(previous, ignore_errors=True)
+
+        # Prune only when this run owns the shared cache. A caller who named its
+        # own outdir gets no housekeeping: that directory is theirs, and deleting
+        # siblings of a path the user chose would be a surprise.
+        if cached_here:
+            result.pruned = prune_cache(outdir.parent)
     return result
 
 
