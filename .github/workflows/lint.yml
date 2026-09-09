@@ -164,9 +164,15 @@ jobs:
       - name: Measure target complexity
         run: |
           set -euo pipefail
+          set +e
           uvx lizard==1.24.0 packages/slopvac-lint/src/slopvac/cli.py \
             packages/slopvac-lint/src/slopvac/score.py -C 15 \
-            > /tmp/lizard.txt || true
+            > /tmp/lizard.txt
+          status=$?
+          set -e
+          if (( status > 1 )); then
+            exit "$status"
+          fi
           cat /tmp/lizard.txt
           python3 - <<'PY'
           from pathlib import Path
