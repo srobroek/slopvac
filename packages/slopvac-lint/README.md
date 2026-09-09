@@ -426,8 +426,12 @@ to write less rather than to write better. A threshold set against a count eithe
 passes a 3,000-word document with forty problems or fails a 200-word one with
 three.
 
-So the gate is **severity-weighted errors and warnings per 100 words**, and the
-score follows from that density against the profile's budget. A long document
+Scoring uses two inputs:
+
+- severity-weighted errors and warnings per 100 words
+- the profile budget for that density
+
+The budget converts density into a score. A long document
 earns proportionally more findings. Under 60 words, scoring switches to absolute
 counts, because one finding
 in a 20-word error message is 5.0 per 100 words and would fail every budget ever
