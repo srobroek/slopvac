@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.2.0](https://github.com/srobroek/slopvac/compare/v2.1.0...v2.2.0) (2026-09-09)
+
+
+### Features
+
+* complete review hardening ([41921b5](https://github.com/srobroek/slopvac/commit/41921b52f4ce10aa420ce030103c6ddef2289e47))
+
+
+### Bug Fixes
+
+* **lint:** serialize Vale cache and skip Vale-owned fallback rules ([daf9629](https://github.com/srobroek/slopvac/commit/daf9629b40a9e962fe162848c696d011051266f7))
+* **lint:** sort cache imports ([e2eaa7b](https://github.com/srobroek/slopvac/commit/e2eaa7bf832423b3981cc12adfd8bc402dbc1baf))
+
+
+### Documentation
+
+* split density scoring explanation ([24994c5](https://github.com/srobroek/slopvac/commit/24994c5588758b935d6bcd58c599c694b54e4e72))
+* split scoring inputs for clarity ([d635eb9](https://github.com/srobroek/slopvac/commit/d635eb9c878a26ade695080f1318d54b3da67ba9))
+
 ## [2.1.0](https://github.com/srobroek/slopvac/compare/v2.0.0...v2.1.0) (2026-09-09)
 
 
