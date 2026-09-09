@@ -10,6 +10,11 @@ repos:
         language: system
         files: \.(md|mdx|txt|rst)$
         pass_filenames: true
+        # One batch at a time. Not for slopvac's sake -- its Vale cache is safe
+        # under concurrent runs -- but `uv run` syncs the project venv on every
+        # start, and two syncs at once uninstall each other's `slopvac` script
+        # (observed in CI: "can't open file .venv/bin/slopvac").
+        require_serial: true
       - id: typos
         name: typos
         entry: typos
