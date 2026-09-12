@@ -17,37 +17,40 @@ TRIGGER
 linter cannot make, and the verdict. Neither carries a copy of the other's rules:
 read the checks in step 3 FROM the linter, so they cannot drift from it.
 
-Run `uvx slopvac`. Without `uv` or `uvx`, run `pipx run slopvac`, or
-`pip install slopvac` and then `slopvac`. MUST fall back to
-`uvx --from <path-to-checkout> slopvac` when the published release fails to
-resolve, and say which one ran. Reporting a verdict without the gate
-having executed is the one failure mode this skill cannot recover from.
+Run `uvx slopvac` (or `pipx run slopvac`); when the published release fails to
+resolve, run `uvx --from <path-to-checkout> slopvac` and say which one ran.
+Reporting a verdict without the gate having executed is the one failure mode this
+skill cannot recover from.
 
 ## Workflow
 
 1. Identify the genre and pick the profile. When `write-docs` invoked this
-   skill, use the `genre` and `profile` it passed. Otherwise pick from:
+   skill, use the `genre` and `profile` it passed. Otherwise pick from the same
+   table `write-docs` uses:
 
-   | Genre | Profile |
-   |---|---|
-   | README, docs/, guides, decision records | `normal` |
-   | reference, API docs, runbooks, procedures, safety text | `strict` |
-   | issue comments, notes, drafts | `relaxed` |
-   | commit message, PR body, release notes | `normal` |
+   | Surface | `genre` | Profile |
+   |---|---|---|
+   | README, docs/, guides, anything a user of the artifact reads | `consumer` | `normal` |
+   | commit message, PR body, release notes | `change-comms` | `normal` |
+   | specifications, decision records, CONTRIBUTING, contributor docs | `internal` | `normal` |
+   | reference, API docs, runbooks, procedures, safety text | `reference` | `strict` |
+   | issue comments, discussion replies, blog posts, drafts | `informal` | `relaxed` |
 
 2. Run the gate. Prose that is not a file (commit message, PR body) MUST be
    written to a temp `.md` first; lint that path.
 
    ```sh
-   slopvac <file>... --profile <profile> --format json
+   slopvac lint <file>... --profile <profile> --format json
    ```
 
-   Read `summary.score`, `summary.per_100_words`, and the per-category table. Fix
-   every ERROR. Fix or justify each WARNING in one line.
-   MUST Treat exit 2 as an incomplete run: the Vale sub-gate was absent, failed,
-   or skipped with `--no-vale`. Native findings stay in the report and MUST be
-   acted on. Report every entry in `documents[].unchecked`. NOT Calling the
-   file clean, and NOT reading exit 2 as "nothing was checked".
+   Read `summary.score`, `summary.per_100_words`, `documents[].findings`, and
+   `documents[].unchecked`. Exit 0 means the gate passed and can still carry
+   warnings and suggestions; exit 1 means a threshold failed; exit 2 means the run
+   was incomplete because Vale was absent, older than 3.15, disabled in
+   `slopvac.toml`, or skipped with `--no-vale`. On exit 2 the native findings
+   stay in the report and MUST be acted on, and every `unchecked` entry MUST be
+   reported. NOT Calling the file clean on exit 2, and NOT reading it as "nothing
+   was checked".
 
 3. Triage the warnings. An ERROR is a defect: fix it. A WARNING marks a
    candidate the pattern could not settle, so settle it per finding rather than
@@ -73,22 +76,35 @@ having executed is the one failure mode this skill cannot recover from.
    NOT Editing correct prose to silence a warning. Three rules ship deliberately
    soft, so a warning that survives triage is a finding about the linter.
 
-4. LOAD the checks no pattern reaches:
+4. LOAD the checks no pattern reaches, and select before you read:
 
    ```sh
    slopvac rules --judgement --format json
    ```
 
-   Use each entry's `rule_id` (qualified `category.rule`) with
-   `slopvac explain <rule_id>`. Do not pass the bare `id` field to `explain`.
-   Each entry carries a decidable `judgement_question`, the `fix`, its
-   `exceptions`, and worked `examples`. Filter by `scope` to work at the right
-   level -- the `document` ones are ratio checks a per-line rule cannot see, and
-   they catch the failures where every sentence passes on its own. These always
-   run, whatever the gate reported: a document where every sentence passes and
-   the whole asserts nothing produces no finding at all.
+   Keep the entries whose category's `recommended_for` (in `.categories`) names
+   the `genre` from step 1; the vocabulary is the same five values. For
+   `consumer` that is most of the catalogue, so the bound comes from the routing,
+   not the filter. Run the selection in this order and stop at one answer per
+   rule per passage:
 
-   Answer each question with evidence from the text, not an impression.
+   + `scope: document` questions once, over the whole document (17 for
+     `consumer`). These are the ratio checks a per-line rule cannot see, and they
+     catch the failure where every sentence passes and the whole asserts nothing.
+   + `scope: paragraph`, `scope: sentence`, and `scope: prose` questions on
+     passages only. A passage is the paragraph, list item, or table that holds a
+     gate finding from step 2, plus the longest paragraph and the section whose
+     heading promises what its body withholds (from the adversarial read below).
+     In each passage ask only the questions of the categories that fired there.
+   + Skip a `-remainder` rule when its mechanical core already fired on the same
+     passage; the remainder exists for the shape the pattern could not name.
+   + Stop after 40 passage questions. Past that, the document has failed step 3
+     often enough that the verdict is REVISE on the gate alone.
+
+   Use each entry's `rule_id` (qualified `category.rule`) with
+   `slopvac explain <rule_id>` for the decision question, the `fix`, and the
+   worked `examples`. Answer each question with a quote from the text, not an
+   impression, and report only the questions that failed.
 
 5. Verify the claims. Every sentence checks against code at HEAD; every consumer
    example has a runnable test under `examples/`; no sentence describes unbuilt
@@ -102,32 +118,11 @@ and cannot see register, symmetry, or an unsupported claim.
 
 ## Selecting rules for a project
 
-A project chooses its own gate. Before changing anything, show the user
-what is available:
-
-```sh
-slopvac rules --profile <profile>                 # every rule and its disposition
-slopvac rules --format json | jq '.categories'    # with recommended_for
-slopvac explain <rule_id>                         # one rule in full
-```
-
-DEFAULT Recommend by genre, reading each category's own `recommended_for` field
-rather than a list held here:
-
-| Project shape | Recommend |
-|---|---|
-| Library or CLI with a README and docs/ | `normal`, and `strict` for `docs/reference/**` |
-| Reference documentation, runbooks, procedures | `strict` throughout |
-| Specs, decision records, design records | `normal`, with `prose-scope` and `docs-discipline` off -- a decision record exists to hold the rationale those rules ban elsewhere |
-| A repo with generated or vendored docs | exclude those paths; a generated file is not authored prose |
-| Non-American house style | `locale.default = "en-GB"` |
-
-MUST Name what is off by default and say why, so the choice is the user's. The
-word-choice rules check nothing until the project writes a blocklist and sets
-`vocabulary.path`; no word list ships. Most other STE word rules are advisory at
-`normal`. Read `documents[].unchecked` for the authoritative list on a given run
-rather than reciting one from here.
-MUST Ask before writing `slopvac.toml`. Scaffold it with
+A project chooses its own gate. `slopvac rules --profile <profile>` lists every
+rule and its disposition; `slopvac rules --format json | jq '.categories'` shows
+each category's `recommended_for` genres. Recommend by genre from that field
+rather than from a list held here, name what is off by default and why, and
+MUST ask before writing `slopvac.toml`. Scaffold it with
 `slopvac init --profile <profile>`.
 
 ## Read it adversarially

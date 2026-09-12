@@ -8,7 +8,7 @@ language for something that does not ship yet, and hedging on every claim.
 
 This repository ships the `slopvac` CLI and two skills.
 
-The CLI scores prose against 232 rules in 25 categories. Configure it with
+The CLI scores prose against 229 rules in 25 categories. Configure it with
 `slopvac.toml`. Profiles set the strictness. `<!-- slopvac-allow -->` comments
 suppress a finding when the reason is on that rule's list.
 
@@ -109,7 +109,7 @@ flowchart TD
 
     IN --> GATE
 
-    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 232 rules in 25 categories<br/>optional Vale sub-gate"]
+    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 229 rules in 25 categories<br/>optional Vale sub-gate"]
 
     GATE --> REG["<b>2. Register judgement</b><br/>read the tells catalog and apply it:<br/>voice, struc
 tural symmetry, dilution,<br/>and the counter-signals expert prose has"]
@@ -147,7 +147,7 @@ absent, nothing more"]
 
 ## Categories
 
-`slopvac` ships **232 rules** across **25 categories**: 165 checked, 67 judgement.
+`slopvac` ships **229 rules** across **25 categories**: 165 checked, 64 judgement.
 `slopvac rules` lists them. The generated reference is
 [`packages/slopvac-lint/docs/rules.md`](packages/slopvac-lint/docs/rules.md).
 
@@ -163,7 +163,7 @@ absent, nothing more"]
 | `orwell` | 4 | 1 |
 | `prose-agency` | 5 | 0 |
 | `prose-craft` | 28 | 0 |
-| `prose-discipline` | 7 | 5 |
+| `prose-discipline` | 6 | 5 |
 | `prose-format` | 3 | 0 |
 | `prose-inclusive` | 3 | 0 |
 | `prose-inflation` | 12 | 0 |
@@ -173,11 +173,11 @@ absent, nothing more"]
 | `ste-nouns` | 1 | 1 |
 | `ste-practices` | 9 | 3 |
 | `ste-procedural` | 5 | 0 |
-| `ste-punctuation` | 4 | 4 |
+| `ste-punctuation` | 4 | 1 |
 | `ste-safety` | 2 | 1 |
 | `ste-sentences` | 5 | 2 |
 | `ste-verbs` | 5 | 2 |
-| `ste-words` | 9 | 6 |
+| `ste-words` | 10 | 6 |
 
 Checked rules produce findings. Judgement rules do not; a reviewing agent reads
 them from `slopvac rules --judgement`.
@@ -214,7 +214,7 @@ The full CLI contract lives in
 ```yaml
 repos:
   - repo: https://github.com/srobroek/slopvac
-    rev: v2.0.0
+    rev: v2.2.0
     hooks:
       - id: slopvac
 ```
@@ -225,7 +225,7 @@ Also: `slopvac-strict` (`--profile strict`) and `slopvac-no-vale` (`--no-vale`).
 ### GitHub Action
 
 ```yaml
-- uses: srobroek/slopvac@v2.0.0
+- uses: srobroek/slopvac@v2.2.0
   with:
     paths: README.md docs/
     profile: normal
