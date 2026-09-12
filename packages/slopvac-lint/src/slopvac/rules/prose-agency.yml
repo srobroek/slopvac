@@ -5,7 +5,7 @@ description: >-
   machine granted a mind, a passive with the agent removed, a recommendation with
   nobody behind it.
 weight: 1.2
-recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: false-agency
     name: Name who acted
@@ -17,7 +17,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?\s+(becomes?|turns? into|grows? into|evolves? into)\b|\b(the )?(bet|decision|project|initiative|effort|strategy)s?\s+(lives? or dies?|takes? on a life|makes? itself)\b|\b(the )?(data|metrics?|numbers?|evidence|research|code)\s+(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\b|\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\s+(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\b|\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+(emerges?|arrives?|presents? itself|reveals? itself)\b|\bstops? being\b[^.!?]{1,40}\band starts? being\b|\b(?:allows?|enables?|lets?|permits?|empowers?|helps?)\s+(?:you|users?|the user|developers?|the developer|teams?|the reader|clients?|customers?|consumers?|callers?|the caller|agents?|the agent)\b'
+    pattern: '\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?\s+(becomes?|turns? into|grows? into|evolves? into)\b|\b(the )?(bet|decision|project|initiative|effort|strategy)s?\s+(lives? or dies?|takes? on a life|makes? itself)\b|\b(the )?(data|metrics?|numbers?|evidence|research|code)\s+(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\b|\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\s+(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\b|\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+(emerges?|arrives?|presents? itself|reveals? itself)\b|\bstops? being\b[^.!?]{1,40}\band starts? being\b|\b(?:allows?|enables?|permits?|empowers?)\s+(?:you|users?|the user|developers?|the developer|teams?|the reader|clients?|customers?|consumers?|callers?|the caller|agents?|the agent)\b'
     ignore_case: true
     fix: Name the human, or use "you" and put the reader in the seat. For the product-agency half, say what the thing has or what the reader does.
     examples:
@@ -35,10 +35,13 @@ rules:
         Subject-anchored, not verb-anchored -- "the data tells us" is the tell,
         "tells" alone is not -- which keeps "the loader resolves paths" clean. The
         `allows you to` band is anchored on the pronoun so "the config allows two
-        retries" stays clean. Also the mechanised half of the register catalog's
-        "False agency" entry and of Splunk's UserFocus; see
-        ai-tells-register.false-agency-remainder for the judgement remainder.
-        .vale.ini keeps it at error for source comments.
+        retries" stays clean. `lets you` and `helps you` were dropped from that band
+        in the 2026-09-12 audit: 9 of 11 hits on pre-2022 human prose were "lets
+        you"/"helps you" in ordinary instructions ("the flag lets you skip"), none
+        of the model corpus hits used them, and every bad example still fires.
+        Also the mechanised half of the register catalog's "False agency" entry
+        and of Splunk's UserFocus; see ai-tells-register.false-agency-remainder for
+        the judgement remainder. .vale.ini keeps it at error for source comments.
 
   - id: agentless-passive
     exceptions: [quotation]

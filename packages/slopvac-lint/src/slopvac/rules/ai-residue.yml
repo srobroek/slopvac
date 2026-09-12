@@ -5,7 +5,7 @@ description: >-
   style judgement: a cutoff disclaimer or a tool citation token is a defect in
   every genre.
 weight: 1.5
-recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: chat-leakage
     exceptions: [quotation]

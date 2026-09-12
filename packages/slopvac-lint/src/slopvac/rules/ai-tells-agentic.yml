@@ -20,7 +20,7 @@ description: >-
   even-handedness, so every generation reconverges on the same shapes even as the
   vocabulary changes. Weight these above any word list.
 weight: 1.5
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: contrastive-inversion-frames
     name: Cut the strawman half of a contrastive frame
@@ -76,6 +76,60 @@ rules:
         remainder needs a reader who knows whether the alternative exists, which no
         pattern can supply. Also absorbs the catalog's "Strawman antithesis" row,
         whose "While other tools struggle, X ..." shape is the same defect.
+
+  - id: definitional-negation-pair
+    exceptions: [quotation, factual-correction]
+    name: Cut a cross-sentence definitional contrast
+    kind: pattern
+    severity: warning
+    message: 'definitional contrast across sentences: {match} -- state what the thing is once; cut the invented alternative'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s+(?:is|are|was|were|''s|''re)\s+(?:not\s+)?(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?;\n]{1,90}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?\n]{0,90}|\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?;\n]{1,90}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:is|are|was|were|''s|''re)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?\n]{0,90}|\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+\w+[^.!?;\n]{0,60}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:is|are|was|were|''s|''re)\s+\w+(?:\s+\w+)?,\s+not\b|\bnot\s+because\b[^.!?\n]{1,80}\bbut\s+because\b'
+    ignore_case: true
+    fix: Keep the sentence that says what the thing is; delete the one that says what it is not, unless the negated half states an independent fact a reader would otherwise assume.
+    examples:
+      - bad: The parser is a library. It is not a compiler.
+        good: The parser reads the XML header and returns a typed struct.
+      - bad: The monorepo is a coordination boundary. It is not a requirement to combine services into one deployment.
+        good: The monorepo holds the four services; each still deploys on its own.
+      - bad: This isn't about speed. It's about correctness.
+        good: The gate rejects malformed input before it reaches the parser.
+      - bad: The question is not whether the cache is sophisticated. It is whether freshness justifies the cost.
+        good: Freshness decides the design; the cache is invalidated on every catalog event.
+      - bad: The plugin is not loaded at all; it is replaced, not merged.
+        good: The project plugin replaces the user plugin of the same name.
+      - bad: Not because it is fast, but because it is deterministic.
+        good: It is deterministic, so repeated runs produce the same result.
+      - bad: The gate isn't a judge — it's a filter.
+        good: The gate removes the checked patterns and leaves the judgement to the reviewer.
+      - good: The limit is 100 requests per minute. It is not configurable.
+        bad: The limit is a ceiling. It is not a target to aim for.
+    provenance:
+      source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
+      url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
+      note: >-
+        The two-sentence form of the contrastive inversion: "X is A. X is not B."
+        and its mirror, with the subject repeated or pronominalised. The
+        single-sentence frame (ai-tells-structure.contrastive-inversion-frames)
+        stops at a sentence boundary, so this rule runs at paragraph scope, where
+        the native engine matches against the whole block (list items and quotes
+        included; Vale's paragraph scope skips both, so the rule stays native). The
+        negated half must open with a definitional marker (an article, "about",
+        "just", "whether", ...): "It is not configurable" states a property and
+        does not fire; "It is not a requirement" restates the affirmed claim as a
+        strawman and does. No pattern separates that strawman from a genuine
+        definitional distinction of the same shape ("The lock is a lease. It is
+        not a mutex."), which is why this is a warning the reviewer settles and
+        carries the `factual-correction` exception for the sentence a writer
+        keeps. Measured in the 2026-09-12 audit: 0 hits in 21k parsed words of
+        pre-2022 human prose and 30k of gated prose, 1 in the existing model
+        corpus, 4 in 48 unguided model documents and 0 in 94 steered ones, all
+        five judged tells; 10 property-negation corrections did not fire; 15
+        constructed definitional distinctions of the exact shape did.
 
   - id: staccato-negative-parallel-frames
     name: Replace a staccato negative run with one sentence
@@ -134,7 +188,7 @@ rules:
     message: 'tricolon: {match} -- cut to the one or two that carry load; break the symmetry'
     scope: sentence
     tiers:
-      strict: enforced
+      strict: advisory
       normal: advisory
       relaxed: excluded
     pattern: '\b(\w+(?:-\w+)*),\s+(\w+(?:-\w+)*),\s+and\s+(\w+(?:-\w+)*(?:\s+\w+(?:-\w+)*)*)\b(?=[\s.,;:]|$)'
@@ -188,31 +242,6 @@ rules:
         with near-zero content. The bullet SHAPE is mechanizable and lives in
         ai-tells-formatting.inline-header-list; the "near-zero content" test is
         this rule.
-
-  - id: emphasis-paragraph-metric
-    name: Rejoin a one-fragment paragraph
-    kind: metric
-    severity: warning
-    message: 'emphasis paragraph of {match} words -- rejoin the sentence; let the fact carry the weight'
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    metric: paragraph_words
-    threshold: 8
-    comparison: lte
-    fix: Rejoin the fragment to the paragraph before or after it.
-    provenance:
-      source: references/ai-tells/structure.md ("One-sentence emphasis paragraph")
-      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
-      note: >-
-        Mechanizable core: a lone paragraph of eight words or fewer. The threshold
-        is INFERRED from the catalog's example ("Openly. In a book." = four words),
-        not measured, so it must be calibrated against a corpus before it is
-        enforced anywhere but strict. Judgement remainder in
-        ai-tells-structure.staccato-negative-parallel-remainder. A short paragraph
-        can also be a legitimate admonition or a table caption.
 
   - id: false-suspense-frames
     name: Delete the drumroll
@@ -433,21 +462,31 @@ rules:
       - the bottom line is
       - all in all
       - at the end of the day
+      - and that's it
+      - that covers the essentials
+      - happy coding
+      - happy hacking
+      - happy migrating
+      - more to come
     ignore_case: true
     fix: Delete the closer; the last fact ends the section.
     examples:
       - bad: In conclusion, the gate reads one config file.
         good: The gate reads one config file.
+      - bad: Happy migrating!
+        good: Restart the worker after the config is written.
     provenance:
       source: references/ai-tells/structure.md ("Summary closer")
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. Judgement remainder in
         ai-tells-structure.summary-closer-remainder covers the re-listing form,
-        which carries no marker phrase. Overlaps upstream
-        ai-tells.ConclusionMarkers and ai-tells.WrapUpHeadings, which stay enabled.
-        "at the end of the day" also appears in prose-inflation.business-jargon;
-        that duplicate is acceptable because the two rules name different fixes.
+        which carries no marker phrase. "at the end of the day" also appears in
+        prose-inflation.business-jargon; that duplicate is acceptable because the
+        two rules name different fixes. The sign-off tokens ("happy coding",
+        "and that's it", "more to come") were added in the 2026-09-12 audit: each
+        had 0 occurrences in 27k words of pre-2022 human prose and appeared as
+        closers in model-generated guides.
 
   - id: summary-closer-remainder
     name: Judge whether a closing section adds a fact
@@ -881,7 +920,7 @@ description: >-
   not a word: synonym-swapping does not remove it. Per-model fingerprints inside
   this register drift fast, so treat model attributions as snapshots.
 weight: 1.5
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: faux-candor-core
     name: Cut the intimacy performance
@@ -1438,7 +1477,7 @@ description: >-
   shipped in late-2025 frontier models, so ABSENCE proves nothing while density
   still signals.
 weight: 1.0
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: em-dash-density
     name: Keep only the em dashes that mark a real aside
@@ -1505,22 +1544,35 @@ rules:
       strict: advisory
       normal: advisory
       relaxed: excluded
-    pattern: '^(?:[A-Z][a-z]+\s+){2,}[A-Z][a-z]+$'
+    pattern: '^(?=(?:.*\b[A-Z][A-Za-z0-9]*(?:[-''’][A-Za-z0-9]+)*\b){2,})(?:(?:[A-Z][A-Za-z0-9]*(?:[-''’][A-Za-z0-9]+)*|[A-Z]{2,}|`[^`\n]+`|\d+(?:\.\d+)*|a|an|and|as|at|but|by|for|from|in|into|nor|of|on|or|the|to|up|via|with|without|your|you|is|are|was|were|than|[,:;.!?&()/+-])[,:;.!?)]*(?:[ \t]+|$))+$'
     ignore_case: false
     fix: Lower-case every word but the first and any proper noun.
     examples:
       - bad: Install The Plugin From Source
         good: Install the plugin from source
+      - bad: Getting Started
+        good: Getting started
+      - bad: Table of Contents
+        good: Table of contents
+      - bad: 'Step 1: Check Replication Lag'
+        good: 'Step 1: check replication lag'
+      - good: Installation
+        bad: Quick Start Guide
+      - good: Using the `--json` flag
+        bad: Using The JSON Flag
     provenance:
       source: references/ai-tells/formatting.md ("Title Case In Every Heading")
       note: >-
         The catalog itself concedes the house-style escape ("unless house style says
         otherwise"), so this is advisory everywhere and excluded at relaxed. The
-        pattern cannot distinguish a title-cased heading from one that is mostly
-        proper nouns ("Install Docker Desktop On Windows"), which is why it never
-        reaches enforced. Upstream ships ai-tells.AnnouncementHeadings,
-        ExplainerHeadings, MarketingHeadings, MicDropHeadings, and WrapUpHeadings for
-        heading CONTENT; none of them checks case, so there is no duplicate.
+        pattern accepts a heading of two or more capitalised words, letting a closed
+        list of function words, all-caps initialisms, code spans, digits, and
+        punctuation through; it cannot distinguish a title-cased heading from one
+        that is mostly proper nouns ("Oh My Pi", "Claude Code"), which is why it
+        never reaches enforced. Recalibrated in the 2026-09-12 audit: the earlier
+        three-plain-words form matched 5 of 143 AI headings and 0 of 191 human; this
+        one matches 30 of 143 AI and 16 of 191 human, the human hits being proper
+        nouns.
 
   - id: bold-spray
     name: Bold at most the first definitional use
@@ -1533,17 +1585,18 @@ rules:
       normal: advisory
       relaxed: excluded
     metric: bold_spans_per_1000_words
-    threshold: 10
+    threshold: 20
     comparison: gt
     fix: Keep bold on the first definitional use of a term and delete the rest.
     provenance:
       source: references/ai-tells/formatting.md ("Bold spray")
       note: >-
         Density metric, matching the catalog's shape ("every occurrence of chosen
-        terms bolded"). Threshold 10 per 1000 words is INFERRED, not measured;
-        calibrate before enforcing outside strict. The catalog's "key takeaway"
-        styling half is a heading-content tell that upstream
-        ai-tells.MicDropHeadings covers.
+        terms bolded"). Threshold 20 per 1000 words was set in the 2026-09-12 audit:
+        measured bold density was 2.64 per 1000 words on pre-2022 human prose, 6.32
+        on unguided model prose; the earlier threshold of 10 fired on 2 of 11 human
+        documents, 20 on none while still catching 2 of 17 model documents. The
+        catalog's "key takeaway" styling half is heading content, not bold density.
 
   - id: inline-header-list
     name: Convert a repeated bold-colon bullet run to prose or a table
@@ -1685,12 +1738,14 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '(?m)^[ \t]*(?:[-*+][ \t]+)?[\U0001F300-\U0001FAFF☀-➿⬀-⯿]️?[ \t]'
+    pattern: '(?m)^[ \t]*[-*+][ \t]+[\U0001F300-\U0001FAFF☀-➿⬀-⯿]️?[ \t]'
     ignore_case: false
     fix: Delete the emoji; use a plain list marker.
     examples:
       - bad: "- \U0001F680 Install the plugin"
         good: '- Install the plugin'
+      - good: "\U0001F680 Install the plugin"
+        bad: "* \U0001F4E6 Install the plugin"
     provenance:
       source: references/ai-tells/formatting.md ("Emoji as list markers or in headings")
       note: >-
@@ -1698,7 +1753,10 @@ rules:
         mechanised as prose-format.emoji-heading, which the source repo gates at
         warning; this rule reaches the list position that `scope: heading` cannot
         see. Same codepoint ranges, `scope: raw` because a list marker is markdown
-        syntax.
+        syntax. The 2026-09-12 audit made the markdown list marker mandatory: the
+        optional form also matched an emoji opening a plain paragraph ("WARN
+        **Whoa there!**" in an error message), which is emoji residue but not a list
+        marker, and one such line in pre-2022 human prose.
         GO->PYTHON: `\x{1F300}` rewritten as `\U0001F300`.
 ---
 id: ai-tells-content-shape
@@ -1708,7 +1766,7 @@ description: >-
   citations, fake specificity, vaporware description, dilution, and rationale
   nobody asked for.
 weight: 1.5
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: fabricated-citations-core
     name: Strip citation junk
@@ -1777,7 +1835,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '\b(?:over|more than|upwards of|nearly|almost)\s+\d+\+|\b\d+\+\s+(?:different\s+)?\w+|\ba wide range of\b|\ba broad range of\b|\ba host of\b'
+    pattern: '\b(?:over|more than|upwards of|nearly|almost)\s+\d+\+|\b\d+\+\s+(?:different\s+)?(?!(?:to|of|and|or|the|a|an|is|are|was|were|for|in|on|at|by)\b)\w{3,}|\ba wide range of\b|\ba broad range of\b|\ba host of\b'
     ignore_case: true
     fix: Give the count, or delete the quantifier.
     examples:
@@ -1785,6 +1843,8 @@ rules:
         good: 137 integrations
       - bad: a wide range of formats
         good: Markdown, MDX, and reStructuredText
+      - bad: 500+ integrations
+        good: Python 3.8+ and 3.9+ are supported
     provenance:
       source: references/ai-tells/content-shape.md ("Fake specificity")
       note: >-
@@ -1964,13 +2024,13 @@ rules:
     exceptions: [quotation]
     name: Use the concrete verb
     kind: substitution
-    severity: error
+    severity: warning
     message: "copula avoidance: use '{replacement}' instead of '{match}'"
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
-      relaxed: advisory
+      normal: advisory
+      relaxed: excluded
     ignore_case: true
     substitutions:
       '\bserves as\b': is
@@ -1978,8 +2038,8 @@ rules:
       '\brepresents\b': is
       '\bacts as\b': is
       '\bboasts\b': has
-      '\boffers\b': has
-      '\bfeatures\b': has
+      '\boffers(?=\s+(?:a|an|the|you|\d)\b)': has
+      '\bfeatures(?=\s+(?:a|an|the|\d)\b)': has
       '\bis designed to\b': (write what it does)
       '\bplays a (?:vital|key|crucial|critical|central|pivotal) role\b': (name the effect)
       '\ba testament to\b': (state the measurement)
@@ -1990,6 +2050,10 @@ rules:
         good: The loader is the cache.
       - bad: The flag is designed to skip fences.
         good: The flag skips fences.
+      - bad: The crate features a typed header struct.
+        good: The crate has a typed header struct.
+      - good: Supported features are listed below.
+        bad: The CLI offers a dry-run mode.
     provenance:
       source: references/ai-tells/content-shape.md ("Durable vocabulary habits")
       note: >-

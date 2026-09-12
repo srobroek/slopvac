@@ -5,7 +5,7 @@ weight: 1.5
 max_per_100_words:
   strict: 0.5
   normal: 0.5
-recommended_for: [runbook, api-docs, reference]
+recommended_for: [reference]
 rules:
   - id: risk-level-word-missing-or-wrong
     name: Mark the risk level with the right word

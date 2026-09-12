@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 1.0
   normal: 2.0
-recommended_for: [reference, runbook, api-docs, readme, pr-description]
+recommended_for: [reference, consumer, change-comms]
 rules:
   - id: sentence-not-short-or-clear
     name: Write short and clear sentences
@@ -52,7 +52,7 @@ rules:
     text_type: any
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     pattern: "\\b(?:do|does|did|is|are|was|were|has|have|had|can|could|will|would|should|must|ai)n['\u2019]t\\b|\\b(?:it|that|there|what|who|he|she|let)['\u2019]s\\b|\\b(?:I|you|we|they|it|that|there)['\u2019](?:re|ve|ll|d|m)\\b|^\\s*(?:If|When|Once)\\s+(?:installed|configured|enabled|disabled|set|present|missing|deleted|done|complete|completed|ready|needed|required|applicable)\\s*,"
     ignore_case: true

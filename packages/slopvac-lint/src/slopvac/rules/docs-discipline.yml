@@ -4,7 +4,7 @@ description: >-
   House genre rules for consumer documentation: describe the released artifact at
   HEAD, with no status claims, no delta narration, and no internal references.
 weight: 1.0
-recommended_for: [consumer-docs]
+recommended_for: [consumer]
 rules:
   - id: status-language
     exceptions: [quotation]

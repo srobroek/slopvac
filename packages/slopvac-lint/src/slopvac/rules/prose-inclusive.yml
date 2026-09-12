@@ -4,7 +4,7 @@ description: >-
   Terms that exclude a reader and have a settled plain replacement. The bar for
   inclusion is a documented industry replacement, not a contested etymology.
 weight: 0.8
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: ableist
     name: Replace a disability metaphor with the plainer word
@@ -110,8 +110,8 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
-      relaxed: enforced
+      normal: advisory
+      relaxed: advisory
     ignore_case: true
     substitutions:
       '\bblack[- ]?lists?\b': blocklist, denylist
