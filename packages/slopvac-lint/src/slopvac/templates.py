@@ -86,9 +86,9 @@ default = "en-US"        # en-US | en-GB | und
 # path = "docs/blocklist.toml"     # relative to THIS file; .yml and .json load too
 
 # --- Categories --------------------------------------------------------------
-# Turn one off, or demote it to advisory. A category cap LOWERS a rule's
-# severity and never raises it, so setting `severity = "error"` here will not
-# promote a suggestion into a gate failure.
+# Set a category's severity for every rule in it. This is set semantics: it can
+# promote suggestions as well as demote errors. Use `severity = "off"` to turn
+# the category off.
 #
 # [categories.prose-scope]
 # severity = "warning"       # worth seeing, not worth blocking
@@ -117,15 +117,15 @@ default = "en-US"        # en-US | en-GB | und
 # files = ["specs/**/*.md", "docs/adr/**/*.md", "**/CONTRIBUTING.md"]
 # profile = "normal"
 # [overrides.categories.prose-scope]
-# enabled = false
+# severity = "off"
 # [overrides.categories.docs-discipline]
-# enabled = false
+# severity = "off"
 
 # Generated and vendored trees are not authored prose.
 # [[overrides]]
 # files = ["**/generated/**", "vendor/**"]
 # [overrides.categories.ai-residue]
-# enabled = false
+# severity = "off"
 
 # --- Vale sub-gate -----------------------------------------------------------
 # Vale runs the upstream tbhb/vale-ai-tells package, which we do not fork. Our

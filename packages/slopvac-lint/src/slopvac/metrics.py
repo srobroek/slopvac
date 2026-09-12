@@ -21,7 +21,6 @@ from .analyze import (
     DASH_AS_ASIDE,
     HEDGE,
     NOUN_SUFFIX,
-    BlockKind,
     Document,
     count_words,
     stdev,
@@ -36,26 +35,6 @@ WORD_CAPS = {
     TextType.DESCRIPTIVE: 25,
     TextType.ANY: 25,
 }
-
-
-def _list_stem_lines(document: Document) -> set[int]:
-    """First lines of the paragraphs that introduce a list.
-
-    A stem is a paragraph that ends in a colon and is followed immediately by a list
-    item, with nothing between them. Both halves are required. The colon alone would
-    exclude any short paragraph an author happened to end that way, and adjacency
-    alone would exclude the sentence before every list whether it introduces one or
-    not.
-    """
-    stems: set[int] = set()
-    blocks = document.blocks
-    for index, block in enumerate(blocks):
-        if block.kind is not BlockKind.PARAGRAPH or not block.text.rstrip().endswith(":"):
-            continue
-        following = blocks[index + 1] if index + 1 < len(blocks) else None
-        if following is not None and following.kind is BlockKind.LIST_ITEM and block.lines:
-            stems.add(block.lines[0])
-    return stems
 
 
 # Metric names `_run_metric` knows how to measure. A rule naming anything else

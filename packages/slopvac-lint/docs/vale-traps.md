@@ -135,20 +135,25 @@ raw:
 
 The unquoted guard is the trap that ships a rule reading as guarded while the guard does nothing.
 
-### 9. A literal `%` in a `raw:` pattern kills the rule, not just the message
+### 9. A literal `%` in a `raw:` pattern depends on the Vale version
 
-The printf formatter runs over the PATTERN as well as the message. `%` must be `%%`
-in both places.
+Vale releases before 3.21 ran the printf formatter over the PATTERN as well as the
+message, so a literal `%` had to be written `%%` or the rule reported zero with no
+error. Vale 3.21.0 passes the pattern through unchanged: `%%` now matches nothing
+and `%` matches. Measured on 3.21.0 with `The build is now 20% faster.`: the `%%`
+form of `hedge/BaselinelessComparative.yml` reported zero, the `%` form fired.
 
 ```yaml
-# reports ZERO. Escape to `\d%% ` and it fires.
+# Vale 3.21: fires. Earlier releases: reports ZERO, and needed `\d%% `.
 raw:
   - '(?<!\d )(?<!\d% )\bmost\s+users\b'
 ```
 
-The pattern above also stacked two lookbehinds, so the obvious reading was that
-Vale limits lookbehind. It does not (trap 7). Isolate one variable at a time: `%`
-was the whole cause and the lookbehinds were innocent.
+The fixture test `test_weasel_fixture_fires` carries the probe, so a Vale upgrade
+that changes the escaping again fails a behaviour test rather than a source-text
+check. The pattern above also stacked two lookbehinds, so the obvious reading was
+that Vale limits lookbehind. It does not (trap 7). Isolate one variable at a time:
+`%` was the whole cause and the lookbehinds were innocent.
 
 ### 10. Multiple `raw:` entries concatenate with NO separator
 

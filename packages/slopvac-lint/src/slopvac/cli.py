@@ -27,6 +27,7 @@ from rich.table import Table
 from . import __version__
 from .compile_vale import compile_ruleset
 from .config import (
+    Config,
     ConfigError,
     Profile,
     Severity,
@@ -35,6 +36,7 @@ from .config import (
     resolve_blocklist_path,
     resolve_for,
 )
+from .engine import Engine
 from .model import RuleKind
 from .pipeline import (
     EXIT_ERROR,
@@ -357,6 +359,27 @@ def list_rules(
         and (not judgement or rule.kind is RuleKind.JUDGEMENT)
     ]
 
+    # The level a rule REPORTS at, resolved the way `lint` resolves it: the profile's
+    # category severity, the profile's own per-rule dials, and the config file's
+    # authored overrides. The shipped `severity` field alone told a reader `warning`
+    # for a rule that `lint` reported as an error.
+    try:
+        config = load_config(config_path) if config_path else Config()
+    except ConfigError as exc:
+        console.print(f"[red]config error[/]: {exc}")
+        raise SystemExit(EXIT_ERROR) from None
+    config = config.model_copy(update={"profile": Profile(profile)})
+    engine = Engine(ruleset.rules, resolve_for(config, Path("README.md")))
+    active = {rule.qualified_id for rule in engine.rules}
+
+    def effective(rule) -> str:
+        if rule.kind is RuleKind.JUDGEMENT:
+            # Never fires mechanically; the reviewer reads it at its shipped level.
+            return rule.severity.value
+        if rule.qualified_id not in active:
+            return Severity.OFF.value
+        return engine.severity_for(rule).value
+
     if output_format == "json":
         click.echo(
             json.dumps(
@@ -377,6 +400,7 @@ def list_rules(
                             **rule.model_dump(mode="json"),
                             "rule_id": rule.qualified_id,
                             "tier": rule.tier_for(profile).value,
+                            "effective_severity": effective(rule),
                         }
                         for rule in selected
                     ],
@@ -397,7 +421,7 @@ def list_rules(
             rule.qualified_id,
             rule.kind.value,
             rule.tier_for(profile).value,
-            rule.severity.value,
+            effective(rule),
             rule.provenance.ste_ref
             or rule.provenance.orwell_ref
             or rule.provenance.source,
@@ -619,6 +643,11 @@ def compile_styles(
                     "native": [n.__dict__ for n in result.native_rules],
                     "judgement": result.judgement_rules,
                     "disabled": result.disabled_rules,
+                    # A generated check (vocabulary part of speech, punctuation
+                    # companion) and the rule it reports under; without this a
+                    # reader sees an id no rule declares.
+                    "aliases": result.aliases,
+                    "vale_version": result.vale_version,
                 },
                 indent=2,
             )

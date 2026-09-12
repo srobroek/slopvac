@@ -281,6 +281,39 @@ def test_cli_profile_overrides_the_config_file(runner, tmp_path):
     assert json.loads(result.output)["documents"][0]["profile"] == "strict"
 
 
+def test_cli_flags_beat_matching_path_override(runner, tmp_path):
+    """A flag typed on the command line is the narrowest dial there is. Before the
+    fix, CLI values were written into the top-level config and a matching
+    `[[overrides]]` block then replaced them, so `--min-score 12` resolved to 99."""
+    _write(
+        tmp_path,
+        "slopvac.toml",
+        'profile = "relaxed"\n\n[[overrides]]\nfiles = ["*.md"]\n'
+        'profile = "strict"\n[overrides.thresholds]\nmin_score = 99\n',
+    )
+    path = _write(tmp_path, "a.md", CLEAN)
+    flags = [
+        "--no-vale",
+        "--profile",
+        "relaxed",
+        "--min-score",
+        "12",
+        "--max-per-100-words",
+        "77",
+        "--locale",
+        "en-GB",
+    ]
+    result = runner.invoke(main, ["lint", str(path), *flags, "--format", "json"])
+    assert json.loads(result.output)["documents"][0]["profile"] == "relaxed"
+
+    explained = runner.invoke(main, ["lint", str(path), *flags, "--explain-config"])
+    assert explained.exit_code == 0, explained.output
+    assert "profile: relaxed" in explained.output
+    assert "'min_score': 12.0" in explained.output
+    assert "'max_total_per_100_words': 77.0" in explained.output
+    assert "locale: overrides[1] (**)" in explained.output
+
+
 def test_glob_override_applies_per_path(runner, tmp_path):
     _write(
         tmp_path,
@@ -529,6 +562,22 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
     unchecked = " ".join(payload["documents"][0]["unchecked"])
 
     assert "--no-vale" in unchecked
+    assert "did NOT run" in unchecked
+
+
+def test_config_disabled_vale_reports_skipped_rules_as_unchecked(runner, tmp_path):
+    path = _write(tmp_path, "doc.md", "We leverage the seamless approach in order to win.\n")
+    config = _write(tmp_path, "slopvac.toml", "[vale]\nenabled = false\n")
+
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--config", str(config), "--format", "json"],
+    )
+    payload = json.loads(result.output)
+    document = payload["documents"][0]
+    assert result.exit_code == EXIT_ERROR
+    assert document["passed"] is False
+    unchecked = " ".join(document["unchecked"])
     assert "did NOT run" in unchecked
 
 

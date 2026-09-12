@@ -169,6 +169,29 @@ def test_an_entry_without_a_word_is_refused(tmp_path):
         load_blocklist(_write(tmp_path / "b.toml", [{"pos": "verb", "reason": "x"}]))
 
 
+def test_unknown_entry_fields_are_refused(tmp_path):
+    with pytest.raises(VocabularyError, match="replacment"):
+        load_blocklist(
+            _write(
+                tmp_path / "b.toml",
+                [{"word": "utilize", "pos": "verb", "reason": "x", "replacment": "use"}],
+            )
+        )
+
+
+def test_duplicate_word_and_part_of_speech_names_both_entries(tmp_path):
+    with pytest.raises(VocabularyError, match=r"entries 1 and 2"):
+        load_blocklist(
+            _write(
+                tmp_path / "b.toml",
+                [
+                    {"word": "utilize", "pos": "verb", "reason": "first"},
+                    {"word": "UTILIZE", "pos": "VERB", "reason": "second"},
+                ],
+            )
+        )
+
+
 def test_malformed_syntax_is_refused(tmp_path):
     path = tmp_path / "b.toml"
     path.write_text("[[entries]\nword = ", encoding="utf-8")
