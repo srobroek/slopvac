@@ -1,0 +1,1521 @@
+{
+  "ai-tells-structure.staccato-negative-parallel-frames": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 105,
+        "match": "not many users anyway. Not many edge cases were reported. ",
+        "source": "there were not many users anyway. Not many edge cases were reported. As a mature tool,"
+      }
+    ]
+  },
+  "ai-tells-structure.tricolon-abuse-core": {
+    "total": 6,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 137,
+        "match": "Assistant, Zulip, and many",
+        "source": "Twisted, LocalStack, every Datadog Agent Integration, Home Assistant, Zulip, and many"
+      },
+      {
+        "doc": "dogfood-readme-human.md",
+        "line": 29,
+        "match": "token, regex, and substitution matching",
+        "source": "| Vale | 132 | token, regex, and substitution matching; sentence and paragraph word counts; part-of-speech checks against your word blocklist; whole-document ratios |"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 612,
+        "match": "size, position, and border of the preview window using",
+        "source": "You can customize the size, position, and border of the preview window using"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 423,
+        "match": "Polish, refine, and re-send to the list and the people who",
+        "source": ". Polish, refine, and re-send to the list and the people who"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 12,
+        "match": "durability, clustering, and high availability",
+        "source": "* Redis offers a number of features that are natural to find in a database, like replication, tunable levels of durability, clustering, and high availability."
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 32,
+        "match": "code, tracebacks, and more",
+        "source": "The [Rich API](https://rich.readthedocs.io/en/latest/) makes it easy to add color and style to terminal output. Rich can also render pretty tables, progress bars, markdown, syntax highlighted source code, tracebacks, and more — out of the box."
+      }
+    ]
+  },
+  "ai-tells-structure.fragment-question-pivot": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 142,
+        "match": "Are we missing anyone? Let us know.",
+        "source": "Are we missing anyone? Let us know."
+      }
+    ]
+  },
+  "ai-tells-structure.rhetorical-question-transition": {
+    "total": 3,
+    "matches": [
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 3,
+        "match": "What is Redis?",
+        "source": "What is Redis?"
+      },
+      {
+        "doc": "ripgrep-readme-2021.md",
+        "line": 87,
+        "match": "### Why should I use ripgrep?",
+        "source": "### Why should I use ripgrep?"
+      },
+      {
+        "doc": "ripgrep-readme-2021.md",
+        "line": 128,
+        "match": "### Why shouldn't I use ripgrep?",
+        "source": "### Why shouldn't I use ripgrep?"
+      }
+    ]
+  },
+  "ai-tells-structure.summary-closer-frames": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 623,
+        "match": "to summarize",
+        "source": "topic, but we can try to summarize its relevancy to ripgrep:"
+      }
+    ]
+  },
+  "ai-tells-structure.cataphoric-lead-in-core": {
+    "total": 4,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 75,
+        "match": "two ways",
+        "source": "`MultipleOf(multiple_of=x)` might be interpreted in two ways:"
+      },
+      {
+        "doc": "dogfood-readme-human.md",
+        "line": 398,
+        "match": "two reasons",
+        "source": "finding**. They ship for two reasons. A reviewing agent needs one source of truth"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 564,
+        "match": "two reasons",
+        "source": "you would want for two reasons.  It tends to screw up non ASCII"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 180,
+        "match": "three categories",
+        "source": "1. Files and directories that match glob patterns in these three categories:"
+      }
+    ]
+  },
+  "ai-tells-register.corporate-analytic-filler-core": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 240,
+        "match": "at a high level",
+        "source": "We keep all the discussion at a high level without digging into the details"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 727,
+        "match": "At a high level",
+        "source": "At a high level, ripgrep operates in three different modes with respect to"
+      }
+    ]
+  },
+  "ai-tells-formatting.curly-quotes": {
+    "total": 3,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 17,
+        "match": "“",
+        "source": "> “Any color you like.”"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 17,
+        "match": "”",
+        "source": "> “Any color you like.”"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 20,
+        "match": "’",
+        "source": "Requests allows you to send HTTP/1.1 requests extremely easily. There’s no need to manually add query strings to your URLs, or to form-encode your `PUT` & `POST` data — but nowadays, just use the `json` method!"
+      }
+    ]
+  },
+  "ai-tells-formatting.emoji-list-markers": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 194,
+        "match": "😃 ",
+        "source": "😃 🧛 💩 👍 🦝"
+      }
+    ]
+  },
+  "ai-tells-content-shape.fake-specificity": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 42,
+        "match": "2+ to",
+        "source": "_Black_ can be installed by running `pip install black`. It requires Python 3.6.2+ to"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 345,
+        "match": "a broad range of",
+        "source": "write a single type that might encompass a broad range of file extensions. For"
+      }
+    ]
+  },
+  "ai-tells-content-shape.superficial-ing-analysis": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 337,
+        "match": ", making it",
+        "source": "attachment as plain text, making it impossible to comment on"
+      },
+      {
+        "doc": "ripgrep-readme-2021.md",
+        "line": 104,
+        "match": ", highlighting",
+        "source": "  of search results, searching multiple patterns, highlighting matches with"
+      }
+    ]
+  },
+  "prose-promotion.promotional-adjective-noun": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 119,
+        "match": "sophisticated output",
+        "source": "You can use a Console object to generate sophisticated output with minimal effort. See the [Console API](https://rich.readthedocs.io/en/latest/console.html) docs for details."
+      }
+    ]
+  },
+  "orwell.unsupported-evaluative": {
+    "total": 5,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 72,
+        "match": "comprehensive",
+        "source": "projects, small and big. Black has a comprehensive test suite, with efficient parallel"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 17,
+        "match": "comprehensive",
+        "source": "- The most comprehensive feature set"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 40,
+        "match": "robust",
+        "source": "Requests is ready for the demands of building robust and reliable HTTP–speaking applications, for the needs of today."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 874,
+        "match": "robust",
+        "source": "#### A more robust preprocessor"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 890,
+        "match": "robust",
+        "source": "To fix this, we can make our preprocessor script a bit more robust by only"
+      }
+    ]
+  },
+  "prose-agency.false-agency": {
+    "total": 11,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 69,
+        "match": "allows you",
+        "source": "`Interval(gt, ge, lt, le)` allows you to specify an upper and lower bound with a single"
+      },
+      {
+        "doc": "dogfood-readme-human.md",
+        "line": 225,
+        "match": "lets you",
+        "source": "one entry per sense is what lets you say so: \"the deploy failed\" is flagged and"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 415,
+        "match": "help you",
+        "source": "most likely to be knowledgeable enough to help you, but"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 416,
+        "match": "help you",
+        "source": "they have no obligation to help you (i.e. you ask for help,"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 418,
+        "match": "help you",
+        "source": "help you find out who they are."
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 442,
+        "match": "let you",
+        "source": "  patches, and will let you know. This works only if you rebase on top"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 484,
+        "match": "help you",
+        "source": "cover everything. We just want to help you with the first steps."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 20,
+        "match": "allows you",
+        "source": "Requests allows you to send HTTP/1.1 requests extremely easily. There’s no need to manually add query strings to your URLs, or to form-encode your `PUT` & `POST` data — but nowadays, just use the `json` method!"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 137,
+        "match": "help you",
+        "source": "Rich contains a number of builtin _renderables_ you can use to create elegant output in your CLI and help you debug your code."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 344,
+        "match": "lets you",
+        "source": "assigned to one or more globs that match the relevant files. This lets you"
+      }
+    ]
+  },
+  "prose-agency.anthropomorphism": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 587,
+        "match": "parser knows",
+        "source": "argument parser knows to treat the single argument `--max-columns=150` as a"
+      }
+    ]
+  },
+  "prose-agency.unattributed-recommendation": {
+    "total": 3,
+    "matches": [
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 522,
+        "match": "it's not recommended",
+        "source": "  makes the initial scanning slower. So it's not recommended that you add it"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 530,
+        "match": "is not recommended",
+        "source": "  ordering of the matches and is not recommended."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 432,
+        "match": "it is recommended",
+        "source": "This is one of the most complex files inside Redis, it is recommended to"
+      }
+    ]
+  },
+  "prose-craft.ambiguity": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 51,
+        "match": "and/or",
+        "source": "Express inclusive and/or exclusive bounds on orderable values - which may be numbers,"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 470,
+        "match": "and/or",
+        "source": "\"ci/run-build-and-tests.sh\" and/or \"ci/print-test-failures.sh\". You"
+      }
+    ]
+  },
+  "prose-craft.command-prompt": {
+    "total": 80,
+    "matches": [
+      {
+        "doc": "markdown-it-py-readme-2020.md",
+        "line": 118,
+        "match": "  $ m",
+        "source": "  $ markdown-it"
+      },
+      {
+        "doc": "markdown-it-py-readme-2020.md",
+        "line": 131,
+        "match": "  $ m",
+        "source": "  $ markdown-it README.md README.footer.md > index.html"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 33,
+        "match": "$ p",
+        "source": "$ python -m pip install requests"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 40,
+        "match": "$ c",
+        "source": "$ curl -LO https://github.com/BurntSushi/ripgrep/archive/0.7.1.zip"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 41,
+        "match": "$ u",
+        "source": "$ unzip 0.7.1.zip"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 42,
+        "match": "$ c",
+        "source": "$ cd ripgrep-0.7.1"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 43,
+        "match": "$ l",
+        "source": "$ ls"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 55,
+        "match": "$ r",
+        "source": "$ rg fast README.md"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 82,
+        "match": "$ r",
+        "source": "$ rg 'fast\\w+' README.md"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 98,
+        "match": "$ r",
+        "source": "$ rg 'fast\\w*' README.md"
+      }
+    ]
+  },
+  "prose-craft.first-person-plural": {
+    "total": 107,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 16,
+        "match": "we ",
+        "source": "descriptions of how we intend these metadata to be interpreted. In some cases,"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 17,
+        "match": "we ",
+        "source": "we also note alternative representations which do not require this package."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 56,
+        "match": "We ",
+        "source": "We suggest that implementors may also interpret `functools.partial(operator.le, 1.5)`"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 81,
+        "match": "We ",
+        "source": "We encourage users to be aware of these two common interpretations and their"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 85,
+        "match": "We ",
+        "source": "We encourage libraries to carefully document which interpretation they implement."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 91,
+        "match": "we ",
+        "source": "As well as `Len()` which can optionally include upper and lower bounds, we also"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 122,
+        "match": "we ",
+        "source": "allow a specific timezone, though we note that this is often a symptom of fragile design."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 177,
+        "match": "we ",
+        "source": "For some common constraints, we provide generic types:"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 198,
+        "match": "we ",
+        "source": "To enable basic negation of commonly used predicates like `math.isnan` without introducing introspection that makes it impossible for implementers to introspect the predicate we provide a `Not` wrapper that simply negates the predicate in an introspectable manner. Several of the predicates listed above are created in this manner."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 200,
+        "match": "We ",
+        "source": "We do not specify what behaviour should be expected for predicates that raise"
+      }
+    ]
+  },
+  "prose-craft.future-tense": {
+    "total": 102,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 264,
+        "match": "will ",
+        "source": "that staying simple and covering _only_ the most common use-cases will give users"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 21,
+        "match": "will ",
+        "source": "determinism, and freedom from `pycodestyle` nagging about formatting. You will save time"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 74,
+        "match": "will ",
+        "source": "_Black_ is still beta. Things will probably be wonky for a while. This is made explicit"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 80,
+        "match": "will ",
+        "source": "Also, as a safety measure which slows down processing, _Black_ will check that the"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 129,
+        "match": "will ",
+        "source": "\"No\". _Black_ is all about sensible defaults. Applying those defaults will have your"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 187,
+        "match": "will ",
+        "source": "fzf will launch interactive finder, read the list from STDIN, and write the"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 194,
+        "match": "will ",
+        "source": "Without STDIN pipe, fzf will use find command to fetch the list of"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 314,
+        "match": "will ",
+        "source": "It will still work even when you're not on tmux, silently ignoring `-[pudlr]`"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 327,
+        "match": "will ",
+        "source": "The install script will setup the following key bindings for bash, zsh, and"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 482,
+        "match": "will ",
+        "source": "zsh will automatically pick up the function using the naming convention but in"
+      }
+    ]
+  },
+  "prose-craft.gerund-heading": {
+    "total": 12,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 180,
+        "match": "Using the badge",
+        "source": "Using the badge in README.rst:"
+      },
+      {
+        "doc": "dogfood-readme-human.md",
+        "line": 249,
+        "match": "naming a reason",
+        "source": "naming a reason that is not on the list is reported rather than honoured, and the"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 297,
+        "match": "corrupting your patch",
+        "source": "corrupting your patch.  Do not cut-n-paste your patch; you can"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 485,
+        "match": "checking your patch",
+        "source": "checking your patch by mailing it to yourself and applying with"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 104,
+        "match": "Selecting a non",
+        "source": "Selecting a non-default memory allocator when building Redis is done by setting"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 522,
+        "match": "using the indices",
+        "source": "using the indices. For example, the following command is equivalent to the"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 547,
+        "match": "describing the format",
+        "source": "describing the format of the config file:"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 592,
+        "match": "Putting the flag",
+        "source": "Putting the flag and value on different lines is exactly equivalent and is a"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 950,
+        "match": "searching a repository",
+        "source": "searching a repository as small as ripgrep's:"
+      },
+      {
+        "doc": "ripgrep-readme-2021.md",
+        "line": 374,
+        "match": "enabling this option",
+        "source": "enabling this option can increase compilation times dramatically."
+      }
+    ]
+  },
+  "prose-craft.hyphens": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 482,
+        "match": "only-matching",
+        "source": "Alternatively, you can combine the `--only-matching` (or `-o` for short) with"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 486,
+        "match": "only-matching",
+        "source": "$ rg fast README.md --only-matching --replace FAST"
+      }
+    ]
+  },
+  "prose-craft.link-text": {
+    "total": 5,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 34,
+        "match": "[Read the documentation on ReadTheDocs!](",
+        "source": "**[Read the documentation on ReadTheDocs!](https://black.readthedocs.io/en/stable)**"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 204,
+        "match": "[Contributing documentation](",
+        "source": "- [Contributing documentation](https://black.readthedocs.io/en/latest/contributing/index.html)"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 345,
+        "match": "[the wiki page](",
+        "source": "More tips can be found on [the wiki page](https://github.com/junegunn/fzf/wiki/Configuring-shell-key-bindings)."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 56,
+        "match": "[Read the Docs](",
+        "source": "## API Reference and User Guide available on [Read the Docs](https://requests.readthedocs.io)"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 58,
+        "match": "[![Read the Docs](",
+        "source": "[![Read the Docs](https://raw.githubusercontent.com/psf/requests/master/ext/ss.png)](https://requests.readthedocs.io)"
+      }
+    ]
+  },
+  "prose-craft.negative-requirement": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 431,
+        "match": "don't include files without",
+        "source": "by the `sh` file type don't include files without an extension. On the"
+      }
+    ]
+  },
+  "prose-craft.optional-plural": {
+    "total": 4,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 132,
+        "match": "m/s",
+        "source": "a quantity with the specified unit. For example, `Annotated[float, Unit(\"m/s\")]`"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 154,
+        "match": "com/s",
+        "source": "[writer](https://smile.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=dusty+phillips):"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 53,
+        "match": "change(s)",
+        "source": "Give an explanation for the change(s) that is detailed enough so"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 204,
+        "match": "license(s)",
+        "source": "   this project or the open source license(s) involved."
+      }
+    ]
+  },
+  "prose-craft.politeness": {
+    "total": 26,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 135,
+        "match": "Please",
+        "source": "Please note that `annotated_types` itself makes no attempt to parse or validate"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 98,
+        "match": "Please",
+        "source": "Please refer to this document before submitting an issue. What seems like a bug might be"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 110,
+        "match": "Please",
+        "source": "Please refer to this document before submitting an issue just like with the document"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 170,
+        "match": "Thanks",
+        "source": "> This vastly improves the formatting of our code. Thanks a ton!"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 170,
+        "match": "Please",
+        "source": "while. Please follow the instruction below depending on the installation"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 293,
+        "match": "Feel free to",
+        "source": "page](https://github.com/junegunn/fzf/wiki/examples). Feel free to add your"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 229,
+        "match": "Please",
+        "source": "Also notice that a real name is used in the `Signed-off-by` trailer. Please"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 246,
+        "match": "Thanks",
+        "source": "such as \"Thanks-to:\", \"Based-on-patch-by:\", or \"Mentored-by:\"."
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 258,
+        "match": "Please",
+        "source": "Please make sure your patch does not add commented out debugging code,"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 262,
+        "match": "please",
+        "source": "sending out, please make sure it cleanly applies to the `master`"
+      }
+    ]
+  },
+  "prose-craft.relative-date": {
+    "total": 7,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 215,
+        "match": "nowadays",
+        "source": "The author list is quite long nowadays, so it lives in its own file."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 268,
+        "match": "lately",
+        "source": "Note: lately Redis was refactored quite a bit. Function names and file"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 338,
+        "match": "recently",
+        "source": "to avoid the overhead of indirect accesses, recently in many places"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 20,
+        "match": "nowadays",
+        "source": "Requests allows you to send HTTP/1.1 requests extremely easily. There’s no need to manually add query strings to your URLs, or to form-encode your `PUT` & `POST` data — but nowadays, just use the `json` method!"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 22,
+        "match": "today",
+        "source": "Requests is one of the most downloaded Python package today, pulling in around `14M downloads / week`— according to GitHub, Requests is currently [depended upon](https://github.com/psf/requests/network/dependents?package_id=UGFja2FnZS01NzA4OTExNg%3D%3D) by `500,000+` repositories. You may certainly put your trust in this code."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 40,
+        "match": "today",
+        "source": "Requests is ready for the demands of building robust and reliable HTTP–speaking applications, for the needs of today."
+      },
+      {
+        "doc": "ripgrep-readme-2021.md",
+        "line": 184,
+        "match": "recently",
+        "source": "Note that ripgrep has grown a few significant new features recently that"
+      }
+    ]
+  },
+  "prose-craft.self-reference": {
+    "total": 6,
+    "matches": [
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 119,
+        "match": "the previous section",
+        "source": "In the previous section, we showed how to use ripgrep to search a single file."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 120,
+        "match": "this section",
+        "source": "In this section, we'll show how to use ripgrep to search an entire directory"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 255,
+        "match": "the previous section",
+        "source": "In the previous section, we talked about ripgrep's filtering that it does by"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 262,
+        "match": "This section",
+        "source": "your ripgrep commands and file type filtering. This section covers glob"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 263,
+        "match": "the next section",
+        "source": "patterns while the next section covers file type filtering."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 983,
+        "match": "This section",
+        "source": "ripgrep has a lot of flags. Too many to keep in your head at once. This section"
+      }
+    ]
+  },
+  "prose-craft.spacing": {
+    "total": 56,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 8,
+        "match": "g.An",
+        "source": "[PEP-593](https://peps.python.org/pep-0593/) added `typing.Annotated` as a way of"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 163,
+        "match": "t.Un",
+        "source": "pint_unit = cast_unit(Meters, pint.Unit)"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 168,
+        "match": "u.Un",
+        "source": "astropy_unit = cast_unit(Meters, u.Unit)"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 201,
+        "match": "n.  F",
+        "source": "an exception.  For example `Annotated[int, Predicate(str.isdigit)]` might silently"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 205,
+        "match": "n.  W",
+        "source": "exception.  We encourage libraries to document the behaviour they choose."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 243,
+        "match": "e.  T",
+        "source": "Libraries consuming annotated-types constraints should check for `GroupedMetadata` and unpack it by iterating over the object and treating the results as if they had been \"unpacked\" in the `Annotated` type.  The same logic should be applied to the [PEP 646 `Unpack` type](https://peps.python.org/pep-0646/), so that `Annotated[T, Field(...)]`, `Annotated[T, Unpack[Field(...)]]` and `Annotated[T, *Field(...)]` are all treated consistently."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 247,
+        "match": "s.In",
+        "source": "Our own `annotated_types.Interval` class is a `GroupedMetadata` which unpacks itself into `Gt`, `Lt`, etc., so this is not an abstract concern.  Similarly, `annotated_types.Len` is a `GroupedMetadata` which unpacks itself into `MinLen` (optionally) and `MaxLen`."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 247,
+        "match": "n.  S",
+        "source": "Our own `annotated_types.Interval` class is a `GroupedMetadata` which unpacks itself into `Gt`, `Lt`, etc., so this is not an abstract concern.  Similarly, `annotated_types.Len` is a `GroupedMetadata` which unpacks itself into `MinLen` (optionally) and `MaxLen`."
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 247,
+        "match": "s.Le",
+        "source": "Our own `annotated_types.Interval` class is a `GroupedMetadata` which unpacks itself into `Gt`, `Lt`, etc., so this is not an abstract concern.  Similarly, `annotated_types.Len` is a `GroupedMetadata` which unpacks itself into `MinLen` (optionally) and `MaxLen`."
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 49,
+        "match": "d.  I",
+        "source": "your commit head.  Instead, always make a commit with complete"
+      }
+    ]
+  },
+  "prose-craft.unclear-antecedent": {
+    "total": 39,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 136,
+        "match": "That is",
+        "source": "the unit string in any way. That is left entirely to downstream libraries,"
+      },
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 215,
+        "match": "This is",
+        "source": "This is the early adopter's alternative form of the [`typing-doc` proposal](https://github.com/tiangolo/fastapi/blob/typing-doc/typing_doc.md)."
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 74,
+        "match": "This is",
+        "source": "_Black_ is still beta. Things will probably be wonky for a while. This is made explicit"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 104,
+        "match": "This was",
+        "source": "initial author. This was fine at the time as it made the implementation simpler and"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 116,
+        "match": "This is",
+        "source": "from a `pyproject.toml` file. This is especially useful for specifying custom"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 442,
+        "match": "This works",
+        "source": "  patches, and will let you know. This works only if you rebase on top"
+      },
+      {
+        "doc": "markdown-it-py-readme-2020.md",
+        "line": 22,
+        "match": "This is",
+        "source": "This is a Python port of [markdown-it], and some of its associated plugins."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 10,
+        "match": "This means",
+        "source": "* Redis cares to store them on disk, even if they are always served and modified into the server memory. This means that Redis is fast, but that it is also non-volatile."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 200,
+        "match": "This is",
+        "source": "init scripts and configuration files in the appropriate place. This is not"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 344,
+        "match": "This is",
+        "source": "This is the entry point of the Redis server, where the `main()` function"
+      }
+    ]
+  },
+  "prose-discipline.term-rotation-signal": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 259,
+        "match": "end-users",
+        "source": "and Hypothesis, with the goal of making it as easy as possible for end-users to"
+      }
+    ]
+  },
+  "prose-discipline.frozen-verb": {
+    "total": 3,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 219,
+        "match": "provide a convenience",
+        "source": "Implementers may choose to provide a convenience wrapper that groups multiple pieces of metadata."
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 53,
+        "match": "Give an explanation",
+        "source": "Give an explanation for the change(s) that is detailed enough so"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 533,
+        "match": "do a replacement",
+        "source": "you do a replacement in a file.)"
+      }
+    ]
+  },
+  "prose-discipline.marketing-lexicon": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 62,
+        "match": "effortlessly",
+        "source": "To effortlessly add rich output to your application, you can import the [rich print](https://rich.readthedocs.io/en/latest/introduction.html#quick-start) method, which has the same signature as the builtin Python function. Try this:"
+      }
+    ]
+  },
+  "prose-discipline.bidirectional-hedge": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 251,
+        "match": "tend to not be prescriptive as to _how_ the metadata and constraints are used, but as an example of how one might",
+        "source": "We intend to not be prescriptive as to _how_ the metadata and constraints are used, but as an example of how one might parse constraints from types annotations see our [implementation in `test_main.py`](https://github.com/annotated-types/annotated-types/blob/f59cf6d1b5255a0fe359b93896759a180bec30ae/tests/test_main.py#L94-L103)."
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 175,
+        "match": "could be used for logging to the terminal for long running applications such as servers, but is also",
+        "source": "The log method could be used for logging to the terminal for long running applications such as servers, but is also a very nice debugging aid."
+      }
+    ]
+  },
+  "prose-discipline.hedged-hedge": {
+    "total": 3,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 16,
+        "match": "In some cases",
+        "source": "descriptions of how we intend these metadata to be interpreted. In some cases,"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 108,
+        "match": "in most cases",
+        "source": "and should skip the full stop.  It is also conventional in most cases to"
+      },
+      {
+        "doc": "ripgrep-readme-2021.md",
+        "line": 89,
+        "match": "can replace many use",
+        "source": "* It can replace many use cases served by other search tools"
+      }
+    ]
+  },
+  "prose-format.no-unicode-dash": {
+    "total": 6,
+    "matches": [
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 20,
+        "match": "—",
+        "source": "Requests allows you to send HTTP/1.1 requests extremely easily. There’s no need to manually add query strings to your URLs, or to form-encode your `PUT` & `POST` data — but nowadays, just use the `json` method!"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 22,
+        "match": "—",
+        "source": "Requests is one of the most downloaded Python package today, pulling in around `14M downloads / week`— according to GitHub, Requests is currently [depended upon](https://github.com/psf/requests/network/dependents?package_id=UGFja2FnZS01NzA4OTExNg%3D%3D) by `500,000+` repositories. You may certainly put your trust in this code."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 38,
+        "match": "–",
+        "source": "## Supported Features & Best–Practices"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 40,
+        "match": "–",
+        "source": "Requests is ready for the demands of building robust and reliable HTTP–speaking applications, for the needs of today."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 47,
+        "match": "–",
+        "source": "- Familiar `dict`–like Cookies"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 32,
+        "match": "—",
+        "source": "The [Rich API](https://rich.readthedocs.io/en/latest/) makes it easy to add color and style to terminal output. Rich can also render pretty tables, progress bars, markdown, syntax highlighted source code, tracebacks, and more — out of the box."
+      }
+    ]
+  },
+  "prose-format.emoji-heading": {
+    "total": 5,
+    "matches": [
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 194,
+        "match": "😃",
+        "source": "😃 🧛 💩 👍 🦝"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 194,
+        "match": "🧛",
+        "source": "😃 🧛 💩 👍 🦝"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 194,
+        "match": "💩",
+        "source": "😃 🧛 💩 👍 🦝"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 194,
+        "match": "👍",
+        "source": "😃 🧛 💩 👍 🦝"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 194,
+        "match": "🦝",
+        "source": "😃 🧛 💩 👍 🦝"
+      }
+    ]
+  },
+  "prose-inflation.slop-lexicon": {
+    "total": 9,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 72,
+        "match": "comprehensive",
+        "source": "projects, small and big. Black has a comprehensive test suite, with efficient parallel"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 16,
+        "match": "Blazingly fast",
+        "source": "- Blazingly fast"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 17,
+        "match": "comprehensive",
+        "source": "- The most comprehensive feature set"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 3,
+        "match": "elegant",
+        "source": "**Requests** is a simple, yet elegant HTTP library."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 40,
+        "match": "robust",
+        "source": "Requests is ready for the demands of building robust and reliable HTTP–speaking applications, for the needs of today."
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 62,
+        "match": "effortlessly",
+        "source": "To effortlessly add rich output to your application, you can import the [rich print](https://rich.readthedocs.io/en/latest/introduction.html#quick-start) method, which has the same signature as the builtin Python function. Try this:"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 137,
+        "match": "elegant",
+        "source": "Rich contains a number of builtin _renderables_ you can use to create elegant output in your CLI and help you debug your code."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 874,
+        "match": "robust",
+        "source": "#### A more robust preprocessor"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 890,
+        "match": "robust",
+        "source": "To fix this, we can make our preprocessor script a bit more robust by only"
+      }
+    ]
+  },
+  "prose-inflation.hedge-stack": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 367,
+        "match": "can help to",
+        "source": "contacts` command in `contrib/contacts/` can help to"
+      }
+    ]
+  },
+  "prose-inflation.intensifier": {
+    "total": 18,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 82,
+        "match": "very ",
+        "source": "distinct behaviours, especially since very large or non-integer numbers make"
+      },
+      {
+        "doc": "black-readme-2021.md",
+        "line": 170,
+        "match": "vastly ",
+        "source": "> This vastly improves the formatting of our code. Thanks a ton!"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 543,
+        "match": "very ",
+        "source": "> users of Pine 4.63 would be very much appreciated."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 262,
+        "match": "very ",
+        "source": "There are a few more directories but they are not very important for our goals"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 454,
+        "match": "very ",
+        "source": "* `cluster.c` implements the Redis Cluster. Probably a good read only after being very familiar with the rest of the Redis code base. If you want to read `cluster.c` make sure to read the [Redis Cluster specification][3]."
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 20,
+        "match": "extremely ",
+        "source": "Requests allows you to send HTTP/1.1 requests extremely easily. There’s no need to manually add query strings to your URLs, or to form-encode your `PUT` & `POST` data — but nowadays, just use the `json` method!"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 175,
+        "match": "very ",
+        "source": "The log method could be used for logging to the terminal for long running applications such as servers, but is also a very nice debugging aid."
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 337,
+        "match": "very ",
+        "source": "Rich can render content in neat [columns](https://rich.readthedocs.io/en/latest/columns.html) with equal or optimal width. Here's a very basic clone of the (MacOS / Linux) `ls` command which displays a directory listing in columns:"
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 60,
+        "match": "very ",
+        "source": "129:  optimizations to make searching very fast."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 103,
+        "match": "very ",
+        "source": "129:  optimizations to make searching very fast."
+      }
+    ]
+  },
+  "prose-inflation.vague-quantifier": {
+    "total": 29,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 198,
+        "match": "Several",
+        "source": "To enable basic negation of commonly used predicates like `math.isnan` without introducing introspection that makes it impossible for implementers to introspect the predicate we provide a `Not` wrapper that simply negates the predicate in an introspectable manner. Several of the predicates listed above are created in this manner."
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 30,
+        "match": "several",
+        "source": "* In the exceptional case that a new feature depends on several topics"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 86,
+        "match": "huge",
+        "source": "spelling and grammar, which is somewhat unfortunate.  A huge patch that"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 108,
+        "match": "in most cases",
+        "source": "and should skip the full stop.  It is also conventional in most cases to"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 449,
+        "match": "various",
+        "source": "  the status of various proposed changes."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 12,
+        "match": "a number of",
+        "source": "* Redis offers a number of features that are natural to find in a database, like replication, tunable levels of durability, clustering, and high availability."
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 241,
+        "match": "huge",
+        "source": "since this document would be huge otherwise and our code base changes"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 477,
+        "match": "usually",
+        "source": "usually using `addReply()` or a similar function defined inside `networking.c`."
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 137,
+        "match": "a number of",
+        "source": "Rich contains a number of builtin _renderables_ you can use to create elegant output in your CLI and help you debug your code."
+      },
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 190,
+        "match": "various",
+        "source": "All of these things can be toggled using various flags provided by ripgrep:"
+      }
+    ]
+  },
+  "prose-inflation.nominalized-verb": {
+    "total": 2,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 201,
+        "match": "take a look",
+        "source": "You can also take a look at the rest of the contributing docs or talk with the"
+      },
+      {
+        "doc": "redis-readme-2021.md",
+        "line": 392,
+        "match": "is responsible for calling",
+        "source": "The `call()` function defined inside `server.c` is responsible for calling"
+      }
+    ]
+  },
+  "prose-inflation.document-preamble": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 273,
+        "match": "in this document",
+        "source": "      > The available options are described later in this document."
+      }
+    ]
+  },
+  "prose-inflation.apologizing": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "ripgrep-guide-2021.md",
+        "line": 112,
+        "match": "beyond the scope of this guide",
+        "source": "It is beyond the scope of this guide to provide a full tutorial on regular"
+      }
+    ]
+  },
+  "prose-inflation.borderline-hype": {
+    "total": 17,
+    "matches": [
+      {
+        "doc": "annotated-types-readme-2022.md",
+        "line": 198,
+        "match": "simply",
+        "source": "To enable basic negation of commonly used predicates like `math.isnan` without introducing introspection that makes it impossible for implementers to introspect the predicate we provide a `Not` wrapper that simply negates the predicate in an introspectable manner. Several of the predicates listed above are created in this manner."
+      },
+      {
+        "doc": "dogfood-readme-human.md",
+        "line": 374,
+        "match": "obvious",
+        "source": "the obvious alternative is what most prose linters do."
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 18,
+        "match": "Flexible",
+        "source": "- Flexible layout"
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 478,
+        "match": "simply",
+        "source": "- After `--`, simply pass the original completion arguments unchanged (`\"$@\"`)."
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 47,
+        "match": "trivial",
+        "source": "Unless your patch is really trivial, you should not be sending"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 91,
+        "match": "easily",
+        "source": "easily digestible patches, as a side effect of doing some other real"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 93,
+        "match": "Obvious",
+        "source": "turning en_UK spelling to en_US).  Obvious typographical fixes are much"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 301,
+        "match": "easily",
+        "source": "[PATCH].  This lets people easily distinguish patches from other"
+      },
+      {
+        "doc": "requests-readme-2020.md",
+        "line": 20,
+        "match": "easily",
+        "source": "Requests allows you to send HTTP/1.1 requests extremely easily. There’s no need to manually add query strings to your URLs, or to form-encode your `PUT` & `POST` data — but nowadays, just use the `json` method!"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 32,
+        "match": "out of the box",
+        "source": "The [Rich API](https://rich.readthedocs.io/en/latest/) makes it easy to add color and style to terminal output. Rich can also render pretty tables, progress bars, markdown, syntax highlighted source code, tracebacks, and more — out of the box."
+      }
+    ]
+  },
+  "prose-scope.rejected-alternative": {
+    "total": 1,
+    "matches": [
+      {
+        "doc": "dogfood-readme-human.md",
+        "line": 449,
+        "match": "deliberately does not",
+        "source": "### What this deliberately does not do"
+      }
+    ]
+  },
+  "prose-scope.unrequested-reassurance": {
+    "total": 5,
+    "matches": [
+      {
+        "doc": "black-readme-2021.md",
+        "line": 156,
+        "match": "you don't have to",
+        "source": "> _Black_ is opinionated so you don't have to be."
+      },
+      {
+        "doc": "fzf-readme-2021.md",
+        "line": 82,
+        "match": "you don't need",
+        "source": "You can [download fzf executable][bin] alone if you don't need the extra"
+      },
+      {
+        "doc": "git-contributing-2021.md",
+        "line": 253,
+        "match": "You do not have to",
+        "source": "You do not have to be afraid to use `-M` option to `git diff` or"
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 32,
+        "match": "out of the box",
+        "source": "The [Rich API](https://rich.readthedocs.io/en/latest/) makes it easy to add color and style to terminal output. Rich can also render pretty tables, progress bars, markdown, syntax highlighted source code, tracebacks, and more — out of the box."
+      },
+      {
+        "doc": "rich-readme-2020.md",
+        "line": 44,
+        "match": "no additional configuration required",
+        "source": "Rich works with [Jupyter notebooks](https://jupyter.org/) with no additional configuration required."
+      }
+    ]
+  }
+}

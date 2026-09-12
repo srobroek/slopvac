@@ -1,0 +1,3285 @@
+[
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 61,
+    "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+    "matched_text": "",
+    "reason": "The sentence is a compact technical statement; forcing it into a list would harm flow."
+  },
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 27,
+    "rule_id": "prose-craft.versions",
+    "matched_text": "or newer",
+    "reason": "Version language is necessary metadata."
+  },
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 67,
+    "rule_id": "ste-practices.phrasal-verb",
+    "matched_text": "Turn off",
+    "reason": "The phrasal verb is natural and not worth rewriting."
+  },
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 88,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "has one",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 201,
+    "rule_id": "prose-agency.anthropomorphism",
+    "matched_text": "the loader refuses",
+    "reason": "The subject is an ordinary shorthand for software behavior, not misleading agency."
+  },
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 226,
+    "rule_id": "ste-punctuation.hyphen-group-too-long",
+    "matched_text": "Part-of-speech-keyed",
+    "reason": "The hyphenated technical modifier is a recognized term."
+  },
+  {
+    "doc": "dogfood__README.contaminated.md",
+    "line": 286,
+    "rule_id": "ste-verbs.auxiliary-stacking",
+    "matched_text": "can\nbe named",
+    "reason": "The auxiliary sequence is grammatical and expresses the required modality/tense."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 12,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 3,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 6,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "hadn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 12,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "Our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 16,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 17,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 19,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "doesn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 19,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 20,
+    "rule_id": "prose-craft.dead-opener",
+    "matched_text": "There is",
+    "reason": "The opener establishes a necessary condition or narrative transition."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 21,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "they're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 23,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 24,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 28,
+    "rule_id": "ste-practices.phrasal-verb",
+    "matched_text": "back up",
+    "reason": "The phrasal verb is natural and not worth rewriting."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 50,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "no longer",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 52,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "It's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 52,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "idea",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 56,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "That's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 58,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "doesn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 68,
+    "rule_id": "ai-tells-figurative.figurative-falls",
+    "matched_text": "falls apart",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 78,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 79,
+    "rule_id": "prose-inflation.vague-quantifier",
+    "matched_text": "tiny",
+    "reason": "The quantity is intentionally approximate or bounded by domain context."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 87,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "doesn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 92,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 96,
+    "rule_id": "ai-tells-register.intensifier-tics-core",
+    "matched_text": "genuinely",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 99,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 100,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 103,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "I'm",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__blog-skip-locked.md",
+    "line": 105,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.bold-spray",
+    "matched_text": "",
+    "reason": "Bold is used for an actual label or heading rather than sprayed emphasis."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 1,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 9,
+    "rule_id": "ste-verbs.nominalized-action",
+    "matched_text": "performs a dual",
+    "reason": "The nominalization names a defined technical operation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 10,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 16,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 19,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "was rolled",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 24,
+    "rule_id": "prose-craft.relative-date",
+    "matched_text": "today",
+    "reason": "Relative timing is meaningful in this historical/release context."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 30,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is published",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 34,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 39,
+    "rule_id": "prose-craft.hyphens",
+    "matched_text": "Exactly-once",
+    "reason": "The compound is established technical spelling."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 39,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "consumers",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 39,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 39,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "are targeting",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 40,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "consumers",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 42,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 43,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 43,
+    "rule_id": "prose-craft.unclear-antecedent",
+    "matched_text": "This is",
+    "reason": "The antecedent is clear from the surrounding technical sentence."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 54,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "consumer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 56,
+    "rule_id": "prose-craft.latinisms",
+    "matched_text": "e.g.",
+    "reason": "The Latinism is standard technical notation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 56,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "e.g.",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 65,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 74,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 79,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are allocated",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 81,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we\n",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 82,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 88,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 91,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 95,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 105,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 105,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 108,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Consumers",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 109,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 109,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 109,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "consumer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 110,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are committed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 111,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Consumer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 112,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 112,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 112,
+    "rule_id": "ste-practices.false-friend-term",
+    "matched_text": "actually",
+    "reason": "The word is correct in context; the lexical heuristic is overbroad."
+  },
+  {
+    "doc": "independent__design-doc-outbox.md",
+    "line": 120,
+    "rule_id": "prose-discipline.phrasal-verb",
+    "matched_text": "Stand up",
+    "reason": "The phrasal verb is natural and clear in this genre."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 7,
+    "rule_id": "prose-format.prose-block",
+    "matched_text": "",
+    "reason": "The block is deliberately dense because it states one issue-response sequence."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "isn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "it's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "I'm",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "That's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 7,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 11,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "It's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 11,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "isn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 12,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 12,
+    "rule_id": "prose-craft.politeness",
+    "matched_text": "please",
+    "reason": "Courtesy is appropriate in an issue reply or user-facing message, not gratuitous AI padding."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 12,
+    "rule_id": "prose-craft.dead-opener",
+    "matched_text": "There were",
+    "reason": "The opener establishes a necessary condition or narrative transition."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 12,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 13,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are handled",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 13,
+    "rule_id": "ai-tells-formatting.italicised-copula",
+    "matched_text": "*not*",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 13,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 13,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "You'd",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 15,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 17,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "doesn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 17,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "That'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__issue-comment-pgbouncer.md",
+    "line": 17,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "it's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 20,
+    "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+    "matched_text": "",
+    "reason": "The sentence is a compact technical statement; forcing it into a list would harm flow."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 22,
+    "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+    "matched_text": "",
+    "reason": "The sentence is a compact technical statement; forcing it into a list would harm flow."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 26,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 34,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 55,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 64,
+    "rule_id": "prose-format.prose-block",
+    "matched_text": "",
+    "reason": "The block is deliberately dense because it states one issue-response sequence."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 8,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 12,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 12,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 12,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 12,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 14,
+    "rule_id": "ai-tells-structure.tricolon-abuse-core",
+    "matched_text": "administration, billing, and service security",
+    "reason": "The three-item list is a meaningful enumeration, not ornamental rhythm."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 18,
+    "rule_id": "ai-tells-structure.tricolon-abuse-core",
+    "matched_text": "events, metrics, and traces transmitted to the Service by or at the direction of the Customer",
+    "reason": "The three-item list is a meaningful enumeration, not ornamental rhythm."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 18,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 18,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 28,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 29,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 34,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 34,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are purged",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 34,
+    "rule_id": "prose-craft.wordiness",
+    "matched_text": "in accordance with",
+    "reason": "The extra wording carries needed qualification or technical precision."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 41,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "Edge",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 41,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "edge",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 46,
+    "rule_id": "ai-tells-structure.tricolon-abuse-core",
+    "matched_text": "Area, Switzerland, and the United Kingdom to subprocessors outside those territories are made under the European Commission Standard Contractual Clauses",
+    "reason": "The three-item list is a meaningful enumeration, not ornamental rhythm."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 46,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are made",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 48,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 50,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 50,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "shall",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 53,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "obtain",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 54,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are made",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 54,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 62,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 62,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 62,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is given by",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 64,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 64,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 64,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "be made",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 64,
+    "rule_id": "prose-discipline.term-rotation-signal",
+    "matched_text": "Customer",
+    "reason": "Repeated terminology is required domain nomenclature, not artificial term rotation."
+  },
+  {
+    "doc": "independent__legal-dpa-notice.md",
+    "line": 64,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "terminate",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.bold-spray",
+    "matched_text": "",
+    "reason": "Bold is used for an actual label or heading rather than sprayed emphasis."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 15,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 25,
+    "rule_id": "ste-nouns.multiword-noun-too-long",
+    "matched_text": "",
+    "reason": "The compound noun is a necessary technical term or table heading."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 3,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "edge",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 3,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 3,
+    "rule_id": "ste-practices.false-friend-term",
+    "matched_text": "actually",
+    "reason": "The word is correct in context; the lexical heuristic is overbroad."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 13,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "what's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 13,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "what's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 13,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "doesn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 15,
+    "rule_id": "prose-craft.latinisms",
+    "matched_text": "via",
+    "reason": "The Latinism is standard technical notation."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 15,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 21,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "didn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 23,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "require",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 25,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "has served",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 27,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "be operated",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 31,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 38,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__marketing-feature-flags.md",
+    "line": 41,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 15,
+    "rule_id": "ste-descriptive.sentence-too-long-descriptive",
+    "matched_text": "",
+    "reason": "The sentence is dense but carries a single technical/legal proposition."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 100,
+    "rule_id": "ste-descriptive.sentence-too-long-descriptive",
+    "matched_text": "",
+    "reason": "The sentence is dense but carries a single technical/legal proposition."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 3,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We've ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "We've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 4,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we're ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 4,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 5,
+    "rule_id": "ai-tells-structure.cataphoric-lead-in-core",
+    "matched_text": "two things",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 5,
+    "rule_id": "prose-agency.anthropomorphism",
+    "matched_text": "the client decides",
+    "reason": "The subject is an ordinary shorthand for software behavior, not misleading agency."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 9,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "no longer",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 9,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "require",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 16,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "idea",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 16,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "was happening",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 17,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "didn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 17,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 18,
+    "rule_id": "prose-craft.hyphens",
+    "matched_text": "partially-degraded",
+    "reason": "The compound is established technical spelling."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 29,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 29,
+    "rule_id": "ai-tells-structure.cataphoric-lead-in-core",
+    "matched_text": "two kinds",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 30,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "previously",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 31,
+    "rule_id": "prose-craft.sentence-length",
+    "matched_text": "A",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 32,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 54,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is released",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 54,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is acknowledged",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 55,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is released",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 61,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 63,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are renamed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 64,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are grouped by",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 67,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is removed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 70,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is computed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 87,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 90,
+    "rule_id": "ai-tells-structure.cataphoric-lead-in-core",
+    "matched_text": "Two things",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 95,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "were relying",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 100,
+    "rule_id": "prose-craft.politeness",
+    "matched_text": "Thanks",
+    "reason": "Courtesy is appropriate in an issue reply or user-facing message, not gratuitous AI padding."
+  },
+  {
+    "doc": "independent__release-notes-4-0.md",
+    "line": 102,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 21,
+    "rule_id": "ste-descriptive.sentence-too-long-descriptive",
+    "matched_text": "",
+    "reason": "The sentence is dense but carries a single technical/legal proposition."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 24,
+    "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+    "matched_text": "",
+    "reason": "The sentence is a compact technical statement; forcing it into a list would harm flow."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 76,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 11,
+    "rule_id": "prose-inflation.vague-quantifier",
+    "matched_text": "frequently",
+    "reason": "The quantity is intentionally approximate or bounded by domain context."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 11,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "terminate",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 21,
+    "rule_id": "ai-tells-structure.tricolon-abuse-core",
+    "matched_text": "NOT, MAY, and\nOPTIONAL in this document are to be interpreted as described in BCP 14",
+    "reason": "The three-item list is a meaningful enumeration, not ornamental rhythm."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 22,
+    "rule_id": "prose-inflation.document-preamble",
+    "matched_text": "in this document",
+    "reason": "The preamble is a useful orientation sentence for this document genre."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 22,
+    "rule_id": "ste-verbs.auxiliary-stacking",
+    "matched_text": "are to be interpreted",
+    "reason": "The auxiliary sequence is grammatical and expresses the required modality/tense."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 22,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "be interpreted",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 46,
+    "rule_id": "prose-craft.wordiness",
+    "matched_text": "initiates",
+    "reason": "The extra wording carries needed qualification or technical precision."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 80,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "previously",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 81,
+    "rule_id": "ste-verbs.auxiliary-stacking",
+    "matched_text": "MAY have discarded",
+    "reason": "The auxiliary sequence is grammatical and expresses the required modality/tense."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 81,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "have discarded",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 100,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is accepted",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 106,
+    "rule_id": "ste-verbs.nominalized-action",
+    "matched_text": "perform verification",
+    "reason": "The nominalization names a defined technical operation."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 106,
+    "rule_id": "prose-discipline.frozen-verb",
+    "matched_text": "perform verification",
+    "reason": "The verb is required by the protocol/technical action."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 106,
+    "rule_id": "prose-inflation.nominalized-verb",
+    "matched_text": "perform verification",
+    "reason": "The nominal form is a conventional technical/legal term."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 106,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "perform",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 106,
+    "rule_id": "docs-discipline.internal-refs",
+    "matched_text": "as specified in",
+    "reason": "The internal reference is required for an ADR/spec citation."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 115,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are expressed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 140,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "has passed",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "independent__spec-resumable-upload.md",
+    "line": 148,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "require",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 1,
+    "rule_id": "ai-tells-register.uniform-paragraph-mass",
+    "matched_text": "",
+    "reason": "The document is a short procedural artifact; uniformity is functional."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 72,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 102,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 156,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 3,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 3,
+    "rule_id": "ste-practices.phrasal-verb",
+    "matched_text": "set up",
+    "reason": "The phrasal verb is natural and not worth rewriting."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 4,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "You'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 17,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 18,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 18,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 30,
+    "rule_id": "ste-practices.latin-abbreviation",
+    "matched_text": "i.e.",
+    "reason": "The abbreviation is conventional domain notation."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 30,
+    "rule_id": "prose-craft.latinisms",
+    "matched_text": "i.e.",
+    "reason": "The Latinism is standard technical notation."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 30,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 30,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 32,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 52,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 52,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 56,
+    "rule_id": "prose-craft.unclear-antecedent",
+    "matched_text": "This is",
+    "reason": "The antecedent is clear from the surrounding technical sentence."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 56,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 131,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 132,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 144,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 164,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "isn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 167,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "that's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "independent__tutorial-mtls.md",
+    "line": 168,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "being checked",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 3,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 1,
+    "rule_id": "docs-discipline.internal-refs",
+    "matched_text": "ADR",
+    "reason": "The internal reference is required for an ADR/spec citation."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 8,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 10,
+    "rule_id": "prose-craft.wordiness",
+    "matched_text": "a number of",
+    "reason": "The extra wording carries needed qualification or technical precision."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 10,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "a number of",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 10,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 14,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 14,
+    "rule_id": "prose-inflation.slop-lexicon",
+    "matched_text": "leverage",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 18,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 18,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 18,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "wasn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 20,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "didn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 20,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "couldn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 26,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 27,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "Our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 27,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 27,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 28,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 28,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 28,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 34,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__adr-queue.md",
+    "line": 35,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 13,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 5,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "Our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 5,
+    "rule_id": "prose-inflation.slop-lexicon",
+    "matched_text": "powerful",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 5,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 5,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "we'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 5,
+    "rule_id": "prose-inflation.slop-lexicon",
+    "matched_text": "robust",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 9,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 9,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 36,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 36,
+    "rule_id": "prose-craft.unclear-antecedent",
+    "matched_text": "This is",
+    "reason": "The antecedent is clear from the surrounding technical sentence."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 36,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 46,
+    "rule_id": "prose-craft.latinisms",
+    "matched_text": "via",
+    "reason": "The Latinism is standard technical notation."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 50,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "doesn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 50,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 50,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "we'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 50,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 60,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 60,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "we'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 60,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 64,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 66,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 66,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 67,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 67,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "We'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 67,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 68,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 68,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "We'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 68,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 70,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 70,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "be retried",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 81,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__api-docs-webhook.md",
+    "line": 81,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.bold-spray",
+    "matched_text": "",
+    "reason": "Bold is used for an actual label or heading rather than sprayed emphasis."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "You've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 9,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 9,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is easily resolved",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 9,
+    "rule_id": "prose-craft.politeness",
+    "matched_text": "feel free to",
+    "reason": "Courtesy is appropriate in an issue reply or user-facing message, not gratuitous AI padding."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 9,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is generally considered",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 9,
+    "rule_id": "orwell.unsupported-evaluative",
+    "matched_text": "robust",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 11,
+    "rule_id": "prose-discipline.phrasal-verb",
+    "matched_text": "Reach out",
+    "reason": "The phrasal verb is natural and clear in this genre."
+  },
+  {
+    "doc": "unguided__error-message.md",
+    "line": 11,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'd",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.bold-spray",
+    "matched_text": "",
+    "reason": "Bold is used for an actual label or heading rather than sprayed emphasis."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 1,
+    "rule_id": "ai-tells-register.uniform-paragraph-mass",
+    "matched_text": "",
+    "reason": "The document is a short procedural artifact; uniformity is functional."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "ste-descriptive.sentence-too-long-descriptive",
+    "matched_text": "",
+    "reason": "The sentence is dense but carries a single technical/legal proposition."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 68,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 78,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "We're ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "We're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "prose-craft.relative-date",
+    "matched_text": "This release",
+    "reason": "Relative timing is meaningful in this historical/release context."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "ai-tells-content-shape.durable-vocabulary-habits",
+    "matched_text": "represents",
+    "reason": "Repeated domain terms are necessary nouns, not a tell."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is structured",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 7,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we'll ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 7,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "we'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 7,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 9,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "What's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 13,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 14,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 14,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "no longer",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 15,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 15,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "has been replaced",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 15,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "been replaced",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 17,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "Let's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 17,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "Let's",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 17,
+    "rule_id": "prose-discipline.phrasal-verb",
+    "matched_text": "dive into",
+    "reason": "The phrasal verb is natural and clear in this genre."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 27,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are handled",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 27,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "our ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 31,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "has been removed",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 31,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "been removed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 31,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "were relying",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 31,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 31,
+    "rule_id": "prose-craft.politeness",
+    "matched_text": "unfortunately",
+    "reason": "Courtesy is appropriate in an issue reply or user-facing message, not gratuitous AI padding."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 31,
+    "rule_id": "prose-inflation.borderline-hype",
+    "matched_text": "simply",
+    "reason": "The evaluative word is genre-appropriate or supported by the surrounding evidence."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 35,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 35,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "Previously",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 43,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "are grouped",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 54,
+    "rule_id": "prose-craft.politeness",
+    "matched_text": "Unfortunately",
+    "reason": "Courtesy is appropriate in an issue reply or user-facing message, not gratuitous AI padding."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 54,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "You'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 58,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 58,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we've ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 64,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This will",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 64,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 66,
+    "rule_id": "ai-tells-formatting.title-case-heading",
+    "matched_text": "Verifying Your Migration",
+    "reason": "Title case is conventional for this heading/genre and not by itself a tell."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 68,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 74,
+    "rule_id": "ai-tells-structure.summary-closer-frames",
+    "matched_text": "Wrapping Up",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "that's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "prose-inflation.borderline-hype",
+    "matched_text": "straightforward",
+    "reason": "The evaluative word is genre-appropriate or supported by the surrounding evidence."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "ste-practices.phrasal-verb",
+    "matched_text": "run into",
+    "reason": "The phrasal verb is natural and not worth rewriting."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we're ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__guide-migration.md",
+    "line": 76,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 3,
+    "rule_id": "ai-tells-content-shape.durable-vocabulary-habits",
+    "matched_text": "represents",
+    "reason": "Repeated domain terms are necessary nouns, not a tell."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "It's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "it's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 5,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "Previously",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 5,
+    "rule_id": "prose-inflation.intensifier",
+    "matched_text": "extremely ",
+    "reason": "The intensifier is supported/meaningful in the local claim."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "didn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 5,
+    "rule_id": "prose-inflation.slop-lexicon",
+    "matched_text": "leverages",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 9,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 10,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 11,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 13,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "wouldn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 17,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 18,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 19,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 20,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 24,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "were added",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 24,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 24,
+    "rule_id": "ai-tells-register.intensifier-tics-core",
+    "matched_text": "genuinely",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 24,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "it's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 26,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "be working",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 30,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 30,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 30,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "there's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 32,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__pr-description.md",
+    "line": 32,
+    "rule_id": "prose-craft.unclear-antecedent",
+    "matched_text": "This is",
+    "reason": "The antecedent is clear from the surrounding technical sentence."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.bold-spray",
+    "matched_text": "",
+    "reason": "Bold is used for an actual label or heading rather than sprayed emphasis."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 11,
+    "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+    "matched_text": "",
+    "reason": "The sentence is a compact technical statement; forcing it into a list would harm flow."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 40,
+    "rule_id": "ste-punctuation.colon-terminates-sentence-for-count",
+    "matched_text": "",
+    "reason": "The colon introduces the following list/table and is structurally correct."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 108,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 3,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 3,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 5,
+    "rule_id": "docs-discipline.history-narration",
+    "matched_text": "previously",
+    "reason": "The document genre is a release note or migration record where history is the subject."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 5,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 9,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 10,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 10,
+    "rule_id": "ai-tells-structure.tricolon-abuse-core",
+    "matched_text": "paraphrases, typos, and reorderings that exact caches miss",
+    "reason": "The three-item list is a meaningful enumeration, not ornamental rhythm."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 11,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 11,
+    "rule_id": "ai-tells-structure.tricolon-abuse-core",
+    "matched_text": "TTLs, namespacing, and custom scoring",
+    "reason": "The three-item list is a meaningful enumeration, not ornamental rhythm."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 12,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 12,
+    "rule_id": "orwell.unsupported-evaluative",
+    "matched_text": "battle-tested",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 13,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 23,
+    "rule_id": "ste-practices.false-friend-term",
+    "matched_text": "sensible",
+    "reason": "The word is correct in context; the lexical heuristic is overbroad."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 36,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "That's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 36,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 36,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 36,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 54,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 54,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "–",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 58,
+    "rule_id": "ste-words.approved-word-substitution",
+    "matched_text": "leverage",
+    "reason": "The chosen word is precise domain/legal language; substitution would reduce accuracy."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 70,
+    "rule_id": "prose-craft.unclear-antecedent",
+    "matched_text": "This is",
+    "reason": "The antecedent is clear from the surrounding technical sentence."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 70,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 79,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "was designed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 85,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 85,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is converted",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 86,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 86,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is compared",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 87,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 87,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "it's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 89,
+    "rule_id": "ai-tells-structure.think-of-it-as-core",
+    "matched_text": "Think of it like",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 93,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 93,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we'd ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 93,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "we'd",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-cache.md",
+    "line": 93,
+    "rule_id": "prose-craft.politeness",
+    "matched_text": "Please",
+    "reason": "Courtesy is appropriate in an issue reply or user-facing message, not gratuitous AI padding."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.bold-spray",
+    "matched_text": "",
+    "reason": "Bold is used for an actual label or heading rather than sprayed emphasis."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 9,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 9,
+    "rule_id": "ste-practices.false-friend-term",
+    "matched_text": "actually",
+    "reason": "The word is correct in context; the lexical heuristic is overbroad."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 9,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 11,
+    "rule_id": "ai-tells-content-shape.durable-vocabulary-habits",
+    "matched_text": "Features",
+    "reason": "Repeated domain terms are necessary nouns, not a tell."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 13,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 14,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 14,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is exposed",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 14,
+    "rule_id": "prose-craft.hyphens",
+    "matched_text": "stringly-typed",
+    "reason": "The compound is established technical spelling."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 15,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 16,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 17,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 28,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "couldn't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 37,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "That's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 41,
+    "rule_id": "ste-practices.false-friend-term",
+    "matched_text": "actually",
+    "reason": "The word is correct in context; the lexical heuristic is overbroad."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 50,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 50,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 50,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 54,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 54,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you're",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 65,
+    "rule_id": "prose-craft.first-person-plural",
+    "matched_text": "we ",
+    "reason": "First-person project voice is context-appropriate here, not an AI tell or a cut-worthy defect."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 65,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "will ",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 73,
+    "rule_id": "prose-inflation.intensifier",
+    "matched_text": "very ",
+    "reason": "The intensifier is supported/meaningful in the local claim."
+  },
+  {
+    "doc": "unguided__readme-parser.md",
+    "line": 74,
+    "rule_id": "docs-discipline.status-language",
+    "matched_text": "planned",
+    "reason": "No compatible ground-truth tell: the rule match is a context-appropriate style choice or benign heuristic hit."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 1,
+    "rule_id": "ai-tells-formatting.em-dash-density",
+    "matched_text": "",
+    "reason": "The dash density is not conspicuous on this line or is appropriate punctuation for the genre."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 1,
+    "rule_id": "ai-tells-register.uniform-paragraph-mass",
+    "matched_text": "",
+    "reason": "The document is a short procedural artifact; uniformity is functional."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 52,
+    "rule_id": "ai-tells-structure.emphasis-paragraph-metric",
+    "matched_text": "",
+    "reason": "This emphasis/list structure is useful information architecture rather than AI emphasis spray."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "It's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 5,
+    "rule_id": "ste-words.obligation-word-substitution",
+    "matched_text": "should",
+    "reason": "The modal/obligation word is semantically required by the instruction or contract."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 5,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "be approached",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 5,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 5,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 16,
+    "rule_id": "prose-craft.future-tense",
+    "matched_text": "you'll",
+    "reason": "Future tense documents behavior, sequencing, or an intentional plan; it is not roadmap filler."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 16,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "you'll",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 22,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "is considered",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 26,
+    "rule_id": "prose-craft.unclear-antecedent",
+    "matched_text": "This is",
+    "reason": "The antecedent is clear from the surrounding technical sentence."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 26,
+    "rule_id": "ste-practices.unclear-demonstrative-this",
+    "matched_text": "This is",
+    "reason": "The demonstrative has a clear antecedent in the local sentence or heading."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 26,
+    "rule_id": "ste-practices.phrasal-verb",
+    "matched_text": "end up",
+    "reason": "The phrasal verb is natural and not worth rewriting."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 26,
+    "rule_id": "prose-inflation.intensifier",
+    "matched_text": "extremely ",
+    "reason": "The intensifier is supported/meaningful in the local claim."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 35,
+    "rule_id": "prose-format.no-unicode-dash",
+    "matched_text": "—",
+    "reason": "The em dash is ordinary punctuation in this genre; its presence alone is not a defect."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 35,
+    "rule_id": "ste-verbs.passive-voice",
+    "matched_text": "be reattached",
+    "reason": "The passive is normative/technical or the agent is immaterial; an editor would not need to recast it."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 52,
+    "rule_id": "ste-verbs.complex-tense",
+    "matched_text": "are landing",
+    "reason": "The tense is grammatically appropriate for a technical history or normative statement."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 61,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "that's",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 61,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "You've",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  },
+  {
+    "doc": "unguided__runbook-failover.md",
+    "line": 63,
+    "rule_id": "ste-sentences.omitted-word-or-contraction",
+    "matched_text": "don't",
+    "reason": "The match is an ordinary contraction or fluent omission; no editor-cut grammar defect is present."
+  }
+]

@@ -1,0 +1,41 @@
+dogfood__README.contaminated.md:174: The tiers are not a monotonic ordering. `orwell-voice` (passive voice) is
+  NEXT: advisory at `strict` and enforced at `normal`, because agentless passive is
+independent__blog-skip-locked.md:19: doesn't exist. If we enqueue after commit and the process dies in between,
+  NEXT: the email never goes out. There is no ordering of those two writes that is
+independent__blog-skip-locked.md:58: along with everything else. The dual-write problem doesn't get solved, it
+  NEXT: stops existing.
+independent__blog-skip-locked.md:87: Best of both, and NOTIFY being unreliable-by-design doesn't matter when
+  NEXT: polling is your safety net.
+independent__design-doc-outbox.md:34: unavailability does not fail customer writes.
+  NEXT: - Retire the nightly sweeper.
+independent__design-doc-outbox.md:43: - Cross-service distributed transactions. This is not a saga proposal.
+independent__design-doc-outbox.md:87: **Keep dual writes, add a retry queue.** Cheapest change. Does not fix the
+  NEXT: crash-between-writes window, which is where most of our 1,412 gaps come from.
+independent__design-doc-outbox.md:108: - **Ordering across aggregates is not preserved.** Consumers relying on global
+  NEXT: order will break. We checked: neither current consumer does.
+independent__issue-comment-pgbouncer.md:3: So, the short version: this isn't really a regression, it's the opposite. 1.21 is the release where we *added* protocol-level prepared statement support in transaction mode, and I'm fairly sure what you're hitting is that support being half-enabled rather than absent.
+independent__issue-comment-pgbouncer.md:5: Here's the background. In transaction pooling, your client gets a different server connection basically every transaction. A prepared statement lives on the server connection, so `PREPARE`/`Parse` on one backend and then `EXECUTE`/`Bind` on another and you get exactly the `prepared statement "lrupsc_1_0" does not exist` style error you pasted. That's been the case forever, and the historical advice was "turn prepared statements off in your driver."
+independent__issue-comment-pgbouncer.md:11: 1. Set `max_prepared_statements` in your `[pgbouncer]` section. Something like `max_prepared_statements = 200` is a reasonable start. It's a per-client-connection cap, and pgbouncer keeps an LRU, so it isn't unbounded memory. Reload and retry.
+  NEXT: 2. If you're on 1.21.0 specifically, please go to 1.21.1 or later first. There were a couple of genuine bugs in the initial implementation around `DEALLOCATE`/`DISCARD ALL` handling and statement name collisions that we fixed shortly after. Chasing this on .0 is not a good use of your afternoon.
+independent__issue-comment-pgbouncer.md:12: 2. If you're on 1.21.0 specifically, please go to 1.21.1 or later first. There were a couple of genuine bugs in the initial implementation around `DEALLOCATE`/`DISCARD ALL` handling and statement name collisions that we fixed shortly after. Chasing this on .0 is not a good use of your afternoon.
+  NEXT: 3. Only unnamed/protocol-level statements are handled transparently regardless of the setting. If your app issues literal `PREPARE foo AS ...` SQL text, that is *not* tracked — pgbouncer only intercepts the extended query protocol messages. You'd need to keep that inside an explicit transaction, or move to session pooling for that pool.
+independent__issue-comment-pgbouncer.md:17: If setting `max_prepared_statements` doesn't fix it, can you reply with your full config (minus credentials), the driver plus version, and a `pgbouncer` log at `verbose = 1` covering one failing request? That'll tell me whether it's the driver or us.
+independent__legal-dpa-notice.md:8: This Notice forms part of the Data Processing Addendum ("DPA") incorporated by reference into the Master Subscription Agreement between the Customer and the Vendor. In the event of a conflict between this Notice and the DPA, the DPA prevails. Capitalised terms not defined herein bear the meaning given in the DPA or, where not defined there, in Regulation (EU) 2016/679 ("GDPR").
+independent__legal-dpa-notice.md:18: (a) **Log Payload Data.** Personal data contained within log events, metrics, and traces transmitted to the Service by or at the direction of the Customer. The Vendor does not determine the content of such data. Categories may include IP addresses, device and session identifiers, user identifiers, request URLs, HTTP headers, user-agent strings, and any free-text values written by the Customer's applications.
+independent__marketing-feature-flags.md:13: Flags are declared as code, reviewed in pull requests, and synced to the control plane on merge. Drift between what's in Git and what's live is impossible: the API rejects any mutation that doesn't originate from a signed manifest or an authorized runtime override.
+independent__release-notes-4-0.md:32: request is terminal and is not — the old code would happily retry a signature
+  NEXT: failure four times before giving up, which mostly served to make bad
+independent__release-notes-4-0.md:62: `AbortSignal.any` in the new upload path and are not polyfilling either.
+  NEXT: - **All configuration options are renamed.** The `*_config` suffix is gone;
+independent__release-notes-4-0.md:86: error-code comparisons it can't rewrite for you. It does not touch your upload
+  NEXT: call sites — those are almost always source-compatible, but read the diff
+independent__spec-resumable-upload.md:81: server MAY have discarded octets that were not durably stored.
+independent__spec-resumable-upload.md:95: If the value of `Upload-Offset` does not equal the server's committed
+  NEXT: offset, the server MUST reject the request with status code `409 Conflict`
+independent__spec-resumable-upload.md:103: octets that are not durably stored.
+independent__spec-resumable-upload.md:149: transport to be TLS. Digest verification detects corruption; it does not
+  NEXT: authenticate the sender. Servers MUST enforce per-principal quotas on the
+independent__tutorial-mtls.md:164: curl refuses with a self-signed-certificate error, because your CA isn't in its
+  NEXT: default trust store.
+unguided__adr-queue.md:18: Self-hosting was ultimately rejected on the grounds of operational load. With only two engineers, taking on the burden of running a distributed queue — patching, monitoring, capacity planning, upgrade coordination — simply wasn't tenable. We initially tried spiking a self-hosted deployment and quickly realized the ongoing cost would dominate our engineering time.
+unguided__api-docs-webhook.md:50: If your endpoint doesn't respond successfully, we'll retry up to five times with exponential backoff:

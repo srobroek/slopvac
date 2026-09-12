@@ -1,0 +1,112 @@
+{
+ "slopvac__README.md": {
+  "repo": "slopvac",
+  "path": "README.md",
+  "words": 1556
+ },
+ "slopvac__packages__slopvac-lint__README.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/README.md",
+  "words": 3537
+ },
+ "slopvac__packages__slopvac__README.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac/README.md",
+  "words": 183
+ },
+ "slopvac__evals__REPORT.md": {
+  "repo": "slopvac",
+  "path": "evals/REPORT.md",
+  "words": 1305
+ },
+ "slopvac__packages__slopvac__skills__write-docs__SKILL.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac/skills/write-docs/SKILL.md",
+  "words": 1412
+ },
+ "slopvac__packages__slopvac__skills__review-docs__SKILL.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac/skills/review-docs/SKILL.md",
+  "words": 1574
+ },
+ "slopvac__packages__slopvac__skills__write-docs__references__consumer-docs.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac/skills/write-docs/references/consumer-docs.md",
+  "words": 336
+ },
+ "slopvac__packages__slopvac__skills__write-docs__references__change-comms.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac/skills/write-docs/references/change-comms.md",
+  "words": 145
+ },
+ "slopvac__packages__slopvac__skills__write-docs__references__internal-docs.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac/skills/write-docs/references/internal-docs.md",
+  "words": 104
+ },
+ "slopvac__packages__slopvac-lint__docs__triage.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/docs/triage.md",
+  "words": 701
+ },
+ "slopvac__packages__slopvac-lint__docs__vale-traps.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/docs/vale-traps.md",
+  "words": 1863
+ },
+ "slopvac__packages__slopvac-lint__docs__ste-principles.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/docs/ste-principles.md",
+  "words": 267
+ },
+ "slopvac__packages__slopvac-lint__docs__metrics.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/docs/metrics.md",
+  "words": 2249
+ },
+ "slopvac__packages__slopvac-lint__docs__counter-signals.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/docs/counter-signals.md",
+  "words": 798
+ },
+ "slopvac__packages__slopvac-lint__docs__domain-categories.md": {
+  "repo": "slopvac",
+  "path": "packages/slopvac-lint/docs/domain-categories.md",
+  "words": 927
+ },
+ "agentic-scaffold__README.md": {
+  "repo": "agentic-scaffold",
+  "path": "README.md",
+  "words": 1316
+ },
+ "agentic-scaffold__docs__architecture.md": {
+  "repo": "agentic-scaffold",
+  "path": "docs/architecture.md",
+  "words": 3773
+ },
+ "agentic-scaffold__docs__recipes.md": {
+  "repo": "agentic-scaffold",
+  "path": "docs/recipes.md",
+  "words": 10329
+ },
+ "agentic-scaffold__docs__steering.md": {
+  "repo": "agentic-scaffold",
+  "path": "docs/steering.md",
+  "words": 1123
+ },
+ "omp-orchestrate__README.md": {
+  "repo": "omp-orchestrate",
+  "path": "README.md",
+  "words": 2357
+ },
+ "omp-orchestrate__skills__orchestrate__SKILL.md": {
+  "repo": "omp-orchestrate",
+  "path": "skills/orchestrate/SKILL.md",
+  "words": 884
+ },
+ "omp-plugins__README.md": {
+  "repo": "omp-plugins",
+  "path": "README.md",
+  "words": 750
+ }
+}
