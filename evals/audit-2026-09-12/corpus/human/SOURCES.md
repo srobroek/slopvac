@@ -1,6 +1,6 @@
 # Human control corpus
 
-Pre-2022 technical prose, written before language models wrote documentation at scale. The files are not committed: some carry licences (git's `SubmittingPatches` is GPL-2.0) that do not belong in this repository's tree. `fetch_human.py` downloads them at the pinned tags; three come from installed package metadata and one from the repository's own dogfood fixture.
+Pre-2022 technical prose, written before language models wrote documentation at scale. The files are not committed: some carry licences (git's `SubmittingPatches` is GPL-2.0) that do not belong in this repository's tree. `fetch_human.py` downloads them at the pinned tags; three are package long descriptions fetched from PyPI by pinned version (the projects predate language-model writing; the release text may carry later human edits, so their authorship is unverified) and one is the repository's own hand-written dogfood fixture.
 
 | File | Source |
 |---|---|
@@ -11,7 +11,7 @@ Pre-2022 technical prose, written before language models wrote documentation at 
 | `requests-readme-2020.md` | https://raw.githubusercontent.com/psf/requests/v2.25.1/README.md |
 | `ripgrep-guide-2021.md` | https://raw.githubusercontent.com/BurntSushi/ripgrep/13.0.0/GUIDE.md |
 | `ripgrep-readme-2021.md` | https://raw.githubusercontent.com/BurntSushi/ripgrep/13.0.0/README.md |
-| `rich-readme-2020.md` | `rich` 15.0.0 wheel METADATA long description (installed package) |
-| `annotated-types-readme-2022.md` | `annotated-types` 0.8.0 wheel METADATA long description |
-| `markdown-it-py-readme-2020.md` | `markdown-it-py` 4.2.0 wheel METADATA long description |
+| `rich-readme-2020.md` | PyPI `rich` 15.0.0 long description |
+| `annotated-types-readme-2022.md` | PyPI `annotated-types` 0.8.0 long description |
+| `markdown-it-py-readme-2020.md` | PyPI `markdown-it-py` 4.2.0 long description |
 | `dogfood-readme-human.md` | `.dogfood-cleanroom/README.human.md` in this repository |

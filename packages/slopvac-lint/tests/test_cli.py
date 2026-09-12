@@ -565,9 +565,21 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
     assert "did NOT run" in unchecked
 
 
-def test_config_disabled_vale_reports_skipped_rules_as_unchecked(runner, tmp_path):
+@pytest.mark.parametrize(
+    "config_text",
+    [
+        "[vale]\nenabled = false\n",
+        '[[overrides]]\nfiles = ["*.md"]\n[overrides.vale]\nenabled = false\n',
+    ],
+    ids=["top-level", "path-override"],
+)
+def test_config_disabled_vale_reports_skipped_rules_as_unchecked(
+    runner, tmp_path, config_text
+):
+    """Disabling Vale in config skips most of the ruleset. Before the fix the run
+    exited 0 with `passed = true`; a path-scoped override was not read at all."""
     path = _write(tmp_path, "doc.md", "We leverage the seamless approach in order to win.\n")
-    config = _write(tmp_path, "slopvac.toml", "[vale]\nenabled = false\n")
+    config = _write(tmp_path, "slopvac.toml", config_text)
 
     result = runner.invoke(
         main,
@@ -579,6 +591,35 @@ def test_config_disabled_vale_reports_skipped_rules_as_unchecked(runner, tmp_pat
     assert document["passed"] is False
     unchecked = " ".join(document["unchecked"])
     assert "did NOT run" in unchecked
+    assert "enabled = false" in unchecked
+
+
+def test_a_path_scoped_vale_binary_is_the_one_that_compiles_and_runs(
+    runner, tmp_path, monkeypatch
+):
+    """`_compile_for` used the top-level binary while `run_lint` ran the resolved
+    one, so an `[overrides.vale] binary` compiled one Vale and ran another. A
+    shim that records its argv proves the resolved binary is used on both paths."""
+    log = tmp_path / "calls.log"
+    shim = tmp_path / "other-vale"
+    real = shutil.which("vale")
+    if real is None:
+        pytest.skip("vale is not installed")
+    shim.write_text(f'#!/bin/sh\necho "$@" >> "{log}"\nexec "{real}" "$@"\n')
+    shim.chmod(0o755)
+    path = _write(tmp_path, "doc.md", "We leverage the seamless approach.\n")
+    config = _write(
+        tmp_path,
+        "slopvac.toml",
+        f'[[overrides]]\nfiles = ["*.md"]\n[overrides.vale]\nbinary = "{shim}"\n',
+    )
+    result = runner.invoke(
+        main, ["lint", str(path), "--config", str(config), "--format", "json"]
+    )
+    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS), result.output
+    calls = log.read_text()
+    assert "--version" in calls
+    assert "ls-config" in calls or "--output=JSON" in calls
 
 
 def test_unimplemented_metrics_are_reported_not_skipped(tmp_path):

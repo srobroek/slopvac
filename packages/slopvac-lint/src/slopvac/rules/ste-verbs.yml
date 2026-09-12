@@ -229,7 +229,7 @@ rules:
     # false positives and 0 misses.
     #
     # `\w{3,}` rather than `\w+`, so `is red` and `is ten` cannot reach the class.
-    pattern: '\b(?:am|is|are|was|were|be|been|being)\s+(?:(?:\w+ly|often|also|always|never|still|then|now|already)\s+)?(?:(?:\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\s+by\b|(?!(?:unlimited|unbounded|unordered|unchanged|undefined|untracked|tired|dedicated|detailed|complicated|interested|involved|related|advanced|limited|fixed|mixed|varied|skilled|aged|red|used|decorrelated|deprecated|often|open|even|seven|eleven|then|when|between|golden|wooden|sudden|hidden|kitchen|garden|token|oxygen|linen|heaven)\b)(\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b)'
+    pattern: '\b(?:am|is|are|was|were|be|been|being)\s+(?:(?:\w+ly|often|also|always|never|still|then|now|already)\s+)?(?:(?:\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\s+by\b|(?!(?:unlimited|unbounded|unordered|unchanged|undefined|untracked|tired|dedicated|detailed|complicated|interested|involved|related|advanced|limited|fixed|mixed|varied|skilled|aged|red|used|decorrelated|deprecated|often|open|even|seven|eleven|then|when|between|golden|wooden|sudden|kitchen|garden|token|oxygen|linen)\b)(\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\b)'
     ignore_case: true
     exceptions:
       - quotation

@@ -7,10 +7,8 @@ SOURCES.md). Run from anywhere; writes next to this script.
 
 from __future__ import annotations
 
-import email
-import glob
+import json
 import shutil
-import sys
 import time
 import urllib.request
 from pathlib import Path
@@ -30,10 +28,14 @@ URLS = {
     "black-readme-2021.md": "https://raw.githubusercontent.com/psf/black/21.9b0/README.md",
 }
 
+# Package long descriptions, pinned by release through the PyPI JSON API. The
+# projects predate language-model writing; the release text is the version the
+# audit scored and may carry later human edits, so SOURCES.md labels its
+# authorship as unverified.
 PACKAGES = {
-    "rich-readme-2020.md": "rich",
-    "annotated-types-readme-2022.md": "annotated_types",
-    "markdown-it-py-readme-2020.md": "markdown_it_py",
+    "rich-readme-2020.md": ("rich", "15.0.0"),
+    "annotated-types-readme-2022.md": ("annotated-types", "0.8.0"),
+    "markdown-it-py-readme-2020.md": ("markdown-it-py", "4.2.0"),
 }
 
 
@@ -55,20 +57,13 @@ def main() -> int:
             continue
         target.write_text(fetch(url), encoding="utf-8")
         print("fetched", name)
-    site = glob.glob(str(REPO / "packages/slopvac-lint/.venv/lib/python*/site-packages"))
-    for name, package in PACKAGES.items():
+    for name, (package, version) in PACKAGES.items():
         target = HERE / name
-        if target.exists() or not site:
+        if target.exists():
             continue
-        metadata = glob.glob(f"{site[0]}/{package}-*.dist-info/METADATA")
-        if not metadata:
-            print("missing package metadata for", package, file=sys.stderr)
-            continue
-        body = email.message_from_string(
-            Path(metadata[0]).read_text(errors="ignore")
-        ).get_payload()
-        target.write_text(body, encoding="utf-8")
-        print("extracted", name)
+        payload = json.loads(fetch(f"https://pypi.org/pypi/{package}/{version}/json"))
+        target.write_text(payload["info"]["description"], encoding="utf-8")
+        print("fetched", name, "from PyPI", version)
     dogfood = REPO / ".dogfood-cleanroom" / "README.human.md"
     if dogfood.exists() and not (HERE / "dogfood-readme-human.md").exists():
         shutil.copy(dogfood, HERE / "dogfood-readme-human.md")

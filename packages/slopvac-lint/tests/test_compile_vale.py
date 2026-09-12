@@ -199,6 +199,25 @@ def test_rejected_pattern_stays_native(ruleset, tmp_path, vocabulary, monkeypatc
     assert "Vale rejected" in result.native_reasons()[rule.qualified_id]
 
 
+@needs_vale
+def test_a_split_substitution_map_keeps_its_replacements(compiled, tmp_path):
+    """`prose-craft.latinisms` mixes word keys (`via`) with punctuation-ending
+    keys (`e.g.`). One punctuation key used to degrade the whole map to an
+    `existence` rule, so Vale said "a simpler word" for `via` too. The word keys
+    now compile as a real substitution and keep their replacement; the
+    punctuation keys ride in the aliased `--punct` companion."""
+    alerts = _lint(
+        compiled.config_path,
+        "Send it via the queue.\n\nUse the queue, e.g. for retries.\n",
+        tmp_path,
+        name="latinisms.md",
+    )
+    by_line = {alert["Line"]: alert for alert in alerts if "latinisms" in alert["Check"]}
+    assert by_line[1]["Check"] == "prose-craft.latinisms"
+    assert "through" in by_line[1]["Message"]
+    assert by_line[3]["Check"] == "prose-craft.latinisms--punct"
+    assert compiled.aliases["prose-craft.latinisms--punct"] == "prose-craft.latinisms"
+
 def test_paragraph_scoped_lexical_rules_stay_native(compiled, ruleset, tmp_path):
     """Vale's `paragraph` scope is the CommonMark paragraph node only, so a
     paragraph-scoped pattern compiled to Vale reported nothing on a bullet, a

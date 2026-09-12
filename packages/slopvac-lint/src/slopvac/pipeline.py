@@ -209,12 +209,14 @@ def _compile_for(
     skipped.
     """
     resolved = resolve_for(config, sample)
+    # The resolved binary, not the top-level one: a path override may point one
+    # tree at another Vale, and the tree it compiles must be the one it runs.
     try:
         if validate:
             return compile_ruleset(
                 ruleset,
                 resolved,
-                binary=config.vale.binary,
+                binary=resolved.vale.binary,
                 validate=True,
                 vocabulary=vocabulary,
             ), []
@@ -223,7 +225,7 @@ def _compile_for(
                 ruleset,
                 resolved,
                 outdir=Path(directory),
-                binary=config.vale.binary,
+                binary=resolved.vale.binary,
                 validate=False,
                 vocabulary=vocabulary,
             )

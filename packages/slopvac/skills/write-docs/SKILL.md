@@ -60,8 +60,9 @@ an eval corpus of informal documents scored 0 at `normal` where `relaxed` scored
    every `documents[].unchecked` entry MUST be reported. NOT Calling the file
    clean on exit 2.
 
-   Fix every ERROR. Fix or justify each WARNING in one line. The linter names the
-   replacement for every substitution, so never guess one from memory.
+   Fix every ERROR. Fix or justify each WARNING in one line. A substitution finding
+   names its replacement (a punctuation-ending key such as `e.g.` says "a simpler
+   word" instead), so never guess one from memory.
 5. MUST Invoke the `review-docs` skill, passing `genre` and `profile` from
    step 1. It judges register, structural symmetry, and claims with nothing
    behind them. Fix what it returns.

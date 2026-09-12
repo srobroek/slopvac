@@ -404,7 +404,13 @@ challenged the diff. What it found, and what changed:
 
 One generation per cell and one labeller per corpus; the label sets are the two agents'
 judgement, not ground truth, and the challenger showed the human labels conflate a
-detector miss with a profile disagreement. The human corpus is READMEs and guides, which
+detector miss with a profile disagreement. Span-level labels exist only for
+`ai-existing` (exhaustive) and for a 352-finding sample of `human`; the 142 generated
+documents and the 22 gated documents carry no tell labels, so for them this report gives
+finding counts, gate outcomes and the new rule's hand-checked hits, not precision or
+recall. Three of the eleven human documents are PyPI long descriptions of projects that
+predate language-model writing; the release text may carry later human edits, so their
+authorship is unverified (`corpus/human/SOURCES.md`). The human corpus is READMEs and guides, which
 is not the genre mix of the model corpus; the challenger's README-only control is what
 the decommission decisions rest on. Vale 3.21 dropped one `substitution` alert from an
 otherwise identical run in 1 of 6 repeats under CPU load; the compile sweep test settles
