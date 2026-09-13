@@ -22,7 +22,6 @@ rules:
       Does this block describe a risk of harm to a person, or only a risk of damage to data,
       systems, or equipment? Harm to a person takes the higher marker; damage alone takes the
       lower one; when both apply, use the higher marker.
-    exceptions:
       - quotation
     allowlist: []
     examples:
