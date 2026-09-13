@@ -554,6 +554,37 @@ def test_clean_document_scores_100():
     assert result.passed
 
 
+@pytest.mark.parametrize(
+    ("profile", "severity"),
+    [
+        (Profile.NORMAL, Severity.ERROR),
+        (Profile.RELAXED, Severity.SUGGESTION),
+    ],
+)
+def test_one_unicode_dash_fails_the_run_whatever_the_profile_allows(profile, severity):
+    """The dash gate is independent of `max_errors` and of the rule's dial: a
+    project with `max_errors = 5`, or a relaxed profile that reports the rule as
+    a suggestion, still fails on a single em dash. The measured reason: 24x denser
+    in model prose than in pre-2022 human prose."""
+    dash = Finding(
+        path="a.md",
+        line=1,
+        column=20,
+        rule_id="prose-format.no-unicode-dash",
+        category="prose-format",
+        severity=severity,
+        message="em/en dash",
+        matched_text="\u2014",
+    )
+    result = _score([dash], 400, profile=profile, thresholds=Thresholds(max_errors=5))
+    assert not result.passed
+    assert any("Unicode dash" in reason for reason in result.failure_reasons)
+
+    lenient = _score(
+        [dash], 400, profile=profile, thresholds=Thresholds(max_errors=5, max_unicode_dashes=1)
+    )
+    assert not any("Unicode dash" in reason for reason in lenient.failure_reasons)
+
 def test_short_document_is_not_density_gated():
     """One finding in a 20-word error message is 5.0 per 100 words and would fail
     every budget. This is the flaw in scoring short outputs by density."""
@@ -863,6 +894,19 @@ def test_all_caps_words_do_not_draw_prose_findings():
     assert not caps_hits, "an all-caps token drew a prose finding: " + ", ".join(
         f"{f.rule_id} on {f.matched_text!r}" for f in caps_hits
     )
+
+
+def test_case_sensitive_prose_rules_can_report_all_caps_matches():
+    """Case-sensitive payloads opt into the all-caps matches they define."""
+    findings = _run(
+        "The A.P.I. returns JSON. TODO: document the flag. a HTML file."
+    )
+    hits = {(finding.rule_id, finding.matched_text) for finding in findings}
+    assert {
+        ("prose-craft.acronym-periods", "A.P.I."),
+        ("prose-craft.annotations", "TODO"),
+        ("prose-craft.articles", "a HTML"),
+    } <= hits
 
 
 def test_lowercase_equivalent_still_fires():
