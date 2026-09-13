@@ -374,14 +374,20 @@ class _HtmlTextExtractor(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.prose_lines = [""] * line_count
         self._skip = 0
+        self._boundary = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self._boundary = True
         if tag in _SKIP_HTML_TAGS:
             self._skip += 1
 
     def handle_endtag(self, tag: str) -> None:
+        self._boundary = True
         if tag in _SKIP_HTML_TAGS and self._skip:
             self._skip -= 1
+
+    def handle_comment(self, data: str) -> None:
+        self._boundary = True
 
     def handle_data(self, data: str) -> None:
         if self._skip or not data:
@@ -390,7 +396,90 @@ class _HtmlTextExtractor(HTMLParser):
         for offset, part in enumerate(data.split("\n")):
             index = line - 1 + offset
             if 0 <= index < len(self.prose_lines):
+                previous = self.prose_lines[index]
+                if (
+                    self._boundary
+                    and previous
+                    and not previous[-1].isspace()
+                    and not part[:1].isspace()
+                ):
+                    part = " " + part
                 self.prose_lines[index] += part
+        self._boundary = False
+
+
+_FENCE_START = re.compile(r"^\s{0,3}(?P<marker>(?P<char>`|~){3,})")
+
+
+def _html_fence_lines(content: str) -> set[int]:
+    """Return local lines occupied by Markdown fences embedded in HTML.
+
+    markdown-it deliberately hands a complete HTML block to the HTML renderer, so
+    a fenced example inside a ``<div>`` is otherwise indistinguishable from visible
+    text. Treating the fence and its body as code preserves the same non-prose
+    contract as a native Markdown fence.
+    """
+    skipped: set[int] = set()
+    opening: tuple[str, int, int] | None = None
+    lines = content.splitlines()
+    for index, line in enumerate(lines):
+        match = _FENCE_START.match(line)
+        if opening is None:
+            if match:
+                opening = (match.group("char"), len(match.group("marker")), index)
+            continue
+        skipped.add(index)
+        if match and match.group("char") == opening[0]:
+            if len(match.group("marker")) >= opening[1]:
+                skipped.update(range(opening[2], index + 1))
+                opening = None
+    if opening is not None:
+        skipped.update(range(opening[2], len(lines)))
+    return skipped
+
+
+def _project_html_block(
+    content: str, first: int, last: int, prose_lines: list[str]
+) -> tuple[str, list[tuple[int, int]], tuple[int, int] | None, list[tuple[int, int]]]:
+    """Extract visible HTML-block text while retaining source-line starts."""
+    line_count = max(last - first + 1, 1)
+    extractor = _HtmlTextExtractor(line_count)
+    extractor.feed(content)
+    extractor.close()
+    fence_lines = _html_fence_lines(content)
+
+    pieces: list[str] = []
+    line_starts: list[tuple[int, int]] = []
+    text_offset = 0
+    visible_lines: list[int] = []
+    for local, piece in enumerate(extractor.prose_lines):
+        source_line = first + local
+        clean = "" if local in fence_lines else piece.strip()
+        if 0 < source_line <= len(prose_lines):
+            prose_lines[source_line - 1] = clean
+        if not clean:
+            continue
+        visible_lines.append(source_line)
+        if pieces:
+            text_offset += 1
+        line_starts.append((text_offset, source_line))
+        pieces.append(clean)
+        text_offset += len(clean)
+
+    text = "".join(piece if index == 0 else " " + piece for index, piece in enumerate(pieces))
+    paragraph_lines = (
+        (visible_lines[0], visible_lines[-1]) if visible_lines else None
+    )
+    code_blocks: list[tuple[int, int]] = []
+    if fence_lines:
+        start = previous = min(fence_lines)
+        for line in sorted(fence_lines)[1:]:
+            if line != previous + 1:
+                code_blocks.append((first + start, first + previous))
+                start = line
+            previous = line
+        code_blocks.append((first + start, first + previous))
+    return text, line_starts, paragraph_lines, code_blocks
 
 
 def _parse_html(path: str, raw: str) -> Document:
@@ -496,6 +585,24 @@ def parse(path: str, raw: str) -> Document:
 
     for token in tokens:
         if token.type == "front_matter":
+            continue
+
+        if token.type == "html_block" and token.map is not None:
+            first = token.map[0] + 1 + offset
+            last = token.map[1] + offset
+            text, line_starts, paragraph_lines, code_blocks = _project_html_block(
+                token.content, first, last, prose_lines
+            )
+            if paragraph_lines is not None:
+                record(
+                    BlockKind.PARAGRAPH,
+                    paragraph_lines[0],
+                    paragraph_lines[1],
+                    text,
+                    line_starts,
+                )
+            for code_first, code_last in code_blocks:
+                blocks.append(Block(kind=BlockKind.CODE, lines=(code_first, code_last), text=""))
             continue
 
         if token.type == "table_open" and token.map is not None:
