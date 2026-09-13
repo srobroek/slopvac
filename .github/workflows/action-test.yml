@@ -190,7 +190,7 @@ jobs:
           # Exit 1 (findings) and 2 (--no-vale marks the run incomplete) both still
           # write the JSON report; only the document list is read here.
           completed = subprocess.run(
-              ["uvx", "--from", "./packages/slopvac-lint", "slopvac", "lint", *changed,
+              ["uvx", "--no-cache", "--from", "./packages/slopvac-lint", "slopvac", "lint", *changed,
                "--format", "json", "--no-vale"],
               text=True,
               capture_output=True,
