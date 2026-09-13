@@ -203,6 +203,12 @@ runs:
         VERSION: ${{ inputs.version }}
         SOURCE: ${{ inputs.source }}
       run: |
+        # `shell: bash` runs this script under `bash -eo pipefail`, so a linter
+        # exit of 1 (findings) inside `render` aborted the step before `status`
+        # was captured: non-blocking mode failed on every finding and the SARIF
+        # never got written. Measured by the composite-action contract workflow,
+        # three of its five branches. The verdict is a value here, not an error.
+        set +e
         set -uo pipefail
 
         targets=()

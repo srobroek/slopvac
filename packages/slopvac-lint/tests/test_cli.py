@@ -1120,3 +1120,36 @@ def test_a_file_reports_the_same_levels_alone_and_inside_its_directory(tmp_path)
         ).output
     )
     assert _levels(alone, "b.md") == _levels(together, "b.md")
+
+
+def test_rst_without_converter_is_unchecked_but_other_files_score(runner, tmp_path, monkeypatch):
+    """RST is not silently dropped when its docutils converter is unavailable."""
+    _write(tmp_path, "a.md", CLEAN)
+    _write(tmp_path, "b.rst", "A title\n=======\n\nPlain text.\n")
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-bin"))
+
+    result = runner.invoke(main, ["lint", str(tmp_path), "--no-vale", "--format", "json"])
+
+    assert result.exit_code == EXIT_ERROR
+    report = json.loads(result.output)
+    assert {Path(doc["path"]).name for doc in report["documents"]} == {"a.md"}
+    assert any("rst2html" in note and "pip install docutils" in note
+               for doc in report["documents"] for note in doc["unchecked"])
+
+
+def test_rst_is_collected_when_converter_is_available(runner, tmp_path, monkeypatch):
+    """A rst2html executable on PATH keeps RST in the lint target set."""
+    _write(tmp_path, "b.rst", "A title\n=======\n\nPlain text.\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    converter = bin_dir / "rst2html"
+    converter.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    converter.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    result = runner.invoke(main, ["lint", str(tmp_path), "--no-vale", "--format", "json"])
+
+    assert result.exit_code == EXIT_ERROR  # --no-vale remains explicitly unchecked
+    report = json.loads(result.output)
+    assert {Path(doc["path"]).name for doc in report["documents"]} == {"b.rst"}
+    assert not any("rst2html" in note for doc in report["documents"] for note in doc["unchecked"])

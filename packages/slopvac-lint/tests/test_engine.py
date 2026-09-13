@@ -1379,3 +1379,46 @@ def test_the_stack_rule_still_reports_a_real_stack():
     """The companion to every false-positive fix above. Each round widened
     STACK_BREAKER, and a list wide enough to silence everything silences this too."""
     assert longest_noun_stack("container orchestration platform migration strategy") == 5
+
+
+
+def test_html_div_prose_is_linted_at_its_source_line():
+    rule = _fixture_rule(pattern=r"\bseamless\b")
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    document = parse(
+        "a.md",
+        "<div>\nClean wrapper text.\nWe use a seamless approach.\n</div>\n",
+    )
+
+    findings = engine.run(document)
+
+    assert [(finding.line, finding.column) for finding in findings] == [(3, 10)]
+
+
+def test_html_summary_label_is_linted():
+    rule = _fixture_rule(pattern=r"\bseamless\b")
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    document = parse(
+        "a.md",
+        "<details>\n<summary>Use a seamless approach</summary>\n</details>\n",
+    )
+
+    findings = engine.run(document)
+
+    assert [finding.line for finding in findings] == [2]
+
+
+def test_html_comment_block_is_not_prose():
+    document = parse("a.md", "<!-- slopvac-allow: rule=x reason=y -->\n")
+
+    assert document.prose_text().strip() == ""
+    assert not document.paragraphs
+
+
+def test_code_fence_inside_html_is_not_prose():
+    rule = _fixture_rule(pattern=r"\bseamless\b")
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    document = parse("a.md", "<div>\n```\nseamless code\n```\n</div>\n")
+
+    assert "seamless" not in document.prose_text()
+    assert not engine.run(document)

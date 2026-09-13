@@ -44,6 +44,13 @@ slopvac compile --outdir build/vale
 vale --config=build/vale/.vale.ini docs/
 ```
 
+## Supported file types
+
+Directory targets collect `.md`, `.mdx`, `.markdown`, `.txt`, and `.html` files.
+`.rst` files are collected when the Docutils `rst2html` (or `rst2html.py`)
+command is on `PATH`; install it with `pip install docutils`. Without that
+converter, selected RST targets are reported as unchecked and the run exits 2.
+
 ## Profiles
 
 A profile is the strictness dial. It sets which rules run, how loud each one is,

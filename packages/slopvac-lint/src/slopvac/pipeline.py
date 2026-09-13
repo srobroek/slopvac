@@ -12,7 +12,7 @@ import copy
 import fnmatch
 import tempfile
 import webbrowser
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import click
@@ -44,6 +44,7 @@ from .report import LintReport, build_sarif, summarize
 from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .score import score_document
 from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
+from .vale_probe import rst_converter
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
 LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
@@ -71,6 +72,10 @@ class RunContext:
     ruleset: RuleSet
     paths: list[Path]
     locale_notes: dict[Path, str]
+    # Notes about targets that were asked for and could not be collected (an
+    # `.rst` with no converter on PATH). They ride on the first document's
+    # `unchecked` so the run exits 2 rather than reporting a clean subset.
+    collection_notes: list[str] = field(default_factory=list)
 
 
 def _relative_to_config(path: Path, config: Config) -> str:
@@ -83,8 +88,14 @@ def _relative_to_config(path: Path, config: Config) -> str:
         return path.name
 
 
-def _expand_paths(targets: tuple[str, ...]) -> list[Path]:
-    """Expand target arguments without applying a config's exclusions."""
+def _expand_paths(targets: tuple[str, ...], notes: list[str] | None = None) -> list[Path]:
+    """Expand target arguments without applying a config's exclusions.
+
+    `.rst` files need docutils' `rst2html` for Vale to read them; without it Vale
+    exits with E100 and the whole run is lost. Those files are left out here and
+    named once in `notes`, so the supported files still score and the run is
+    reported incomplete rather than failing on the converter.
+    """
     found: list[Path] = []
     for target in targets:
         path = Path(target)
@@ -109,6 +120,16 @@ def _expand_paths(targets: tuple[str, ...]) -> list[Path]:
     # Keep only supported documents before selecting a config. Config files are
     # intentionally not lintable, even when the directory itself is a target.
     kept = [path for path in found if any(fnmatch.fnmatch(path.name, p) for p in LINTABLE)]
+
+    skipped_rst = [path for path in kept if path.suffix.lower() == ".rst"]
+    if skipped_rst and rst_converter() is None:
+        kept = [path for path in kept if path.suffix.lower() != ".rst"]
+        if notes is not None:
+            names = ", ".join(str(path) for path in skipped_rst)
+            notes.append(
+                f"RST target(s) skipped: rst2html or rst2html.py not found on PATH "
+                f"({names}); install with `pip install docutils`."
+            )
 
     # Deduplicate while preserving order.
     seen: set[Path] = set()
@@ -482,8 +503,9 @@ def load_run_context(
     locale_tag: str | None,
 ) -> RunContext:
     """Discover and apply the nearest config independently for every target."""
+    collection_notes: list[str] = []
     try:
-        candidates = _expand_paths(targets)
+        candidates = _expand_paths(targets, collection_notes)
     except click.ClickException as exc:
         raise PipelineError(f"[red]{exc.message}[/]") from None
 
@@ -618,8 +640,8 @@ def load_run_context(
         ruleset=canonical,
         paths=paths,
         locale_notes=locale_notes,
+        collection_notes=collection_notes,
     )
-
 
 def group_inputs(
     paths: list[Path], configs: dict[Path, Config], rulesets: dict[Path, RuleSet]
@@ -729,6 +751,20 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 score.unchecked.append(note)
             scores.append(score)
 
+    if ctx.collection_notes:
+        if scores:
+            scores[0].unchecked.extend(ctx.collection_notes)
+        else:
+            # Every target was skipped (a directory of .rst files with no
+            # converter): an incomplete result, not the no-files success.
+            first = next(iter(ctx.configs.values()), None)
+            scores.append(
+                DocumentScore(
+                    path="<collection>",
+                    profile=first.profile.value if first else Profile.NORMAL.value,
+                    unchecked=list(ctx.collection_notes),
+                )
+            )
     # Back into the order the caller asked for, since the groups reordered them.
     order = {str(path): index for index, path in enumerate(ctx.paths)}
     scores.sort(key=lambda score: order.get(score.path, 0))
