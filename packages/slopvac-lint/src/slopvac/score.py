@@ -151,7 +151,7 @@ def _category_result(
             gating_per_100_words=round(gating, 3),
             budget=budget,
             score=round(score, 1),
-            over_budget=budget is not None and gating > budget,
+            over_budget=weight > 0 and budget is not None and gating > budget,
         ),
         weight,
     )
@@ -167,14 +167,22 @@ def _weighted_category_score(entries: list[tuple[CategoryScore, float]]) -> floa
 
 
 def _whole_document_score(
-    findings: list[Finding], words: int, budget: float | None
+    findings: list[Finding],
+    words: int,
+    budget: float | None,
+    active_categories: set[str] | None = None,
 ) -> float:
+    relevant = (
+        findings
+        if active_categories is None
+        else [f for f in findings if f.category in active_categories]
+    )
     blocking_weight = sum(
         SEVERITY_WEIGHT[f.severity]
-        for f in findings
+        for f in relevant
         if f.severity is not Severity.SUGGESTION
     )
-    suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
+    suggestions = sum(f.severity is Severity.SUGGESTION for f in relevant)
     measurable = words >= MIN_WORDS_FOR_DENSITY and words > 0
     base_score = (
         _score_from_density(blocking_weight / words * 100, budget)
@@ -185,13 +193,22 @@ def _whole_document_score(
     return max(0.0, base_score - _suggestion_penalty(suggestion_density))
 
 
-def _blocking_density(findings: list[Finding], words: int) -> float:
+def _blocking_density(
+    findings: list[Finding],
+    words: int,
+    active_categories: set[str] | None = None,
+) -> float:
     if words < MIN_WORDS_FOR_DENSITY or not words:
         return 0.0
+    relevant = (
+        findings
+        if active_categories is None
+        else [f for f in findings if f.category in active_categories]
+    )
     return (
         sum(
             SEVERITY_WEIGHT[f.severity]
-            for f in findings
+            for f in relevant
             if f.severity is not Severity.SUGGESTION
         )
         / words
@@ -206,9 +223,18 @@ def _failure_reasons(
     overall: float,
     config: ResolvedConfig,
     unchecked: list[str],
+    active_categories: set[str] | None = None,
 ) -> list[str]:
-    errors = sum(f.severity is Severity.ERROR for f in findings)
-    warnings = sum(f.severity is Severity.WARNING for f in findings)
+    # An informational (weight-0) category reports its findings and gates nothing:
+    # not the score, not the density, and not the error and warning counts either.
+    # The raw counts on the DocumentScore still include it.
+    gated = (
+        findings
+        if active_categories is None
+        else [f for f in findings if f.category in active_categories]
+    )
+    errors = sum(f.severity is Severity.ERROR for f in gated)
+    warnings = sum(f.severity is Severity.WARNING for f in gated)
     thresholds = config.thresholds
     reasons = ["incomplete check: " + "; ".join(unchecked)] if unchecked else []
     if thresholds.max_errors is not None and errors > thresholds.max_errors:
@@ -216,7 +242,7 @@ def _failure_reasons(
     if thresholds.max_warnings is not None and warnings > thresholds.max_warnings:
         reasons.append(f"{warnings} warning(s), limit {thresholds.max_warnings}")
 
-    density = _blocking_density(findings, words)
+    density = _blocking_density(findings, words, active_categories)
     if (
         thresholds.max_total_per_100_words is not None
         and words >= MIN_WORDS_FOR_DENSITY
@@ -262,15 +288,33 @@ def score_document(
         for name, items in sorted(by_category.items())
     ]
     category_scores = [entry for entry, _ in entries]
+    # A weight-0 category is informational: it contributes to neither side of the
+    # mean, and its findings do not spend the document's density budget either.
+    # Unless EVERY category is zero-weighted -- then nothing would be measured and a
+    # slop document would score 100, so the clamp falls back to all findings.
+    active_categories = {entry.category for entry, weight in entries if weight > 0}
+    if not active_categories:
+        active_categories = None
     overall = min(
         _weighted_category_score(entries),
-        _whole_document_score(findings, words, config.thresholds.max_total_per_100_words),
+        _whole_document_score(
+            findings,
+            words,
+            config.thresholds.max_total_per_100_words,
+            active_categories,
+        ),
     )
     errors = sum(f.severity is Severity.ERROR for f in findings)
     warnings = sum(f.severity is Severity.WARNING for f in findings)
     suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
     reasons = _failure_reasons(
-        findings, category_scores, words, overall, config, unchecked
+        findings,
+        category_scores,
+        words,
+        overall,
+        config,
+        unchecked,
+        active_categories,
     )
     per_100 = (
         len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0

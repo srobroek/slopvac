@@ -34,9 +34,32 @@ from slopvac.engine import (
     count_clause_boundaries,
 )
 from slopvac.metrics import NATIVE_METRICS
-from slopvac.model import Finding, TextType, Tier
+from slopvac.model import Finding, Provenance, Rule, RuleKind, Scope, TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
+
+
+def _fixture_rule(
+    rule_id: str = "match",
+    *,
+    pattern: str = "jargon",
+    scope: Scope = Scope.PROSE,
+    allowlist: list[str] | None = None,
+    exceptions: list[str] | None = None,
+) -> Rule:
+    return Rule(
+        id=rule_id,
+        name="fixture rule",
+        kind=RuleKind.PATTERN,
+        pattern=pattern,
+        scope=scope,
+        allowlist=allowlist or [],
+        exceptions=exceptions or [],
+        message="replace {match}",
+        provenance=Provenance(source="test"),
+        category="fixture",
+        tiers={"strict": Tier.ENFORCED, "normal": Tier.ENFORCED, "relaxed": Tier.ENFORCED},
+    )
 
 # --- word counting, ASD-STE100 rules 8.4 through 8.7 -------------------------
 
@@ -153,6 +176,27 @@ def test_inline_code_and_links_are_stripped():
     assert "http" not in prose
     # Link TEXT survives, because it is prose a reader reads.
     assert "the seamless doc" in prose
+
+
+def test_multiline_match_reports_the_physical_source_line():
+    rule = _fixture_rule()
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    findings = engine.run(parse("a.md", "Clean first line.\njargon is on line two.\n"))
+    assert [(f.line, f.column) for f in findings] == [(2, 1)]
+
+
+def test_sentence_scope_matches_a_sentence_inside_a_block():
+    rule = _fixture_rule(scope=Scope.SENTENCE, pattern=r"^Second")
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    findings = engine.run(parse("a.md", "First sentence. Second sentence.\n"))
+    assert [(f.line, f.column) for f in findings] == [(1, 17)]
+
+
+def test_paragraph_scope_matches_across_a_soft_break():
+    rule = _fixture_rule(scope=Scope.PARAGRAPH, pattern=r"first sentence\. second sentence")
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    findings = engine.run(parse("a.md", "first sentence.\nsecond sentence.\n"))
+    assert [(f.line, f.column) for f in findings] == [(1, 1)]
 
 
 def test_line_numbers_survive_stripping():
@@ -426,6 +470,61 @@ def test_disable_block_suppresses_a_range():
     assert not [f for f in findings if f.rule_id == "orwell.stale-figure"]
 
 
+def test_allow_suppression_covers_a_multiline_block():
+    rule = _fixture_rule(exceptions=["quoted"])
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    findings = engine.run(
+        parse(
+            "a.md",
+            "<!-- slopvac-allow: rule=fixture.match reason=quoted -->\n"
+            "Clean first line.\n"
+            "jargon is on line three.\n",
+        )
+    )
+    assert not [f for f in findings if f.rule_id == "fixture.match"]
+
+
+def test_malformed_suppression_is_reported_with_expected_grammar():
+    findings = _run(
+        "<!-- slopvac-allow: rule=orwell.stale-figure reason=not valid -->\n"
+        "It is the tip of the iceberg.\n"
+    )
+    invalid = [f for f in findings if f.rule_id == "meta.invalid-suppression"]
+    assert invalid
+    assert "expected <!-- slopvac-allow: rule=<rule-id> reason=<reason> -->" in invalid[0].message
+    assert [f for f in findings if f.rule_id == "orwell.stale-figure"]
+
+
+def test_a_directive_quoted_in_code_is_neither_honoured_nor_reported():
+    """The README and the skills show the directive grammar in backticks and
+    fences. A quoted directive is documentation: a quoted `slopvac-disable` must
+    not silence the prose after it, a code span that closes on the next line is
+    still a code span, and a placeholder form must not report as malformed."""
+    findings = _run(
+        "Use `<!-- slopvac-allow -->` comments to suppress a finding.\n"
+        "\n"
+        "Use `<!-- slopvac-disable -->` to disable a region.\n"
+        "\n"
+        "Suppression follows from the same position: `<!-- slopvac-allow: rule=<id>\n"
+        "reason=<name> -->` requires a reason from the rule's own closed list.\n"
+        "\n"
+        "```markdown\n"
+        "<!-- slopvac-disable -->\n"
+        "<!-- slopvac-allow: rule=<id> reason=<name> -->\n"
+        "```\n"
+        "\n"
+        "It is the tip of the iceberg.\n"
+    )
+    assert not [f for f in findings if f.rule_id == "meta.invalid-suppression"]
+    assert [f for f in findings if f.rule_id == "orwell.stale-figure"]
+
+def test_allowlist_phrase_only_suppresses_the_contained_occurrence():
+    rule = _fixture_rule(allowlist=["iron resolution"], pattern=r"\biron\b")
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    findings = engine.run(parse("a.md", "iron fails near iron resolution.\n"))
+    assert [(f.line, f.column) for f in findings] == [(1, 1)]
+
+
 # --- scoring -----------------------------------------------------------------
 
 
@@ -541,21 +640,54 @@ def test_suggestions_alone_cannot_fail_min_score():
 
 
 def test_zero_weight_category_leaves_the_category_average_alone():
-    """A zero-weight category is informational: it contributes to neither the
-    numerator nor the denominator of the per-category mean.
+    """A zero-weight category is informational in the document score.
 
-    It cannot RAISE the overall score, because the overall score is clamped to the
-    document's own findings -- otherwise zero-weighting every category would score
-    a slop document 100/100. So the assertion is on the mean, not the total.
+    Its findings remain visible and its own category score is still computed, but
+    it contributes to neither side of the document score or density gates.
     """
     findings = _run("It is the tip of the iceberg.")
-    weighted = _score(findings, 200)
     unweighted = _score(findings, 200, categories={"orwell": CategorySettings(weight=0)})
-    assert unweighted.score <= weighted.score, "zero-weighting must not flatter"
+    assert unweighted.score == 100.0
 
     # The category itself is still reported, so a reader sees what was excluded.
     entry = next(c for c in unweighted.categories if c.category == "orwell")
     assert entry.findings > 0
+
+
+def test_zero_weight_category_cannot_lower_document_score_or_fail_a_gate():
+    """README: a weight-0 category is informational and contributes to neither side
+    of the mean. Before the fix its findings still spent the document budget and
+    counted toward `max_errors`, so one error in an informational category failed
+    the `normal` gate outright."""
+    error = Finding(
+        path="a.md",
+        line=1,
+        column=1,
+        rule_id="fixture.error",
+        category="fixture",
+        severity=Severity.ERROR,
+        message="error",
+    )
+    result = _score(
+        [error],
+        100,
+        categories_meta={"fixture": 1.0, "other": 1.0},
+        categories={
+            "fixture": CategorySettings(weight=0, max_per_100_words=0),
+            "other": CategorySettings(weight=1.0),
+        },
+        thresholds=Thresholds(
+            max_errors=0,
+            max_warnings=0,
+            max_total_per_100_words=0,
+            min_score=99,
+        ),
+    )
+    assert result.score == 100.0
+    assert result.passed
+    assert result.failure_reasons == []
+    assert result.errors == 1
+    assert next(c for c in result.categories if c.category == "fixture").findings == 1
 
 
 def test_zero_weighting_everything_cannot_score_a_slop_document_100():
@@ -857,64 +989,23 @@ def test_the_sentinel_never_reaches_a_finding_message():
 def test_paragraph_words_is_evaluated_natively():
     """Vale reported a different number for the same paragraph: an inline code span
     is one word here and zero to Vale, whose markdown scoping drops the span before
-    its token counter sees it. At an 8-word bound that gap decides the finding."""
+    its token counter sees it, so the metric stays native."""
     engine = _engine()
     rule = next(
-        r
-        for r in engine.rules
-        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+        r for r in engine.rules if r.qualified_id == "prose-format.prose-block"
     )
     assert rule.metric == "paragraph_words"
     assert "paragraph_words" not in engine.unimplemented_metrics()
     assert rule.qualified_id not in engine.unimplemented_metrics()
 
 
-def test_a_paragraph_of_one_opaque_unit_is_not_an_emphasis_paragraph():
-    """`Apache-2.0.` under a `## License` heading is the canonical case. Telling an
-    author to rejoin it to the paragraph before it is advice they cannot take."""
-    document = parse("t.md", "## License\n\nApache-2.0.\n")
-    fired = {f.rule_id for f in _engine().run(document)}
-    assert "ai-tells-structure.emphasis-paragraph-metric" not in fired
-
-
-def test_a_list_stem_is_not_an_emphasis_paragraph():
-    """THE TWO RULES MUST NOT CONTRADICT EACH OTHER.
-    `ste-sentences.complex-text-not-in-vertical-list` orders the author to turn a
-    series into a vertical list; every list needs a stem to say what it enumerates;
-    a stem is short by construction. Without this exclusion an author who obeys the
-    first rule is reported by the second, with no move that satisfies both.
-    Measured while rewriting this project's README against the ruleset: obeying the
-    list rule 15 times took this rule from 1 finding to 7, all of them stems."""
-    document = parse("t.md", "These flags filter the list:\n\n- one\n- two\n")
-    fired = {f.rule_id for f in _engine().run(document)}
-    assert "ai-tells-structure.emphasis-paragraph-metric" not in fired
-
-
-def test_a_short_paragraph_ending_in_a_colon_with_no_list_still_fires():
-    """The colon alone is not the exclusion. Both halves are required, or every
-    short paragraph an author happened to end that way escapes the rule."""
-    document = parse(
-        "t.md",
-        "A lead-in long enough to clear the bound sits here.\n\nHere is the thing:\n\nAnd prose continues after it, at length, with no list.\n",
-    )
+def test_a_long_paragraph_fires_prose_block_once_at_its_first_line():
+    words = " ".join(["word"] * 81)
+    document = parse("t.md", f"# Title\n\nShort lead.\n\n{words}.\n")
     findings = [
-        f
-        for f in _engine().run(document)
-        if f.rule_id == "ai-tells-structure.emphasis-paragraph-metric"
+        f for f in _engine().run(document) if f.rule_id == "prose-format.prose-block"
     ]
-    assert [f.line for f in findings] == [3]
-
-
-def test_a_genuine_emphasis_paragraph_still_fires():
-    """The exclusions above must not disarm the rule."""
-    lead = "A lead-in paragraph long enough to clear the bound sits above it here."
-    document = parse("t.md", f"{lead}\n\nThat is the point.\n")
-    findings = [
-        f
-        for f in _engine().run(document)
-        if f.rule_id == "ai-tells-structure.emphasis-paragraph-metric"
-    ]
-    assert len(findings) == 1
+    assert [f.line for f in findings] == [5]
 
 
 # --- a profile must not override its own tiers --------------------------------
@@ -929,7 +1020,7 @@ def test_a_profile_default_does_not_promote_its_own_advisory_rule():
     rule = next(
         r
         for r in engine.rules
-        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+        if r.qualified_id == "ai-tells-structure.tricolon-abuse-core"
     )
     assert rule.tier_for("normal") is Tier.ADVISORY
     assert engine.severity_for(rule) is Severity.SUGGESTION
@@ -944,7 +1035,7 @@ def test_an_authored_promotion_still_beats_the_advisory_demotion():
     rule = next(
         r
         for r in engine.rules
-        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+        if r.qualified_id == "ai-tells-structure.tricolon-abuse-core"
     )
     assert engine.severity_for(rule) is Severity.ERROR
 
@@ -953,7 +1044,7 @@ def test_an_authored_rule_override_beats_the_advisory_demotion():
     """The narrowest dial wins, and a rule id is never seeded from the profile."""
     engine = _engine(
         rules={
-            "ai-tells-structure.emphasis-paragraph-metric": RuleSettings(
+            "ai-tells-structure.tricolon-abuse-core": RuleSettings(
                 severity=Severity.ERROR
             )
         }
@@ -961,7 +1052,7 @@ def test_an_authored_rule_override_beats_the_advisory_demotion():
     rule = next(
         r
         for r in engine.rules
-        if r.qualified_id == "ai-tells-structure.emphasis-paragraph-metric"
+        if r.qualified_id == "ai-tells-structure.tricolon-abuse-core"
     )
     assert engine.severity_for(rule) is Severity.ERROR
 
@@ -1167,6 +1258,13 @@ def test_markup_metrics_ignore_code_blocks_and_inline_spans():
     markup = document.markup_text()
     assert BOLD_SPAN.findall(markup) == ["**bold**"]
     assert DASH_AS_ASIDE.findall(markup) == ["--"]
+
+
+def test_markup_metrics_mask_double_backtick_code_spans():
+    document = parse("a.md", "Use ``a` — b`` safely now.\n")
+    markup = document.markup_text()
+    assert BOLD_SPAN.findall(markup) == []
+    assert DASH_AS_ASIDE.findall(markup) == []
 
 
 def test_bold_spray_and_dash_density_report_their_measurement():

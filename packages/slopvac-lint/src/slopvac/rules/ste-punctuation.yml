@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 1.0
   normal: 1.5
-recommended_for: [reference, runbook, api-docs, readme, pr-description]
+recommended_for: [reference, consumer, change-comms]
 rules:
   - id: semicolon-used
     name: Do not use a semicolon
@@ -175,103 +175,12 @@ rules:
       source: ASD-STE100
       ste_ref: '9:8.4'
       note: >-
-        This is a counting rule expressed as a length rule. The threshold shown is the
+        The colon rule changes the sentence UNIT: the lead-in is measured against its own
         procedural cap; a runtime must select twenty or twenty-five from the text type of the
         lead-in, exactly as the two sentence-length rules do. Each list item is then counted
         as its own sentence against the same cap. metrics.md gives the algorithm and states
-        why this sentence unit differs from the paragraph-sentence unit.
+        why this sentence unit differs from the paragraph-sentence unit. The three counting
+        definitions that sit beside it in the specification (8.5 parentheticals, 8.6
+        elements, 8.7 hyphenated groups) are tokenizer contracts, not review questions; they
+        live in docs/metrics.md phases 0-8 rather than in this catalogue.
     fix: Shorten the lead-in, or move detail into the list items.
-
-  - id: parenthetical-counts-as-one-word
-    name: Count a parenthetical as one word
-    kind: judgement
-    severity: 'off'
-    message: Parenthesized text counts as one word in the containing sentence.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    judgement_question: >-
-      This is a counting definition, not a prohibition. Does the word counter collapse each
-      parenthetical to one token, and also count the parenthetical's own words as a separate
-      sentence?
-    exceptions: []
-    allowlist: []
-    examples:
-      - bad: Restart the worker (the pod restarts in about ten seconds) after each config change.
-        good: Restart the worker (the pod restarts in about ten seconds) after each config change.
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:8.5'
-      note: >-
-        Severity is off and the example pair is identical on purpose: this rule produces no
-        finding, it constrains the tokenizer. It appears in the ruleset so the counting
-        contract is traceable to a rule number rather than buried in code. The specification
-        also treats the parenthetical as its own sentence for its own word count, which
-        metrics.md implements.
-    fix: No rewrite. Implement the counting rule in the tokenizer.
-
-  - id: hyphenated-word-counts-as-one-word
-    name: Count a hyphenated word as one word
-    kind: judgement
-    severity: 'off'
-    message: A hyphenated word counts as one word.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    judgement_question: >-
-      Does the word counter treat a hyphenated group as a single token, so that a
-      three-segment compound counts once and not three times?
-    exceptions: []
-    allowlist: []
-    examples:
-      - bad: The read-only replica serves the dashboard.
-        good: The read-only replica serves the dashboard.
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:8.7'
-      note: >-
-        Also a tokenizer constraint with no finding. Combined with the hyphenation rule it
-        creates an incentive the implementer should know about: hyphenating a compound reduces
-        the counted length, so a word cap can be satisfied by punctuation alone. That is
-        permitted by the specification and is why the three-word hyphen-group cap exists as a
-        separate enforced rule.
-    fix: No rewrite. Implement the counting rule in the tokenizer.
-
-  - id: elements-counting-as-one-word
-    name: Count numbers, units, abbreviations, quotes, and names as one word
-    kind: judgement
-    severity: 'off'
-    message: Each of these elements counts as one word.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    judgement_question: >-
-      Does the word counter collapse each of these to one token: a number, a number with its
-      unit, an abbreviation, an alphanumeric identifier, a quoted span, a title or heading or
-      label text, and a proper name of a person, group, organization, or place? And does it
-      skip step and paragraph numbers entirely?
-    exceptions: []
-    allowlist: []
-    examples:
-      - bad: Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
-        good: Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:8.6'
-      note: >-
-        The single most important entry in this file, and the reason metrics.md exists. Under
-        this rule the example sentence counts eleven words, not fifteen. A whitespace
-        tokenizer over-counts and fires the twenty-word cap on compliant text. The
-        counted-as-one list changed between issues (Issue 9 binds a number to its unit and
-        adds proper names), so an implementation must target one issue; ours targets Issue 9.
-        The carve-out for step and paragraph numbers is the part implementers miss most.
-    fix: No rewrite. Implement the counting rules in the tokenizer.

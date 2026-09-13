@@ -42,8 +42,6 @@ verb is flagged and "close to the limit" is not. That is why a blocklist of any
 size costs at most four generated rules.
 """
 
-from __future__ import annotations
-
 import hashlib
 import json
 import tomllib
@@ -52,6 +50,7 @@ from enum import Enum
 from pathlib import Path
 
 import yaml
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 
 class Pos(str, Enum):
@@ -98,6 +97,17 @@ class VocabularyError(Exception):
     """
 
 
+
+
+class _Record(BaseModel):
+    """The on-disk entry contract; unknown keys must not disappear silently."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    word: str | None = None
+    pos: str | None = None
+    reason: str | None = None
+    replacement: str | None = None
 @dataclass(frozen=True)
 class Entry:
     """One refused word.
@@ -228,47 +238,54 @@ def _read_records(path: Path) -> list[dict]:
 
 
 def load_blocklist(path: Path | None) -> Vocabulary:
-    """Load a project blocklist, or return an empty one when none is configured.
-
-    `None` returns empty rather than raising: no blocklist is the default state,
-    not an error. A path that is set and unloadable IS an error -- see
-    `VocabularyError`.
-    """
     if path is None:
         return Vocabulary()
 
     entries: dict[tuple[str, Pos], Entry] = {}
+    locations: dict[tuple[str, Pos], int] = {}
     for index, record in enumerate(_read_records(path)):
+        number = index + 1
         if not isinstance(record, dict):
-            raise VocabularyError(f"{path}: entry {index + 1} is not a table")
+            raise VocabularyError(f"{path}: entry {number} is not a table")
 
-        word = str(record.get("word", "")).strip().lower()
+        try:
+            parsed = _Record.model_validate(record)
+        except ValidationError as exc:
+            raise VocabularyError(f"{path}: entry {number} is invalid: {exc}") from exc
+
+        word = (parsed.word or "").strip().lower()
         if not word:
-            raise VocabularyError(f"{path}: entry {index + 1} has no `word`")
+            raise VocabularyError(f"{path}: entry {number} has no `word`")
 
-        pos = normalize_pos(str(record.get("pos", "")))
+        pos = normalize_pos(parsed.pos or "")
         if pos is Pos.UNKNOWN:
             raise VocabularyError(
                 f"{path}: entry '{word}' has an unrecognized `pos` "
-                f"{record.get('pos')!r}; use noun, verb, adjective, adverb, "
+                f"{parsed.pos!r}; use noun, verb, adjective, adverb, "
                 f"preposition, conjunction, pronoun, or article"
             )
 
-        reason = str(record.get("reason", "")).strip()
+        reason = (parsed.reason or "").strip()
         if not reason:
-            # See `Entry.reason`. The old dictionary's 1,275 reasonless refusals
-            # are the argument for making this fatal rather than a warning.
             raise VocabularyError(
                 f"{path}: entry '{word}' ({pos.value}) has no `reason`. Every "
                 f"refused word needs one, or nobody can review or remove it later."
             )
 
-        replacement = record.get("replacement")
-        entries[(word, pos)] = Entry(
+        key = (word, pos)
+        if key in entries:
+            raise VocabularyError(
+                f"{path}: duplicate entry '{word}' ({pos.value}) at entries "
+                f"{locations[key]} and {number}; each word/part-of-speech pair "
+                "must be unique"
+            )
+        locations[key] = number
+        entries[key] = Entry(
             word=word,
             pos=pos,
             reason=reason,
-            replacement=str(replacement) if replacement else None,
+            replacement=parsed.replacement.strip() if parsed.replacement else None,
             source=str(path),
         )
     return Vocabulary(entries)
+

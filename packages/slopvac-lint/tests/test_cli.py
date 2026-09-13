@@ -281,6 +281,39 @@ def test_cli_profile_overrides_the_config_file(runner, tmp_path):
     assert json.loads(result.output)["documents"][0]["profile"] == "strict"
 
 
+def test_cli_flags_beat_matching_path_override(runner, tmp_path):
+    """A flag typed on the command line is the narrowest dial there is. Before the
+    fix, CLI values were written into the top-level config and a matching
+    `[[overrides]]` block then replaced them, so `--min-score 12` resolved to 99."""
+    _write(
+        tmp_path,
+        "slopvac.toml",
+        'profile = "relaxed"\n\n[[overrides]]\nfiles = ["*.md"]\n'
+        'profile = "strict"\n[overrides.thresholds]\nmin_score = 99\n',
+    )
+    path = _write(tmp_path, "a.md", CLEAN)
+    flags = [
+        "--no-vale",
+        "--profile",
+        "relaxed",
+        "--min-score",
+        "12",
+        "--max-per-100-words",
+        "77",
+        "--locale",
+        "en-GB",
+    ]
+    result = runner.invoke(main, ["lint", str(path), *flags, "--format", "json"])
+    assert json.loads(result.output)["documents"][0]["profile"] == "relaxed"
+
+    explained = runner.invoke(main, ["lint", str(path), *flags, "--explain-config"])
+    assert explained.exit_code == 0, explained.output
+    assert "profile: relaxed" in explained.output
+    assert "'min_score': 12.0" in explained.output
+    assert "'max_total_per_100_words': 77.0" in explained.output
+    assert "locale: overrides[1] (**)" in explained.output
+
+
 def test_glob_override_applies_per_path(runner, tmp_path):
     _write(
         tmp_path,
@@ -530,6 +563,66 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
 
     assert "--no-vale" in unchecked
     assert "did NOT run" in unchecked
+
+
+@pytest.mark.parametrize(
+    "config_text",
+    [
+        "[vale]\nenabled = false\n",
+        '[[overrides]]\nfiles = ["*.md"]\n[overrides.vale]\nenabled = false\n',
+    ],
+    ids=["top-level", "path-override"],
+)
+def test_config_disabled_vale_reports_skipped_rules_as_unchecked(
+    runner, tmp_path, config_text
+):
+    """Disabling Vale in config skips most of the ruleset. Before the fix the run
+    exited 0 with `passed = true`; a path-scoped override was not read at all."""
+    path = _write(tmp_path, "doc.md", "We leverage the seamless approach in order to win.\n")
+    config = _write(tmp_path, "slopvac.toml", config_text)
+
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--config", str(config), "--format", "json"],
+    )
+    payload = json.loads(result.output)
+    document = payload["documents"][0]
+    assert result.exit_code == EXIT_ERROR
+    assert document["passed"] is False
+    unchecked = " ".join(document["unchecked"])
+    assert "did NOT run" in unchecked
+    assert "enabled = false" in unchecked
+
+
+def test_a_path_scoped_vale_binary_is_the_one_that_compiles_and_runs(runner, tmp_path):
+    """`_compile_for` used the top-level binary while `run_lint` ran the resolved
+    one, so an `[overrides.vale] binary` compiled one Vale and ran another. The
+    top-level binary here does not exist: before the fix the compile step failed
+    on it and the run exited 2 with a "not compiled" note; after it, the shim
+    (which records its argv) both validates the tree and lints the file."""
+    log = tmp_path / "calls.log"
+    shim = tmp_path / "other-vale"
+    real = shutil.which("vale")
+    if real is None:
+        pytest.skip("vale is not installed")
+    shim.write_text(f'#!/bin/sh\necho "$@" >> "{log}"\nexec "{real}" "$@"\n')
+    shim.chmod(0o755)
+    path = _write(tmp_path, "doc.md", "We leverage the seamless approach.\n")
+    config = _write(
+        tmp_path,
+        "slopvac.toml",
+        f'[vale]\nbinary = "{tmp_path / "missing-vale"}"\n\n'
+        f'[[overrides]]\nfiles = ["*.md"]\n[overrides.vale]\nbinary = "{shim}"\n',
+    )
+    result = runner.invoke(
+        main, ["lint", str(path), "--config", str(config), "--format", "json"]
+    )
+    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS), result.output
+    document = json.loads(result.output)["documents"][0]
+    assert document["unchecked"] == []
+    calls = log.read_text()
+    assert "ls-config" in calls, "the shim did not validate the compiled tree"
+    assert "--output=JSON" in calls, "the shim did not lint the file"
 
 
 def test_unimplemented_metrics_are_reported_not_skipped(tmp_path):

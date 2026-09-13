@@ -5,7 +5,7 @@ weight: 0.8
 max_per_100_words:
   strict: 1.0
   normal: 2.0
-recommended_for: [reference, runbook, api-docs, readme, pr-description]
+recommended_for: [reference, consumer, change-comms]
 rules:
   - id: word-swap-insufficient
     name: Rewrite the sentence when a word swap fails
@@ -250,8 +250,8 @@ rules:
     scope: sentence
     text_type: any
     tiers:
-      strict: enforced
-      normal: advisory
+      strict: advisory
+      normal: excluded
       relaxed: excluded
     pattern: '\b(?:he|she|him|her|his|hers)\b|,\s+(?:they|them|it)\s+(?:can|will|may|might|must|becomes?|is|are)\b'
     ignore_case: true
@@ -284,9 +284,9 @@ rules:
     scope: sentence
     text_type: any
     tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
+      strict: advisory
+      normal: excluded
+      relaxed: excluded
     pattern: '(?:^|[.!?]\s+|\(\s*)(?:This|These|That|Those)\s+(?:can|could|will|would|may|might|is|are|was|were|causes?|means?|makes?|prevents?|breaks?|fails?|happens?|occurs?)\b'
     ignore_case: true
     exceptions:

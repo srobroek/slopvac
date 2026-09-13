@@ -2,7 +2,7 @@ id: prose-discipline
 title: Prose discipline
 description: Referential consistency, sentence load, and constructions that hide the verb or the claim.
 weight: 1.5
-recommended_for: [readme, guide, reference, api-docs, runbook, adr]
+recommended_for: [consumer, reference, internal]
 max_per_100_words:
   strict: 0.4
   normal: 0.8
@@ -60,40 +60,6 @@ rules:
     fix: >-
       Choose the narrowest accurate term, replace every other, and define the
       distinction at first use only when two subjects genuinely differ.
-
-  - id: term-rotation-signal
-    name: Competing actor terms appear together
-    kind: pattern
-    severity: suggestion
-    message: >-
-      "{match}" appears alongside another actor term in this document. Confirm
-      they name different subjects.
-    scope: prose
-    tiers:
-      strict: advisory
-      normal: advisory
-      relaxed: excluded
-    # Advisory only, and deliberately so. This fires on the presence of a term,
-    # not on a proven defect, so it is a prompt to check rather than a finding to
-    # fix. Its value is pointing the reviewer at the judgement rule above.
-    pattern: '(?<![\w-])(?:end[- ]users?|customers?|consumers?|requesters?|subscribers?)(?![\w-])'
-    ignore_case: true
-    exceptions:
-      - defined-distinction
-      - quotation
-      - api-name
-      - glossary-entry
-    examples:
-      - bad: The customer receives a token.
-        good: The user receives a token.
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.11'
-      note: >-
-        Paired with competing-actor-terms, which carries the judgement. This
-        half only surfaces the candidate terms; it cannot know which is correct
-        for the document.
-    fix: Use the document's one chosen actor term.
 
   # --- Frozen verbs ---------------------------------------------------------
   # Overlaps the passive-voice rule at the surface but is a different defect: the

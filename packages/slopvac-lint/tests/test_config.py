@@ -98,6 +98,25 @@ def test_the_merge_is_per_field_not_per_block():
 # --- duplicate scopes ---------------------------------------------------------
 
 
+def test_partial_threshold_and_locale_overrides_preserve_other_fields():
+    config = _config(
+        thresholds={"max_errors": 5},
+        locale={"default": "en-GB"},
+        overrides=[
+            {
+                "files": ["x.md"],
+                "thresholds": {"min_score": 12},
+                "locale": {"allow": ["othername"]},
+            }
+        ],
+    )
+    resolved = _resolve(config, "x.md")
+    assert resolved.thresholds.max_errors == 5
+    assert resolved.thresholds.min_score == 12
+    assert resolved.locale.default == "en-GB"
+    assert resolved.locale.allow == ["othername"]
+
+
 def test_two_blocks_with_the_same_scope_are_refused():
     """TOML cannot catch this, because `[[overrides]]` is an array of tables.
 
