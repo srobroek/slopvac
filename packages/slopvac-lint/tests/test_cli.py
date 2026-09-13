@@ -334,6 +334,107 @@ def test_glob_override_applies_per_path(runner, tmp_path):
     assert profiles["b.md"] == "strict"
 
 
+def _profiles(result):
+    payload = json.loads(result.output)
+    return {
+        Path(document["path"]).name: document["profile"]
+        for document in payload["documents"]
+    }
+
+
+def test_each_target_uses_its_nearest_config_in_any_order(runner, tmp_path):
+    left = tmp_path / "left"
+    right = tmp_path / "right"
+    left.mkdir()
+    right.mkdir()
+    _write(left, "slopvac.toml", 'profile = "strict"\n[thresholds]\nmin_score = 99\n')
+    _write(right, "slopvac.toml", 'profile = "relaxed"\n[thresholds]\nmin_score = 1\n')
+    left_doc = _write(left, "left.md", CLEAN)
+    right_doc = _write(right, "right.md", CLEAN)
+
+    for order in ((left_doc, right_doc), (right_doc, left_doc)):
+        result = runner.invoke(
+            main,
+            ["lint", *(str(path) for path in order), "--no-vale", "--format", "json"],
+        )
+        assert result.exit_code in (EXIT_OK, EXIT_FINDINGS, EXIT_ERROR), result.output
+        assert _profiles(result) == {"left.md": "strict", "right.md": "relaxed"}
+
+        explained = runner.invoke(
+            main,
+            ["lint", *(str(path) for path in order), "--explain-config"],
+        )
+        assert explained.exit_code == EXIT_OK, explained.output
+        lines = explained.output.splitlines()
+        for path, minimum in ((left_doc, "99.0"), (right_doc, "1.0")):
+            start = lines.index(str(path))
+            section = "\n".join(lines[start : start + 5])
+            assert f"'min_score': {minimum}" in section
+
+
+def test_explicit_config_applies_to_every_target(runner, tmp_path):
+    left = tmp_path / "left"
+    right = tmp_path / "right"
+    left.mkdir()
+    right.mkdir()
+    explicit = _write(left, "slopvac.toml", 'profile = "strict"\n')
+    _write(right, "slopvac.toml", 'profile = "relaxed"\n')
+    left_doc = _write(left, "left.md", CLEAN)
+    right_doc = _write(right, "right.md", CLEAN)
+
+    result = runner.invoke(
+        main,
+        [
+            "lint",
+            str(left_doc),
+            str(right_doc),
+            "--config",
+            str(explicit),
+            "--no-vale",
+            "--format",
+            "json",
+        ],
+    )
+    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS, EXIT_ERROR), result.output
+    assert _profiles(result) == {"left.md": "strict", "right.md": "strict"}
+
+
+def test_directory_target_discovers_configs_per_file(runner, tmp_path):
+    nested = tmp_path / "nested"
+    nested.mkdir()
+    _write(tmp_path, "slopvac.toml", 'profile = "relaxed"\n')
+    _write(nested, "slopvac.toml", 'profile = "strict"\n')
+    root_doc = _write(tmp_path, "root.md", CLEAN)
+    nested_doc = _write(nested, "nested.md", CLEAN)
+
+    result = runner.invoke(
+        main,
+        ["lint", str(tmp_path), "--no-vale", "--format", "json"],
+    )
+    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS, EXIT_ERROR), result.output
+    assert _profiles(result) == {"root.md": "relaxed", "nested.md": "strict"}
+    assert root_doc.exists() and nested_doc.exists()
+
+
+def test_explain_config_reports_each_target_source(runner, tmp_path):
+    left = tmp_path / "left"
+    right = tmp_path / "right"
+    left.mkdir()
+    right.mkdir()
+    left_config = _write(left, "slopvac.toml", 'profile = "strict"\n')
+    right_config = _write(right, "slopvac.toml", 'profile = "relaxed"\n')
+    left_doc = _write(left, "left.md", CLEAN)
+    right_doc = _write(right, "right.md", CLEAN)
+
+    result = runner.invoke(
+        main,
+        ["lint", str(left_doc), str(right_doc), "--explain-config"],
+    )
+    assert result.exit_code == EXIT_OK, result.output
+    assert str(left_config) in result.output
+    assert str(right_config) in result.output
+
+
 def test_excluded_path_is_not_linted(runner, tmp_path):
     """CHANGELOG.md is excluded by default because release-please generates it."""
     path = _write(tmp_path, "CHANGELOG.md", SLOP)

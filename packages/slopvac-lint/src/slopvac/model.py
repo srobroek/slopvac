@@ -237,6 +237,11 @@ class Rule(BaseModel):
             raise ValueError(f"kind={self.kind.value} requires `{field}`")
         if self.kind is RuleKind.METRIC and self.threshold is None:
             raise ValueError("kind=metric requires `threshold`")
+        if self.kind is RuleKind.JUDGEMENT and self.exceptions:
+            raise ValueError(
+                f"{self.id}: kind=judgement cannot declare `exceptions`; "
+                "judgement rules never emit findings to suppress"
+            )
         if self.kind is RuleKind.JUDGEMENT and not self.judgement_question:
             raise ValueError("kind=judgement requires `judgement_question`")
         if self.kind is RuleKind.JUDGEMENT and self.severity is not Severity.OFF:

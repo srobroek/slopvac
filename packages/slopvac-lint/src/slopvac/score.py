@@ -47,6 +47,9 @@ SEVERITY_WEIGHT = {
 # document is still scored on absolute counts.
 MIN_WORDS_FOR_DENSITY = 60
 
+# The rule whose findings `Thresholds.max_unicode_dashes` counts.
+UNICODE_DASH_RULE = "prose-format.no-unicode-dash"
+
 # The density at which a category scores 0. Above the budget the score decays
 # linearly to this point rather than cliff-edging, so a document that is slightly
 # over reads differently from one that is far over.
@@ -241,6 +244,15 @@ def _failure_reasons(
         reasons.append(f"{errors} error(s), limit {thresholds.max_errors}")
     if thresholds.max_warnings is not None and warnings > thresholds.max_warnings:
         reasons.append(f"{warnings} warning(s), limit {thresholds.max_warnings}")
+    # Counted over every finding, not the gated ones, and at any severity: the
+    # dash gate is independent of the profile's dial for the rule and of
+    # `max_errors`, which is the point of having it.
+    if thresholds.max_unicode_dashes is not None:
+        dashes = sum(f.rule_id == UNICODE_DASH_RULE for f in findings)
+        if dashes > thresholds.max_unicode_dashes:
+            reasons.append(
+                f"{dashes} Unicode dash(es), limit {thresholds.max_unicode_dashes}"
+            )
 
     density = _blocking_density(findings, words, active_categories)
     if (

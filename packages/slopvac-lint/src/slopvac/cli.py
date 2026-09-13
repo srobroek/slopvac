@@ -262,15 +262,17 @@ def _run_lint_or_exit(run, console: Console, *, no_vale: bool):
 
 def _print_resolved_config(run, console: Console) -> None:
     for path in run.paths:
-        resolved = resolve_for(run.config, path)
+        config = run.configs[path]
+        resolved = resolve_for(config, path)
         console.print(f"[bold]{path}[/]")
+        console.print(f"  config: {config.source or '(defaults)'}")
         console.print(f"  profile: {resolved.profile.value}")
         if resolved.applied_overrides:
             console.print(f"  overrides: {', '.join(resolved.applied_overrides)}")
         console.print(
             f"  thresholds: {resolved.thresholds.model_dump(exclude_none=True)}"
         )
-        blocklist = resolve_blocklist_path(resolved.vocabulary, run.config.root)
+        blocklist = resolve_blocklist_path(resolved.vocabulary, config.root)
         if blocklist is not None:
             console.print(f"  blocklist: {blocklist}")
         off = sorted(

@@ -26,6 +26,7 @@ from slopvac.compile_vale import (
     PUNCTUATION_COMPANION,
     STE_WORD_TOKEN,
     _occurrence_bound,
+    _split_substitutions,
     compile_ruleset,
     vocabulary_sequence_rules,
 )
@@ -99,6 +100,49 @@ def _lint(config_path: Path, text: str, tmp_path: Path, name: str = "probe.md") 
 
 def _checks(config_path: Path, text: str, tmp_path: Path) -> set[str]:
     return {alert["Check"] for alert in _lint(config_path, text, tmp_path)}
+@needs_vale
+def test_substitution_messages_match_native_engine(compiled, ruleset, tmp_path):
+    """Vale and Engine must render the same replacement and matched text.
+
+    Punctuation-ending keys use the documented existence companion and therefore
+    cannot carry a replacement; those findings are excluded from this comparison.
+    The native article rule is likewise outside this check because its regex
+    syntax is intentionally interpreted only by Vale.
+    """
+    from slopvac.analyze import parse
+    from slopvac.engine import Engine
+
+    checked = 0
+    for rule in ruleset.rules:
+        if rule.kind is not RuleKind.SUBSTITUTION or rule.qualified_id not in compiled.vale_rules:
+            continue
+        example = rule.examples[0].bad if rule.examples else ""
+        if not example:
+            continue
+        if not rule.substitutions or not _split_substitutions(rule.substitutions)[0]:
+            continue
+        document = tmp_path / f"{rule.qualified_id.replace('.', '-')}.md"
+        document.write_text(example + "\n", encoding="utf-8")
+        native = [
+            finding
+            for finding in Engine(ruleset.rules, resolve_for(Config(), document)).run(
+                parse(str(document), document.read_text(encoding="utf-8"))
+            )
+            if finding.rule_id == rule.qualified_id
+        ]
+        alerts = [
+            alert
+            for alert in _lint(compiled.config_path, example, tmp_path, document.name)
+            if compiled.aliases.get(alert["Check"], alert["Check"]) == rule.qualified_id
+        ]
+        if not native or not native[0].replacement or not alerts:
+            continue
+        if "a simpler word" in alerts[0]["Message"]:
+            continue
+        checked += 1
+        assert alerts[0]["Message"].strip() == native[0].message
+
+    assert checked >= 3, "the shipped substitution parity corpus did not run"
 
 
 # --- routing ------------------------------------------------------------------
@@ -237,9 +281,9 @@ def test_paragraph_scoped_lexical_rules_stay_native(compiled, ruleset, tmp_path)
     document.write_text(
         "- **Generated code is committed.** Not because we like it, but because it shows.\n"
         "\n"
-        "1. The parser is a library. It is not a compiler.\n"
+        "1. Testing is not a phase. It is a habit.\n"
         "\n"
-        "> The parser is a library. It is not a compiler.\n",
+        "> Documentation is not an afterthought. It is a feature.\n",
         encoding="utf-8",
     )
     from slopvac.analyze import parse
@@ -538,33 +582,43 @@ def test_word_count_rule_is_silent_on_a_short_sentence(compiled, tmp_path):
 
 
 @needs_vale
-def test_emoji_rules_reject_emoji_not_ascii(compiled, tmp_path):
+def test_emoji_rules_reject_emoji_not_ascii(compiled, ruleset, tmp_path):
+    """Both emoji rules must match the emoji itself, never the ASCII around it.
+    The heading rule is Vale-compiled; the list-marker rule is raw-scoped and so
+    runs natively (RAW_SCOPE_REASON), where the same regex sees the same line."""
     text = "# Scope\n\n# Examples\n\n# 🚀 Scope\n\n- Fine\n\n- 🚀 Fine\n"
     alerts = _lint(compiled.config_path, text, tmp_path)
-    emoji = [
-        alert for alert in alerts
-        if alert["Check"] in {
-            "prose-format.emoji-heading",
-            "ai-tells-formatting.emoji-list-markers",
-        }
+    heading = [alert for alert in alerts if alert["Check"] == "prose-format.emoji-heading"]
+    assert [alert["Match"] for alert in heading] == ["🚀"]
+    assert "ai-tells-formatting.emoji-list-markers" not in compiled.vale_rules
+
+    from slopvac.analyze import parse
+    from slopvac.engine import Engine
+
+    engine = Engine(ruleset.rules, resolve_for(Config(), tmp_path / "emoji.md"))
+    markers = [
+        finding
+        for finding in engine.run(parse("emoji.md", text))
+        if finding.rule_id == "ai-tells-formatting.emoji-list-markers"
     ]
-    assert sorted(alert["Check"] for alert in emoji) == [
-        "ai-tells-formatting.emoji-list-markers",
-        "prose-format.emoji-heading",
-    ]
-    assert all("🚀" in alert["Match"] for alert in emoji)
+    assert [finding.line for finding in markers] == [9]
+    assert all("🚀" in finding.matched_text for finding in markers)
 
 
 @needs_vale
 def test_unicode_translation_preserves_literal_escapes(ruleset, tmp_path, monkeypatch):
+    """`\\U0000002E` is a regex escape for `.`; `\\\\U0000002E` is the literal
+    text. The Go translation must keep them apart. Probed through a heading-scoped
+    rule because raw-scoped rules no longer compile to Vale."""
     rule = ruleset.by_id("prose-format.emoji-heading")
-    monkeypatch.setattr(rule, "scope", Scope.RAW)
-    monkeypatch.setattr(rule, "pattern", r"(?m)^a(?:\U0000002E|\\U0000002E)b$")
+    monkeypatch.setattr(rule, "pattern", r"^a(?:\U0000002E|\\U0000002E)b$")
     compiled = compile_ruleset(
         ruleset, resolve_for(Config(), Path("README.md")),
         outdir=tmp_path / "compiled", validate=False, force=True,
     )
-    alerts = _lint(compiled.config_path, "a.b\naXb\na\\U0000002Eb\n", tmp_path)
+    alerts = _lint(
+        compiled.config_path, "# a.b\n\n# aXb\n\n# a\\U0000002Eb\n", tmp_path
+    )
     assert sorted(
         alert["Match"] for alert in alerts if alert["Check"] == rule.qualified_id
     ) == ["a.b", r"a\U0000002Eb"]

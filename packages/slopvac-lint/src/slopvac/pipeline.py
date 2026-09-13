@@ -8,6 +8,7 @@ the part that actually lints.
 
 from __future__ import annotations
 
+import copy
 import fnmatch
 import tempfile
 import webbrowser
@@ -63,19 +64,28 @@ class PipelineError(Exception):
 
 @dataclass
 class RunContext:
-    """Loaded config, ruleset, and target paths for one `lint` invocation."""
+    """Loaded configs, rulesets, and target paths for one `lint` invocation."""
 
-    config: Config
+    configs: dict[Path, Config]
+    rulesets: dict[Path, RuleSet]
     ruleset: RuleSet
     paths: list[Path]
-    locale_note: str | None
+    locale_notes: dict[Path, str]
 
 
-def collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
-    """Expand directories, apply the exclude list, keep only lintable files."""
-    found: list[Path] = []
+def _relative_to_config(path: Path, config: Config) -> str:
     root = config.root or Path.cwd()
+    try:
+        return str(path.resolve().relative_to(root.resolve()))
+    except ValueError:
+        # Outside the config root -- match on the name alone rather than silently
+        # applying no overrides or exclusions.
+        return path.name
 
+
+def _expand_paths(targets: tuple[str, ...]) -> list[Path]:
+    """Expand target arguments without applying a config's exclusions."""
+    found: list[Path] = []
     for target in targets:
         path = Path(target)
         if path.is_dir():
@@ -96,17 +106,9 @@ def collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
                 raise click.ClickException(f"no such file or directory: {target}")
             found.extend(m for m in matches if m.is_file())
 
-    kept: list[Path] = []
-    for path in found:
-        try:
-            relative = str(path.resolve().relative_to(root.resolve()))
-        except ValueError:
-            relative = path.name
-        if config.is_excluded(relative):
-            continue
-        if not any(fnmatch.fnmatch(path.name, p) for p in LINTABLE):
-            continue
-        kept.append(path)
+    # Keep only supported documents before selecting a config. Config files are
+    # intentionally not lintable, even when the directory itself is a target.
+    kept = [path for path in found if any(fnmatch.fnmatch(path.name, p) for p in LINTABLE)]
 
     # Deduplicate while preserving order.
     seen: set[Path] = set()
@@ -118,6 +120,20 @@ def collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
         seen.add(resolved)
         unique.append(path)
     return unique
+
+
+def collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
+    """Expand targets and apply one config's exclude list.
+
+    `load_run_context` uses the per-file variant below; this helper remains useful
+    to callers that already have one config and keeps exclusion semantics in one
+    place.
+    """
+    return [
+        path
+        for path in _expand_paths(targets)
+        if not config.is_excluded(_relative_to_config(path, config))
+    ]
 
 
 def lint_one(
@@ -157,12 +173,9 @@ def lint_one(
         # being filtered are by definition the ones Vale took, so the partitioned
         # engine above does not hold them and could not validate a reason against
         # their exception lists.
-        # Vale ran once per vocabulary group with the FIRST file's settings, so a
-        # per-file override (`[[overrides]] files = [...]`) never reached its
-        # severities: `evals/REPORT.md` demoted docs-discipline to a suggestion and
-        # still reported it as a warning whenever another file shared the run.
-        # Each finding takes the level this file resolves for its rule, and a rule
-        # this file turns off drops out.
+        # Vale runs once per group of matching compile inputs, while each finding
+        # is re-resolved against this file's config. A path override therefore
+        # keeps its own severity and a rule it turns off drops out here.
         whole = Engine(ruleset.rules, resolved)
         merged: list[Finding] = []
         for finding in whole.drop_suppressed(
@@ -468,13 +481,43 @@ def load_run_context(
     max_per_100_words: float | None,
     locale_tag: str | None,
 ) -> RunContext:
-    """Discover config, apply CLI overrides, inject locale, and collect paths."""
-    first = Path(targets[0])
-    discovered = config_path or find_config(first if first.exists() else Path.cwd())
+    """Discover and apply the nearest config independently for every target."""
     try:
-        config = load_config(discovered, root=discovered.parent if discovered else None)
-    except ConfigError as exc:
-        raise PipelineError(f"[red]config error[/]: {exc}") from None
+        candidates = _expand_paths(targets)
+    except click.ClickException as exc:
+        raise PipelineError(f"[red]{exc.message}[/]") from None
+
+    # Discovery can visit the same config for every file in a tree. Load each
+    # source once, then copy it before adding the invocation-wide CLI layer.
+    loaded: dict[Path | None, Config] = {}
+    explicit = config_path.resolve() if config_path is not None else None
+
+    def load_discovered(discovered: Path | None) -> Config:
+        key = discovered.resolve() if discovered is not None else None
+        if key not in loaded:
+            try:
+                loaded[key] = load_config(key, root=key.parent if key else None)
+            except ConfigError as exc:
+                raise PipelineError(f"[red]config error[/]: {exc}") from None
+        return loaded[key]
+
+    # An empty directory still needs its nearest config loaded so malformed
+    # configuration is reported rather than silently treated as a clean run.
+    if not candidates:
+        starts = [Path(target) for target in targets]
+    else:
+        starts = candidates
+    base_by_path: dict[Path, Config] = {}
+    for path in starts:
+        discovered = explicit or find_config(path if path.exists() else Path.cwd())
+        base = load_discovered(discovered)
+        if path in candidates:
+            base_by_path[path] = base
+
+    try:
+        base_ruleset = load_ruleset(list(rules_dir) or None)
+    except RuleLoadError as exc:
+        raise PipelineError(f"[red]ruleset error[/]: {exc}") from None
 
     cli_categories: dict[str, CategorySettings] = {}
     cli_rules: dict[str, RuleSettings] = {}
@@ -483,105 +526,129 @@ def load_run_context(
             cli_rules[entry] = RuleSettings(severity=Severity.OFF)
         else:
             cli_categories[entry] = CategorySettings(severity=Severity.OFF)
-    if (
+
+    if only_categories:
+        keep = set(only_categories)
+        unknown = keep - set(base_ruleset.categories)
+        if unknown:
+            raise PipelineError(
+                f"[red]unknown category[/]: {', '.join(sorted(unknown))}. "
+                f"Known: {', '.join(sorted(base_ruleset.categories))}"
+            )
+        for name in base_ruleset.categories:
+            if name not in keep:
+                cli_categories[name] = CategorySettings(severity=Severity.OFF)
+
+    has_cli_override = bool(
         profile
         or min_score is not None
         or max_per_100_words is not None
         or locale_tag
         or cli_categories
         or cli_rules
-    ):
-        config.overrides.append(
-            Override(
-                files=["**"],
-                profile=Profile(profile) if profile else None,
-                thresholds=(
-                    ThresholdPatch(
-                        min_score=min_score,
-                        max_total_per_100_words=max_per_100_words,
-                    )
-                    if min_score is not None or max_per_100_words is not None
-                    else None
-                ),
-                locale=LocalePatch(default=locale_tag) if locale_tag else None,
-                categories=cli_categories,
-                rules=cli_rules,
+    )
+    cli_override = Override(
+        files=["**"],
+        profile=Profile(profile) if profile else None,
+        thresholds=(
+            ThresholdPatch(
+                min_score=min_score,
+                max_total_per_100_words=max_per_100_words,
             )
-        )
-
-    try:
-        ruleset = load_ruleset(list(rules_dir) or None)
-    except RuleLoadError as exc:
-        raise PipelineError(f"[red]ruleset error[/]: {exc}") from None
-
-    # The spelling rule is generated from the final CLI locale.
-    locale_note = inject_locale_rule(
-        ruleset, locale_tag or config.locale.default, config.locale.allow
+            if min_score is not None or max_per_100_words is not None
+            else None
+        ),
+        locale=LocalePatch(default=locale_tag) if locale_tag else None,
+        categories=cli_categories,
+        rules=cli_rules,
     )
 
-    # Before anything runs, and EXIT_ERROR rather than a warning: a project that
-    # believes it disabled a rule has to hear that it did not.
-    name_errors = validate_names(config, ruleset)
+    effective_by_source: dict[Path | None, Config] = {}
+    for source, base in loaded.items():
+        config = copy.deepcopy(base)
+        if has_cli_override:
+            config.overrides.append(copy.deepcopy(cli_override))
+        effective_by_source[source] = config
+
+    configs: dict[Path, Config] = {}
+    paths: list[Path] = []
+    for path in candidates:
+        base = base_by_path[path]
+        source = base.source.resolve() if base.source is not None else None
+        config = effective_by_source[source]
+        if config.is_excluded(_relative_to_config(path, config)):
+            continue
+        paths.append(path)
+        configs[path] = config
+
+    # The generated spelling rule is part of the ruleset, so keep one ruleset
+    # per final locale. All other rules are loaded once and deep-copied locally.
+    rulesets_by_locale: dict[tuple[str, tuple[str, ...]], tuple[RuleSet, str | None]] = {}
+    locale_notes: dict[Path, str] = {}
+    name_errors: list[str] = []
+
+    def ruleset_for(tag: str, allow: list[str] | None) -> tuple[RuleSet, str | None]:
+        key = (tag, tuple(allow or ()))
+        if key not in rulesets_by_locale:
+            local = copy.deepcopy(base_ruleset)
+            note = inject_locale_rule(local, tag, list(allow) if allow else None)
+            rulesets_by_locale[key] = (local, note)
+        return rulesets_by_locale[key]
+
+    # Validate every loaded config, including one belonging to an empty target.
+    for config in effective_by_source.values():
+        local, _ = ruleset_for(config.locale.default, config.locale.allow)
+        name_errors.extend(validate_names(config, local))
     if name_errors:
-        raise PipelineError(
-            [f"[red]config error[/] {message}" for message in name_errors]
-        )
+        raise PipelineError([f"[red]config error[/] {message}" for message in name_errors])
 
-    if only_categories:
-        keep = set(only_categories)
-        unknown = keep - set(ruleset.categories)
-        if unknown:
-            raise PipelineError(
-                f"[red]unknown category[/]: {', '.join(sorted(unknown))}. "
-                f"Known: {', '.join(sorted(ruleset.categories))}"
-            )
-        for name in list(ruleset.categories):
-            if name not in keep:
-                config.categories[name] = CategorySettings(severity=Severity.OFF)
+    rulesets: dict[Path, RuleSet] = {}
+    for path in paths:
+        config = configs[path]
+        resolved = resolve_for(config, path)
+        local, note = ruleset_for(resolved.locale.default, resolved.locale.allow)
+        rulesets[path] = local
+        if note is not None:
+            locale_notes[path] = note
 
-    try:
-        paths = collect_paths(targets, config)
-    except click.ClickException as exc:
-        raise PipelineError(f"[red]{exc.message}[/]") from None
-
+    canonical = next(iter(rulesets.values()), next(iter(rulesets_by_locale.values()), (base_ruleset, None))[0])
     return RunContext(
-        config=config, ruleset=ruleset, paths=paths, locale_note=locale_note
+        configs=configs,
+        rulesets=rulesets,
+        ruleset=canonical,
+        paths=paths,
+        locale_notes=locale_notes,
     )
 
 
 def group_inputs(
-    paths: list[Path], config: Config, ruleset: RuleSet
+    paths: list[Path], configs: dict[Path, Config], rulesets: dict[Path, RuleSet]
 ) -> tuple[dict[Path, Vocabulary], dict[str, list[Path]]]:
     """Load each path's blocklist and group paths that compile to the same tree.
 
-    ONE COMPILE PER DISTINCT COMPILE INPUT. `[[overrides]]` can point a subtree at
-    its own wordlist, and the Vale compile BAKES THE WORDLIST IN; it can also turn
-    a Vale rule on or off for that subtree, and a rule absent from the style tree
-    cannot be recovered afterwards. Keying the compile on the first file's
-    resolution would have silently applied the root wordlist -- and the root
-    rule set -- to every path. The key is therefore the wordlist fingerprint plus
-    the rule levels the file's resolved config compiles to; severity is still
-    re-resolved per file when findings come back.
-
-    Paths keep their input order within a group so the report reads the same
-    whether or not an override is in play.
+    ONE COMPILE PER DISTINCT COMPILE INPUT. The config, locale, vocabulary, Vale
+    settings, and compiled levels all belong to the individual path; the key
+    includes each so a file never inherits a neighbouring config's Vale tree.
     """
     vocabularies: dict[Path, Vocabulary] = {}
     groups: dict[str, list[Path]] = {}
     for path in paths:
+        config = configs[path]
+        ruleset = rulesets[path]
         resolved = resolve_for(config, path)
         blocklist_path = resolve_blocklist_path(resolved.vocabulary, config.root)
         vocabularies[path] = (
             load_blocklist(blocklist_path) if blocklist_path is not None else Vocabulary()
         )
         levels = compiled_levels(ruleset, resolved)
-        # The resolved Vale settings are part of the key: a path override that
-        # disables Vale for one tree must not ride along with files that run it.
+        # Locale changes the generated spelling rule's pattern, so it is a
+        # compile input even when the selected severity levels are identical.
         key = "|".join(
             (
                 vocabularies[path].fingerprint(),
                 repr(sorted(levels.items())),
                 repr(resolved.vale.model_dump()),
+                repr(resolved.locale.model_dump()),
             )
         )
         groups.setdefault(key, []).append(path)
@@ -595,20 +662,23 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
     # error like any other: the project asked for the gate by name, and linting on
     # with it silently empty would report every document clean.
     try:
-        vocabularies, groups = group_inputs(ctx.paths, ctx.config, ctx.ruleset)
+        vocabularies, groups = group_inputs(ctx.paths, ctx.configs, ctx.rulesets)
     except VocabularyError as exc:
         raise PipelineError(f"[red]blocklist error[/]: {exc}") from None
 
     scores: list[DocumentScore] = []
     for group in groups.values():
-        vocabulary = vocabularies[group[0]]
+        sample = group[0]
+        config = ctx.configs[sample]
+        ruleset = ctx.rulesets[sample]
+        vocabulary = vocabularies[sample]
         # Every file in the group compiles to the same tree and resolves to the
         # same Vale settings (`group_inputs`), so the first one stands for all.
-        vale_settings = resolve_for(ctx.config, group[0]).vale
+        vale_settings = resolve_for(config, sample).vale
         compiled, compile_notes = _compile_for(
-            group[0],
-            ctx.config,
-            ctx.ruleset,
+            sample,
+            config,
+            ruleset,
             vocabulary,
             validate=not no_vale and vale_settings.enabled,
         )
@@ -627,9 +697,7 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 )
             )
         else:
-            severities, categories = vale_levels(
-                compiled, ctx.ruleset, ctx.config, group[0]
-            )
+            severities, categories = vale_levels(compiled, ruleset, config, sample)
             vale_result = run_compiled_vale(
                 group, compiled, severities, categories, binary=vale_settings.binary
             )
@@ -643,21 +711,25 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
             owned = set(compiled.vale_rules) | set(compiled.aliases.values())
             native_only = {
                 rule.qualified_id
-                for rule in ctx.ruleset.rules
+                for rule in ruleset.rules
                 if rule.qualified_id not in owned
             }
 
-        scores.extend(
-            lint_one(p, ctx.config, ctx.ruleset, vale_result, run_notes, native_only)
-            for p in group
-        )
+        for path in group:
+            score = lint_one(
+                path,
+                ctx.configs[path],
+                ctx.rulesets[path],
+                vale_result,
+                run_notes,
+                native_only,
+            )
+            note = ctx.locale_notes.get(path)
+            if note is not None:
+                score.unchecked.append(note)
+            scores.append(score)
 
     # Back into the order the caller asked for, since the groups reordered them.
     order = {str(path): index for index, path in enumerate(ctx.paths)}
     scores.sort(key=lambda score: order.get(score.path, 0))
-
-    if ctx.locale_note:
-        for score in scores:
-            score.unchecked.append(ctx.locale_note)
-
     return scores

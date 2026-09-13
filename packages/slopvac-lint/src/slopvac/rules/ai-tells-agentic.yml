@@ -88,12 +88,12 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s+(?:is|are|was|were|''s|''re)\s+(?:not\s+)?(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?;\n]{1,90}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?\n]{0,90}|\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?;\n]{1,90}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:is|are|was|were|''s|''re)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?\n]{0,90}|\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+\w+[^.!?;\n]{0,60}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:is|are|was|were|''s|''re)\s+\w+(?:\s+\w+)?,\s+not\b|\bnot\s+because\b[^.!?\n]{1,80}\bbut\s+because\b'
+    pattern: '\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s+(?:is|are|was|were|''s|''re)\s+(?:not\s+)?(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?;\n]{1,90}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+(?:(?:about|just|simply|merely|only|whether|because|how|what|where|when|why)\b|(?:a|an|the|another|some|your)\s+(?:[\w-]+\s+){0,2}?(?:requirement|silver\s+bullet|magic\s+bullet|panacea|magic|afterthought|luxury|nice-to-have|checkbox|check-box|formality|ritual|ceremony|badge|trophy|vanity\s+metric|buzzword|slogan|gimmick|trick|hack|workaround|band-?aid|crutch|stopgap|toy|demo|fad|trend|hype|marketing\s+\w+|sales\s+pitch|dogma|religion|cult|philosophy|mindset|journey|destination|sprint|marathon|race|competition|contest|popularity\s+contest|excuse|accident|coincidence|mistake|failure|matter\s+of|question\s+of|sign\s+of|one-off|big[- ]bang\s+\w+|rewrite|black\s+box|free\s+lunch|holy\s+grail|end\s+in\s+itself|means\s+to\s+an\s+end|replacement\s+for|substitute\s+for|goal|target|feature|bug|phase|dashboard|guarantee|theory|opinion|exercise|shortcut|place\s+for|time\s+for|way\s+to)\b|meant\b|intended\b|designed\b|there\b|here\b|to\b)[^.!?\n]{0,90}|\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+(?:(?:about|just|simply|merely|only|whether|because|how|what|where|when|why)\b|(?:a|an|the|another|some|your)\s+(?:[\w-]+\s+){0,2}?(?:requirement|silver\s+bullet|magic\s+bullet|panacea|magic|afterthought|luxury|nice-to-have|checkbox|check-box|formality|ritual|ceremony|badge|trophy|vanity\s+metric|buzzword|slogan|gimmick|trick|hack|workaround|band-?aid|crutch|stopgap|toy|demo|fad|trend|hype|marketing\s+\w+|sales\s+pitch|dogma|religion|cult|philosophy|mindset|journey|destination|sprint|marathon|race|competition|contest|popularity\s+contest|excuse|accident|coincidence|mistake|failure|matter\s+of|question\s+of|sign\s+of|one-off|big[- ]bang\s+\w+|rewrite|black\s+box|free\s+lunch|holy\s+grail|end\s+in\s+itself|means\s+to\s+an\s+end|replacement\s+for|substitute\s+for|goal|target|feature|bug|phase|dashboard|guarantee|theory|opinion|exercise|shortcut|place\s+for|time\s+for|way\s+to)\b|meant\b|intended\b|designed\b|there\b|here\b|to\b)[^.!?;\n]{0,90}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:is|are|was|were|''s|''re)\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\b[^.!?\n]{0,90}|\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:(?:is|are|was|were|does|do|did)\s+not|isn''t|aren''t|wasn''t|weren''t|doesn''t|don''t|didn''t|''s\s+not|''re\s+not)\s+\w+[^.!?;\n]{0,60}[.;:—–]\s+(?:it|this|that|they|these|those|the\s+[\w-]+(?:\s+[\w-]+)?|[A-Z][\w-]*)\s*(?:is|are|was|were|''s|''re)\s+\w+(?:\s+\w+)?,\s+not\b|\bnot\s+because\b[^.!?\n]{1,80}\bbut\s+because\b'
     ignore_case: true
     fix: Keep the sentence that says what the thing is; delete the one that says what it is not, unless the negated half states an independent fact a reader would otherwise assume.
     examples:
-      - bad: The parser is a library. It is not a compiler.
-        good: The parser reads the XML header and returns a typed struct.
+      - bad: Testing is not a phase. It is a habit.
+        good: Run the tests on every push.
       - bad: The monorepo is a coordination boundary. It is not a requirement to combine services into one deployment.
         good: The monorepo holds the four services; each still deploys on its own.
       - bad: This isn't about speed. It's about correctness.
@@ -104,10 +104,12 @@ rules:
         good: The project plugin replaces the user plugin of the same name.
       - bad: Not because it is fast, but because it is deterministic.
         good: It is deterministic, so repeated runs produce the same result.
-      - bad: The gate isn't a judge — it's a filter.
-        good: The gate removes the checked patterns and leaves the judgement to the reviewer.
+      - bad: Documentation is not an afterthought. It is a feature.
+        good: The docs build runs in the same pipeline as the code.
       - good: The limit is 100 requests per minute. It is not configurable.
         bad: The limit is a ceiling. It is not a target to aim for.
+      - good: The lock is a lease. It is not a mutex.
+        bad: Security is not a checkbox. It is a process.
     provenance:
       source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -118,18 +120,21 @@ rules:
         stops at a sentence boundary, so this rule runs at paragraph scope, where
         the native engine matches against the whole block (list items and quotes
         included; Vale's paragraph scope skips both, so the rule stays native). The
-        negated half must open with a definitional marker (an article, "about",
-        "just", "whether", ...): "It is not configurable" states a property and
-        does not fire; "It is not a requirement" restates the affirmed claim as a
-        strawman and does. No pattern separates that strawman from a genuine
-        definitional distinction of the same shape ("The lock is a lease. It is
-        not a mutex."), which is why this is a warning the reviewer settles and
-        carries the `factual-correction` exception for the sentence a writer
-        keeps. Measured in the 2026-09-12 audit: 0 hits in 21k parsed words of
-        pre-2022 human prose and 30k of gated prose, 1 in the existing model
-        corpus, 4 in 48 unguided model documents and 0 in 94 steered ones, all
-        five judged tells; 10 property-negation corrections did not fire; 15
-        constructed definitional distinctions of the exact shape did.
+        negated half must open with a rhetorical marker ("about", "just",
+        "whether", "because", ...) or with an article followed by one of the
+        rhetorical nouns the tell reaches for ("a requirement", "an afterthought",
+        "a checkbox", "a silver bullet", ...): "It is not configurable" states a
+        property and does not fire, and neither does a definitional distinction
+        over concrete nouns ("The lock is a lease. It is not a mutex."), which the
+        first version of this rule caught 15 times in 15 constructed legitimate
+        sentences. Measured in the 2026-09-12 audit and its follow-up: 0 hits in
+        21k parsed words of pre-2022 human prose and 30k of gated prose; every one
+        of the 5 model-corpus hits kept; 1 of 15 legitimate distinctions fires
+        (an acknowledgement that "is not a guarantee"), down from 15; 8 of 12
+        constructed tells fire, the 4 missed being the same-shape concrete-noun
+        forms that the reviewer's judgement remainder covers. Warning, never
+        error, with a `factual-correction` exception for the sentence a writer
+        keeps.
 
   - id: staccato-negative-parallel-frames
     name: Replace a staccato negative run with one sentence

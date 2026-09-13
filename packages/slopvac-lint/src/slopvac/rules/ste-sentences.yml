@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 1.0
   normal: 2.0
-recommended_for: [reference, consumer, change-comms]
+recommended_for: [reference]
 rules:
   - id: sentence-not-short-or-clear
     name: Write short and clear sentences
@@ -21,7 +21,6 @@ rules:
     judgement_question: >-
       Does this sentence give exactly one instruction (in a procedure) or carry exactly one
       topic (in description)? If it carries more, split it.
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -206,7 +205,6 @@ rules:
     judgement_question: >-
       Does the second sentence add a result, a contrast, or a next step to the first? If
       yes, does a connecting word or phrase make that relation explicit?
-    exceptions:
       - quotation
     allowlist: []
     examples:
