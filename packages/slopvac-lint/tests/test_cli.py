@@ -82,6 +82,28 @@ def test_clean_document_exits_0(runner, tmp_path):
     assert result.exit_code == EXIT_OK, result.output
 
 
+@pytest.mark.parametrize("output_format", ["json", "sarif", "github"])
+def test_an_all_excluded_run_still_emits_the_requested_format(runner, tmp_path, output_format):
+    """The GitHub action parses `--format json` from stdout. Before the fix a run
+    whose only target the config excluded printed a bare text line and exit 0,
+    which the action read as "the report could not be produced": every
+    release-please PR (its one prose change is CHANGELOG.md, excluded) failed."""
+    path = _write(tmp_path, "CHANGELOG.md", SLOP)
+    config = _write(tmp_path, "slopvac.toml", 'exclude = ["CHANGELOG.md"]\n')
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--config", str(config), "--format", output_format, "--no-vale"],
+    )
+    assert result.exit_code == EXIT_OK, result.output
+    stdout = result.stdout if hasattr(result, "stdout") else result.output
+    if output_format == "json":
+        summary = json.loads(stdout)["summary"]
+        assert summary["documents"] == 0 and summary["passed"] is True
+    elif output_format == "sarif":
+        assert json.loads(stdout)["runs"][0]["results"] == []
+    else:
+        assert "::" in stdout or stdout.strip() != "no lintable files matched"
+
 def test_bare_path_is_treated_as_lint(runner, tmp_path):
     """`slopvac README.md` has to work. Without the default-group shim click
     reports the filename as an unknown command and exits 2, which every caller
