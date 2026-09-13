@@ -164,34 +164,48 @@ jobs:
           import sys
 
           outcome, report_path, base_sha = sys.argv[1:]
-          # The contract: exactly the prose files this PR changed, whatever they
-          # are. On a focused fixture PR that is one file; on a PR that also edits
-          # a README, the README is part of the set; on a code-only PR the set is
-          # empty and the action reports "no prose files changed" with no report.
-          expected = sorted(
+          if outcome != "success":
+              print(f"expected the changed-files action to succeed, observed: outcome={outcome}")
+              raise SystemExit(1)
+
+          # The contract: the action lints exactly the files the CLI would lint
+          # when handed this PR's changed prose paths. The CLI applies the
+          # repository's slopvac.toml, so an excluded file (CHANGELOG.md on a
+          # release PR) is in the git diff and in neither set; a code-only PR
+          # has an empty diff and no report at all.
+          changed = sorted(
               subprocess.check_output(
                   ["git", "diff", "--name-only", "--diff-filter=AM", f"{base_sha}...HEAD", "--",
                    "*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html"],
                   text=True,
               ).splitlines()
           ) if base_sha else [".github/action-fixtures/slop-laden.md"]
-          if outcome != "success":
-              print(f"expected the changed-files action to succeed, observed: outcome={outcome}")
-              raise SystemExit(1)
-          if not expected:
+          if not changed:
               if report_path and os.path.exists(report_path):
                   print(f"expected no report on a PR with no prose changes, observed: {report_path}")
                   raise SystemExit(1)
               print("no prose changed in this PR; the action reported that and produced no report")
               raise SystemExit(0)
+
+          # Exit 1 (findings) and 2 (--no-vale marks the run incomplete) both still
+          # write the JSON report; only the document list is read here.
+          completed = subprocess.run(
+              ["uvx", "--no-cache", "--from", "./packages/slopvac-lint", "slopvac", "lint", *changed,
+               "--format", "json", "--no-vale"],
+              text=True,
+              capture_output=True,
+          )
+          reference = json.loads(completed.stdout)
+          expected = sorted(document["path"] for document in reference["documents"])
           with open(report_path) as handle:
               report = json.load(handle)
           observed_paths = sorted(document["path"] for document in report["documents"])
-          observed = f"outcome={outcome} documents={observed_paths} expected={expected}"
+          observed = f"outcome={outcome} documents={observed_paths} expected={expected} changed={changed}"
           if observed_paths != expected:
-              print(f"expected exactly the PR's changed prose files, observed: {observed}")
+              print(f"expected exactly the lintable changed prose files, observed: {observed}")
               raise SystemExit(1)
           if ".github/action-fixtures/slop-laden.md" in expected and report["summary"]["findings"] == 0:
               print(f"expected findings on the slop-laden fixture, observed: {observed}")
               raise SystemExit(1)
+          print(f"changed-files contract held: {observed}")
           PY
