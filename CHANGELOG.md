@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.1](https://github.com/srobroek/slopvac/compare/v2.3.0...v2.3.1) (2026-09-13)
+
+
+### Bug Fixes
+
+* **action:** move Vale and composite logic to Python ([#64](https://github.com/srobroek/slopvac/issues/64)) ([948329f](https://github.com/srobroek/slopvac/commit/948329f9a475a6a17eb82825fc031a02ef3ff962))
+
+
+### Refactors
+
+* **agnix:** replace shell checks with Python ([#65](https://github.com/srobroek/slopvac/issues/65)) ([438db46](https://github.com/srobroek/slopvac/commit/438db46f522ac3917625c91ce08798fecf69482e))
+
+
+### Documentation
+
+* **audit:** correct the judgement exceptions count; pin the narrowed rule's probe matrix ([#66](https://github.com/srobroek/slopvac/issues/66)) ([eac6833](https://github.com/srobroek/slopvac/commit/eac6833259dc27adc2920022bbc387e0f2c096b8))
+
 ## [2.3.0](https://github.com/srobroek/slopvac/compare/v2.2.0...v2.3.0) (2026-09-13)
 
 
