@@ -2,7 +2,7 @@ id: orwell
 title: Orwell's rules, modernized
 description: Objective restatements of the six rules from "Politics and the English Language" (1946), plus extensions the essay warrants.
 weight: 1.5
-recommended_for: [readme, guide, essay, adr]
+recommended_for: [consumer, internal, informal]
 rules:
   - id: stale-figure
     name: Cut the stale figure
@@ -115,16 +115,32 @@ rules:
       - cutting-edge
       - state-of-the-art
     exceptions: [quantified, defined-term-of-art, quotation, identifier]
+    allowlist:
+      - robust preprocessor
+      - robust and reliable
+      - more robust
+      - comprehensive test suite
+      - comprehensive feature set
+      - powerful enough
     examples:
       - bad: A robust parser with comprehensive coverage.
         good: The parser survives 10^6 malformed inputs; coverage is 94%.
+      - bad: A seamless, powerful upgrade path.
+        good: The upgrade runs the converter once and keeps the old file as a backup.
     provenance:
       source: Orwell 1946
       orwell_ref: empty-evaluative-word
       note: >-
         EXTENSION. Warranted by the meaningless-words section: these words do not
         point to a discoverable object, and their negation reads as a difference
-        of opinion rather than a disagreement about fact.
+        of opinion rather than a disagreement about fact. The allowlist holds the
+        phrases the 2026-09-12 audit found in pre-2022 human prose where the noun
+        supplies the evidence ("comprehensive test suite", "a more robust
+        preprocessor"): all five human hits were of that shape, against eight
+        bare-adjective hits in model prose. prose-inflation.slop-lexicon shares
+        `robust`, `powerful`, and `comprehensive`; that duplicate is deliberate,
+        because the fixes differ (Orwell asks for the fact, the lexicon rule for
+        deletion).
     fix: Delete the adjective and state the fact that motivated it.
 
   - id: concrete-floor

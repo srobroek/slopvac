@@ -251,6 +251,37 @@ class ValeSettings(BaseModel):
     styles: list[str] | None = None
 
 
+class ThresholdPatch(BaseModel):
+    """A threshold override with no defaults for fields it does not name."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    max_total_per_100_words: float | None = Field(default=None, ge=0)
+    max_errors: int | None = Field(default=None, ge=0)
+    max_warnings: int | None = Field(default=None, ge=0)
+    min_score: float | None = Field(default=None, ge=0, le=100)
+
+
+class LocalePatch(BaseModel):
+    """A locale override with omitted fields left unset."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    default: str | None = None
+    allow: list[str] | None = None
+
+
+class ValePatch(BaseModel):
+    """A Vale override with omitted fields left unset."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool | None = None
+    binary: str | None = None
+    config: Path | None = None
+    styles: list[str] | None = None
+
+
 class Override(BaseModel):
     """A glob-scoped patch. Matched with gitignore semantics via pathspec, so
     `docs/**` and `!docs/generated/**` behave the way a reader expects.
@@ -276,9 +307,9 @@ class Override(BaseModel):
     profile: Profile | None = None
     categories: dict[str, CategorySettings] = Field(default_factory=dict)
     rules: dict[str, RuleSettings] = Field(default_factory=dict)
-    thresholds: Thresholds | None = None
-    vale: ValeSettings | None = None
-    locale: LocaleSettings | None = None
+    thresholds: ThresholdPatch | None = None
+    vale: ValePatch | None = None
+    locale: LocalePatch | None = None
     #: A blocklist is an editorial position, and a vendored subtree does not share
     #: the project's. Overridable for that reason: without it the only options are
     #: one wordlist for the whole repository or none.
@@ -441,13 +472,12 @@ def _merge_rule(base: RuleSettings | None, patch: RuleSettings | None) -> RuleSe
     return RuleSettings.model_validate(merged)
 
 
-def _merge_thresholds(base: Thresholds, patch: Thresholds | None) -> Thresholds:
+def _merge_thresholds(base: Thresholds, patch: ThresholdPatch | None) -> Thresholds:
     if patch is None:
         return base.model_copy()
     merged = base.model_dump()
-    for key, value in patch.model_dump().items():
-        if value is not None:
-            merged[key] = value
+    for key, value in patch.model_dump(exclude_unset=True).items():
+        merged[key] = value
     return Thresholds.model_validate(merged)
 
 
@@ -568,7 +598,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     Import is local to avoid a cycle: profiles describes rule defaults in terms
     of the enums above.
     """
-    from .profiles import profile_defaults
+    from .profiles import profile_defaults, profile_rule_defaults
 
     root = config.root or Path.cwd()
     try:
@@ -599,7 +629,9 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
 
     defaults = profile_defaults(profile)
     categories = {name: settings.model_copy() for name, settings in defaults.items()}
-    rules: dict[str, RuleSettings] = {}
+    # Seeded like the categories, and like them left out of `provenance`: the
+    # report lists what a layer touched, and a profile's own dials are untouched.
+    rules: dict[str, RuleSettings] = profile_rule_defaults(profile)
     thresholds = _merge_thresholds(profile_thresholds(profile), config.thresholds)
     vale = config.vale.model_copy()
     locale = config.locale.model_copy()
@@ -640,16 +672,14 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
             provenance["thresholds"] = where
         if override.locale is not None:
             merged_locale = locale.model_dump()
-            for key, value in override.locale.model_dump().items():
-                if value:
-                    merged_locale[key] = value
+            for key, value in override.locale.model_dump(exclude_unset=True).items():
+                merged_locale[key] = value
             locale = LocaleSettings.model_validate(merged_locale)
             provenance["locale"] = where
         if override.vale is not None:
             merged = vale.model_dump()
-            for key, value in override.vale.model_dump().items():
-                if value is not None:
-                    merged[key] = value
+            for key, value in override.vale.model_dump(exclude_unset=True).items():
+                merged[key] = value
             vale = ValeSettings.model_validate(merged)
             provenance["vale"] = where
         if override.vocabulary is not None and override.vocabulary.path is not None:

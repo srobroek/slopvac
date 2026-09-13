@@ -5,7 +5,7 @@ description: >-
   adverbs, nominalisations, and quantity words standing in for a number nobody
   counted.
 weight: 1.2
-recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: slop-lexicon
     exceptions: [quotation]

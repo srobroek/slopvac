@@ -81,6 +81,13 @@ class TextType(str, Enum):
     SAFETY = "safety"
 
 
+# The genre vocabulary the write-docs skill classifies a document into (its genre
+# table). `Category.recommended_for` is typed against it so the review skill's
+# `genre` value selects categories by equality rather than by a mapping table
+# nobody maintains. Code comments are not a genre here: the skills route them to
+# the language's own conventions.
+Genre = Literal["consumer", "internal", "change-comms", "reference", "informal"]
+
 class Provenance(BaseModel):
     """Where a rule came from. Required, because a rule nobody can trace is a
     rule nobody can argue with.
@@ -260,10 +267,12 @@ class Category(BaseModel):
         default_factory=dict,
         description="Density budget per profile. Absent means no budget.",
     )
-    recommended_for: list[str] = Field(
+    recommended_for: list[Genre] = Field(
         default_factory=list,
-        description="Genres this category suits. The skill reads this to "
-        "recommend a selection to the user.",
+        description="Genres this category suits, in the vocabulary the write-docs "
+        "and review-docs skills use, so a reviewer can select judgement rules by "
+        "the genre it classified. A second vocabulary here selected zero rules for "
+        "the skill's `consumer` genre.",
     )
     rules: list[Rule] = Field(default_factory=list)
 

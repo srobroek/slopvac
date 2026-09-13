@@ -1,0 +1,1232 @@
+---
+status: accepted
+date: 2026-07-29
+---
+
+# Recipes
+
+31 recipes and 140 declared variables. Every variable listed here is asked or
+derived; anything absent is fixed in the recipe per `../rules/choices.md`, and a
+question whose answer the tree, the toolchain, or the generator already carries
+is not asked at all.
+
+## base
+
+Renders first. `base/license` is separate from `base/repo` because `lang/rust`
+reads its answers file for the SPDX identifier, and `_external_data` reads a
+sibling recipe.
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `base/license` | `LICENSE` | `license`, `copyright_name` |
+| `base/repo` | `README.md`, `.editorconfig`, `.gitattributes`, `docs/{adr,architecture}/`, `scripts/`, `tests/` | `project_name`, `description`, `org` |
+| `base/gitignore` | `.gitignore`, from github/gitignore templates through `gh api` plus every `.gitignore.d/*` fragment | none |
+
+`license` takes any licence identifier and fetches the body through
+`gh api /licenses/<key>`. No text is vendored here, since a copy would drift from
+the source.
+
+GitHub keys are lowercase and do not always match the SPDX identifier:
+`AGPL-3.0-only` is `agpl-3.0` there, so the recipe normalises `-only` and
+`-or-later` before the call. `gh api /licenses/<key>` also serves identifiers
+absent from the `/licenses` list, `EUPL-1.2` among them. Anything it refuses falls
+back to the SPDX licence list, and an identifier absent from both fails while
+listing what GitHub has. `none` does not write a file.
+
+The template list follows from which language recipes rendered, plus
+`Global/{macOS,Windows,Linux}` on every render. The operating system writes
+`.DS_Store`, `._*`, `Thumbs.db`, and `*~` whatever the project is, and a docs-only
+repository renders no language recipe to derive them from.
+
+Editor directories are left out. `.vscode/` and `.idea/` follow the developer
+rather than the project, so they belong in a global `core.excludesFile` rather than
+in every repository this scaffolds.
+
+`base/repo` creates `docs/` and nothing inside it. `docs/agents` and `docs/adr`
+own their own subtrees.
+
+`base/repo` carries the only `precheck.py`. It requires `git`, `just`, and
+`gh`, notes `mise` and `prek` when absent, and refuses a destination with
+uncommitted changes, because copier overwrites and does not leave a diff to review.
+
+`base/gitignore` always ignores what a tool in the repository writes, meaning the
+repomix pack and any generated skill directory.
+
+A fragment opening with its own comment keeps it rather than gaining a second one.
+The whole file is rebuilt from its sources each run, so two runs produce the same
+bytes.
+
+## lang
+
+Each language recipe writes the same six kinds of file, which is what makes
+adding a language a one-directory change.
+
+```
+lang/<name>/template/
+  <tool configs>
+  .gitignore.d/<name>
+  .pre-commit.d/<name>.yaml
+  .mise/conf.d/<name>.toml
+  .just.d/<name>.just
+  .github/workflows/wc-{lint,test}-<name>.yml
+  .github/actions/setup-<name>/action.yml
+  .gitlab/ci/<name>.yml
+```
+
+| Recipe | Tool configs | Variables |
+|---|---|---|
+| `lang/rust` | `rust-toolchain.toml`, `rustfmt.toml`, `clippy.toml`, `deny.toml` | `crate_kind`, `rust_edition` |
+| `lang/python` | `ruff.toml`, `pytest.ini`, `noxfile.py` | `python_version`, `python_layout`, `python_framework` |
+| `lang/ts` | `tsconfig.json`, `biome.json`, `.oxlintrc.json`, `vitest.config.ts` | `node_version`, `ts_framework` |
+| `lang/go` | `.golangci.yml`, `cmd/<name>/main.go` | `go_module_path`, `go_version` |
+| `lang/api` | `openapi.yaml`, `.just.d/api.just`, the mise, hook, CI, and quality fragments | `api_title`, `api_version`, `api_server_url`, `api_ruleset`, `api_fail_severity`, `api_baseline_ref` |
+
+`lang/ts` writes both `biome.json` and `.oxlintrc.json`. That pairing is fixed,
+not a choice. When better-t-stack generated the project it already wrote
+`biome.json` and `tsconfig.json`, so `lang/ts` guards both with
+`_skip_if_exists` and contributes only the fragments and CI jobs.
+
+`lang/api` uses vacuum for linting and oasdiff for breaking-change detection.
+spectral renders only when a custom ruleset needs it.
+
+Both tools ship a default that looks like a gate and is not one. `vacuum lint` exits 0
+on warnings unless `--fail-severity` is passed, and a missing description or absent
+`operationId` is reported at warn, so the recipe passes it. `oasdiff breaking` prints
+every breaking change and exits 0 unless `--fail-on ERR` is passed. Measured against
+vacuum 0.30.0 and oasdiff 1.26.1: removing an operation exited 0 bare and 1 with the
+flag.
+
+oasdiff installs through `ubi` rather than `aqua`, which carries no registry entry for
+it.
+
+The starter spec passes its own gate as rendered, which took four `example` blocks. It
+scored 98 of 100 with four `missing examples` warnings until they were added, so the
+scaffold failed the check it ships.
+
+Only the lint runs at commit time. The breaking-change check reads the spec out of a
+baseline ref, and a first commit on a fresh branch has no merge base, so it belongs in CI
+where the pull request defines one. With no baseline reachable it exits 0 rather than
+blocking the commit that introduces the contract.
+
+`.gitignore.d/<name>` carries the conditional lines alone. The upstream templates
+cover `/target`, `__pycache__`, and `node_modules`; what it cannot express is
+`Cargo.lock` ignored for a library and committed for a binary, or `vendor/` under
+Go vendor mode.
+
+### In a monorepo
+
+`just add <name> <lang>` renders the language recipe at the member path. A
+language recipe therefore has two destination roots: the member directory for its
+tool configs and its `.pre-commit-config.yaml`, and the repository root for
+`.mise/conf.d/`, `.just.d/`, and the CI files, which are repository-wide.
+
+copier renders to one destination, so `add_member.py` renders into the member path and
+moves the repository-wide directories up, merging into whatever is already there. Two
+members both contribute a `.mise/conf.d/` entry, and moving the directory wholesale
+would drop the first.
+
+The member's hook fragment is promoted to a real `.pre-commit-config.yaml`. prek's
+workspace mode reads one config per directory and namespaces the hooks
+`<dir>:<hook-id>`, but it skips dot-prefixed directories while discovering, so a
+`.pre-commit.d/` fragment alone is invisible and the member's hooks never run.
+
+prek also caches which directories hold a config, so a member added afterwards stays
+invisible until the cache is rescanned. `add_member.py` runs `prek list --refresh`
+once, which is enough: verified against prek 0.4.11, where `prek list` showed only
+root hooks beforehand and kept listing `packages/svc:ruff-format` after.
+
+The same script registers the member with release-please when that recipe rendered, for
+the same reason: `just add` is where the path becomes known, and release-please resolves
+no globs.
+
+CI stays inside the language recipe rather than in a recipe of its own. A separate
+CI recipe would have to know which languages sit at which paths; inside the
+language recipe, a monorepo gets the right jobs by construction, and the reusable
+workflows already take a `working-directory` input.
+
+## host
+
+Language-blind. Each language recipe supplies its own jobs and setup action.
+
+The shared quality and security jobs split across both. The host recipe runs
+actionlint, zizmor, cspell, lychee, taplo, yamllint, markdownlint, and the secret
+scan, none of which needs language knowledge.
+
+The rest cannot live here:
+
+| Step | Why it is language-dependent |
+|---|---|
+| lizard | complexity thresholds differ per language |
+| CodeQL | takes a language list, and its names differ from ours (`javascript-typescript`, not `ts`) |
+| trivy | filesystem mode against dependencies, configuration mode against IaC |
+| OSV | keys off which lockfiles exist |
+
+Each language recipe therefore drops `.github/quality.d/<lang>.yml` and
+`.github/security.d/<lang>.yml`, and the shared workflow builds its matrix by
+reading that directory at run time.
+
+The security fragment also names the recipe's opengrep packs, which is the same inversion
+applied to a ruleset: `lang/python` asks for `p/python`, `iac/terraform` for `p/terraform`,
+and the discovery step unions them, deduplicated. `lang/ts` and `iac/cdk` both ask for
+`p/typescript`, and passing it twice would run the same rules twice. An empty list is a
+claim rather than a gap, which is what `lang/api` states: opengrep matches code constructs
+and a contract is data.
+
+`--sarif` writes to stdout and is redirected. `--sarif-output=FILE` is documented and
+silently writes nothing: verified against opengrep 1.26.0, where the flag did not produce a file
+while the same scan on stdout produced valid SARIF 2.1.0 carrying the finding. A workflow
+trusting the documented flag uploads an empty file and reports a clean scan.
+
+The scan runs without `--error`, so a finding does not end the job before the SARIF reaches
+the security tab. A later step reads the file back and fails there. The GitLab job does pass
+`--error`, because it has no upload to protect, and it reads the same
+`.github/security.d/` fragments rather than a second copy: those are committed data rather
+than a GitHub feature, and two copies would disagree about which rules run.
+
+A `discover` job parses the fragments and emits the matrix as JSON, so a new
+`lang/*` recipe contributes its jobs without the host recipe or a caller changing.
+`discover` also emits a count per matrix, because a matrix of zero entries is a
+workflow error rather than a skip, and a docs-only repository renders no language
+recipe at all. A fragment states `codeql.supported: false` positively rather than
+omitting the key, which is how `lang/rust` records that CodeQL has no Rust
+extractor.
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `host/github` | `workflows/{wc-changes,wc-gate,wc-quality,wc-security}.yml`, `actions/ci-gate/`, `CODEOWNERS`, issue and pull-request templates, `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` | `security_contact`, `coc_contact`, `default_branch`, `job_timeout_minutes` |
+
+### Governance lives in a script
+
+`host/github` renders the governance files and ships `scripts/repo_govern.py` for the rest.
+Measured against a live repository rather than assumed: `gh api repos/<slug>` reports every
+merge and feature setting, a freshly created repository returned zero rulesets and
+`Branch not protected`, and GitHub does not read a committed file for any of it. A recipe renders a
+file, so the API surface is a script. `../rules/choices.md` carries the split.
+
+`gate` is the only required check, `just repo-govern` applies the settings, and
+`just repo-govern-check` reports differences without changing anything, which is what CI can
+run. Environment secrets stay manual: a secret passed to a script is a secret in a shell
+history.
+
+`host/gitlab` was written rather than ported: bailiff had no GitLab CI package, only
+`repo/gitlab-repo`, so its four language fragments had no pipeline to be included by.
+
+Unlike `host/github`, it does not ship a governance script. The file-based half is there:
+CODEOWNERS, the issue and merge request templates, and the three governance documents.
+
+The rest is applied through the API:
+
+| Applied by hand | Why not scripted |
+|---|---|
+| protected branches, protected tags | gated by instance version |
+| approval rules, merge trains | gated by tier |
+| push rules | gated by tier |
+
+A script written against one instance would silently do less on another, so the recipe renders
+the files and leaves those settings to a person. `psc-hfx` holds the decision.
+
+The `stages:` list is generated from what the `.gitlab/ci/*.yml` fragments declare.
+GitLab fails the whole pipeline when a job names a stage the list omits rather than
+skipping that job, and the include is a glob, so a language recipe adopted later
+contributes a fragment the list has to learn about. `quality` and `security` are
+unconditional, because this recipe's own two jobs sit there. A stage no `STAGE_ORDER`
+entry covers fails the generator, where the message can name the fragment.
+
+Governance wording differs between the hosts, though the substance does not. GitLab
+has merge requests rather than pull requests, and no private vulnerability reporting
+form, so `SECURITY.md` points at a confidential issue instead. That is the private
+channel a GitLab project has without extra configuration.
+
+`host/github` also takes `project_name` and `org`, threaded from `base/repo` for
+the clone line and `CODEOWNERS`. An empty `org` writes a commented-out rule rather
+than `*  @`, which GitHub reports as a parse error on every pull request.
+
+The pull-request template goes to `.github/PULL_REQUEST_TEMPLATE.md`. One
+template inside a `PULL_REQUEST_TEMPLATE/` directory applies only through a query
+parameter, so it silently never loads.
+
+`SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `CODEOWNERS` carry
+`_skip_if_exists`: each holds a contact address or a project-specific rule edited
+after rendering.
+| `host/gitlab` | `.gitlab-ci.yml` with the generated stages list and the glob include, `.gitlab/{CODEOWNERS,issue_templates,merge_request_templates}`, `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `scripts/gen_gitlab_stages.py`, `.just.d/gitlab.just` | `gitlab_host`, `security_contact`, `coc_contact`, `default_branch`, `job_timeout_minutes` |
+
+## quality
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `quality/hooks` | `.pre-commit.d/{hygiene,beads}.yaml`, the generated root `.pre-commit-config.yaml`, `.mise/conf.d/hooks.toml`, `.just.d/hooks.just`, `scripts/merge_hooks.py` | `hook_exclude_patterns`, `max_file_kb`, `commit_scopes` |
+
+Every hygiene check is on. prek is the manager.
+
+`default_install_hook_types` is computed from the stages the folded hooks declare
+rather than fixed. `prek install` writes one shim per entry, so a stage missing
+from that list is a hook that never fires and reports nothing. A language recipe
+contributing a `pre-push` hook is what makes this necessary.
+
+The merge runs from `scripts/merge_hooks.py` in the generated project, and the
+copier task calls that same copy. A second copy here would let `just hooks-merge`
+and the render fold fragments differently.
+
+Conventional-commit checking uses `compilerla/conventional-pre-commit`, which
+takes `--strict` to disallow `fixup!` and merge commits, `--force-scope`,
+`--scopes <list>`, and positional custom types. It replaces a hand-written
+74-line script. An empty `commit_scopes` drops `--force-scope`, which without an
+allowlist demands a scope while accepting any spelling of it.
+
+`.mise/conf.d/hooks.toml` pins betterleaks to 1.7.1 rather than the 1.7.2 that
+GitHub lists. mise hides a release younger than its `minimum_release_age`, and
+pinning the hidden one fails to install.
+
+In a monorepo the language recipe writes each member's `.pre-commit-config.yaml`
+and prek unions them, so hooks travel with the language. `quality/hooks` then
+carries the root config and the repository-wide hygiene hooks alone.
+
+## workspace
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `workspace/monorepo` | the workspace manifest (`[workspace] members`, uv workspace, bun workspaces, or one go module), `scripts/add_member.py`, `.just.d/monorepo.just` | `layout`, `members`, `project_name` |
+| `workspace/just` | `justfile` carrying `setup`, the aggregates, and one `import?` per `.just.d/*.just`, plus `scripts/gen_justfile.py` and `.mise/conf.d/just.toml` | none |
+| `workspace/moon` | `.moon/workspace.yml`, `.moon/toolchain.yml`, `moon.yml` per member, `.just.d/moon.just` | `members`, `layout` |
+| `workspace/worktrunk` | `.config/wt.toml`, `.worktreeinclude` | `forge_platform`, `forge_hostname`, `worktree_includes` |
+
+`workspace/monorepo` owns `just add`.
+
+### moon alongside just, not instead of it
+
+moon is the second task runner, not a replacement. `just` is the entry point a person
+types and defines every repo-wide task with no member dimension. moon defines the member
+graph underneath: it is the only thing here that models a dependency between members.
+
+That distinction is what the recipe buys, and it is not caching. Measured on a
+three-member chain where `core` is depended on by `api`, which is depended on by `web`:
+
+| Scenario | moon | the equivalent `just` loop |
+|---|---|---|
+| cold | 3.37s | 3.48s |
+| nothing changed | 0.10s | 3.37s |
+| one leaf changed | 1.24s | 3.37s |
+
+The `just` loop costs the same every run because it has no graph to consult. moon
+rebuilds a dependent when its dependency changes and skips it when only a sibling
+moved, which is a correctness property rather than a speed one: a hand-written loop
+either reruns everything or risks using a stale artefact. `moon run web:build` also
+orders `core`, then `api`, then `web` from one command, with that order written nowhere
+in the recipes.
+
+`moon.yml` is generated per member by `gen_moon.py`, which reads the root manifest's
+glob and each member's own dependency declarations. Nothing about the graph is asked,
+because an answer could disagree with the manifest. Each toolchain spells a sibling
+differently, and every spelling is read: rust `{ path = "../core" }`, ts
+`"ui": "workspace:*"`, python the requirement string `lib>=0.1.0`. go declares no
+edges, since a member there is a package inside one module.
+
+moon 2.x renamed keys that render cleanly and fail only when the CLI reads them:
+
+- The workspace section is `pipeline`, not `runner`.
+- `vcs.client`, not `vcs.manager`. The published `workspace.json` still documents
+  `manager`, and moon 2.4.6 rejects it, so the CLI is what this follows.
+- A project's kind is `layer`, where 1.x used `type`.
+- The task variable is `$MOON_PROJECT_ID`. There is no `$MOON_PROJECT_NAME`, and it is
+  the directory rather than the package name, so `cargo -p` gets the manifest's name
+  written in literally instead.
+
+An output path is member-relative, which is wrong for cargo: it writes to the workspace
+root `target/`, so rust declares `/target/debug` with moon's workspace-relative prefix.
+A path nothing creates makes moon warn and cache nothing, so python and go declare no outputs
+at all: `uv sync` writes into a shared `.venv`, and `go build ./...` discards its binary.
+
+Inputs are declared per toolchain too. `src/**/*` matches nothing in a go member, where sources
+sit beside the package, so no edit would ever invalidate the build.
+
+Each import is written `import?`, the optional form. Under the hard form a missing
+file is a parse error that takes down every recipe in the justfile, so a fragment
+deleted by hand would break `just` entirely rather than only its own recipes.
+
+Every fragment shares one flat namespace, and just rejects a name defined twice.
+Prefixing each `just` recipe with the fragment's own name is what keeps that from
+happening. `gen_justfile.py` refuses a colliding set and names both fragments,
+because just's own error breaks the whole file rather than the pair.
+
+The aggregate recipes probe rather than depend. `check` and `each <phase>` ask
+`just --show <name>` which per-language recipes exist, so one language renders and
+one runs. A `needs:`-style dependency on a recipe no fragment provided is a parse
+error, which is why `check` probes `hooks-all` rather than depending on it.
+
+A fresh clone and a linked worktree need different work, so there are two recipes.
+
+`setup` is for a clone: `mise trust` then `mise install`, each rendered language's
+`<lang>-install`, then `hooks-install`. Trust comes first because an untrusted config
+is skipped, after which `mise install` reads nothing and reports success.
+
+`setup-worktree` is what `wt`'s blocking pre-start runs, and `setup_command` defaults to
+it. `.worktreeinclude` copies `node_modules/` from the primary, so what it runs is
+what a copy cannot provide, plus the language installs.
+
+| Step | Why a worktree needs it |
+|---|---|
+| `mise trust` | a new directory is untrusted, and an untrusted config is skipped |
+| `<lang>-install` | the user config excludes `.venv/` and `target/`, and an exclude beats an include, so those cannot be copied |
+| `hooks-install` | a worktree's `$GIT_DIR` is `.git/worktrees/<name>/`, where git looks for its hooks, so shims in the primary never fire |
+
+The language installs are close to free when a copy warmed them, well under a second for
+each of uv, cargo, and go. They earn their place by catching a branch whose lockfile
+moved, where the copied tree would otherwise build stale.
+
+Both `just` recipes probe with `just --show` rather than declaring dependencies, since a
+dependency on one that nothing rendered is a parse error.
+
+`--git-dir` replaced a `core.hooksPath` override. prek declines to install while an
+ambient global hooksPath is set, which a machine-wide hook manager leaves behind, and it
+does not write a shim while printing only a note: a fresh clone silently had no hooks. Verified
+on a machine with `git-defender`'s global path set, where the flag installed all six
+shims and a bad commit message was blocked.
+
+`workspace/worktrunk` sets `pre-merge = "just check"`, so a merge runs the same
+gate CI does and cannot land what CI would reject. A project-defined command is
+approved once and re-prompts when edited, so that line changing is visible.
+
+Of the ten hooks worktrunk has, the recipe sets two. `pre-commit` is left to
+prek, which installs the git-level hooks already. `post-commit`, `post-merge`, and
+`pre-switch` describe work that belongs to CI or to the source worktree.
+`pre-remove` would fire on every `wt merge`, since the user config sets
+`remove = true`.
+
+A dev server runs under `wt step tether`, whose teardown is automatic and needs no
+`pre-remove` hook: the process group is signalled when the worktree goes. Its port
+comes from `branch | hash_port`, which maps to 10000-19999 and is stable per
+branch, so two worktrees never contend. `sanitize_db` does the same for a
+per-branch database name.
+
+`.worktreeinclude` names what a new worktree copies from the primary checkout. It
+narrows rather than adds: a path is copied only when it is both gitignored and
+listed. An exclude beats an include, and project excludes combine with the user's,
+so a path the user config excludes cannot be recovered here.
+
+Only `template-append` is honoured from a project `[commit.generation]`. The
+command and the main template stay in user config, since they name which agent CLI
+the developer has.
+
+## release
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `release/release-please` | `release-please-config.json`, `.release-please-manifest.json`, the workflow, `.just.d/release.just` | `release_type`, `initial_version`, `default_branch`, `release_packages`, `release_app`, `sync_generated` |
+| `release/cocogitto` | `cog.toml`, `.just.d/cog.just` | `initial_version`, `release_scopes` |
+| `release/goreleaser` | `.goreleaser.yaml`, `.github/workflows/goreleaser.yml`, `.just.d/goreleaser.just`, plus the mise, gitignore, and quality fragments | `goreleaser_main`, `goreleaser_targets`, `goreleaser_version`, `go_version`, `goreleaser_sbom`, `syft_version` |
+| `release/dep-updates` | `renovate.json`, `.github/dependabot.yml`, and the auto-merge workflow | `default_branch`, `auto_merge`, `renovate_timezone` |
+
+Ecosystems follow from the language recipes. renovate covers the language
+ecosystems; dependabot covers action versions, which is what the existing
+auto-merge workflow in `astro-up.github.io` consumes.
+
+Both tools render, rather than one or the other as bailiff offered. renovate disables
+its own `github-actions` manager, because dependabot's `fetch-metadata` action reports
+the semver level of a bump and renovate does not emit an equivalent. Enabling both would open
+two pull requests per action version.
+
+`pep621` is the manager covering a uv `pyproject.toml`. There is no `uv` manager, and a
+name renovate does not know silently updates nothing.
+
+The auto-merge workflow triggers on `pull_request` and gates on
+`github.event.pull_request.user.login`. `github.actor` can be spoofed by pushing to a
+branch dependabot opened, which zizmor reports as `bot-conditions` at high confidence,
+and `pull_request_target` runs with a writable token in the base repository's context
+for no benefit here. A major update always waits for a person.
+
+`release-please` and `cocogitto` are alternatives rather than companions: cog bumps and
+tags from a developer's working copy, release-please through a pull request CI merges,
+and a repository selecting both would tag twice. A profile picks one.
+
+release-please has no glob support. `packages` takes a literal path per package, and the
+`node-workspace` and `cargo-workspace` plugins only build a dependency graph over what is
+already configured, so a member absent from the config is never versioned, tagged, or
+written into the changelog.
+
+`just add` registers the member as part of creating it, which is the moment the path is
+known. Nothing reconciles the list afterwards. Adding an entry drops the `"."` package,
+because a workspace releases its members rather than its root and the two tags would
+collide, and turns on `include-component-in-tag`, without which every member's tag
+collides on one version number.
+
+The recorded versions are release-please's own after the first release, so an entry
+already present keeps its version. A new member joins at the version the others share, or
+at `initial_version` when they disagree, so a repository releasing 2.x ships no 0.1.0
+package.
+
+### The release pull request needs an App token
+
+A pull request opened with `GITHUB_TOKEN` does not trigger a workflow. GitHub refuses this on
+purpose, so that a workflow cannot cause its own next run. The pull request release-please opens
+therefore reports no checks, and a required check blocks it forever. Measured on this
+repository: PR #2 came up with zero check runs against a required `gate`.
+
+`release_app` mints a token from a GitHub App instead, which is not subject to that rule. It
+needs two credentials on the repository:
+
+| Name | Kind | Why |
+|---|---|---|
+| `RELEASE_APP_CLIENT_ID` | variable | not sensitive, and keeping it visible makes a wrong-app failure readable |
+| `RELEASE_APP_PRIVATE_KEY` | secret | the App's signing key |
+
+The default is off, since a scaffold cannot provision an App. With it off the workflow still
+runs and still opens the pull request; merging it just needs an admin override. The workflow
+says so beside the token it chose, rather than leaving the reader to discover it from a blocked
+pull request.
+
+With it on there is no fallback: a missing or empty credential fails the run. Falling back to
+`GITHUB_TOKEN` would report success while producing a pull request nobody can merge, and the
+failure would surface later as a blocked pull request with nothing pointing at the cause.
+
+The check tests the key's length rather than its presence. An empty secret was written from an
+`op read` whose 1Password session had timed out mid-pipe: the write reported success and stored
+nothing, and every later run died inside `create-github-app-token` with `DataError: Invalid
+keyData`, which reads as a malformed key rather than a missing one.
+
+`sync_generated` amends the marketplace catalogs onto the release branch. release-please writes
+the version into `apm.yml` and the manifest and stops there. Each catalog repeats that version
+per package, so both go stale as soon as release-please opens its pull request, and `just
+packages` fails on the drift. Measured on a two-package publisher: two differences, one
+per package.
+
+It needs `release_app`, because the amending commit has to trigger the required checks and only
+an App-token commit does. Pushing that commit with `GITHUB_TOKEN` would leave a pull request
+whose checks never ran.
+
+release-please rewrites `apm.yml` to set `version`, and its YAML writer drops every comment in
+the file. A repository whose manifest carries a rationale nobody can infer from the keys defines
+a `release-restore` recipe, which the sync step calls after the bump and before the amend. That
+call is guarded, so a repository with no comments to restore does not have to define one.
+
+Blocking the release on the missing comment was the first attempt, and it was wrong: the
+comments go missing on every release by construction, so the test blocked the pull request
+that was supposed to carry the fix. Repairing beats refusing when the damage is predictable.
+
+`persist-credentials: false` on the checkout, with the credential passed in the remote URL
+instead. A token left in `.git/config` is what zizmor reports as `artipacked`, and it is
+avoidable here, so the recipe avoids it rather than shipping a suppression file.
+
+### release-please versions, goreleaser publishes
+
+release-please computes the next version from the Conventional Commit subjects, writes
+`CHANGELOG.md`, and pushes the tag. `release/goreleaser` triggers on that tag and attaches
+what it built. Each tool covers what the other cannot, which is why they are separate
+recipes.
+
+`changelog.disable: true` and `release.mode: append` are what keep them from colliding: the
+changelog already exists before the tag does, and generating a second one from the same
+commits would publish two that disagree on formatting.
+
+Verified against goreleaser 2.17.1 rather than read from its documentation. `checksums` is
+rejected outright, since the key is `checksum` singular. A snapshot build produced four
+cross-compiled binaries and a checksums file from one runner, and the extracted binary
+reported the version `ldflags` injected, which is what makes a bug report traceable to a
+build.
+
+`CGO_ENABLED=0` is what allows one runner to build every target. The release workflow sets
+`cache: false`, unlike every other Go job: a poisoned cache entry would end up inside a
+binary users download, which zizmor reports as cache-poisoning, and a release is infrequent
+enough that a cold module download costs seconds nobody waits on.
+
+`go-lib` does not render this recipe. A Go library is consumed by module path and publishes no
+artefact.
+
+### SBOM and provenance
+
+`goreleaser_sbom` is on by default and adds two things to a release: an SBOM per archive, and
+a build provenance attestation over every published file.
+
+The SBOM comes from goreleaser's own `sboms` block, which shells out to syft. Measured against
+goreleaser 2.17.1 and syft 1.50.0: four archives produced four valid SPDX-2.3 documents of
+about 3.8KB each, named `<archive>.sbom.json` beside their archive, with the cataloguing step
+taking 36 seconds. `artifacts: archive` rather than `binary`, because the archive is what a
+user downloads.
+
+goreleaser does not install syft, so the workflow does. Without that step the release fails at
+the cataloguing stage with the archives already built.
+
+A pairing check runs before the attestation and fails when `dist/` does not hold an SBOM, because an
+`sboms` block that produced nothing is a silent downgrade to no SBOM at all and the release
+would otherwise succeed looking attested. Emptiness is tested with `${sboms[*]+x}` rather than
+a length: under `set -u` an empty array reads as unbound on the runner's bash, which aborted
+with `unbound variable` before reaching the message.
+
+Provenance only, with no separate SBOM attestation. `actions/attest-sbom` warns that it is
+deprecated in favour of `actions/attest`, and both take `sbom-path` as one file capped at 16MB
+while goreleaser writes one per archive. A composite action cannot loop, so covering four
+archives would need a matrix job, which means uploading and re-downloading `dist/` to attest
+what the publishing job already holds. The SBOMs ship as release assets, and the provenance
+subject list includes them.
+
+The attestation runs after the publish, not before. Its subject is a digest, and a digest
+exists only once the artefact does.
+
+## docs
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `docs/site` | `docs/site/{astro.config.mjs,package.json,src/}`, `.gitignore.d/site`, `.mise/conf.d/site.toml`, `.just.d/site.just` | `docs_engine`, `site_url`, `project_name`, `description`, `node_version`, `repo_url`, `sidebar_autogenerate` |
+| `docs/agents` | `docs/agents/**`, the `AGENTS.md` body, the `CLAUDE.md` symlink | none |
+| `docs/adr` | `docs/adr/{0000-template.md,index.md}` | `project_name` |
+| `docs/deploy-sibling` | `.github/workflows/pages.yml`, which builds and deploys in place | `pages_repo`, `default_branch`, `job_timeout_minutes` |
+| `docs/deploy-split` | `.github/workflows/docs-publish.yml`, which pushes the built output across | `pages_repo`, `deploy_key_secret`, `default_branch`, `job_timeout_minutes` |
+| `docs/api-refs` | `docs/site/scripts/{gen-api-refs.mjs,check-api-refs-fresh.sh,extract-<lang>-api.*}`, `.just.d/api-refs.just` | `api_ref_languages`, `api_ref_section` |
+
+`docs_engine` is `starlight` or `fumadocs`, and one renders at a time: the comparison is a
+derived boolean, since a conditional filename holding a quote breaks jinja compilation.
+fumadocs brings React as a real dependency, where starlight needs none.
+
+`site_url` is mandatory. Without an explicit `site:` the Astro sitemap integration warns
+and emits nothing, so the sitemap is silently absent. Verified by building a rendered site:
+with it, `sitemap-index.xml` and a populated `sitemap-0.xml` were produced.
+
+An empty `repo_url` omits the edit link and the source link rather than rendering a dead
+one.
+
+Selecting `docs/api-refs` forces `docs/deploy-split`. The generated pages live in the code
+repo, so the repo that holds the source is the one that has to build and push them.
+
+`api-refs` ships the harness and one stub per language, not working extractors. An extractor
+is where a language's whole toolchain leaks in, and none of it generalises:
+
+| Language | Constraint the stub records |
+|---|---|
+| rust | rustdoc's JSON is nightly-only and its schema changes between nightlies, so any pin the scaffold shipped would be the wrong one |
+| python | griffe reads statically, which is what lets it document a module whose import has a side effect |
+| ts | typedoc needs `--excludeInternal`, or it publishes everything a package exports for its own tests |
+
+The prior art this replaced ran to 2,622 lines, carrying one project's `packages/python`
+layout and one project's nightly pin. Each stub emits valid empty IR, so the harness is
+testable before an extractor exists.
+
+`gen-api-refs.mjs` owns the page shape. An extractor owns one language and communicates only
+through the IR documented in that file's header. A symbol whose `doc` is empty fails the run,
+since a reference page with empty descriptions reads as complete while documenting nothing.
+Missing docs are collected and reported at once, because fixing them one run at a time is
+the slowest possible order.
+
+`check-api-refs-fresh.sh` checks two things:
+
+- **Staleness.** `--check` renders to memory and writes nothing, so the gate cannot repair the
+  drift it reports and pass on a rerun.
+- **Determinism.** The generator runs twice and the outputs are compared. A renderer that
+  iterates a hash map or embeds a timestamp makes every commit carry a reference diff, which
+  makes the staleness check meaningless. With no extractor yet this step exits early, since a
+  directory no render created is not evidence of nondeterminism.
+
+Each deploy recipe writes its own workflow. Pages deployment needs `pages: write` and `id-token: write`,
+which the gate does not carry, and both are scoped to the deploy job rather than the whole
+workflow.
+
+`concurrency` is grouped per ref in both. A global group would make two different refs
+cancel each other, where per ref two pushes to one branch serialise and the later wins.
+
+Both write `.nojekyll` into the built output. Pages applies Jekyll unless told not to,
+which drops every directory whose name opens with an underscore, and Astro emits `_astro/`,
+so the assets 404 and the pages render unstyled.
+
+`deploy-pages` clamps its own poll timeout and ignores a longer one, so `deploy-sibling`
+runs a first attempt under `continue-on-error` and retries in a second step against the
+same artefact.
+
+`deploy-split` sets `keep_files: false`, so a page deleted here disappears there, and
+excludes `.github` from the replacement. Removing the sibling's own workflow would leave
+nothing to trigger on the next push, and it would stop deploying without saying so. An
+`on.push.paths` filter is safe on both, unlike a required check: nothing waits on a deploy
+workflow to report a status.
+
+## agentic
+
+### `agentic/marketplace`: consumer-side install gate
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `agentic/package` | `<name>/{package.json, .omp-plugin/plugin.json, skills/<name>/SKILL.md}`, the `.omp-plugin/`, `.claude-plugin/`, and `.agents/plugins/` marketplace catalogs, `scripts/build_catalog.py`, `.just.d/package.just`, `.gitignore.d/package` | `project_name`, `package_name`, `description`, `author`, `owner` |
+| `agentic/beads` | `.beads/` through `bd init --init-if-missing --skip-hooks --server`, plus `.gitignore.d/beads` and `.just.d/beads.just` | `bd_prefix`, `bd_storage_mode`, `bd_dolt_sync`, `bd_sync_remote`, `bd_auto_export`, `bd_dolt_auto_commit`, `bd_push_command` |
+| `agentic/index` | `repomix.config.json`, `.gitignore.d/index`, `.just.d/index.just` | `index_languages`, `index_extra_ignores` |
+| `agentic/marketplace` | `docs/agents/marketplaces.md`, `.copier-answers.marketplace.yml` | `marketplace_sources`, `marketplace_selection` |
+
+`agentic/marketplace` records only user-approved `{handle, source}` pairs and the selected
+plugins. Its replayable answer file is:
+
+```yaml
+marketplace_sources:
+  - {handle: example, source: owner/repo}
+marketplace_selection:
+  mode: none | all | explicit
+  scope: project | user
+  plugins: []  # explicit mode uses qualified name@handle selectors
+```
+
+`none`, `all`, and `explicit` are the only modes. `none` selects nothing; `all` selects every
+plugin in the approved sources; `explicit` accepts only qualified `name@handle` selectors from
+those sources. `project` is the safe default scope; `user` is allowed only when the user
+explicitly chooses machine-wide installation. An empty inventory is valid for `none` and `all`
+and produces no install actions.
+
+The adapter is read-only: `uv run scripts/marketplaces.py inventory` reads OMP's text marketplace
+list/discover output and JSON installed inventory, and never registers or installs. It fails closed:
+
+| Condition | Result |
+|---|---|
+| OMP unavailable or not executable | Refuse the gate |
+| Approved handle is missing or its source changed | Refuse the gate as stale |
+| Duplicate qualified selector | Refuse the gate |
+| Explicit selector is unknown or unapproved | Refuse the gate |
+| Empty inventory with `none` or `all` | Valid; emit no installs |
+
+Before the install gate, run the adapter and review its JSON plus the generated
+`docs/agents/marketplaces.md`. The human gate owns every mutating action: if approved, a human may
+register an unregistered source with `omp plugin marketplace add <owner/repo>`, then run each
+generated `omp plugin install <name>@<handle> --scope <project|user>` command. Claude uses
+`/plugin marketplace add <owner/repo>`; Codex reads `.agents/plugins/marketplace.json`.
+
+No per-harness configuration file is rendered. Which marketplaces a machine trusts is the user's
+to state, so nothing here seeds one.
+
+### `agentic/package`: a repository that is its own marketplace
+
+The layer renders one starter plugin and the three catalogs that publish it, holding the
+same bytes: OMP reads `.omp-plugin/marketplace.json` and falls back to
+`.claude-plugin/marketplace.json`, Claude Code reads the second, and Codex reads
+`.agents/plugins/marketplace.json`, so one repository serves all three from one source. The `agentic-repo` profile, the 17-repo shape with no language recipe, is where it
+belongs. It grows to many plugins by adding directories, each with a manifest.
+
+What the runtimes require, measured on a 31-plugin estate:
+
+- A capability is located by path, and no catalog entry redirects the lookup:
+  `skills/<name>/SKILL.md` without recursion, `agents/<name>.md`, `commands/<name>.md`,
+  `rules/<name>.md`.
+- Rules and agents load only for a plugin OMP recognises, and recognition is a
+  `package.json` carrying an `omp` key. Without one, `omp plugin doctor` reports "not an omp
+  plugin" and both are silently absent while the plugin's skills still load. The key may be
+  empty: it is a marker, not a payload.
+- OMP identifies a capability by its bare `name`, deduplicates across every configured
+  source, and keeps the first match, so a name two plugins share resolves to one and hides
+  the other. Every name carries its plugin as a prefix, and `scripts/build_catalog.py`
+  refuses a capability that does not.
+- OMP compares `plugins[].version` in the top-level catalog, so an entry with no version is
+  invisible to its upgrade check. Each plugin owns its version in
+  `<plugin>/.omp-plugin/plugin.json`, and the catalog aggregates them.
+
+The catalogs are committed generated artefacts, which is what lets an install resolve the
+marketplace from a clone with no build step. `scripts/build_catalog.py` is their only
+writer: a copier task runs it at render time, `just marketplace-build` reruns it, and `just
+marketplace-check` compares the committed bytes and writes nothing, so the gate cannot
+repair the drift it reports. That check runs from the host layer's `Generated files current`
+step, beside `just-check`: same class of failure, a generated file a change made stale.
+
+Registering a marketplace is machine-global rather than per project. `omp plugin marketplace
+add <owner>/<repo>` writes under `~/.omp/`, so no template can seed it and none tries;
+which marketplaces a machine trusts is the user's to state, and a rendered repository
+asserts nothing about it.
+
+release-please keeps its single-component shape here, and this layer writes none of its
+files. It bumps only what its config names, and the plugin manifests are not among them, so
+a version bump reaches the catalogs through `just marketplace-build`. A marketplace past its
+first plugin points the config at each manifest and turns on `sync_generated`, which amends
+the regenerated catalogs onto the release branch.
+
+Which marketplaces a machine registers is the user's decision, collected in the
+interview and never defaulted: a scaffold suggesting its author's own catalogs is a
+recommendation nobody asked for. Registration is machine-global -- `omp plugin
+marketplace add` writes under `~/.omp/`, Claude Code's `/plugin marketplace add`
+under `~/.claude/plugins/`, and Codex reads `.agents/plugins/marketplace.json` --
+so the skill reports each command behind the run's install gate rather than any
+recipe running one.
+
+All three runtimes were probed live against a throwaway catalog. `omp plugin
+marketplace add` accepted a repository carrying only
+`.claude-plugin/marketplace.json`, installed a pure Claude-format plugin, and a
+fresh session loaded its skill. `codex plugin marketplace add` read
+`.agents/plugins/marketplace.json` -- its own listing names that path as the
+snapshot source -- and `codex plugin add <plugin>@<marketplace>` installed the
+same plugin, whose skill a fresh `codex exec` then reported available. Two
+boundaries carry the whole compatibility story:
+
+- Rules and agents load in OMP only for a plugin whose `package.json` carries the
+  `omp` marker; its skills load regardless.
+- Claude hooks are inert in OMP, whose CLI contains no `hooks.json` handling at all.
+
+A plugin that leans on hooks or unmarked rules therefore serves one runtime and
+silently under-delivers in the other -- which is why this recipe's starter ships
+both manifests and the marker.
+
+`agentic/index` commits its include and ignore patterns to `repomix.config.json`,
+which repomix reads natively. They are then visible to anyone reading the repository.
+
+Path filtering is the only lever that works. Measured against a 1,269-file
+repository, the include and ignore pair cut a pack by 30.7 percent. The content
+flags did not. `--remove-comments` takes 13.6 percent, and deletes every `//` and `#` with
+it, so safety notes and invariants go too.
+
+`--compress` depends on whether its parser knows the language, which makes it a second recipe
+rather than a flag on the first. Measured over this scaffold's python sources it cut 27,215
+bytes to 14,321, a 47 percent reduction. Over its jinja templates it grew the pack by 0.1
+percent, because it cannot parse them. `just pack-code` is the recipe that uses it;
+`--remove-empty-lines`, `--no-file-summary`, and `--truncate-base64` take nothing;
+`--style json` and `--parsable-style` make the output 10 percent larger.
+
+One artefact, searched rather than read. A pack of a 4,107-file repository is 6.3
+million tokens, roughly six context windows, so reading it cannot succeed; `rg` over it
+lists every path in 0.009s and finds one in 0.010s, against 0.126s for the equivalent
+walk of the live tree.
+
+A separate metadata-only map was tried and dropped. It answered nothing the pack could
+not, and keeping one artefact removes repomix's `--no-files` trap: there is no `--files`,
+so a config setting `files: false` cannot be overridden from the command line, and a
+recipe pointing at such a config produces a metadata-only pack while calling itself
+full.
+
+Guarding the pack read is a plugin concern, not a render concern: a hook that denies a
+whole-file read of `repomix-full.xml` ships in marketplace plugins, and which
+marketplace supplies it is the user's choice. This recipe ships no hook.
+
+The pack needs its own config file. repomix has `--no-files` but no `--files`, so
+the map's `files: false` cannot be overridden from the command line, and one
+config would silently produce a metadata-only pack. Both configs set the same
+`include` and `ignore`, or the pack would index what the map hides.
+
+The index artefacts are ignored, repomix's own default output names among them.
+An unignored artefact is packed into the next one, which measured 38 percent of one
+repository's whole pack, and `graphify update` has no output flag so it writes into
+the tree regardless.
+
+Holding architecture decisions as beads is a separate package, `adr-as-beads`: a
+`decision` bead is the record and `.pre-commit.d/adr.yaml` renders it to
+`docs/adr/NNNN-title.md`. That fragment renders unconditionally and no-ops without
+`bd`, so a repository that has not adopted it pays nothing.
+
+The renderer also rewrites the row block in `docs/adr/index.md`, between two markers.
+Without that the index `docs/adr` ships keeps its placeholder row while numbered files
+accumulate beside it, so the first artefact a reader opens reports no decisions. Only
+the rows are generated: the prose above them is the project's, a hand-written record
+takes a row below the block, and an index with no markers is left untouched rather than
+injected into, because `docs/adr` may not have rendered at all.
+
+A rendered record opens with its frontmatter. A leading HTML comment pushes `---` off line
+one, and a parser then reads the block as body text. `status`, `date`, and `bead` go invisible
+to anything indexing the records, so the provenance note follows the block instead.
+
+`agentic/beads` runs `bd init --skip-hooks` and keeps everything else bd writes.
+Neither flag is an answer: `--skip-hooks` is always passed and `--skip-agents` never
+is, so no answer can turn the compaction hooks off. bailiff's version passed
+`--skip-agents` unconditionally.
+
+It renders after `docs/agents`, because bd appends a marked
+`BEGIN BEADS INTEGRATION` block to an existing `AGENTS.md` and leaves the `CLAUDE.md`
+symlink alone. With neither present it writes its own beads-only file instead, which
+would then be what the repository's agents read first.
+
+The properties it sets come from surveying every repository here that uses beads.
+`sync.remote` is the only one all five set, and it carries a `git+ssh://` or
+`git+https://` prefix, which is what marks it a Dolt remote over the git transport
+rather than a plain one. An empty answer derives it from the git origin, normalising an
+scp-style address first. `export.auto` is set in slopvac, `dolt.auto-commit: batch` in
+platevault, and `repos.additional` in skymath for cross-repository hydration.
+
+`metrics.*` and `no-git-ops` are set in the user's own `~/.config/bd/config.yaml`, so no
+recipe writes them. `metadata.json` holds bd's generated `project_id` and database name,
+which are per-clone rather than per-template.
+
+bd also appends four ignore patterns to the root `.gitignore` under a header with no
+end marker. `base/gitignore` rebuilds that file from `.gitignore.d/`, so the task
+moves those lines into a fragment; left in place they survive until the next render
+and then vanish.
+
+bd installs two separate sets. Its git hooks are five 1.3KB shims running
+`bd hooks run <event>` for `pre-commit`, `post-merge`, `post-checkout`,
+`pre-push`, and `prepare-commit-msg`; `quality/hooks` reproduces those as local
+prek entries, since prek supports the five stages these use. What made `--skip-hooks`
+necessary was the ambient hook binaries copied in alongside them.
+
+What each event earns, from bd's own git-integration reference:
+
+| Event | What it does |
+|---|---|
+| `pre-commit` | exports `.beads/issues.jsonl` when `export.auto` is set, so it is committed alongside the change |
+| `prepare-commit-msg` | adds an `Executed-By:` trailer when an agent made the commit |
+| `post-merge` | imports JSONL as a legacy fallback; with `sync.remote` set, `bd dolt pull` is the real sync |
+| `post-checkout` | runs chained hooks |
+| `pre-push` | runs chained hooks |
+
+None of them pushes the database. Every workflow in bd's documentation runs
+`bd dolt push` by hand before `git push`, and running each event directly produced no
+output and no push. The issues would therefore stay on one machine.
+
+`quality/hooks` adds `scripts/bd-dolt-push.sh` at `pre-push` to close that. A commit is
+local, so a git push is the moment the database has to follow; pushing per commit would be
+work nobody is waiting on.
+
+It never blocks. An unreachable remote or a missing wrapper reports and exits 0, since
+`bd dolt push` is recoverable by running it again and blocking would make an offline
+push impossible. With no `sync.remote` configured it exits before doing anything.
+
+bd's own `dolt.auto-push` stays off. It pushes after a write on a five-minute debounce,
+which leaves a window where the remote is behind and nothing reports it, and its
+documentation warns that concurrent pushes to a git-protocol remote "can corrupt or
+strand remote history" with more than one writer. It also ignores
+`custom.bd-push-command`, so on a machine needing the wrapper it would hang every write
+until its timeout. The hook pushes at the one moment that matters instead.
+
+The push command is read from `custom.bd-push-command` rather than assumed to be `bd`.
+Where the database runs in a container a direct `bd dolt push` hangs until it times out,
+and that key names the wrapper that works. `custom.*` is bd's namespace for user-defined
+keys, so this is a local convention rather than something bd reads itself.
+
+Its agent hooks come in two more sets, both kept as bd writes them. Four codex
+lifecycle entries in `.codex/hooks.json` run `bd codex-hook` on `SessionStart`,
+`UserPromptSubmit`, `PreCompact`, and `PostCompact`. One Claude entry in
+`.claude/settings.json` runs `bd prime --hook-json` on `SessionStart`.
+
+Those hooks reload beads context after compaction, which is what makes an
+`AGENTS.md` carrying no beads prose safe. `--skip-agents` would remove them and
+is therefore not used.
+
+## container
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `container/image` | `Dockerfile`, `.dockerignore`, `.just.d/container.just`, the mise, hook, CI, and security fragments | `container_language`, `container_runtime_base`, `registry`, `expose_port`, `trivy_severity`, `container_attest` |
+
+`docs/architecture.md` carries the measured base image policy and the build-scan-push
+order. The recipe's own `Dockerfile` repeats the measurement beside the `FROM` line, so the
+reason for the base is where the choice is made.
+
+Only hadolint runs at commit time. Building an image takes minutes and needs a daemon, so
+the build and the image scan are CI. `trivy` runs twice against different things: `config`
+mode reads the Dockerfile in the language-blind security workflow, and `image` mode reads
+the built image in this recipe's own job.
+
+`container_attest` is on by default and attests the pushed image's provenance. The subject is
+the digest the registry returned, taken from the push step's own output, rather than a tag: a
+tag is mutable, so an attestation bound to one says nothing about what a puller receives
+later. `push-to-registry` stores the bundle beside the image, which is what lets
+`gh attestation verify oci://...` work for someone holding the image and not the repository.
+
+The step is gated on the push, since a pull request builds without publishing and there is no
+digest to bind.
+
+This job sets `cache: false` on mise, unlike every other mise-action call in the scaffold. It
+pushes an image users pull, so a poisoned cache entry would end up inside that image. zizmor
+reported exactly that against this workflow at high severity before the change. Only hadolint
+and just come from mise here, so a cold install costs seconds. `release/goreleaser` sets the
+same flag on setup-go.
+
+## iac
+
+| Recipe | Writes | Variables |
+|---|---|---|
+| `iac/terraform` | `infra/{bootstrap,modules,envs,tests}`, `.tflint.hcl`, `.pre-commit.d/terraform.yaml` | `environments`, `aws_region`, `state_bucket` |
+| `iac/cdk` | `.projenrc.ts` with `runner: tsx()`, `app: npx tsx`, and `github: false`, plus `.just.d/cdk.just` and the mise, gitignore, and security fragments | `cdk_version`, `projen_version`, `tsx_version`, `node_version` |
+
+`environments` defaults to `[dev, prod]`.
+
+### The ts-node trap has two call sites, not one
+
+`projenrcTsOptions.runner: TypeScriptRunner.tsx()` governs only how `.projenrc.ts`
+itself executes. projen writes `cdk.json`'s `app` separately, as
+`npx ts-node -P tsconfig.json --prefer-ts-exts src/main.ts`, so with the runner set and
+`app` left alone `npx projen` passed and `cdk synth` still failed. Both are overridden.
+
+Reproduced rather than assumed, against projen 0.101.22: under TypeScript 7.0.2 the
+default ts-node runner throws inside `findAndReadConfig`, and after both overrides
+`npx projen` and `cdk synth` each exit 0.
+
+`packageManager` is set explicitly too. projen otherwise defaults to `yarn_classic` and
+warns that the option will become required, and nothing else here uses yarn.
+
+### One root module, not one per environment
+
+`infra/` is one root module. An environment is a pair of files under
+`infra/envs/`, `<env>.tfbackend` and `<env>.tfvars`, rather than a directory of its
+own.
+
+This follows from the two decisions `architecture.md` fixes. Partial backend
+configuration through `-backend-config=envs/<env>.tfbackend` configures one
+`backend "s3" {}` block, which presupposes one root module, and `tofu test` reads
+`tests/` under the root module, so `infra/tests/` is found only from there. An
+earlier version of the row above said `envs/<env>`, which contradicted both: that
+shape needs `-test-directory` on every test run, and it repeats the provider and
+backend blocks per environment, which is the repetition partial configuration
+removes.
+
+The corollary is that a child module's source is `./modules/<name>`. `tofu test`
+resolves a module source from the root module rather than from the test file, so
+the `../` form fails under plan and test alike.
+
+`bootstrap` is the exception, a second root module keeping local state, because it
+creates the bucket the first one stores its state in.
+
+### Tool requirements, measured
+
+| Constraint | Consequence if ignored |
+|---|---|
+| tflint does not read a parent directory's config | every directory lints with the default rules, reporting findings `.tflint.hcl` disabled |
+| tflint's failure threshold is error | a run exits 0 having printed real warnings |
+| `tflint --init` needs a GitHub token | 403 rate limit, then "Plugin not found" per directory |
+| `terraform_required_version` covers child modules | the lint gate fails on `modules/*` |
+| pre-commit-terraform prefers `terraform` over `tofu` | the hooks run terraform against an OpenTofu repository |
+| the hook ids are `terraform_*`, and tflint's is `terraform_tflint` | prek rejects the fragment on an unknown id |
+| just shares jinja's `{{ }}` | an unwrapped fragment loses every recipe parameter |
+
+Each was found by rendering the recipe and running the tool, not by reading the
+template.
+
+## Render order
+
+```
+base/repo precheck
+<generator>            single repo only: cargo new, uv init, go mod init, bun init
+base/license
+base/repo
+workspace/monorepo     monorepo: the root manifest, then the generator per member
+lang/*
+host/{github,gitlab}
+release/*  iac/*  docs/*
+agentic/{package,beads}
+quality/hooks
+workspace/just
+workspace/moon         monorepo only: the member graph, after every member exists
+base/gitignore
+```
+
+The generator runs before every recipe. `cargo init` writes no `license` key and
+`uv init` writes its own `pyproject.toml`, so a language recipe patches an
+existing manifest rather than creating one.
+
+`workspace/monorepo` precedes `lang/*` so the manifest exists before members render.
+
+The generator's position depends on the shape. In one repository it runs first,
+against the repository root, and a language recipe patches the manifest it wrote. In a
+monorepo it cannot: `cargo init .` writes a `[package]` root, `workspace/monorepo`
+then skips the file it finds, and no `[workspace]` section is ever written, so the
+repository silently is not a workspace. Verified by rendering in that order.
+
+A monorepo therefore renders the root manifest first and runs the generator per member,
+which is what `just add` does. Members resolve through the manifest's glob, so a
+directory created under it is a member with no edit to the root: confirmed against
+cargo, uv, and bun, and go does not need a registration because a member is a directory in
+one module.
+
+`agentic/beads` follows `docs/*` because bd appends to an existing `AGENTS.md` and
+writes its own beads-only one when none exists. The order is what decides which file
+a repository's agents read first.
+
+`quality/hooks` follows `iac/*` because it folds `.pre-commit.d/*` into the root
+config, and `iac/terraform` contributes a fragment. Rendering it earlier would
+leave that fragment out, with nothing to report the omission: prek reads the merged
+file and never sees the fragment directory.
+
+Re-rendering any fragment-contributing recipe therefore needs the merge again.
+`just hooks-install` and `just hooks-all` both run it first, so the config cannot
+lag the fragments.
+
+`workspace/just` and `base/gitignore` aggregate what earlier recipes contributed,
+so they follow every contributor including `agentic/*`: beads adds an ignore for
+`.beads/dolt/` and a `.just.d/beads.just`.
+
+Both of the generated files can therefore go stale when a recipe is adopted later.
+`just just-check` and `just hooks-all` catch each case, and the quality workflow runs
+the first, so a pull request cannot merge a justfile that omits a fragment. Both
+compare in a copy rather than rewriting, since a check that fixes what it checks
+leaves a dirty tree and passes on the rerun.
+
+A profile states this order directly. 31 recipes with a fixed order need no
+dependency solver.
+
+## Profiles
+
+`profiles/*.yml` names, per shape, its recipe set in render order, its generator, the
+answers fixed or derived for it, and the commands that prove a rendered tree builds.
+`profiles/README.md` carries the format and the survey counts.
+
+Thirteen shapes, matching the generator table in `../docs/architecture.md`.
+`scripts/scaffold.py check` validates each against `recipes/`, and `just profiles-build`
+renders each into a temporary directory and runs its own build.
+
+That check is worth its runtime. A tree that renders is not a project that builds, and it caught
+two ordering bugs no unit test did:
+
+- `lang/api` declared `after: host/github` while `host/github` declares `after: lang/*`,
+  a cycle no profile could satisfy. Every other language recipe renders before the host,
+  because the host's matrix discovers the fragments they contribute.
+- `rust-gui` put `workspace/moon` after `workspace/just`, so the justfile's import block
+  never learned about `.just.d/moon.just`. The rendered tree then failed
+  `just just-check`.
+
+The second is why the validator checks aggregation separately from each recipe's own
+`after`. A contributor has to precede its aggregator, and `workspace/just` cannot express
+that by naming every present and future contributor in its own list.
+
+A build command asserts only what the recipes produce. `scaffold render` does not run the
+generator, since `cargo new` and `create-better-t-stack` reach the network or need a
+toolchain the machine may lack, so `cargo build` there would fail for a missing manifest
+rather than for anything a recipe got wrong.
+
+### Integration cases
+
+A profile covers one shape and a unit test covers one recipe. Neither covers what happens when
+two recipes meet, which is where the ordering bugs above came from. `tests-integration/` holds
+that middle ground: a case names a recipe set, an order, and a build, and `just integration`
+renders each into a scratch tree and runs it.
+
+| Case | The interaction |
+|---|---|
+| `layer-added-after-aggregator` | a language recipe adopted after `workspace/just` leaves the import block stale |
+| `monorepo-rust-two-members` | two members added through `add_member.py`, and whether the second replaces the first's mise fragment |
+| `both-hosts-mirrored` | both hosts over one language recipe, each folding the same fragments into its own generated file |
+| `retrofit-onto-existing` | recipes over a populated tree, and which side wins |
+
+Out of `just check` on purpose. A case renders a whole tree and runs its build, and a gate slow
+enough to skip is worse than a suite someone has to remember. `tests/test_integration_cases.py`
+reads the case files without rendering, so a mistyped recipe or a case duplicating a profile
+fails in the fast suite instead.
+
+Each case states in `gap` what is not already covered, because a case that repeats a profile
+costs minutes and proves nothing. Verified by breaking each one: removing the resync fails
+`layer-added-after-aggregator`, and dropping `README.md` from `base/repo`'s `_skip_if_exists`
+fails `retrofit-onto-existing`.
+
+## Steering generation
+
+`docs/agents` ships `scripts/gen_steering.py`, which fills the marked blocks in
+`docs/agents/` from what is on disk. `docs/steering.md` carries the ownership table; the
+generator implements the generated half.
+
+A pure function of the tree. Nothing is asked, because an answer could disagree with the
+files an agent will actually read, and nothing reaches the network, so
+`just steering-check` can gate it in CI.
+
+| Reads | Produces |
+|---|---|
+| `justfile` and `.just.d/*` | the command surface in `index.md` |
+| `.mise/conf.d/*.toml` | the toolchain pin table |
+| each language recipe's tool config | one `quality/<lang>.md` leaf, plus its index row |
+| `.github/workflows/*` | the job list and the gate's role |
+| `release-please-config.json` | the tool and the real tag shape |
+| the workflows and the Dockerfile | variable names, never values |
+
+Both markers carry the block name: `<!-- END GENERATED: index -->`, not a bare
+`<!-- END GENERATED -->`. A generator matching the bare form finds nothing, writes an empty
+block, and reports that it wrote the file.
+
+A file with no marker is never written after it is first created, which is what keeps
+`conventions.md` and each leaf's "why a rule is off" section. `--check` reports drift
+without repairing it, so the gate cannot destroy a hand edit and pass on the rerun.
+
+Adding a language adds `quality/<lang>.md` and one index row. No existing file grows, which
+is the property `docs/steering.md` asks for.
+
+## Linting this repository
+
+`just lint` covers the python and the prose. `just lint-config` covers the structural
+surface: yamllint, taplo, JSON parsing, actionlint, and zizmor.
+
+Both run in `just check`. The recipes put these tools in a generated project's CI, and a
+scaffold that does not run them on itself has 87 unchecked YAML files and a workflow nobody
+audits, which is what this repository had until the gate existed.
+
+They skip `recipes/`. A `.jinja` file is deliberately not valid YAML, TOML, or JSON: it
+holds jinja delimiters, and a conditional filename is not a path a parser accepts. The recipe
+tests cover those instead, by rendering the template and running the real parser against the
+result.
+
+## Running the tests
+
+Most tests render a recipe and run the real tool against the result, which is what catches
+the defects a template read cannot. That makes the suite wait on toolchains rather than on
+CPU, and each test renders into its own `tmp_path` without shared state, so it parallelises
+cleanly.
+
+| Command | Measured on 14 cores |
+|---|---|
+| `just test` | 160s, 543 passing |
+| `just test-serial` | 889s, for a readable failure or a debugger |
+| `just test-fast` | skips what installs an npm tree, builds an image, or compiles a crate |
+
+A test that shells out to something expensive carries `@pytest.mark.slow`. An npm install
+or a container build dominates a run otherwise, and the cdk fixture is session-scoped for
+the same reason: its install and synth cost about 40 seconds and every test reading it only
+reads.
+
+## Contribution points
+
+| Contributed as | Combined by |
+|---|---|
+| `.gitignore.d/<name>` | the `gh api` fold in `base/gitignore` |
+| `.github/{quality,security}.d/<name>.yml` | a matrix in the host recipe's shared workflow |
+| `.pre-commit.d/<name>.yaml` | see below |
+| `.mise/conf.d/<name>.toml` | mise reads the directory |
+| `.just.d/<name>.just` | `import?` lines written by `gen_justfile.py` in `workspace/just` |
+| `.github/workflows/wc-*.yml` | `ci.yml`, written by `gen_caller.py` in `host/github` |
+| `.gitlab/ci/<name>.yml` | GitLab's `include: local:` glob |
+
+### The agentic hooks with a git event
+
+Three of the thirteen agentic-packages hooks act on a git action, and those move into
+`.pre-commit.d/git-actions.yaml`. As PreToolUse hooks they fire only for an agent whose
+harness is configured; as prek entries in a committed config they fire for every committer and
+survive an agent running without that config.
+
+| Hook | Stage | Behaviour |
+|---|---|---|
+| `normalize-close-keywords` | `commit-msg` | rewrites the message in place |
+| `attribution-guard` | `commit-msg` | advisory, prints and exits 0 |
+| `no-force-push-to-default` | `pre-push` | refuses a non-fast-forward |
+
+`Closes #1, #2, #3` closes only `#1`, because GitHub binds a closing keyword to the first
+issue in a list. The rewrite distributes it so the rest close too, verified end to end through
+prek's `commit-msg` stage.
+
+The attribution guard prints rather than blocking. A commit message is trivially fixable and a
+denied commit costs more than a nudge; the enforcing copy is the `commits` job in the quality
+workflow, which reads the whole pull request range. Its patterns are vendored rather than
+rewritten, because they carry recorded false-positive fixes: the bare
+`users.noreply.github.com` domain was removed after an ordinary human co-author trailer was
+reported as AI attribution.
+
+The rest are unchanged, and the fragment records why beside the three that moved.
+`hooks-quality` fires on an edit, which git never sees. `reset --hard`, `clean -fd`, and
+`checkout --` are pre-execution guards: by the time a git hook runs, the work is already gone.
+Only the force-push guard has an event, and `pre-push` is it.
+
+A pre-push hook receives its refs on stdin and cannot see the `--force` flag, so the guard
+compares ancestry instead: a non-fast-forward push means the remote commit is not an ancestor
+of the local one.
+
+### Hook fragments
+
+In a monorepo each package gets a real `.pre-commit-config.yaml`, and prek's
+workspace mode unions them with hooks namespaced `<dir>:<hook-id>`. Nothing
+merges.
+
+In one directory two language recipes cannot both write the root config, so
+`just hooks-merge` concatenates `.pre-commit.d/*.yaml`. prek skips dot-prefixed
+directories during discovery, so the fragment directory is invisible to it until
+that recipe runs.
+
+## Cross-recipe reads
+
+Two, both through `_external_data`, which resolves against the destination:
+
+| Recipe | Reads | For |
+|---|---|---|
+| `lang/rust` | `base/license` | the SPDX identifier for `Cargo.toml`, without which `cargo-deny` fails against the crate itself |
+| `docs/deploy-*` | `docs/site` | the engine and the site URL |
+
+The other shared values are threaded by the agent, which writes one answers file
+per recipe.
+
+## Dropped
+
+| Package | Reason |
+|---|---|
+| `hooks/manager` | prek is the manager; lefthook rewrites the configured hooks path |
+| `agentic/agentic` | per-harness configuration comes from a marketplace |
+| `agentic/agent-hooks` | same |
+| `docs/mkdocs` | starlight and fumadocs cover it |
+| `docs/starlight` | replaced by `docs/site`, which does not need a TypeScript project |
+| `iac/cloudformation` | absent from every repository surveyed |
+| `repo/gitlab-repo` | folded into `host/gitlab` |
+| `repo/package-add` | replaced by `just add`, owned by `workspace/monorepo` |

@@ -10,6 +10,7 @@ payload translation stays a pure function of the ruleset.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -20,6 +21,33 @@ import yaml
 
 class ValeUnavailable(Exception):
     """Vale is needed to validate a compiled rule and is not usable."""
+
+
+# The oldest Vale the compiled styles are known to load and match under. The
+# README documents it; before this probe nothing checked it, so a 3.14 binary
+# reused a tree compiled under 3.21 and reported findings with no unchecked note.
+MIN_VALE_VERSION = (3, 15, 0)
+
+
+def vale_version(binary: str = "vale") -> tuple[int, int, int] | None:
+    """The installed Vale's semantic version, or None when it cannot be read.
+
+    `vale --version` prints `vale version 3.21.0`; only the first three integers
+    are read, so a pre-release suffix does not break the parse.
+    """
+    resolved = shutil.which(binary)
+    if resolved is None:
+        return None
+    try:
+        completed = subprocess.run(
+            [resolved, "--version"], capture_output=True, text=True, timeout=30
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    match = re.search(r"(\d+)\.(\d+)\.(\d+)", completed.stdout + completed.stderr)
+    if match is None:
+        return None
+    return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
 
 
 def probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
@@ -104,6 +132,8 @@ def resolved_checks(config_path: Path, binary: str = "vale") -> set[str] | None:
     except json.JSONDecodeError:
         return None
     checks = data.get("Checks") if isinstance(data, dict) else None
-    if not isinstance(checks, list) or any(not isinstance(check, str) for check in checks):
+    if not isinstance(checks, list) or any(
+        not isinstance(check, str) for check in checks
+    ):
         return None
     return set(checks)

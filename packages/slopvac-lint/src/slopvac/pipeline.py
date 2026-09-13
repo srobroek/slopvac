@@ -25,9 +25,12 @@ from .config import (
     CategorySettings,
     Config,
     ConfigError,
+    LocalePatch,
+    Override,
     Profile,
     RuleSettings,
     Severity,
+    ThresholdPatch,
     find_config,
     load_config,
     resolve_blocklist_path,
@@ -206,12 +209,14 @@ def _compile_for(
     skipped.
     """
     resolved = resolve_for(config, sample)
+    # The resolved binary, not the top-level one: a path override may point one
+    # tree at another Vale, and the tree it compiles must be the one it runs.
     try:
         if validate:
             return compile_ruleset(
                 ruleset,
                 resolved,
-                binary=config.vale.binary,
+                binary=resolved.vale.binary,
                 validate=True,
                 vocabulary=vocabulary,
             ), []
@@ -220,7 +225,7 @@ def _compile_for(
                 ruleset,
                 resolved,
                 outdir=Path(directory),
-                binary=config.vale.binary,
+                binary=resolved.vale.binary,
                 validate=False,
                 vocabulary=vocabulary,
             )
@@ -424,7 +429,7 @@ def emit_report(
             # Workflow-command annotations, so findings land on the PR diff.
             summary = summarize(scores)
             lines = [
-                f"::{'error' if finding.severity is Severity.ERROR else 'warning'} "
+                f"::{'error' if finding.severity is Severity.ERROR else 'warning' if finding.severity is Severity.WARNING else 'notice'} "
                 f"file={finding.path},line={finding.line},"
                 f"col={finding.column},title={finding.rule_id}::{finding.message}"
                 for score in scores
@@ -471,33 +476,47 @@ def load_run_context(
     except ConfigError as exc:
         raise PipelineError(f"[red]config error[/]: {exc}") from None
 
-    if profile:
-        object.__setattr__(config, "profile", Profile(profile))
-    if min_score is not None:
-        config.thresholds.min_score = min_score
-    if max_per_100_words is not None:
-        config.thresholds.max_total_per_100_words = max_per_100_words
-    if locale_tag:
-        config.locale.default = locale_tag
-
-    # CLI disables are the last word, applied as config so the normal
-    # precedence chain still reports them under --explain-config.
+    cli_categories: dict[str, CategorySettings] = {}
+    cli_rules: dict[str, RuleSettings] = {}
     for entry in disabled:
         if "." in entry:
-            config.rules[entry] = RuleSettings(severity=Severity.OFF)
+            cli_rules[entry] = RuleSettings(severity=Severity.OFF)
         else:
-            config.categories[entry] = CategorySettings(severity=Severity.OFF)
+            cli_categories[entry] = CategorySettings(severity=Severity.OFF)
+    if (
+        profile
+        or min_score is not None
+        or max_per_100_words is not None
+        or locale_tag
+        or cli_categories
+        or cli_rules
+    ):
+        config.overrides.append(
+            Override(
+                files=["**"],
+                profile=Profile(profile) if profile else None,
+                thresholds=(
+                    ThresholdPatch(
+                        min_score=min_score,
+                        max_total_per_100_words=max_per_100_words,
+                    )
+                    if min_score is not None or max_per_100_words is not None
+                    else None
+                ),
+                locale=LocalePatch(default=locale_tag) if locale_tag else None,
+                categories=cli_categories,
+                rules=cli_rules,
+            )
+        )
 
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
         raise PipelineError(f"[red]ruleset error[/]: {exc}") from None
 
-    # The spelling rule is generated from the locale, so it is added after the
-    # YAML loads. A bad tag becomes an `unchecked` note rather than an exception:
-    # a typo here must not stop the other 200 rules from running.
+    # The spelling rule is generated from the final CLI locale.
     locale_note = inject_locale_rule(
-        ruleset, config.locale.default, config.locale.allow
+        ruleset, locale_tag or config.locale.default, config.locale.allow
     )
 
     # Before anything runs, and EXIT_ERROR rather than a warning: a project that
@@ -551,11 +570,20 @@ def group_inputs(
     groups: dict[str, list[Path]] = {}
     for path in paths:
         resolved = resolve_for(config, path)
-        vocabularies[path] = load_blocklist(
-            resolve_blocklist_path(resolved.vocabulary, config.root)
+        blocklist_path = resolve_blocklist_path(resolved.vocabulary, config.root)
+        vocabularies[path] = (
+            load_blocklist(blocklist_path) if blocklist_path is not None else Vocabulary()
         )
         levels = compiled_levels(ruleset, resolved)
-        key = vocabularies[path].fingerprint() + "|" + repr(sorted(levels.items()))
+        # The resolved Vale settings are part of the key: a path override that
+        # disables Vale for one tree must not ride along with files that run it.
+        key = "|".join(
+            (
+                vocabularies[path].fingerprint(),
+                repr(sorted(levels.items())),
+                repr(resolved.vale.model_dump()),
+            )
+        )
         groups.setdefault(key, []).append(path)
     return vocabularies, groups
 
@@ -574,14 +602,15 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
     scores: list[DocumentScore] = []
     for group in groups.values():
         vocabulary = vocabularies[group[0]]
-        # Every file in the group compiles to the same tree (`group_inputs`), so
-        # the first one stands for all of them here.
+        # Every file in the group compiles to the same tree and resolves to the
+        # same Vale settings (`group_inputs`), so the first one stands for all.
+        vale_settings = resolve_for(ctx.config, group[0]).vale
         compiled, compile_notes = _compile_for(
             group[0],
             ctx.config,
             ctx.ruleset,
             vocabulary,
-            validate=not no_vale and ctx.config.vale.enabled,
+            validate=not no_vale and vale_settings.enabled,
         )
 
         vale_result = None
@@ -591,14 +620,18 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 "the Vale styles could not be compiled, so no Vale rule ran. "
                 "Findings below come from the native rules only."
             )
-        elif no_vale:
-            run_notes.extend(unchecked_for_skipped(compiled))
-        elif ctx.config.vale.enabled:
+        elif no_vale or not vale_settings.enabled:
+            run_notes.extend(
+                unchecked_for_skipped(
+                    compiled, "--no-vale" if no_vale else "[vale] enabled = false"
+                )
+            )
+        else:
             severities, categories = vale_levels(
                 compiled, ctx.ruleset, ctx.config, group[0]
             )
             vale_result = run_compiled_vale(
-                group, compiled, severities, categories, binary=ctx.config.vale.binary
+                group, compiled, severities, categories, binary=vale_settings.binary
             )
 
         # When Vale ran, it owns its rules and the native engine must not repeat
@@ -607,20 +640,12 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
         # different parsing and scope semantics.
         native_only = None
         if compiled is not None:
-            if vale_result is not None:
-                owned = set(compiled.vale_rules) | set(compiled.aliases.values())
-                native_only = {
-                    rule.qualified_id
-                    for rule in ctx.ruleset.rules
-                    if rule.qualified_id not in owned
-                }
-            elif no_vale or not ctx.config.vale.enabled:
-                owned = set(compiled.vale_rules) | set(compiled.aliases.values())
-                native_only = {
-                    rule.qualified_id
-                    for rule in ctx.ruleset.rules
-                    if rule.qualified_id not in owned
-                }
+            owned = set(compiled.vale_rules) | set(compiled.aliases.values())
+            native_only = {
+                rule.qualified_id
+                for rule in ctx.ruleset.rules
+                if rule.qualified_id not in owned
+            }
 
         scores.extend(
             lint_one(p, ctx.config, ctx.ruleset, vale_result, run_notes, native_only)

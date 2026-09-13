@@ -4,7 +4,7 @@ description: >-
   Markup and typography defects. Two are house bans with one correct answer; one
   measures paragraph mass.
 weight: 0.8
-recommended_for: [consumer-docs, internal-docs, change-comms, source-comments]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: no-unicode-dash
     name: Write ASCII double-hyphen instead of an em or en dash
@@ -15,7 +15,7 @@ rules:
     tiers:
       strict: enforced
       normal: enforced
-      relaxed: enforced
+      relaxed: advisory
     pattern: '[—–]'
     ignore_case: false
     fix: Replace with `--`, a comma, a colon, or two sentences. For a range, write "to".
@@ -37,6 +37,14 @@ rules:
         and raw found all 4. Also measured for source comments: 172 hits, all real
         U+2014/U+2013 (206 Unicode dashes against 2,591 ASCII `--` across the same
         55 files), which is why .vale.ini puts it in the source allowlist at error.
+        Kept at error after the 2026-09-12 audit weighed a demotion: the character
+        is the strongest single origin signal in the corpora (6.79 per 1,000 words
+        in unguided model prose against 0.28 in pre-2022 human prose, a 24x ratio;
+        15x with the genre held to READMEs), and demoting it to warning let 11 more
+        of 48 unguided model documents pass the `normal` gate while the human cost
+        of the error was 6 dashes in 27k words. ai-tells-formatting.em-dash-density
+        carries the per-document density signal. Advisory at relaxed: an issue
+        comment may keep its dashes.
         Go->Python: Vale's `\x{2014}` hex-brace form is rewritten as `—`.
 
   - id: emoji-heading
@@ -74,7 +82,7 @@ rules:
     scope: paragraph
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     metric: paragraph_words
     threshold: 80

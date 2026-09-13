@@ -5,7 +5,7 @@ description: >-
   defended in place, an implementation cost the reader cannot act on, a
   reassurance answering a worry nobody raised, a closing flourish.
 weight: 1.0
-recommended_for: [consumer-docs, change-comms]
+recommended_for: [consumer, change-comms]
 rules:
   - id: rejected-alternative
     name: Move the decision to an ADR, spec, or commit

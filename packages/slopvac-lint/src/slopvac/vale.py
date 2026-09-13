@@ -80,6 +80,19 @@ def run_compiled_vale(
         )
         return result
 
+    from .vale_probe import MIN_VALE_VERSION, vale_version
+
+    version = vale_version(binary)
+    if version is None or version < MIN_VALE_VERSION:
+        floor = ".".join(str(n) for n in MIN_VALE_VERSION)
+        found = ".".join(str(n) for n in version) if version else "an unreadable version"
+        result.unchecked.append(
+            f"`{binary}` reports {found}; the compiled styles need Vale {floor} or "
+            f"later, so the {len(compiled.vale_rules)} rules compiled for it did NOT "
+            f"run. Upgrade Vale, or pass --no-vale to acknowledge the gap."
+        )
+        return result
+
     config_path = Path(compiled.config_path)
     if not config_path.is_file():
         result.unchecked.append(
@@ -157,7 +170,9 @@ def run_compiled_vale(
 
     raw = completed.stdout.strip()
     if not raw:
-        result.unchecked.append("Vale returned no JSON report; its rules were not verified.")
+        result.unchecked.append(
+            "Vale returned no JSON report; its rules were not verified."
+        )
         return result
     try:
         data = json.loads(raw)
@@ -174,10 +189,18 @@ def run_compiled_vale(
         )
         return result
 
+    line_lengths: dict[str, list[int]] = {}
     for path, alerts in data.items():
         if not isinstance(alerts, list):
             result.unchecked.append(f"Vale returned invalid alerts for {path}.")
             continue
+        if path not in line_lengths:
+            try:
+                line_lengths[path] = [
+                    len(text) for text in Path(path).read_text(encoding="utf-8").split("\n")
+                ]
+            except (OSError, UnicodeDecodeError):
+                line_lengths[path] = []
         for alert in alerts:
             if (
                 not isinstance(alert, dict)
@@ -200,6 +223,13 @@ def run_compiled_vale(
             check: str = alert["Check"]
             line: int = alert["Line"]
             span: list[int] = alert["Span"]
+            # Vale measures the span in its normalised paragraph, so a match that
+            # wraps onto the next source line ends past the reported line. `Finding`
+            # carries no end line; the range stops where the line does.
+            end_column = span[1] + 1
+            lengths = line_lengths[path]
+            if 0 < line <= len(lengths):
+                end_column = min(end_column, lengths[line - 1] + 1)
             severity = severities.get(check)
             if severity is None:
                 # Vale reported a rule we did not compile. Keep it at the level
@@ -208,13 +238,17 @@ def run_compiled_vale(
                 # stray style on the StylesPath.
                 severity = SEVERITY_MAP.get(alert["Severity"], Severity.WARNING)
             category: str = categories.get(check, check.split(".", 1)[0])
+            # A generated check (a vocabulary part-of-speech rule, the punctuation
+            # companion of a split substitution map) reports under the rule that
+            # owns it; that is the id a suppression annotation or config names.
+            owner = getattr(compiled, "aliases", {}).get(check, check)
             result.by_path.setdefault(path, []).append(
                 Finding(
                     path=path,
                     line=line,
                     column=span[0],
-                    end_column=span[1],
-                    rule_id=check,
+                    end_column=end_column,
+                    rule_id=owner,
                     category=category,
                     severity=severity,
                     message=alert["Message"].strip(),
@@ -224,18 +258,19 @@ def run_compiled_vale(
     return result
 
 
-def unchecked_for_skipped(compiled) -> list[str]:
-    """The note that `--no-vale` produces.
+def unchecked_for_skipped(compiled, cause: str = "--no-vale") -> list[str]:
+    """The note that skipping Vale produces, naming what skipped it.
 
-    Skipping Vale now skips most of the ruleset, so the rules that would have run
-    are reported as unchecked rather than dropped. A gate that silently stops
-    checking most of its rules while still printing a score is the exact failure
-    mode this project refuses to ship.
+    Skipping Vale skips most of the ruleset, so the rules that would have run are
+    reported as unchecked rather than dropped. A gate that silently stops checking
+    most of its rules while still printing a score is the exact failure mode this
+    project refuses to ship. `cause` is the flag or setting responsible, because
+    `--no-vale` and `[vale] enabled = false` are fixed in different places.
     """
     if not compiled.vale_rules:
         return []
     return [
-        f"--no-vale skipped the Vale engine, so {len(compiled.vale_rules)} of the "
+        f"{cause} skipped the Vale engine, so {len(compiled.vale_rules)} of the "
         f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
         f"did NOT run. The score below reflects only the "
         f"{len(compiled.native_rules)} rules that stayed native."

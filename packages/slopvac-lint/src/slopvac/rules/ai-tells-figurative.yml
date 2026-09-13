@@ -23,7 +23,7 @@ description: >-
   register reaches for a spatial or athletic metaphor where the literal
   relation was available: what something is, where it is, what it lacks.
 weight: 1.2
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: figurative-sits
     name: Name the literal relation
@@ -317,7 +317,7 @@ description: >-
   Promotional register: travel-brochure puffery, strategy-deck vocabulary, and
   the adjective-noun and verb habits that carry a claim no measurement backs.
 weight: 1.2
-recommended_for: [consumer-docs, change-comms]
+recommended_for: [consumer, change-comms]
 rules:
   - id: promotional-puffery
     name: Use neutral, specific language

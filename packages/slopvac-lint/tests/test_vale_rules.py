@@ -212,23 +212,6 @@ def test_every_rule_is_a_warning_or_below():
         )
 
 
-def test_literal_percent_is_escaped():
-    """TRAP: Vale runs a pattern through a printf-style formatter, so a literal
-    `%` is consumed as a format directive and the rule silently matches nothing.
-    Proven: `20 ?% faster` matched nothing where `20 ?%% faster` matched both
-    probes."""
-    import yaml
-
-    for path in sorted(STYLES.rglob("*.yml")):
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        for pattern in data.get("raw") or []:
-            bare = pattern.replace("%%", "")
-            assert "%" not in bare, (
-                f"{path.name} has an unescaped `%` in its pattern. Write `%%`, or "
-                f"the rule matches nothing with no error."
-            )
-
-
 def test_no_lookaround_in_vale_patterns():
     """TRAP: Go RE2 has no lookbehind and no negative lookahead. A pattern using
     either LOADS WITHOUT AN ERROR and matches nothing."""

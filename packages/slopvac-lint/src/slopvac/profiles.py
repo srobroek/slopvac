@@ -22,7 +22,7 @@ gates on density alone.
 
 from __future__ import annotations
 
-from .config import CategorySettings, Profile, Severity
+from .config import CategorySettings, Profile, RuleSettings, Severity
 
 # Every category the shipped ruleset defines. Kept here rather than derived from
 # the YAML so that a profile is a complete, reviewable statement of policy: a new
@@ -162,17 +162,57 @@ def profile_defaults(profile: Profile) -> dict[str, CategorySettings]:
         for name, settings in _PROFILES[profile].items()
     }
 
+# Per-rule dials a profile sets below its own category level. A category severity
+# SETS every enforced rule in it, so a rule that ships at `warning` inside an
+# `error` category reports as an error regardless; this is for a rule whose
+# category the profile stands behind while the rule itself is a house-style
+# choice that should spend the budget rather than fail `max_errors = 0`.
+# Measured in the 2026-09-12 audit on 21k words of pre-2022 human prose:
+# `in order to` and its siblings produced 21 of the 132 errors, every one a real
+# match and none with a counterpart in model prose (0 hits in 9.9k words). The
+# Unicode dash was considered for the same treatment and kept at error: it is the
+# strongest single origin signal in the corpora (24x denser in model prose) and
+# cost 6 hits in the human corpus. Profile defaults, not authored settings, so a
+# project's own `[rules."..."]` entry still wins.
+_NORMAL_RULES: dict[str, RuleSettings] = {
+    "orwell.compound-preposition": RuleSettings(severity=Severity.WARNING),
+    # A genuine correction ("The limit is 100. It is not configurable.") shares
+    # the shape with the tell, so the reviewer settles it: warning, never error.
+    "ai-tells-structure.definitional-negation-pair": RuleSettings(
+        severity=Severity.WARNING
+    ),
+}
+
+_STRICT_RULES: dict[str, RuleSettings] = {
+    "ai-tells-structure.definitional-negation-pair": RuleSettings(
+        severity=Severity.WARNING
+    ),
+}
+
+_PROFILE_RULES: dict[Profile, dict[str, RuleSettings]] = {
+    Profile.STRICT: _STRICT_RULES,
+    Profile.NORMAL: _NORMAL_RULES,
+    Profile.RELAXED: {},
+}
+
+
+def profile_rule_defaults(profile: Profile) -> dict[str, RuleSettings]:
+    """Per-rule settings for a profile, copied like `profile_defaults`."""
+    return {
+        name: settings.model_copy() for name, settings in _PROFILE_RULES[profile].items()
+    }
+
 
 def genre_recommendation(genre: str) -> Profile:
     """Map a document genre to the profile that suits it.
 
-    Used by the skill to recommend rather than ask: a runbook wants strict, a
-    README wants normal, an issue comment wants relaxed.
+    The genre vocabulary is the write-docs skill's: `consumer`, `internal`,
+    `change-comms`, `reference`, `informal`. Reference material (API docs,
+    runbooks, procedures, safety text) wants strict; informal prose (issue
+    comments, discussion replies, blog posts) wants relaxed; the rest normal.
     """
-    strict = {"reference", "api-docs", "runbook", "spec", "procedure", "safety"}
-    relaxed = {"issue", "comment", "note", "draft", "chat", "scratch"}
-    if genre in strict:
+    if genre == "reference":
         return Profile.STRICT
-    if genre in relaxed:
+    if genre == "informal":
         return Profile.RELAXED
     return Profile.NORMAL

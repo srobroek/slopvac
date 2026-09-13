@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 0.5
   normal: 1.0
-recommended_for: [reference, runbook, api-docs, readme]
+recommended_for: [reference, consumer]
 rules:
   - id: multiword-noun-too-long
     name: Keep a noun stack to three words
@@ -19,7 +19,7 @@ rules:
     comparison: gt
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     exceptions:
       - identifier-fidelity

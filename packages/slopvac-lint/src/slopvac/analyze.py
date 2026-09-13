@@ -38,6 +38,7 @@ stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 from __future__ import annotations
 
 import itertools
+from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
 from html.parser import HTMLParser
@@ -51,7 +52,12 @@ from .model import TextType
 
 FRONT_MATTER = re.compile(r"^---\s*$")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
-INLINE_CODE = re.compile(r"`[^`\n]+`")
+# CommonMark closes a code span with a backtick run exactly as long as its
+# opener. Equal-length runs may contain shorter runs, so a single-backtick
+# expression leaks valid ``code ` — here`` spans into markup metrics.
+INLINE_CODE = re.compile(
+    r"(?<!`)(?P<ticks>`+)(?P<body>.*?)(?<!`)(?P=ticks)(?!`)", re.S
+)
 
 
 # Not prose: machinery, and code, which the markdown side already leaves alone as
@@ -161,6 +167,18 @@ class Block:
     text: str
     sentences: list[Sentence] = field(default_factory=list)
     level: int = 0
+    # Each entry is (offset in normalized text, source line). Wrapped pieces
+    # are joined with one space for matching, while their starts remain mapped
+    # to the physical lines that supplied them.
+    line_starts: list[tuple[int, int]] = field(default_factory=list)
+
+    def position(self, offset: int) -> tuple[int, int]:
+        """Map a normalized text offset to its physical source line/column."""
+        if not self.line_starts:
+            return self.lines[0], offset + 1
+        index = max(0, bisect_right(self.line_starts, (offset, float("inf"))) - 1)
+        start, line = self.line_starts[index]
+        return line, offset - start + 1
 
 
 @dataclass
@@ -199,8 +217,7 @@ class Document:
 
         `prose_text` cannot serve: it strips the emphasis markers and dashes that a
         formatting rule counts. This keeps the raw line but drops code blocks, front
-        matter, and inline code spans, so `**kwargs` in a snippet is not a bold span
-        and a `--flag` in a command is not a dash.
+        matter, and every CommonMark inline code span, regardless of delimiter length.
         """
         skip: set[int] = set()
         for block in self.blocks:
@@ -336,7 +353,9 @@ def _inline_prose(token) -> str:
         elif child.type == "code_inline":
             parts.append(" \x00 ")
         elif child.type in ("softbreak", "hardbreak"):
-            parts.append(" ")
+            # Keep the physical boundary in the rendered block. The parser later
+            # joins pieces with one matching space and records each piece's line.
+            parts.append("\n")
         elif child.type == "image":
             # Alt text is prose; the src is not.
             parts.append(child.attrGet("alt") or "")
@@ -457,10 +476,21 @@ def parse(path: str, raw: str) -> Document:
     table_cells: list[str] | None = None
     table_start = 0
     kind_stack: list[BlockKind] = []
-    heading_level = 0
-
-    def record(kind: BlockKind, first: int, last: int, text: str, level: int = 0) -> None:
-        block = Block(kind=kind, lines=(first, last), text=text, level=level)
+    def record(
+        kind: BlockKind,
+        first: int,
+        last: int,
+        text: str,
+        line_starts: list[tuple[int, int]],
+        level: int = 0,
+    ) -> None:
+        block = Block(
+            kind=kind,
+            lines=(first, last),
+            text=text,
+            level=level,
+            line_starts=line_starts,
+        )
         block.sentences = split_sentences(text, first)
         blocks.append(block)
 
@@ -478,6 +508,7 @@ def parse(path: str, raw: str) -> Document:
                 kind=BlockKind.TABLE,
                 lines=(table_start, table_start),
                 text=" ".join(table_cells or []),
+                line_starts=[(0, table_start)],
             )
             for cell in table_cells or []:
                 if WORDLIKE.search(cell):
@@ -526,35 +557,39 @@ def parse(path: str, raw: str) -> Document:
         if token.type != "inline" or token.map is None:
             continue
 
-        text = _inline_prose(token)
+        rendered = _inline_prose(token)
         first = token.map[0] + 1 + offset
         last = token.map[1] + offset
 
         if table_cells is not None:
-            table_cells.append(text)
+            table_cells.append(rendered.replace("\n", " "))
             if 0 < first <= len(prose_lines):
                 existing = prose_lines[first - 1]
-                prose_lines[first - 1] = f"{existing} {text}".strip()
+                prose_lines[first - 1] = f"{existing} {rendered}".strip()
             continue
 
-        # A multi-line paragraph is one block, and its prose is projected onto the
-        # line each source line came from so a finding points at the right one.
+        # Keep one normalized block for matching, but retain the source line for
+        # every non-empty piece. This makes paragraph/sentence patterns span soft
+        # breaks without flattening their findings onto the first line.
         source = raw_lines[first - 1 : last]
-        pieces = text.split("\n") if "\n" in text else None
-        if pieces and len(pieces) == len(source):
-            for index, piece in enumerate(pieces):
-                prose_lines[first - 1 + index] = piece.strip()
-            text = " ".join(p.strip() for p in pieces)
-        else:
-            for index in range(first - 1, min(last, len(prose_lines))):
-                prose_lines[index] = ""
-            if 0 < first <= len(prose_lines):
-                prose_lines[first - 1] = text
-
+        pieces = rendered.split("\n")
+        if len(pieces) < len(source):
+            pieces.extend([""] * (len(source) - len(pieces)))
+        normalized: list[str] = []
+        line_starts: list[tuple[int, int]] = []
+        for index, piece in enumerate(pieces[: len(source)]):
+            clean = piece.strip()
+            if clean:
+                if normalized:
+                    normalized.append(" ")
+                line_starts.append((sum(len(part) for part in normalized), first + index))
+                normalized.append(clean)
+            if 0 < first + index <= len(prose_lines):
+                prose_lines[first + index - 1] = clean
+        text = "".join(normalized)
         # A list item holding a paragraph reports as the ITEM, not the paragraph:
-        # markdown-it wraps every item body in a paragraph, and STE 8.4 counts the
-        # item. So the innermost non-paragraph container wins, and a bare
-        # paragraph falls back to PARAGRAPH.
+        # markdown-it wraps every item body in a paragraph, and STE 8.4 counts
+        # the item. The innermost non-paragraph container wins.
         kind = BlockKind.PARAGRAPH
         for candidate in reversed(kind_stack):
             if candidate is BlockKind.PARAGRAPH:
@@ -562,7 +597,14 @@ def parse(path: str, raw: str) -> Document:
             if candidate in (BlockKind.HEADING, BlockKind.LIST_ITEM, BlockKind.QUOTE):
                 kind = candidate
                 break
-        record(kind, first, last, text, heading_level if kind is BlockKind.HEADING else 0)
+        record(
+            kind,
+            first,
+            last,
+            text,
+            line_starts,
+            heading_level if kind is BlockKind.HEADING else 0,
+        )
 
     # HTML comments can span lines; blank them after block assignment so a
     # suppression annotation is not itself linted.

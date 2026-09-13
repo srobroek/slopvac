@@ -5,7 +5,7 @@ weight: 1.2
 max_per_100_words:
   strict: 1.0
   normal: 2.0
-recommended_for: [runbook, api-docs, reference]
+recommended_for: [reference]
 rules:
   - id: sentence-too-long-procedural
     name: Keep an instruction to twenty words
@@ -126,7 +126,7 @@ rules:
     text_type: procedural
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     pattern: '^\s*[A-Z][a-z]+\b[^.!?]*?\s+(if|when|once|unless|after|before|while)\s+[^.!?]*[.!?]?\s*$'
     ignore_case: false

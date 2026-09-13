@@ -255,7 +255,11 @@ class SarifLog(BaseModel):
 
 
 def _sarif_level(severity: Severity) -> SarifLevel:
-    return "error" if severity is Severity.ERROR else "warning"
+    if severity is Severity.ERROR:
+        return "error"
+    if severity is Severity.SUGGESTION:
+        return "note"
+    return "warning"
 
 
 def rule_help_markdown(rule: Rule) -> str:

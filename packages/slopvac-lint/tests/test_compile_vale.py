@@ -23,6 +23,7 @@ import pytest
 
 from slopvac.analyze import count_words
 from slopvac.compile_vale import (
+    PUNCTUATION_COMPANION,
     STE_WORD_TOKEN,
     _occurrence_bound,
     compile_ruleset,
@@ -197,6 +198,60 @@ def test_rejected_pattern_stays_native(ruleset, tmp_path, vocabulary, monkeypatc
     assert rule.qualified_id not in result.vale_rules
     assert "Vale rejected" in result.native_reasons()[rule.qualified_id]
 
+
+@needs_vale
+def test_a_split_substitution_map_keeps_its_replacements(compiled, tmp_path):
+    """`prose-craft.latinisms` mixes word keys (`via`) with punctuation-ending
+    keys (`e.g.`). One punctuation key used to degrade the whole map to an
+    `existence` rule, so Vale said "a simpler word" for `via` too. The word keys
+    now compile as a real substitution and keep their replacement; the
+    punctuation keys ride in the aliased `--punct` companion."""
+    alerts = _lint(
+        compiled.config_path,
+        "Send it via the queue.\n\nUse the queue, e.g. for retries.\n",
+        tmp_path,
+        name="latinisms.md",
+    )
+    by_line = {alert["Line"]: alert for alert in alerts if "latinisms" in alert["Check"]}
+    assert by_line[1]["Check"] == "prose-craft.latinisms"
+    assert "through" in by_line[1]["Message"]
+    assert by_line[3]["Check"] == "prose-craft.latinisms--punct"
+    assert compiled.aliases["prose-craft.latinisms--punct"] == "prose-craft.latinisms"
+
+def test_paragraph_scoped_lexical_rules_stay_native(compiled, ruleset, tmp_path):
+    """Vale's `paragraph` scope is the CommonMark paragraph node only, so a
+    paragraph-scoped pattern compiled to Vale reported nothing on a bullet, a
+    numbered item, or a quote carrying the tell. Native matches every block."""
+    paragraph_rules = [
+        r.qualified_id
+        for r in ruleset.rules
+        if r.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
+        and r.scope is Scope.PARAGRAPH
+    ]
+    assert "ai-tells-structure.definitional-negation-pair" in paragraph_rules
+    for rule_id in paragraph_rules:
+        assert rule_id not in compiled.vale_rules
+        assert "list items" in compiled.native_reasons()[rule_id]
+
+    document = tmp_path / "blocks.md"
+    document.write_text(
+        "- **Generated code is committed.** Not because we like it, but because it shows.\n"
+        "\n"
+        "1. The parser is a library. It is not a compiler.\n"
+        "\n"
+        "> The parser is a library. It is not a compiler.\n",
+        encoding="utf-8",
+    )
+    from slopvac.analyze import parse
+    from slopvac.engine import Engine
+
+    engine = Engine(ruleset.rules, resolve_for(Config(), document))
+    lines = [
+        f.line
+        for f in engine.run(parse(str(document), document.read_text()))
+        if f.rule_id == "ai-tells-structure.definitional-negation-pair"
+    ]
+    assert lines == [1, 3, 5]
 
 @needs_vale
 def test_a_rejected_pattern_never_reaches_the_style_tree(compiled):
@@ -522,10 +577,17 @@ def test_every_compiled_lexical_rule_fires_on_its_own_example(compiled, ruleset,
     A rule whose example stopped matching after compilation is a rule that reports
     every document clean. Asserted for all of them at once, because the failure is
     silent per rule and only a sweep finds it.
+
+    A miss in the sweep is settled by linting that one example on its own. Vale
+    3.21 dropped one `substitution` alert from an otherwise identical 226-alert
+    run on a 116-example document in 1 of 6 repeats under CPU load (the same
+    bytes, same config, same path); a rule that genuinely stopped matching fails
+    the single-example run too, while the race does not reproduce on one line.
     """
     lexical = (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
     lines: list[str] = []
     expected: dict[int, str] = {}
+    example_text: dict[str, str] = {}
     for rule in ruleset.rules:
         if rule.kind not in lexical or rule.qualified_id not in compiled.vale_rules:
             continue
@@ -538,17 +600,40 @@ def test_every_compiled_lexical_rule_fires_on_its_own_example(compiled, ruleset,
             if rule.scope.value == "heading":
                 text = f"# {text}"
             expected[len(lines) + 1] = rule.qualified_id
+            example_text[rule.qualified_id] = text
             lines.extend([text, ""])
 
-    alerts = _lint(compiled.config_path, "\n".join(lines) + "\n", tmp_path, name="examples.md")
-    fired: dict[int, set[str]] = {}
-    for alert in alerts:
-        fired.setdefault(alert["Line"], set()).add(alert["Check"])
+    def owners(alerts: list[dict]) -> dict[int, set[str]]:
+        fired: dict[int, set[str]] = {}
+        for alert in alerts:
+            # A split substitution rule reports its punctuation keys under an
+            # aliased companion check; the finding belongs to the owning rule.
+            check = compiled.aliases.get(alert["Check"], alert["Check"])
+            fired.setdefault(alert["Line"], set()).add(check)
+        return fired
 
+    fired = owners(
+        _lint(compiled.config_path, "\n".join(lines) + "\n", tmp_path, name="examples.md")
+    )
     missing = [
         rule_id for line, rule_id in expected.items() if rule_id not in fired.get(line, set())
     ]
-    assert not missing, f"compiled rules that no longer fire on their own example: {missing}"
+    still_missing = [
+        rule_id
+        for rule_id in missing
+        if rule_id
+        not in owners(
+            _lint(
+                compiled.config_path,
+                example_text[rule_id] + "\n",
+                tmp_path,
+                name=f"{rule_id}.md",
+            )
+        ).get(1, set())
+    ]
+    assert not still_missing, (
+        f"compiled rules that no longer fire on their own example: {still_missing}"
+    )
 
 
 # --- vocabulary ---------------------------------------------------------------
@@ -915,7 +1000,11 @@ def test_only_one_rule_owns_the_vocabulary_sweep(compiled, tmp_path):
     answers one question, so one rule owns the sweep and the rest are reported as
     native with the reason.
     """
-    owners = {compiled.aliases[check] for check in compiled.aliases}
+    owners = {
+        owner
+        for check, owner in compiled.aliases.items()
+        if not check.endswith(PUNCTUATION_COMPANION)
+    }
     assert len(owners) == 1, f"more than one vocabulary rule compiled: {owners}"
 
     alerts = _lint(compiled.config_path, "We leverage the seamless approach.\n", tmp_path)

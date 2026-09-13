@@ -1,0 +1,54 @@
+{
+ "topics": {
+  "readme-ratelimit": {
+   "genre": "consumer",
+   "profile": "normal",
+   "prompt": "Write the README for `gatekeep`, a Go library that implements a token-bucket rate limiter with per-key buckets, a Redis store and an in-memory store, and a middleware for `net/http`. It exposes `Allow(key)`, `Wait(ctx, key)`, and a `Limiter` config struct with `Rate`, `Burst`, and `TTL`. Audience: a Go developer who has not seen it before."
+  },
+  "api-ref-search": {
+   "genre": "reference",
+   "profile": "strict",
+   "prompt": "Write the reference documentation for a full-text search endpoint. `GET /v1/search` takes `q` (required), `filter` (repeatable, `field:value`), `limit` (1-100, default 20), `cursor` (opaque, from the previous response), and `rank` (`relevance` or `recency`). It returns 200 with `hits[]`, `next_cursor`, and `took_ms`; 400 for a malformed filter; 401 when the key is missing; 413 when `q` exceeds 1,024 bytes; 429 with `Retry-After` at 60 requests per minute. Audience: an integrator."
+  },
+  "runbook-cert-rotation": {
+   "genre": "reference",
+   "profile": "strict",
+   "prompt": "Write the runbook for rotating an expiring TLS certificate on an internal ingress with six nodes. It covers checking the expiry, staging the new certificate to two nodes first, verifying with `openssl s_client`, rolling to the remaining four, and rolling back by re-pointing the secret to the previous version. Reloading a node drops its open connections. Audience: an on-call engineer who has not done this before."
+  },
+  "adr-monorepo": {
+   "genre": "internal",
+   "profile": "normal",
+   "prompt": "Write the architecture decision record for moving four repositories into one monorepo. Constraints: six developers, a CI cost cap of 2,000 minutes per month, and protobuf schemas shared by three of the four services. Git submodules were rejected because schema versions drifted twice in production; a meta-repo tool was rejected on learning cost. Audience: a contributor in a year's time."
+  },
+  "pr-retry-backoff": {
+   "genre": "change-comms",
+   "profile": "normal",
+   "prompt": "Write the pull request description for a change that replaces a fixed one-second retry with exponential backoff and jitter (base 200 ms, cap 30 s, six attempts), makes the HTTP client honour `Retry-After`, and fixes a bug where a 429 response was counted as success. It touches three files and adds four tests. Audience: a reviewer."
+  },
+  "guide-cli-plugins": {
+   "genre": "consumer",
+   "profile": "normal",
+   "prompt": "Write the user guide for writing a plugin for the `tool` CLI. A plugin is a directory with a `plugin.toml` manifest (`name`, `version`, `entrypoint`), discovered from `~/.tool/plugins` and `./.tool/plugins`, with the project directory winning on a name clash. It can implement three hooks: `pre-run`, `post-run`, and `on-error`. `tool plugin test <dir>` runs a plugin against a recorded session. Audience: a developer writing their first plugin."
+  },
+  "release-notes-3-0": {
+   "genre": "change-comms",
+   "profile": "normal",
+   "prompt": "Write the release notes for v3.0 of `confparse`, a configuration-file library. Breaking: YAML anchor support was removed, and `load()` was renamed to `parse()`. New: schema validation from a JSON Schema file, and `${VAR}` environment-variable interpolation. Fixed: a crash on an empty file, and duplicate keys were silently taking the last value and now raise. Audience: an existing user upgrading."
+  },
+  "blog-caching": {
+   "genre": "informal",
+   "profile": "relaxed",
+   "prompt": "Write a blog post from an engineering team explaining why they switched their product catalog cache from TTL-based expiry to event-driven invalidation. Measured result over four weeks: stale reads fell from 3.1% to 0.04% of requests, p99 latency was unchanged at 41 ms, and the invalidation queue peaked at 1,200 events per second on a sale day. Audience: other engineers."
+  }
+ },
+ "models": {
+  "anthropic-haiku45": "amazon-bedrock/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "anthropic-sonnet5": "amazon-bedrock/global.anthropic.claude-sonnet-5",
+  "anthropic-opus5-high": "amazon-bedrock/global.anthropic.claude-opus-5:high",
+  "openai-luna": "bedrock-mantle/openai.gpt-5.6-luna:auto",
+  "openai-sol-medium": "bedrock-mantle/openai.gpt-5.6-sol:medium",
+  "openai-sol-high": "bedrock-mantle/openai.gpt-5.6-sol:high"
+ },
+ "system_unguided": "You are a technical writer. Write the requested document in Markdown. Output only the document, with no preamble and no closing remarks.",
+ "steering_source": "write-docs/SKILL.md Sentence rules + references at origin/main 3c99532"
+}

@@ -45,6 +45,7 @@ from typing import Any
 import regex as re
 
 from .analyze import (
+    Block,
     BlockKind,
     Document,
     coordinated_items,
@@ -52,7 +53,7 @@ from .analyze import (
     longest_noun_stack,
 )
 from .config import ResolvedConfig, Severity
-from .metrics import NATIVE_METRICS, WORD_CAPS, _list_stem_lines, document_metric
+from .metrics import NATIVE_METRICS, WORD_CAPS, document_metric
 from .model import Finding, Rule, RuleKind, Scope, TextType, Tier
 from .suppression import Suppression, is_suppressed, scan_suppressions
 
@@ -329,8 +330,11 @@ def build_substitution_pattern(substitutions: dict[str, str]) -> str:
 # `\b(?:e\.g\.)(?=[\s,])` matches "e.g." inside a sentence, but re-testing it
 # against the bare string "e.g." fails, because the space it looks ahead for is
 # outside the span. Stripping the assertions is what makes the reverse lookup work.
-_TRAILING_ASSERTION = re.compile(r"\((?:\?=|\?!|\?<=|\?<!)[^)]*\)$")
-_LEADING_ASSERTION = re.compile(r"^\((?:\?=|\?!|\?<=|\?<!)[^)]*\)")
+# One level of grouping inside the assertion is allowed, so
+# `\bfeatures(?=\s+(?:a|an|the)\b)` strips as well as the flat form.
+_ASSERTION_BODY = r"(?:\?=|\?!|\?<=|\?<!)(?:[^()]|\([^()]*\))*"
+_TRAILING_ASSERTION = re.compile(rf"\({_ASSERTION_BODY}\)$")
+_LEADING_ASSERTION = re.compile(rf"^\({_ASSERTION_BODY}\)")
 
 
 def match_substitution(substitutions: dict[str, str], matched: str) -> str | None:
@@ -638,17 +642,71 @@ class Engine:
 
         findings.sort(key=lambda f: (f.line, f.column, f.rule_id))
         return findings
+    def _lines_for_scope(
+        self, rule: Rule, document: Document
+    ) -> list[tuple[Block | None, int, str]]:
+        """Return matching spans with their containing block and text offset.
 
-    def _lines_for_scope(self, rule: Rule, document: Document) -> list[tuple[int, str]]:
+        Native lexical rules must match the same whole paragraph/sentence that Vale
+        sees, not a flattened physical line. `Block.position` then translates the
+        match offset back to the source line and column without losing soft breaks.
+        """
         if rule.scope is Scope.RAW:
-            return [(i + 1, line) for i, line in enumerate(document.raw_lines)]
+            return [(None, i, line) for i, line in enumerate(document.raw_lines)]
+
+        prose_kinds = {
+            BlockKind.PARAGRAPH,
+            BlockKind.LIST_ITEM,
+            BlockKind.QUOTE,
+            BlockKind.HEADING,
+            BlockKind.TABLE,
+        }
+        blocks = [b for b in document.blocks if b.kind in prose_kinds]
         if rule.scope is Scope.HEADING:
-            return [
-                (b.lines[0], b.text)
-                for b in document.blocks
-                if b.kind is BlockKind.HEADING
-            ]
-        return [(i + 1, line) for i, line in enumerate(document.prose_lines) if line]
+            return [(b, 0, b.text) for b in blocks if b.kind is BlockKind.HEADING]
+
+        if rule.scope is Scope.DOCUMENT:
+            parts: list[str] = []
+            starts: list[tuple[int, int]] = []
+            offset = 0
+            for block in blocks:
+                if not block.text:
+                    continue
+                if parts:
+                    parts.append(" ")
+                    offset += 1
+                for local, line in block.line_starts or [(0, block.lines[0])]:
+                    starts.append((offset + local, line))
+                parts.append(block.text)
+                offset += len(block.text)
+            if not parts:
+                return []
+            text = "".join(parts)
+            synthetic = Block(
+                kind=BlockKind.PARAGRAPH,
+                lines=(starts[0][1], starts[-1][1]),
+                text=text,
+                line_starts=starts,
+            )
+            return [(synthetic, 0, text)]
+
+        if rule.scope is Scope.SENTENCE:
+            spans: list[tuple[Block | None, int, str]] = []
+            for block in blocks:
+                cursor = 0
+                for sentence in block.sentences:
+                    local = block.text.find(sentence.text, cursor)
+                    if local < 0:
+                        local = block.text.find(sentence.text)
+                    if local < 0:
+                        local = 0
+                    spans.append((block, local, sentence.text))
+                    cursor = local + len(sentence.text)
+            return spans
+
+        # Both prose and paragraph scopes operate on whole rendered blocks. The
+        # distinction is retained in the rule data for Vale and future routing.
+        return [(block, 0, block.text) for block in blocks if block.text]
 
     def _run_lexical(
         self,
@@ -662,25 +720,46 @@ class Engine:
             return []
         severity = self.severity_for(rule)
         allowed = {a.lower() for a in rule.allowlist}
+        allowed_phrases = [entry for entry in allowed if " " in entry]
         results: list[Finding] = []
 
-        for number, text in self._lines_for_scope(rule, document):
-            if self._suppressed(rule, number, suppressions, disabled):
-                continue
+        for block, base_offset, text in self._lines_for_scope(rule, document):
+            lowered = text.lower()
             for match in pattern.finditer(text):
                 matched = match.group(0)
                 if matched.lower() in allowed:
                     continue
-                # An allowlist entry may be a longer phrase containing the match,
-                # e.g. "iron resolution" allowing "iron".
-                window = text[max(0, match.start() - 30) : match.end() + 30].lower()
-                if any(entry in window for entry in allowed if " " in entry):
+                # A longer allowlist phrase only exempts this occurrence when the
+                # phrase span contains the match span. A nearby second occurrence
+                # must not silence the first one.
+                if any(
+                    occurrence.start() <= match.start()
+                    and occurrence.end() >= match.end()
+                    for entry in allowed_phrases
+                    for occurrence in re.finditer(re.escape(entry), lowered)
+                ):
                     continue
                 if not rule.match_all_caps and _is_all_caps(matched):
                     continue
                 if "quotation" in rule.exceptions and _inside_quotation(
                     text, match.start(), match.end()
                 ):
+                    continue
+
+                if block is None:
+                    line = base_offset + 1
+                    column = match.start() + 1
+                    end_column = column + len(matched)
+                else:
+                    line, column = block.position(base_offset + match.start())
+                    # A match that wraps to the next source line is reported on the
+                    # line it starts on, and `Finding` carries no end line, so the
+                    # range stops at the end of that line rather than naming a
+                    # column the line does not have.
+                    end_line, end_column = block.position(base_offset + match.end())
+                    if end_line != line:
+                        end_column = len(document.raw_lines[line - 1]) + 1
+                if self._suppressed(rule, line, suppressions, disabled):
                     continue
 
                 replacement = None
@@ -693,9 +772,9 @@ class Engine:
                 results.append(
                     Finding(
                         path=document.path,
-                        line=number,
-                        column=match.start() + 1,
-                        end_column=match.end() + 1,
+                        line=line,
+                        column=column,
+                        end_column=end_column,
                         rule_id=rule.qualified_id,
                         category=rule.category,
                         severity=severity,
@@ -803,34 +882,13 @@ class Engine:
             # span is ONE word to `count_words` and zero to Vale, whose markdown
             # scoping drops the span before its token counter sees it -- measured on
             # this project's own README, paragraph line 37: 8 by Vale against 10 by
-            # `count_words`. At an 8-word bound that gap decides the finding, and the
-            # compiled rule fired on four blocks that are not emphasis paragraphs.
-            stems = _list_stem_lines(document)
+            # `count_words`. The only shipped consumer is prose-format.prose-block
+            # (gt 80); the short-paragraph rule that needed list-stem and opaque-unit
+            # exclusions here was retired in the 2026-09-12 audit.
             for block in document.paragraphs:
                 count = count_words(block.text)
-                if not exceeds(count, threshold):
-                    continue
-                # A LIST STEM IS NOT AN EMPHASIS PARAGRAPH, and excluding it is not a
-                # courtesy: `ste-sentences.complex-text-not-in-vertical-list` orders
-                # the author to turn a series into a vertical list, every list needs a
-                # stem to say what it enumerates, and a stem is short by construction.
-                # Without this the two shipped rules contradict each other, and an
-                # author who obeys the first is reported by the second with no move
-                # left that satisfies both. Measured while rewriting this project's
-                # own README against the ruleset: obeying the list rule 15 times took
-                # this rule from 1 finding to 7, all of them stems.
-                if block.lines[0] in stems:
-                    continue
-                # A paragraph nobody wrote as prose is not an emphasis paragraph. A
-                # heading, a list item, and a table cell are already separate blocks,
-                # so what is left to exclude is the degenerate case: a block whose
-                # entire content is one opaque unit -- a lone code span, a bare
-                # version string. `Apache-2.0.` under a `## License` heading is the
-                # canonical one, and telling an author to rejoin it to the paragraph
-                # before it is advice they cannot take.
-                if count <= 1:
-                    continue
-                report(block.lines[0], str(count), str(int(threshold)))
+                if exceeds(count, threshold):
+                    report(block.lines[0], str(count), str(int(threshold)))
 
         elif metric == "paragraph_sentences":
             for block in document.paragraphs:

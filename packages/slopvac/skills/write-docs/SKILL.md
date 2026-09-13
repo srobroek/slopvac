@@ -34,9 +34,9 @@ resolve, and say which one ran.
 | issue comments, discussion replies, blog posts, informal prose | references/consumer-docs.md | `relaxed` | `informal` |
 
 MUST Match the profile to the surface. `normal` grades an issue comment like
-reference documentation: it reports every contraction and em dash, and an eval
-corpus of informal documents scored 0 on those alone where `relaxed` scored 84 to
-93. A gate that fails correct prose is a gate people turn off.
+documentation: every em dash is a warning and every contraction a suggestion, and
+an eval corpus of informal documents scored 0 at `normal` where `relaxed` scored
+84 to 93. A gate that fails correct prose is a gate people turn off.
 
 ## Workflow
 
@@ -49,15 +49,20 @@ corpus of informal documents scored 0 on those alone where `relaxed` scored 84 t
    message, PR body) MUST be written to a temp `.md` first; lint that path.
 
    ```sh
-   slopvac <file>                    # or --profile strict
+   slopvac lint <file>... --profile <profile> --format json
    ```
 
-   Fix every ERROR. Fix or justify each WARNING in one line. The linter names the
-   replacement for every substitution, so never guess one from memory.
-   MUST Treat exit 2 as an incomplete run: the Vale sub-gate was absent, failed,
-   or skipped with `--no-vale`. Native findings stay in the report and MUST be
-   acted on. Report every unchecked rule. NOT Calling the file clean, and NOT
-   reading exit 2 as "nothing was checked".
+   Read `summary.score`, `summary.per_100_words`, and `documents[].findings`.
+   Exit 0 means the gate passed; it can still carry warnings and suggestions.
+   Exit 1 means a threshold failed. Exit 2 means the run was incomplete: Vale was
+   absent, older than 3.15, disabled in `slopvac.toml`, or skipped with
+   `--no-vale`; native findings stay in the report and MUST be acted on, and
+   every `documents[].unchecked` entry MUST be reported. NOT Calling the file
+   clean on exit 2.
+
+   Fix every ERROR. Fix or justify each WARNING in one line. A substitution finding
+   names its replacement (a punctuation-ending key such as `e.g.` says "a simpler
+   word" instead), so never guess one from memory.
 5. MUST Invoke the `review-docs` skill, passing `genre` and `profile` from
    step 1. It judges register, structural symmetry, and claims with nothing
    behind them. Fix what it returns.
@@ -68,7 +73,7 @@ The linter owns the word lists and the exact limits. The rules below change how
 you form a sentence, so they belong in your head before you write.
 
 + MUST One idea per sentence. One instruction per sentence, unless two actions happen at the same time.
-+ MUST About 20 words for an instruction or a warning; about 25 for descriptive text.
++ MUST About 20 words for an instruction or a warning; about 25 for descriptive text. Meet the cap by splitting into two sentences, never with a semicolon or by dropping `that` where it opens a clause: an eval of this skill measured semicolons rising 1 to 15 and omitted `that` 5 to 15 when the cap was stated alone.
 + MUST Active voice with the actor named. Use the passive only when the actor is unknown, is any conforming implementation, or is the reader.
 + MUST One word, one meaning. One name, one thing: never call the same thing by two names in one document.
 + MUST Use a verb for an action: "analyze the log", not "perform an analysis of the log".
@@ -103,13 +108,8 @@ you form a sentence, so they belong in your head before you write.
 
 ## Configure the gate
 
-A project owns its thresholds in `slopvac.toml`; `slopvac init` writes a
-starter file.
-
-+ MUST Fix the prose before changing a rule.
-+ When a rule is wrong for this project, change the config and give the override a one-line reason.
-+ MUST Suppress a single finding by naming an exception from that rule's own closed list: `<!-- slopvac-allow: rule=<id> reason=<name> -->`.
-+ Run `slopvac explain <rule_id>` for the valid reasons.
-+ A reason that is not on the list is reported rather than honoured.
-+ NOT Editing the packaged rules: a reinstall overwrites them.
-+ Add a house rule with `--rules-dir`, or set the severity in `slopvac.toml`.
+A project owns its thresholds in `slopvac.toml`; `slopvac init --profile <profile>`
+writes a starter file. Fix the prose before changing a rule. The suppression
+annotation, the override table, and the rule for when a document needs a
+different profile are in the `review-docs` skill under "Change a rule"; that
+skill owns them because it is the one that triages findings.

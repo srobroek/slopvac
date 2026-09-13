@@ -6,7 +6,7 @@ description: >-
   spacing, wordiness. Most are accessibility or copy-edit rules rather than
   generated-text signals.
 weight: 0.8
-recommended_for: [consumer-docs, internal-docs, change-comms]
+recommended_for: [consumer, internal, change-comms]
 rules:
   - id: acronym-periods
     name: Write an initialism unpunctuated
@@ -166,9 +166,9 @@ rules:
     message: 'shell prompt: {match} -- drop the prompt so the command can be copied'
     scope: raw
     tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
+      strict: advisory
+      normal: excluded
+      relaxed: excluded
     pattern: '(?m)^[ \t]*(?:\$|❯|PS[ \t]*[A-Za-z]:\\[^\n>]*>)[ \t]+[A-Za-z_./~-]'
     ignore_case: false
     fix: Show the command alone; name the shell in the fence's language tag if it matters.
@@ -227,7 +227,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '(?m)(?:^|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))\s*[Tt]here\s+(?:is|are|was|were|will be|has been|have been)\b|(?m)(?:^|(?<=[.!?;]\s))\s*[Ii]t\s+(?:is|was)\s+(?:important|worth|essential|critical|necessary|useful|helpful|possible|interesting|notable|clear|obvious|apparent|recommended|advisable)\s+(?:to\s+)?(?:note|mention|remember|point out|observe|understand|see|say)?\b'
+    pattern: '(?m)(?:^|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))\s*[Tt]here\s+(?:is|are|was|were|will be|has been|have been)\b|(?:^|(?<=[.!?;]\s))\s*[Ii]t\s+(?:is|was)\s+(?:important|worth|essential|critical|necessary|useful|helpful|possible|interesting|notable|clear|obvious|apparent|recommended|advisable)\s+(?:to\s+)?(?:note|mention|remember|point out|observe|understand|see|say)?\b'
     ignore_case: false
     fix: Move the real subject into the subject slot.
     examples:
@@ -258,8 +258,8 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
-      relaxed: enforced
+      normal: advisory
+      relaxed: advisory
     ignore_case: true
     substitutions:
       '(?:as )?(?:shown|described|outlined|listed|defined|detailed|specified|explained|discussed|noted) below': in the following section
@@ -303,7 +303,7 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: excluded
     pattern: '\b(?:[Ww]e|[Ww]e''(?:ve|re|ll|d))\s+(?=\w)|\b[Oo]ur\s+(?=\w)|\b[Ll]et''s\b'
     ignore_case: false
@@ -331,7 +331,7 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: excluded
     pattern: '\b(?:will|shall)\s+(?:not\s+)?(?=[a-z])|\b(?:we|it|this|that|you|they)''ll\b|\b(?:is|are) going to\s+(?=[a-z])'
     ignore_case: false
@@ -464,7 +464,7 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     ignore_case: true
     substitutions:
@@ -586,7 +586,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '\b\w+\((?:s|es)\)|\b\w+/s\b'
+    pattern: '\b\w+\((?:s|es)\)'
     ignore_case: false
     fix: Write the plural.
     examples:
@@ -635,7 +635,7 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: excluded
     pattern: '(?<![\w-])please\b|\bthank(?:s| you)\b|\bkindly\s+(?=\w)|\b(?:sorry|we(?:''re| are) sorry|apologies)\b|\bunfortunately\b|\bfeel free to\b'
     ignore_case: true
@@ -720,7 +720,7 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     pattern: '\b(?:this|the (?:following|preceding|current|next|previous))\s+(?:section|chapter|subsection|topic|module|assembly|part)\b|\bin the (?:sections?|chapters?) that follows?\b'
     ignore_case: true
@@ -779,8 +779,8 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
-      relaxed: enforced
+      normal: advisory
+      relaxed: advisory
     pattern: '(?<!\d)[a-z][.?!] {2,}[A-Z]|(?<!\d)[a-z][.?!][A-Z][a-z]'
     ignore_case: false
     fix: Use exactly one space.
@@ -807,7 +807,7 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
+      normal: advisory
       relaxed: advisory
     pattern: '(?m)(?:^\s*|(?<=[.!?;]\s)|(?<=^[-*]\s)|(?<=^>\s))(?:This|That|These|Those)\s+(?:is|are|was|were|means?|makes?|gives?|lets?|causes?|happens?|works?|matters?|helps?)\b'
     ignore_case: false
@@ -834,8 +834,8 @@ rules:
     scope: prose
     tiers:
       strict: enforced
-      normal: enforced
-      relaxed: enforced
+      normal: advisory
+      relaxed: advisory
     ignore_case: true
     substitutions:
       '(?:and|or) higher': and later

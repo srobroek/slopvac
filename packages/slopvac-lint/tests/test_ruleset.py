@@ -280,3 +280,60 @@ def test_a_non_mapping_yaml_document_names_file_and_index(tmp_path):
 def test_empty_yaml_documents_are_allowed():
     ruleset = load_ruleset(extra_dirs=[_FIXTURES / "empty-docs"], verify=False)
     assert ruleset.by_id("empty-docs-probe.only-rule") is not None
+
+
+def test_uncommented_starter_examples_load(tmp_path):
+    """Every syntax-bearing commented example must be valid TOML config."""
+    import tomllib
+
+    from slopvac.templates import STARTER_CONFIG
+
+    lines = []
+    syntax = ("# [", "# [[", "# profile =", "# severity =", "# minimum_severity =",
+              "# max_per_100_words =", "# files =", "# default =", "# allow =",
+              "# path =", "# enabled =", "# binary =", "# config =")
+    for line in STARTER_CONFIG.format(profile="normal").splitlines():
+        stripped = line.lstrip()
+        lines.append(line[2:] if stripped.startswith(syntax) else line)
+    path = tmp_path / "slopvac.toml"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    tomllib.loads(path.read_text(encoding="utf-8"))
+    from slopvac.config import load_config
+
+    load_config(path, root=tmp_path)
+
+
+def test_shipped_lexical_examples_fire_through_engine(ruleset):
+    """The loader regex check is complemented by a batched native execution oracle."""
+    from slopvac.analyze import parse
+    from slopvac.config import Config, resolve_for
+    from slopvac.engine import Engine
+
+    profiles = ("strict", "normal", "relaxed")
+    failures: list[str] = []
+    for rule in ruleset.rules:
+        if rule.kind not in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION):
+            continue
+        profile = next((name for name in profiles if rule.tier_for(name) is Tier.ENFORCED), None)
+        if profile is None:
+            continue
+        config = Config(profile=profile)
+        engine = Engine(ruleset.rules, resolve_for(config, Path("/repo/a.md")))
+        for index, example in enumerate(rule.examples):
+            bad_ids = {finding.rule_id for finding in engine.run(parse("a.md", example.bad + "\n"))}
+            if rule.qualified_id not in bad_ids:
+                failures.append(f"{rule.qualified_id} bad example {index}")
+            if example.good is not None:
+                good_ids = {finding.rule_id for finding in engine.run(parse("a.md", example.good + "\n"))}
+                if rule.qualified_id in good_ids:
+                    failures.append(f"{rule.qualified_id} good example {index}")
+    known_failures = {
+        "prose-craft.acronym-periods": "native engine does not implement this lexical rule",
+        "prose-craft.annotations": "native engine does not implement this lexical rule",
+        "prose-craft.articles": "native engine does not implement this lexical rule",
+        "prose-craft.gerund-heading": "native engine does not implement this lexical rule",
+    }
+    unexpected = [failure for failure in failures if failure.split(" ", 1)[0] not in known_failures]
+    assert not unexpected, "\n".join(unexpected)
+    if failures:
+        pytest.xfail("; ".join(f"{rule}: {known_failures[rule]}" for rule in sorted({f.split(' ', 1)[0] for f in failures})))

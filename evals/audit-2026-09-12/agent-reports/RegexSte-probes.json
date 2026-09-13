@@ -1,0 +1,650 @@
+{
+  "rules": {
+    "ste-practices.phrasal-verb": {
+      "kind": "substitution",
+      "human": 8,
+      "ai-existing": 5,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.inconsistent-wording-for-same-step": {
+      "kind": "structure",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": []
+    },
+    "ste-practices.omitted-conjunction-that": {
+      "kind": "pattern",
+      "human": 21,
+      "ai-existing": 10,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.unclear-pronoun": {
+      "kind": "pattern",
+      "human": 11,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.unclear-demonstrative-this": {
+      "kind": "pattern",
+      "human": 47,
+      "ai-existing": 9,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.false-friend-term": {
+      "kind": "substitution",
+      "human": 18,
+      "ai-existing": 7,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.latin-abbreviation": {
+      "kind": "substitution",
+      "human": 39,
+      "ai-existing": 7,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.gendered-or-exclusionary-language": {
+      "kind": "substitution",
+      "human": 10,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-practices.possessive-form-unclear": {
+      "kind": "pattern",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-nouns.multiword-noun-too-long": {
+      "kind": "metric",
+      "human": 70,
+      "ai-existing": 36,
+      "examples": []
+    },
+    "ste-procedural.sentence-too-long-procedural": {
+      "kind": "metric",
+      "human": 10,
+      "ai-existing": 1,
+      "examples": []
+    },
+    "ste-procedural.multiple-instructions-per-sentence": {
+      "kind": "pattern",
+      "human": 41,
+      "ai-existing": 9,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-procedural.instruction-not-imperative": {
+      "kind": "pattern",
+      "human": 38,
+      "ai-existing": 7,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-procedural.condition-after-command": {
+      "kind": "pattern",
+      "human": 76,
+      "ai-existing": 33,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-procedural.note-gives-instruction": {
+      "kind": "pattern",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-verbs.complex-tense": {
+      "kind": "pattern",
+      "human": 51,
+      "ai-existing": 21,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-verbs.auxiliary-stacking": {
+      "kind": "pattern",
+      "human": 71,
+      "ai-existing": 6,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-verbs.passive-voice": {
+      "kind": "pattern",
+      "human": 239,
+      "ai-existing": 48,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-verbs.nominalized-action": {
+      "kind": "pattern",
+      "human": 11,
+      "ai-existing": 2,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-words.approved-word-substitution": {
+      "kind": "substitution",
+      "human": 36,
+      "ai-existing": 11,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-words.obligation-word-substitution": {
+      "kind": "substitution",
+      "human": 35,
+      "ai-existing": 11,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-words.noun-used-as-verb": {
+      "kind": "substitution",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-words.slang-or-jargon-term": {
+      "kind": "tokens",
+      "human": 1,
+      "ai-existing": 1,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-words.inconsistent-term-for-same-thing": {
+      "kind": "structure",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": []
+    },
+    "ste-words.verb-used-as-noun": {
+      "kind": "pattern",
+      "human": 1,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-sentences.omitted-word-or-contraction": {
+      "kind": "pattern",
+      "human": 122,
+      "ai-existing": 93,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-sentences.complex-text-not-in-vertical-list": {
+      "kind": "metric",
+      "human": 44,
+      "ai-existing": 31,
+      "examples": []
+    },
+    "ste-sentences.vertical-list-lead-in-missing-colon": {
+      "kind": "structure",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": []
+    },
+    "ste-sentences.vertical-list-item-punctuation": {
+      "kind": "structure",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": []
+    },
+    "ste-sentences.missing-article-or-determiner": {
+      "kind": "pattern",
+      "human": 0,
+      "ai-existing": 2,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-descriptive.sentence-too-long-descriptive": {
+      "kind": "metric",
+      "human": 133,
+      "ai-existing": 57,
+      "examples": []
+    },
+    "ste-descriptive.paragraph-too-many-sentences": {
+      "kind": "metric",
+      "human": 2,
+      "ai-existing": 0,
+      "examples": []
+    },
+    "ste-punctuation.semicolon-used": {
+      "kind": "pattern",
+      "human": 26,
+      "ai-existing": 18,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-punctuation.hyphen-missing-in-compound-modifier": {
+      "kind": "pattern",
+      "human": 20,
+      "ai-existing": 1,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-punctuation.hyphen-group-too-long": {
+      "kind": "pattern",
+      "human": 2,
+      "ai-existing": 1,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-punctuation.colon-terminates-sentence-for-count": {
+      "kind": "metric",
+      "human": 25,
+      "ai-existing": 4,
+      "examples": []
+    },
+    "ste-safety.safety-block-does-not-start-with-command": {
+      "kind": "pattern",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "ste-safety.safety-block-missing-consequence": {
+      "kind": "structure",
+      "human": 0,
+      "ai-existing": 0,
+      "examples": []
+    },
+    "docs-discipline.status-language": {
+      "kind": "pattern",
+      "human": 6,
+      "ai-existing": 5,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        },
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "docs-discipline.history-narration": {
+      "kind": "pattern",
+      "human": 6,
+      "ai-existing": 12,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    },
+    "docs-discipline.internal-refs": {
+      "kind": "pattern",
+      "human": 1,
+      "ai-existing": 2,
+      "examples": [
+        {
+          "bad_fires": true,
+          "good_fires": false
+        }
+      ]
+    }
+  },
+  "probes": {
+    "passive_often": {
+      "input": "The option is often useful.",
+      "rule": "ste-verbs.passive-voice",
+      "findings": 1,
+      "verdict": "false positive: suffix (en) treats adverb often as participle"
+    },
+    "passive_adjectival": {
+      "input": "The option is enabled.",
+      "rule": "ste-verbs.passive-voice",
+      "findings": 1,
+      "verdict": "ambiguous adjectival predicate; candidate FP"
+    },
+    "passive_active_control": {
+      "input": "The controller enables the option.",
+      "rule": "ste-verbs.passive-voice",
+      "findings": 0,
+      "verdict": "control"
+    },
+    "aux_adjectival": {
+      "input": "The service can be enabled by setting the flag.",
+      "rule": "ste-verbs.auxiliary-stacking",
+      "findings": 1,
+      "verdict": "duplicate with passive; valid capability statement"
+    },
+    "aux_active_control": {
+      "input": "You can enable the service by setting the flag.",
+      "rule": "ste-verbs.auxiliary-stacking",
+      "findings": 0,
+      "verdict": "control"
+    },
+    "colon_non_list": {
+      "input": "The gateway sends the request through the authenticated proxy before it applies the retry policy for all clients in production environments today: the parser reads this value.",
+      "rule": "ste-punctuation.colon-terminates-sentence-for-count",
+      "findings": 1,
+      "verdict": "false positive: colon not followed by a vertical list"
+    },
+    "colon_list_control": {
+      "input": "The gateway sends these values:\n- The host\n- The port",
+      "rule": "ste-punctuation.colon-terminates-sentence-for-count",
+      "findings": 0,
+      "verdict": "control"
+    },
+    "paren_boundary": {
+      "input": "(1) The gateway reads request metadata and validates token before sending request to service for processing and records result in audit log for later review today.",
+      "rule": "ste-descriptive.sentence-too-long-descriptive",
+      "engine_words": 26,
+      "spec_words": 25,
+      "findings": 1,
+      "verdict": "false positive: parenthesized step number counted as one, not stripped per 8.6"
+    },
+    "inline_code_control": {
+      "input": "Use the `very-long-identifier-name` option before you restart the worker and inspect the logs after the migration completes.",
+      "engine_words": 17,
+      "findings": 0,
+      "verdict": "code span counted once"
+    },
+    "plain_url_control": {
+      "input": "Use the https://example.com/api/v1/really-long-path endpoint before you restart the worker and inspect the logs after the migration completes.",
+      "engine_words": 17,
+      "findings": 0,
+      "verdict": "plain URL treated as one prose token by parser"
+    },
+    "table_control": {
+      "input": "| one | two | three | four | five |\n| --- | --- | --- | --- | --- |\n| Use | the | worker | before | restart |",
+      "engine_words": 10,
+      "findings": 0,
+      "verdict": "table cells separated"
+    },
+    "noun_false_positive": {
+      "input": "Quick examples comparing tools.",
+      "metric": "multiword_noun_words",
+      "engine_value": 4,
+      "findings": 1,
+      "verdict": "false positive: heading-like phrase includes gerund/adjective, not noun stack"
+    },
+    "noun_control": {
+      "input": "Set the jitter factor for retry backoff.",
+      "metric": "multiword_noun_words",
+      "engine_value": 2,
+      "findings": 0,
+      "verdict": "control"
+    },
+    "condition_descriptive": {
+      "input": "The command runs if the queue is empty.",
+      "sentence_type": "descriptive",
+      "findings": 1,
+      "verdict": "false positive: lexical engine ignores rule.text_type"
+    },
+    "condition_imperative": {
+      "input": "Restart the worker if the queue is empty.",
+      "sentence_type": "procedural",
+      "findings": 1,
+      "verdict": "intended style finding"
+    },
+    "omitted_contraction_control": {
+      "input": "The text says \"don't retry\".",
+      "rule": "ste-sentences.omitted-word-or-contraction",
+      "findings": 0,
+      "verdict": "quotation exception"
+    },
+    "omitted_code_control": {
+      "input": "Use `don't` in the example.",
+      "rule": "ste-sentences.omitted-word-or-contraction",
+      "findings": 0,
+      "verdict": "code-span exception"
+    },
+    "omitted_reduced_clause": {
+      "input": "If configured, the proxy rewrites the header.",
+      "rule": "ste-sentences.omitted-word-or-contraction",
+      "findings": 1,
+      "verdict": "intended reduced-clause finding"
+    },
+    "omitted_full_clause_control": {
+      "input": "If the proxy is configured, it rewrites the header.",
+      "rule": "ste-sentences.omitted-word-or-contraction",
+      "findings": 0,
+      "verdict": "control"
+    },
+    "omitted_imperative": {
+      "input": "Show the lines surrounding a match.",
+      "rule": "ste-practices.omitted-conjunction-that",
+      "findings": 1,
+      "verdict": "false positive: sentence-initial imperative, not a reporting verb"
+    }
+  },
+  "corpus_words": {
+    "human": 21208,
+    "ai-existing": 9865
+  }
+}

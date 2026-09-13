@@ -94,24 +94,26 @@ contradicting its own tiers.
 ### Genres
 
 Categories declare the genres they suit, in a `recommended_for` field that
-[`docs/rules.md`](docs/rules.md) tabulates:
+[`docs/rules.md`](docs/rules.md) tabulates. The vocabulary is the one the
+`write-docs` skill classifies a document into, so a reviewer selects categories by
+equality:
 
-`adr`, `api-docs`, `change-comms`, `consumer-docs`, `essay`, `guide`,
-`internal-docs`, `pr-description`, `readme`, `reference`, `runbook`,
-`source-comments`
+| Genre | Surface |
+| --- | --- |
+| `consumer` | README, docs/, guides, anything a user of the artifact reads |
+| `change-comms` | commit messages, PR bodies, hand-written release notes |
+| `internal` | specifications, decision records, CONTRIBUTING, contributor docs |
+| `reference` | reference material, API docs, runbooks, procedures, safety text |
+| `informal` | issue comments, discussion replies, blog posts, drafts |
 
 Genre and profile are separate. The genre says what the document is, and the
 profile says how hard to press. `genre_recommendation()` maps one to the other so
-that a caller recommends rather than asks:
-
-| Genre | Profile |
-| --- | --- |
-| `reference`, `api-docs`, `runbook`, `spec`, `procedure`, `safety` | `strict` |
-| `issue`, `comment`, `note`, `draft`, `chat`, `scratch` | `relaxed` |
-| anything else | `normal` |
+that a caller recommends rather than asks: `reference` is `strict`, `informal` is
+`relaxed`, and the other three are `normal`.
 
 The `review-docs` skill reads both fields. It picks the profile from the genre,
-and enables the categories whose `recommended_for` names that genre.
+and loads the judgement rules of the categories whose `recommended_for` names
+that genre.
 
 ## Configuration
 
@@ -254,7 +256,15 @@ A suppression must name an exception from the rule's own list:
 
 `slopvac explain orwell.stale-figure` lists the valid reasons. When an annotation
 names a reason off that list, `slopvac` reports it rather than honors it, and
-tracks the suppression rate as a metric.
+tracks the suppression rate as a metric. A comment that starts with `slopvac-allow`
+but does not fit the grammar is reported as `meta.invalid-suppression`.
+
+An annotation covers the block that follows it: a wrapped paragraph, a list item,
+or a table, whichever line inside it carries the finding. So does
+`<!-- slopvac-disable-next-line -->`, which suppresses every rule in that block;
+`<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` bracket a region. A
+directive quoted in a code span or a fenced block, like the ones on this page, is
+documentation and changes nothing.
 
 ## Output formats
 
