@@ -320,20 +320,22 @@ def test_shipped_lexical_examples_fire_through_engine(ruleset):
         config = Config(profile=profile)
         engine = Engine(ruleset.rules, resolve_for(config, Path("/repo/a.md")))
         for index, example in enumerate(rule.examples):
-            bad_ids = {finding.rule_id for finding in engine.run(parse("a.md", example.bad + "\n"))}
+            bad = example.bad
+            good = example.good
+            if rule.scope.value == "heading":
+                # YAML examples store the rendered heading text. Give native
+                # parsing the Markdown marker that Vale's heading scope sees.
+                if not bad.lstrip().startswith("#"):
+                    bad = f"# {bad}"
+                if good is not None and not good.lstrip().startswith("#"):
+                    good = f"# {good}"
+            bad_ids = {finding.rule_id for finding in engine.run(parse("a.md", bad + "\n"))}
             if rule.qualified_id not in bad_ids:
                 failures.append(f"{rule.qualified_id} bad example {index}")
-            if example.good is not None:
-                good_ids = {finding.rule_id for finding in engine.run(parse("a.md", example.good + "\n"))}
+            if good is not None:
+                good_ids = {finding.rule_id for finding in engine.run(parse("a.md", good + "\n"))}
                 if rule.qualified_id in good_ids:
                     failures.append(f"{rule.qualified_id} good example {index}")
-    known_failures = {
-        "prose-craft.acronym-periods": "native engine does not implement this lexical rule",
-        "prose-craft.annotations": "native engine does not implement this lexical rule",
-        "prose-craft.articles": "native engine does not implement this lexical rule",
-        "prose-craft.gerund-heading": "native engine does not implement this lexical rule",
-    }
+    known_failures = {}
     unexpected = [failure for failure in failures if failure.split(" ", 1)[0] not in known_failures]
     assert not unexpected, "\n".join(unexpected)
-    if failures:
-        pytest.xfail("; ".join(f"{rule}: {known_failures[rule]}" for rule in sorted({f.split(' ', 1)[0] for f in failures})))

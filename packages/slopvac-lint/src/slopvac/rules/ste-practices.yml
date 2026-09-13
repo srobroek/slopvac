@@ -5,7 +5,7 @@ weight: 0.8
 max_per_100_words:
   strict: 1.0
   normal: 2.0
-recommended_for: [reference, consumer, change-comms]
+recommended_for: [reference]
 rules:
   - id: word-swap-insufficient
     name: Rewrite the sentence when a word swap fails
@@ -22,7 +22,6 @@ rules:
       After you substitute the replacement word, is the sentence still grammatical, still
       meaningful, and still carrying your original meaning? If any of the three fails, or the
       word has no replacement at all, restructure the sentence instead.
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -54,7 +53,6 @@ rules:
     judgement_question: >-
       For each vocabulary word in this sentence, does the sentence use the single sense the
       vocabulary entry records, rather than another common sense of the same spelling?
-    exceptions:
       - quotation
       - code-span
     allowlist: []
@@ -224,7 +222,6 @@ rules:
       Does "with" mean an association, a shared action, or an instrument? If a reader could
       pick more than one, name the instrument in a separate clause or state the condition
       first.
-    exceptions:
       - quotation
       - code-span
     allowlist: []

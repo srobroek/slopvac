@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 0.5
   normal: 1.0
-recommended_for: [reference, consumer]
+recommended_for: [reference]
 rules:
   - id: multiword-noun-too-long
     name: Keep a noun stack to three words
@@ -59,7 +59,6 @@ rules:
       This domain term is longer than three words and cannot be shortened, because the
       project owns the name. Is it written in full at first use, and is either a short form
       declared or the words joined with hyphens as one unit?
-    exceptions:
       - code-span
       - identifier-fidelity
     allowlist: []

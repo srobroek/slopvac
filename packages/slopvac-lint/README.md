@@ -74,13 +74,19 @@ reports:
 
 Beyond the tiers, a profile sets the gates the whole document must clear:
 
-| Profile | Total density budget | Max errors | `min_score` |
-| --- | --- | --- | --- |
-| `strict` | 1.5 / 100 words | 0 | 85 |
-| `normal` | 3.0 / 100 words | 0 | 70 |
-| `relaxed` | 8.0 / 100 words | unlimited | none |
+| Profile | Total density budget | Max errors | `min_score` | Unicode dashes |
+| --- | --- | --- | --- | --- |
+| `strict` | 1.5 / 100 words | 0 | 85 | 0 |
+| `normal` | 3.0 / 100 words | 0 | 70 | 0 |
+| `relaxed` | 8.0 / 100 words | unlimited | none | 0 |
 
-At `relaxed` the run reports the score for information and gates nothing.
+At `relaxed` the run reports the score for information and gates nothing except
+the dash count. `max_unicode_dashes` counts every em or en dash the source
+carries (the `prose-format.no-unicode-dash` findings, at any severity), because
+the character is the strongest origin signal the corpus measurements found: 24x
+denser in model prose than in pre-2022 human prose. It fails the run even where a
+project raises `max_errors` or dials the rule down; a project that must keep its
+dashes raises `max_unicode_dashes` in `slopvac.toml`.
 
 Two rules invert the tier ordering on purpose. Passive voice is advisory at
 `strict` and enforced at `normal`, because the agentless passive is correct in a
@@ -123,6 +129,10 @@ field:
 1. the profile
 2. the `[categories]` and `[rules]` tables
 3. every `[[overrides]]` block whose glob matches, in file order
+
+For a lint run, `slopvac` discovers the nearest `slopvac.toml` for each input file,
+so mixed targets and directory trees may use different profiles and thresholds;
+`--config PATH` explicitly applies one config to every target.
 
 ```toml
 profile = "normal"
@@ -396,8 +406,9 @@ lower of the two keeps both.
 
 A run fails when any gate breaks: the error count exceeds `max_errors`, the
 gating density exceeds `max_total_per_100_words`, the score falls below
-`min_score`, or any single category exceeds its own `max_per_100_words`. The
-report names each broken gate with the number that broke it.
+`min_score`, the source carries more Unicode dashes than `max_unicode_dashes`, or
+any single category exceeds its own `max_per_100_words`. The report names each
+broken gate with the number that broke it.
 
 ## Rules
 

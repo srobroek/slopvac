@@ -78,6 +78,13 @@ def _load_documents(text: str, origin: str) -> list[dict]:
 
 
 def _build_category(data: dict, origin: str) -> Category:
+    for raw_rule in data.get("rules", []):
+        if raw_rule.get("kind") == RuleKind.JUDGEMENT.value and raw_rule.get("exceptions"):
+            rule_id = raw_rule.get("id", "<unknown>")
+            raise RuleLoadError(
+                f"{origin}: rule '{rule_id}': kind=judgement cannot declare "
+                "`exceptions`; judgement rules never emit findings to suppress"
+            )
     try:
         category = Category.model_validate(data)
     except Exception as exc:

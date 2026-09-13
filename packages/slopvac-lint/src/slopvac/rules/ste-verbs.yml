@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 0.5
   normal: 1.5
-recommended_for: [reference, consumer, change-comms]
+recommended_for: [reference]
 rules:
   - id: verb-form-not-listed
     name: Use only listed verb forms
@@ -94,7 +94,6 @@ rules:
       Does this past participle sit before a noun, or after a form of "be", "become", or
       "stay", describing a condition? If it sits after another auxiliary, it is part of a
       verb construction and is not permitted.
-    exceptions:
       - quotation
       - code-span
     allowlist: []
@@ -170,7 +169,6 @@ rules:
     judgement_question: >-
       Is this -ing word a noun (the name of a thing or a process), or a modifier inside a
       domain noun? If it carries the action of the clause, rewrite it.
-    exceptions:
       - quotation
       - code-span
       - registered-domain-term

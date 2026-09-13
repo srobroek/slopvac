@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 1.0
   normal: 1.5
-recommended_for: [reference, consumer, change-comms]
+recommended_for: [reference]
 rules:
   - id: semicolon-used
     name: Do not use a semicolon
@@ -128,7 +128,6 @@ rules:
       Does this parenthetical give a cross-reference, an item identifier, a step number, an
       abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it
       carries a second idea, promote it to its own sentence.
-    exceptions:
       - code-span
       - quotation
     allowlist: []

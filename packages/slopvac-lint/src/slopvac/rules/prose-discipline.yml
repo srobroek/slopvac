@@ -30,7 +30,6 @@ rules:
       operator, admin, developer, integrator, subscriber, end user. For each
       pair, do they name the same subject? If yes, that is rotation and one term
       must win. If no, does the document define the difference at first use?
-    exceptions:
       - defined-distinction
       - quotation
       - api-name
@@ -275,7 +274,6 @@ rules:
       next one? And would the claim's opposite be recognized as a disagreement
       about fact rather than a difference of opinion? A claim that fails both is
       marketing.
-    exceptions:
       - quantified
       - quotation
       - defined-term-of-art
@@ -392,7 +390,6 @@ rules:
       A list of parallel actions sharing one subject and one verb is ONE idea,
       however long; two clauses joined by "and" that could each stand alone are
       two.
-    exceptions:
       - quotation
       - code-span
       - vertical-list
@@ -456,7 +453,6 @@ rules:
       help in some cases")? A document where the majority of load-bearing claims
       carry a hedge is a document that says nothing, whatever each sentence
       looks like on its own.
-    exceptions:
       - genuine-uncertainty
       - quotation
       - legal-force
@@ -599,7 +595,6 @@ rules:
       or over a measurement it reports is a withheld figure and must be
       replaced. A quantifier over a genuinely unbounded or unmeasured set is
       correct and stays.
-    exceptions:
       - genuinely-unmeasured
       - quotation
       - unbounded-set

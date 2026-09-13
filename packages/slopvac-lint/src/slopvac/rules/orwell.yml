@@ -152,7 +152,6 @@ rules:
       Does this paragraph name at least one number, identifier, path, command,
       or dated event? If the writer possesses a more specific term than the one
       used, did they use it?
-    exceptions: [genuinely-general-claim, deliberate-summary-layer, redaction, quotation]
     examples:
       - bad: The system handles a variety of edge cases to ensure reliable operation.
         good: The parser rejects unterminated strings and nested depth over 64.

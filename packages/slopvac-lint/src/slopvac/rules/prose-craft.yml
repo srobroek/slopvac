@@ -20,6 +20,7 @@ rules:
       relaxed: enforced
     pattern: '\b(?:[A-Z]\.){3,5}'
     ignore_case: false
+    match_all_caps: true
     fix: Delete the periods.
     examples:
       - bad: The A.P.I. returns JSON.
@@ -77,7 +78,7 @@ rules:
       normal: enforced
       relaxed: enforced
     pattern: '\b(?:TODO|FIXME|XXX|HACK|TBD|WIP)\b(?=[\s:)\]]|$)'
-    ignore_case: false
+    match_all_caps: true
     fix: Move it to an issue or a code comment.
     examples:
       - bad: 'TODO: document the flag.'
@@ -103,7 +104,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    ignore_case: false
+    match_all_caps: true
     substitutions:
       '\ba FAQ\b': an FAQ
       '\ba FTP\b': an FTP

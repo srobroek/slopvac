@@ -33,15 +33,15 @@ Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, worked
 | [Prose inflation](#prose-inflation-prose-inflation) | 12 | 0 | 1.2 | `consumer`, `internal`, `change-comms` |
 | [Prose promotion](#prose-promotion-prose-promotion) | 4 | 0 | 1.2 | `consumer`, `change-comms` |
 | [Prose scope](#prose-scope-prose-scope) | 4 | 0 | 1.0 | `consumer`, `change-comms` |
-| [STE Descriptive Writing](#ste-descriptive-writing-ste-descriptive) | 2 | 4 | 1.0 | `reference`, `consumer`, `change-comms` |
-| [STE Multi-word Nouns](#ste-multi-word-nouns-ste-nouns) | 1 | 1 | 1.0 | `reference`, `consumer` |
-| [STE Writing Practices](#ste-writing-practices-ste-practices) | 9 | 3 | 0.8 | `reference`, `consumer`, `change-comms` |
+| [STE Descriptive Writing](#ste-descriptive-writing-ste-descriptive) | 2 | 4 | 1.0 | `reference` |
+| [STE Multi-word Nouns](#ste-multi-word-nouns-ste-nouns) | 1 | 1 | 1.0 | `reference` |
+| [STE Writing Practices](#ste-writing-practices-ste-practices) | 9 | 3 | 0.8 | `reference` |
 | [STE Procedural Writing](#ste-procedural-writing-ste-procedural) | 5 | 0 | 1.2 | `reference` |
-| [STE Punctuation and Word Count](#ste-punctuation-and-word-count-ste-punctuation) | 4 | 1 | 1.0 | `reference`, `consumer`, `change-comms` |
+| [STE Punctuation and Word Count](#ste-punctuation-and-word-count-ste-punctuation) | 4 | 1 | 1.0 | `reference` |
 | [STE Safety Instructions](#ste-safety-instructions-ste-safety) | 2 | 1 | 1.5 | `reference` |
-| [STE Sentences](#ste-sentences-ste-sentences) | 5 | 2 | 1.0 | `reference`, `consumer`, `change-comms` |
-| [STE Verbs](#ste-verbs-ste-verbs) | 5 | 2 | 1.0 | `reference`, `consumer`, `change-comms` |
-| [STE Words](#ste-words-ste-words) | 9 | 6 | 1.0 | `reference`, `consumer`, `change-comms` |
+| [STE Sentences](#ste-sentences-ste-sentences) | 5 | 2 | 1.0 | `reference` |
+| [STE Verbs](#ste-verbs-ste-verbs) | 5 | 2 | 1.0 | `reference` |
+| [STE Words](#ste-words-ste-words) | 9 | 6 | 1.0 | `reference` |
 | **Total** | **164** | **64** | | |
 
 Weight scales a category's contribution to the overall score. A weight of 0 makes the category informational: it still reports, and it cannot fail the score gate.
@@ -635,7 +635,7 @@ Cut a cross-sentence definitional contrast
 - **Suppressible with.** `quotation`, `factual-correction` — any other reason is reported rather than honoured
 - **Source.** references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis") — <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
 
-The two-sentence form of the contrastive inversion: "X is A. X is not B." and its mirror, with the subject repeated or pronominalised. The single-sentence frame (ai-tells-structure.contrastive-inversion-frames) stops at a sentence boundary, so this rule runs at paragraph scope, where the native engine matches against the whole block (list items and quotes included; Vale's paragraph scope skips both, so the rule stays native). The negated half must open with a definitional marker (an article, "about", "just", "whether", ...): "It is not configurable" states a property and does not fire; "It is not a requirement" restates the affirmed claim as a strawman and does. No pattern separates that strawman from a genuine definitional distinction of the same shape ("The lock is a lease. It is not a mutex."), which is why this is a warning the reviewer settles and carries the `factual-correction` exception for the sentence a writer keeps. Measured in the 2026-09-12 audit: 0 hits in 21k parsed words of pre-2022 human prose and 30k of gated prose, 1 in the existing model corpus, 4 in 48 unguided model documents and 0 in 94 steered ones, all five judged tells; 10 property-negation corrections did not fire; 15 constructed definitional distinctions of the exact shape did.
+The two-sentence form of the contrastive inversion: "X is A. X is not B." and its mirror, with the subject repeated or pronominalised. The single-sentence frame (ai-tells-structure.contrastive-inversion-frames) stops at a sentence boundary, so this rule runs at paragraph scope, where the native engine matches against the whole block (list items and quotes included; Vale's paragraph scope skips both, so the rule stays native). The negated half must open with a rhetorical marker ("about", "just", "whether", "because", ...) or with an article followed by one of the rhetorical nouns the tell reaches for ("a requirement", "an afterthought", "a checkbox", "a silver bullet", ...): "It is not configurable" states a property and does not fire, and neither does a definitional distinction over concrete nouns ("The lock is a lease. It is not a mutex."), which the first version of this rule caught 15 times in 15 constructed legitimate sentences. Measured in the 2026-09-12 audit and its follow-up: 0 hits in 21k parsed words of pre-2022 human prose and 30k of gated prose; every one of the 5 model-corpus hits kept; 1 of 15 legitimate distinctions fires (an acknowledgement that "is not a guarantee"), down from 15; 8 of 12 constructed tells fire, the 4 missed being the same-shape concrete-noun forms that the reviewer's judgement remainder covers. Warning, never error, with a `factual-correction` exception for the sentence a writer keeps.
 
 #### `ai-tells-structure.false-suspense-frames`
 
@@ -1786,7 +1786,7 @@ Anchored to the frame, never to "nothing" or "no" alone: "no rule matches" is a 
 
 Governs information order, connective structure, sentence length, and paragraph shape in explanatory text.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-descriptive.paragraph-too-many-sentences`
 
@@ -1822,7 +1822,7 @@ Same word-counting contract as the procedural cap, five words wider. A note insi
 
 Caps the length of noun stacks and requires a short form for longer domain terms.
 
-Weight **1.0**. Recommended for `reference`, `consumer`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-nouns.multiword-noun-too-long`
 
@@ -1842,7 +1842,7 @@ Counted in words, not in nouns. A vendor restatement of this rule says "nouns", 
 
 Covers rewriting when substitution fails, correct word sense, phrasal verbs, consistency, and the eight general recommendations.
 
-Weight **0.8**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **0.8**. Recommended for `reference`.
 
 #### `ste-practices.false-friend-term`
 
@@ -2055,7 +2055,7 @@ The twenty-word cap depends entirely on the word-counting contract in metrics.md
 
 Bans the semicolon, constrains hyphens and parentheses, and defines what counts as one word.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-punctuation.colon-terminates-sentence-for-count`
 
@@ -2153,7 +2153,7 @@ Mechanizable as a structural check: a safety block must contain at least two sen
 
 Governs sentence structure, omitted words, vertical lists, connectors, and determiners.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-sentences.complex-text-not-in-vertical-list`
 
@@ -2229,7 +2229,7 @@ Split from the parent rule because it is fully mechanizable and carries a distin
 
 Restricts verb tense and form to simple constructions and requires the active voice.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-verbs.auxiliary-stacking`
 
@@ -2305,7 +2305,7 @@ Overlaps ste-words/verb-or-adjective-form-not-permitted but scopes to verbs only
 
 Restricts which words a document may use, in which part of speech, and in which spelling.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-words.approved-word-substitution`
 
@@ -3234,7 +3234,6 @@ Name a checkable particular
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Replace the category with the instance from the source material.
-- **Suppressible with.** `genuinely-general-claim`, `deliberate-summary-layer`, `redaction`, `quotation` — any other reason is reported rather than honoured
 - **Question.** Does this paragraph name at least one number, identifier, path, command, or dated event? If the writer possesses a more specific term than the one used, did they use it?
 - **Source.** Orwell 1946, rule concrete-floor
 
@@ -3260,8 +3259,7 @@ Give the bare quantifier its number
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** document
 - **Fix.** Replace the quantifier with the figure. Where the set is genuinely unmeasured, say so and name why.
-- **Suppressible with.** `genuinely-unmeasured`, `quotation`, `unbounded-set`, `idiom`, `defined-elsewhere` — any other reason is reported rather than honoured
-- **Question.** Find every bare quantifier: most, some, many, few, often, usually, frequently, generally, typically, several times, much, little. For each, ask one question -- does the writer have the number? A quantifier over something the document itself counts elsewhere, over a list it contains, or over a measurement it reports is a withheld figure and must be replaced. A quantifier over a genuinely unbounded or unmeasured set is correct and stays.
+- **Question.** Find every bare quantifier: most, some, many, few, often, usually, frequently, generally, typically, several times, much, little. For each, ask one question -- does the writer have the number? A quantifier over something the document itself counts elsewhere, over a list it contains, or over a measurement it reports is a withheld figure and must be replaced. A quantifier over a genuinely unbounded or unmeasured set is correct and stays. - genuinely-unmeasured - quotation - unbounded-set - idiom - defined-elsewhere
 - **Source.** Wikipedia MOS:WEASEL
 
 Deliberately NOT a lexical rule. Wikipedia lists these tokens, and its own condition is "when quantifiable measures could be provided", which no pattern decides: "most requests complete in 15 ms" is correct and "most users prefer it" is not, and the two are identical in shape. A token rule here would fire on correct prose in every document, which is how a rule gets disabled. The multi-word forms that carry the evasion in their shape -- "a number of", "in most cases" -- ARE mechanized, in prose-inflation.vague-quantifier.
@@ -3288,8 +3286,7 @@ Pick one term for one subject
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** document
 - **Fix.** Choose the narrowest accurate term, replace every other, and define the distinction at first use only when two subjects genuinely differ.
-- **Suppressible with.** `defined-distinction`, `quotation`, `api-name`, `glossary-entry` — any other reason is reported rather than honoured
-- **Question.** List every term this document uses for a person or system that acts: user, customer, client, consumer, caller, requester, tenant, account, operator, admin, developer, integrator, subscriber, end user. For each pair, do they name the same subject? If yes, that is rotation and one term must win. If no, does the document define the difference at first use?
+- **Question.** List every term this document uses for a person or system that acts: user, customer, client, consumer, caller, requester, tenant, account, operator, admin, developer, integrator, subscriber, end user. For each pair, do they name the same subject? If yes, that is rotation and one term must win. If no, does the document define the difference at first use? - defined-distinction - quotation - api-name - glossary-entry
 - **Source.** ASD-STE100 issue 9, rule 1.11
 
 The specification requires one name for one thing. Software prose breaks this most often across actor nouns, because each one reads as a legitimate synonym in isolation. Kept as judgement because co-occurrence alone does not prove rotation: a document may legitimately distinguish a user from the client library that acts for them.
@@ -3314,8 +3311,7 @@ The document must assert something
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** document
 - **Fix.** For each hedged claim, either state it plainly with the evidence, or delete it. Where the uncertainty is real, name its cause and its bound instead of hedging the verb.
-- **Suppressible with.** `genuine-uncertainty`, `quotation`, `legal-force`, `safety-critical`, `measured-variance` — any other reason is reported rather than honoured
-- **Question.** List the load-bearing claims: the sentences a reader would act on. For each, is it hedged? Then ask three things. First, could the reader act on the document as written, or does every path out of it end in "it depends"? Second, is any claim hedged in BOTH directions, so that the hedge and its counter-hedge cancel ("this may improve latency, though it might also increase it")? Third, is any hedge itself hedged ("this could potentially help in some cases")? A document where the majority of load-bearing claims carry a hedge is a document that says nothing, whatever each sentence looks like on its own.
+- **Question.** List the load-bearing claims: the sentences a reader would act on. For each, is it hedged? Then ask three things. First, could the reader act on the document as written, or does every path out of it end in "it depends"? Second, is any claim hedged in BOTH directions, so that the hedge and its counter-hedge cancel ("this may improve latency, though it might also increase it")? Third, is any hedge itself hedged ("this could potentially help in some cases")? A document where the majority of load-bearing claims carry a hedge is a document that says nothing, whatever each sentence looks like on its own. - genuine-uncertainty - quotation - legal-force - safety-critical - measured-variance
 - **Source.** Orwell 1946, rule cut-what-cuts
 
 Document-scoped on purpose. Every sentence here can pass prose-inflation.hedge-stack, which fires only on a stack inside one sentence. The defect is the ratio across the document: a single honest hedge is correct, and hedging every claim is a refusal to write the doc. A hedge is permitted where the uncertainty is real and named -- a measured variance, a documented platform difference -- and the exception list is what a suppression must cite.
@@ -3340,8 +3336,7 @@ Describe, do not sell
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** paragraph
 - **Fix.** Replace each unmeasurable claim with the fact that motivated it, or delete the sentence.
-- **Suppressible with.** `quantified`, `quotation`, `defined-term-of-art`, `landing-page` — any other reason is reported rather than honoured
-- **Question.** For each evaluative claim in this passage, is there a number, a benchmark, a named limit, a version, or a citation within the same sentence or the next one? And would the claim's opposite be recognized as a disagreement about fact rather than a difference of opinion? A claim that fails both is marketing.
+- **Question.** For each evaluative claim in this passage, is there a number, a benchmark, a named limit, a version, or a citation within the same sentence or the next one? And would the claim's opposite be recognized as a disagreement about fact rather than a difference of opinion? A claim that fails both is marketing. - quantified - quotation - defined-term-of-art - landing-page
 - **Source.** Orwell 1946, rule empty-evaluative-word
 
 Paired with orwell.unsupported-evaluative, which owns the token list. This half exists because the token list is perishable and incomplete: a passage can carry the marketing register with no listed word in it, and that is the commoner failure in generated prose.
@@ -3366,8 +3361,7 @@ One sentence, one idea
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
 - **Fix.** Split at the boundary where the reader starts holding a second thing, and make the shared noun explicit in the new sentence.
-- **Suppressible with.** `quotation`, `code-span`, `vertical-list`, `legal-force`, `parallel-list` — any other reason is reported rather than honoured
-- **Question.** Read the sentence once and stop. How many separate things must the reader now remember? If more than one, could each stand as its own sentence without repeating a noun phrase to make sense? If yes, it is overloaded. A list of parallel actions sharing one subject and one verb is ONE idea, however long; two clauses joined by "and" that could each stand alone are two.
+- **Question.** Read the sentence once and stop. How many separate things must the reader now remember? If more than one, could each stand as its own sentence without repeating a noun phrase to make sense? If yes, it is overloaded. A list of parallel actions sharing one subject and one verb is ONE idea, however long; two clauses joined by "and" that could each stand alone are two. - quotation - code-span - vertical-list - legal-force - parallel-list
 - **Source.** ASD-STE100 issue 9, rule 4.1
 
 Paired with prose-discipline.run-on, which counts clause boundaries. The count is a candidate finder: it cannot tell a parallel list sharing one subject from two unrelated clauses, and both shapes appear at the same boundary count. This half carries the decision.
@@ -3387,7 +3381,7 @@ Paired with prose-discipline.run-on, which counts clause boundaries. The count i
 
 Governs information order, connective structure, sentence length, and paragraph shape in explanatory text.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-descriptive.information-not-gradual`
 
@@ -3399,8 +3393,7 @@ Give information gradually
 - **Scope.** paragraph
 - **Applies to.** descriptive text
 - **Fix.** Split the paragraph so each sentence adds one idea in reading order.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does each sentence introduce at most one new idea, and does every term appear after the sentence that introduced it? If a reader must already know a later term to parse an earlier sentence, reorder.
+- **Question.** Does each sentence introduce at most one new idea, and does every term appear after the sentence that introduced it? If a reader must already know a later term to parse an earlier sentence, reorder. - quotation
 - **Source.** ASD-STE100 issue 9, rule 6.1
 
 Forward-reference detection is partly mechanizable (first-use position of each glossary term), but the one-idea-per-sentence half is not, and a checker that fires on term order alone would misjudge every summary paragraph. Judgement, with the sentence-length rule carrying most of the practical benefit.
@@ -3420,8 +3413,7 @@ Use key words to structure the text
 - **Scope.** paragraph
 - **Applies to.** descriptive text
 - **Fix.** Repeat the key word from the previous sentence rather than substituting a synonym.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does each sentence pick up a key word or key phrase from the sentence before it, and is that key word written the same way each time?
+- **Question.** Does each sentence pick up a key word or key phrase from the sentence before it, and is that key word written the same way each time? - quotation
 - **Source.** ASD-STE100 issue 9, rule 6.2
 
 The consistency half overlaps ste-words/inconsistent-term-for-same-thing, which is the mechanizable part given a synonym-group list. What is unique here is the positive requirement to carry a key word forward, which no checker can measure.
@@ -3441,8 +3433,7 @@ Keep one topic per paragraph
 - **Scope.** paragraph
 - **Applies to.** descriptive text
 - **Fix.** Split the paragraph at the topic change.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Could this paragraph be split at any sentence boundary without either half needing the other? If yes, it carries more than one topic.
+- **Question.** Could this paragraph be split at any sentence boundary without either half needing the other? If yes, it carries more than one topic. - quotation
 - **Source.** ASD-STE100 issue 9, rule 6.5
 
 The split test above is our decidable restatement of "one topic", and it is a reviewer question rather than a finding because measuring topical cohesion needs a model, not a rule. Kept enforced at strict and normal so the reviewer is prompted.
@@ -3463,8 +3454,7 @@ Group related information in a paragraph
 - **Scope.** paragraph
 - **Applies to.** descriptive text
 - **Fix.** Add a topic sentence, or move the unrelated sentence to its own paragraph.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does the first sentence of this paragraph tell the reader what the paragraph is about, and does every later sentence add to that topic?
+- **Question.** Does the first sentence of this paragraph tell the reader what the paragraph is about, and does every later sentence add to that topic? - quotation
 - **Source.** ASD-STE100 issue 9, rule 6.4
 
 Advisory at both upper tiers because the failure it names (a paragraph with no topic sentence) is a drafting problem a reviewer catches faster than a checker, and no threshold makes it decidable.
@@ -3478,7 +3468,7 @@ Advisory at both upper tiers because the failure it names (a paragraph with no t
 
 Caps the length of noun stacks and requires a short form for longer domain terms.
 
-Weight **1.0**. Recommended for `reference`, `consumer`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-nouns.long-domain-term-without-short-form`
 
@@ -3489,8 +3479,7 @@ Give a short form for a long domain term
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Write the term in full once, then declare a short form or hyphenate the fixed unit.
-- **Suppressible with.** `code-span`, `identifier-fidelity` — any other reason is reported rather than honoured
-- **Question.** This domain term is longer than three words and cannot be shortened, because the project owns the name. Is it written in full at first use, and is either a short form declared or the words joined with hyphens as one unit?
+- **Question.** This domain term is longer than three words and cannot be shortened, because the project owns the name. Is it written in full at first use, and is either a short form declared or the words joined with hyphens as one unit? - code-span - identifier-fidelity
 - **Source.** ASD-STE100 issue 9, rule 2.2
 
 Judgement because the checker cannot know whether a long term is an immovable project name or careless stacking. The related hyphen constraint (no more than three words joined as one unit) is mechanized in ste-punctuation/hyphen-group-too-long.
@@ -3504,7 +3493,7 @@ Judgement because the checker cannot know whether a long term is an immovable pr
 
 Covers rewriting when substitution fails, correct word sense, phrasal verbs, consistency, and the eight general recommendations.
 
-Weight **0.8**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **0.8**. Recommended for `reference`.
 
 #### `ste-practices.ambiguous-preposition-with`
 
@@ -3515,8 +3504,7 @@ Keep the instrument sense clear
 - **strict / normal / relaxed.** advisory / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Rewrite so the sense of "with" is explicit, or state the condition first.
-- **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Question.** Does "with" mean an association, a shared action, or an instrument? If a reader could pick more than one, name the instrument in a separate clause or state the condition first.
+- **Question.** Does "with" mean an association, a shared action, or an instrument? If a reader could pick more than one, name the instrument in a separate clause or state the condition first. - quotation - code-span
 - **Source.** ASD-STE100 issue 9, rule GR-2
 
 A recommendation, and not mechanizable: the ambiguity is in the reading, not in the surface form, and "with" is far too common to flag. Advisory at both upper tiers so it surfaces in review without generating findings.
@@ -3539,8 +3527,7 @@ Use each word in its correct sense
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Replace the word with one whose recorded sense matches your intent.
-- **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Question.** For each vocabulary word in this sentence, does the sentence use the single sense the vocabulary entry records, rather than another common sense of the same spelling?
+- **Question.** For each vocabulary word in this sentence, does the sentence use the single sense the vocabulary entry records, rather than another common sense of the same spelling? - quotation - code-span
 - **Source.** ASD-STE100 issue 9, rule 9.2
 
 Near-duplicate of the word-sense rule in the words chapter; the specification states it twice from different angles (vocabulary definition versus writing practice) and we keep both entries so every rule number is traceable. A runtime should report only one. Needs the sense gloss in the vocabulary dataset, which is the largest remaining extraction job.
@@ -3559,8 +3546,7 @@ Rewrite the sentence when a word swap fails
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
 - **Fix.** Restructure the sentence around a permitted verb, rather than swapping one word.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** After you substitute the replacement word, is the sentence still grammatical, still meaningful, and still carrying your original meaning? If any of the three fails, or the word has no replacement at all, restructure the sentence instead.
+- **Question.** After you substitute the replacement word, is the sentence still grammatical, still meaningful, and still carrying your original meaning? If any of the three fails, or the word has no replacement at all, restructure the sentence instead. - quotation
 - **Source.** ASD-STE100 issue 9, rule 9.1
 
 This rule is the escape hatch for the whole substitution mechanism, and it is why a substitution rule must never auto-apply without review. Two entries in the specification's own recurring-error table have no lexical replacement at all and can only be flagged. Kept as a judgement so the reviewer owns the rewrite decision.
@@ -3578,7 +3564,7 @@ This rule is the escape hatch for the whole substitution mechanism, and it is wh
 
 Bans the semicolon, constrains hyphens and parentheses, and defines what counts as one word.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-punctuation.parentheses-misuse`
 
@@ -3589,8 +3575,7 @@ Use parentheses only for the listed purposes
 - **strict / normal / relaxed.** advisory / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Promote the parenthetical to its own sentence, or delete it.
-- **Suppressible with.** `code-span`, `quotation` — any other reason is reported rather than honoured
-- **Question.** Does this parenthetical give a cross-reference, an item identifier, a step number, an abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it carries a second idea, promote it to its own sentence.
+- **Question.** Does this parenthetical give a cross-reference, an item identifier, a step number, an abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it carries a second idea, promote it to its own sentence. - code-span - quotation
 - **Source.** ASD-STE100 issue 9, rule 8.3
 
 Judgement rather than a pattern, and deliberately so: the specification gives seven permitted purposes and no counter-example, so there is nothing to anchor a regex on. A length-based proxy (flag any parenthetical over N words) would fire on legitimate explanations. Advisory at both upper tiers for the same reason.
@@ -3616,8 +3601,7 @@ Mark the risk level with the right word
 - **Scope.** paragraph
 - **Applies to.** safety text
 - **Fix.** Add the correct risk marker, or raise the existing marker to match the consequence.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does this block describe a risk of harm to a person, or only a risk of damage to data, systems, or equipment? Harm to a person takes the higher marker; damage alone takes the lower one; when both apply, use the higher marker.
+- **Question.** Does this block describe a risk of harm to a person, or only a risk of damage to data, systems, or equipment? Harm to a person takes the higher marker; damage alone takes the lower one; when both apply, use the higher marker. - quotation
 - **Source.** ASD-STE100 issue 9, rule 7.1
 
 Two halves. Whether a marker is present is mechanizable (a destructive-command detector can require one) but classifying the severity requires knowing the real consequence, so the rule stays judgement. In software documentation the higher marker maps to unrecoverable data loss or a security exposure and the lower one to a recoverable failure; that mapping is our adaptation, since the specification's own split is injury against equipment damage. Enforced at every tier, and the category weight is raised, because a missing warning is the highest-cost defect in a runbook.
@@ -3635,7 +3619,7 @@ Two halves. Whether a marker is present is mechanizable (a destructive-command d
 
 Governs sentence structure, omitted words, vertical lists, connectors, and determiners.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-sentences.missing-connector-between-related-sentences`
 
@@ -3647,8 +3631,7 @@ Connect related sentences
 - **Scope.** paragraph
 - **Applies to.** descriptive text
 - **Fix.** Add a connecting word or phrase that names the relation.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does the second sentence add a result, a contrast, or a next step to the first? If yes, does a connecting word or phrase make that relation explicit?
+- **Question.** Does the second sentence add a result, a contrast, or a next step to the first? If yes, does a connecting word or phrase make that relation explicit? - quotation
 - **Source.** ASD-STE100 issue 9, rule 4.4
 
 Not mechanizable in either direction: a checker cannot detect a missing logical relation, and an "add more connectors" heuristic degrades prose. Kept as a reviewer question so the reviewer has one source of truth rather than inventing the rule.
@@ -3667,8 +3650,7 @@ Write short and clear sentences
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
 - **Fix.** Split the sentence into one instruction or topic per sentence.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does this sentence give exactly one instruction (in a procedure) or carry exactly one topic (in description)? If it carries more, split it.
+- **Question.** Does this sentence give exactly one instruction (in a procedure) or carry exactly one topic (in description)? If it carries more, split it. - quotation
 - **Source.** ASD-STE100 issue 9, rule 4.1
 
 This rule carries no number of its own; the word counts live in the procedural and descriptive chapters and are mechanized there as sentence-too-long-procedural and sentence-too-long-descriptive. What is left here is the one-topic test, which is judgement. Enforced at normal tier as a reviewer question, not as a finding.
@@ -3682,7 +3664,7 @@ This rule carries no number of its own; the word counts live in the procedural a
 
 Restricts verb tense and form to simple constructions and requires the active voice.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-verbs.gerund-outside-noun-use`
 
@@ -3693,8 +3675,7 @@ Use an -ing form only as a noun or a noun modifier
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Rewrite the clause with a finite verb, or split it into a separate sentence.
-- **Suppressible with.** `quotation`, `code-span`, `registered-domain-term` — any other reason is reported rather than honoured
-- **Question.** Is this -ing word a noun (the name of a thing or a process), or a modifier inside a domain noun? If it carries the action of the clause, rewrite it.
+- **Question.** Is this -ing word a noun (the name of a thing or a process), or a modifier inside a domain noun? If it carries the action of the clause, rewrite it. - quotation - code-span - registered-domain-term
 - **Source.** ASD-STE100 issue 9, rule 3.5
 
 The progressive-tense half is caught by complex-tense. What is left is participial clauses and gerund objects, which need a parse to separate from legitimate noun uses such as "the logging config" or "load balancing". Judgement rather than a regex for exactly that reason: a bare "-ing" pattern would fire on every legal compound term in software documentation.
@@ -3717,8 +3698,7 @@ Use a past participle only as an adjective
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Move the participle before the noun it describes, or rewrite in the active voice.
-- **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Question.** Does this past participle sit before a noun, or after a form of "be", "become", or "stay", describing a condition? If it sits after another auxiliary, it is part of a verb construction and is not permitted.
+- **Question.** Does this past participle sit before a noun, or after a form of "be", "become", or "stay", describing a condition? If it sits after another auxiliary, it is part of a verb construction and is not permitted. - quotation - code-span
 - **Source.** ASD-STE100 issue 9, rule 3.3
 
 The mechanizable half of this rule is already covered by complex-tense and passive-voice; what remains is the position test, which needs a parse rather than a regex. Note the specification permits some participle-shaped words as adjectives in their own right even when the matching verb is not permitted, so a naive "no participles" check would be wrong.
@@ -3736,7 +3716,7 @@ The mechanizable half of this rule is already covered by complex-tense and passi
 
 Restricts which words a document may use, in which part of speech, and in which spelling.
 
-Weight **1.0**. Recommended for `reference`, `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `reference`.
 
 #### `ste-words.domain-noun-category-membership`
 
@@ -3747,8 +3727,7 @@ Confirm the domain noun belongs to a declared category
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Register the term in a domain-noun category, or replace it with a vocabulary word.
-- **Suppressible with.** `code-span`, `identifier-fidelity` — any other reason is reported rather than honoured
-- **Question.** For each noun in this sentence that is not in the controlled vocabulary, does it name a specified concept inside one of the declared domain-noun categories for this project?
+- **Question.** For each noun in this sentence that is not in the controlled vocabulary, does it name a specified concept inside one of the declared domain-noun categories for this project? - code-span - identifier-fidelity
 - **Source.** ASD-STE100 issue 9, rule 1.5
 
 The specification states its own category example lists are not exhaustive, so absence from a list proves nothing. Membership is therefore a judgement, and the category set itself is project configuration (see domain-categories.md).
@@ -3767,8 +3746,7 @@ Use the domain term your project already uses
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Replace the term with the glossary term.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does the project glossary, API reference, or schema already name this thing? If yes, does the document use that exact name?
+- **Question.** Does the project glossary, API reference, or schema already name this thing? If yes, does the document use that exact name? - quotation
 - **Source.** ASD-STE100 issue 9, rule 1.8
 
 The authority is the project's own glossary, so this cannot be a shipped word list. Partially mechanizable once a glossary file exists, as an unknown-synonym check.
@@ -3810,8 +3788,7 @@ Confirm the domain verb belongs to a declared category
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Rewrite with a vocabulary verb, or register the verb in a domain-verb category.
-- **Suppressible with.** `code-span`, `api-name` — any other reason is reported rather than honoured
-- **Question.** Could this sentence be written with vocabulary verbs alone? If yes, the domain verb is not permitted. If no, does the verb belong to a declared domain-verb category and carry its category meaning in this sentence?
+- **Question.** Could this sentence be written with vocabulary verbs alone? If yes, the domain verb is not permitted. If no, does the verb belong to a declared domain-verb category and carry its category meaning in this sentence? - code-span - api-name
 - **Source.** ASD-STE100 issue 9, rule 1.12
 
 Two reasons this cannot be a word list. First, the specification puts vocabulary verbs ahead of domain verbs, which requires knowing whether a paraphrase exists. Second, the same verb is legal or illegal by sense: the specification's own example has one verb permitted in a machine-subject sentence and refused in a reader-subject sentence. Our second example above reproduces that shape with our own wording.
@@ -3834,8 +3811,7 @@ Allow an out-of-vocabulary word only as a domain noun
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Register the domain noun, or replace the word.
-- **Suppressible with.** `code-span`, `identifier-fidelity`, `quotation` — any other reason is reported rather than honoured
-- **Question.** Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain noun? If it is neither, it must be replaced.
+- **Question.** Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain noun? If it is neither, it must be replaced. - code-span - identifier-fidelity - quotation
 - **Source.** ASD-STE100 issue 9, rule 1.6
 
 This is the escape hatch that makes word-outside-controlled-vocabulary usable. The two rules run as a pair: the vocabulary rule finds the candidate, this question decides whether the candidate is legitimate domain vocabulary.
@@ -3854,8 +3830,7 @@ Use the word only in its permitted sense
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Replace the word with one whose permitted sense matches your intent.
-- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Question.** Does every controlled word in this sentence carry the single meaning recorded in the vocabulary entry, rather than another dictionary meaning of the same spelling?
+- **Question.** Does every controlled word in this sentence carry the single meaning recorded in the vocabulary entry, rather than another dictionary meaning of the same spelling? - quotation
 - **Source.** ASD-STE100 issue 9, rule 1.3
 
 Sense, not spelling. No regex distinguishes "follow" meaning "come after" from "follow" meaning "comply with", so this stays a reviewer question rather than a fabricated pattern.

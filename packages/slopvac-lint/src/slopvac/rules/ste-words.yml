@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 0.5
   normal: 1.5
-recommended_for: [reference, consumer, change-comms]
+recommended_for: [reference]
 rules:
   - id: word-outside-controlled-vocabulary
     name: Do not use a word this project refuses
@@ -203,7 +203,6 @@ rules:
     judgement_question: >-
       Does every controlled word in this sentence carry the single meaning recorded in the
       vocabulary entry, rather than another dictionary meaning of the same spelling?
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -261,7 +260,6 @@ rules:
       For each noun in this sentence that is not in the controlled vocabulary, does it name
       a specified concept inside one of the declared domain-noun categories for this
       project?
-    exceptions:
       - code-span
       - identifier-fidelity
     allowlist: []
@@ -291,7 +289,6 @@ rules:
     judgement_question: >-
       Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain
       noun? If it is neither, it must be replaced.
-    exceptions:
       - code-span
       - identifier-fidelity
       - quotation
@@ -370,7 +367,6 @@ rules:
     judgement_question: >-
       Does the project glossary, API reference, or schema already name this thing? If yes,
       does the document use that exact name?
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -398,7 +394,6 @@ rules:
     judgement_question: >-
       When you had to invent this term, is it three words or fewer, and would a reader
       outside your team understand it without a definition?
-    exceptions: []
     allowlist: []
     examples:
       - bad: Restart the primary regional inbound request admission controller service.
@@ -507,7 +502,6 @@ rules:
       Could this sentence be written with vocabulary verbs alone? If yes, the domain verb
       is not permitted. If no, does the verb belong to a declared domain-verb category and
       carry its category meaning in this sentence?
-    exceptions:
       - code-span
       - api-name
     allowlist: []

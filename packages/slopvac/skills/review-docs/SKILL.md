@@ -83,12 +83,12 @@ skill cannot recover from.
    ```
 
    Keep the entries whose category's `recommended_for` (in `.categories`) names
-   the `genre` from step 1; the vocabulary is the same five values. For
-   `consumer` that is most of the catalogue, so the bound comes from the routing,
-   not the filter. Run the selection in this order and stop at one answer per
-   rule per passage:
+   the `genre` from step 1; the vocabulary is the same five values. The STE
+   categories name `reference` only, so `consumer` selects 44 of the 64 entries
+   and `reference` 25; the rest of the bound comes from the routing below. Run the
+   selection in this order and stop at one answer per rule per passage:
 
-   + `scope: document` questions once, over the whole document (17 for
+   + `scope: document` questions once, over the whole document (15 for
      `consumer`). These are the ratio checks a per-line rule cannot see, and they
      catch the failure where every sentence passes and the whole asserts nothing.
    + `scope: paragraph`, `scope: sentence`, and `scope: prose` questions on

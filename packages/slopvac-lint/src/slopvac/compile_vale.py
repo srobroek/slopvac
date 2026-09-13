@@ -297,6 +297,17 @@ PARAGRAPH_SCOPE_REASON = (
     "matches every block"
 )
 
+# A raw-scoped lexical rule is a line regex over the source bytes: no markdown
+# knowledge, no sentence model, nothing Vale adds. Routing it through Vale made it
+# disappear whenever Vale did: `slopvac lint --no-vale` (the pre-commit
+# `slopvac-no-vale` hook) reported one em dash as `em-dash-density: suggestion`
+# and no `no-unicode-dash` error at all, so the dash that the audit measured as the
+# strongest origin signal passed the gate on every machine without Vale. Native,
+# the eight raw rules cost under a millisecond per document.
+RAW_SCOPE_REASON = (
+    "a raw-scope line regex needs nothing from Vale and must not vanish with it"
+)
+
 
 def _occurrence_bound(rule: Rule) -> tuple[str, int]:
     """Which Vale bound this rule's comparison means, as (`max`|`min`, value).
@@ -521,16 +532,11 @@ def _message(rule: Rule) -> str:
     threshold = str(int(rule.threshold or 0))
 
     if rule.kind is RuleKind.SUBSTITUTION:
-        # Vale supplies (replacement, match) in that order and fills `%s` left to
-        # right, so a template naming both is only correct when `{replacement}`
-        # comes first. When our wording puts `{match}` first, drop to the
-        # single-argument form -- naming the fix is the point of a substitution
-        # message, and a swapped pair prints the two backwards.
-        if "{match}" in text and "{replacement}" in text:
-            if text.index("{replacement}") < text.index("{match}"):
-                return text.replace("{replacement}", "%s").replace("{match}", "%s")
-            return text.replace("{match}", "the match").replace("{replacement}", "%s")
-        return text.replace("{match}", "%s").replace("{replacement}", "%s")
+        # Vale supplies (replacement, match), while authored messages commonly
+        # name the match first. Explicit Go argument indexes preserve each
+        # placeholder's meaning regardless of their order in the sentence.
+        text = text.replace("{replacement}", "%[1]s").replace("{match}", "%[2]s")
+        return text
 
     if rule.kind is RuleKind.METRIC or rule.kind is RuleKind.STRUCTURE:
         text = text.replace("{replacement}", threshold)
@@ -636,13 +642,10 @@ def _existence_fallback_payload(
     is what `existence` needs, longest first so the widest key wins the span.
     """
     ordered = sorted(keys, key=len, reverse=True)
-    # `existence` supplies ONE argument (the match), so a two-verb message would
-    # render the second as `%!s(MISSING)`. Drop the replacement verb and keep the
-    # match, which is the argument Vale actually passes.
-    text = _message(rule)
-    if text.count("%s") > 1:
-        head, _, tail = text.partition("%s")
-        text = head + "a simpler word" + tail
+    # `existence` supplies ONE argument (the match). The substitution template
+    # uses indexed verbs, so retain the match index and replace the fix index
+    # with the fallback wording.
+    text = _message(rule).replace("%[1]s", "a simpler word").replace("%[2]s", "%s")
     # BOUNDARIES MUST BE RESTORED BY HAND. Vale's `substitution` wraps each key in
     # `\b...\b`; a bare alternation has no such wrapper, so `e.g.` -- whose dots
     # are unescaped regex -- matched "ice" inside "service". A leading boundary
@@ -689,11 +692,11 @@ def _companion_payload(rule: Rule, level: str) -> dict | None:
 
 def _payload_for(rule: Rule, level: str) -> dict | None:
     """One Vale rule as a dict, or None when no extension point fits."""
-    if (
-        rule.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
-        and rule.scope is Scope.PARAGRAPH
-    ):
+    lexical = rule.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
+    if lexical and rule.scope is Scope.PARAGRAPH:
         raise ValueError(PARAGRAPH_SCOPE_REASON)
+    if lexical and rule.scope is Scope.RAW:
+        raise ValueError(RAW_SCOPE_REASON)
     scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
     payload: dict[str, object]
 

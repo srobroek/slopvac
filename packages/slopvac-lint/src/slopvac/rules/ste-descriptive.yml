@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 1.0
   normal: 1.5
-recommended_for: [reference, consumer, change-comms]
+recommended_for: [reference]
 rules:
   - id: information-not-gradual
     name: Give information gradually
@@ -22,7 +22,6 @@ rules:
       Does each sentence introduce at most one new idea, and does every term appear after
       the sentence that introduced it? If a reader must already know a later term to parse
       an earlier sentence, reorder.
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -58,7 +57,6 @@ rules:
     judgement_question: >-
       Does each sentence pick up a key word or key phrase from the sentence before it, and
       is that key word written the same way each time?
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -128,7 +126,6 @@ rules:
     judgement_question: >-
       Does the first sentence of this paragraph tell the reader what the paragraph is about,
       and does every later sentence add to that topic?
-    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -161,7 +158,6 @@ rules:
     judgement_question: >-
       Could this paragraph be split at any sentence boundary without either half needing the
       other? If yes, it carries more than one topic.
-    exceptions:
       - quotation
     allowlist: []
     examples:
