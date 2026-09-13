@@ -37,7 +37,9 @@ jobs:
           python-version: "3.14"
 
       - name: Install vale
-        run: ./scripts/install-vale.sh 3.15.2
+        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
+      - name: Add vale to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install ast-grep
         run: |
@@ -111,7 +113,9 @@ jobs:
       # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
       # without it -- which is a missing dependency reported as a test failure.
       - name: Install vale
-        run: ./scripts/install-vale.sh 3.15.2
+        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
+      - name: Add vale to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: pytest
         working-directory: packages/slopvac-lint
