@@ -151,8 +151,16 @@ opus and sol only slightly. One generation per cell: differences under one findi
 | unguided | 48 | 39,976 | 7.28 | 76.0 | 181 | 115 | 104 | 101 | 150 |
 | old steering | 47 | 18,428 | 5.18 | 83.1 | 33 | 35 | 59 | 17 | 32 |
 | new steering | 47 | 17,920 | 5.07 | 83.9 | 39 | 14 | 61 | 20 | 34 |
+| new steering + `that` bullet | 48 | 18,066 | 5.07 | 83.3 | 34 | 24 | 38 | 26 | 33 |
 
-Between the two steered arms the sentence rules differ in one bullet (the word cap now
+A fourth arm (`corpus/generated/04-steered-that`, run after the first report) added
+one bullet, "Keep the conjunction `that` where it opens a clause", to the new
+steering. Omitted `that` fell 61 -> 38 across 48 documents; semicolons rose 14 -> 24,
+still under the old steering's 35. One generation per cell, so the semicolon movement
+is inside the range two arms with the same guard can differ by; the `that` movement is
+the targeted effect and the bullet ships in `write-docs`.
+
+Between the first two steered arms the sentence rules differ in one bullet (the word cap now
 says "split into two sentences, never a semicolon or a dropped `that`"), and semicolons
 fell from 35 to 14 across the same eight topics and six models. With one generation per
 cell that is an association, not a controlled effect; the direction and size match the
