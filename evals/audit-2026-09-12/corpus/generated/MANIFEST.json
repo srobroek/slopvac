@@ -50,5 +50,11 @@
   "openai-sol-high": "bedrock-mantle/openai.gpt-5.6-sol:high"
  },
  "system_unguided": "You are a technical writer. Write the requested document in Markdown. Output only the document, with no preamble and no closing remarks.",
- "steering_source": "write-docs/SKILL.md Sentence rules + references at origin/main 3c99532"
+ "steering_source": "write-docs/SKILL.md Sentence rules + references at origin/main 3c99532",
+ "conditions": {
+  "01-unguided": "system prompt only",
+  "02-steered-current": "write-docs sentence rules + genre reference at origin/main 3c99532",
+  "03-steered-new": "write-docs sentence rules at PR #56 (compression guard)",
+  "04-steered-that": "03 plus the \"Keep the conjunction that\" bullet"
+ }
 }

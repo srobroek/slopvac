@@ -73,7 +73,8 @@ The linter owns the word lists and the exact limits. The rules below change how
 you form a sentence, so they belong in your head before you write.
 
 + MUST One idea per sentence. One instruction per sentence, unless two actions happen at the same time.
-+ MUST About 20 words for an instruction or a warning; about 25 for descriptive text. Meet the cap by splitting into two sentences, never with a semicolon or by dropping `that` where it opens a clause: an eval of this skill measured semicolons rising 1 to 15 and omitted `that` 5 to 15 when the cap was stated alone.
++ MUST Keep the conjunction `that` where it opens a clause: `ensure that`, `so that`, `means that`, `check that`, `note that`. Dropping it saves one word and costs a re-read; the gate reports every omission.
++ MUST About 20 words for an instruction or a warning; about 25 for descriptive text. Meet the cap by splitting into two sentences, never with a semicolon: an eval of this skill measured semicolons rising 1 to 15 when the cap was stated alone, and 35 to 14 across 47 documents once this sentence named the split.
 + MUST Active voice with the actor named. Use the passive only when the actor is unknown, is any conforming implementation, or is the reader.
 + MUST One word, one meaning. One name, one thing: never call the same thing by two names in one document.
 + MUST Use a verb for an action: "analyze the log", not "perform an analysis of the log".
