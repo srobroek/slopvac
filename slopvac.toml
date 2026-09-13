@@ -28,6 +28,10 @@ exclude = [
   "evals/topics.md",
   "evals/runs/**",
   "evals/independent/**",
+  # The 2026-09-12 audit's corpora (third-party and model text the linter scored) and the verbatim
+  # agent reports. evals/audit-2026-09-12/REPORT.md is authored prose and stays gated.
+  "evals/audit-2026-09-12/corpus/**",
+  "evals/audit-2026-09-12/agent-reports/**",
   ".dogfood-cleanroom/**",
   "packages/slopvac-lint/tests/fixtures/**",
   # The record of the Vale generation that 2.0 replaced, kept as history behind a banner. Its
