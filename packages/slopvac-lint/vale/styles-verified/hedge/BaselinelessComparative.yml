@@ -5,14 +5,16 @@ scope: raw
 ignorecase: true
 # Two Vale traps in this one rule, both silent:
 #
-# 1. A literal `%` is written `%` and NOT `%%`. Earlier Vale releases ran the
-#    pattern through a printf-style formatter, so `%%` was required; Vale 3.21
-#    passes the pattern through unchanged, so `%%` matches nothing and `%`
-#    matches. Proven on 3.21.0 with the probe `20% faster.`: the `%%` form
-#    matched nothing, the `%` form matched. The fixture test carries the probe.
+# 1. A literal `%` is written `\x25`, never `%` or `%%`. Vale 3.15 runs the
+#    pattern through a printf-style formatter, so a bare `%` corrupts the pattern
+#    and `%%` is needed; Vale 3.21 passes the pattern through unchanged, so `%%`
+#    matches nothing and `%` matches. The hex escape is a `%` to RE2 and nothing
+#    to the formatter, so it matches on both. Proven on 3.15.2 and 3.21.0 with
+#    the probe `20% faster.`: `\x25` fired on both, `%` only on 3.21, `%%` only on
+#    3.15. The fixture test carries the probe.
 # 2. Go RE2 has NO negative lookahead, so `` cannot exempt the
 #    compliant form. Requiring sentence-ending punctuation right after the
 #    comparative does the same job: a baseline clause pushes the terminator past
 #    it.
 raw:
-  - '\d+(?:\.\d+)? ?(?:%|percent) (?:cheaper|faster|smaller|larger|better|worse|higher|lower|fewer)[.,;!]|(?:^|[.!?] )(?:It|This|That|The \w+|\w+) (?:is|are) (?:\w+ly )?(?:cheaper|faster|smaller|better|stronger|safer|simpler|slower|worse)[.!]'
+  - '\d+(?:\.\d+)? ?(?:\x25|percent) (?:cheaper|faster|smaller|larger|better|worse|higher|lower|fewer)[.,;!]|(?:^|[.!?] )(?:It|This|That|The \w+|\w+) (?:is|are) (?:\w+ly )?(?:cheaper|faster|smaller|better|stronger|safer|simpler|slower|worse)[.!]'

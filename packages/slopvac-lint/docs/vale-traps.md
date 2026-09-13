@@ -135,21 +135,23 @@ raw:
 
 The unquoted guard is the trap that ships a rule reading as guarded while the guard does nothing.
 
-### 9. A literal `%` in a `raw:` pattern depends on the Vale version
+### 9. A literal `%` in a `raw:` pattern depends on the Vale version; write `\x25`
 
-Vale releases before 3.21 ran the printf formatter over the PATTERN as well as the
-message, so a literal `%` had to be written `%%` or the rule reported zero with no
-error. Vale 3.21.0 passes the pattern through unchanged: `%%` now matches nothing
-and `%` matches. Measured on 3.21.0 with `The build is now 20% faster.`: the `%%`
-form of `hedge/BaselinelessComparative.yml` reported zero, the `%` form fired.
+Vale 3.15 runs the printf formatter over the PATTERN as well as the message, so a
+bare `%` corrupts the pattern and it reports zero with no error; `%%` was the
+escape. Vale 3.21 passes the pattern through unchanged, so `%%` matches nothing
+and `%` matches. Measured with `The build is now 20% faster.` against
+`hedge/BaselinelessComparative.yml`: on 3.15.2 the `%%` form fired and the `%`
+form reported zero; on 3.21.0 the reverse. The hex escape `\x25` is a `%` to RE2
+and nothing to the formatter, so it fired on both.
 
 ```yaml
-# Vale 3.21: fires. Earlier releases: reports ZERO, and needed `\d%% `.
+# Fires on 3.15 and 3.21 alike. `%` fires only on 3.21; `%%` only before it.
 raw:
-  - '(?<!\d )(?<!\d% )\bmost\s+users\b'
+  - '(?<!\d )(?<!\d\x25 )\bmost\s+users\b'
 ```
 
-The fixture test `test_weasel_fixture_fires` carries the probe, so a Vale upgrade
+The fixture test `test_weasel_fixture_fires` carries the probe, so a Vale release
 that changes the escaping again fails a behaviour test rather than a source-text
 check. The pattern above also stacked two lookbehinds, so the obvious reading was
 that Vale limits lookbehind. It does not (trap 7). Isolate one variable at a time:

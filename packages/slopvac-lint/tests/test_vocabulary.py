@@ -170,11 +170,11 @@ def test_an_entry_without_a_word_is_refused(tmp_path):
 
 
 def test_unknown_entry_fields_are_refused(tmp_path):
-    with pytest.raises(VocabularyError, match="replacment"):
+    with pytest.raises(VocabularyError, match="substitute"):
         load_blocklist(
             _write(
                 tmp_path / "b.toml",
-                [{"word": "utilize", "pos": "verb", "reason": "x", "replacment": "use"}],
+                [{"word": "utilize", "pos": "verb", "reason": "x", "substitute": "use"}],
             )
         )
 

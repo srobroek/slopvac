@@ -305,14 +305,11 @@ def test_uncommented_starter_examples_load(tmp_path):
 
 def test_shipped_lexical_examples_fire_through_engine(ruleset):
     """The loader regex check is complemented by a batched native execution oracle."""
-    from time import perf_counter
-
     from slopvac.analyze import parse
     from slopvac.config import Config, resolve_for
     from slopvac.engine import Engine
 
     profiles = ("strict", "normal", "relaxed")
-    started = perf_counter()
     failures: list[str] = []
     for rule in ruleset.rules:
         if rule.kind not in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION):
