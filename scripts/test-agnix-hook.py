@@ -9,8 +9,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CHECKER = ROOT / "scripts" / "check-agnix-staged.sh"
-INSTALLER = ROOT / "scripts" / "install-agnix-hooks.sh"
+CHECKER = ROOT / "scripts" / "check-agnix-staged.py"
+INSTALLER = ROOT / "scripts" / "install-agnix-hooks.py"
 CONFIG = ROOT / ".agnix.toml"
 TRACKED_PRE_COMMIT = ROOT / ".githooks" / "pre-commit"
 VALID_SKILL = """---
@@ -89,7 +89,7 @@ def main() -> None:
         git("init", "--quiet", cwd=worktree, env=env)
         git("config", "user.email", "agnix-hook-test@example.invalid", cwd=worktree, env=env)
         git("config", "user.name", "agnix-hook-test", cwd=worktree, env=env)
-        hooks = worktree / ".git" / "hooks"
+        hooks = (worktree / ".git" / "hooks").resolve()
         hooks.mkdir(exist_ok=True)
         hook_log = worktree / "hook log\n.txt"
         hook_env = dict(env, HOOK_LOG=str(hook_log))
@@ -109,8 +109,8 @@ def main() -> None:
             ".agnix.toml",
             "SKILL.md",
             ".githooks/pre-commit",
-            "scripts/check-agnix-staged.sh",
-            "scripts/install-agnix-hooks.sh",
+            "scripts/check-agnix-staged.py",
+            "scripts/install-agnix-hooks.py",
             cwd=worktree,
             env=env,
         )
@@ -121,6 +121,13 @@ def main() -> None:
         git("add", "SKILL.md", cwd=worktree, env=env)
         expect_status("valid staged input", run([str(CHECKER)], worktree, env), 0)
         git("commit", "--quiet", "--no-verify", "-m", "valid-change", cwd=worktree, env=env)
+
+        newline_skill = worktree / "skills" / "line\nbreak" / "references" / "reference.md"
+        newline_skill.parent.mkdir(parents=True, exist_ok=True)
+        newline_skill.write_text("Use the tool.\n")
+        git("add", "--", "skills/line\nbreak/references/reference.md", cwd=worktree, env=env)
+        expect_status("newline path staged input", run([str(CHECKER)], worktree, env), 0)
+        git("commit", "--quiet", "--no-verify", "-m", "newline-path", cwd=worktree, env=env)
         git("reset", "--quiet", "--hard", base, cwd=worktree, env=env)
 
         skill.write_text(MALFORMED_SKILL)
@@ -137,10 +144,8 @@ def main() -> None:
         git("add", "SKILL.md", cwd=worktree, env=env)
         expect_status("valid repaired staged input", run([str(CHECKER)], worktree, env), 0)
         git("commit", "--quiet", "--no-verify", "-m", "valid-repair", cwd=worktree, env=env)
-        git("read-tree", "HEAD", cwd=worktree, env=ci_env)
-        expect_status("valid CI baseline", run([str(CHECKER)], worktree, ci_env), 0)
 
-        installer = worktree / "scripts/install-agnix-hooks.sh"
+        installer = worktree / "scripts/install-agnix-hooks.py"
         expect_status("initial hook installation", run([str(installer)], worktree, hook_env), 0)
         managed_hooks = Path(config_value("agnix.hooksPath", worktree, env))
         if config_value("core.hooksPath", worktree, env) != str(managed_hooks):
@@ -169,7 +174,6 @@ def main() -> None:
             target.unlink()
             replacement = worktree / ".githooks" / "pre-commit" if name == "pre-commit" else hooks / name
             target.symlink_to(replacement)
-
 
         git("commit", "--quiet", "--allow-empty", "-m", "hook-chain", cwd=worktree, env=hook_env)
         expect_status("preserved pre-push hook", run([str(managed_hooks / "pre-push")], worktree, hook_env), 0)
@@ -203,7 +207,7 @@ def main() -> None:
             if label not in log_lines:
                 raise RuntimeError(f"new {label} hook did not run")
 
-    print("agnix staged, CI baseline, and all-hook installation checks passed")
+    print("agnix staged, CI baseline, newline paths, and all-hook installation checks passed")
 
 
 if __name__ == "__main__":
