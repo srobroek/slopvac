@@ -185,9 +185,24 @@ must open with a definitional marker (an article, `about`, `just`, `whether`, ..
 | generated, unguided (48 docs) | 4, all judged tells: `The monorepo is a source-control and coordination boundary. It is not a requirement to combine services`; `The relevant question is not whether ... It is whether ...`; `The user-level plugin is not loaded at all; it is replaced, not merged`; `Not because we like generated code in review, but because` |
 | generated, steered (94 docs) | 0 |
 | 10 property-negation corrections ("The limit is 100 requests per minute. It is not configurable.", "The token is a JWT. It is not encrypted; verify the signature.", ...) | 0 |
-| 15 definitional distinctions of the exact shape, written to be kept ("The lock is a lease. It is not a mutex.") | 15 |
+| 15 definitional distinctions of the exact shape, written to be kept ("The lock is a lease. It is not a mutex.") | 15 at PR #56; 1 after PR #58 |
+| 12 constructed tells ("Testing is not a phase. It is a habit.", "Security is not a checkbox. It is a process.", ...) | 12 at PR #56; 8 after PR #58 |
 
-The last row is the rule's limit and the final challenger's strongest objection: no
+PR #58 narrowed the rule after the challenger's objection below: the negated half must now
+open with a rhetorical marker (`about`, `just`, `whether`, `because`, ...) or with an
+article and one of the nouns the tell reaches for (`a requirement`, `an afterthought`, `a
+checkbox`, `a silver bullet`, `a guarantee`, ...). The one distinction that still fires is
+"The response is an acknowledgement. It is not a guarantee that the operation completed.",
+because `a guarantee` is on that list. The four tells it stops catching are the
+concrete-noun forms of the same shape, which no pattern separates from the distinctions
+above: "The goal is not speed. It is correctness.", "The cache is not a source of truth.
+It is an optimization.", "The parser is a library. It is not a compiler.", "The gate
+isn't a judge -- it's a filter." (an em dash in the probe). Those stay with the reviewer's
+judgement remainder (`ai-tells-structure.contrastive-inversion-remainder`). All five
+model-corpus hits survive the narrowing; the matrix is pinned in `tests/test_engine.py`
+(`DEFINITIONAL_*`).
+
+The distinctions row is the rule's limit and the final challenger's strongest objection: no
 pattern separates a strawman restatement from a genuine definitional distinction of
 the same shape. What separates them in the corpora is frequency (0 in 51k parsed words
 of human and gated prose against 5 in the model corpora), so the rule is a warning the
@@ -318,7 +333,10 @@ command, the same genre table, and the exit meanings (0 can carry findings; 2 is
 incomplete run: Vale absent, older than 3.15, disabled in config, or `--no-vale`).
 The project-gate selection section that duplicated the config policy is a short pointer.
 Judgement-rule `exceptions` are dead metadata (a judgement never emits a suppressible
-finding); left in place, noted for a follow-up.
+finding). The JudgementRules agent counted 27 from the `rules --format json` output; the
+YAML at the audit baseline (`3c99532`) carries the key on 29 judgement rules, 25 of them
+non-empty, and the three tokenizer-contract entries PR #56 removed took it to 26. PR #58
+(`f847b027c1`) deleted all 26 `exceptions:` lines; 0 judgement rules carry the key now.
 
 ### Code
 
