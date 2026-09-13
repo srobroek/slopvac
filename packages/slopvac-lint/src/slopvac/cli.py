@@ -213,7 +213,22 @@ def lint(
         locale_tag=locale_tag,
     )
     if not run.paths:
-        console.print("[yellow]no lintable files matched[/]")
+        # A run with nothing to lint still owes the caller a report in the format
+        # it asked for: the GitHub action parses the JSON, and a bare text line
+        # where JSON was expected read as "the report could not be produced" on
+        # every release PR, whose only prose change (CHANGELOG.md) is excluded.
+        # The notice goes to stderr so a machine format on stdout stays parseable.
+        click.echo("no lintable files matched", err=True)
+        emit_report(
+            [],
+            run.ruleset,
+            console,
+            output_format=output_format,
+            out_path=out_path,
+            open_report=open_report,
+            format_given=_format_was_given(),
+            verbose=verbose,
+        )
         raise SystemExit(EXIT_OK)
     if explain_config:
         _print_resolved_config(run, console)
