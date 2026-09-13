@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.3.0](https://github.com/srobroek/slopvac/compare/v2.2.0...v2.3.0) (2026-09-13)
+
+
+### Features
+
+* audit follow-ups: per-target config, native reach, Vale messages, dash gate ([#58](https://github.com/srobroek/slopvac/issues/58)) ([f847b02](https://github.com/srobroek/slopvac/commit/f847b027c1f5a5d481074990cb49379b3a3a19fb))
+* rule, steering and code audit of 2026-09-12 ([#56](https://github.com/srobroek/slopvac/issues/56)) ([f7f2ad8](https://github.com/srobroek/slopvac/commit/f7f2ad84f97df804ed629b4298dd2369f9201c4c))
+
+
+### Bug Fixes
+
+* audit follow-ups 2: HTML/MDX prose, .rst converter gate, composite-action contract ([#59](https://github.com/srobroek/slopvac/issues/59)) ([9f0c426](https://github.com/srobroek/slopvac/commit/9f0c42634eb5214cf4f795e3927fd2b5e4b1f117))
+* audit follow-ups 3: STE tokenizer and segmenter per docs/metrics.md ([#60](https://github.com/srobroek/slopvac/issues/60)) ([b4ea1df](https://github.com/srobroek/slopvac/commit/b4ea1dfac31a6fad7e5dd2a1877ee264d74691d0))
+* **cli:** emit the requested report format when every target is excluded ([#61](https://github.com/srobroek/slopvac/issues/61)) ([e6799aa](https://github.com/srobroek/slopvac/commit/e6799aab957ea2d911781383efc2b2c4fd2d92b3))
+
 ## [2.2.0](https://github.com/srobroek/slopvac/compare/v2.1.0...v2.2.0) (2026-09-09)
 
 
