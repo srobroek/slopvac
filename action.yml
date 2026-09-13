@@ -142,53 +142,28 @@ runs:
       env:
         VALE_VERSION: ${{ inputs.vale-version }}
         ACTION_PATH: ${{ github.action_path }}
-      run: |
-        set -euo pipefail
-        "$ACTION_PATH/scripts/install-vale.sh" "$VALE_VERSION"
+      run: python3 "$ACTION_PATH/scripts/install_vale.py" --prefix "$RUNNER_TEMP/slopvac-bin" "$VALE_VERSION"
 
-    # A shallow clone has no merge base, so the diff would silently return every
-    # file. Detect that and say so rather than linting the whole repo under a
-    # changed-files-only label. Paths travel through a NUL-delimited file, never
-    # a space-joined string: a changed file with a space in its name would
-    # otherwise arrive as two paths that do not exist.
+    - name: Add Vale to PATH
+      if: inputs.vale == 'true'
+      shell: bash
+      run: echo "$RUNNER_TEMP/slopvac-bin" >> "$GITHUB_PATH"
+
     - name: Resolve target paths
       id: targets
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         CHANGED_ONLY: ${{ inputs.changed-files-only }}
         INPUT_PATHS: ${{ inputs.paths }}
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      run: |
-        set -euo pipefail
-        list="${RUNNER_TEMP}/slopvac-paths"
-        echo "list=$list" >> "$GITHUB_OUTPUT"
-        if [ "$CHANGED_ONLY" != "true" ]; then
-          read -r -a inputs <<< "$INPUT_PATHS"
-          printf '%s\0' "${inputs[@]}" > "$list"
-          exit 0
-        fi
-        if [ -z "${BASE_SHA:-}" ]; then
-          echo "::warning title=slopvac::changed-files-only needs a pull_request event; linting ${INPUT_PATHS} instead"
-          read -r -a inputs <<< "$INPUT_PATHS"
-          printf '%s\0' "${inputs[@]}" > "$list"
-          exit 0
-        fi
-        if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-          echo "::error title=slopvac::the merge base is not in this clone. Set fetch-depth: 0 on actions/checkout, or set changed-files-only: false."
-          exit 1
-        fi
-        git diff -z --name-only --diff-filter=d "$BASE_SHA"...HEAD -- \
-          '*.md' '*.mdx' '*.markdown' '*.txt' '*.rst' '*.html' > "$list"
-        if [ ! -s "$list" ]; then
-          echo "::notice title=slopvac::no prose files changed"
-          exit 0
-        fi
-        tr '\0' '\n' < "$list"
+      run: python3 "$ACTION_PATH/scripts/action_entry.py" resolve-targets
 
     - name: Lint
       id: lint
       shell: bash
       env:
+        ACTION_PATH: ${{ github.action_path }}
         PATH_LIST: ${{ steps.targets.outputs.list }}
         VALE: ${{ inputs.vale }}
         PROFILE: ${{ inputs.profile }}
@@ -202,159 +177,7 @@ runs:
         FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
         VERSION: ${{ inputs.version }}
         SOURCE: ${{ inputs.source }}
-      run: |
-        # `shell: bash` runs this script under `bash -eo pipefail`, so a linter
-        # exit of 1 (findings) inside `render` aborted the step before `status`
-        # was captured: non-blocking mode failed on every finding and the SARIF
-        # never got written. Measured by the composite-action contract workflow,
-        # three of its five branches. The verdict is a value here, not an error.
-        set +e
-        set -uo pipefail
-
-        targets=()
-        while IFS= read -r -d '' target; do
-          [ -n "$target" ] && targets+=("$target")
-        done < "$PATH_LIST"
-
-        if [ "${#targets[@]}" -eq 0 ]; then
-          {
-            echo "score=100"
-            echo "findings=0"
-            echo "errors=0"
-            echo "warnings=0"
-            echo "suggestions=0"
-            echo "documents=0"
-            echo "words=0"
-            echo "per-100-words=0"
-            echo "passed=true"
-            echo "json="
-            echo "sarif="
-          } >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        # One array holding the whole command, rather than a bare `args` that is
-        # empty whenever no input is set: under `set -u` an empty array expansion
-        # is an unbound-variable error on bash 3.2, and this script is also read
-        # and copied by people running it locally.
-        cmd=(uvx)
-        if [ -n "$SOURCE" ]; then
-          spec="$SOURCE"
-          # uvx caches a build from a local path under the version in its
-          # metadata, and an unreleased checkout keeps the same version across
-          # every edit, so neither --refresh nor --refresh-package reaches it --
-          # measured. With the uv cache restored between runs that silently runs a
-          # previous commit's linter and reports it as this commit's result.
-          cmd+=(--no-cache)
-        else
-          spec="slopvac"
-          [ -n "$VERSION" ] && spec="slopvac${VERSION}"
-          # A bare "0.1.0" is not a specifier. Read it as the pin the writer meant
-          # rather than failing on a resolver error that names neither input.
-          case "$VERSION" in
-            [0-9]*) spec="slopvac==${VERSION}" ;;
-          esac
-        fi
-        cmd+=(--from "$spec" slopvac lint)
-
-        [ -n "$PROFILE" ] && cmd+=(--profile "$PROFILE")
-        [ -n "$CONFIG" ] && cmd+=(--config "$CONFIG")
-        [ -n "$MIN_SCORE" ] && cmd+=(--min-score "$MIN_SCORE")
-        [ -n "$MAX_PER_100" ] && cmd+=(--max-per-100-words "$MAX_PER_100")
-        [ -n "$RULES_DIR" ] && cmd+=(--rules-dir "$RULES_DIR")
-        [ "$VALE" != "true" ] && cmd+=(--no-vale)
-
-        # A rendering that fails is an action failure, never a quiet omission:
-        # exit 0 and 1 are the linter's verdicts, anything else means no report.
-        render() {
-          local format="$1" destination="$2"
-          "${cmd[@]}" --format "$format" "${targets[@]}" > "$destination"
-          local code=$?
-          if [ "$code" -ge 2 ] || [ ! -s "$destination" ]; then
-            echo "::error title=slopvac::the ${format} report could not be produced (exit ${code})."
-            cat "$destination" 2>/dev/null || true
-            exit 2
-          fi
-          return "$code"
-        }
-
-        # JSON is the source of truth for the outputs; the other formats are
-        # rendered from the same run so the numbers cannot disagree.
-        render json /tmp/slopvac.json
-        status=$?
-
-        # One reader for both the outputs and the step summary: a shape the
-        # reader cannot parse is an action failure, never a quiet exit 0.
-        if ! python3 - <<'PY' >> "$GITHUB_OUTPUT"
-        import json
-        with open("/tmp/slopvac.json") as handle:
-            data = json.load(handle)
-        summary = data["summary"]
-        print(f"score={summary['score']}")
-        print(f"findings={summary['findings']}")
-        print(f"errors={summary['errors']}")
-        print(f"warnings={summary['warnings']}")
-        print(f"suggestions={summary['suggestions']}")
-        print(f"documents={summary['documents']}")
-        print(f"words={summary['words']}")
-        print(f"per-100-words={summary['per_100_words']}")
-        print(f"passed={'true' if summary['passed'] else 'false'}")
-        print("json=/tmp/slopvac.json")
-        PY
-        then
-          echo "::error title=slopvac::the JSON report could not be read. Prose was NOT checked."
-          exit 2
-        fi
-
-        if ! python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-        import json
-        with open("/tmp/slopvac.json") as handle:
-            data = json.load(handle)
-        summary = data["summary"]
-        verdict = "PASS" if summary["passed"] else "FAIL"
-        print(f"## slopvac: {verdict} - score {summary['score']}/100\n")
-        print(
-            f"{summary['findings']} finding(s) across {summary['documents']} file(s), "
-            f"{summary['words']} words = {summary['per_100_words']:.2f} per 100 words\n"
-        )
-        rows = [c for c in summary["categories"] if c["findings"]]
-        if rows:
-            print("| category | findings | errors | warnings | per 100 words | score |")
-            print("| --- | --- | --- | --- | --- | --- |")
-            for row in rows:
-                print(
-                    f"| {row['category']} | {row['findings']} | {row['errors']} | "
-                    f"{row['warnings']} | {row['per_100_words']:.2f} | {row['score']:.0f} |"
-                )
-            print()
-        for document in data["documents"]:
-            for reason in document.get("failure_reasons", []):
-                print(f"- `{document['path']}`: {reason}")
-            for note in document.get("unchecked", []):
-                print(f"- UNCHECKED `{document['path']}`: {note}")
-        PY
-        then
-          echo "::error title=slopvac::the step summary could not be written from the report."
-          exit 2
-        fi
-
-        if [ "$ANNOTATE" = "true" ]; then
-          render github /tmp/slopvac.github
-          cat /tmp/slopvac.github
-        fi
-
-        if [ "$SARIF" = "true" ]; then
-          render sarif "$SARIF_FILE"
-          echo "wrote $SARIF_FILE"
-          echo "sarif=$SARIF_FILE" >> "$GITHUB_OUTPUT"
-        else
-          echo "sarif=" >> "$GITHUB_OUTPUT"
-        fi
-
-        if [ "$FAIL_ON_FINDINGS" = "true" ]; then
-          exit "$status"
-        fi
-        exit 0
+      run: python3 "$ACTION_PATH/scripts/action_entry.py" lint
 
     # `always()`, because the whole point is to see the findings on a run that
     # failed on them. Without it the upload is skipped exactly when it matters.
