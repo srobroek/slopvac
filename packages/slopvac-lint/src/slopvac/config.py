@@ -175,6 +175,16 @@ class Thresholds(BaseModel):
         description="Floor on the 0-100 quality score. Fails the run when the "
         "document scores below it.",
     )
+    max_unicode_dashes: int | None = Field(
+        default=0,
+        ge=0,
+        description="Ceiling on Unicode em and en dashes (U+2014, U+2013) in the "
+        "source, counted from prose-format.no-unicode-dash findings whatever their "
+        "severity or tier. The dash is the strongest origin signal the 2026-09-12 "
+        "audit measured (24x denser in model prose than in pre-2022 human prose), "
+        "and it must fail the run even where max_errors is raised or the rule is "
+        "advisory. A project that must keep its dashes raises the ceiling.",
+    )
 
 
 class LocaleSettings(BaseModel):
@@ -260,6 +270,7 @@ class ThresholdPatch(BaseModel):
     max_errors: int | None = Field(default=None, ge=0)
     max_warnings: int | None = Field(default=None, ge=0)
     min_score: float | None = Field(default=None, ge=0, le=100)
+    max_unicode_dashes: int | None = Field(default=None, ge=0)
 
 
 class LocalePatch(BaseModel):
