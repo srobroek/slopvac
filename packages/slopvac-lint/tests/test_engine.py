@@ -60,8 +60,13 @@ def _fixture_rule(
         message="replace {match}",
         provenance=Provenance(source="test"),
         category="fixture",
-        tiers={"strict": Tier.ENFORCED, "normal": Tier.ENFORCED, "relaxed": Tier.ENFORCED},
+        tiers={
+            "strict": Tier.ENFORCED,
+            "normal": Tier.ENFORCED,
+            "relaxed": Tier.ENFORCED,
+        },
     )
+
 
 # --- word counting, ASD-STE100 rules 8.4 through 8.7 -------------------------
 
@@ -213,7 +218,9 @@ def test_lexical_rules_are_not_gated_on_the_sentence_classifier() -> None:
 
 
 def test_paragraph_scope_matches_across_a_soft_break():
-    rule = _fixture_rule(scope=Scope.PARAGRAPH, pattern=r"first sentence\. second sentence")
+    rule = _fixture_rule(
+        scope=Scope.PARAGRAPH, pattern=r"first sentence\. second sentence"
+    )
     engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
     findings = engine.run(parse("a.md", "first sentence.\nsecond sentence.\n"))
     assert [(f.line, f.column) for f in findings] == [(1, 1)]
@@ -417,6 +424,67 @@ def _run(text: str, profile=Profile.NORMAL):
     return engine.run(parse("a.md", text))
 
 
+DEFINITIONAL_RULE = "ai-tells-structure.definitional-negation-pair"
+
+# Genuine definitional distinctions of the exact "X is A. It is not B." shape,
+# written to be kept. The first version of the rule fired on all fifteen.
+DEFINITIONAL_DISTINCTIONS = [
+    "The endpoint is a compatibility alias. It is not a stable API.",
+    "The file is a cache. It is not the source of truth.",
+    "The process is a child of systemd. It is not a member of the service cgroup.",
+    "This is an authorization check. It is not an authentication step.",
+    "The token is a bearer credential. It is not a user session.",
+    "The lock is a lease. It is not a mutex.",
+    "The value is a byte count. It is not the number of characters.",
+    "The replica is a recovery target. It is not a failover source.",
+    "The checksum is an integrity signal. It is not an authenticity proof.",
+    "The flag is a process-wide setting. It is not a per-request option.",
+    "The route is an internal endpoint. It is not a public contract.",
+    "The timeout is a client budget. It is not a server deadline.",
+    "The cache isn't a copy of the database; it's an index over immutable records.",
+    "The operation isn't a retry; it's a new transaction with a new idempotency key.",
+]
+
+# The one accepted false fire: "a guarantee" is on the rhetorical-noun list
+# because the tell reaches for it ("A lock is not a guarantee. It is a hint.").
+ACCEPTED_DISTINCTION_FIRE = "The response is an acknowledgement. It is not a guarantee that the operation completed."
+
+# Constructed tells whose negated half opens with a rhetorical marker or noun.
+DEFINITIONAL_TELLS = [
+    "This isn't just a linter. It's a review partner.",
+    "Testing is not a phase. It is a habit.",
+    "Documentation is not an afterthought. It is a feature.",
+    "The migration is not a big-bang rewrite. It is a series of small steps.",
+    "Security is not a checkbox. It is a process.",
+    "This is not a workaround. This is the fix.",
+    "A lock is not a guarantee. It is a hint.",
+    "Observability is not a dashboard. It is a practice.",
+]
+
+
+def _definitional_fires(text: str) -> bool:
+    return any(f.rule_id == DEFINITIONAL_RULE for f in _run(text))
+
+
+@pytest.mark.parametrize("text", DEFINITIONAL_DISTINCTIONS)
+def test_definitional_rule_keeps_a_genuine_distinction(text):
+    """A definitional distinction over concrete nouns is the shape a writer
+    keeps; the rule fires only when the negated half reaches for a rhetorical
+    marker or noun."""
+    assert not _definitional_fires(text)
+
+
+@pytest.mark.parametrize("text", DEFINITIONAL_TELLS)
+def test_definitional_rule_catches_the_rhetorical_form(text):
+    assert _definitional_fires(text)
+
+
+def test_definitional_rule_accepted_fire_is_the_rhetorical_noun():
+    """Documented limit: the same rhetorical-noun list that catches the tell
+    fires on an acknowledgement that 'is not a guarantee'."""
+    assert _definitional_fires(ACCEPTED_DISTINCTION_FIRE)
+
+
 def test_valid_suppression_is_honoured():
     findings = _run(
         "<!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->\n"
@@ -511,7 +579,10 @@ def test_malformed_suppression_is_reported_with_expected_grammar():
     )
     invalid = [f for f in findings if f.rule_id == "meta.invalid-suppression"]
     assert invalid
-    assert "expected <!-- slopvac-allow: rule=<rule-id> reason=<reason> -->" in invalid[0].message
+    assert (
+        "expected <!-- slopvac-allow: rule=<rule-id> reason=<reason> -->"
+        in invalid[0].message
+    )
     assert [f for f in findings if f.rule_id == "orwell.stale-figure"]
 
 
@@ -537,6 +608,7 @@ def test_a_directive_quoted_in_code_is_neither_honoured_nor_reported():
     )
     assert not [f for f in findings if f.rule_id == "meta.invalid-suppression"]
     assert [f for f in findings if f.rule_id == "orwell.stale-figure"]
+
 
 def test_allowlist_phrase_only_suppresses_the_contained_occurrence():
     rule = _fixture_rule(allowlist=["iron resolution"], pattern=r"\biron\b")
@@ -601,9 +673,13 @@ def test_one_unicode_dash_fails_the_run_whatever_the_profile_allows(profile, sev
     assert any("Unicode dash" in reason for reason in result.failure_reasons)
 
     lenient = _score(
-        [dash], 400, profile=profile, thresholds=Thresholds(max_errors=5, max_unicode_dashes=1)
+        [dash],
+        400,
+        profile=profile,
+        thresholds=Thresholds(max_errors=5, max_unicode_dashes=1),
     )
     assert not any("Unicode dash" in reason for reason in lenient.failure_reasons)
+
 
 def test_short_document_is_not_density_gated():
     """One finding in a 20-word error message is 5.0 per 100 words and would fail
@@ -918,9 +994,7 @@ def test_all_caps_words_do_not_draw_prose_findings():
 
 def test_case_sensitive_prose_rules_can_report_all_caps_matches():
     """Case-sensitive payloads opt into the all-caps matches they define."""
-    findings = _run(
-        "The A.P.I. returns JSON. TODO: document the flag. a HTML file."
-    )
+    findings = _run("The A.P.I. returns JSON. TODO: document the flag. a HTML file.")
     hits = {(finding.rule_id, finding.matched_text) for finding in findings}
     assert {
         ("prose-craft.acronym-periods", "A.P.I."),
@@ -1055,9 +1129,7 @@ def test_paragraph_words_is_evaluated_natively():
     is one word here and zero to Vale, whose markdown scoping drops the span before
     its token counter sees it, so the metric stays native."""
     engine = _engine()
-    rule = next(
-        r for r in engine.rules if r.qualified_id == "prose-format.prose-block"
-    )
+    rule = next(r for r in engine.rules if r.qualified_id == "prose-format.prose-block")
     assert rule.metric == "paragraph_words"
     assert "paragraph_words" not in engine.unimplemented_metrics()
     assert rule.qualified_id not in engine.unimplemented_metrics()
@@ -1399,7 +1471,6 @@ def test_the_stack_rule_still_reports_a_real_stack():
     """The companion to every false-positive fix above. Each round widened
     STACK_BREAKER, and a list wide enough to silence everything silences this too."""
     assert longest_noun_stack("container orchestration platform migration strategy") == 5
-
 
 
 def test_html_div_prose_is_linted_at_its_source_line():
