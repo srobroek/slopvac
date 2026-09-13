@@ -94,14 +94,17 @@ jobs:
             exit 1
           fi
 
-      - name: Assert non-blocking findings pass with summary
+      - name: Assert non-blocking findings pass and publish outputs
         if: matrix.name == 'non-blocking'
         env:
           OUTCOME: ${{ steps.slopvac.outcome }}
           FINDINGS: ${{ steps.slopvac.outputs.findings }}
           SCORE: ${{ steps.slopvac.outputs.score }}
-          SUMMARY: $GITHUB_STEP_SUMMARY
+          PASSED: ${{ steps.slopvac.outputs.passed }}
+          ERRORS: ${{ steps.slopvac.outputs.errors }}
         run: |
+          # The step summary file is per step, so a later step cannot read the
+          # action's; the outputs are the observable contract instead.
           if [ "$OUTCOME" != success ]; then
             echo "expected non-blocking action to pass, observed: $OUTCOME"
             exit 1
@@ -110,12 +113,12 @@ jobs:
             echo "expected findings, observed: $FINDINGS"
             exit 1
           fi
-          if [ -z "$SCORE" ]; then
-            echo "expected score output, observed: $SCORE"
+          if [ -z "$SCORE" ] || [ -z "$ERRORS" ]; then
+            echo "expected score and errors outputs, observed: score=$SCORE errors=$ERRORS"
             exit 1
           fi
-          if [ ! -s "$SUMMARY" ]; then
-            echo "expected a non-empty step summary, observed: $SUMMARY"
+          if [ "$PASSED" != false ]; then
+            echo "expected passed=false on a slop-laden fixture, observed: $PASSED"
             exit 1
           fi
 
@@ -147,7 +150,7 @@ jobs:
             exit 1
           fi
 
-      - name: Assert changed-files selects one fixture
+      - name: Assert changed-files lints exactly the PR's changed prose
         if: matrix.name == 'changed-files'
         env:
           OUTCOME: ${{ steps.slopvac.outcome }}
@@ -162,22 +165,22 @@ jobs:
           outcome, report_path, base_sha = sys.argv[1:]
           with open(report_path) as handle:
               report = json.load(handle)
-          documents = report["documents"]
-          if base_sha:
-              changed = subprocess.check_output(
-                  ["git", "diff", "--name-only", f"{base_sha}...HEAD", "--",
+          observed_paths = sorted(document["path"] for document in report["documents"])
+          # The contract: exactly the prose files this PR changed, whatever they
+          # are. On a focused fixture PR that is one file; on a PR that also edits
+          # a README, the README is part of the set.
+          expected = sorted(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only", "--diff-filter=AM", f"{base_sha}...HEAD", "--",
                    "*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html"],
                   text=True,
               ).splitlines()
-              expected = [path for path in changed if path.startswith(".github/action-fixtures/")]
-          else:
-              expected = [".github/action-fixtures/slop-laden.md"]
-          observed_paths = [document["path"] for document in documents]
+          ) if base_sha else [".github/action-fixtures/slop-laden.md"]
           observed = f"outcome={outcome} documents={observed_paths} expected={expected}"
-          if outcome != "success" or sorted(observed_paths) != sorted(expected):
-              print(f"expected exactly the changed fixture files, observed: {observed}")
+          if outcome != "success" or observed_paths != expected:
+              print(f"expected exactly the PR's changed prose files, observed: {observed}")
               raise SystemExit(1)
-          if len(expected) == 1 and "slop-laden.md" not in observed_paths:
-              print(f"expected the slop-laden fixture when one fixture changed, observed: {observed}")
+          if ".github/action-fixtures/slop-laden.md" not in observed_paths:
+              print(f"expected the slop-laden fixture in the changed set, observed: {observed}")
               raise SystemExit(1)
           PY
