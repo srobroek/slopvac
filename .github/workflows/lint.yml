@@ -56,7 +56,7 @@ jobs:
           export GIT_INDEX_FILE="$index"
           git read-tree "$HEAD_SHA"
           export AGNIX_DIFF_BASE="$base"
-          ./scripts/check-agnix-staged.sh
+          python3 scripts/check-agnix-staged.py
       - name: actionlint
         run: actionlint .github/workflows/*.yml
       - name: Install zizmor

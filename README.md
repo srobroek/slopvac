@@ -361,7 +361,7 @@ Install `agnix` 0.52.2, then enable the staged instruction check in each worktre
 
 ```sh
 cargo install --locked agnix-cli --version 0.52.2
-./scripts/install-agnix-hooks.sh
+./scripts/install-agnix-hooks.py
 ```
 
 The installer sets a worktree hook path and preserves existing hooks.
