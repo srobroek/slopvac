@@ -50,6 +50,17 @@ def vale_version(binary: str = "vale") -> tuple[int, int, int] | None:
     return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
 
 
+def rst_converter(
+    binary_names: tuple[str, ...] = ("rst2html", "rst2html.py"),
+) -> str | None:
+    """Return the first docutils RST converter on PATH, if one is usable."""
+    for name in binary_names:
+        resolved = shutil.which(name)
+        if resolved is not None:
+            return resolved
+    return None
+
+
 def probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
     """Which payloads Vale refuses, mapped to the reason it gave.
 
