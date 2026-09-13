@@ -51,6 +51,7 @@ A 10-rule two-document probe shows useful decisions for concrete, citation, head
 - proposal: Strip `exceptions`/`allowlist` from judgement metadata unless the engine will emit structured judgement findings; instead add `review_context_exclusions` (quotation/code/span) to selection. Keep exceptions only in the pattern schema.
 - expected effect: correctness and maintenance↓.
 - confidence: high
+- correction (2026-09-13, after PR #58): the 27 above was not reproduced. A recount of the YAML at the audit baseline (`3c99532`) finds the `exceptions` key on 29 judgement rules, 25 of them non-empty; PR #56 removed three tokenizer-contract entries (26 keys, 25 non-empty), and PR #58 (`f847b027c1`) deleted all 26 key lines. The finding stands; only the count was off.
 
 ### F7: Mechanizable questions should be patterns/metrics, not reviewer prompts
 - surface: `ai-tells-content-shape.textbook-connector-runs`, `ai-tells-structure.anaphora-abuse`, `ai-tells-structure.heading-echo`, `orwell.concrete-floor`, `ste-nouns.long-domain-term-without-short-form`, `ste-words.domain-noun-not-organization-approved`
