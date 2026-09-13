@@ -1,0 +1,183 @@
+name: Composite action contract
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # This case also exercises resolution of a published version instead
+          # of the source checkout used by the other cases.
+          - name: blocking
+            paths: .github/action-fixtures/slop-laden.md
+            source: ""
+            version: "2.2.0"
+            changed: "false"
+            fail: "true"
+            sarif: "false"
+            upload: "true"
+          - name: non-blocking
+            paths: .github/action-fixtures/slop-laden.md
+            source: ./packages/slopvac-lint
+            version: ""
+            changed: "false"
+            fail: "false"
+            sarif: "false"
+            upload: "true"
+          - name: empty-targets
+            paths: ""
+            source: ./packages/slopvac-lint
+            version: ""
+            changed: "false"
+            fail: "true"
+            sarif: "false"
+            upload: "true"
+          - name: sarif-without-upload
+            paths: .github/action-fixtures/slop-laden.md
+            source: ./packages/slopvac-lint
+            version: ""
+            changed: "false"
+            fail: "false"
+            sarif: "true"
+            upload: "false"
+          # On a pull_request this fixture is the one prose file changed by the
+          # fixture-focused PR. The clean fixture is already present on its base
+          # branch in that run, so changed-files-only must select only this file.
+          - name: changed-files
+            paths: .github/action-fixtures/slop-laden.md
+            source: ./packages/slopvac-lint
+            version: ""
+            changed: "true"
+            fail: "false"
+            sarif: "false"
+            upload: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Run slopvac action
+        id: slopvac
+        uses: ./
+        continue-on-error: ${{ matrix.fail == 'true' }}
+        with:
+          paths: ${{ matrix.paths }}
+          source: ${{ matrix.source }}
+          version: ${{ matrix.version }}
+          changed-files-only: ${{ matrix.changed }}
+          fail-on-findings: ${{ matrix.fail }}
+          min-score: "100"
+          max-per-100-words: "0"
+          sarif: ${{ matrix.sarif }}
+          upload-sarif: ${{ matrix.upload }}
+
+      - name: Assert blocking findings fail
+        if: matrix.name == 'blocking'
+        env:
+          OUTCOME: ${{ steps.slopvac.outcome }}
+        run: |
+          observed="$OUTCOME"
+          if [ "$observed" != failure ]; then
+            echo "expected blocking action to fail, observed: $observed"
+            exit 1
+          fi
+
+      - name: Assert non-blocking findings pass with summary
+        if: matrix.name == 'non-blocking'
+        env:
+          OUTCOME: ${{ steps.slopvac.outcome }}
+          FINDINGS: ${{ steps.slopvac.outputs.findings }}
+          SCORE: ${{ steps.slopvac.outputs.score }}
+          SUMMARY: $GITHUB_STEP_SUMMARY
+        run: |
+          if [ "$OUTCOME" != success ]; then
+            echo "expected non-blocking action to pass, observed: $OUTCOME"
+            exit 1
+          fi
+          if [ -z "$FINDINGS" ] || [ "$FINDINGS" = 0 ]; then
+            echo "expected findings, observed: $FINDINGS"
+            exit 1
+          fi
+          if [ -z "$SCORE" ]; then
+            echo "expected score output, observed: $SCORE"
+            exit 1
+          fi
+          if [ ! -s "$SUMMARY" ]; then
+            echo "expected a non-empty step summary, observed: $SUMMARY"
+            exit 1
+          fi
+
+      - name: Assert empty targets pass cleanly
+        if: matrix.name == 'empty-targets'
+        env:
+          OUTCOME: ${{ steps.slopvac.outcome }}
+          SCORE: ${{ steps.slopvac.outputs.score }}
+          FINDINGS: ${{ steps.slopvac.outputs.findings }}
+          DOCUMENTS: ${{ steps.slopvac.outputs.documents }}
+          PASSED: ${{ steps.slopvac.outputs.passed }}
+        run: |
+          observed="$OUTCOME score=$SCORE findings=$FINDINGS documents=$DOCUMENTS passed=$PASSED"
+          if [ "$OUTCOME" != success ] || [ "$SCORE" != 100 ] || \
+             [ "$FINDINGS" != 0 ] || [ "$DOCUMENTS" != 0 ] || [ "$PASSED" != true ]; then
+            echo "expected an empty-target success (score=100 findings=0 documents=0 passed=true), observed: $observed"
+            exit 1
+          fi
+
+      - name: Assert SARIF is written without upload
+        if: matrix.name == 'sarif-without-upload'
+        env:
+          OUTCOME: ${{ steps.slopvac.outcome }}
+          SARIF: ${{ steps.slopvac.outputs.sarif }}
+        run: |
+          observed="outcome=$OUTCOME sarif=$SARIF"
+          if [ "$OUTCOME" != success ] || [ -z "$SARIF" ] || [ ! -s "$SARIF" ]; then
+            echo "expected SARIF output with upload disabled (the upload step must be skipped), observed: $observed"
+            exit 1
+          fi
+
+      - name: Assert changed-files selects one fixture
+        if: matrix.name == 'changed-files'
+        env:
+          OUTCOME: ${{ steps.slopvac.outcome }}
+          REPORT: ${{ steps.slopvac.outputs.json }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 - "$OUTCOME" "$REPORT" "$BASE_SHA" <<'PY'
+          import json
+          import subprocess
+          import sys
+
+          outcome, report_path, base_sha = sys.argv[1:]
+          with open(report_path) as handle:
+              report = json.load(handle)
+          documents = report["documents"]
+          if base_sha:
+              changed = subprocess.check_output(
+                  ["git", "diff", "--name-only", f"{base_sha}...HEAD", "--",
+                   "*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html"],
+                  text=True,
+              ).splitlines()
+              expected = [path for path in changed if path.startswith(".github/action-fixtures/")]
+          else:
+              expected = [".github/action-fixtures/slop-laden.md"]
+          observed_paths = [document["path"] for document in documents]
+          observed = f"outcome={outcome} documents={observed_paths} expected={expected}"
+          if outcome != "success" or sorted(observed_paths) != sorted(expected):
+              print(f"expected exactly the changed fixture files, observed: {observed}")
+              raise SystemExit(1)
+          if len(expected) == 1 and "slop-laden.md" not in observed_paths:
+              print(f"expected the slop-laden fixture when one fixture changed, observed: {observed}")
+              raise SystemExit(1)
+          PY
