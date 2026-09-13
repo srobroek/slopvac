@@ -193,14 +193,18 @@ open with a rhetorical marker (`about`, `just`, `whether`, `because`, ...) or wi
 article and one of the nouns the tell reaches for (`a requirement`, `an afterthought`, `a
 checkbox`, `a silver bullet`, `a guarantee`, ...). The one distinction that still fires is
 "The response is an acknowledgement. It is not a guarantee that the operation completed.",
-because `a guarantee` is on that list. The four tells it stops catching are the
-concrete-noun forms of the same shape, which no pattern separates from the distinctions
-above: "The goal is not speed. It is correctness.", "The cache is not a source of truth.
-It is an optimization.", "The parser is a library. It is not a compiler.", "The gate
-isn't a judge -- it's a filter." (an em dash in the probe). Those stay with the reviewer's
-judgement remainder (`ai-tells-structure.contrastive-inversion-remainder`). All five
-model-corpus hits survive the narrowing; the matrix is pinned in `tests/test_engine.py`
-(`DEFINITIONAL_*`).
+because `a guarantee` is on that list. The four tells it stops catching have a negated
+half that opens with neither: a bare complement ("The goal is not speed. It is
+correctness.", "The cache is not a source of truth. It is an optimization.") or an
+article and a concrete noun off the list ("The parser is a library. It is not a
+compiler.", "The gate isn't a judge -- it's a filter.", an em dash in the probe). The
+last two are the distinctions' own shape, and the first two would need a marker list
+for every noun. Those stay with the reviewer's judgement remainder
+(`ai-tells-structure.contrastive-inversion-remainder`). All five model-corpus hits
+survive the narrowing. `tests/test_engine.py` (`DEFINITIONAL_*`) pins the boundary: the
+14 kept distinctions must not fire, the 8 rhetorical tells must, and the accepted fire is
+named. The four misses are recorded here only; a test asserting them would pin the
+current pattern's reach, not a contract.
 
 The distinctions row is the rule's limit and the final challenger's strongest objection: no
 pattern separates a strawman restatement from a genuine definitional distinction of
