@@ -37,7 +37,6 @@ stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 
 from __future__ import annotations
 
-import itertools
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
@@ -75,20 +74,21 @@ DASH_AS_ASIDE = re.compile(r"—|(?<![-\w])--(?![-\w>])")
 
 # --- Word counting per STE 8.4-8.7 -------------------------------------------
 
-# A number, optionally signed, with decimals, thousands separators, ranges, or a
-# version-like dotted form. One word.
+SENTINEL = "\x00"
+
+# The regular expressions below only identify spans whose *interior* must not be
+# counted again. They deliberately do not decide sentence boundaries; the
+# segmenter keeps a separate protected-span map so punctuation outside a span is
+# still visible. A NUL is used as the replacement because markdown-it already
+# uses it for inline code and it cannot occur in normal prose.
 NUMBER = r"[+-]?\d+(?:[.,]\d+)*(?:\.\d+)*"
-# A unit that follows a number. This list is CLOSED on purpose. An open pattern
-# like `[A-Za-z]{1,12}` treats any short word as a unit, so "13 thru 16" collapsed
-# "thru" into "13" and the specification's own worked example came out at 8 words
-# instead of 10. A missed exotic unit over-counts by one; a permissive pattern
-# under-counts every sentence that has a number in it.
 UNIT = (
     r"(?:"
     r"°[CF]?|K|"
-    r"[numkKMGTP]?(?:m|g|s|A|V|W|J|N|Pa|Hz|B|bps|bit|byte|bytes|"
+    r"[numkKMGTP]?(?:m|g|s|V|W|J|N|Pa|Hz|B|bps|bit|byte|bytes|"
     r"[bB]|[iI]?B)|"
-    r"ms|us|ns|ps|min|mins|h|hr|hrs|d|days?|wk|wks|mo|yr|yrs|"
+    r"ms|us|ns|ps|min|mins|second|seconds|minute|minutes|h|hr|hrs|hour|hours|"
+    r"d|day|days|wk|wks|week|weeks|mo|month|months|yr|yrs|year|years|"
     r"%|px|em|rem|pt|dpi|rpm|"
     r"KiB|MiB|GiB|TiB|PiB|kB|MB|GB|TB|PB|"
     r"mm|cm|km|in|ft|yd|mi|"
@@ -99,46 +99,85 @@ UNIT = (
     r"USD|EUR|GBP"
     r")(?:\^?-?\d)?"
 )
-# Alphanumeric identifier: mixes letters and digits, or carries _ / : / .
 WORDLIKE = re.compile(r"[A-Za-z0-9]")
 
-QUOTED_SPAN = re.compile(r"\"[^\"\n]{1,200}\"|'[^'\n]{2,200}'|“[^”\n]{1,200}”")
+CODE_SPAN = re.compile(r"(?<!`)`{1,}(?P<body>[^`\n]*?)`{1,}(?!`)")
+URL_OR_PATH = re.compile(
+    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
+)
+FLAG_OR_ENV = re.compile(r"--[A-Za-z][A-Za-z0-9-]*|\$[A-Z][A-Z0-9_]*")
+IDENTIFIER = re.compile(
+    r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
+    r"[A-Za-z_][A-Za-z0-9_]*(?:(?:[.:])[A-Za-z0-9_]+)+(?!\w)"
+)
+MIXED_IDENTIFIER = re.compile(
+    r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
+    r"[A-Za-z][A-Za-z0-9_]*\d[A-Za-z0-9_]*(?!\w)"
+)
+
+QUOTED_SPAN = re.compile(
+    r'(?<![\w\'])"[^"\n]{1,200}"(?!\w)|'
+    r"(?<![\w'])'[^'\n]{2,200}'(?!\w)|"
+    r"(?<!\w)“[^”\n]{1,200}”(?!\w)|(?<!\w)‘[^’\n]{1,200}’(?!\w)"
+)
 PAREN_SPAN = re.compile(r"\([^()\n]{1,200}\)")
-# Rule 8.6 carve-out: a leading step or paragraph number is not counted.
-STEP_NUMBER = re.compile(r"^\s*(?:\d+(?:\.\d+)*[.)]?|[a-z][.)])\s+")
+
+# Rule 8.6 carve-out: a leading step or paragraph number is not counted. Keep
+# the marker in the sentence text for matching, but remove it from counting and
+# classification. The documented forms include decimal section numbers,
+# parenthesized markers, Roman markers, and the literal ``Step N`` label.
+STEP_NUMBER = re.compile(
+    r"^\s*(?:(?:step\s+\d+(?:\.\d+)*[.:)]?)|"
+    r"(?:\([A-Za-z0-9ivxIVX]+\)|(?:[A-Za-z]|[ivxIVX]+|\d+)[.)])|"
+    r"(?:\d+(?:\.\d+)+\.?)\s*)(?=\s|$)",
+    re.I,
+)
 
 # --- Sentence segmentation ---------------------------------------------------
 
-# Abbreviations that must not end a sentence.
 NON_TERMINAL = {
     "e.g", "i.e", "etc", "vs", "cf", "al", "approx", "no", "fig", "eq", "ref",
     "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "inc", "ltd", "co",
     "vol", "ch", "sec", "min", "max", "avg", "std", "resp",
 }
-# The `\x00` in the lookahead is the code-span sentinel. A sentence that OPENS with
-# an inline code span -- "`reason` is required." -- has no capital at its start, so
-# without it the split never fires and the span fuses onto the sentence before. That
-# is not cosmetic: it made the list-lead-in metric measure a colon against text from
-# a preceding sentence, reporting a 26-word lead-in for a 5-word one.
-SENTENCE_END = re.compile(r"(?<=[.!?])[\"'”’)\]]*\s+(?=[\"'“(\[]*[A-Z0-9\x00])")
 
+# A closed vocabulary is safer than treating every sentence-initial word as an
+# imperative. It covers the base forms in the runbook corpus and keeps ordinary
+# descriptive openings such as ``The`` and ``This`` out of procedural rules.
+IMPERATIVE_VERBS = frozenset(
+    "add apply attach backup build call check choose clear clone close confirm "
+    "connect configure copy create delete deploy detach disable disconnect do "
+    "drain edit enable ensure enter export fence fetch find fix flush follow get give "
+    "go grant identify import init install invoke keep list load log login logout make "
+    "merge monitor mount move navigate notify open perform point prepend print "
+    "promote pull push put read record release reload remove rename replace report "
+    "reset restart retry revoke roll run save select send set show skip split start "
+    "stop store tag take test type unmount update upgrade use verify wait write "
+    "rotate schedule stage downgrade execute inspect hold leave remember consider"
+    .split()
+)
 IMPERATIVE_MARKERS = re.compile(
-    r"^(?:please\s+)?(?:do|run|set|add|remove|delete|install|configure|open|close|"
-    r"start|stop|restart|enable|disable|check|make|create|build|push|pull|commit|"
-    r"copy|move|rename|edit|write|read|send|call|invoke|apply|use|select|click|"
-    r"press|type|enter|choose|navigate|go|see|note|ensure|verify|confirm|update|"
-    r"upgrade|downgrade|revert|reset|clear|flush|export|import|deploy|release|"
-    r"tag|merge|rebase|clone|fetch|init|login|logout|grant|revoke|attach|detach|"
-    r"mount|unmount|connect|disconnect|replace|insert|append|prepend|split|join|"
-    r"wait|retry|skip|ignore|avoid|prevent|obey|put|get|give|take|keep|let|find|"
-    r"list|show|print|log|test|try|fix|save|load|store|read)\b",
+    rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
+    re.I,
+)
+TO_VERB = re.compile(
+    rf"^to\s+(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
+    re.I,
+)
+REMEMBER_TO = re.compile(
+    rf"^(?:remember|make\s+sure)\s+to\s+(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
     re.I,
 )
 SAFETY_MARKER = re.compile(
-    r"^\s*(?:\*{0,2}|>?\s*)(?:WARNING|CAUTION|DANGER|NOTICE|IMPORTANT)\b[:!]?",
+    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT)\b"
+    r"(?:\*{0,2})?\s*[:.!]?",
     re.I,
 )
-NOTE_MARKER = re.compile(r"^\s*(?:\*{0,2}|>?\s*)(?:NOTE|TIP|HINT|INFO)\b[:!]?", re.I)
+NOTE_MARKER = re.compile(
+    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:NOTE|TIP|HINT|INFO|IMPORTANT)\b"
+    r"(?:\*{0,2})?\s*[:.!]?",
+    re.I,
+)
 
 
 class BlockKind(str, Enum):
@@ -213,12 +252,7 @@ class Document:
         return "\n".join(self.prose_lines)
 
     def markup_text(self) -> str:
-        """Prose lines with their markup intact, for rules that measure the markup.
-
-        `prose_text` cannot serve: it strips the emphasis markers and dashes that a
-        formatting rule counts. This keeps the raw line but drops code blocks, front
-        matter, and every CommonMark inline code span, regardless of delimiter length.
-        """
+        """Prose lines with their markup intact, for rules that measure the markup."""
         skip: set[int] = set()
         for block in self.blocks:
             if block.kind in {BlockKind.CODE, BlockKind.FRONT_MATTER}:
@@ -231,85 +265,188 @@ class Document:
         return INLINE_CODE.sub(" ", "\n".join(kept))
 
 
-def count_words(text: str) -> int:
-    """Count words the way ASD-STE100 rules 8.4-8.7 define a word.
+_NUMBER_WITH_UNIT = re.compile(
+    rf"(?<!\w){NUMBER}(?:\s+(?:degrees?\s+(?:Celsius|Fahrenheit)|degrees?))?"
+    rf"(?:\s+(?:{UNIT}))?(?!\w)"
+)
 
-    Collapses each multi-token unit to 1 before splitting, so the arithmetic
-    matches the spec's own worked examples rather than a whitespace count.
+_ABBREVIATION_NUMBER = re.compile(
+    r"(?<!\w)(?:no|number|fig|figure|sec|section|ref)\.\s+\d+(?!\w)", re.I
+)
+_PROPER_NAME = re.compile(
+    r"(?<!\w)(?:[A-Z][A-Za-z0-9'’’-]*|of|and|for|the)"
+    r"(?:\s+(?:[A-Z][A-Za-z0-9'’’-]*|of|and|for|the)){1,}(?!\w)"
+)
+
+
+def _collapse(text: str, patterns: tuple[re.Pattern[str], ...]) -> str:
+    """Replace each matched span with the one-token sentinel."""
+    for pattern in patterns:
+        text = pattern.sub(f" {SENTINEL} ", text)
+    return text
+
+
+def _collapse_proper_names(text: str) -> str:
+    """Phase 4: a run of two or more capitalised tokens is one word.
+
+    The first word of a sentence is capitalised for a reason that has nothing to
+    do with names, so a two-token run at the start of the text ("The API
+    returned...") is not a name; it collapsed as one before this guard and the
+    Vale oracle (7 words) disagreed with the counter (6). A run of three or more
+    at the start ("Amazon Web Services announced...") still collapses, as does
+    any run after the first word.
     """
-    # Rule 8.6 carve-out: a step or paragraph number is not counted.
+
+    def replace(match: re.Match[str]) -> str:
+        first = match.group().split(maxsplit=1)[0].lower()
+        if first in IMPERATIVE_VERBS:
+            return match.group()
+        capitalised = re.findall(r"\b[A-Z][A-Za-z0-9'’’-]*", match.group())
+        if len(capitalised) < 2:
+            return match.group()
+        if len(capitalised) == 2 and not text[: match.start()].strip():
+            return match.group()
+        return f" {SENTINEL} "
+
+    return _PROPER_NAME.sub(replace, text)
+
+
+def count_words(text: str) -> int:
+    """Count words according to the ordered phases in ``docs/metrics.md``.
+
+    The measured audit probes exposed three different over-counting paths in the
+    old whitespace counter: numbered steps added one, identifiers and units were
+    split apart, and an apostrophe in a contraction could pair with a later one as
+    a quotation. The phase order is therefore explicit rather than a collection of
+    independent substitutions.
+    """
+    # Phase 0: delete the uncounted step or paragraph marker.
     text = STEP_NUMBER.sub("", text)
-    # Rule 8.5 and the quoted-span rule: collapse to a single placeholder token.
-    text = QUOTED_SPAN.sub(" \x00 ", text)
-    text = PAREN_SPAN.sub(" \x00 ", text)
+
+    # Phases 1-3: collapse code, identifiers, quoted spans, and quoted titles.
+    text = _collapse(
+        text,
+        (CODE_SPAN, URL_OR_PATH, FLAG_OR_ENV, IDENTIFIER, MIXED_IDENTIFIER),
+    )
+    text = _collapse(text, (_ABBREVIATION_NUMBER, QUOTED_SPAN))
+
+    # Phase 4: collapse proper names. Phase 5 makes a parenthetical one token.
+    text = _collapse_proper_names(text)
+    text = _collapse(text, (PAREN_SPAN,))
+
+    # Phases 6-7: number/unit pairs and abbreviations. A bare number is also
+    # replaced: it still counts once, but cannot split from a following unit.
+    text = _collapse(text, (_NUMBER_WITH_UNIT,))
 
     count = 0
+
     for token in text.split():
-        token = token.strip(",;:!?.—–")
+        token = token.strip(",;:!? .—–")
         if not token:
             continue
-        if token == "\x00":
+        if token == SENTINEL or WORDLIKE.search(token):
             count += 1
-            continue
-        if not WORDLIKE.search(token):
-            continue  # bare punctuation
-        count += 1
-
-    # A number followed by a unit was counted twice above; correct it.
-    tokens = [t for t in text.split() if WORDLIKE.search(t) or t == "\x00"]
-    for first, second in itertools.pairwise(tokens):
-        if re.fullmatch(NUMBER, first.strip(",;:!?.")) and re.fullmatch(
-            UNIT, second.strip(",;:!?.")
-        ):
-            count -= 1
-    return max(count, 0)
+    return count
 
 
 def classify_text_type(text: str) -> TextType:
-    """Decide which word cap applies.
+    """Select the sentence cap, conservatively distinguishing instructions.
 
-    The spec gives no mechanical test, so this is the practical discriminator it
-    describes in prose: a safety block is SAFETY (20-word cap), a note is
-    DESCRIPTIVE (25) even inside a procedure, an imperative is PROCEDURAL (20),
-    and everything else is DESCRIPTIVE (25).
-
-    Order decides the outcome: a warning is often phrased descriptively but still
-    takes the procedural cap, and a note inside a procedure takes the descriptive
-    cap despite its surroundings.
+    The audit's runbook probe contained imperative steps beginning with verbs not
+    present in the original closed list (``record``, ``reload``, ``remember`` and
+    ``notify``). The vocabulary below is intentionally finite: an unknown opening
+    remains descriptive, which is safer than applying the 20-word cap to prose.
     """
     stripped = text.strip()
     if SAFETY_MARKER.match(stripped):
         return TextType.SAFETY
     if NOTE_MARKER.match(stripped):
         return TextType.DESCRIPTIVE
-    body = STEP_NUMBER.sub("", stripped)
-    if IMPERATIVE_MARKERS.match(body):
+    body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
+    if (
+        IMPERATIVE_MARKERS.match(body)
+        or TO_VERB.match(body)
+        or REMEMBER_TO.match(body)
+        or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I)
+    ):
         return TextType.PROCEDURAL
     return TextType.DESCRIPTIVE
 
 
+def _protected_ranges(text: str) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    for pattern in (CODE_SPAN, QUOTED_SPAN, PAREN_SPAN, URL_OR_PATH, IDENTIFIER):
+        ranges.extend((match.start(), match.end()) for match in pattern.finditer(text))
+    return sorted(ranges)
+
+
+def _inside(index: int, ranges: list[tuple[int, int]]) -> bool:
+    return any(start <= index < end for start, end in ranges)
+
+
+def _is_non_terminal_period(text: str, index: int) -> bool:
+    prefix = text[: index + 1]
+    for abbreviation in NON_TERMINAL:
+        if re.search(rf"(?<![A-Za-z]){re.escape(abbreviation)}\.$", prefix, re.I):
+            return True
+    # A leading ordered marker such as ``A. Restart`` is not a sentence.
+    line_prefix = prefix.rsplit("\n", 1)[-1].strip()
+    if re.fullmatch(r"(?:\(?[A-Za-z0-9ivxIVX]+\)?|Step\s+\d+(?:\.\d+)*)\.", line_prefix, re.I):
+        return True
+    return False
+
+
+def _split_vertical_list(text: str) -> list[str]:
+    """Split a lead-in and its items only when the colon introduces a list."""
+    lines = text.splitlines()
+    if len(lines) < 2:
+        return [text]
+    for index, line in enumerate(lines):
+        if not re.search(r":\s*$", line):
+            continue
+        tail = [part.strip() for part in lines[index + 1 :] if part.strip()]
+        if not tail or not all(
+            re.match(r"^(?:[-*+]|\d+[.)]|[A-Za-z][.)])\s+", part) for part in tail
+        ):
+            continue
+        head = "\n".join(lines[: index + 1]).strip()
+        return [head, *tail]
+    return [text]
+
+
 def split_sentences(text: str, start_line: int) -> list[Sentence]:
-    """Segment into sentences, honouring rule 8.4.
+    """Split at real sentence boundaries and vertical-list lead-in colons."""
+    if not text.strip():
+        return []
+    protected = _protected_ranges(text)
+    cuts: list[int] = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char in ".!?" and not _inside(index, protected):
+            if char == "." and _is_non_terminal_period(text, index):
+                index += 1
+                continue
+            end = index + 1
+            while end < len(text) and text[end] in "\"'”’)]":
+                end += 1
+            cursor = end
+            while cursor < len(text) and text[cursor].isspace():
+                cursor += 1
+            if cursor == len(text) or text[cursor].isupper() or text[cursor].isdigit():
+                cuts.append(end)
+                index = cursor
+                continue
+        index += 1
 
-    Rule 8.4: a colon that introduces a vertical list ends the sentence, and each
-    list item is then counted as its own sentence for the word-length check. The
-    caller passes list items in as their own blocks, so here the colon rule means
-    a trailing `:` terminates rather than continues.
-    """
     pieces: list[Sentence] = []
-    # Protect non-terminal abbreviations from the splitter.
-    guarded = text
-    for abbr in NON_TERMINAL:
-        guarded = re.sub(
-            rf"(?<![A-Za-z]){re.escape(abbr)}\.", f"{abbr}\x01", guarded, flags=re.I
-        )
-
-    for chunk in SENTENCE_END.split(guarded):
-        chunk = chunk.replace("\x01", ".").strip()
+    start = 0
+    for end in [*cuts, len(text)]:
+        chunk = text[start:end].strip()
+        start = end
         if not chunk:
             continue
-        # Rule 8.4: split a list lead-in at its colon.
-        for part in re.split(r"(?<=:)\s+", chunk):
+        for part in _split_vertical_list(chunk):
             part = part.strip()
             if not part or not WORDLIKE.search(part):
                 continue

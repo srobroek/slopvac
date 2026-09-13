@@ -159,16 +159,15 @@ jobs:
         run: |
           python3 - "$OUTCOME" "$REPORT" "$BASE_SHA" <<'PY'
           import json
+          import os
           import subprocess
           import sys
 
           outcome, report_path, base_sha = sys.argv[1:]
-          with open(report_path) as handle:
-              report = json.load(handle)
-          observed_paths = sorted(document["path"] for document in report["documents"])
           # The contract: exactly the prose files this PR changed, whatever they
           # are. On a focused fixture PR that is one file; on a PR that also edits
-          # a README, the README is part of the set.
+          # a README, the README is part of the set; on a code-only PR the set is
+          # empty and the action reports "no prose files changed" with no report.
           expected = sorted(
               subprocess.check_output(
                   ["git", "diff", "--name-only", "--diff-filter=AM", f"{base_sha}...HEAD", "--",
@@ -176,11 +175,23 @@ jobs:
                   text=True,
               ).splitlines()
           ) if base_sha else [".github/action-fixtures/slop-laden.md"]
+          if outcome != "success":
+              print(f"expected the changed-files action to succeed, observed: outcome={outcome}")
+              raise SystemExit(1)
+          if not expected:
+              if report_path and os.path.exists(report_path):
+                  print(f"expected no report on a PR with no prose changes, observed: {report_path}")
+                  raise SystemExit(1)
+              print("no prose changed in this PR; the action reported that and produced no report")
+              raise SystemExit(0)
+          with open(report_path) as handle:
+              report = json.load(handle)
+          observed_paths = sorted(document["path"] for document in report["documents"])
           observed = f"outcome={outcome} documents={observed_paths} expected={expected}"
-          if outcome != "success" or observed_paths != expected:
+          if observed_paths != expected:
               print(f"expected exactly the PR's changed prose files, observed: {observed}")
               raise SystemExit(1)
-          if ".github/action-fixtures/slop-laden.md" not in observed_paths:
-              print(f"expected the slop-laden fixture in the changed set, observed: {observed}")
+          if ".github/action-fixtures/slop-laden.md" in expected and report["summary"]["findings"] == 0:
+              print(f"expected findings on the slop-laden fixture, observed: {observed}")
               raise SystemExit(1)
           PY
