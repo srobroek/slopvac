@@ -31,6 +31,15 @@ Vale 3.15 or later on `PATH` runs the optional Vale sub-gate
 `--no-vale`, Vale-backed rules report as unchecked and the run exits 2.
 Native findings stay in the report.
 
+### Linting source comments
+
+Prose is the default input surface. To lint comments or docstrings in source,
+select a mode explicitly with `--mode code-comments` or `--mode doc-comments`,
+or set `mode = "code-comments"` / `mode = "doc-comments"` in `slopvac.toml`.
+Directory scans remain prose-only unless a comment mode is configured. Vale's
+native tree-sitter extraction limits findings to comments/docstrings; YAML and
+unknown source extensions are rejected rather than silently skipped.
+
 **Oh My Pi**
 
 ```sh

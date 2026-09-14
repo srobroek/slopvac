@@ -52,12 +52,42 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
-
-from .config import ResolvedConfig, Severity
+from .config import Mode, ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType
 from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
-from .vale_probe import ValeUnavailable, probe_payloads, vale_version
+from .vale_probe import ValeUnavailable, probe_payloads
+
+# Vale 3.21 native tree-sitter comment scopes. The suffix is part of the scope
+# name for line/block comments; doc-comment scopes are grammar-independent.
+CODE_COMMENT_EXTENSIONS = frozenset({
+    ".c", ".cc", ".cpp", ".cxx", ".c++", ".h", ".hh", ".hpp", ".hxx",
+    ".cs", ".go", ".java", ".js", ".jsx", ".jl", ".lua", ".pl", ".pm",
+    ".pod", ".php", ".ps1", ".psm1", ".proto", ".py", ".py3", ".pyw",
+    ".r", ".R", ".rb", ".rs", ".sass", ".scss", ".scala", ".sbt",
+    ".swift", ".ts", ".tsx",
+})
+
+
+def comment_scopes(mode: Mode, suffix: str) -> tuple[str, ...]:
+    """Return the exact Vale scopes for one source extension and mode."""
+    suffix = suffix.lower()
+    if suffix not in CODE_COMMENT_EXTENSIONS:
+        raise ValueError(
+            f"unsupported source extension {suffix or '<none>'!r}; Vale has no "
+            "native tree-sitter comment extractor for this language"
+        )
+    if mode is Mode.CODE_COMMENTS:
+        return (f"text.comment.line{suffix}", f"text.comment.block{suffix}")
+    if mode is Mode.DOC_COMMENTS:
+        return ("text.comment.doc.line", "text.comment.doc.block")
+    return ("text",)
+
+
+# Keep the old names available to callers that imported the probe vocabulary.
+CODE_COMMENT_SCOPES = {
+    suffix: comment_scopes(Mode.CODE_COMMENTS, suffix)
+    for suffix in CODE_COMMENT_EXTENSIONS
+}
 
 # Our scope vocabulary to Vale's. Vale has no document scope: a whole-document
 # rule is a `script` with `scope: raw`, which is the only extension point that
@@ -86,17 +116,8 @@ SCOPE_MAP = {
 # trusted.
 VALE_SCOPES = frozenset(
     {
-        "text",
-        "summary",
-        "heading",
-        "table",
-        "table.header",
-        "table.cell",
-        "list",
-        "paragraph",
-        "sentence",
-        "raw",
-        "alt",
+        "text", "summary", "heading", "table", "table.header", "table.cell",
+        "list", "paragraph", "sentence", "raw", "alt",
     }
     | {f"heading.h{level}" for level in range(1, 7)}
 )
@@ -205,9 +226,6 @@ class CompileResult:
     # part of speech), so a finding has to be attributed back or it would carry a
     # rule id that `slopvac explain` cannot resolve.
     aliases: dict[str, str] = field(default_factory=dict)
-    # The Vale that validated the tree, as "3.21.0"; None for an unvalidated compile.
-    # Part of the cache key, so a reader of the routing table can reproduce it.
-    vale_version: str | None = None
     # Cache trees this run deleted. Not persisted in the manifest: it describes the
     # run, not the tree, and a cache hit prunes nothing.
     pruned: list[Path] = field(default_factory=list)
@@ -243,7 +261,9 @@ METRIC_TOKENS = {
     "clause_boundaries": CLAUSE_JOIN_TOKEN,
 }
 
-MISSING_METRIC_REASON = "metric '{metric}' is beyond Vale's occurrence counter and Tengo"
+MISSING_METRIC_REASON = (
+    "metric '{metric}' is beyond Vale's occurrence counter and Tengo"
+)
 
 # A metric that only applies to one KIND of sentence cannot go to Vale, however
 # countable the metric itself is.
@@ -283,29 +303,6 @@ WORD_COUNT_REASON = (
 
 TEXT_TYPE_REASON = (
     "Vale cannot tell an instruction from an explanation (text_type={text_type})"
-)
-
-# Vale's `paragraph` scope is the CommonMark paragraph node and nothing else: a
-# list item and a block quote are not paragraphs to it, so a paragraph-scoped
-# pattern compiled to Vale reports nothing on the bulleted prose that model output
-# is mostly made of. Measured on a three-block probe (a bullet, a numbered item, a
-# quote, each carrying the definitional-negation tell): Vale 0 of 3, native 3 of 3.
-# The native engine matches each block's whole text, list items and quotes
-# included, so the few paragraph-scoped lexical rules stay there.
-PARAGRAPH_SCOPE_REASON = (
-    "Vale's paragraph scope skips list items and block quotes; the native engine "
-    "matches every block"
-)
-
-# A raw-scoped lexical rule is a line regex over the source bytes: no markdown
-# knowledge, no sentence model, nothing Vale adds. Routing it through Vale made it
-# disappear whenever Vale did: `slopvac lint --no-vale` (the pre-commit
-# `slopvac-no-vale` hook) reported one em dash as `em-dash-density: suggestion`
-# and no `no-unicode-dash` error at all, so the dash that the audit measured as the
-# strongest origin signal passed the gate on every machine without Vale. Native,
-# the eight raw rules cost under a millisecond per document.
-RAW_SCOPE_REASON = (
-    "a raw-scope line regex needs nothing from Vale and must not vanish with it"
 )
 
 
@@ -356,7 +353,6 @@ def _occurrence_bound(rule: Rule) -> tuple[str, int]:
 #   - Tengo has integer division only, so a ratio is scaled (x100, x1000)
 #     rather than expressed as a float.
 
-
 def _ratio_script(pattern: str, scale: int, bound: int, min_words: int = 40) -> str:
     """A `count(pattern) / count(words) * scale > bound` script.
 
@@ -381,7 +377,6 @@ def _ratio_script(pattern: str, scale: int, bound: int, min_words: int = 40) -> 
         f"if nwords >= {min_words} && (nhits * {scale}) / nwords > {bound} "
         "{\n  matches = append(matches, {begin: 0, end: 1})\n}\n"
     )
-
 
 # A fenced block is skipped, because a `# comment` in shell or YAML is not a
 # heading. The native path gets this from parsed blocks; this script sees raw
@@ -458,7 +453,9 @@ _RATIO_METRICS: dict[str, tuple[str, int]] = {
 #
 # Keep this in step with NATIVE_METRICS. A metric here with no native branch is
 # reported as UNCHECKED, which is loud, but it is still a rule that stopped firing.
-DENSITY_MESSAGE_METRICS = frozenset({"dash_per_1000_words", "bold_spans_per_1000_words"})
+DENSITY_MESSAGE_METRICS = frozenset(
+    {"dash_per_1000_words", "bold_spans_per_1000_words"}
+)
 
 DENSITY_MESSAGE_REASON = (
     "the message quotes the measured '{metric}', and a Vale script returns a match, "
@@ -532,11 +529,16 @@ def _message(rule: Rule) -> str:
     threshold = str(int(rule.threshold or 0))
 
     if rule.kind is RuleKind.SUBSTITUTION:
-        # Vale supplies (replacement, match), while authored messages commonly
-        # name the match first. Explicit Go argument indexes preserve each
-        # placeholder's meaning regardless of their order in the sentence.
-        text = text.replace("{replacement}", "%[1]s").replace("{match}", "%[2]s")
-        return text
+        # Vale supplies (replacement, match) in that order and fills `%s` left to
+        # right, so a template naming both is only correct when `{replacement}`
+        # comes first. When our wording puts `{match}` first, drop to the
+        # single-argument form -- naming the fix is the point of a substitution
+        # message, and a swapped pair prints the two backwards.
+        if "{match}" in text and "{replacement}" in text:
+            if text.index("{replacement}") < text.index("{match}"):
+                return text.replace("{replacement}", "%s").replace("{match}", "%s")
+            return text.replace("{match}", "the match").replace("{replacement}", "%s")
+        return text.replace("{match}", "%s").replace("{replacement}", "%s")
 
     if rule.kind is RuleKind.METRIC or rule.kind is RuleKind.STRUCTURE:
         text = text.replace("{replacement}", threshold)
@@ -556,148 +558,42 @@ def _message(rule: Rule) -> str:
     return text.replace("{match}", "%s").replace("{replacement}", "%s")
 
 
-def _can_end_in_punctuation(key: str) -> bool:
-    """Whether a matched span for this swap key can end in a non-word character.
-
-    Vale wraps every swap key in `\\b...\\b`, so a match that ends in punctuation
-    can never satisfy the trailing boundary: `\\be\\.g\\.\\b` needs a word boundary
-    after the final period, and there is none. Measured -- `e\\.g\\.` reports
-    nothing as a substitution and fires correctly as an `existence`.
-
-    Decided from what the regex can MATCH, not from its last source character: a
-    trailing quantifier or group (`ascertain(?:s|ed)?`, `retrie(?:s|ve)`) ends the
-    source in `?` or `)` while every span it produces ends in a letter. Reading the
-    last character mistook those keys for punctuation-ending ones and degraded five
-    whole rules to `existence`, so Vale said "use a simpler word" where the native
-    engine named the replacement. Strip trailing quantifiers and lookarounds, then
-    look at the last literal atom.
-    """
-    probe = key
-    while True:
-        stripped = _TRAILING_LOOKAROUND.sub("", probe)
-        stripped = _TRAILING_QUANTIFIER.sub("", stripped)
-        if stripped == probe:
-            break
-        probe = stripped
-    if not probe:
-        return True
-    if probe.endswith(")"):
-        # A group: punctuation-ending only if some alternative ends that way.
-        depth, start = 0, len(probe) - 1
-        for index in range(len(probe) - 1, -1, -1):
-            depth += {")": 1, "(": -1}.get(probe[index], 0)
-            if depth == 0:
-                start = index
-                break
-        body = probe[start + 1 : -1]
-        body = re.sub(r"^\?(?::|P<\w+>)", "", body)
-        return any(_can_end_in_punctuation(alt) for alt in body.split("|"))
-    last = probe[-1]
-    if probe.endswith(("\\w", "\\d", "\\b", "\\S")):
-        return False
-    if probe.endswith(("\\s", " ")):
-        # A key ending in whitespace is followed by the next word, and `\b`
-        # between a space and a letter IS a boundary: `click the ` matched
-        # "Click the Save button" as a substitution before and after this change.
-        return False
-    if len(probe) >= 2 and probe[-2] == "\\":
-        return not last.isalnum()
-    return not (last.isalnum() or last == "_")
-
-
-_TRAILING_QUANTIFIER = re.compile(r"(?:[?*+]|\{\d+(?:,\d*)?\})\??$")
-_TRAILING_LOOKAROUND = re.compile(r"\((?:\?=|\?!|\?<=|\?<!)(?:[^()]|\([^()]*\))*\)$")
-
-
-def _split_substitutions(
-    substitutions: dict[str, str],
-) -> tuple[dict[str, str], dict[str, str]]:
-    """Partition a swap map into the keys Vale's `substitution` can match and the
-    punctuation-ending keys that need the `existence` fallback."""
-    swappable = {k: v for k, v in substitutions.items() if not _can_end_in_punctuation(k)}
-    fallback = {k: v for k, v in substitutions.items() if k not in swappable}
-    return swappable, fallback
-
-
 def _needs_existence_fallback(substitutions: dict[str, str]) -> bool:
-    """Whether any key in a substitution rule needs the `existence` fallback."""
-    return bool(_split_substitutions(substitutions)[1])
+    """Whether a substitution rule has a key Vale's `substitution` cannot match.
+
+    Vale wraps every swap key in `\\b...\\b`. A key ending in a non-word
+    character therefore can never match: `\\be\\.g\\.\\b` requires a word
+    boundary after the final period, and there is none. Measured -- `e\\.g\\.`
+    reports nothing as a substitution and fires correctly as an `existence`.
+
+    Such a rule is emitted as `existence` instead, which costs the replacement in
+    the message and keeps the finding.
+    """
+    return any(not key[-1:].isalnum() and key[-1:] not in ")]}" for key in substitutions)
 
 
 def _vale_pattern(pattern: str) -> str:
     # Consume escaped backslashes as pairs so a literal \U stays literal.
     return re.sub(
         r"\\(?:\\|U([0-9a-fA-F]{8}))",
-        lambda match: re.escape(chr(int(match[1], 16))) if match[1] else match[0],
+        lambda match: (
+            re.escape(chr(int(match[1], 16))) if match[1] else match[0]
+        ),
         pattern,
     )
 
-
-def _existence_fallback_payload(
-    rule: Rule, keys: dict[str, str], level: str, scope: str
-) -> dict:
-    """An `existence` rule over the swap keys Vale's `substitution` cannot match.
-
-    Keeps the finding, loses the named replacement. An alternation over the keys
-    is what `existence` needs, longest first so the widest key wins the span.
-    """
-    ordered = sorted(keys, key=len, reverse=True)
-    # `existence` supplies ONE argument (the match). The substitution template
-    # uses indexed verbs, so retain the match index and replace the fix index
-    # with the fallback wording.
-    text = _message(rule).replace("%[1]s", "a simpler word").replace("%[2]s", "%s")
-    # BOUNDARIES MUST BE RESTORED BY HAND. Vale's `substitution` wraps each key in
-    # `\b...\b`; a bare alternation has no such wrapper, so `e.g.` -- whose dots
-    # are unescaped regex -- matched "ice" inside "service". A leading boundary
-    # plus a non-word-character trailing guard keeps a key that legitimately ends
-    # in punctuation working.
-    alternation = "|".join(f"(?:{_vale_pattern(k)})" for k in ordered)
-    return {
-        "extends": "existence",
-        "message": text,
-        "level": level,
-        "scope": scope,
-        "ignorecase": rule.ignore_case,
-        # A lookbehind, not a consuming character class, so the reported span is
-        # the match itself rather than the character before it. Vale accepts
-        # lookbehind -- verified, despite RE2's documented lack of it, because Vale
-        # rewrites the pattern before RE2 sees it.
-        "raw": [rf"(?<![\w-])(?:{alternation})(?![\w-])"],
-    }
-
-
-# Suffix of the companion Vale rule that carries a substitution rule's
-# punctuation-ending keys. The companion is aliased back to the owning rule id, the
-# same way the per-part-of-speech vocabulary rules are.
-PUNCTUATION_COMPANION = "--punct"
-
-
-def _companion_payload(rule: Rule, level: str) -> dict | None:
-    """The `existence` companion for a substitution rule whose map was split.
-
-    None when the rule has no punctuation-ending key, or when EVERY key is one (the
-    main payload is then the fallback itself, under the rule's own name).
-    """
-    if rule.kind is not RuleKind.SUBSTITUTION or not rule.substitutions:
-        return None
-    swappable, fallback = _split_substitutions(rule.substitutions)
-    if not swappable or not fallback:
-        return None
-    scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
-    payload = _existence_fallback_payload(rule, fallback, level, scope)
-    if rule.allowlist:
-        payload["exceptions"] = list(rule.allowlist)
-    return payload
-
-
-def _payload_for(rule: Rule, level: str) -> dict | None:
-    """One Vale rule as a dict, or None when no extension point fits."""
-    lexical = rule.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
-    if lexical and rule.scope is Scope.PARAGRAPH:
-        raise ValueError(PARAGRAPH_SCOPE_REASON)
-    if lexical and rule.scope is Scope.RAW:
-        raise ValueError(RAW_SCOPE_REASON)
-    scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
+def _payload_for(
+    rule: Rule, level: str, resolved_config: ResolvedConfig | None = None
+) -> dict | None:
+    """One Vale rule as a dict, filtered for the selected input surface."""
+    if resolved_config is not None and resolved_config.mode is not Mode.PROSE:
+        if rule.kind in {RuleKind.METRIC, RuleKind.STRUCTURE} or rule.scope in {
+            Scope.PARAGRAPH, Scope.RAW,
+        }:
+            return None
+        scope = "__comment_scope__"
+    else:
+        scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
     payload: dict[str, object]
 
     if rule.kind is RuleKind.TOKENS and rule.tokens:
@@ -719,19 +615,46 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
             "raw": [_vale_pattern(rule.pattern)],
         }
     elif rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
-        swappable, fallback = _split_substitutions(rule.substitutions)
-        if swappable:
+        if _needs_existence_fallback(rule.substitutions):
+            # Keep the finding, lose the named replacement. An alternation over
+            # the keys is what `existence` needs, longest first so the widest key
+            # wins the span.
+            keys = sorted(rule.substitutions, key=len, reverse=True)
+            # `existence` supplies ONE argument (the match), so a two-verb message
+            # would render the second as `%!s(MISSING)`. Drop the replacement verb
+            # and keep the match, which is the argument Vale actually passes.
+            text = _message(rule)
+            if text.count("%s") > 1:
+                head, _, tail = text.partition("%s")
+                text = head + "a simpler word" + tail
+            # BOUNDARIES MUST BE RESTORED BY HAND. Vale's `substitution` wraps each
+            # key in `\b...\b`; a bare alternation has no such wrapper, so `e.g.`
+            # -- whose dots are unescaped regex -- matched "ice" inside "service".
+            # A leading boundary plus a non-word-character trailing guard keeps a
+            # key that legitimately ends in punctuation working.
+            alternation = "|".join(f"(?:{_vale_pattern(k)})" for k in keys)
+            payload = {
+                "extends": "existence",
+                "message": text,
+                "level": level,
+                "scope": scope,
+                "ignorecase": rule.ignore_case,
+                # A lookbehind, not a consuming character class, so the reported
+                # span is the match itself rather than the character before it.
+                # Vale accepts lookbehind -- verified, despite RE2's documented
+                # lack of it, because Vale rewrites the pattern before RE2 sees it.
+                "raw": [rf"(?<![\w-])(?:{alternation})(?![\w-])"],
+            }
+        else:
             payload = {
                 "extends": "substitution",
                 "message": _message(rule),
                 "level": level,
                 "ignorecase": rule.ignore_case,
-                "swap": {_vale_pattern(key): value for key, value in swappable.items()},
+                "swap": {
+                    _vale_pattern(key): value for key, value in rule.substitutions.items()
+                },
             }
-        else:
-            # Every key ends in punctuation, so the whole rule is the fallback
-            # and keeps the rule's own name.
-            payload = _existence_fallback_payload(rule, fallback, level, scope)
     elif rule.kind is RuleKind.METRIC:
         # Checked BEFORE the token lookup: a text-type-scoped metric must stay
         # native even when its metric is one Vale counts happily. See
@@ -861,7 +784,9 @@ _VOCABULARY_OWNER_PREFERENCE = (
 )
 
 
-def _elect_vocabulary_owner(owners: list[Rule], result: CompileResult) -> list[Rule]:
+def _elect_vocabulary_owner(
+    owners: list[Rule], result: CompileResult
+) -> list[Rule]:
     """Keep one dictionary-backed rule; route the rest native with the reason.
 
     Every `kind: vocabulary` rule would compile to the same sweep over the same
@@ -885,7 +810,8 @@ def _elect_vocabulary_owner(owners: list[Rule], result: CompileResult) -> list[R
             NativeRule(
                 rule.qualified_id,
                 rule.kind.value,
-                f"the vocabulary sweep is compiled once, under {chosen.qualified_id}",
+                f"the vocabulary sweep is compiled once, under "
+                f"{chosen.qualified_id}",
             )
         )
     return [chosen]
@@ -903,7 +829,7 @@ def compiled_levels(ruleset, resolved_config: ResolvedConfig) -> dict[str, str]:
     """
     from .engine import Engine
 
-    engine = Engine(ruleset.rules, resolved_config)
+    key = fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
     active = {r.qualified_id for r in engine.rules}
     levels: dict[str, str] = {}
     for rule in ruleset.rules:
@@ -934,11 +860,7 @@ def compile_ruleset(
     """
     levels = compiled_levels(ruleset, resolved_config)
 
-    # The probe decides which payloads stay native, so the binary that answered it
-    # is part of what the tree IS; an unvalidated compile asked no binary and keys
-    # on the inputs alone.
-    version = vale_version(binary) if validate else None
-    key = fingerprint(ruleset.rules, resolved_config, levels, vocabulary, version)
+    key = fingerprint(ruleset.rules, resolved_config, levels, vocabulary)
     cached_here = outdir is None
     if outdir is None:
         if not validate:
@@ -981,14 +903,9 @@ def compile_ruleset(
                 disabled_rules=cached.get("disabled_rules", []),
                 notes=cached.get("notes", []),
                 aliases=cached.get("aliases", {}),
-                vale_version=cached.get("vale_version"),
             )
 
-    result = CompileResult(
-        outdir=outdir,
-        config_path=outdir / ".vale.ini",
-        vale_version=".".join(str(n) for n in version) if version else None,
-    )
+    result = CompileResult(outdir=outdir, config_path=outdir / ".vale.ini")
 
     payloads: dict[str, dict] = {}
     categories: dict[str, str] = {}
@@ -1004,11 +921,24 @@ def compile_ruleset(
 
         level = levels[rule.qualified_id]
         try:
-            payload = _payload_for(rule, level)
+            payload = _payload_for(rule, level, resolved_config)
         except ValueError as exc:
             result.native_rules.append(
                 NativeRule(rule.qualified_id, rule.kind.value, str(exc))
             )
+            continue
+
+        if payload is not None and payload.get("scope") == "__comment_scope__":
+            # One logical rule is emitted once per comment node kind. Vale maps
+            # both generated checks back to the owning rule through aliases.
+            scopes = comment_scopes(resolved_config.mode, resolved_config.path.suffix)
+            for index, scope_name in enumerate(scopes):
+                generated_id = f"{rule.qualified_id}--comment-{index}"
+                generated = dict(payload)
+                generated["scope"] = scope_name
+                payloads[generated_id] = generated
+                categories[generated_id] = rule.category
+                result.aliases[generated_id] = rule.qualified_id
             continue
 
         if payload is None:
@@ -1023,22 +953,11 @@ def compile_ruleset(
                 if rule.kind is RuleKind.METRIC
                 else f"no Vale extension point for a {rule.kind.value} rule"
             )
-            result.native_rules.append(
-                NativeRule(rule.qualified_id, rule.kind.value, reason)
-            )
+            result.native_rules.append(NativeRule(rule.qualified_id, rule.kind.value, reason))
             continue
 
         payloads[rule.qualified_id] = payload
         categories[rule.qualified_id] = rule.category
-        companion = _companion_payload(rule, level)
-        if companion is not None:
-            # The punctuation-ending keys of a split substitution map, as a second
-            # Vale rule aliased back to the owner so a finding reports the real id.
-            check = f"{rule.qualified_id}{PUNCTUATION_COMPANION}"
-            payloads[check] = companion
-            categories[check] = rule.category
-            levels[check] = level
-            result.aliases[check] = rule.qualified_id
 
     # A `kind: vocabulary` rule becomes one Vale `sequence` rule per part of
     # speech, keyed to the project's blocklist. With no blocklist configured there
@@ -1121,16 +1040,12 @@ def compile_ruleset(
     # rules were partly absent, which is the E201 failure in the module docstring.
     # It cost a session's worth of trust in this project's own README score.
     #
-    # And a crash leaves no cache entry at all. The manifest is the last thing
-    # written, so a run killed mid-write used to leave a directory that looked
-    # cached to the fingerprint check; now the manifest lands inside the temporary
-    # tree and becomes visible only with the rename, which is atomic.
+    # The manifest is last: a partially-written tree is never cache-visible.
     staging = outdir.parent / f".{outdir.name}.building-{os.getpid()}"
     outdir.parent.mkdir(parents=True, exist_ok=True)
     if staging.exists():
         shutil.rmtree(staging)
     (staging / "styles").mkdir(parents=True)
-
     for rule_id, payload in sorted(payloads.items()):
         category = categories[rule_id]
         name = rule_id.split(".", 1)[1]
@@ -1143,14 +1058,13 @@ def compile_ruleset(
         result.vale_rules.append(rule_id)
 
     (staging / ".vale.ini").write_text(
-        _render_ini(sorted(payloads), levels), encoding="utf-8"
+        _render_ini(sorted(payloads), levels, resolved_config), encoding="utf-8"
     )
     (staging / "manifest.json").write_text(
         json.dumps(
             {
                 "fingerprint": key,
                 "vale_rules": result.vale_rules,
-                "vale_version": result.vale_version,
                 "native_rules": [n.__dict__ for n in result.native_rules],
                 "judgement_rules": result.judgement_rules,
                 "disabled_rules": result.disabled_rules,
@@ -1180,14 +1094,11 @@ def compile_ruleset(
                     outdir=outdir,
                     config_path=outdir / ".vale.ini",
                     vale_rules=cached.get("vale_rules", []),
-                    native_rules=[
-                        NativeRule(**n) for n in cached.get("native_rules", [])
-                    ],
+                    native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
                     judgement_rules=cached.get("judgement_rules", []),
                     disabled_rules=cached.get("disabled_rules", []),
                     notes=cached.get("notes", []),
                     aliases=cached.get("aliases", {}),
-                    vale_version=cached.get("vale_version"),
                 )
 
         # `os.replace` is atomic for a directory only when the target does not
@@ -1213,30 +1124,25 @@ def compile_ruleset(
     return result
 
 
-def _render_ini(rule_ids: list[str], levels: dict[str, str]) -> str:
-    """The generated `.vale.ini`.
-
-    Rules are ENUMERATED rather than enabled by `BasedOnStyles`, because a style
-    directory holds every rule we compiled and a config that names each one is
-    the only way an `off` rule is provably absent. `vale ls-config` then reports
-    exactly this list, which is what the runner compares against to detect a rule
-    that failed to resolve.
-    """
+def _render_ini(
+    rule_ids: list[str], levels: dict[str, str], resolved_config: ResolvedConfig | None = None
+) -> str:
+    """Render Vale config for prose or one native source extension."""
     lines = [
         "# GENERATED by slopvac. Do not edit: regenerated on every run from",
-        "# the resolved config, and any hand edit is overwritten.",
-        "#",
-        "# Severity per rule comes from slopvac's own precedence chain (rule",
-        "# override > category cap > tier > shipped severity). A rule that",
-        "# resolved to `off` is absent from this file entirely.",
+        "# the resolved config.",
         "",
         "StylesPath = styles",
-        # Every rule carries the level we resolved for it, so the floor must admit
-        # the lowest of them or Vale filters out findings we asked for.
         "MinAlertLevel = suggestion",
         "",
-        "[*.{md,mdx,markdown,txt,rst,html}]",
     ]
-    for rule_id in rule_ids:
-        lines.append(f"{rule_id} = {levels.get(rule_id, 'warning')}")
+    if resolved_config is None or resolved_config.mode is Mode.PROSE:
+        target = "*.{md,mdx,markdown,txt,rst,html,toml}"
+    else:
+        suffix = resolved_config.path.suffix.lower()
+        if suffix not in CODE_COMMENT_EXTENSIONS:
+            raise ValueError(f"unsupported source extension {suffix!r}")
+        target = f"*{suffix}"
+    lines.append(f"[{target}]")
+    lines.extend(f"{rule_id} = {levels.get(rule_id, 'warning')}" for rule_id in rule_ids)
     return "\n".join(lines) + "\n"

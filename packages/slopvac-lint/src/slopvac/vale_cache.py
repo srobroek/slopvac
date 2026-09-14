@@ -122,22 +122,14 @@ def fingerprint(
     config: ResolvedConfig,
     levels: dict[str, str],
     vocabulary=None,
-    vale_version: tuple[int, int, int] | None = None,
 ) -> str:
     """Hash of everything that changes the output.
 
     Keyed on the resolved LEVELS rather than the raw config, because that is what
     reaches the ini: two configs that resolve every rule to the same severity
     produce identical output and should share a cache entry.
-
-    The Vale version is part of the key when known: which payloads Vale accepts
-    (the probe decides what stays native) and how it treats a pattern (`%%`
-    against `%` changed at 3.21) both depend on the binary, so a tree compiled
-    under one release is not the tree another release would have produced.
     """
     digest = hashlib.sha256()
-    if vale_version is not None:
-        digest.update(".".join(str(n) for n in vale_version).encode())
     # THE COMPILER'S OWN SOURCE IS PART OF THE KEY. Rules, levels, and profile are
     # the compiler's INPUT; the generated style also depends on the code that
     # translates them, so keying on input alone serves a stale style after every
@@ -154,6 +146,10 @@ def fingerprint(
     for rule_id in sorted(levels):
         digest.update(f"{rule_id}={levels[rule_id]}".encode())
     digest.update(config.profile.value.encode())
+    digest.update(config.mode.value.encode())
+    # The selected source extension changes Vale's tree-sitter format and comment
+    # scopes even when the rules and severities are identical.
+    digest.update(config.path.suffix.lower().encode())
     # THE BLOCKLIST IS PART OF THE KEY TOO, and for the same reason: its words are
     # baked into the generated `sequence` rules, so adding one and re-running would
     # otherwise hit a cache entry compiled without it. The failure mode is the one
