@@ -578,3 +578,26 @@ why the structural and register rules carry more weight.
 ## License
 
 Apache-2.0.
+## Comment modes
+
+The default `prose` mode checks Markdown, text, HTML, and other documented prose
+files (including TOML projection). Source comments are a separate invocation; a
+run never mixes prose/TOML with source comments. Select the global mode in
+`slopvac.toml` or with `--mode`:
+
+```toml
+mode = "code-comments" # or "doc-comments"
+```
+
+```sh
+slopvac lint docs/                 # prose (the default)
+slopvac lint --mode code-comments src/
+slopvac lint --mode doc-comments src/
+```
+
+Directory and glob targets in a comment mode select only Vale-supported source
+extensions. An explicit YAML, prose, or unknown-extension path fails instead of
+being silently treated as source. Ordinary comment mode uses extension-specific
+comment scopes; documentation comment mode uses Vale's documentation scopes.
+Use separate invocations when a change includes both docs and source.
+

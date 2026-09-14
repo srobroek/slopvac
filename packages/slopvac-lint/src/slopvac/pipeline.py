@@ -21,11 +21,14 @@ from rich.table import Table
 
 from . import __version__
 from .analyze import parse
-from .compile_vale import CompileResult, ValeUnavailable, compile_ruleset, compiled_levels
+from .compile_vale import (
+    CompileResult, ValeUnavailable, canonical_source_language, compile_ruleset, compiled_levels,
+)
 from .config import (
     CategorySettings,
     Config,
     ConfigError,
+    Mode,
     LocalePatch,
     Override,
     Profile,
@@ -44,7 +47,7 @@ from .report import LintReport, build_sarif, summarize
 from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .score import score_document
 from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
-from .vale_probe import rst_converter
+from .vale_probe import rst_converter, vale_version
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
 LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
@@ -157,6 +160,50 @@ def collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
     ]
 
 
+def _expand_source_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
+    found: list[tuple[Path, bool]] = []
+    for target in targets:
+        path = Path(target)
+        if path.is_dir():
+            found.extend((item, False) for item in sorted(path.rglob("*")) if item.is_file())
+        elif path.is_file():
+            found.append((path, True))
+        else:
+            pattern = Path(target)
+            if pattern.is_absolute():
+                anchor = Path(pattern.anchor)
+                matches = sorted(anchor.glob(str(pattern.relative_to(anchor))))
+            else:
+                matches = sorted(Path().glob(target))
+            if not matches:
+                raise click.ClickException(f"no such file or directory: {target}")
+            found.extend((item, False) for item in matches if item.is_file())
+    root = config.root or Path.cwd()
+    kept: list[Path] = []
+    for path, explicit in found:
+        try:
+            relative = str(path.resolve().relative_to(root.resolve()))
+        except ValueError:
+            relative = path.name
+        if config.is_excluded(relative):
+            continue
+        try:
+            canonical_source_language(path)
+        except ValueError as exc:
+            if explicit:
+                raise click.ClickException(str(exc)) from None
+            continue
+        kept.append(path)
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for path in kept:
+        resolved = path.resolve()
+        if resolved not in seen:
+            seen.add(resolved)
+            unique.append(path)
+    return unique
+
+
 def lint_one(
     path: Path,
     config: Config,
@@ -166,6 +213,15 @@ def lint_one(
     native_only: set[str] | None = None,
 ) -> DocumentScore:
     resolved = resolve_for(config, path)
+    if resolved.mode is not Mode.PROSE:
+        findings = vale_result.findings_for(str(path)) if vale_result is not None else []
+        unchecked = list(extra_unchecked or [])
+        if vale_result is not None:
+            unchecked.extend(vale_result.unchecked)
+        return score_document(
+            path=str(path), findings=findings, words=0, sentences=0, paragraphs=0,
+            config=resolved, categories_meta=ruleset.weights, unchecked=unchecked,
+        )
     text = path.read_text(encoding="utf-8", errors="replace")
     document = parse(str(path), text)
 
@@ -243,6 +299,9 @@ def _compile_for(
     skipped.
     """
     resolved = resolve_for(config, sample)
+    source_language = source_extension = None
+    if resolved.mode is not Mode.PROSE:
+        source_language, source_extension = canonical_source_language(sample)
     # The resolved binary, not the top-level one: a path override may point one
     # tree at another Vale, and the tree it compiles must be the one it runs.
     try:
@@ -253,6 +312,8 @@ def _compile_for(
                 binary=resolved.vale.binary,
                 validate=True,
                 vocabulary=vocabulary,
+                source_language=source_language,
+                source_extension=source_extension,
             ), []
         with tempfile.TemporaryDirectory(prefix="slopvac-routing-") as directory:
             compiled = compile_ruleset(
@@ -262,6 +323,8 @@ def _compile_for(
                 binary=resolved.vale.binary,
                 validate=False,
                 vocabulary=vocabulary,
+                source_language=source_language,
+                source_extension=source_extension,
             )
             return compiled, []
     except ValeUnavailable as exc:
@@ -494,7 +557,8 @@ def load_run_context(
     targets: tuple[str, ...],
     *,
     profile: str | None,
-    config_path: Path | None,
+    mode: str | None = None,
+    config_path: Path | None = None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
     disabled: tuple[str, ...],
@@ -504,8 +568,18 @@ def load_run_context(
 ) -> RunContext:
     """Discover and apply the nearest config independently for every target."""
     collection_notes: list[str] = []
+    # Load one config before collection only to choose the invocation-wide surface.
+    # Per-target configs are still loaded and grouped below, preserving prose mode.
+    first = Path(targets[0])
+    initial_path = config_path.resolve() if config_path is not None else find_config(first if first.exists() else Path.cwd())
     try:
-        candidates = _expand_paths(targets, collection_notes)
+        initial_config = load_config(initial_path, root=initial_path.parent if initial_path else None)
+    except ConfigError as exc:
+        raise PipelineError(f"[red]config error[/]: {exc}") from None
+    invocation_mode = Mode(mode) if mode is not None else initial_config.mode
+    try:
+        candidates = (_expand_source_paths(targets, initial_config) if invocation_mode is not Mode.PROSE
+                      else _expand_paths(targets, collection_notes))
     except click.ClickException as exc:
         raise PipelineError(f"[red]{exc.message}[/]") from None
 
@@ -588,6 +662,8 @@ def load_run_context(
     effective_by_source: dict[Path | None, Config] = {}
     for source, base in loaded.items():
         config = copy.deepcopy(base)
+        if mode is not None:
+            object.__setattr__(config, "mode", invocation_mode)
         if has_cli_override:
             config.overrides.append(copy.deepcopy(cli_override))
         effective_by_source[source] = config
@@ -602,6 +678,14 @@ def load_run_context(
             continue
         paths.append(path)
         configs[path] = config
+
+    modes = {resolve_for(configs[path], path).mode for path in paths}
+    if modes and (len(modes) != 1 or next(iter(modes)) is not invocation_mode):
+        values = ", ".join(sorted(mode.value for mode in modes))
+        raise PipelineError(
+            f"[red]mode error[/]: one invocation must use one global mode; found {values}. "
+            "Run prose and source comments separately."
+        )
 
     # The generated spelling rule is part of the ruleset, so keep one ruleset
     # per final locale. All other rules are loaded once and deep-copied locally.
@@ -665,8 +749,13 @@ def group_inputs(
         levels = compiled_levels(ruleset, resolved)
         # Locale changes the generated spelling rule's pattern, so it is a
         # compile input even when the selected severity levels are identical.
+        language = extension = ""
+        if resolved.mode is not Mode.PROSE:
+            language, extension = canonical_source_language(path)
+        version = vale_version(resolved.vale.binary)
         key = "|".join(
             (
+                resolved.mode.value, language, extension, resolved.vale.binary, repr(version),
                 vocabularies[path].fingerprint(),
                 repr(sorted(levels.items())),
                 repr(resolved.vale.model_dump()),
@@ -707,6 +796,10 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
 
         vale_result = None
         run_notes = list(compile_notes)
+        if compiled is not None and compiled.excluded_rules:
+            run_notes.append(
+                f"{len(compiled.excluded_rules)} rule(s) are excluded in {resolve_for(config, sample).mode.value} mode and did NOT run"
+            )
         if compiled is None:
             run_notes.append(
                 "the Vale styles could not be compiled, so no Vale rule ran. "

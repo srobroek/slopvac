@@ -123,6 +123,11 @@ def fingerprint(
     levels: dict[str, str],
     vocabulary=None,
     vale_version: tuple[int, int, int] | None = None,
+    *,
+    mode: str | None = None,
+    language: str | None = None,
+    extension: str | None = None,
+    binary: str | None = None,
 ) -> str:
     """Hash of everything that changes the output.
 
@@ -148,6 +153,13 @@ def fingerprint(
     # still held the rule. A silently stale cache is indistinguishable from a fix
     # that does not work, which is the more expensive failure of the two.
     digest.update(_COMPILER_SOURCE_DIGEST.encode())
+    # The generated scopes and INI file also depend on the global surface and
+    # source parser identity. Keep the configured binary spelling as well as its
+    # version: custom Vale binaries can have distinct behavior at one version.
+    digest.update(f"mode={mode or config.mode.value}".encode())
+    digest.update(f"language={language or ''}".encode())
+    digest.update(f"extension={extension or ''}".encode())
+    digest.update(f"binary={binary or ''}".encode())
     for rule in sorted(rules, key=lambda r: r.qualified_id):
         digest.update(rule.qualified_id.encode())
         digest.update(rule.model_dump_json(exclude={"category"}).encode())

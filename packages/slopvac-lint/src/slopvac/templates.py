@@ -26,6 +26,12 @@ STARTER_CONFIG = '''\
 # relaxed = loose writing: notes, comments, drafts
 profile = "{profile}"
 
+# One invocation checks one surface. Keep prose/TOML and source comments in
+# separate commands; mode is global and is not valid inside [[overrides]].
+# mode = "prose"          # default
+# mode = "code-comments"  # ordinary comments in Vale-supported source files
+# mode = "doc-comments"   # documentation comments only
+
 # Never linted. Every top-level key must sit ABOVE the first [table] header: a
 # TOML table captures every key that follows it until the next header, so an
 # `exclude` line written lower down lands inside [thresholds] or [vale] and fails

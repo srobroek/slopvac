@@ -65,6 +65,12 @@ class Profile(str, Enum):
     STRICT = "strict"
     NORMAL = "normal"
     RELAXED = "relaxed"
+class Mode(str, Enum):
+    """Input surface selected for one lint invocation."""
+
+    PROSE = "prose"
+    CODE_COMMENTS = "code-comments"
+    DOC_COMMENTS = "doc-comments"
 
 
 class CategorySettings(BaseModel):
@@ -347,6 +353,10 @@ class Config(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    mode: Mode = Field(
+        default=Mode.PROSE,
+        description="Input surface for this invocation: prose, code-comments, or doc-comments.",
+    )
     profile: Profile = Field(
         default=Profile.NORMAL,
         description="Tier applied where no override matches. `normal` is the "
@@ -436,7 +446,7 @@ class ResolvedConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    path: Path
+    mode: Mode
     profile: Profile
     categories: dict[str, CategorySettings]
     rules: dict[str, RuleSettings]
@@ -629,7 +639,8 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
 
     provenance: dict[str, str] = {}
 
-    # Layer 1: the profile.
+    mode = config.mode
+    provenance["mode"] = f"config default ({mode.value})"
     profile = config.profile
     provenance["profile"] = f"profile default ({profile.value})"
     matching = [(i, o) for i, o in enumerate(config.overrides) if o.matches(relative)]
@@ -699,8 +710,8 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
 
     return ResolvedConfig(
         path=file_path,
+        mode=mode,
         profile=profile,
-        categories=categories,
         rules=rules,
         thresholds=thresholds,
         vale=vale,
