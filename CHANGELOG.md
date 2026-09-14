@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.2](https://github.com/srobroek/slopvac/compare/v2.3.1...v2.3.2) (2026-09-14)
+
+
+### Bug Fixes
+
+* **lint:** keep emoji heading ranges literal ([#72](https://github.com/srobroek/slopvac/issues/72)) ([e37f8f2](https://github.com/srobroek/slopvac/commit/e37f8f2869f25c847420416ce476d2d396cc7a46))
+
+
+### Documentation
+
+* **audit:** name the four missed tells precisely; scope the pinned claim; annotate the 27 count ([#68](https://github.com/srobroek/slopvac/issues/68)) ([daa61cc](https://github.com/srobroek/slopvac/commit/daa61cceff6a39dc9e96791445103155a812522f))
+
 ## [2.3.1](https://github.com/srobroek/slopvac/compare/v2.3.0...v2.3.1) (2026-09-13)
 
 
