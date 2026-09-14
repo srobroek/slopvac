@@ -51,6 +51,33 @@ Directory targets collect `.md`, `.mdx`, `.markdown`, `.txt`, and `.html` files.
 command is on `PATH`; install it with `pip install docutils`. Without that
 converter, selected RST targets are reported as unchecked and the run exits 2.
 
+
+## Comment modes
+
+Lint prose by default. For source files, choose one global mode for the run:
+
+```sh
+slopvac lint --mode code-comments src/
+slopvac lint --mode doc-comments src/
+```
+
+`code-comments` checks ordinary line and block comments, while `doc-comments`
+checks documentation comments. The mode is global rather than path-scoped: a
+run cannot mix prose, code comments, and documentation comments, and an override
+cannot set `mode`. A code directory selects supported source extensions only;
+an explicitly named YAML or unknown source file is an error. Use `--explain-config`
+to show the selected mode and its configuration.
+
+Comment modes run Vale's comment-safe lexical rules only. Rules that need whole
+documents, sentences, or prose structure are reported as excluded/unchecked;
+strings and source code are not linted as comments. Vale can be disabled with
+`[vale] enabled = false` (or a custom `[vale] binary`), and excluded paths still
+follow `exclude` before source selection.
+
+The default `prose` mode includes TOML comment projection, so ordinary TOML
+linting and `mise.toml` keep their existing behavior. Code and doc-comment runs
+accept mixed supported extensions and compile each extension with the matching
+Vale scope; documentation scopes intentionally remain unsuffixed.
 ## Profiles
 
 A profile is the strictness dial. It sets which rules run, how loud each one is,

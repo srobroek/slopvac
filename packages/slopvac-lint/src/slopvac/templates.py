@@ -26,6 +26,14 @@ STARTER_CONFIG = '''\
 # relaxed = loose writing: notes, comments, drafts
 profile = "{profile}"
 
+# Input mode is global for each run; it is not an override setting:
+#   slopvac lint --mode code-comments src/
+#   slopvac lint --mode doc-comments src/
+# `code-comments` selects supported source extensions and checks ordinary comments;
+# `doc-comments` checks documentation comments. Omit --mode for prose (including
+# TOML comment projection). Explicit YAML/unknown source files fail in comment
+# modes, while unsupported files inside a directory are skipped.
+
 # Never linted. Every top-level key must sit ABOVE the first [table] header: a
 # TOML table captures every key that follows it until the next header, so an
 # `exclude` line written lower down lands inside [thresholds] or [vale] and fails
