@@ -29,6 +29,7 @@ from .compile_vale import compile_ruleset
 from .config import (
     Config,
     ConfigError,
+    Mode,
     Profile,
     Severity,
     find_config,
@@ -114,6 +115,9 @@ def main(context: click.Context) -> None:
     help="Override the configured tier for this run.",
 )
 @click.option(
+    "--mode", type=click.Choice([m.value for m in Mode]), help="Input surface: prose, code-comments, or doc-comments.",
+)
+@click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
@@ -183,6 +187,7 @@ def main(context: click.Context) -> None:
 def lint(
     targets: tuple[str, ...],
     profile: str | None,
+    mode: str | None,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
@@ -204,6 +209,7 @@ def lint(
         console,
         targets,
         profile=profile,
+        mode=mode,
         config_path=config_path,
         rules_dir=rules_dir,
         only_categories=only_categories,
@@ -281,6 +287,7 @@ def _print_resolved_config(run, console: Console) -> None:
         resolved = resolve_for(config, path)
         console.print(f"[bold]{path}[/]")
         console.print(f"  config: {config.source or '(defaults)'}")
+        console.print(f"  mode: {resolved.mode.value}")
         console.print(f"  profile: {resolved.profile.value}")
         if resolved.applied_overrides:
             console.print(f"  overrides: {', '.join(resolved.applied_overrides)}")

@@ -578,3 +578,28 @@ why the structural and register rules carry more weight.
 ## License
 
 Apache-2.0.
+
+## Comment modes
+
+The default `prose` mode scans only prose formats and never parses source files as
+prose. Opt into source comments globally or from the CLI:
+
+```toml
+mode = "code-comments" # or "doc-comments"
+
+[[overrides]]
+files = ["src/**/*.py", "src/**/*.rs"]
+mode = "doc-comments"
+```
+
+```sh
+slopvac lint --mode code-comments src/
+```
+
+Only Vale's supported source languages are accepted in source modes. `yaml`,
+unknown extensions, and extensionless files fail with an actionable error rather
+than being silently treated as prose. Source-mode groups are homogeneous by mode,
+canonical language, extension, configured Vale binary, and Vale version; findings
+retain the original source path, line, and column. Rules that require prose
+structure or native parsing are explicitly excluded from both engines and reported
+in the compile manifest.
