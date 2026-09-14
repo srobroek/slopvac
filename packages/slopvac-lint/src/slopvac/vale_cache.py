@@ -122,32 +122,20 @@ def fingerprint(
     config: ResolvedConfig,
     levels: dict[str, str],
     vocabulary=None,
-    vale_version: tuple[int, int, int] | None = None,
+    vale_version: tuple[int, ...] | None = None,
+    *,
+    mode: str | None = None,
+    language: str | None = None,
+    extension: str | None = None,
+    binary: str | None = None,
 ) -> str:
-    """Hash of everything that changes the output.
-
-    Keyed on the resolved LEVELS rather than the raw config, because that is what
-    reaches the ini: two configs that resolve every rule to the same severity
-    produce identical output and should share a cache entry.
-
-    The Vale version is part of the key when known: which payloads Vale accepts
-    (the probe decides what stays native) and how it treats a pattern (`%%`
-    against `%` changed at 3.21) both depend on the binary, so a tree compiled
-    under one release is not the tree another release would have produced.
-    """
     digest = hashlib.sha256()
-    if vale_version is not None:
-        digest.update(".".join(str(n) for n in vale_version).encode())
-    # THE COMPILER'S OWN SOURCE IS PART OF THE KEY. Rules, levels, and profile are
-    # the compiler's INPUT; the generated style also depends on the code that
-    # translates them, so keying on input alone serves a stale style after every
-    # compiler change. This cost real debugging time: the fix that stops a
-    # text-type-scoped metric from reaching Vale appeared to do NOTHING -- three
-    # rescores of the whole corpus came back byte-identical, including counts that
-    # had to change -- because the fingerprint was unchanged and the cached style
-    # still held the rule. A silently stale cache is indistinguishable from a fix
-    # that does not work, which is the more expensive failure of the two.
+    digest.update(f"vale-version={vale_version or ''}".encode())
     digest.update(_COMPILER_SOURCE_DIGEST.encode())
+    digest.update(f"mode={mode or config.mode.value}".encode())
+    digest.update(f"language={language or ''}".encode())
+    digest.update(f"extension={extension or ''}".encode())
+    digest.update(f"binary={binary or ''}".encode())
     for rule in sorted(rules, key=lambda r: r.qualified_id):
         digest.update(rule.qualified_id.encode())
         digest.update(rule.model_dump_json(exclude={"category"}).encode())

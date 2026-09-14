@@ -157,6 +157,28 @@ def collect_paths(targets: tuple[str, ...], config: Config) -> list[Path]:
     ]
 
 
+
+def validate_code_comment_vale_settings(
+    paths: list[Path], config: Config
+) -> list[str]:
+    """Reject Vale settings that generated comment-mode styles cannot honor."""
+    errors: list[str] = []
+    for path in paths:
+        resolved = resolve_for(config, path)
+        if resolved.mode is not Mode.CODE_COMMENTS:
+            continue
+        if resolved.vale.config is not None:
+            errors.append(
+                f"{path}: vale.config is not supported in code-comments mode; "
+                "use the generated comment-mode styles instead"
+            )
+        if resolved.vale.styles is not None:
+            errors.append(
+                f"{path}: vale.styles is not supported in code-comments mode; "
+                "use the generated comment-mode styles instead"
+            )
+    return errors
+
 def lint_one(
     path: Path,
     config: Config,
@@ -494,6 +516,7 @@ def load_run_context(
     targets: tuple[str, ...],
     *,
     profile: str | None,
+    mode: str | None,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
@@ -600,6 +623,13 @@ def load_run_context(
         config = effective_by_source[source]
         if config.is_excluded(_relative_to_config(path, config)):
             continue
+
+    if config.mode is Mode.CODE_COMMENTS:
+        vale_setting_errors = validate_code_comment_vale_settings(paths, config)
+        if vale_setting_errors:
+            raise PipelineError(
+                [f"[red]config error[/] {message}" for message in vale_setting_errors]
+            )
         paths.append(path)
         configs[path] = config
 
@@ -634,6 +664,13 @@ def load_run_context(
             locale_notes[path] = note
 
     canonical = next(iter(rulesets.values()), next(iter(rulesets_by_locale.values()), (base_ruleset, None))[0])
+    if config.mode is Mode.CODE_COMMENTS:
+        vale_setting_errors = validate_code_comment_vale_settings(paths, config)
+        if vale_setting_errors:
+            raise PipelineError(
+                [f"[red]config error[/] {message}" for message in vale_setting_errors]
+            )
+
     return RunContext(
         configs=configs,
         rulesets=rulesets,
