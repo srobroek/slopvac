@@ -605,6 +605,39 @@ def test_emoji_rules_reject_emoji_not_ascii(compiled, ruleset, tmp_path):
     assert all("🚀" in finding.matched_text for finding in markers)
 
 
+
+@needs_vale
+def test_emoji_heading_ignores_ascii_heading_text(compiled, tmp_path):
+    """ASCII headings must not inherit an emoji match from the compiled range."""
+    text = (
+        "## Deleted\n\n"
+        "The first paragraph stays here.\n\n"
+        "- First bullet\n"
+        "- Second bullet\n\n"
+        "## Kept untouched\n\n"
+        "The second paragraph stays here.\n\n"
+        "- Third bullet\n"
+        "- Fourth bullet\n\n"
+        "## Added\n\n"
+        "The third paragraph stays here.\n\n"
+        "- Fifth bullet\n"
+        "- Sixth bullet\n\n"
+        "## Store\n\n"
+        "The fourth paragraph stays here.\n\n"
+        "- Seventh bullet\n"
+        "- Eighth bullet\n\n"
+        "## Agents\n\n"
+        "The fifth paragraph stays here.\n\n"
+        "- Ninth bullet\n"
+        "- Tenth bullet\n"
+    )
+    alerts = _lint(compiled.config_path, text, tmp_path)
+    assert [
+        alert for alert in alerts if alert["Check"] == "prose-format.emoji-heading"
+    ] == []
+ 
+ 
+
 @needs_vale
 def test_unicode_translation_preserves_literal_escapes(ruleset, tmp_path, monkeypatch):
     """`\\U0000002E` is a regex escape for `.`; `\\\\U0000002E` is the literal
