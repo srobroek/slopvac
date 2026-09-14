@@ -26,6 +26,14 @@ STARTER_CONFIG = '''\
 # relaxed = loose writing: notes, comments, drafts
 profile = "{profile}"
 
+# Input mode is global for each lint run and is not an override setting:
+#   slopvac lint --mode code-comments src/
+# `code-comments` selects supported source extensions and checks ordinary line
+# and block comments. Documentation comments are included when Vale exposes them
+# through those ordinary scopes. Omit --mode for prose, including TOML comments.
+# Unsupported files in a directory are skipped; an explicit unsupported source
+# file is an error.
+
 # Never linted. Every top-level key must sit ABOVE the first [table] header: a
 # TOML table captures every key that follows it until the next header, so an
 # `exclude` line written lower down lands inside [thresholds] or [vale] and fails

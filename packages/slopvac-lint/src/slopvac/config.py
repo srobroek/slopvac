@@ -67,6 +67,13 @@ class Profile(str, Enum):
     RELAXED = "relaxed"
 
 
+class Mode(str, Enum):
+    """Input surface selected for a lint run."""
+
+    PROSE = "prose"
+    CODE_COMMENTS = "code-comments"
+
+
 class CategorySettings(BaseModel):
     """Per-category dials. Every field is optional so a patch layer can set one
     without restating the others.
@@ -347,6 +354,7 @@ class Config(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    mode: Mode = Field(default=Mode.PROSE, description="Input surface mode.")
     profile: Profile = Field(
         default=Profile.NORMAL,
         description="Tier applied where no override matches. `normal` is the "
@@ -437,6 +445,7 @@ class ResolvedConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     path: Path
+    mode: Mode
     profile: Profile
     categories: dict[str, CategorySettings]
     rules: dict[str, RuleSettings]
@@ -630,6 +639,8 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     provenance: dict[str, str] = {}
 
     # Layer 1: the profile.
+    mode = config.mode
+    provenance["mode"] = f"config default ({mode.value})"
     profile = config.profile
     provenance["profile"] = f"profile default ({profile.value})"
     matching = [(i, o) for i, o in enumerate(config.overrides) if o.matches(relative)]
@@ -699,6 +710,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
 
     return ResolvedConfig(
         path=file_path,
+        mode=mode,
         profile=profile,
         categories=categories,
         rules=rules,
