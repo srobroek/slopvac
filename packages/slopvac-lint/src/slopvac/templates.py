@@ -25,6 +25,16 @@ STARTER_CONFIG = '''\
 # normal  = general writing at a high bar: README, guides, ADRs
 # relaxed = loose writing: notes, comments, drafts
 profile = "{profile}"
+# Input surface. The default `prose` mode keeps source files out of the run.
+# `code-comments` checks ordinary line/block comments; `doc-comments` checks only
+# documentation comments. Source modes require supported extensions such as .py
+# and .rs, and preserve source paths and line/column positions in findings.
+mode = "prose"
+
+# A mode can be selected for one subtree without changing the project default.
+# [[overrides]]
+# files = ["src/**/*.py", "src/**/*.rs"]
+# mode = "doc-comments"
 
 # Never linted. Every top-level key must sit ABOVE the first [table] header: a
 # TOML table captures every key that follows it until the next header, so an
