@@ -1,0 +1,27 @@
+{
+  "dimensions": [
+    "specificity",
+    "inflation",
+    "staleness",
+    "redundancy",
+    "architecture",
+    "wording",
+    "consistency",
+    "agency",
+    "veracity",
+    "scope",
+    "presentation",
+    "inclusion"
+  ],
+  "ownership": ["deterministic", "seeded_adjudication", "document_probe"],
+  "judgement_dims": ["FIT", "HARM", "WARRANT", "REPAIR"],
+  "required_rule_fields": ["dimension", "ownership"],
+  "judgement_contract_fields": [
+    "admission",
+    "protects",
+    "dims",
+    "evidence_arity",
+    "judgement_ceiling",
+    "rewrite_exempt"
+  ]
+}

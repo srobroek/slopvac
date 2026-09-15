@@ -10,9 +10,123 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 ROOT = Path(__file__).resolve().parent
 FIXTURE = ROOT / "autoresearch-fixture.json"
 PACKAGE_SRC = ROOT / "packages" / "slopvac-lint" / "src"
+CONTRACT = ROOT / "benchmark_contract.json"
+sys.path.insert(0, str(PACKAGE_SRC))
+
+from slopvac.model import RuleKind
+from slopvac.rules import RuleLoadError, load_ruleset
+
+
+def _raw_rule_metadata() -> dict[str, dict[str, Any]]:
+    """Read taxonomy fields not yet represented by the shipped Rule model."""
+    rules_dir = PACKAGE_SRC / "slopvac" / "rules"
+    metadata: dict[str, dict[str, Any]] = {}
+    for path in sorted(rules_dir.glob("*.y*ml")):
+        try:
+            documents = yaml.safe_load_all(path.read_text(encoding="utf-8"))
+            for category in documents:
+                if not isinstance(category, dict):
+                    raise ValueError(f"{path}: category must be an object")
+                category_id = category.get("id")
+                rules = category.get("rules")
+                if not isinstance(category_id, str) or not isinstance(rules, list):
+                    raise ValueError(f"{path}: malformed category")
+                for raw in rules:
+                    if not isinstance(raw, dict) or not isinstance(raw.get("id"), str):
+                        raise ValueError(f"{path}: malformed rule")
+                    qualified_id = f"{category_id}.{raw['id']}"
+                    if qualified_id in metadata:
+                        raise ValueError(f"duplicate rule id: {qualified_id}")
+                    metadata[qualified_id] = raw
+        except yaml.YAMLError as exc:
+            raise ValueError(f"{path}: invalid YAML: {exc}") from exc
+    return metadata
+
+
+def _taxonomy_metrics() -> dict[str, int | float]:
+    try:
+        contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
+        ruleset = load_ruleset()
+        raw = _raw_rule_metadata()
+    except (OSError, TypeError, ValueError, RuleLoadError) as exc:
+        raise RuntimeError(f"taxonomy registry is invalid: {exc}") from exc
+    if not isinstance(contract, dict):
+        raise RuntimeError("benchmark contract must be an object")
+    dimensions = contract.get("dimensions")
+    owners = contract.get("ownership")
+    dims = contract.get("judgement_dims")
+    required = contract.get("required_rule_fields")
+    judgement_required = contract.get("judgement_contract_fields")
+    if not all(isinstance(value, list) and value for value in (dimensions, owners, dims)):
+        raise RuntimeError("benchmark contract enum lists are malformed")
+    if not isinstance(required, list) or not isinstance(judgement_required, list):
+        raise RuntimeError("benchmark contract required fields are malformed")
+    registry = {rule.qualified_id: rule for rule in ruleset.rules}
+    if set(raw) != set(registry):
+        raise RuntimeError("raw registry and loaded registry disagree")
+    total = len(registry)
+    if not total:
+        raise RuntimeError("taxonomy registry has an empty denominator")
+    valid_dimensions = sum(
+        isinstance(declaration.get("dimension"), str)
+        and declaration["dimension"] in dimensions
+        for declaration in raw.values()
+    )
+    valid_owners = sum(
+        isinstance(declaration.get("ownership"), str)
+        and declaration["ownership"] in owners
+        and all(field in declaration for field in required)
+        for declaration in raw.values()
+    )
+    deterministic_ids = {
+        rule_id for rule_id in registry
+        if raw[rule_id].get("ownership") == "deterministic"
+    }
+    seeded = [
+        (rule_id, raw[rule_id]) for rule_id in registry
+        if raw[rule_id].get("ownership") == "seeded_adjudication"
+    ]
+    if not seeded:
+        raise RuntimeError("taxonomy registry has an empty seeded-adjudication denominator")
+    valid_seeds = 0
+    for rule_id, declaration in seeded:
+        seeds = declaration.get("seed_rule_ids")
+        if isinstance(seeds, list) and seeds and all(
+            isinstance(seed, str) and seed in deterministic_ids and seed != rule_id
+            for seed in seeds
+        ):
+            valid_seeds += 1
+    judgement = [rule_id for rule_id, rule in registry.items() if rule.kind is RuleKind.JUDGEMENT]
+    if not judgement:
+        raise RuntimeError("taxonomy registry has an empty judgement denominator")
+    contract_count = 0
+    for rule_id in judgement:
+        value = raw[rule_id].get("judgement_contract")
+        if not isinstance(value, dict) or not all(field in value for field in judgement_required):
+            continue
+        if (
+            isinstance(value["dims"], list) and value["dims"]
+            and all(isinstance(item, str) and item in dims for item in value["dims"])
+            and isinstance(value["evidence_arity"], int) and value["evidence_arity"] > 0
+            and isinstance(value["rewrite_exempt"], bool)
+            and isinstance(value["admission"], str) and value["admission"].strip()
+            and isinstance(value["protects"], str) and value["protects"].strip()
+            and isinstance(value["judgement_ceiling"], str)
+            and value["judgement_ceiling"].strip()
+        ):
+            contract_count += 1
+    return {
+        "dimension_coverage": 100 * valid_dimensions / total,
+        "ownership_coverage": 100 * valid_owners / total,
+        "seed_validity": 100 * valid_seeds / len(seeded),
+        "judgement_contract_coverage": 100 * contract_count / len(judgement),
+        "structured_rule_count": contract_count,
+    }
 
 
 def fail(message: str) -> int:
@@ -116,6 +230,7 @@ def main(argv: list[str] | None = None) -> int:
             return fail("fixture case IDs are missing or duplicated")
         with tempfile.TemporaryDirectory(prefix="slopvac-autoresearch-") as tmp:
             outcomes = {case["id"]: run_case(case, Path(tmp)) for case in cases}
+        taxonomy = _taxonomy_metrics()
     except (OSError, KeyError, TypeError, ValueError, RuntimeError) as exc:
         return fail(str(exc))
 
@@ -140,8 +255,18 @@ def main(argv: list[str] | None = None) -> int:
     precision = tp / (tp + fp) if tp + fp else 0.0
     recall = tp / (tp + fn)
     specificity = tn / (tn + fp)
-    balanced_accuracy = (recall + specificity) / 2
-    metric("quality_score", 100 * balanced_accuracy)
+    behavior_score = 100 * balanced_accuracy
+    metric(
+        "quality_score",
+        min(
+            behavior_score,
+            taxonomy["dimension_coverage"],
+            taxonomy["ownership_coverage"],
+            taxonomy["seed_validity"],
+            taxonomy["judgement_contract_coverage"],
+        ),
+    )
+    metric("behavior_score", behavior_score)
     metric("TP", tp)
     metric("FP", fp)
     metric("FN", fn)
@@ -150,6 +275,8 @@ def main(argv: list[str] | None = None) -> int:
     metric("recall", recall)
     metric("balanced_accuracy", balanced_accuracy)
     metric("case_count", case_count)
+    for name, value in taxonomy.items():
+        metric(name, value)
     metric("unexpected_findings", unexpected)
     return 0
 
