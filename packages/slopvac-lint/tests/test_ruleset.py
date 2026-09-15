@@ -117,6 +117,16 @@ def test_code_change_prose_scope_judgement_uses_diff_context(ruleset):
     assert "native engine never emits" in (rule.provenance.note or "")
 
 
+def test_hunk_feature_preserves_base_inventory_and_adds_scope_rule(ruleset):
+    ids = {rule.qualified_id for rule in ruleset.rules}
+    assert {
+        "ai-tells-structure.negative-inventory-core",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-scope.code-change-prose-scope",
+    } <= ids
+    assert len(ids) == 231
+
+
 def test_reads_better_is_never_an_exception(ruleset):
     """The whole point of the annotation contract: an unnamed override collapses
     the ruleset, which is what Orwell's sixth rule does in an automated pipeline."""
