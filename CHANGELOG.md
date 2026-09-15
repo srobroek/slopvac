@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.4.0](https://github.com/srobroek/slopvac/compare/v2.3.2...v2.4.0) (2026-09-15)
+
+
+### Features
+
+* **lint:** add precise comment analysis pipeline ([23dc16e](https://github.com/srobroek/slopvac/commit/23dc16e998978ba91dc569405e6d3716682eee5f))
+
+
+### Bug Fixes
+
+* **ci:** satisfy lint gates ([bd3a84c](https://github.com/srobroek/slopvac/commit/bd3a84c3b254de6357e3390491ec69c7ae615be5))
+* parse TOML multiline quote runs ([df7ba44](https://github.com/srobroek/slopvac/commit/df7ba4412387c474dc8ef646a8d594dc44c1c7eb))
+* **vale:** normalize legacy comment line mappings ([fdfd969](https://github.com/srobroek/slopvac/commit/fdfd96985ede4d77197ac75745709bf15537ab31))
+
 ## [2.3.2](https://github.com/srobroek/slopvac/compare/v2.3.1...v2.3.2) (2026-09-14)
 
 
