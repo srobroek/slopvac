@@ -10,6 +10,7 @@ of those went wrong at least once.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -24,7 +25,7 @@ from slopvac.report import (
     finding_fingerprint,
     summarize,
 )
-from slopvac.rules import load_ruleset
+from slopvac.rules import inject_locale_rule, load_ruleset
 
 
 def _finding(**overrides) -> Finding:
@@ -250,4 +251,59 @@ def test_judgement_rules_are_not_shipped_as_descriptors():
         [_score()], ruleset.rules, version="1", tool_uri="https://example.invalid"
     )
     emitted = {descriptor.id for descriptor in log.runs[0].tool.driver.rules}
+
     assert not (emitted & judgement)
+
+def test_sarif_uses_each_target_locale_metadata_independent_of_order():
+    """Locale-specific descriptors and fixes follow their finding's target."""
+    us_rules = load_ruleset()
+    gb_rules = load_ruleset()
+    assert inject_locale_rule(us_rules, "en-US") is None
+    assert inject_locale_rule(gb_rules, "en-GB") is None
+
+    us = _score(
+        path="us.md",
+        findings=[
+            _finding(
+                path="us.md",
+                rule_id="ste-words.spelling",
+                category="ste-words",
+                severity=Severity.WARNING,
+                message='Use the en-US spelling "color".',
+            )
+        ],
+    )
+    gb = _score(
+        path="gb.md",
+        findings=[
+            _finding(
+                path="gb.md",
+                rule_id="ste-words.spelling",
+                category="ste-words",
+                severity=Severity.WARNING,
+                message='Use the en-GB spelling "colour".',
+            )
+        ],
+    )
+    rulesets = {Path("us.md"): us_rules, Path("gb.md"): gb_rules}
+
+    def metadata(scores):
+        log = build_sarif(scores, rulesets, version="1", tool_uri="https://example.invalid")
+        run = json.loads(log.emit())["runs"][0]
+        descriptors = {rule["id"]: rule for rule in run["tool"]["driver"]["rules"]}
+        return {
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"]: (
+                result["ruleId"],
+                descriptors[result["ruleId"]]["name"],
+                descriptors[result["ruleId"]]["fullDescription"]["text"],
+            )
+            for result in run["results"]
+        }
+
+    in_order = metadata([us, gb])
+    reversed_order = metadata([gb, us])
+    assert in_order == reversed_order
+    assert in_order["us.md"][1:] == ("Use en-US spelling", "Use the en-US spelling.")
+    assert in_order["gb.md"][1:] == ("Use en-GB spelling", "Use the en-GB spelling.")
+    assert in_order["us.md"][0] != in_order["gb.md"][0]
+    assert all(rule_id.startswith("ste-words.spelling--") for rule_id, *_ in in_order.values())

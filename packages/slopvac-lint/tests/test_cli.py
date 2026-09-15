@@ -908,6 +908,24 @@ def test_group_options_still_belong_to_the_group(runner, argv):
 # a forty-character string.
 
 
+@pytest.mark.parametrize(
+    ("config_text", "expected_hint"),
+    [
+        ('[rules]\n"prose-format.no-unicode-dashes" = "off"\n', "prose-format.no-unicode-dash"),
+        ("[categories]\nprose-scop = \"warning\"\n", "prose-scope"),
+    ],
+)
+def test_empty_directory_validates_nearest_config_names(
+    runner, tmp_path, config_text, expected_hint
+):
+    target = tmp_path / "empty"
+    target.mkdir()
+    _write(tmp_path, "slopvac.toml", config_text)
+    result = runner.invoke(main, ["lint", str(target), "--no-vale"])
+    assert result.exit_code == EXIT_ERROR, result.output
+    assert "config error" in result.output.lower()
+    assert expected_hint in result.output
+
 def test_mistyped_rule_id_is_an_error_not_a_no_op(runner, tmp_path):
     config = _write(
         tmp_path,

@@ -30,12 +30,16 @@ not have to remember.
 from __future__ import annotations
 
 import hashlib
+import json
+from collections.abc import Mapping
+from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from .config import Severity
 from .model import CategoryScore, DocumentScore, Finding, Rule, RuleKind
+from .rules import RuleSet
 
 # ---------------------------------------------------------------------------
 # `--format json`
@@ -302,35 +306,96 @@ def finding_fingerprint(finding: Finding, ordinal: int) -> str:
     return hashlib.sha256("\0".join(key).encode()).hexdigest()[:16]
 
 
-def build_sarif(
-    scores: list[DocumentScore], rules: list[Rule], *, version: str, tool_uri: str
-) -> SarifLog:
-    """Assemble a SARIF log from a run.
+def _descriptor(rule: Rule, *, rule_id: str) -> SarifReportingDescriptor:
+    return SarifReportingDescriptor(
+        id=rule_id,
+        name=rule.name,
+        shortDescription=SarifMessage(text=rule.name),
+        fullDescription=SarifMessage(text=rule.fix or rule.name),
+        help=SarifMultiformatMessage(
+            text=rule.fix or rule.name, markdown=rule_help_markdown(rule)
+        ),
+        helpUri=rule.provenance.url,
+        properties=SarifRuleProperties(
+            category=rule.category,
+            kind=rule.kind.value,
+            ste_ref=rule.provenance.ste_ref,
+            orwell_ref=rule.provenance.orwell_ref,
+        ),
+    )
 
-    JUDGEMENT rules are excluded: a rule no linter can check has no result to
-    attach, and shipping it as a descriptor with zero results makes the alert
-    list claim coverage the run does not have.
+
+def _descriptor_fingerprint(descriptor: SarifReportingDescriptor) -> str:
+    """Fingerprint metadata without the ID so conflicting variants are stable."""
+    payload = descriptor.model_dump(
+        mode="json", by_alias=True, exclude_none=True, exclude={"id"}
+    )
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(encoded).hexdigest()[:16]
+
+
+def _rules_for_path(
+    rules: list[Rule] | RuleSet | Mapping[object, RuleSet], path: str
+) -> list[Rule]:
+    if isinstance(rules, RuleSet):
+        return rules.rules
+    if not isinstance(rules, Mapping):
+        return rules
+    path_key = Path(path)
+    ruleset = rules.get(path_key) or rules.get(path)
+    if ruleset is None:
+        resolved = path_key.resolve()
+        for key, candidate in rules.items():
+            if isinstance(key, Path) and key.resolve() == resolved:
+                ruleset = candidate
+                break
+    return ruleset.rules if isinstance(ruleset, RuleSet) else []
+
+
+def build_sarif(
+    scores: list[DocumentScore],
+    rules: list[Rule] | RuleSet | Mapping[object, RuleSet],
+    *,
+    version: str,
+    tool_uri: str,
+) -> SarifLog:
+    """Assemble a SARIF log, resolving each result against its path's ruleset.
+
+    A plain rule list remains supported for callers that have one effective
+    ruleset. With per-path rulesets, descriptors are deduplicated when their
+    metadata is identical; conflicting metadata gets a deterministic fingerprint
+    suffix on both the descriptor and the result's ``ruleId``.
     """
-    descriptors = [
-        SarifReportingDescriptor(
-            id=rule.qualified_id,
-            name=rule.name,
-            shortDescription=SarifMessage(text=rule.name),
-            fullDescription=SarifMessage(text=rule.fix or rule.name),
-            help=SarifMultiformatMessage(
-                text=rule.fix or rule.name, markdown=rule_help_markdown(rule)
-            ),
-            helpUri=rule.provenance.url,
-            properties=SarifRuleProperties(
-                category=rule.category,
-                kind=rule.kind.value,
-                ste_ref=rule.provenance.ste_ref,
-                orwell_ref=rule.provenance.orwell_ref,
-            ),
-        )
-        for rule in rules
-        if rule.kind is not RuleKind.JUDGEMENT
-    ]
+    path_rules: dict[str, list[Rule]] = {
+        score.path: _rules_for_path(rules, score.path) for score in scores
+    }
+    variants: dict[str, dict[str, SarifReportingDescriptor]] = {}
+    path_rule_fingerprints: dict[tuple[str, str], str] = {}
+    for path, score_rules in path_rules.items():
+        for rule in score_rules:
+            if rule.kind is RuleKind.JUDGEMENT:
+                continue
+            descriptor = _descriptor(rule, rule_id=rule.qualified_id)
+            fingerprint = _descriptor_fingerprint(descriptor)
+            variants.setdefault(rule.qualified_id, {})[fingerprint] = descriptor
+            path_rule_fingerprints[(path, rule.qualified_id)] = fingerprint
+
+    descriptor_ids: dict[tuple[str, str], str] = {}
+    descriptors: list[SarifReportingDescriptor] = []
+    for qualified_id in sorted(variants):
+        metadata_variants = variants[qualified_id]
+        conflicting = len(metadata_variants) > 1
+        for fingerprint in sorted(metadata_variants):
+            descriptor_id = (
+                f"{qualified_id}--{fingerprint}" if conflicting else qualified_id
+            )
+            descriptor = metadata_variants[fingerprint].model_copy(
+                update={"id": descriptor_id}
+            )
+            descriptors.append(descriptor)
+            for path in path_rules:
+                if path_rule_fingerprints.get((path, qualified_id)) == fingerprint:
+                    descriptor_ids[(path, qualified_id)] = descriptor_id
 
     seen: dict[tuple[str, str, str], int] = {}
     results: list[SarifResult] = []
@@ -338,9 +403,10 @@ def build_sarif(
         for finding in score.findings:
             key = (finding.rule_id, finding.path, finding.message)
             seen[key] = seen.get(key, 0) + 1
+            rule_id = descriptor_ids.get((score.path, finding.rule_id), finding.rule_id)
             results.append(
                 SarifResult(
-                    ruleId=finding.rule_id,
+                    ruleId=rule_id,
                     level=_sarif_level(finding.severity),
                     message=SarifMessage(text=finding.message),
                     partialFingerprints={

@@ -11,8 +11,6 @@ exclude = [
   "**/.apm/**",
   ".agents/**",
   "**/.agents/**",
-  ".dogfood-cleanroom/**",
-  "evals/**",
   "**/tests/fixtures/**",
   ".beads/**",
 ]
