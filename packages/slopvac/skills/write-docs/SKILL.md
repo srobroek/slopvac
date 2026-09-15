@@ -8,24 +8,36 @@ description: Invoke before writing or reviewing a README, docs, PR or release te
 TRIGGER
 
 + writing or updating README.md, docs/**, or any doc a consumer of the artifact reads
-+ writing a PR description, commit message, or hand-written release notes
-+ writing specifications, decision records, constitutions, CONTRIBUTING, runbooks (internal genre)
-+ reviewing or de-slopping text that already exists → review-docs
++ writing a PR description, commit message, release notes, specification, decision record, CONTRIBUTING, or runbook
++ reviewing or de-slopping existing text → review-docs
 + authoring skills, steering, or agent definitions → write-agentic
 + code comments and docstrings → language conventions; during a code change, edit only comments or documentation that directly explain or specify the changed code
 + unrelated prose cleanup during a code change → leave it unchanged unless the user explicitly requests that prose edit
 
-This skill authors. `slopvac` gates mechanically; the `review-docs` skill
-judges what no pattern reaches. Steps 4 and 5 run both, and neither is optional --
-a document is not finished until both have run.
+## Documentation contract
 
-Run `uvx slopvac`. Without `uv` or `uvx`, run `pipx run slopvac`, or
-`pip install slopvac` and then `slopvac`. MUST fall back to
-`uvx --from <path-to-checkout> slopvac` when the published release fails to
-resolve, and say which one ran.
+Ordinary documentation describes the current artifact directly: behavior, interface, configuration, constraints, and reader actions needed to use, verify, or reproduce it. Keep process history in change communications or decision records.
 
+MUST Write direct, concise prose for a technically capable reader. Omit primers, prerequisite tutorials, remedial definitions, hand-holding, repeated rationale, and explanations unrelated to use, verification, or reproduction.
+MUST Include explanations and claims only when a reader needs them to act on the current contract, establish a prerequisite, observe a safety constraint, or apply an implicit invariant.
+MUST Verify present-tense claims against code at HEAD. Delete claims about behavior the artifact does not implement.
+MUST State a measurement only when it supports a current threshold, capacity, cost, or reader decision, with its baseline and method.
+MUST Use decisive normative language. Name the actor, action, condition, command, path, version, or other checkable particular.
+MUST Apply the aggressive deletion test to every sentence, list item, table row, and paragraph: if removing it changes no reader action or understanding of the current contract, delete it.
+Keep ordinary documentation focused on current behavior and reader action. Move process narration, author effort, chronology, job IDs, phase timings, causal journeys, superseded behavior, rejected alternatives, future promises, and operational archaeology to the appropriate genre.
+Keep cache and performance details only when a current limit, capacity, cost, or reproduction step requires them.
+
+## Genre boundaries
+
+| Genre | Current artifact rule | Permitted delta/history/future |
+|---|---|---|
+| `consumer` | Describe shipped behavior and reader use | None in body; feature flags are current opt-in configuration, not roadmap text |
+| `reference` | State exact interface, procedure, safety constraint, or reproducible operation | None except dated facts required to operate or verify it |
+| `informal` | Keep the reader's immediate context and answer | Keep context separate from project history and promises |
+| `change-comms` | Describe the change, rationale, and verification | Deltas and past tense are permitted; keep roadmap and file-by-file archaeology elsewhere |
+| `internal` | State requirements, decisions, contributor constraints, and consequences | ADRs may preserve rationale and alternatives; specs may state future intent when acceptance criteria are explicit |
+Load the matching reference before writing. Keep genre exceptions in their designated genre.
 ## Genre → reference
-
 | Surface | LOAD | Lint profile | `genre` |
 |---|---|---|---|
 | README.md, docs/**, anything a user of the artifact reads | references/consumer-docs.md | `normal` | `consumer` |
@@ -33,86 +45,26 @@ resolve, and say which one ran.
 | specifications, decision records, constitutions, CONTRIBUTING, contributor docs | references/internal-docs.md | `normal` | `internal` |
 | reference material, API docs, runbooks, procedures, safety text | references/internal-docs.md | `strict` | `reference` |
 | issue comments, discussion replies, blog posts, informal prose | references/consumer-docs.md | `relaxed` | `informal` |
-
-MUST Match the profile to the surface. `normal` grades an issue comment like
-documentation: every em dash is a warning and every contraction a suggestion, and
-an eval corpus of informal documents scored 0 at `normal` where `relaxed` scored
-84 to 93. A gate that fails correct prose is a gate people turn off.
-
+Exception routing is based on document purpose, not passage wording. Migration guides and explicit before/after change tracking use `change-comms`. ADRs and decision records, future release plans and specifications, and explicitly historical reports or data use `internal`. Procedures and reference documents use `reference` for current operation or reproducibility. Classify these documents by purpose rather than using `consumer` to exempt history or future content.
 ## Workflow
-
-1. Classify the doc with the genre table; LOAD that reference before writing.
-   Record the `genre` and `profile` values from the matching row.
-2. Author or rewrite against the sentence rules below plus the genre reference.
-3. Verify every claim against code at HEAD, and give every consumer example a
-   runnable test under `examples/`.
-4. Run the linter and fix what it reports. Prose that is not a file (commit
-   message, PR body) MUST be written to a temp `.md` first; lint that path.
-
-   ```sh
-   slopvac lint <file>... --profile <profile> --format json
-   ```
-
-   Read `summary.score`, `summary.per_100_words`, and `documents[].findings`.
-   Exit 0 means the gate passed; it can still carry warnings and suggestions.
-   Exit 1 means a threshold failed. Exit 2 means the run was incomplete: Vale was
-   absent, older than 3.15, disabled in `slopvac.toml`, or skipped with
-   `--no-vale`; native findings stay in the report and MUST be acted on, and
-   every `documents[].unchecked` entry MUST be reported. NOT Calling the file
-   clean on exit 2.
-
-   Fix every ERROR. Fix or justify each WARNING in one line. A substitution finding
-   names its replacement (a punctuation-ending key such as `e.g.` says "a simpler
-   word" instead), so never guess one from memory.
-5. MUST Invoke the `review-docs` skill, passing `genre` and `profile` from
-   step 1. It judges register, structural symmetry, and claims with nothing
-   behind them. Fix what it returns.
-6. During a code change, keep prose edits scoped to comments or documentation that directly explain or specify the changed code. Do not clean up unrelated prose in the same file or elsewhere. An explicitly requested prose edit is in scope.
-
+1. Classify the document with the table. LOAD its reference and record `genre` and `profile`.
+2. Draft the smallest current-contract document: purpose, reader actions, behavior, interface, configuration, constraints, and verification steps that apply.
+3. Apply the deletion test. Remove tangents, process narration, past-state archaeology, future promises, and explanations that do not change a reader action or understanding. Keep cache details only when a current actionable limit depends on them.
+4. Verify every claim against code at HEAD. Every consumer example MUST be copy-paste runnable and have a matching executable test under `examples/`.
+5. Run `slopvac lint <file>... --profile <profile> --format json`; fix every ERROR and fix or justify every WARNING. On exit 2, act on native findings and report every `documents[].unchecked`; report the file as incomplete.
+6. MUST Invoke `review-docs`, passing `genre` and `profile`. Fix its verdict before shipping.
+7. During a code change, keep prose edits scoped to comments or documentation that directly explain or specify the changed code. Do not clean up unrelated prose in the same file or elsewhere. An explicitly requested prose edit is in scope.
 ## Sentence rules
+MUST Write one idea per sentence, active voice with the actor named, and one term for each concept.
+MUST Put a condition before the command it governs. Keep instructions near 20 words and descriptive sentences near 25 words; split instead of using a semicolon.
+MUST Delete adjectives without a number, benchmark, or feature list; delete hedges that do not name real uncertainty; give every comparative its baseline and every quantity its count.
+NOT In ordinary docs (`consumer`, `reference`, and `informal`), use relative time references such as `recently`, `currently`, `for now`, `last quarter`, or `in the future`. Give a date or version. Change communications may describe a dated delta, and internal specifications or plans may state dated future intent.
+NOT In ordinary docs, use status language or history narration in a doc body. Change communications may describe deltas and past state; internal ADRs, decision records, specifications, or historical reports may retain their permitted rationale, alternatives, or future intent.
+MUST State rationale in a change communication or decision record. Include it in ordinary docs only when the reader needs a constraint to operate the artifact.
+MUST Describe implemented behavior in ordinary docs. Delete unbuilt behavior rather than weakening it with "coming soon"; an internal specification or plan may state unbuilt behavior only with explicit acceptance criteria.
 
-The linter owns the word lists and the exact limits. The rules below change how
-you form a sentence, so they belong in your head before you write.
+## Gate
 
-+ MUST One idea per sentence. One instruction per sentence, unless two actions happen at the same time.
-+ MUST Keep the conjunction `that` where it opens a clause: `ensure that`, `so that`, `means that`, `check that`, `note that`. Dropping it saves one word and costs a re-read; the gate reports every omission.
-+ MUST About 20 words for an instruction or a warning; about 25 for descriptive text. Meet the cap by splitting into two sentences, never with a semicolon: an eval of this skill measured semicolons rising 1 to 15 when the cap was stated alone, and 35 to 14 across 47 documents once this sentence named the split.
-+ MUST Active voice with the actor named. Use the passive only when the actor is unknown, is any conforming implementation, or is the reader.
-+ MUST One word, one meaning. One name, one thing: never call the same thing by two names in one document.
-+ MUST Use a verb for an action: "analyze the log", not "perform an analysis of the log".
-+ MUST Put a condition before the command it governs.
-+ MUST Six sentences per paragraph at most, one topic each. Steps go in a vertical list, one action per item, imperative.
-+ MUST Every claim names a checkable particular: a number, a path, a command, a version, a named event.
-+ MUST Delete any adjective you cannot back with a number, benchmark, or feature list.
-+ MUST Delete every span whose removal changes no proposition, obligation, or referent.
-+ MUST Take the position the evidence supports. Hedge only where the uncertainty is real and you can name its cause; one hedge at most, never a hedge on a hedge.
-+ NOT Hedging in both directions ("may improve latency, though it might also increase it") -- the halves cancel and the reader learns nothing actionable.
-+ DEFAULT Judge hedging across the whole document, not the sentence: if a hedge sits on most of the claims the document exists to make, the document asserts nothing however careful each sentence reads.
-+ MUST Attribute or own every claim. "Experts agree", "research has shown", "it is widely known", and "some people say" dress a claim in authority it does not have: name the source, or state it as your own.
-+ MUST Give a comparative its baseline. "20% faster" than what, measured how.
-+ MUST Give a quantity its count. "Several", "various", "a number of", "in most cases" all name a number the writer has and withheld.
-+ MUST Ask it of the bare quantifiers too -- "most", "some", "many", "often", "usually". The linter cannot flag these, because "most requests complete in 15 ms" is correct and "most users prefer it" is not, and only you know whether the figure was available. If it was, use it.
-+ NOT Presuming the reader: "obviously", "clearly", "of course", "note that", "it should be noted that", "as you can see", "interestingly". The sentence stands without them, so delete them.
-+ NOT Puffery: an adjective that praises rather than describes ("award-winning", "innovative", "world-class", "remarkable"). State the fact that would earn it.
-+ NOT A relative time reference in a document that outlives the moment: `recently`, `currently`, `for now`, `last quarter`, `in the future`. Give a date or a version.
-+ NOT A rhetorical question as a heading. A heading is an index entry: "Configure the pool", not "How do I configure the pool?".
-+ NOT Pairing "including" or "such as" with "etc." -- either already says the list is partial. Where the list is complete, write "consisting of".
-+ MUST Name who acted: an abstraction is not an actor. Write "the team fixed it", never a complaint that "becomes a fix".
-+ MUST State what the artifact does -- never effort, intent, process, or journey.
-+ MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".
-+ NOT A figure of speech you are used to seeing in print.
-+ NOT Status language, or history narration in a doc body -- deltas belong to the change-comms genre only.
-+ NOT Justify a choice inside the artifact. The doc states what IS; the reason it is that way belongs in the commit or a decision record. Write the rationale only when the reader cannot recover it from the text (a constraint, an invariant, a measured number that decided a threshold), when the genre exists to record a decision (decision record, specification, commit message, PR body), or when the user asked for it.
-+ NOT Over-writing -- real content in the wrong document:
-  · a rejected alternative defended in place -> move the decision to a decision record, specification, or commit
-  · an implementation cost the reader cannot act on (timing, process count) -> move it to the commit that measured it
-  · reassurance answering a worry never raised (`no configuration required`, `it just works`) -> state the positive alone, or say nothing
-  Ask whether a reader of THIS document acts differently for having read the sentence.
+Run `uvx slopvac`; fall back to `pipx run slopvac`, `pip install slopvac`, or `uvx --from <path-to-checkout> slopvac` when resolution requires it, and report which command ran.
 
-## Configure the gate
-
-A project owns its thresholds in `slopvac.toml`; `slopvac init --profile <profile>`
-writes a starter file. Fix the prose before changing a rule. The suppression
-annotation, the override table, and the rule for when a document needs a
-different profile are in the `review-docs` skill under "Change a rule"; that
-skill owns them because it is the one that triages findings.
+The project owns thresholds in `slopvac.toml`. Fix prose before changing a rule. Use `slopvac explain <rule_id>` for closed exception lists; never invent suppression reasons.

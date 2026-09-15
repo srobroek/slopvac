@@ -1,11 +1,9 @@
 # Two categories in one multi-document file, ported from the orphaned
 # `ai-tells` Vale rules that never reached this engine.
 #
-# Source: the 23 `styles/ai-tells/*.yml` rules that existed only on the
-# retired `agentic-packages` branch `chore/context-engineering-audit` and in
-# the archived `bailiff/.vale-styles/ai-tells/`. Seven of the 23 are NOT here,
-# because `docs/exclusions.md` already adjudicated them against a 488-file
-# corpus and said not to port them: SemicolonUsage (612 hits, ordinary
+# Historical source: retired ai-tells Vale styles (immutable snapshot)
+# https://github.com/srobroek/slopvac/tree/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/
+# Seven source rules were intentionally excluded by the archived exclusions review.
 # punctuation), ColonUsage (128, same class), ShipOveruse (53, the literal
 # verb), FormalRegister (flags `implement`), RedundantPrecaution (one idiom per
 # file), GrowthMetaphors (domain-narrow), AICompoundPhrases (kept in Vale at
@@ -44,7 +42,8 @@ rules:
       - bad: Twelve tickets sit unresolved.
         good: Twelve tickets are open.
     provenance:
-      source: ai-tells/FigurativeSits.yml
+      source: Retired ai-tells Vale style — FigurativeSits.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeSits.yml
       note: >-
         Disable for furniture or seating prose. Widest of the family (17
         branches) because `sit` carries the most distinct figurative senses:
@@ -71,7 +70,8 @@ rules:
       - bad: This runs counter to the retry policy.
         good: This contradicts the retry policy.
     provenance:
-      source: ai-tells/FigurativeRuns.yml
+      source: Retired ai-tells Vale style — FigurativeRuns.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRuns.yml
       note: >-
         Disable for athletics or plumbing prose. `hit the ground running` also
         appears in `prose-inflation.business-jargon`; the duplicate is
@@ -96,7 +96,8 @@ rules:
       - bad: Retries fall within the scope of this document.
         good: This document covers retries.
     provenance:
-      source: ai-tells/FigurativeFalls.yml
+      source: Retired ai-tells Vale style — FigurativeFalls.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeFalls.yml
       note: >-
         Disable for gravity or accident prose. The membership branches
         (`falls under the category`) are the ones worth keeping in reference
@@ -121,7 +122,8 @@ rules:
       - bad: This draws a distinction between retries and backoff.
         good: A retry repeats the call; backoff sets the delay between retries.
     provenance:
-      source: ai-tells/FigurativeDraws.yml
+      source: Retired ai-tells Vale style — FigurativeDraws.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeDraws.yml
       note: >-
         Disable for art or cartography prose. The `draws on` branch has the
         loosest tail in the family (`\w+` after an optional determiner),
@@ -144,7 +146,8 @@ rules:
       - bad: The benchmark casts doubt on the caching claim.
         good: The benchmark shows no cache hits, so the caching claim is unverified.
     provenance:
-      source: ai-tells/FigurativeCasts.yml
+      source: Retired ai-tells Vale style — FigurativeCasts.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeCasts.yml
       note: Disable for fishing, metalworking, or theatre-casting prose.
 
   - id: figurative-strikes
@@ -166,7 +169,8 @@ rules:
       - bad: The bug strikes at the core of the retry design.
         good: The bug makes every retry reuse the expired token.
     provenance:
-      source: ai-tells/FigurativeStrikes.yml
+      source: Retired ai-tells Vale style — FigurativeStrikes.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeStrikes.yml
       note: >-
         Disable for labour-action or percussion prose. `strikes a balance` is
         NOT covered: the source rule's noun list is note/tone/chord, and this
@@ -190,7 +194,8 @@ rules:
       - bad: Caching the manifest is an easy win.
         good: Caching the manifest removes 300 ms from every cold start.
     provenance:
-      source: ai-tells/FigurativeWins.yml
+      source: Retired ai-tells Vale style — FigurativeWins.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeWins.yml
       note: >-
         Disable for sports or games prose. `win-win` also appears in
         `prose-inflation.business-jargon`; kept in both so either style stands
@@ -213,7 +218,8 @@ rules:
       - bad: The schema lends itself to incremental validation.
         good: The schema validates one field at a time.
     provenance:
-      source: ai-tells/FigurativeLends.yml
+      source: Retired ai-tells Vale style — FigurativeLends.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLends.yml
       note: Disable for library-lending or finance prose.
 
   - id: figurative-rides
@@ -233,7 +239,8 @@ rules:
       - bad: Correctness rides on whether the clock is monotonic.
         good: Correctness requires a monotonic clock.
     provenance:
-      source: ai-tells/FigurativeRides.yml
+      source: Retired ai-tells Vale style — FigurativeRides.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRides.yml
       note: >-
         Disable for transit or equestrian prose. The `rides the <path>` branch
         is the one that fires in performance writing, where the literal
@@ -256,7 +263,8 @@ rules:
       - bad: The parser fails loudly on a bad header.
         good: The parser exits 2 and writes the offending line to stderr.
     provenance:
-      source: ai-tells/FigurativeLoud.yml
+      source: Retired ai-tells Vale style — FigurativeLoud.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLoud.yml
       note: >-
         Disable for audio prose. `fails loudly` is the instance worth catching:
         it is a design claim with no observable in it, and the observable
@@ -279,7 +287,8 @@ rules:
       - bad: The argument resonates with maintainers.
         good: Three maintainers said the argument matched their experience.
     provenance:
-      source: ai-tells/ResonateOveruse.yml
+      source: Retired ai-tells Vale style — ResonateOveruse.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ResonateOveruse.yml
       note: >-
         Disable for physics or audio prose, where the word is literal. Single
         token on purpose: every figurative use is the same defect, an
@@ -304,7 +313,8 @@ rules:
       - bad: What really matters is the retry budget.
         good: The retry budget decides whether the job finishes inside the window.
     provenance:
-      source: ai-tells/ColloquialAssessments.yml
+      source: Retired ai-tells Vale style — ColloquialAssessments.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ColloquialAssessments.yml
       note: >-
         Overlaps `ai-tells-register.figurative-verb-verdict-core` on exactly
         one token (`the point lands`); the other 21 branches, including the
@@ -338,7 +348,8 @@ rules:
       - bad: The rewrite left a lasting impact on latency.
         good: The rewrite cut p99 latency from 800 ms to 120 ms.
     provenance:
-      source: ai-tells/PromotionalPuffery.yml
+      source: Retired ai-tells Vale style — PromotionalPuffery.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/PromotionalPuffery.yml
       note: >-
         The register `prose-inflation.slop-lexicon` does not reach: that rule
         owns single marketing ADJECTIVES (robust, seamless), while this owns
@@ -366,7 +377,8 @@ rules:
       - bad: Adoption creates a growth flywheel.
         good: Each new user contributes a review, which raises search ranking.
     provenance:
-      source: ai-tells/StrategyBuzzwords.yml
+      source: Retired ai-tells Vale style — StrategyBuzzwords.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/StrategyBuzzwords.yml
       note: >-
         `north star` alone is in `prose-inflation.business-jargon`; the
         flywheel, moat, network-effect, and land-grab bands are not, and they
@@ -393,7 +405,8 @@ rules:
       - bad: This is a pivotal release.
         good: This release removes the last Python 3.9 dependency.
     provenance:
-      source: ai-tells/AIAdjectiveNounPairs.yml
+      source: Retired ai-tells Vale style — AIAdjectiveNounPairs.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/AIAdjectiveNounPairs.yml
       note: >-
         The source rule is Vale `extends: sequence` with a `JJ` + `NN|NNS`
         tag pair. This engine has no part-of-speech tagging outside
@@ -439,7 +452,8 @@ rules:
       - bad: The team spearheads the rewrite.
         good: The team leads the rewrite.
     provenance:
-      source: ai-tells/OverusedVocabularyVerbs.yml
+      source: Retired ai-tells Vale style — OverusedVocabularyVerbs.yml
+      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/OverusedVocabularyVerbs.yml
       note: >-
         The source rule is `extends: sequence` with verb tags; without a
         tagger this is a token list. `navigate` and its inflections are omitted

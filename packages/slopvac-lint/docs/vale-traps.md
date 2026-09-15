@@ -1,7 +1,7 @@
 # Vale behaviour traps
 
-Vale 3.15.2, macOS arm64. Every entry is reproduced from a minimal case, and every
-one was found by execution rather than by reading Vale's docs.
+Vale 3.15.2, macOS arm64. These entries come from minimal cases discovered through
+execution rather than by reading Vale's docs.
 
 A trap belongs here when the failure is SILENT. The rule loads, Vale exits 0, and
 every file reports clean. A silent failure is indistinguishable from a pass, which is the
@@ -38,8 +38,8 @@ table, a list, a blockquote, and a code span:
 
 ### 2. `scope: sentence` cannot see list items, blockquotes, headings, or table cells
 
-It selects paragraph blocks only, then splits those into sentences. Every other
-block type is dropped, with no error.
+It selects paragraph blocks only, then splits those into sentences. Vale drops
+non-paragraph blocks without reporting an error.
 
 One document, two rules differing ONLY in `scope:`:
 
@@ -233,7 +233,7 @@ in stock Vale.
 ### 16. A malformed table yields a phantom EMPTY block reported at line 1
 
 An ASCII-pipe pseudo-table with no delimiter row parses as a malformed table whose
-block holds only code spans, so every word token is stripped. A `min:`-based rule
+block holds only code spans, so Vale strips word tokens from it. A `min:`-based rule
 then fires with a count of zero against 1:1 -- the document start, not the
 offending line, which makes it undiagnosable from the finding alone. A well-formed
 GFM table is exempt at `scope: paragraph`; a malformed one is not. Any `min:`
@@ -261,34 +261,3 @@ does nothing one directory down. Measured on a document with 14 findings unfilte
 `docs/specs/` and per-package `sub/CHANGELOG.md` paths are common in monorepos.
 Lead every genre glob with `**/`.
 
-## Method note: three fixtures are not enough
-
-Across the rules verified this way, most passed their own hand-written negative
-fixture and then failed a third fixture written adversarially against the regex. A
-sample of what only the adversarial pass caught:
-
-| rule | passed negative, failed adversarial on |
-| --- | --- |
-| `orwell.NotUn` | "not under the schema root", "not unique to", "do not uninstall" -- 5 false hits from `\bnot\s+un\w+` |
-| `prose-inflation.VagueDeclarative` | "The risk is real memory pressure above 200 MB" |
-| `prose-inflation.Uncomparables` | "Most unique identifiers are UUIDv7" -- `most` quantifies the NOUN |
-| `prose-craft.Hyphens` | "family-friendly", "supply-chain", "reply-to" -- no stem test |
-| `prose-craft.LinkText` | `[learn more about mTLS]`, `[Settings page]` -- matched a label CONTAINING a vague word |
-
-And the strongest case for a FOURTH pass, against real documents:
-`ste-verbs.PassiveVoice` survived a positive, a negative, AND an adversarial
-fixture. Its `nt|lt|ft` suffixes matched
-judgment/different/current/important/consistent/permanent, and it flagged "are
-irreducibly judgment" in this project's own `coverage.md`.
-`ai-tells-structure.ContrastiveInversionFrames` fired on the repo's own
-`tests/fixtures/vale/must-not-fire.md:15`.
-
-A corpus pass belongs INSIDE the verification loop. `https://github.com/srobroek/slopvac/tree/3e3ec92fc5eca871b0c1c8af0ecb16a9b8df81e3/evals` holds 8
-documents across 5 registers, none written against these rules. Four defects came
-out of it that no fixture had imagined: the RFC 2119 substitution inversion, the
-"Master Subscription Agreement" false positive, the all-caps class, and the dead
-`quotation` exception.
-
-One false-positive class no rule here fixes: a **blockquoted citation**. 14 of
-`wordiness` plus `latinisms`' 40 corpus hits are inside quoted Orwell, and Vale has
-no blockquote-excluding scope.

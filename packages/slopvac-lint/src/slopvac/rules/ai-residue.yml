@@ -18,14 +18,14 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '(\bas an AI\b|\bas a large language model\b|\bI''?m an AI\b|\bas of my (last )?(update|knowledge cut[- ]?off)\b|\bmy (training data|knowledge) (only )?(goes up to|extends to|cut[- ]?off)\b|\bI (cannot|can''?t|am unable to) (browse|access the internet|provide)\b|\bI (apologi[sz]e|hope this helps)\b|\bfeel free to ask\b|\bthis section would (contain|describe|explain)\b|\b(insert|your) [a-z ]{3,20} here\b|\bTODO: (add|write|fill)\b|oaicite|contentReference|\[cite:\s*\d+\]|grok_card|【\d+†[^】]*】)'
+    pattern: '(\bas an AI\b|\bas a large language model\b|\bI''?m an AI\b|\bas of my (last )?(update|knowledge cut[- ]?off)\b|\bmy (training data|knowledge) (only )?(goes up to|extends to|cut[- ]?off)\b|\bI (cannot|can''?t|am unable to) (browse|access the internet|provide)\b|\bI (apologi[sz]e|hope this helps)\b|\bfeel free to ask\b|\bthis section would (contain|describe|explain)\b|\b(insert|your) [a-z ]{3,20} here\b|oaicite|contentReference|\[cite:\s*\d+\]|grok_card|【\d+†[^】]*】)'
     ignore_case: true
     fix: Delete the artifact, then re-read the surrounding paragraphs, which came from the same session.
     examples:
       - bad: As of my last update, the loader retried twice.
         good: The loader retries twice.
-      - bad: 'TODO: add the install steps.'
-        good: Install with `pip install slopvac`.
+      - bad: 'As a large language model, I cannot browse the internet.'
+        good: The documentation describes the supported behaviour.
     provenance:
       source: vale-styles/ai-residue/ChatLeakage.yml
       url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
