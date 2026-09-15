@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/srobroek/slopvac/compare/v2.4.0...v2.5.0) (2026-09-15)
+
+
+### Features
+
+* add hunk-scoped lint and safe fixes ([b7ae901](https://github.com/srobroek/slopvac/commit/b7ae901816e832f7ade69acd8ff8cc5750981bb7))
+
 ## [2.4.0](https://github.com/srobroek/slopvac/compare/v2.3.2...v2.4.0) (2026-09-15)
 
 
