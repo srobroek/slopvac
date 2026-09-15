@@ -91,8 +91,6 @@ def _taxonomy_metrics() -> dict[str, int | float]:
         (rule_id, raw[rule_id]) for rule_id in registry
         if raw[rule_id].get("ownership") == "seeded_adjudication"
     ]
-    if not seeded:
-        raise RuntimeError("taxonomy registry has an empty seeded-adjudication denominator")
     valid_seeds = 0
     for rule_id, declaration in seeded:
         seeds = declaration.get("seed_rule_ids")
@@ -123,7 +121,7 @@ def _taxonomy_metrics() -> dict[str, int | float]:
     return {
         "dimension_coverage": 100 * valid_dimensions / total,
         "ownership_coverage": 100 * valid_owners / total,
-        "seed_validity": 100 * valid_seeds / len(seeded),
+        "seed_validity": 100 * valid_seeds / len(seeded) if seeded else 0.0,
         "judgement_contract_coverage": 100 * contract_count / len(judgement),
         "structured_rule_count": contract_count,
     }
