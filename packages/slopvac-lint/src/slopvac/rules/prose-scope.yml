@@ -7,6 +7,35 @@ description: >-
 weight: 1.0
 recommended_for: [consumer, change-comms]
 rules:
+  - id: formulaic-subject-verb-slogan
+    name: Replace a parallel subject-verb slogan heading
+    kind: pattern
+    severity: warning
+    message: 'formulaic heading: {match} -- use a noun phrase or a scoped factual statement'
+    scope: heading
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    pattern: '^(?:the|a|an|this|that|these|those|our|your|their)\s+[a-z][\w-]*(?:\s+[a-z][\w-]*)?\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\w-]*(?:s|ed|ing))\b(?:\s+[a-z][\w-]*){0,2},\s+(?:the|a|an|this|that|these|those|our|your|their)\s+[a-z][\w-]*(?:\s+[a-z][\w-]*)?\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\w-]*(?:s|ed|ing))\b(?:\s+[a-z][\w-]*){0,2}$'
+    ignore_case: true
+    fix: Rewrite the heading as a noun phrase or state one scoped fact.
+    examples:
+      - bad: The Review Guides, The Reader Decides
+        good: Review guidance
+      - bad: The Service Learns, The Operator Knows
+        good: Service learning and operator knowledge
+    provenance:
+      source: references/content-shape.md ("Formulaic parallel headings")
+      note: >-
+        Heading scope is essential: the comma-separated pair is a slogan-shaped
+        title only when both short clauses have a determiner-led subject and a
+        finite-looking predicate. The pattern is grammatical rather than lexical,
+        and does not inspect body sentences or object-level contrasts such as
+        "Parser reads JSON, not YAML".
+
+
+
   - id: rejected-alternative
     name: Move the decision to an ADR, spec, or commit
     kind: pattern

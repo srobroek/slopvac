@@ -22,6 +22,34 @@ description: >-
 weight: 1.5
 recommended_for: [consumer, internal, change-comms]
 rules:
+  - id: formulaic-universal-heading
+    name: Replace a universal slogan heading
+    kind: pattern
+    severity: warning
+    message: 'formulaic universal heading: {match} -- use a noun phrase or a scoped factual statement'
+    scope: heading
+    tiers:
+      strict: advisory
+      normal: advisory
+      relaxed: excluded
+    pattern: '^every\s+[a-z][\w-]*\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\w-]*(?:s|ed|ing))\b(?:\s+[a-z][\w-]*){1,8}$'
+    ignore_case: true
+    fix: Rewrite the heading as a noun phrase or state one scoped fact.
+    examples:
+      - bad: Every Change Opens A Door
+        good: Change opportunities
+      - bad: Every Request Finds Its Way
+        good: Request routing
+      - good: Every request to this endpoint requires authentication
+    provenance:
+      source: references/content-shape.md ("Formulaic universal headings")
+      note: >-
+        The heading scope is part of the rule: a title must begin with Every,
+        use one singular noun, and immediately follow it with a finite-looking
+        predicate plus a short complement. This grammatical shape catches
+        universal slogans without matching body invariants such as "Every request
+        to this endpoint requires authentication".
+
   - id: contrastive-inversion-frames
     name: Cut the strawman half of a contrastive frame
     kind: pattern
