@@ -124,8 +124,16 @@ def test_hunk_feature_preserves_base_inventory_and_adds_scope_rule(ruleset):
         "ai-tells-structure.negative-inventory-remainder",
         "prose-scope.code-change-prose-scope",
     } <= ids
-    assert len(ids) == 231
-
+    digest = __import__("hashlib").sha256(
+        ("\n".join(sorted(ids)) + "\n").encode()
+    ).hexdigest()
+    assert digest == "035f24a01d9de8f8b06aceaea75221ba60789f0a23e83b4958f088b84b862f45"
+    mutated = ids - {"ai-tells-structure.negative-inventory-remainder"}
+    mutated.add("ai-tells-structure.replacement")
+    mutated_digest = __import__("hashlib").sha256(
+        ("\n".join(sorted(mutated)) + "\n").encode()
+    ).hexdigest()
+    assert mutated_digest != digest
 
 def test_reads_better_is_never_an_exception(ruleset):
     """The whole point of the annotation contract: an unnamed override collapses
