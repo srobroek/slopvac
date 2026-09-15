@@ -253,6 +253,7 @@ def main(argv: list[str] | None = None) -> int:
     precision = tp / (tp + fp) if tp + fp else 0.0
     recall = tp / (tp + fn)
     specificity = tn / (tn + fp)
+    balanced_accuracy = (recall + specificity) / 2
     behavior_score = 100 * balanced_accuracy
     metric(
         "quality_score",
