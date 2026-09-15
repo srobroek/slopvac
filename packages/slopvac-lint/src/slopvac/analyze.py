@@ -931,7 +931,7 @@ STACK_BREAKER = frozenset(
     {
         "a", "an", "the", "of", "in", "on", "at", "to", "for", "from", "by",
         "with", "without", "into", "onto", "over", "under", "between", "through",
-        "and", "or", "but", "nor", "as", "than", "that", "which", "who", "whom",
+        "including", "and", "or", "but", "nor", "as", "than", "that", "which", "who", "whom",
         "is", "are", "was", "were", "be", "been", "being", "has", "have", "had",
         "not", "no", "if", "when", "while", "after", "before", "during",
         # Subordinators. A clause boundary is exactly where a noun stack ends.

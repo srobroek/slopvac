@@ -52,8 +52,8 @@ rules:
       - bad: The complaint fell on deaf ears.
         good: Nobody answered the complaint.
     provenance:
-      source: vale-styles/prose-inclusive/Ableist.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-inclusive/Ableist.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inclusive/Ableist.yml
       note: >-
         Two shapes in one rule: a slur applied to a person, and a disability
         standing in for a shortcoming. The second is the one that reaches technical
@@ -91,7 +91,7 @@ rules:
       - bad: Hover over the badge.
         good: Point to the badge.
     provenance:
-      source: vale-styles/prose-inclusive/DeviceAssumption.yml
+      source: Retired Vale style — prose-inclusive/DeviceAssumption.yml
       url: https://www.w3.org/WAI/WCAG22/Understanding/
       note: >-
         "Click the button" excludes keyboard, touch, and screen-reader users;
@@ -157,8 +157,8 @@ rules:
           "master branch", "master boot record", and the named contract forms
           ("Master Subscription Agreement") are exempt by lookahead.
     provenance:
-      source: vale-styles/prose-inclusive/Exclusive.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-inclusive/Exclusive.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inclusive/Exclusive.yml
       note: >-
         The bar is a documented industry replacement, not a contested etymology:
         master/slave, blacklist/whitelist, and the hire-title metaphors are all in
