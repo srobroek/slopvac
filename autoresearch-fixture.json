@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "description": "Phase 1 mechanical slopvac baseline; labels define expected shipped rule families.",
+  "cases": [
+    {"id": "bad-universal-heading", "kind": "bad", "genre": "consumer", "text": "# Every Project Needs A Lockfile\n", "expected_rule_families": ["ai-tells-agentic.absolute-assertion-core"]},
+    {"id": "bad-contrastive-heading", "kind": "bad", "genre": "consumer", "text": "The Harness Measures, It Does Not Judge.\n", "expected_rule_families": ["ai-tells-agentic.contrastive-inversion-frames"]},
+    {"id": "bad-reassurance-slogan", "kind": "bad", "genre": "consumer", "text": "No configuration required -- it just works.\n", "expected_rule_families": ["prose-scope.unrequested-reassurance"]},
+    {"id": "bad-one-thing-slogan", "kind": "bad", "genre": "consumer", "text": "The one thing you need is a lockfile.\n", "expected_rule_families": ["ai-tells-agentic.absolute-assertion-core"]},
+    {"id": "bad-make-no-mistake", "kind": "bad", "genre": "change-comms", "text": "Make no mistake: the parser reads the lockfile.\n", "expected_rule_families": ["ai-tells-agentic.absolute-assertion-core"]},
+    {"id": "bad-positive-paraphrase", "kind": "bad", "genre": "consumer", "text": "Every Project Requires A Lockfile.\n", "expected_rule_families": ["ai-tells-agentic.absolute-assertion-core"]},
+    {"id": "control-cache-invalidation", "kind": "control", "genre": "reference", "text": "# Cache Invalidation\n\nThe cache expires after 10 minutes.\n", "expected_rule_families": []},
+    {"id": "control-logging-heading", "kind": "control", "genre": "reference", "text": "# Logging\n\nThe service writes one record per request.\n", "expected_rule_families": []},
+    {"id": "control-troubleshooting-heading", "kind": "control", "genre": "reference", "text": "# Troubleshooting\n\nCheck the service log for the error code.\n", "expected_rule_families": []},
+    {"id": "control-every-declarative", "kind": "control", "genre": "reference", "text": "Every request to this endpoint requires authentication.\n", "expected_rule_families": []},
+    {"id": "control-every-scope", "kind": "control", "genre": "reference", "text": "Every file in this directory contains a header.\n", "expected_rule_families": []},
+    {"id": "control-factual-contrast", "kind": "control", "genre": "reference", "text": "Parser reads JSON, not YAML.\n", "expected_rule_families": []},
+    {"id": "control-factual-boundary", "kind": "control", "genre": "reference", "text": "System validates input, not output.\n", "expected_rule_families": []},
+    {"id": "control-genre-spec", "kind": "control", "genre": "internal", "text": "# Every Request Requires Authentication\n\nThe specification defines the boundary explicitly.\n", "expected_rule_families": []}
+  ]
+}
