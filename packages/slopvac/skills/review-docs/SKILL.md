@@ -105,13 +105,13 @@ skill cannot recover from.
    `slopvac explain <rule_id>` for the decision question, the `fix`, and the
    worked `examples`. Answer each question with a quote from the text, not an
    impression, and report only the questions that failed.
-
 5. Verify the claims. Every sentence checks against code at HEAD; every consumer
    example has a runnable test under `examples/`; no sentence describes unbuilt
    behavior in the present tense. Real defects concentrate here, more than in
    the register.
+6. When reviewing a code change, inspect every changed comment or documentation passage against the code diff. Mark unrelated prose edits as a `defect`, including same-file comments and documentation elsewhere. Keep a stale comment that directly describes changed behavior in scope for correction. An explicitly requested prose edit is in scope even when it is unrelated to the code.
 
-6. Report the verdict in the shape below.
+7. Report the verdict in the shape below.
 
 MUST Invoke this skill rather than the linter alone. The gate is pattern-matching
 and cannot see register, symmetry, or an unsupported claim.

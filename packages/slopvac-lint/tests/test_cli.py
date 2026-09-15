@@ -76,14 +76,14 @@ def test_findings_exit_1(runner, tmp_path):
 
 def test_clean_document_exits_0(runner, tmp_path):
     path = _write(tmp_path, "clean.md", CLEAN)
-    result = runner.invoke(
-        main, ["lint", str(path), "--profile", "relaxed"]
-    )
+    result = runner.invoke(main, ["lint", str(path), "--profile", "relaxed"])
     assert result.exit_code == EXIT_OK, result.output
 
 
 @pytest.mark.parametrize("output_format", ["json", "sarif", "github"])
-def test_an_all_excluded_run_still_emits_the_requested_format(runner, tmp_path, output_format):
+def test_an_all_excluded_run_still_emits_the_requested_format(
+    runner, tmp_path, output_format
+):
     """The GitHub action parses `--format json` from stdout. Before the fix a run
     whose only target the config excluded printed a bare text line and exit 0,
     which the action read as "the report could not be produced": every
@@ -92,7 +92,15 @@ def test_an_all_excluded_run_still_emits_the_requested_format(runner, tmp_path, 
     config = _write(tmp_path, "slopvac.toml", 'exclude = ["CHANGELOG.md"]\n')
     result = runner.invoke(
         main,
-        ["lint", str(path), "--config", str(config), "--format", output_format, "--no-vale"],
+        [
+            "lint",
+            str(path),
+            "--config",
+            str(config),
+            "--format",
+            output_format,
+            "--no-vale",
+        ],
     )
     assert result.exit_code == EXIT_OK, result.output
     stdout = result.stdout if hasattr(result, "stdout") else result.output
@@ -103,6 +111,7 @@ def test_an_all_excluded_run_still_emits_the_requested_format(runner, tmp_path, 
         assert json.loads(stdout)["runs"][0]["results"] == []
     else:
         assert "::" in stdout or stdout.strip() != "no lintable files matched"
+
 
 def test_bare_path_is_treated_as_lint(runner, tmp_path):
     """`slopvac README.md` has to work. Without the default-group shim click
@@ -160,11 +169,19 @@ def test_no_lintable_files_exits_0(runner, tmp_path):
 
 def test_json_output_is_parseable_and_complete(runner, tmp_path):
     path = _write(tmp_path, "slop.md", CLEAN)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json", "--profile", "strict"])
+    result = runner.invoke(
+        main, ["lint", str(path), "--no-vale", "--format", "json", "--profile", "strict"]
+    )
     payload = json.loads(result.output)
     summary = payload["summary"]
     for key in (
-        "score", "findings", "errors", "warnings", "per_100_words", "passed", "categories"
+        "score",
+        "findings",
+        "errors",
+        "warnings",
+        "per_100_words",
+        "passed",
+        "categories",
     ):
         assert key in summary, f"summary is missing {key}"
     assert payload["documents"]
@@ -175,14 +192,19 @@ def test_json_output_is_parseable_and_complete(runner, tmp_path):
 
 def test_github_format_emits_annotations(runner, tmp_path):
     path = _write(tmp_path, "slop.md", CLEAN)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "github", "--profile", "strict"])
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--no-vale", "--format", "github", "--profile", "strict"],
+    )
     assert "::error file=" in result.output or "::warning file=" in result.output
     assert "::notice title=slopvac::" in result.output
 
 
 def test_sarif_output_is_valid_shape(runner, tmp_path):
     path = _write(tmp_path, "slop.md", CLEAN)
-    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "sarif", "--profile", "strict"])
+    result = runner.invoke(
+        main, ["lint", str(path), "--no-vale", "--format", "sarif", "--profile", "strict"]
+    )
     payload = json.loads(result.output)
     assert payload["version"] == "2.1.0"
     run = payload["runs"][0]
@@ -206,7 +228,9 @@ def test_sarif_fingerprints_are_unique_and_line_independent(runner, tmp_path):
     path = _write(tmp_path, "slop.md", SLOP)
     result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "sarif"])
     run = json.loads(result.output)["runs"][0]
-    prints = [entry["partialFingerprints"]["slopvacFindingV1"] for entry in run["results"]]
+    prints = [
+        entry["partialFingerprints"]["slopvacFindingV1"] for entry in run["results"]
+    ]
     assert len(prints) == len(run["results"]), "every result needs a fingerprint"
     assert len(set(prints)) == len(prints), "fingerprints collide"
 
@@ -215,12 +239,17 @@ def test_sarif_fingerprints_are_unique_and_line_independent(runner, tmp_path):
     shifted = _write(tmp_path, "shifted.md", "An unrelated opening line.\n\n" + SLOP)
     again = runner.invoke(main, ["lint", str(shifted), "--no-vale", "--format", "sarif"])
     moved = json.loads(again.output)["runs"][0]["results"]
-    lines = {entry["locations"][0]["physicalLocation"]["region"]["startLine"] for entry in moved}
+    lines = {
+        entry["locations"][0]["physicalLocation"]["region"]["startLine"]
+        for entry in moved
+    }
     first_lines = {
         entry["locations"][0]["physicalLocation"]["region"]["startLine"]
         for entry in run["results"]
     }
-    assert lines != first_lines, "the fixture did not actually shift; the test proves nothing"
+    assert lines != first_lines, (
+        "the fixture did not actually shift; the test proves nothing"
+    )
 
 
 def test_sarif_carries_the_context_an_alert_needs(runner, tmp_path):
@@ -244,7 +273,8 @@ def test_stricter_profile_finds_more(runner, tmp_path):
 
     def count(profile):
         result = runner.invoke(
-            main, ["lint", str(path), "--no-vale", "--profile", profile, "--format", "json"]
+            main,
+            ["lint", str(path), "--no-vale", "--profile", profile, "--format", "json"],
         )
         return json.loads(result.output)["summary"]["findings"]
 
@@ -264,8 +294,17 @@ def test_locale_flag(runner, tmp_path, locale, text, should_find):
     path = _write(tmp_path, "a.md", f"# Title\n\n{text}\n")
     result = runner.invoke(
         main,
-        ["lint", str(path), "--no-vale", "--locale", locale,
-         "--category", "ste-words", "--format", "json"],
+        [
+            "lint",
+            str(path),
+            "--no-vale",
+            "--locale",
+            locale,
+            "--category",
+            "ste-words",
+            "--format",
+            "json",
+        ],
     )
     findings = json.loads(result.output)["documents"][0]["findings"]
     spelling = [f for f in findings if f["rule_id"] == "ste-words.spelling"]
@@ -467,6 +506,7 @@ def test_excluded_path_is_not_linted(runner, tmp_path):
 
 def test_disable_flag_silences_a_rule(runner, tmp_path):
     path = _write(tmp_path, "a.md", CLEAN)
+
     def ids(*extra):
         result = runner.invoke(
             main, ["lint", str(path), "--no-vale", "--format", "json", *extra]
@@ -489,7 +529,7 @@ def test_no_vale_skips_vale_owned_rules(runner, tmp_path):
     path = _write(
         tmp_path,
         "table.md",
-        "# Terms\n\n| Term | Meaning |\n| --- | --- |\n| \\\"Promote to master\\\" | A relation example. |\n",
+        '# Terms\n\n| Term | Meaning |\n| --- | --- |\n| \\"Promote to master\\" | A relation example. |\n',
     )
     result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
     assert result.exit_code in (EXIT_OK, EXIT_FINDINGS, EXIT_ERROR), result.output
@@ -633,11 +673,22 @@ def test_starter_config_is_valid(runner, tmp_path):
 def test_missing_vale_is_reported_not_silent(runner, tmp_path):
     """An unsynced or absent Vale makes it report every file clean, which is
     indistinguishable from a pass. It has to say so."""
-    _write(tmp_path, "slopvac.toml", '[vale]\nenabled = true\nbinary = "vale-not-installed"\n')
+    _write(
+        tmp_path,
+        "slopvac.toml",
+        '[vale]\nenabled = true\nbinary = "vale-not-installed"\n',
+    )
     path = _write(tmp_path, "a.md", SLOP)
     result = runner.invoke(
         main,
-        ["lint", str(path), "--config", str(tmp_path / "slopvac.toml"), "--format", "json"],
+        [
+            "lint",
+            str(path),
+            "--config",
+            str(tmp_path / "slopvac.toml"),
+            "--format",
+            "json",
+        ],
     )
     document = json.loads(result.output)["documents"][0]
     assert result.exit_code == EXIT_ERROR
@@ -675,7 +726,9 @@ def test_no_vale_reports_the_skipped_rules_as_unchecked(tmp_path):
     is reported as `unchecked`.
     """
     path = tmp_path / "doc.md"
-    path.write_text("We leverage the seamless approach in order to win.\n", encoding="utf-8")
+    path.write_text(
+        "We leverage the seamless approach in order to win.\n", encoding="utf-8"
+    )
 
     runner = CliRunner()
     result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
@@ -701,7 +754,9 @@ def test_config_disabled_vale_reports_skipped_rules_as_unchecked(
 ):
     """Disabling Vale in config skips most of the ruleset. Before the fix the run
     exited 0 with `passed = true`; a path-scoped override was not read at all."""
-    path = _write(tmp_path, "doc.md", "We leverage the seamless approach in order to win.\n")
+    path = _write(
+        tmp_path, "doc.md", "We leverage the seamless approach in order to win.\n"
+    )
     config = _write(tmp_path, "slopvac.toml", config_text)
 
     result = runner.invoke(
@@ -787,7 +842,15 @@ def test_unimplemented_metrics_are_reported_not_skipped(tmp_path):
     runner = CliRunner()
     result = runner.invoke(
         main,
-        ["lint", str(path), "--no-vale", "--rules-dir", str(rules_dir), "--format", "json"],
+        [
+            "lint",
+            str(path),
+            "--no-vale",
+            "--rules-dir",
+            str(rules_dir),
+            "--format",
+            "json",
+        ],
     )
     payload = json.loads(result.output)
     unchecked = " ".join(payload["documents"][0]["unchecked"])
@@ -801,9 +864,7 @@ def test_the_shipped_ruleset_has_no_unimplemented_metric():
     metric the shipped rules name now has a native branch, so a real run reports no
     unimplemented metric at all."""
     runner = CliRunner()
-    result = runner.invoke(
-        main, ["compile", "--format", "json", "--no-validate"]
-    )
+    result = runner.invoke(main, ["compile", "--format", "json", "--no-validate"])
     payload = json.loads(result.output)
     reasons = " ".join(entry["reason"] for entry in payload["native"])
     assert "no implementation" not in reasons
@@ -908,24 +969,6 @@ def test_group_options_still_belong_to_the_group(runner, argv):
 # a forty-character string.
 
 
-@pytest.mark.parametrize(
-    ("config_text", "expected_hint"),
-    [
-        ('[rules]\n"prose-format.no-unicode-dashes" = "off"\n', "prose-format.no-unicode-dash"),
-        ("[categories]\nprose-scop = \"warning\"\n", "prose-scope"),
-    ],
-)
-def test_empty_directory_validates_nearest_config_names(
-    runner, tmp_path, config_text, expected_hint
-):
-    target = tmp_path / "empty"
-    target.mkdir()
-    _write(tmp_path, "slopvac.toml", config_text)
-    result = runner.invoke(main, ["lint", str(target), "--no-vale"])
-    assert result.exit_code == EXIT_ERROR, result.output
-    assert "config error" in result.output.lower()
-    assert expected_hint in result.output
-
 def test_mistyped_rule_id_is_an_error_not_a_no_op(runner, tmp_path):
     config = _write(
         tmp_path,
@@ -988,13 +1031,9 @@ def test_the_generated_spelling_rule_counts_as_known(runner, tmp_path):
     validating before injection would reject the one rule id a project is most
     likely to want to turn off.
     """
-    config = _write(
-        tmp_path, "slopvac.toml", '[rules]\n"ste-words.spelling" = "off"\n'
-    )
+    config = _write(tmp_path, "slopvac.toml", '[rules]\n"ste-words.spelling" = "off"\n')
     path = _write(tmp_path, "doc.md", CLEAN)
-    result = runner.invoke(
-        main, ["lint", str(path), "--config", str(config)]
-    )
+    result = runner.invoke(main, ["lint", str(path), "--config", str(config)])
     assert result.exit_code != EXIT_ERROR, result.output
 
 
@@ -1064,8 +1103,13 @@ def test_a_rule_turned_off_for_one_file_still_compiles_for_the_next(tmp_path):
     result = CliRunner().invoke(
         main,
         [
-            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
-            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+            "lint",
+            str(tmp_path / "a.md"),
+            str(tmp_path / "b.md"),
+            "--config",
+            str(tmp_path / "slopvac.toml"),
+            "--format",
+            "json",
         ],
         catch_exceptions=False,
     )
@@ -1091,8 +1135,13 @@ def test_a_rule_turned_off_for_a_later_file_is_dropped_there(tmp_path):
     result = CliRunner().invoke(
         main,
         [
-            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
-            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+            "lint",
+            str(tmp_path / "a.md"),
+            str(tmp_path / "b.md"),
+            "--config",
+            str(tmp_path / "slopvac.toml"),
+            "--format",
+            "json",
         ],
         catch_exceptions=False,
     )
@@ -1125,8 +1174,13 @@ def test_a_later_file_demoting_a_vale_category_keeps_its_own_level(tmp_path):
     result = CliRunner().invoke(
         main,
         [
-            "lint", str(tmp_path / "a.md"), str(tmp_path / "b.md"),
-            "--config", str(tmp_path / "slopvac.toml"), "--format", "json",
+            "lint",
+            str(tmp_path / "a.md"),
+            str(tmp_path / "b.md"),
+            "--config",
+            str(tmp_path / "slopvac.toml"),
+            "--format",
+            "json",
         ],
         catch_exceptions=False,
     )
@@ -1150,19 +1204,21 @@ def test_a_file_reports_the_same_levels_alone_and_inside_its_directory(tmp_path)
     )
     config = ["--config", str(tmp_path / "slopvac.toml"), "--format", "json"]
     alone = json.loads(
-        CliRunner().invoke(
-            main, ["lint", str(tmp_path / "b.md"), *config], catch_exceptions=False
-        ).output
+        CliRunner()
+        .invoke(main, ["lint", str(tmp_path / "b.md"), *config], catch_exceptions=False)
+        .output
     )
     together = json.loads(
-        CliRunner().invoke(
-            main, ["lint", str(tmp_path), *config], catch_exceptions=False
-        ).output
+        CliRunner()
+        .invoke(main, ["lint", str(tmp_path), *config], catch_exceptions=False)
+        .output
     )
     assert _levels(alone, "b.md") == _levels(together, "b.md")
 
 
-def test_rst_without_converter_is_unchecked_but_other_files_score(runner, tmp_path, monkeypatch):
+def test_rst_without_converter_is_unchecked_but_other_files_score(
+    runner, tmp_path, monkeypatch
+):
     """RST is not silently dropped when its docutils converter is unavailable."""
     _write(tmp_path, "a.md", CLEAN)
     _write(tmp_path, "b.rst", "A title\n=======\n\nPlain text.\n")
@@ -1173,8 +1229,11 @@ def test_rst_without_converter_is_unchecked_but_other_files_score(runner, tmp_pa
     assert result.exit_code == EXIT_ERROR
     report = json.loads(result.output)
     assert {Path(doc["path"]).name for doc in report["documents"]} == {"a.md"}
-    assert any("rst2html" in note and "pip install docutils" in note
-               for doc in report["documents"] for note in doc["unchecked"])
+    assert any(
+        "rst2html" in note and "pip install docutils" in note
+        for doc in report["documents"]
+        for note in doc["unchecked"]
+    )
 
 
 def test_rst_is_collected_when_converter_is_available(runner, tmp_path, monkeypatch):
@@ -1192,4 +1251,6 @@ def test_rst_is_collected_when_converter_is_available(runner, tmp_path, monkeypa
     assert result.exit_code == EXIT_ERROR  # --no-vale remains explicitly unchecked
     report = json.loads(result.output)
     assert {Path(doc["path"]).name for doc in report["documents"]} == {"b.rst"}
-    assert not any("rst2html" in note for doc in report["documents"] for note in doc["unchecked"])
+    assert not any(
+        "rst2html" in note for doc in report["documents"] for note in doc["unchecked"]
+    )

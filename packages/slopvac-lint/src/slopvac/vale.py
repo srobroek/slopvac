@@ -28,13 +28,11 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .config import Severity
 from .model import Finding
-from .toml_comments import comment_projection, is_toml_path
 
 TIMEOUT_SECONDS = 120
 
@@ -124,17 +122,6 @@ def run_compiled_vale(
             + (f" (+{len(missing) - 8} more)" if len(missing) > 8 else "")
         )
 
-    projected = tempfile.TemporaryDirectory(prefix="slopvac-toml-")
-    vale_paths = []
-    aliases = {}
-    for index, source in enumerate(paths):
-        if is_toml_path(source):
-            target = Path(projected.name) / f"{index}-{source.stem}.md"
-            target.write_text(comment_projection(source.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
-            vale_paths.append(target)
-            aliases[str(target)] = str(source)
-        else:
-            vale_paths.append(source)
     try:
         completed = subprocess.run(
             [
@@ -142,24 +129,20 @@ def run_compiled_vale(
                 f"--config={config_path}",
                 "--output=JSON",
                 "--no-exit",
-                *[str(p) for p in vale_paths],
+                *[str(p) for p in paths],
             ],
             capture_output=True,
             text=True,
             timeout=TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired:
-        projected.cleanup()
         result.unchecked.append(
             f"Vale timed out after {TIMEOUT_SECONDS}s; its rules did NOT run."
         )
         return result
     except OSError as exc:
-        projected.cleanup()
         result.unchecked.append(f"Vale could not be run ({exc}); its rules did NOT run.")
         return result
-
-    projected.cleanup()
 
     # E201 means a rule file was rejected, and Vale then lints nothing at all.
     # The compiler probes for this, so reaching it here means a rule broke after
@@ -208,14 +191,14 @@ def run_compiled_vale(
 
     line_lengths: dict[str, list[int]] = {}
     for path, alerts in data.items():
-        source_path = aliases.get(path, path)
         if not isinstance(alerts, list):
             result.unchecked.append(f"Vale returned invalid alerts for {path}.")
             continue
         if path not in line_lengths:
             try:
                 line_lengths[path] = [
-                    len(text) for text in Path(source_path).read_text(encoding="utf-8").splitlines()
+                    len(text)
+                    for text in Path(path).read_text(encoding="utf-8").split("\n")
                 ]
             except (OSError, UnicodeDecodeError):
                 line_lengths[path] = []
@@ -244,14 +227,9 @@ def run_compiled_vale(
             # Vale measures the span in its normalised paragraph, so a match that
             # wraps onto the next source line ends past the reported line. `Finding`
             # carries no end line; the range stops where the line does.
-            # Vale 3.15 can report a virtual line after the source when a
-            # documentation comment is followed by an ordinary line comment.
-            # Newer releases already normalize this; clamp only to the real
-            # source extent so the finding remains mapped to source.
             end_column = span[1] + 1
             lengths = line_lengths[path]
-            if lengths:
-                line = min(line, len(lengths))
+            if 0 < line <= len(lengths):
                 end_column = min(end_column, lengths[line - 1] + 1)
             severity = severities.get(check)
             if severity is None:
@@ -265,9 +243,9 @@ def run_compiled_vale(
             # companion of a split substitution map) reports under the rule that
             # owns it; that is the id a suppression annotation or config names.
             owner = getattr(compiled, "aliases", {}).get(check, check)
-            result.by_path.setdefault(source_path, []).append(
+            result.by_path.setdefault(path, []).append(
                 Finding(
-                    path=source_path,
+                    path=path,
                     line=line,
                     column=span[0],
                     end_column=end_column,
@@ -281,29 +259,20 @@ def run_compiled_vale(
     return result
 
 
-def unchecked_for_skipped(
-    compiled, cause: str = "--no-vale", *, vale_skipped: bool = True
-) -> list[str]:
-    """Return unchecked notes for skipped and comment-excluded rules.
+def unchecked_for_skipped(compiled, cause: str = "--no-vale") -> list[str]:
+    """The note that skipping Vale produces, naming what skipped it.
 
     Skipping Vale skips most of the ruleset, so the rules that would have run are
-    reported as unchecked rather than dropped. In code-comment mode, rules that
-    cannot safely run on comment scopes are also unchecked, whether or not Vale
-    itself ran. A gate that silently stops checking rules while still printing a
-    score is the exact failure mode this project refuses to ship.
+    reported as unchecked rather than dropped. A gate that silently stops checking
+    most of its rules while still printing a score is the exact failure mode this
+    project refuses to ship. `cause` is the flag or setting responsible, because
+    `--no-vale` and `[vale] enabled = false` are fixed in different places.
     """
-    notes: list[str] = []
-    if vale_skipped and compiled.vale_rules:
-        notes.append(
-            f"{cause} skipped the Vale engine, so {len(compiled.vale_rules)} of the "
-            f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
-            f"did NOT run. The score below reflects only the "
-            f"{len(compiled.native_rules)} rules that stayed native."
-        )
-    if compiled.excluded_rules:
-        ids = ", ".join(compiled.excluded_rules)
-        notes.append(
-            f"{len(compiled.excluded_rules)} active rule(s) are not safe for "
-            f"code-comment scopes and did NOT run: {ids}"
-        )
-    return notes
+    if not compiled.vale_rules:
+        return []
+    return [
+        f"{cause} skipped the Vale engine, so {len(compiled.vale_rules)} of the "
+        f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
+        f"did NOT run. The score below reflects only the "
+        f"{len(compiled.native_rules)} rules that stayed native."
+    ]
