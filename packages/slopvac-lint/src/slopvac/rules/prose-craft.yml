@@ -26,8 +26,8 @@ rules:
       - bad: The A.P.I. returns JSON.
         good: The API returns JSON.
     provenance:
-      source: vale-styles/prose-craft/AcronymPeriods.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/AcronymPeriods.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/AcronymPeriods.yml
       note: >-
         Vale carries the regex under `tokens:` with `nonword: true`, so it is a
         single regex rather than a literal-phrase list; mapped to kind=pattern, not
@@ -53,8 +53,8 @@ rules:
       - bad: Runs bi-weekly.
         good: Runs every two weeks.
     provenance:
-      source: vale-styles/prose-craft/Ambiguity.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Ambiguity.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Ambiguity.yml
       note: >-
         "and/or" is the canonical case: it means three different things and the
         writer had one in mind. Red Hat's DoNotUseTerms spells out all three
@@ -65,35 +65,6 @@ rules:
         ("the section it calls for.", "rather than the reader having to.", "and so
         on."). Distinguishing a stranded preposition from a phrasal one needs
         parsing a regex cannot do.
-
-  - id: annotations
-    exceptions: [quotation]
-    name: Move an annotation to an issue
-    kind: pattern
-    severity: warning
-    message: 'annotation: {match} -- move it to an issue or a code comment'
-    scope: prose
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    pattern: '\b(?:TODO|FIXME|XXX|HACK|TBD|WIP)\b(?=[\s:)\]]|$)'
-    match_all_caps: true
-    fix: Move it to an issue or a code comment.
-    examples:
-      - bad: 'TODO: document the flag.'
-        good: The `--strict` flag raises every warning to an error.
-    provenance:
-      source: vale-styles/prose-craft/Annotations.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
-      note: >-
-        DUPLICATES docs-discipline.status-language, which already bans TODO and WIP
-        in the CONSUMER genre. This rule exists to reach change comms, where
-        status-language is switched off because a commit message legitimately says
-        "not yet implemented" -- but never legitimately ships a "TODO: write this"
-        in a PR body. `NOTE` is deliberately absent: proselint bans it, and "NOTE:"
-        is a sanctioned admonition prefix in every docs toolchain.
-
   - id: articles
     name: Match the article to the initialism's pronunciation
     kind: substitution
@@ -151,8 +122,8 @@ rules:
       - bad: an URL
         good: a URL
     provenance:
-      source: vale-styles/prose-craft/Articles.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Articles.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Articles.yml
       note: >-
         Purely mechanical -- there is no house-style position to take -- and a
         reliable marker of text assembled rather than read aloud. Vale sets
@@ -179,8 +150,8 @@ rules:
       - bad: ❯ git status
         good: '> git status is what a quoted line looks like, not a prompt'
     provenance:
-      source: vale-styles/prose-craft/CommandPrompt.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/CommandPrompt.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/CommandPrompt.yml
       note: >-
         `scope: raw` because the prompt lives inside a fence, which the prose parser
         skips. Canonical's 015-No-prompts-in-comments and Krystal's
@@ -210,8 +181,8 @@ rules:
       - bad: <<<<<<< HEAD
         good: The loader reads the lockfile.
     provenance:
-      source: vale-styles/prose-craft/ConflictMarkers.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/ConflictMarkers.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/ConflictMarkers.yml
       note: >-
         Always a defect, never a style question, so enforced at every tier. It
         survives review more often than it should because a rendered markdown view
@@ -237,8 +208,8 @@ rules:
       - bad: It is important to note that the loader retries.
         good: The loader retries twice.
     provenance:
-      source: vale-styles/prose-craft/DeadOpener.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/DeadOpener.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/DeadOpener.yml
       note: >-
         Existential there is matched sentence- or clause-initial only: "there is no
         way to know" mid-sentence stays clean, as does "check whether there is a
@@ -281,7 +252,7 @@ rules:
       - bad: See the table below.
         good: See the Rule tiers table.
     provenance:
-      source: vale-styles/prose-craft/DirectionalRef.yml
+      source: Retired Vale style — prose-craft/DirectionalRef.yml
       url: https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics
       note: >-
         WCAG 2.2 SC 1.3.3: position breaks for every reader who zooms, reflows, uses
@@ -313,8 +284,8 @@ rules:
       - bad: We read one config file.
         good: slopvac reads one config file.
     provenance:
-      source: vale-styles/prose-craft/FirstPersonPlural.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/FirstPersonPlural.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/FirstPersonPlural.yml
       note: >-
         GENRE-SCOPED, and the exclusions matter more than the rule, so relaxed is
         excluded. A commit message legitimately says "we dropped X"; an ADR says "we
@@ -341,8 +312,8 @@ rules:
       - bad: The loader will retry twice.
         good: The loader retries twice.
     provenance:
-      source: vale-styles/prose-craft/FutureTense.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/FutureTense.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/FutureTense.yml
       note: >-
         A doc describes what the artifact does now, so the present tense is both
         shorter and true at read time. "Will" also hides the roadmap case: "the flag
@@ -402,8 +373,8 @@ rules:
       - bad: Installing the plugin
         good: Install the plugin
     provenance:
-      source: vale-styles/prose-craft/GerundHeading.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/GerundHeading.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/GerundHeading.yml
       note: >-
         Vale carries the regex under `tokens:`, so it is a single regex and maps to
         kind=pattern, not kind=tokens. A gerund WITH a direct object is a task
@@ -448,8 +419,8 @@ rules:
       - bad: a newly-added flag
         good: a newly added flag
     provenance:
-      source: vale-styles/prose-craft/Hyphens.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Hyphens.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Hyphens.yml
       note: >-
         Vale carries the regex under `tokens:` with `nonword: true`; mapped to
         kind=pattern. One correct answer, no house-style position, so enforced at
@@ -484,8 +455,8 @@ rules:
       - bad: 'Pass a glob, e.g. `*.md`.'
         good: 'Pass a glob, for example `*.md`.'
     provenance:
-      source: vale-styles/prose-craft/Latinisms.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Latinisms.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Latinisms.yml
       note: >-
         "e.g." and "i.e." are routinely swapped for each other, and a screen reader
         says "ee gee". Google, Microsoft, IBM, and Elastic all replace them, which is
@@ -510,7 +481,7 @@ rules:
       - bad: See [here](https://example.com/install).
         good: See the [install guide](https://example.com/install).
     provenance:
-      source: vale-styles/prose-craft/LinkText.yml
+      source: Retired Vale style — prose-craft/LinkText.yml
       url: https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context
       note: >-
         A screen reader can list a page's links out of context, so "here" becomes an
@@ -540,8 +511,8 @@ rules:
       - bad: the API interface
         good: the API
     provenance:
-      source: vale-styles/prose-craft/Misnomer.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Misnomer.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Misnomer.yml
       note: >-
         RAS syndrome. Split from Redundancy.yml because the cause differs and so
         does the diagnosis: a grammatical redundancy ("past history") is a slip in
@@ -569,8 +540,8 @@ rules:
       - bad: You cannot deploy without a token.
         good: Deploying requires a token.
     provenance:
-      source: vale-styles/prose-craft/NegativeRequirement.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/NegativeRequirement.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/NegativeRequirement.yml
       note: >-
         Double negatives cost every reader a pass, and non-native readers more than
         one. Excluded at relaxed and off for internal docs by default: a spec states
@@ -594,8 +565,8 @@ rules:
       - bad: Select the file(s).
         good: Select the files.
     provenance:
-      source: vale-styles/prose-craft/OptionalPlural.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/OptionalPlural.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/OptionalPlural.yml
       note: >-
         Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into
         one alternation for kind=pattern. Covers "(es)" and the slashed form, which
@@ -619,8 +590,8 @@ rules:
       - bad: Firstly, install the plugin.
         good: Install the plugin.
     provenance:
-      source: vale-styles/prose-craft/Ordinals.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Ordinals.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Ordinals.yml
       note: >-
         Two shapes: "firstly" adds -ly to a word that is already the ordinal, and
         the numeric form reads as a date fragment in running prose. The lookbehind
@@ -647,8 +618,8 @@ rules:
       - bad: Kindly run the migration first.
         good: Repos with release-please never hand-edit CHANGELOG.md.
     provenance:
-      source: vale-styles/prose-craft/Politeness.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Politeness.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Politeness.yml
       note: >-
         Red Hat, OpenStack, Splunk, and Krystal all ban it, and each gives the same
         reason: politeness in a procedure reads as uncertainty about whether the step
@@ -676,8 +647,8 @@ rules:
       - bad: the reason why
         good: the reason
     provenance:
-      source: vale-styles/prose-craft/Redundancy.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Redundancy.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Redundancy.yml
       note: >-
         CRAFT AXIS on a measured base rate: 0.1 hits per 10k words across 147,473
         words of human-written technical documentation. Rare, but rare because it is
@@ -702,8 +673,8 @@ rules:
       - bad: The flag was added recently.
         good: The flag was added in v3.1.0.
     provenance:
-      source: vale-styles/prose-craft/RelativeDate.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/RelativeDate.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/RelativeDate.yml
       note: >-
         A relative date is correct on the day it is written and wrong every day
         after; the document does not carry its own write date, so neither a reader
@@ -730,8 +701,8 @@ rules:
       - bad: This section explains the loader.
         good: The loader resolves every path in the manifest.
     provenance:
-      source: vale-styles/prose-craft/SelfReference.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/SelfReference.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/SelfReference.yml
       note: >-
         `page` and `document` are deliberately absent from the noun list: Vale's
         `text` scope hands over the PARSED text node, so a markdown link label
@@ -760,8 +731,8 @@ rules:
     comparison: gt
     fix: Split the sentence, or turn the enumeration into a list.
     provenance:
-      source: vale-styles/prose-craft/SentenceLength.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/SentenceLength.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/SentenceLength.yml
       note: >-
         Converted from Vale `extends: occurrence` with `max: 34`, `token:
         \b(\w+)\b`, `scope: sentence`. Threshold 34 is deliberately ABOVE
@@ -789,8 +760,8 @@ rules:
       - bad: The loader retries.Twice.
         good: The loader retries. Twice.
     provenance:
-      source: vale-styles/prose-craft/Spacing.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Spacing.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Spacing.yml
       note: >-
         Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into
         one alternation for kind=pattern. The zero-space form ("Word.Next") is a
@@ -817,8 +788,8 @@ rules:
       - bad: This is why it fails.
         good: This lookahead is why it fails.
     provenance:
-      source: vale-styles/prose-craft/UnclearAntecedent.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/UnclearAntecedent.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/UnclearAntecedent.yml
       note: >-
         From Openly's UnclearAntecedent, tightened. Openly matches only `This
         is|are`; `That`, `These`, and `Those` have the same failure, and requiring a
@@ -850,8 +821,8 @@ rules:
       - bad: Python 3.2 and higher
         good: Python 3.2 and later
     provenance:
-      source: vale-styles/prose-craft/Versions.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Versions.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Versions.yml
       note: >-
         "3.2 and higher" is ambiguous once versions stop sorting numerically: is 3.10
         higher than 3.9? Enforced at every tier because it is a correctness defect,
@@ -989,8 +960,8 @@ rules:
       - bad: utilize the loader
         good: use the loader
     provenance:
-      source: vale-styles/prose-craft/Wordiness.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/Wordiness.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/Wordiness.yml
       note: >-
         Merged from three upstream maps that overlap heavily: Microsoft's Wordiness
         (119 entries), Red Hat's SimpleWords (107), and write-good's TooWordy (216
@@ -1029,8 +1000,8 @@ rules:
           "the API's rate limit" is a correct possessive and must NOT fire. The
           pattern alone cannot tell the two apart.
     provenance:
-      source: vale-styles/prose-craft/PluralAbbreviation.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-craft/PluralAbbreviation.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-craft/PluralAbbreviation.yml
       note: >-
         PARTIAL CONVERSION. The Vale rule is `extends: sequence` with three tokens:
         `\b[A-Z]{2,}`, `'s`, and a third that NEGATES on a following noun

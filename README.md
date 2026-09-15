@@ -8,7 +8,7 @@ language for something that does not ship yet, and hedging on every claim.
 
 This repository ships the `slopvac` CLI and two skills.
 
-The CLI scores prose against 228 rules in 25 categories. Configure it with
+The CLI scores prose against 229 rules in 25 categories. Configure it with
 `slopvac.toml`. Profiles set the strictness. `<!-- slopvac-allow -->` comments
 suppress a finding when the reason is on that rule's list.
 
@@ -109,7 +109,7 @@ flowchart TD
 
     IN --> GATE
 
-    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 228 rules in 25 categories<br/>optional Vale sub-gate"]
+    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 229 rules in 25 categories<br/>optional Vale sub-gate"]
 
     GATE --> REG["<b>2. Register judgement</b><br/>read the tells catalog and apply it:<br/>voice, struc
 tural symmetry, dilution,<br/>and the counter-signals expert prose has"]
@@ -147,7 +147,7 @@ absent, nothing more"]
 
 ## Categories
 
-`slopvac` ships **228 rules** across **25 categories**: 164 checked, 64 judgement. `slopvac rules` lists one more, the spelling rule it generates for the configured locale.
+`slopvac` ships **229 rules** across **25 categories**: 164 checked, 65 judgement. `slopvac rules` lists one more, the spelling rule it generates for the configured locale.
 `slopvac rules` lists them. The generated reference is
 [`packages/slopvac-lint/docs/rules.md`](packages/slopvac-lint/docs/rules.md).
 
