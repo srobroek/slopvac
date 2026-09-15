@@ -1,8 +1,7 @@
 # Four categories in one multi-document YAML file, one document per catalog file.
 #
-# Source: packages/slopvac/.apm/skills/review-docs/references/ai-tells/*.md
-# Index and the "why structure outranks vocabulary" argument:
-#   references/ai-tells.md
+# Historical source: retired review-docs skill AI-tells catalog (immutable snapshot)
+# https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 #
 # Every rule traces to one catalog entry. Where an entry has a mechanizable core
 # and a judgement remainder, TWO rules carry the same catalog row and
@@ -32,7 +31,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b'
+    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b|\b(?:the|a|an|this|that|our|your|its)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+\w+(?:\s+[\w-]+){0,6}\s*[,;:—–]\s+it\s+(?:does|do|did)\s+not\s+(?:judge|decide|grade|measure|interpret|predict|replace|solve|fix|guarantee|prove|police|manage|control)\b|\b(?:the|a|an|this|that|our|your|its)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+\w+(?:\s+[\w-]+){0,6}\s*[,;:—–]\s+not\s+(?:judge|decide|grade|measure|interpret|predict|replace|solve|fix|guarantee|prove|police|manage|control)\b|\b(?:the|a|an|this|that|our|your|its|[a-z][\w-]*)\s+[\w-]+(?:\s+[\w-]+){0,4}\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|accepts?|measures?|uses?|supports?|handles?|runs?|reads?|writes?)\s+[^.!?\n]{1,60},\s+(?:it\s+)?not\s+[^.!?\n]{1,50}|\b(?:frame|focus|prioritize|emphasize|center|distinguish|separate)\s+[^.!?\n]{1,60},\s+not\s+[^.!?\n]{1,50}'
     ignore_case: true
     fix: Delete the negated half and state what the thing is.
     examples:
@@ -41,7 +40,7 @@ rules:
       - bad: It's less about speed and more about determinism.
         good: The gate produces the same findings on every run.
     provenance:
-      source: references/ai-tells/structure.md ("Contrastive inversion")
+      source: "AI tells catalog — structure.md (\"Contrastive inversion\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         The mechanizable core of the single most-cited current tell. Judgement
@@ -62,14 +61,16 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Does the negated half of this contrast name a position someone actually
-      holds, or was it invented so the affirmed half sounds larger?
-    fix: Delete the invented alternative and state the affirmed claim alone.
+      Is the negated half mainly a rhetorical foil, or is keeping it essential to
+      safety or compliance, or materially clearer than a positive statement? Flag
+      the contrast only when the positive rewrite preserves the same actionable
+      meaning and is at least as clear; a factual boundary by itself is not an
+      exemption.
     examples:
       - bad: Where other gates check words, this one reads the shape of the argument.
         good: The gate scores paragraph symmetry and passive density.
     provenance:
-      source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
+      source: "AI tells catalog — structure.md (\"Contrastive inversion\", \"Strawman antithesis\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The
@@ -111,7 +112,7 @@ rules:
       - good: The lock is a lease. It is not a mutex.
         bad: Security is not a checkbox. It is a process.
     provenance:
-      source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
+      source: "AI tells catalog — structure.md (\"Contrastive inversion\", \"Strawman antithesis\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         The two-sentence form of the contrastive inversion: "X is A. X is not B."
@@ -153,7 +154,7 @@ rules:
       - bad: Not a bug. Not a feature. A design flaw.
         good: The loader drops the last row, which is a design flaw.
     provenance:
-      source: references/ai-tells/structure.md ("Staccato negative parallel")
+      source: "AI tells catalog — structure.md (\"Staccato negative parallel\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://tropes.fyi/
       note: >-
         Mechanizable core. Upstream ai-tells.ParallelStaccato covers this and is
@@ -179,7 +180,7 @@ rules:
       - bad: Fast. Deterministic. Auditable.
         good: The gate is deterministic and writes an audit line per finding.
     provenance:
-      source: references/ai-tells/structure.md ("Staccato negative parallel", "One-sentence emphasis paragraph")
+      source: "AI tells catalog — structure.md (\"Staccato negative parallel\", \"One-sentence emphasis paragraph\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://tropes.fyi/
       note: >-
         Judgement remainder of ai-tells-structure.staccato-negative-parallel-frames.
@@ -210,7 +211,7 @@ rules:
           exclusions.md for ai-tells.VerbTricolon (149 hits). The last item may
           be hyphenated or multiword so a rhetorical "battle-tested" still fires.
     provenance:
-      source: references/ai-tells/structure.md ("Rule of three / tricolon abuse")
+      source: "AI tells catalog — structure.md (\"Rule of three / tricolon abuse\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core, at warning for the same measured reason
@@ -239,7 +240,7 @@ rules:
       - bad: "- **Speed:** it is fast.\n- **Safety:** it is safe.\n- **Scale:** it scales."
         good: The gate reads 488 files in 0.4 s and refuses an unresolvable style.
     provenance:
-      source: references/ai-tells/structure.md ("Rule of three / tricolon abuse", "Bold-lead-in bullet symmetry")
+      source: "AI tells catalog — structure.md (\"Rule of three / tricolon abuse\", \"Bold-lead-in bullet symmetry\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://rlhfbook.com/c/18-style
       note: >-
         Judgement remainder of ai-tells-structure.tricolon-abuse-core. Absorbs the
@@ -274,7 +275,7 @@ rules:
       - bad: "Here's the thing: the loader reads the lockfile."
         good: The loader reads the lockfile.
     provenance:
-      source: references/ai-tells/structure.md ("False-suspense transition")
+      source: "AI tells catalog — structure.md (\"False-suspense transition\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://tropes.fyi/
       note: >-
         Mechanizable core, as a literal token list. Judgement remainder in
@@ -302,7 +303,7 @@ rules:
       - bad: What follows is the part that changes how you read the rest of this page.
         good: The gate exits 1 when the score falls below 80.
     provenance:
-      source: references/ai-tells/structure.md ("False-suspense transition")
+      source: "AI tells catalog — structure.md (\"False-suspense transition\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://tropes.fyi/
       note: >-
         Judgement remainder of ai-tells-structure.false-suspense-frames. The token
@@ -325,7 +326,7 @@ rules:
       - bad: The result? Devastating.
         good: The migration dropped two rows.
     provenance:
-      source: references/ai-tells/structure.md ("Fragment-question pivot")
+      source: "AI tells catalog — structure.md (\"Fragment-question pivot\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://tropes.fyi/
       note: >-
         Fully mechanizable as a shape, so no judgement partner. Warning rather than
@@ -349,7 +350,7 @@ rules:
       - bad: So why does this matter?
         good: A false status claim ships a document that lies.
     provenance:
-      source: references/ai-tells/structure.md ("Rhetorical-question transition")
+      source: "AI tells catalog — structure.md (\"Rhetorical-question transition\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Anchored to a question that occupies a whole line or heading, which is the
@@ -385,7 +386,7 @@ rules:
       - bad: In this guide, we'll explore the loader.
         good: The loader resolves every path in the manifest.
     provenance:
-      source: references/ai-tells/structure.md ("Meta-narration")
+      source: "AI tells catalog — structure.md (\"Meta-narration\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. The document-opening frame is already mechanised as
@@ -413,7 +414,7 @@ rules:
       - bad: Before getting to the flags, some background on why the loader exists.
         good: The loader reads the lockfile, then falls back to the manifest.
     provenance:
-      source: references/ai-tells/structure.md ("Meta-narration")
+      source: "AI tells catalog — structure.md (\"Meta-narration\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-structure.meta-narration-frames and of
         prose-inflation.document-preamble.
@@ -436,7 +437,7 @@ rules:
       - bad: "## Install the plugin\n\nThis section covers installing the plugin."
         good: "## Install the plugin\n\nRun `apm install slopvac`."
     provenance:
-      source: references/ai-tells/structure.md ("Heading echo")
+      source: "AI tells catalog — structure.md (\"Heading echo\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement, not pattern: deciding it requires comparing the sentence's
         content against the heading's, and paraphrase defeats any string test.
@@ -481,7 +482,7 @@ rules:
       - bad: Happy migrating!
         good: Restart the worker after the config is written.
     provenance:
-      source: references/ai-tells/structure.md ("Summary closer")
+      source: "AI tells catalog — structure.md (\"Summary closer\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. Judgement remainder in
@@ -512,7 +513,7 @@ rules:
         good: ''
         note: The document ends on the scorer section.
     provenance:
-      source: references/ai-tells/structure.md ("Summary closer", "Outline conclusion")
+      source: "AI tells catalog — structure.md (\"Summary closer\", \"Outline conclusion\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-structure.summary-closer-frames. Also
         absorbs the catalog's "Outline conclusion" row ("Challenges and Future
@@ -538,7 +539,7 @@ rules:
       - bad: The first wall is latency. The second wall is memory. The third wall is cost.
         good: "Three limits apply:\n\n- latency\n- memory\n- cost"
     provenance:
-      source: references/ai-tells/structure.md ("Listicle in a trench coat")
+      source: "AI tells catalog — structure.md (\"Listicle in a trench coat\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         No pattern reaches it: the defect is that prose form carries list content,
         which needs the reader to test whether each paragraph depends on the last.
@@ -563,7 +564,7 @@ rules:
       - bad: They assume a lockfile. They assume a network. They assume a token.
         good: They assume a lockfile, a network, and a token.
     provenance:
-      source: references/ai-tells/structure.md ("Anaphora abuse")
+      source: "AI tells catalog — structure.md (\"Anaphora abuse\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Upstream ai-tells.StackedAnaphora attempts the mechanical form and stays
         enabled; this judgement rule carries the case where the repeated opener is
@@ -587,7 +588,7 @@ rules:
       - bad: Apple didn't build Uber. Facebook didn't build Spotify.
         good: The plugin runs in the host process, so it cannot outlive the session.
     provenance:
-      source: references/ai-tells/structure.md ("Analogy-stack authority")
+      source: "AI tells catalog — structure.md (\"Analogy-stack authority\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://www.oliviacal.com/post/ai-writing-tells
       note: >-
         Deciding it needs domain knowledge about whether the comparison shares a
@@ -612,7 +613,7 @@ rules:
       - bad: This is the supervision paradox.
         good: A reviewer who approves faster than they read approves more defects.
     provenance:
-      source: references/ai-tells/structure.md ("Invented concept label")
+      source: "AI tells catalog — structure.md (\"Invented concept label\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Distinguishing a coinage from established domain vocabulary requires knowing
         the field, so it cannot be a token list -- the list would have to enumerate
@@ -635,7 +636,7 @@ rules:
       - bad: 'Three pillars support this: speed, safety, and cost.'
         good: "The gate is fast, refuses an unresolvable style, and runs in CI."
     provenance:
-      source: references/ai-tells/structure.md ("Cataphoric numbered lead-in")
+      source: "AI tells catalog — structure.md (\"Cataphoric numbered lead-in\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. Judgement remainder in
@@ -663,7 +664,7 @@ rules:
       - bad: A handful of considerations apply here.
         good: "Two limits apply:"
     provenance:
-      source: references/ai-tells/structure.md ("Cataphoric numbered lead-in")
+      source: "AI tells catalog — structure.md (\"Cataphoric numbered lead-in\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-structure.cataphoric-lead-in-core.
 
   - id: hollow-acknowledgment
@@ -684,7 +685,7 @@ rules:
       - bad: Rate limits are a real concern here.
         good: The client retries twice, then returns 429 to the caller.
     provenance:
-      source: references/ai-tells/structure.md ("Hollow acknowledgment")
+      source: "AI tells catalog — structure.md (\"Hollow acknowledgment\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         prose-inflation.apologizing mechanises the subset that DEFERS explicitly
@@ -694,7 +695,7 @@ rules:
 
   - id: absolute-assertion-core
     name: State the claim with its actual scope
-    kind: tokens
+    kind: pattern
     severity: warning
     message: 'absolute assertion: {match} -- state the claim with its actual scope'
     scope: prose
@@ -702,22 +703,15 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    tokens:
-      - the only way to
-      - the single most important
-      - make no mistake
-      - there is no substitute for
-      - the one thing you need
-      - without exception the
-      - always the right
-      - never the right
-    ignore_case: true
-    fix: Replace the absolute with the claim's actual scope.
+    pattern: '(?i:\b(?:the only way to|the single most important|make no mistake|there is no substitute for|the one thing you need|without exception the|always the right|never the right)\b)|\bEvery\s+(?:[A-Z][a-z]*\s+){1,5}(?:Is|Are|Was|Were|Does|Do|Did|Has|Have|Had|Can|Will|Must|Should|Requires?|Accepts?|Maps?|Traces?|Needs?|Uses?|Produces?|Supports?|Contains?|Returns?|Runs?|Fails?)\s+(?:[A-Z][a-z]*\s+){0,8}[A-Z][a-z]*(?=[.!?,;:]|$)'
+    ignore_case: false
     examples:
       - bad: The only way to fix this is to re-run the sync.
-        good: Re-running the sync fixes it when the cache is stale.
+        good: One way to fix this is to re-run the sync.
+      - bad: Every Project Needs A Lockfile.
+        good: A project with more than one direct dependency needs a lockfile.
     provenance:
-      source: references/ai-tells/structure.md ("Absolute assertion")
+      source: "AI tells catalog — structure.md (\"Absolute assertion\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. The catalog calls this the MIRROR of hedge stacking:
@@ -738,17 +732,82 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Can you name one case in which this claim is false? If yes, the claim is
-      stated at the wrong scope.
+      Can you name one counterexample, or is this a defined scoped invariant?
+      Flag the universal only when it is unsupported or counterexample-prone;
+      do not flag a claim whose domain and evidence are explicitly bounded.
     fix: Narrow the claim to the scope the evidence supports.
     examples:
+      - bad: The only way to fix this is to re-run the sync.
+        good: One way to fix this is to re-run the sync.
       - bad: Every project needs a lockfile.
         good: A project with more than one direct dependency needs a lockfile.
     provenance:
-      source: references/ai-tells/structure.md ("Absolute assertion")
+      source: "AI tells catalog — structure.md (\"Absolute assertion\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable
         by construction: the reviewer either produces a counterexample or does not.
+
+  - id: negative-inventory-core
+    name: Cut low-value negative inventory
+    kind: pattern
+    severity: warning
+    message: 'negative inventory: {match} -- state the supported behavior or constraint'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:does|do|did)\s+not\s+pin\b|\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\b(?:is|are|was|were)\s+excluded\b|\bexcluded\s+from\b|\bnot\s+included\b|\brecorded\s+elsewhere\b'
+    ignore_case: true
+    fix: State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
+    examples:
+      - bad: 'Tooling not pinned: versions may drift.'
+        good: The lockfile pins the formatter version used by CI.
+      - bad: 'Excluded from this review: browser checks and visual polish.'
+        good: Browser checks are not run; use the smoke command before release.
+      - bad: |-
+          | Coverage | Status |
+          |---|---|
+          | Outside tooling scope | Not included |
+        good: The parser test suite covers TOML comments; browser behavior is not run here.
+      - bad: Config is recorded elsewhere.
+        good: The deployment manifest records the region and is the source of truth.
+    provenance:
+      source: "AI tells catalog — structure.md (\"Negative/exclusion inventory\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      note: >-
+        Mechanizable vocabulary for inventories that announce what is absent without
+        giving the reader a decision, constraint, result, or reproduction path.
+        Judgement remainder in ai-tells-structure.negative-inventory-remainder.
+
+  - id: negative-inventory-remainder
+    name: Judge whether a negative constraint is actionable
+    kind: judgement
+    severity: suggestion
+    message: 'negative inventory: keep only an actionable constraint, result, or pointer'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this negative statement tell the reader a reproducible result, a safety
+      or compliance constraint, a debugging boundary, an audit fact, or an enforced
+      exclusion that changes what they should do? Keep it only if yes; otherwise is
+      it merely inventory of what was not pinned, run, included, or recorded?
+    fix: Keep the actionable constraint or result and delete the inventory wording.
+    examples:
+      - bad: The tooling is not pinned, and visual checks are outside scope.
+        good: CI rejects an unpinned formatter; visual checks are not run by this command.
+      - bad: Several checks were excluded and recorded elsewhere.
+        good: The audit log records the excluded checks and their reasons.
+      - good: This command has not run browser checks; run `make browser-smoke` before release.
+        bad: 'Not included: other things.'
+    provenance:
+      source: "AI tells catalog — structure.md (\"Negative/exclusion inventory\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      note: >-
+        Judgement remainder of ai-tells-structure.negative-inventory-core. The
+        negative form is legitimate when it changes reader action or records an
+        enforced safety, compliance, debugging, reproducibility, or audit boundary.
 
   - id: think-of-it-as-core
     name: Explain the mechanism instead of the metaphor
@@ -767,7 +826,7 @@ rules:
       - bad: Think of it like a highway system for data.
         good: The bus fans one message out to every registered handler.
     provenance:
-      source: references/ai-tells/structure.md ("Think-of-it-as reflex")
+      source: "AI tells catalog — structure.md (\"Think-of-it-as reflex\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://medium.com/@tdoherty_96508/a-field-guide-to-terrible-ai-writing-6a83ddb6a141
       note: >-
         Mechanizable core. Judgement remainder in
@@ -792,7 +851,7 @@ rules:
       - bad: The scheduler is the traffic warden of the cluster.
         good: The scheduler assigns each pod to the node with the most free memory.
     provenance:
-      source: references/ai-tells/structure.md ("Think-of-it-as reflex")
+      source: "AI tells catalog — structure.md (\"Think-of-it-as reflex\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-structure.think-of-it-as-core.
 
   - id: false-range
@@ -815,7 +874,7 @@ rules:
       - bad: from startups to enterprises
         good: teams of 3 to 3,000 engineers
     provenance:
-      source: references/ai-tells/structure.md ("False range")
+      source: "AI tells catalog — structure.md (\"False range\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         A pattern for "from X to Y" would fire on every legitimate range, so this is
         judgement-only: the test is whether the endpoints are ordered, which needs
@@ -839,7 +898,7 @@ rules:
       - bad: Experts agree that lockfiles reduce drift.
         good: The npm RFC 0012 measured a 40% drop in resolution variance with a lockfile.
     provenance:
-      source: references/ai-tells/structure.md ("Vague attribution")
+      source: "AI tells catalog — structure.md (\"Vague attribution\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core, enforced at every tier: an unsourced appeal to authority
@@ -867,7 +926,7 @@ rules:
       - bad: The literature is clear on this.
         good: RFC 7231 section 6.5.1 defines the status code.
     provenance:
-      source: references/ai-tells/structure.md ("Vague attribution")
+      source: "AI tells catalog — structure.md (\"Vague attribution\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-structure.vague-attribution-core. Also the
         checkability half of content-shape's fabricated-citation entry -- see
@@ -890,7 +949,7 @@ rules:
       - bad: Whether you're a beginner or a seasoned pro, this guide has something for you.
         good: This guide assumes you have run `apm install` once.
     provenance:
-      source: references/ai-tells/structure.md ("Audience straddle")
+      source: "AI tells catalog — structure.md (\"Audience straddle\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable core. Judgement remainder in
         ai-tells-structure.audience-straddle-remainder covers the case where the
@@ -915,7 +974,7 @@ rules:
       - bad: 'A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG.'
         good: Rebase onto the upstream to linearise the history.
     provenance:
-      source: references/ai-tells/structure.md ("Audience straddle")
+      source: "AI tells catalog — structure.md (\"Audience straddle\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-structure.audience-straddle-core.
 ---
 id: ai-tells-register
@@ -952,7 +1011,7 @@ rules:
       - bad: "Let's be real: the gate is slow on a cold cache."
         good: The gate takes 12 s on a cold cache.
     provenance:
-      source: references/ai-tells/register.md ("Faux-candor pivot")
+      source: "AI tells catalog — register.md (\"Faux-candor pivot\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://tropes.fyi/
       note: >-
         Mechanizable core. tropes.fyi files this as "False Vulnerability". Judgement
@@ -979,7 +1038,7 @@ rules:
       - bad: We're not perfect, and we're always learning.
         good: The 3.0 release shipped with a broken lockfile path for six days.
     provenance:
-      source: references/ai-tells/register.md ("Faux-candor pivot")
+      source: "AI tells catalog — register.md (\"Faux-candor pivot\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-register.faux-candor-core. The counter-signal
         catalog names the positive form: "a concrete anecdote or a mistake admitted
@@ -1011,7 +1070,7 @@ rules:
       - bad: The API is genuinely well designed.
         good: The API has four endpoints and one auth mode.
     provenance:
-      source: references/ai-tells/register.md ("Intensifier tics")
+      source: "AI tells catalog — register.md (\"Intensifier tics\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://github.com/conorbronsdon/avoid-ai-writing
       note: >-
         Mechanizable core. tropes.fyi files these as "magic adverbs". `actually` is
@@ -1039,7 +1098,7 @@ rules:
       - bad: The rewrite is remarkably clean.
         good: The rewrite deletes 400 lines and adds one function.
     provenance:
-      source: references/ai-tells/register.md ("Intensifier tics")
+      source: "AI tells catalog — register.md (\"Intensifier tics\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-register.intensifier-tics-core.
 
   - id: corporate-analytic-filler-core
@@ -1070,7 +1129,7 @@ rules:
       - bad: "It's worth noting that, at its core, the loader is a cache."
         good: The loader caches resolved paths.
     provenance:
-      source: references/ai-tells/register.md ("Corporate-analytic filler")
+      source: "AI tells catalog — register.md (\"Corporate-analytic filler\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable core. `granular` is deliberately OMITTED even though the catalog
         names it: exclusions.md records that upstream ai-tells.OverusedVocabulary was
@@ -1098,7 +1157,7 @@ rules:
       - bad: The nuance here is that caching is a tradeoff worth understanding.
         good: The cache serves a stale entry for up to 60 s after an upstream change.
     provenance:
-      source: references/ai-tells/register.md ("Corporate-analytic filler")
+      source: "AI tells catalog — register.md (\"Corporate-analytic filler\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-register.corporate-analytic-filler-core.
 
   - id: over-formatting-reflex
@@ -1120,7 +1179,7 @@ rules:
       - bad: "| Field | Value |\n|---|---|\n| Purpose | It loads things |"
         good: The loader reads the lockfile.
     provenance:
-      source: references/ai-tells/register.md ("Over-formatting reflex")
+      source: "AI tells catalog — register.md (\"Over-formatting reflex\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://rlhfbook.com/c/18-style
       note: >-
         A direct reward-model artifact, with per-model formatting fingerprints
@@ -1146,7 +1205,7 @@ rules:
     comparison: lt
     fix: Let one point take three paragraphs and the next one clause.
     provenance:
-      source: references/ai-tells/register.md ("Uniform paragraph mass")
+      source: "AI tells catalog — register.md (\"Uniform paragraph mass\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://gptzero.me/news/perplexity-and-burstiness-what-is-it/
       note: >-
         The catalog states the shape numerically -- "every paragraph three sentences
@@ -1175,7 +1234,7 @@ rules:
       - bad: Lockfiles help reproducibility, though some argue they add friction.
         good: The lockfile pins every transitive dependency.
     provenance:
-      source: references/ai-tells/register.md ("Hedged symmetry")
+      source: "AI tells catalog — register.md (\"Hedged symmetry\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://rlhfbook.com/c/18-style
       note: >-
         Upstream ai-tells.FalseBalance attempts the phrase forms and stays enabled.
@@ -1211,7 +1270,7 @@ rules:
       - bad: Great question! The loader reads the lockfile.
         good: The loader reads the lockfile.
     provenance:
-      source: references/ai-tells/register.md ("Sycophantic meta-residue")
+      source: "AI tells catalog — register.md (\"Sycophantic meta-residue\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Enforced at every tier for the same reason ai-residue.chat-leakage is: it is
         session residue, never a register choice. Fully mechanizable as a token list,
@@ -1247,7 +1306,7 @@ rules:
       - bad: The abstraction earns its keep.
         good: The abstraction removes three near-duplicate functions.
     provenance:
-      source: references/ai-tells/register.md ("Figurative-verb verdict")
+      source: "AI tells catalog — register.md (\"Figurative-verb verdict\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable core, as a literal token list. Distinctly 2026 register: the
         catalog records that it SURVIVED the lexical patching that killed the
@@ -1275,7 +1334,7 @@ rules:
       - bad: The design pays for itself.
         good: The design removes the second config file, so there is one place to look.
     provenance:
-      source: references/ai-tells/register.md ("Figurative-verb verdict")
+      source: "AI tells catalog — register.md (\"Figurative-verb verdict\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-register.figurative-verb-verdict-core, and
         the durable form: the catalog warns the specific verbs drift per model
@@ -1307,7 +1366,7 @@ rules:
       - bad: The importance of the lockfile cannot be overstated.
         good: Without the lockfile, a transitive minor bump breaks the build.
     provenance:
-      source: references/ai-tells/register.md ("Urgency inflation")
+      source: "AI tells catalog — register.md (\"Urgency inflation\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable core, enforced at every tier: .vale.ini already keeps upstream
         ai-tells.UrgencyInflation at error even for source comments, so this port
@@ -1332,7 +1391,7 @@ rules:
       - bad: Getting this right is critical.
         good: A wrong value here silently skips every file.
     provenance:
-      source: references/ai-tells/register.md ("Urgency inflation")
+      source: "AI tells catalog — register.md (\"Urgency inflation\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-register.urgency-inflation-core.
 
   - id: organic-consequence-core
@@ -1360,7 +1419,7 @@ rules:
       - bad: The single-config design falls out naturally.
         good: The maintainers chose one config file so there is one place to look.
     provenance:
-      source: references/ai-tells/register.md ("Organic-consequence framing")
+      source: "AI tells catalog — register.md (\"Organic-consequence framing\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable core, enforced at every tier because it erases the agent who
         chose -- the same defect prose-agency.false-agency and
@@ -1385,7 +1444,7 @@ rules:
       - bad: The threshold settles at 34 words.
         good: The maintainers set the threshold at 34 words after measuring 30 and 32.
     provenance:
-      source: references/ai-tells/register.md ("Organic-consequence framing")
+      source: "AI tells catalog — register.md (\"Organic-consequence framing\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-register.organic-consequence-core.
 
   - id: false-agency-remainder
@@ -1407,7 +1466,7 @@ rules:
       - bad: A bet lives or dies in days.
         good: You learn within a week whether the bet paid.
     provenance:
-      source: references/ai-tells/register.md ("False agency")
+      source: "AI tells catalog — register.md (\"False agency\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of prose-agency.false-agency, which mechanises the seven
         named subject-verb bands. This rule carries the open case, because the
@@ -1445,7 +1504,7 @@ rules:
       - bad: The lookbehind is load-bearing.
         good: Removing the lookbehind adds five false positives per README.
     provenance:
-      source: references/ai-tells/register.md ("Anthropomorphised justification")
+      source: "AI tells catalog — register.md (\"Anthropomorphised justification\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable core. Upstream ai-tells.AnthropomorphicJustification covers
         this and stays enabled. BROADER than the content-shape anthropomorphism
@@ -1472,7 +1531,7 @@ rules:
       - bad: The cache more than repays its complexity.
         good: The cache removes one network round trip per run.
     provenance:
-      source: references/ai-tells/register.md ("Anthropomorphised justification")
+      source: "AI tells catalog — register.md (\"Anthropomorphised justification\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
 ---
 id: ai-tells-formatting
@@ -1499,7 +1558,7 @@ rules:
     comparison: gt
     fix: Convert each dash that is not marking a real aside into a comma, a colon, or two sentences.
     provenance:
-      source: references/ai-tells/formatting.md ("Em-dash density", "Hyphen-swap")
+      source: "AI tells catalog — formatting.md (\"Em-dash density\", \"Hyphen-swap\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://techcrunch.com/2025/11/14/openai-says-its-fixed-chatgpts-em-dash-problem/
       note: >-
         The catalog's tell is DENSITY, not presence, and this is the metric form of
@@ -1530,7 +1589,7 @@ rules:
       - bad: "the loader’s cache"
         good: the loader's cache
     provenance:
-      source: references/ai-tells/formatting.md ("Curly quotes/apostrophes")
+      source: "AI tells catalog — formatting.md (\"Curly quotes/apostrophes\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Fully mechanizable, so no judgement partner. The tell is conditional on
         house style -- "in a repo that types straight ones" -- so relaxed excludes
@@ -1566,7 +1625,7 @@ rules:
       - good: Using the `--json` flag
         bad: Using The JSON Flag
     provenance:
-      source: references/ai-tells/formatting.md ("Title Case In Every Heading")
+      source: "AI tells catalog — formatting.md (\"Title Case In Every Heading\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         The catalog itself concedes the house-style escape ("unless house style says
         otherwise"), so this is advisory everywhere and excluded at relaxed. The
@@ -1594,7 +1653,7 @@ rules:
     comparison: gt
     fix: Keep bold on the first definitional use of a term and delete the rest.
     provenance:
-      source: references/ai-tells/formatting.md ("Bold spray")
+      source: "AI tells catalog — formatting.md (\"Bold spray\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Density metric, matching the catalog's shape ("every occurrence of chosen
         terms bolded"). Threshold 20 per 1000 words was set in the 2026-09-12 audit:
@@ -1618,7 +1677,7 @@ rules:
     comparison: gte
     fix: Rewrite as prose, or as a table when there are real columns.
     provenance:
-      source: references/ai-tells/formatting.md ("Inline-header list")
+      source: "AI tells catalog — formatting.md (\"Inline-header list\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         This is the mechanizable SHAPE half of two catalog entries: formatting.md's
         "Inline-header list" and structure.md's "Bold-lead-in bullet symmetry". The
@@ -1639,7 +1698,7 @@ rules:
       relaxed: enforced
     fix: Use the next level down, and delete any horizontal rule immediately before a heading.
     provenance:
-      source: references/ai-tells/formatting.md ("Skipped heading levels; horizontal rules before headings")
+      source: "AI tells catalog — formatting.md (\"Skipped heading levels; horizontal rules before headings\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         kind=structure, because the check is block-level shape over the heading
         sequence, not a regex over text: it needs the previous heading's level. Two
@@ -1667,7 +1726,7 @@ rules:
       - bad: "| Note |\n|---|\n| The loader reads the lockfile. |"
         good: The loader reads the lockfile.
     provenance:
-      source: references/ai-tells/formatting.md ("Tables wrapping what is actually one sentence of prose")
+      source: "AI tells catalog — formatting.md (\"Tables wrapping what is actually one sentence of prose\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement, because a one-row table is legitimate as a header-only reference
         stub and the test is whether the cells vary in a shared dimension. Inverse of
@@ -1690,7 +1749,7 @@ rules:
       - bad: The loader *is* the cache.
         good: The loader caches every resolved path.
     provenance:
-      source: references/ai-tells/formatting.md ("Italicised copula for manufactured profundity")
+      source: "AI tells catalog — formatting.md (\"Italicised copula for manufactured profundity\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Fully mechanizable: the tell is a closed set of function words under
         emphasis. `scope: raw` because the marker characters are markdown syntax that
@@ -1725,7 +1784,7 @@ rules:
       - bad: As mentioned above, the loader caches.
         good: The loader caches every resolved path.
     provenance:
-      source: references/ai-tells/formatting.md ("Cross-reference signposting")
+      source: "AI tells catalog — formatting.md (\"Cross-reference signposting\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Mechanizable as a token list, so no judgement partner. Complements
         prose-craft.directional-ref, which owns the POSITION-dependent forms ("see
@@ -1752,7 +1811,7 @@ rules:
       - good: "\U0001F680 Install the plugin"
         bad: "* \U0001F4E6 Install the plugin"
     provenance:
-      source: references/ai-tells/formatting.md ("Emoji as list markers or in headings")
+      source: "AI tells catalog — formatting.md (\"Emoji as list markers or in headings\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         The list-marker half of the catalog row. The heading half is already
         mechanised as prose-format.emoji-heading, which the source repo gates at
@@ -1790,7 +1849,7 @@ rules:
       - bad: https://example.com/docs?utm_source=chatgpt.com
         good: https://example.com/docs
     provenance:
-      source: references/ai-tells/content-shape.md ("Fabricated or damaged citations")
+      source: "AI tells catalog — content-shape.md (\"Fabricated or damaged citations\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core, narrowed to the ONE checkable slice: tracking junk in a
@@ -1821,7 +1880,7 @@ rules:
           The catalog's failure modes: DOIs that resolve to unrelated papers,
           invented ISBNs, dead URLs, and book cites with no page numbers.
     provenance:
-      source: references/ai-tells/content-shape.md ("Fabricated or damaged citations")
+      source: "AI tells catalog — content-shape.md (\"Fabricated or damaged citations\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Judgement remainder of ai-tells-content-shape.fabricated-citations-core, and
@@ -1851,7 +1910,7 @@ rules:
       - bad: 500+ integrations
         good: Python 3.8+ and 3.9+ are supported
     provenance:
-      source: references/ai-tells/content-shape.md ("Fake specificity")
+      source: "AI tells catalog — content-shape.md (\"Fake specificity\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         The catalog names four forms: "over 100+", "countless", "numerous", "a wide
         range of". The middle two are already mechanised in
@@ -1888,7 +1947,7 @@ rules:
           Deleting the hedge alone converts an honest roadmap note into a false
           claim: the lint passes and the document now lies.
     provenance:
-      source: references/ai-tells/content-shape.md ("Vaporware description")
+      source: "AI tells catalog — content-shape.md (\"Vaporware description\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         JUDGEMENT-ONLY BY DESIGN, and enforced at every tier. The catalog is explicit
         that the mechanical rule is a TRAP: docs-discipline.status-language bans the
@@ -1915,7 +1974,7 @@ rules:
     comparison: gt
     fix: Keep adjectives that change what the reader does; cut decoration.
     provenance:
-      source: references/ai-tells/content-shape.md ("Adjective-per-noun spray")
+      source: "AI tells catalog — content-shape.md (\"Adjective-per-noun spray\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         The catalog states this as a RATIO ("every noun wears a modifier"), which is
         why it converts to a metric rather than a pattern. Threshold 0.5 is INFERRED
@@ -1943,7 +2002,7 @@ rules:
       - bad: The loader reads it. The resolver caches it. The component then exits.
         good: The loader reads it, caches it, then exits.
     provenance:
-      source: references/ai-tells/content-shape.md ("Elegant variation")
+      source: "AI tells catalog — content-shape.md (\"Elegant variation\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         A repetition-penalty artifact of the decoder. Judgement-only: deciding it
         requires knowing that two nouns denote the same referent, which is the
@@ -1968,7 +2027,7 @@ rules:
       - bad: Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
         good: The gate produces the same findings on every run.
     provenance:
-      source: references/ai-tells/content-shape.md ("One-point dilution")
+      source: "AI tells catalog — content-shape.md (\"One-point dilution\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement-only: detecting it requires recognising two passages as the same
         argument in different words. Overlaps
@@ -1994,7 +2053,7 @@ rules:
         good: ''
         note: A troubleshooting section for problems that do not exist.
     provenance:
-      source: references/ai-tells/content-shape.md ("Padded symmetry")
+      source: "AI tells catalog — content-shape.md (\"Padded symmetry\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement-only. Related to counter-signals.md's "Asymmetric structure", whose
         positive form is proposed as a document metric -- see counter-signals.md in
@@ -2018,7 +2077,7 @@ rules:
       - bad: The gate reads one config file, ensuring reliability.
         good: The gate reads one config file. A second file is ignored.
     provenance:
-      source: references/ai-tells/content-shape.md ("Superficial -ing analysis")
+      source: "AI tells catalog — content-shape.md (\"Superficial -ing analysis\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Fully mechanizable as a trailing-participle frame, so no judgement partner:
         the catalog's own test -- "either the analysis is a fact (state it as one) or
@@ -2060,7 +2119,7 @@ rules:
       - good: Supported features are listed below.
         bad: The CLI offers a dry-run mode.
     provenance:
-      source: references/ai-tells/content-shape.md ("Durable vocabulary habits")
+      source: "AI tells catalog — content-shape.md (\"Durable vocabulary habits\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         The catalog groups four SHAPES, not marker words, and three of them convert
         as substitutions: copula avoidance, ability framing, and significance
@@ -2091,7 +2150,7 @@ rules:
       - bad: Moreover, the cache is warm. Furthermore, the lockfile is present.
         good: The cache is warm and the lockfile is present.
     provenance:
-      source: references/ai-tells/content-shape.md ("Durable vocabulary habits")
+      source: "AI tells catalog — content-shape.md (\"Durable vocabulary habits\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the
         catalog's claim is about consecutive OPENINGS, which is an adjacency
@@ -2119,7 +2178,7 @@ rules:
       - bad: A paragraph of loosely related reasoning appended to a section that had already finished.
         good: ''
     provenance:
-      source: references/ai-tells/content-shape.md ("Over-writing")
+      source: "AI tells catalog — content-shape.md (\"Over-writing\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of the prose-scope category. The catalog names three
         shapes: a rejected alternative defended in place
@@ -2158,7 +2217,7 @@ rules:
           A measured number that decided a threshold is one of the three legitimate
           cases, so this example is a judgement call, not a defect by construction.
     provenance:
-      source: references/ai-tells/content-shape.md ("Unasked-for rationale")
+      source: "AI tells catalog — content-shape.md (\"Unasked-for rationale\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not
         pattern-match it." Distinct from prose-scope.rejected-alternative, which
@@ -2185,7 +2244,7 @@ rules:
       - bad: The linter is deterministic. The reviewer is not.
         good: ''
     provenance:
-      source: references/ai-tells/content-shape.md ("Epigram closer")
+      source: "AI tells catalog — content-shape.md (\"Epigram closer\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of prose-scope.epigram, which mechanises two shapes -- a
         parallel pair and a negated maxim -- at warning, because the same shape
