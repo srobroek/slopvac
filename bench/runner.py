@@ -92,7 +92,19 @@ def assistant_payloads(v):
   pos=start+end
   if isinstance(x,dict) and isinstance(x.get('results'),list):found.append(x)
  return found[-1:] if found else []
-def invoke(model,prompt,timeout=300):
+def _validate_rows(cases,rows):
+ expected=[str(c.get('id')) for c in cases]
+ if not isinstance(rows,list):return 'results is not a list'
+ if len(rows)!=len(expected):return f'expected {len(expected)} results, got {len(rows)}'
+ actual=[]
+ for row in rows:
+  if not isinstance(row,dict):return 'result row is not object'
+  case_id=row.get('case_id')
+  if not isinstance(case_id,str):return 'result row missing case_id'
+  actual.append(case_id)
+ if actual!=expected:return 'result case_ids are not in expected order'
+ return None
+def invoke(model,prompt,timeout=300,cases=None):
  if shutil.which('omp') is None:return None,{},'provider_error: omp not found'
  with tempfile.TemporaryDirectory(prefix='slopvac-online-') as run_dir:
   cmd=['omp','-p','slopvac-online-','--mode','json','--model',model,'--thinking','low','--max-time',str(timeout),'--no-extensions','--no-skills','--no-tools','--no-slop','--no-memory']; start=time.monotonic()
@@ -107,9 +119,14 @@ def invoke(model,prompt,timeout=300):
   if not payloads:return None,stats,'undecodable: no assistant JSON'
   rows,_=find_results(payloads[-1])
   if not isinstance(rows,list):return None,stats,'schema_invalid: missing results'
-  if any(not isinstance(x,dict) for x in rows):return None,stats,'schema_invalid: result row is not object'
+  if cases is not None:
+   problem=_validate_rows(cases,rows)
+   if problem:return None,stats,f'schema_invalid: {problem}'
+  elif any(not isinstance(x,dict) for x in rows):return None,stats,'schema_invalid: result row is not object'
   return rows,stats,''
 def score(cases,results):
+ problem=_validate_rows(cases,results)
+ if problem:return {'failures':0,'false_positives':0,'false_confirms':0,'misses':0,'correct':0,'abstains':0,'missing':len(cases),'schema_invalid':problem,'quality_score':0.0}
  by={x.get('case_id'):x for x in (results or []) if isinstance(x,dict)}; out={'failures':0,'false_positives':0,'false_confirms':0,'misses':0,'correct':0,'abstains':0,'missing':0}
  for c in cases:
   r=by.get(c.get('id'))
@@ -121,7 +138,7 @@ def score(cases,results):
   elif c.get('label')=='control' and r['verdict']=='reject':out['false_positives']+=1
   elif c.get('label')=='defect' and r['verdict']=='preserve':out['false_confirms']+=1
   else:out['misses']+=1
- n=max(1,len(cases)-out['missing']); penalty=100*(3*out['failures']+4*out['false_positives']+5*out['false_confirms']+4*out['misses'])/n;out['quality_score']=max(0.,100.-penalty);return out
+ n=max(1,len(cases)); penalty=100*(3*out['failures']+4*out['false_positives']+5*out['false_confirms']+4*out['misses']+4*out['missing'])/n;out['quality_score']=max(0.,100.-penalty);return out
 def main(argv=None):
  ap=argparse.ArgumentParser();ap.add_argument('--smoke',action='store_true');a=ap.parse_args(argv)
  try:r,s,c,ad=validate_assets(); ec=[x for x in c if not x.get('holdout')]; arms=ad['arms'][:1] if a.smoke else ad['arms'];ec=ec[:1] if a.smoke else ec;p=render(r,s,ec)
@@ -130,7 +147,7 @@ def main(argv=None):
  for arm in arms:
   scores=[]
   for i in range(1 if a.smoke else int(ad.get('fixed',{}).get('repeats',2))):
-   rows,stats,error=invoke(str(arm['model']),p);metric(f"arm-{arm['id']}-repeat-{i+1}-outcome",'ok' if not error else error.split(':',1)[0]);
+   rows,stats,error=invoke(str(arm['model']),p,cases=ec);metric(f"arm-{arm['id']}-repeat-{i+1}-outcome",'ok' if not error else error.split(':',1)[0]);
    for k,v in stats.items():metric(f"arm-{arm['id']}-repeat-{i+1}-{k}",v)
    if error:print(f"METRIC arm-{arm['id']}-error={json.dumps(error)}");continue
    sc=score(ec,rows);scores.append(float(sc['quality_score']));metric(f"arm-{arm['id']}-repeat-{i+1}-quality_score",sc['quality_score'])
