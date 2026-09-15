@@ -215,7 +215,7 @@ def run_compiled_vale(
         if path not in line_lengths:
             try:
                 line_lengths[path] = [
-                    len(text) for text in Path(source_path).read_text(encoding="utf-8").split("\n")
+                    len(text) for text in Path(source_path).read_text(encoding="utf-8").splitlines()
                 ]
             except (OSError, UnicodeDecodeError):
                 line_lengths[path] = []
@@ -244,9 +244,14 @@ def run_compiled_vale(
             # Vale measures the span in its normalised paragraph, so a match that
             # wraps onto the next source line ends past the reported line. `Finding`
             # carries no end line; the range stops where the line does.
+            # Vale 3.15 can report a virtual line after the source when a
+            # documentation comment is followed by an ordinary line comment.
+            # Newer releases already normalize this; clamp only to the real
+            # source extent so the finding remains mapped to source.
             end_column = span[1] + 1
             lengths = line_lengths[path]
-            if 0 < line <= len(lengths):
+            if lengths:
+                line = min(line, len(lengths))
                 end_column = min(end_column, lengths[line - 1] + 1)
             severity = severities.get(check)
             if severity is None:
