@@ -18,6 +18,15 @@ def test_ignores_hash_in_all_string_forms_and_values():
     q = chr(34)
     text = "basic = " + q + "#" + q + chr(10) + "literal = '#'" + chr(10) + "multib = " + q * 3 + "#" + chr(10) + "inside" + q * 3 + chr(10) + "literalb = " + chr(39) * 3 + "#" + chr(10) + "inside" + chr(39) * 3 + chr(10) + "arr = [" + q + "#" + q + ", 1]" + chr(10) + "inline = {x = " + q + "#" + q + "} # seen" + chr(10)
     assert [(c.line, c.body) for c in extract_comments(text)] == [(8, " seen")]
+@pytest.mark.parametrize("quote", [chr(34), chr(39)])
+@pytest.mark.parametrize("run_length", [4, 5])
+def test_multiline_terminator_uses_final_three_quotes(quote, run_length):
+    text = "value = " + quote * 3 + "inside # hidden" + quote * run_length + " # visible" + chr(10)
+    comments = extract_comments(text)
+    assert [(comment.line, comment.column, comment.body) for comment in comments] == [(1, text.index("# visible") + 1, " visible")]
+    projected = comment_projection(text)
+    assert "# hidden" not in projected
+    assert projected.endswith("# visible" + chr(10))
 
 def test_projection_preserves_newlines_columns_and_masks_values():
     text = "key = " + chr(34) + "# hidden" + chr(34) + " # visible" + chr(13) + chr(10) + "# full" + chr(13) + chr(10)
