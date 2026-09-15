@@ -32,6 +32,7 @@ resolve, and say which one ran.
 | specifications, decision records, constitutions, CONTRIBUTING, contributor docs | references/internal-docs.md | `normal` | `internal` |
 | reference material, API docs, runbooks, procedures, safety text | references/internal-docs.md | `strict` | `reference` |
 | issue comments, discussion replies, blog posts, informal prose | references/consumer-docs.md | `relaxed` | `informal` |
+Exception routing is based on document purpose, not a passage's wording. Migration guides and explicit before/after change tracking use `change-comms`. ADRs and decision records, future release plans and specifications, and explicitly historical reports or data use `internal`. A procedure or reference document uses `reference` only when its purpose is current operation or reproducibility. Do not classify one of these documents as `consumer` to exempt its history or future content.
 
 MUST Match the profile to the surface. `normal` grades an issue comment like
 documentation: every em dash is a warning and every contraction a suggestion, and

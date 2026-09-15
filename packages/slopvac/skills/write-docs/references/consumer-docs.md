@@ -16,6 +16,10 @@ MUST Cut the claim, not the hedge: deleting "coming soon" from a sentence about 
 
 DEFAULT A pre-release artifact says so once, as structured metadata (a status field, a version column) -- never as body prose that leaves the rest reading as shipped.
 
+## Exception routing
+
+Exception routing is based on document purpose, not a passage's wording. Migration guides and explicit before/after change tracking use `change-comms`. ADRs and decision records, future release plans and specifications, and explicitly historical reports or data use `internal`. A procedure or reference document uses `reference` only when its purpose is current operation or reproducibility. Do not classify one of these documents as `consumer` to exempt its history or future content.
+
 ## Structure (README skeleton -- omit empty sections, never pad)
 
 1. Name + one-line purpose (what it does, for whom)

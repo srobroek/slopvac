@@ -3,6 +3,10 @@ title: Docs discipline
 description: >-
   House genre rules for consumer documentation: describe the released artifact at
   HEAD, with no status claims, no delta narration, and no internal references.
+  Migration guides and explicit before/after change tracking use change-comms;
+  ADRs and decision records, future release plans and specifications, and explicitly
+  historical reports or data use internal; procedures and reference documents use
+  reference only for current operation or reproducibility.
 weight: 1.0
 recommended_for: [consumer]
 rules:

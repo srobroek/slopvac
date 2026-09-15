@@ -35,6 +35,7 @@ skill cannot recover from.
    | specifications, decision records, CONTRIBUTING, contributor docs | `internal` | `normal` |
    | reference, API docs, runbooks, procedures, safety text | `reference` | `strict` |
    | issue comments, discussion replies, blog posts, drafts | `informal` | `relaxed` |
+Exception routing is based on document purpose, not a passage's wording. Migration guides and explicit before/after change tracking use `change-comms`. ADRs and decision records, future release plans and specifications, and explicitly historical reports or data use `internal`. A procedure or reference document uses `reference` only when its purpose is current operation or reproducibility. Do not classify one of these documents as `consumer` to exempt its history or future content.
 
 2. Run the gate. Prose that is not a file (commit message, PR body) MUST be
    written to a temp `.md` first; lint that path.
