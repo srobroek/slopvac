@@ -39,11 +39,6 @@ config:
 globs:
   - "**/*.md"
   - "!**/node_modules/**"
-  # The eval corpus is INPUT to the linter. Its documents are deliberately bad
-  # prose, and several are verbatim agent output; normalising their markdown would
-  # destroy the measurement.
-  - "!.dogfood-cleanroom/**"
-  - "!evals/**"
   # Generated. `slopvac reference --write` owns the file, and a lint rule it fails
   # is a bug report against the generator, not an edit to make by hand.
   - "!packages/slopvac-lint/docs/rules.md"

@@ -278,7 +278,7 @@ def lint_one(
         # their exception lists.
         # Vale ran once per vocabulary group with the FIRST file's settings, so a
         # per-file override (`[[overrides]] files = [...]`) never reached its
-        # severities: `evals/REPORT.md` demoted docs-discipline to a suggestion and
+        # severities: the historical independent-corpus report demoted docs-discipline to a suggestion and
         # still reported it as a warning whenever another file shared the run.
         # Each finding takes the level this file resolves for its rule, and a rule
         # this file turns off drops out.

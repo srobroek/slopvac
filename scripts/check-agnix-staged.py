@@ -50,8 +50,6 @@ def is_ignored_path(path: str) -> bool:
             "/target/",
             "/.apm/",
             "/.agents/",
-            "/.dogfood-cleanroom/",
-            "/evals/",
             "/tests/fixtures/",
         )
     )
