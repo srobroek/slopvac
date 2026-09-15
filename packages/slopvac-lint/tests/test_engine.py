@@ -883,7 +883,7 @@ def test_score_decreases_monotonically_with_findings():
 
 # --- register regression: RFC 2119 normative keywords ------------------------
 #
-# Found by the independent eval corpus (`evals/independent/`), not by a fixture
+# Found by the independent corpus, not by a fixture
 # written to pass. The corpus is eight documents written by agents given a genre
 # and nothing else, so no document was authored against these rules. The
 # specification-register document opened with the RFC 2119 boilerplate and drew
@@ -928,7 +928,7 @@ def test_lowercase_obligation_word_still_fires():
 def test_named_contract_is_not_a_relation_term():
     """ "Master Subscription Agreement" is an instrument's proper name.
 
-    Also from `evals/independent/`: the legal-register document drew advice to
+    Also from the independent corpus: the legal-register document drew advice to
     rename a contract the writer does not own. The relation sense still reports.
     """
     exempt = _run(
