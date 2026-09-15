@@ -769,6 +769,8 @@ def test_unimplemented_metrics_are_reported_not_skipped(tmp_path):
         "  - id: nonexistent-metric\n"
         "    name: A metric no branch reads\n"
         "    kind: metric\n"
+        "    dimension: architecture\n"
+        "    ownership: deterministic\n"
         "    severity: warning\n"
         "    message: 'fixture: {match} against {replacement}'\n"
         "    scope: document\n"

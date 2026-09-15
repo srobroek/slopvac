@@ -7,6 +7,8 @@ rules:
   - id: only-rule
     name: Keep a valid pattern
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     message: unused
     pattern: '\bxyzzy\b'
     examples:

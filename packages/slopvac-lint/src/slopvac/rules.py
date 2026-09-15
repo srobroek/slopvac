@@ -10,6 +10,12 @@ compiled, and every `examples[].bad` is asserted to match while `examples[].good
 is asserted not to. A rule whose pattern no longer fires is a rule that silently
 passes every document, which is indistinguishable from clean prose -- the failure
 mode this project already documented for unsynced Vale styles.
+
+Cross-rule references are resolved once the WHOLE registry is in memory. A seeded
+adjudication rule names the deterministic rules that generate its candidates, and
+those seeds cross category and file boundaries, so a per-file check would reject
+the forward references the catalog contains. An unresolvable seed is the same
+failure in a different place: the rule looks configured and adjudicates nothing.
 """
 
 from __future__ import annotations
@@ -78,13 +84,6 @@ def _load_documents(text: str, origin: str) -> list[dict]:
 
 
 def _build_category(data: dict, origin: str) -> Category:
-    for raw_rule in data.get("rules", []):
-        if raw_rule.get("kind") == RuleKind.JUDGEMENT.value and raw_rule.get("exceptions"):
-            rule_id = raw_rule.get("id", "<unknown>")
-            raise RuleLoadError(
-                f"{origin}: rule '{rule_id}': kind=judgement cannot declare "
-                "`exceptions`; judgement rules never emit findings to suppress"
-            )
     try:
         category = Category.model_validate(data)
     except Exception as exc:
@@ -142,6 +141,48 @@ def _verify_examples(category: Category, origin: str) -> list[str]:
                     f"{origin}: {rule.qualified_id} example {index} 'good' text "
                     f"matches the pattern, so the rule fires on its own fix: "
                     f"{example.good!r}"
+                )
+    return problems
+
+
+def _verify_seed_references(ruleset: RuleSet) -> list[str]:
+    """Resolve every `seed_rule_ids` entry against the WHOLE registry.
+
+    Deferred until every file has loaded, because a seed legitimately crosses
+    category and file boundaries: `ste-safety.risk-level-word-missing-or-wrong`
+    adjudicates `ste-safety.safety-block-missing-consequence`, but nothing stops a
+    seeded rule from naming a generator in another file, and the loader reads
+    files in name order. Checking per file would reject the forward references
+    that the catalog actually contains.
+
+    A seed that does not resolve is the failure this whole layer exists to
+    prevent: the rule looks configured, no generator ever hands it a span, and it
+    silently adjudicates nothing -- indistinguishable from a document with no
+    defects. Reported rather than raised, so all of them surface at once.
+    """
+    problems: list[str] = []
+    by_id = {rule.qualified_id: rule for rule in ruleset.rules}
+
+    for rule in ruleset.rules:
+        for seed in rule.seed_rule_ids:
+            target = by_id.get(seed)
+            if target is None:
+                problems.append(
+                    f"{rule.qualified_id}: seed '{seed}' names no rule in the "
+                    f"loaded ruleset"
+                )
+                continue
+            if target is rule:
+                problems.append(
+                    f"{rule.qualified_id}: seed '{seed}' is the rule itself; a "
+                    f"rule cannot generate its own candidates"
+                )
+                continue
+            if target.kind is RuleKind.JUDGEMENT:
+                problems.append(
+                    f"{rule.qualified_id}: seed '{seed}' is kind=judgement, so "
+                    f"it produces no span to adjudicate; a seed must be a "
+                    f"deterministic rule"
                 )
     return problems
 
@@ -233,6 +274,8 @@ def load_ruleset(
             if verify:
                 problems.extend(_verify_examples(category, origin))
             ruleset.categories[category.id] = category
+
+    problems.extend(_verify_seed_references(ruleset))
 
     if problems:
         raise RuleLoadError(

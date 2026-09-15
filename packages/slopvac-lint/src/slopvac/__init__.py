@@ -10,14 +10,28 @@ carrying a parallel prose catalog.
 __version__ = "2.3.2"  # x-release-please-version
 
 from .config import Config, Profile, Severity, load_config, resolve_for
-from .model import Category, DocumentScore, Finding, Rule, RuleKind
+from .model import (
+    Category,
+    Dimension,
+    DocumentScore,
+    Finding,
+    JudgementContract,
+    JudgementDimension,
+    Ownership,
+    Rule,
+    RuleKind,
+)
 from .rules import RuleSet, load_ruleset
 
 __all__ = [
     "Category",
     "Config",
+    "Dimension",
     "DocumentScore",
     "Finding",
+    "JudgementContract",
+    "JudgementDimension",
+    "Ownership",
     "Profile",
     "Rule",
     "RuleKind",

@@ -11,6 +11,7 @@ substitution rule needs no Python; only a genuinely new detection strategy does.
 
 from __future__ import annotations
 
+import re
 from enum import Enum
 from typing import Literal
 
@@ -88,6 +89,141 @@ class TextType(str, Enum):
 # the language's own conventions.
 Genre = Literal["consumer", "internal", "change-comms", "reference", "informal"]
 
+
+class Dimension(str, Enum):
+    """The rubric-facing axis: what KIND of defect a rule names, independent of
+    which checker executes it.
+
+    Single-valued per rule and orthogonal to `category`. `category` stays the unit
+    a user enables, weights, and scores by; `dimension` is the unit a rubric and a
+    dimension-keyed pack select by. The two are genuinely different partitions --
+    `wording` spans 13 categories and every category spans between 1 and 6
+    dimensions -- so a single-valued `dimension` is what makes dimension-keyed
+    packs disjoint by construction.
+
+    Seven of the twelve carry a LAMP category as their primary label; the other
+    five (`agency`, `veracity`, `scope`, `presentation`, `inclusion`) name defects
+    LAMP has no category for, which is why LAMP is a crosswalk here rather than
+    the vocabulary itself.
+    """
+
+    SPECIFICITY = "specificity"
+    INFLATION = "inflation"
+    STALENESS = "staleness"
+    REDUNDANCY = "redundancy"
+    ARCHITECTURE = "architecture"
+    WORDING = "wording"
+    CONSISTENCY = "consistency"
+    AGENCY = "agency"
+    VERACITY = "veracity"
+    SCOPE = "scope"
+    PRESENTATION = "presentation"
+    INCLUSION = "inclusion"
+
+
+class Ownership(str, Enum):
+    """Which layer settles the rule.
+
+    DETERMINISTIC        -- a checker executes it and the judgement layer never
+                            sees it.
+    SEEDED_ADJUDICATION  -- adjudication of a span some deterministic rule already
+                            found. The existing `-core`/`-remainder` pair,
+                            generalised: `seed_rule_ids` names the generators.
+    DOCUMENT_PROBE       -- no deterministic trigger at all; the rule is handed a
+                            block or a document and must locate its own span.
+
+    Three modes rather than two, because "not mechanizable" hides the distinction
+    that decides how a unit reaches the reviewer: a seeded rule is handed a span,
+    a probe is handed a passage and may find nothing.
+    """
+
+    DETERMINISTIC = "deterministic"
+    SEEDED_ADJUDICATION = "seeded_adjudication"
+    DOCUMENT_PROBE = "document_probe"
+
+
+class JudgementDimension(str, Enum):
+    """A scored axis of the judgement rubric. Upper-case because these are the
+    rubric's own names, quoted verbatim in packs and verdicts."""
+
+    FIT = "FIT"
+    HARM = "HARM"
+    WARRANT = "WARRANT"
+    REPAIR = "REPAIR"
+
+
+class JudgementContract(BaseModel):
+    """What a judgement rule promises the adjudication layer.
+
+    Every field is load-bearing at call time, which is why none is optional: the
+    pack cannot be generated without `admission` and `protects`, the verdict
+    cannot be scored without `dims`, a verdict cannot be checked without
+    `evidence_arity`, and a confirm cannot be assigned a severity without
+    `judgement_ceiling`. A rule that declares none of this is a rule the layer
+    would have to guess at, and guessing is what the ceiling exists to stop.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    admission: str = Field(
+        description="What must be true of the unit for the question to apply. "
+        "Scope legality and double-jeopardy, in words a pack can print.",
+    )
+    protects: str = Field(
+        description="The correct prose this rule must not flag. Names the "
+        "preservation classes that outrank it, so the carve-out is stated once "
+        "per rule rather than reprinted in every pack.",
+    )
+    dims: list[JudgementDimension] = Field(
+        description="The rubric axes this rule is scored on. A rule asks two or "
+        "three, not four: asking for a score nothing depends on invents variance "
+        "that later reads as signal.",
+    )
+    evidence_arity: int = Field(
+        ge=1,
+        description="How many located spans a verdict must return. Non-local "
+        "defects need two -- a repeat needs its antecedent, a term "
+        "inconsistency needs both spellings.",
+    )
+    judgement_ceiling: Severity = Field(
+        description="The most severe level a confirm may reach. This is how a "
+        "judgement finding reaches `error` without the rule carrying a mechanical "
+        "severity it cannot earn; a build-failing model finding has to be named "
+        "rule by rule.",
+    )
+    rewrite_exempt: bool = Field(
+        description="Whether this rule's fix may legitimately alter a protected "
+        "token. False for almost every rule: a rewrite that edits a number, a "
+        "path, or a negation is rejected mechanically rather than editorially.",
+    )
+
+    @model_validator(mode="after")
+    def _check_contract(self) -> JudgementContract:
+        for name in ("admission", "protects"):
+            if not getattr(self, name).strip():
+                raise ValueError(f"`judgement_contract.{name}` must not be empty")
+        if not self.dims:
+            raise ValueError(
+                "`judgement_contract.dims` must name at least one scored axis; a "
+                "rule scored on nothing cannot be confirmed"
+            )
+        seen: set[JudgementDimension] = set()
+        for dim in self.dims:
+            if dim in seen:
+                raise ValueError(
+                    f"`judgement_contract.dims` repeats {dim.value}; a weighted "
+                    "axis counted twice is not the axis it claims to be"
+                )
+            seen.add(dim)
+        if self.judgement_ceiling is Severity.OFF:
+            raise ValueError(
+                "`judgement_contract.judgement_ceiling` cannot be `off`: a "
+                "ceiling of off makes every confirm unreachable, which is what "
+                "`severity: off` on the rule already says"
+            )
+        return self
+
+
 class Provenance(BaseModel):
     """Where a rule came from. Required, because a rule nobody can trace is a
     rule nobody can argue with.
@@ -139,6 +275,32 @@ class Rule(BaseModel):
     )
     name: str = Field(description="Short imperative label.")
     kind: RuleKind
+
+    # --- taxonomy and layer; required on every rule ---------------------------
+    # Required rather than defaulted. A default would be silently wrong for most
+    # of the catalog, and a taxonomy that guesses is a taxonomy nobody can select
+    # by: the whole point of `dimension` is that a dimension-keyed pack contains
+    # exactly the rules that name that defect.
+    dimension: Dimension = Field(
+        description="What kind of defect this rule names. Orthogonal to "
+        "`category`, which stays the unit users enable and score by.",
+    )
+    ownership: Ownership = Field(
+        description="Which layer settles the rule. Must agree with `kind`: a "
+        "mechanical kind is `deterministic`, a judgement rule is "
+        "`seeded_adjudication` or `document_probe`.",
+    )
+    seed_rule_ids: list[str] = Field(
+        default_factory=list,
+        description="Fully qualified ids of the deterministic rules whose matches "
+        "this rule adjudicates. Required and non-empty for "
+        "`ownership=seeded_adjudication`, empty for every other mode.",
+    )
+    judgement_contract: JudgementContract | None = Field(
+        default=None,
+        description="Required for kind=judgement, forbidden elsewhere. What the "
+        "adjudication layer needs in order to call the rule at all.",
+    )
     severity: Severity = Field(
         default=Severity.WARNING,
         description="The rule's shipped level. A category cap can lower it, "
@@ -226,6 +388,7 @@ class Rule(BaseModel):
             "metric": RuleKind.METRIC,
             "threshold": RuleKind.METRIC,
             "judgement_question": RuleKind.JUDGEMENT,
+            "judgement_contract": RuleKind.JUDGEMENT,
         }
         for name, owner in owners.items():
             if getattr(self, name) is not None and self.kind is not owner:
@@ -237,17 +400,71 @@ class Rule(BaseModel):
             raise ValueError(f"kind={self.kind.value} requires `{field}`")
         if self.kind is RuleKind.METRIC and self.threshold is None:
             raise ValueError("kind=metric requires `threshold`")
-        if self.kind is RuleKind.JUDGEMENT and self.exceptions:
+
+        # `exceptions` on a judgement rule USED to be a load error, on the
+        # reasoning that a rule which emits no finding has nothing to suppress.
+        # That was true of the carried-prose layer and is false of the
+        # adjudication layer: a confirmed judgement finding is a finding, and the
+        # named exception is what lets an author cite `quotation` against it
+        # instead of overriding it unnamed. Deterministic exception handling is
+        # unchanged; see engine.py, which still requires an annotation to cite a
+        # name this list carries.
+
+        # A judgement rule cannot fire mechanically, so it cannot own a
+        # mechanical severity. `judgement_contract.judgement_ceiling` is where its
+        # confirmable level lives.
+        if self.kind is RuleKind.JUDGEMENT:
+            if not self.judgement_question:
+                raise ValueError("kind=judgement requires `judgement_question`")
+            if self.judgement_contract is None:
+                raise ValueError(
+                    f"{self.id}: kind=judgement requires `judgement_contract`; a "
+                    "rule the adjudication layer cannot admit, score, or cap is a "
+                    "rule it would have to guess at"
+                )
+            if self.ownership is Ownership.DETERMINISTIC:
+                raise ValueError(
+                    f"{self.id}: kind=judgement cannot be "
+                    f"ownership={Ownership.DETERMINISTIC.value}; no checker "
+                    "executes a judgement rule"
+                )
+            if self.severity is not Severity.OFF:
+                object.__setattr__(self, "severity", Severity.SUGGESTION)
+        elif self.ownership is not Ownership.DETERMINISTIC:
             raise ValueError(
-                f"{self.id}: kind=judgement cannot declare `exceptions`; "
-                "judgement rules never emit findings to suppress"
+                f"{self.id}: kind={self.kind.value} is executed by a checker, so "
+                f"ownership must be {Ownership.DETERMINISTIC.value}, not "
+                f"{self.ownership.value}"
             )
-        if self.kind is RuleKind.JUDGEMENT and not self.judgement_question:
-            raise ValueError("kind=judgement requires `judgement_question`")
-        if self.kind is RuleKind.JUDGEMENT and self.severity is not Severity.OFF:
-            # A judgement rule cannot fire mechanically; letting it carry a real
-            # severity would imply the linter checks it.
-            object.__setattr__(self, "severity", Severity.SUGGESTION)
+
+        # Seeds are the generalised `-core`/`-remainder` link. Only a seeded rule
+        # has them, and it is useless without them: with no generator, nothing
+        # ever hands it a span.
+        if self.ownership is Ownership.SEEDED_ADJUDICATION:
+            if not self.seed_rule_ids:
+                raise ValueError(
+                    f"{self.id}: ownership="
+                    f"{Ownership.SEEDED_ADJUDICATION.value} requires at least one "
+                    "`seed_rule_ids` entry; with no generator nothing hands this "
+                    "rule a span"
+                )
+        elif self.seed_rule_ids:
+            raise ValueError(
+                f"{self.id}: `seed_rule_ids` is not valid for "
+                f"ownership={self.ownership.value}; only "
+                f"{Ownership.SEEDED_ADJUDICATION.value} adjudicates another "
+                "rule's matches"
+            )
+        seen_seeds: set[str] = set()
+        for seed in self.seed_rule_ids:
+            if not re.fullmatch(r"[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*", seed):
+                raise ValueError(
+                    f"{self.id}: seed '{seed}' is not a qualified "
+                    "`category.rule` id"
+                )
+            if seed in seen_seeds:
+                raise ValueError(f"{self.id}: seed '{seed}' is named twice")
+            seen_seeds.add(seed)
         return self
 
     def tier_for(self, profile: str) -> Tier:

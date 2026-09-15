@@ -18,6 +18,11 @@ mechanical rule is a matter of opinion. `RuleKind.JUDGEMENT` is the whole of the
 non-deterministic set -- it is defined as the rules no linter can check -- so the
 partition needs no heuristic.
 
+`ownership` refines the non-deterministic half into the two shapes that differ in
+how a unit reaches the reviewer: a seeded rule is handed a span some checked rule
+already found, a probe is handed a passage and may locate nothing. That is a fact
+about the rule a planner needs, so it is printed rather than derived.
+
 REDISTRIBUTION IS SCOPED. Rules derived from ASD-STE100 cite a rule NUMBER and
 nothing else: no rule prose, no worked examples from the specification, and no
 part of its wordlist. Those citations are facts about where an idea came from.
@@ -28,7 +33,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from .model import Rule, RuleKind
+from .model import Dimension, Ownership, Rule, RuleKind
 from .rules import RuleSet
 
 #: Every kind except JUDGEMENT. Derived rather than listed, so a new kind added to
@@ -44,6 +49,14 @@ _KIND_BLURB = {
     RuleKind.METRIC: "a counted measurement against a threshold",
     RuleKind.STRUCTURE: "block-level shape",
     RuleKind.JUDGEMENT: "not mechanizable; a reader or a reviewing agent settles it",
+}
+
+_OWNERSHIP_BLURB = {
+    Ownership.DETERMINISTIC: "a checker executes it; no reviewer is involved",
+    Ownership.SEEDED_ADJUDICATION: "a reviewer settles a span a deterministic rule "
+    "already found",
+    Ownership.DOCUMENT_PROBE: "no deterministic trigger; a reviewer reads a block "
+    "and locates the span",
 }
 
 _TIER_ORDER = ("strict", "normal", "relaxed")
@@ -90,6 +103,30 @@ def _tier_cell(rule: Rule) -> str:
     )
 
 
+def _contract_facts(rule: Rule) -> list[str]:
+    """The adjudication contract, in full.
+
+    Printed rather than summarised because these are the terms a reviewing agent
+    is held to. A reader who can see `dims` and `evidence_arity` can tell whether
+    a finding they disagree with broke the contract or kept it; a reader shown
+    only "judgement" cannot.
+    """
+    contract = rule.judgement_contract
+    if contract is None:
+        return []
+    dims = ", ".join(dim.value for dim in contract.dims)
+    spans = "span" if contract.evidence_arity == 1 else "spans"
+    return [
+        f"- **Applies when.** {contract.admission}",
+        f"- **Must not flag.** {contract.protects}",
+        f"- **Scored on.** {dims}",
+        f"- **Evidence.** {contract.evidence_arity} located {spans}",
+        f"- **Confirms at most.** {contract.judgement_ceiling.value}",
+        "- **Rewrite may alter a protected token.** "
+        + ("yes" if contract.rewrite_exempt else "no"),
+    ]
+
+
 def _rule_section(rule: Rule) -> list[str]:
     lines = [f"#### `{rule.qualified_id}`", "", rule.name, ""]
 
@@ -98,6 +135,8 @@ def _rule_section(rule: Rule) -> list[str]:
         f"- **Ships as.** {rule.severity.value}",
         f"- **strict / normal / relaxed.** {_tier_cell(rule)}",
         f"- **Scope.** {rule.scope.value}",
+        f"- **Dimension.** {rule.dimension.value}",
+        f"- **Layer.** {rule.ownership.value} — {_OWNERSHIP_BLURB[rule.ownership]}",
     ]
     if rule.text_type and rule.text_type.value != "any":
         facts.append(f"- **Applies to.** {rule.text_type.value} text")
@@ -109,8 +148,12 @@ def _rule_section(rule: Rule) -> list[str]:
             f"- **Suppressible with.** {named} — any other reason is reported "
             f"rather than honoured"
         )
+    if rule.seed_rule_ids:
+        seeds = ", ".join(f"`{seed}`" for seed in rule.seed_rule_ids)
+        facts.append(f"- **Adjudicates matches of.** {seeds}")
     if rule.kind is RuleKind.JUDGEMENT and rule.judgement_question:
         facts.append(f"- **Question.** {rule.judgement_question}")
+    facts.extend(_contract_facts(rule))
     facts.append(f"- **Source.** {_provenance_line(rule)}")
     lines.extend(facts)
 
@@ -201,6 +244,35 @@ def _summary_table(ruleset: RuleSet, rules: list[Rule]) -> list[str]:
     return lines
 
 
+def _dimension_table(rules: list[Rule]) -> list[str]:
+    """Rules per dimension, split by which layer settles them.
+
+    The second axis of the catalog, and the one a reviewer selects by: a
+    dimension-keyed pack contains exactly the rules that name that defect, so the
+    counts here are the size of each pack. Dimensions with no rules are omitted
+    rather than printed as zeros -- a row a reader cannot act on is noise, and the
+    enum is the place to look for the full vocabulary.
+    """
+    lines = [
+        "| Dimension | Rules | Checked | Seeded adjudication | Document probe |",
+        "| --- | --: | --: | --: | --: |",
+    ]
+    for dimension in Dimension:
+        owned = [r for r in rules if r.dimension is dimension]
+        if not owned:
+            continue
+        counts = {
+            mode: sum(1 for r in owned if r.ownership is mode) for mode in Ownership
+        }
+        lines.append(
+            f"| `{dimension.value}` | {len(owned)} "
+            f"| {counts[Ownership.DETERMINISTIC]} "
+            f"| {counts[Ownership.SEEDED_ADJUDICATION]} "
+            f"| {counts[Ownership.DOCUMENT_PROBE]} |"
+        )
+    return lines
+
+
 def render_reference(ruleset: RuleSet) -> str:
     """The whole rules reference, as markdown.
 
@@ -259,6 +331,25 @@ def render_reference(ruleset: RuleSet) -> str:
             "Weight scales a category's contribution to the overall score. A weight "
             "of 0 makes the category informational: it still reports, and it cannot "
             "fail the score gate.",
+            "",
+            "## Dimensions",
+            "",
+            "`category` is the unit you enable, disable, and weight. `dimension` "
+            "is the second axis: what kind of defect the rule names. The two are "
+            "different partitions on purpose — a category spans several "
+            "dimensions and a dimension spans several categories — so a review "
+            "selects by dimension and a build configures by category.",
+            "",
+            "The layer columns say who settles the rule. **Checked** is executed "
+            "by a checker. **Seeded adjudication** is a reader settling a span "
+            "some checked rule already found, and each such rule names its "
+            "generators. **Document probe** has no mechanical trigger at all.",
+            "",
+        ]
+    )
+    lines.extend(_dimension_table(ruleset.rules))
+    lines.extend(
+        [
             "",
             "## Checked rules",
             "",

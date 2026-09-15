@@ -273,6 +273,12 @@ def build_spelling_rule(tag: str) -> dict | None:
         "id": "spelling",
         "name": f"Use {tag} spelling",
         "kind": "substitution",
+        # A spelling variant is the wrong WORD for this project, not a defect of
+        # sentence shape, so it sits with the other vocabulary rules under
+        # `wording`. A substitution map is executed by a checker, so the layer is
+        # deterministic and there is nothing for a reviewer to adjudicate.
+        "dimension": "wording",
+        "ownership": "deterministic",
         "severity": "warning",
         "message": f'Use the {tag} spelling "{{replacement}}".',
         "scope": "prose",

@@ -5,6 +5,8 @@ rules:
   - id: stray-tokens
     name: Pattern with leftover tokens
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     message: unused
     pattern: foo
     tokens:

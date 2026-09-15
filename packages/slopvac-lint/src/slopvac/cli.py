@@ -514,6 +514,11 @@ def explain(
         f"kind: {rule.kind.value}   severity: {rule.severity.value}   scope: {rule.scope.value}"
     )
     console.print("tiers: " + "  ".join(f"{k}={v.value}" for k, v in rule.tiers.items()))
+    console.print(
+        f"dimension: {rule.dimension.value}   layer: {rule.ownership.value}"
+    )
+    if rule.seed_rule_ids:
+        console.print("adjudicates: " + "  ".join(rule.seed_rule_ids))
     # `message` is a template. Printed raw it shows `{replacement}`, which reads as a
     # bug; the slots are shown as `<name>` so it is clear they are filled per finding.
     console.print("\n" + rule.message.replace("{", "<").replace("}", ">"))
@@ -523,6 +528,20 @@ def explain(
         console.print(f"\n[bold]Fix[/]: {rule.fix}")
     if rule.judgement_question:
         console.print(f"\n[bold]Decide by asking[/]: {rule.judgement_question}")
+    # The adjudication contract, printed for the same reason the exception list is:
+    # a reviewer that has to scrape these terms out of Rich-rendered prose will
+    # invent its own, and then the ceiling stops capping anything.
+    if rule.judgement_contract is not None:
+        contract = rule.judgement_contract
+        console.print(f"\n[bold]Applies when[/]: {contract.admission}")
+        console.print(f"[bold]Must not flag[/]: {contract.protects}")
+        console.print(
+            "scored on: "
+            + ", ".join(dim.value for dim in contract.dims)
+            + f"   evidence: {contract.evidence_arity}"
+            + f"   confirms at most: {contract.judgement_ceiling.value}"
+            + f"   rewrite exempt: {'yes' if contract.rewrite_exempt else 'no'}"
+        )
     if rule.exceptions:
         console.print("\n[bold]Named exceptions[/] (a suppression must cite one):")
         for name in rule.exceptions:

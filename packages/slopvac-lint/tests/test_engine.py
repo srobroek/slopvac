@@ -34,7 +34,17 @@ from slopvac.engine import (
     count_clause_boundaries,
 )
 from slopvac.metrics import NATIVE_METRICS
-from slopvac.model import Finding, Provenance, Rule, RuleKind, Scope, TextType, Tier
+from slopvac.model import (
+    Dimension,
+    Finding,
+    Ownership,
+    Provenance,
+    Rule,
+    RuleKind,
+    Scope,
+    TextType,
+    Tier,
+)
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
 
@@ -52,6 +62,8 @@ def _fixture_rule(
         id=rule_id,
         name="fixture rule",
         kind=RuleKind.PATTERN,
+        dimension=Dimension.WORDING,
+        ownership=Ownership.DETERMINISTIC,
         pattern=pattern,
         scope=scope,
         text_type=text_type,
