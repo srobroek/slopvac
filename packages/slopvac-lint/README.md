@@ -51,6 +51,30 @@ Directory targets collect `.md`, `.mdx`, `.markdown`, `.txt`, and `.html` files.
 command is on `PATH`; install it with `pip install docutils`. Without that
 converter, selected RST targets are reported as unchecked and the run exits 2.
 
+## Comment mode
+
+Lint prose by default. Use `--mode code-comments` for a global source-comment
+run:
+
+```sh
+slopvac lint --mode code-comments src/
+```
+
+The mode selects supported source extensions in a directory, or validates an
+explicit source file. Vale runs comment-safe lexical rules against ordinary line
+and block comment scopes (`text.comment.line.<extension>` and
+`text.comment.block.<extension>`). Documentation comments are included when the
+language exposes them through those ordinary scopes; this mode is not a separate
+documentation-only pass. Strings and source code are not linted.
+
+Comment mode accepts mixed supported extensions, preserves source paths and
+finding locations, and skips configured exclusions. Unsupported files in a
+directory are ignored; an explicitly named unsupported source file is an error.
+`--mode` is global and cannot be set by an `[[overrides]]` block. The default
+`prose` mode, including TOML comment projection, is unchanged.
+Code-comments mode uses the packaged Vale config and styles; custom `vale.config`
+and nonempty `vale.styles` settings are rejected, including in per-file overrides.
+
 ## Profiles
 
 A profile is the strictness dial. It sets which rules run, how loud each one is,
@@ -175,10 +199,9 @@ A category can also set a **floor** without setting every rule to one level:
 the category that would report below warning up to it. Rules already at error are
 left alone, and a rule override still wins, so one rule can opt out of the floor.
 
-A misspelled rule id or category name is an **error**, not a silent no-op,
-including inside an `[[overrides]]` block. `slopvac` refuses to lint and gives
-the closest real name, because the alternative failure is "I disabled it and the
-gate still fails."
+A misspelled rule id or category name raises an **error**, including inside an
+`[[overrides]]` block. `slopvac` refuses to lint and gives the closest real name.
+This prevents a disabled rule from leaving the gate failing.
 
 ### How overlapping globs resolve
 
@@ -492,9 +515,9 @@ So:
   pass.
 - **Skipped rules are reported as `UNCHECKED`**, per run. Without the Vale binary
   the built-in rules still score and the rest are named as not run.
-- **Every rule is validated at load.** Each regex compiles, and each example's
-  `bad` text must match while its `good` text must not, so a rule that stopped
-  firing fails the build instead of passing every document.
+- **The loader validates each rule at load.** Each regex compiles, and each example's
+  `bad` text must match while its `good` text must not. A rule that stopped firing
+  therefore fails the build instead of passing every document.
 - **A misspelled rule id is an error**, not a silent no-op: the failure it
   otherwise produces is "I disabled it and the gate still fails".
 - **A configured blocklist that cannot be loaded is an error.** The project asked
@@ -515,9 +538,9 @@ permitted set. Measured on an 8-document corpus:
 - it drove every document to a score of 0.0, including documents with zero errors
 - 1,275 of its 1,282 refusals carried neither a reason nor a replacement
 
-Absence from a deliberately incomplete dictionary is not disapproval. It is a
-**blocklist** now, empty until you write one, and every entry requires a reason.
-Nobody but its author can argue with, or later remove, an entry that gives no
+Absence from a deliberately incomplete dictionary is not disapproval. The
+**blocklist** is empty until you write one. Its loader requires a reason for each
+entry. Only its author can argue with, or later remove, an entry that gives no
 reason.
 
 Suppression follows from the same position: `<!-- slopvac-allow: rule=<id>
