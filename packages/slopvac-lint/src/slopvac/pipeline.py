@@ -21,7 +21,6 @@ from rich.table import Table
 
 from . import __version__
 from .analyze import parse
-from .toml_comments import comment_projection, is_toml_path
 from .compile_vale import (
     CompileResult,
     ValeUnavailable,
@@ -51,6 +50,7 @@ from .model import DocumentScore, Finding
 from .report import LintReport, build_sarif, summarize
 from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .score import score_document
+from .toml_comments import comment_projection, is_toml_path
 from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
 from .vale_probe import rst_converter, vale_version
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist

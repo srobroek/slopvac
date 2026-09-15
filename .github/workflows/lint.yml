@@ -201,8 +201,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          find . -name '*.sh' -not -path './.git/*' -print0 |
-            xargs -0 shellcheck --severity=warning
+          find . -name '*.sh' -not -path './.git/*' -exec shellcheck --severity=warning {} +
   python-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10

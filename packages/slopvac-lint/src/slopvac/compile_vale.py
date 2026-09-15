@@ -1037,7 +1037,7 @@ def compile_ruleset(
                 result.excluded_rules.append(rule.qualified_id)
                 continue
             for suffix, scope in zip(
-                ("line", "block"), source_scopes(resolved_config.mode, source_extension)
+                ("line", "block"), source_scopes(resolved_config.mode, source_extension), strict=True
             ):
                 payload = _source_payload(rule, level, scope)
                 if payload is None:
