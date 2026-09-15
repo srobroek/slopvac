@@ -176,7 +176,7 @@ rules:
         keeps the rule off a factual contrast ("The parser reads JSON, not YAML.") and
         off a contrastive inversion whose second subject is a pronoun ("The Harness
         Measures, It Does Not Judge") -- that shape belongs to
-        ai-tells-structure.contrastive-inversion-frames.
+        ai-tells-agentic.contrastive-inversion-frames.
         The predicate alternation ends in `[a-z][\w-]*(?<!s)s` rather than `\w+s`, so a
         plural noun spelled with a double s ("The Address Class, The Access Class")
         cannot pose as a verb.

@@ -22,41 +22,6 @@ description: >-
 weight: 1.5
 recommended_for: [consumer, internal, change-comms]
 rules:
-  - id: contrastive-inversion-frames
-    name: Cut the strawman half of a contrastive frame
-    kind: pattern
-    severity: error
-    message: 'contrastive inversion: {match} -- state what the thing is; cut the strawman'
-    scope: prose
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b|(?:^|[.!?][ \t]+)(?:the|a|an|this|that|these|those|our|your|my|his|her|its|their)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\w-]*(?:s|ed))\b(?:\s+[\w-]+){0,6}\s*[,;]\s+(?:(?:it|this|that|they|these|those)\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must)\s+not|not)\s+[^.!?\n]{1,50}'
-    ignore_case: true
-    fix: Delete the negated half and state what the thing is.
-    examples:
-      - bad: It's not a linter, it's a review partner.
-        good: The linter reports 61 rules and scores the document.
-      - bad: It's less about speed and more about determinism.
-        good: The gate produces the same findings on every run.
-      - bad: The Harness Measures, It Does Not Judge
-        good: The Harness Measures.
-      - bad: The parser reads JSON; it does not read YAML.
-        good: The parser reads JSON.
-      - bad: The client supports HTTP; it does not support FTP.
-        good: The client supports HTTP.
-    provenance:
-      source: references/ai-tells/structure.md ("Contrastive inversion")
-      url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
-      note: >-
-        The mechanizable core of the single most-cited current tell. Judgement
-        remainder in ai-tells-structure.contrastive-inversion-remainder, which
-        covers the forms that carry no fixed frame. Upstream Vale
-        ai-tells.ContrastiveNegation and ai-tells.ContrastiveFormulas cover
-        overlapping ground and stay enabled, so expect duplicate findings until one
-        side is disabled.
-
   - id: contrastive-inversion-remainder
     name: Judge whether a contrast names a real alternative
     kind: judgement
@@ -92,10 +57,10 @@ rules:
       source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
-        Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The
+        Judgement remainder of ai-tells-agentic.contrastive-inversion-frames. The
         remainder needs a reader who knows whether the alternative exists, which no
         pattern can supply. Also absorbs the catalog's "Strawman antithesis" row,
-        whose "While other tools struggle, X ..." shape is the same defect.
+        whose "While other gates struggle, X ..." shape is the same defect.
 
   - id: definitional-negation-pair
     exceptions: [quotation, factual-correction]
@@ -136,7 +101,7 @@ rules:
       note: >-
         The two-sentence form of the contrastive inversion: "X is A. X is not B."
         and its mirror, with the subject repeated or pronominalised. The
-        single-sentence frame (ai-tells-structure.contrastive-inversion-frames)
+        single-sentence frame (ai-tells-agentic.contrastive-inversion-frames)
         stops at a sentence boundary, so this rule runs at paragraph scope, where
         the native engine matches against the whole block (list items and quotes
         included; Vale's paragraph scope skips both, so the rule stays native). The
@@ -2334,3 +2299,37 @@ rules:
         The comma-joined pair form is prose-scope.formulaic-subject-verb-slogan; the
         judgement remainder for a slogan carrying no fixed frame is
         ai-tells-content-shape.epigram-closer-remainder.
+  - id: contrastive-inversion-frames
+    name: Cut the strawman half of a contrastive frame
+    kind: pattern
+    severity: error
+    message: 'contrastive inversion: {match} -- state what the thing is; cut the strawman'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b|(?:^|[.!?][ \t]+)(?:the|a|an|this|that|these|those|our|your|my|his|her|its|their)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\w-]*(?:s|ed))\b(?:\s+[\w-]+){0,6}\s*[,;]\s+(?:(?:it|this|that|they|these|those)\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must)\s+not|not)\s+[^.!?\n]{1,50}'
+    ignore_case: true
+    fix: Delete the negated half and state what the thing is.
+    examples:
+      - bad: It's not a linter, it's a review partner.
+        good: The linter reports 61 rules and scores the document.
+      - bad: It's less about speed and more about determinism.
+        good: The gate produces the same findings on every run.
+      - bad: The Harness Measures, It Does Not Judge
+        good: The Harness Measures.
+      - bad: The parser reads JSON; it does not read YAML.
+        good: The parser reads JSON.
+      - bad: The client supports HTTP; it does not support FTP.
+        good: The client supports HTTP.
+    provenance:
+      source: references/ai-tells/structure.md ("Contrastive inversion")
+      url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
+      note: >-
+        The mechanizable core of the single most-cited current tell. Judgement
+        remainder in ai-tells-agentic.contrastive-inversion-remainder, which
+        covers the forms that carry no fixed frame. Upstream Vale
+        ai-tells.ContrastiveNegation and ai-tells.ContrastiveFormulas cover
+        overlapping ground and stay enabled, so expect duplicate findings until one
+        side is disabled.
