@@ -676,6 +676,7 @@ def score(cases: list[dict], results: list[dict]) -> dict[str, Any]:
         expected = "reject" if case.get("label") == "defect" else "preserve"
         if row["verdict"] == "abstain":
             out["abstains"] += 1
+            continue
         if row["verdict"] == expected:
             out["correct"] += 1
         elif case.get("label") == "control" and row["verdict"] == "reject":
@@ -692,6 +693,7 @@ def score(cases: list[dict], results: list[dict]) -> dict[str, Any]:
             + 4 * out["false_positives"]
             + 5 * out["false_confirms"]
             + 4 * out["misses"]
+            + 4 * out["abstains"]
             + 4 * out["missing"]
         )
         / count

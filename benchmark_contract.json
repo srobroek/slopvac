@@ -23,5 +23,11 @@
     "evidence_arity",
     "judgement_ceiling",
     "rewrite_exempt"
-  ]
+  ],
+  "abstain_policy": {
+    "classification": "error",
+    "terminal": true,
+    "penalty_weight": 4,
+    "description": "An abstain is counted once as an abstain error and is excluded from correct, false-positive, false-confirm, and miss classifications."
+  }
 }

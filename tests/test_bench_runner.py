@@ -225,8 +225,21 @@ def test_row_sets_get_precise_complaints(rows: object, expected: str) -> None:
     assert runner.validate_rows(CASES, rows) == expected
 
 
+
 def test_valid_row_set_passes() -> None:
     assert runner.validate_rows(CASES, [{"case_id": "a"}, {"case_id": "b"}]) is None
+
+
+def test_abstain_is_terminal_and_not_counted_as_a_miss() -> None:
+    cases = [{"id": "a", "text": "alpha", "label": "defect"}]
+    results = [{"case_id": "a", "verdict": "abstain", "quote": "alpha"}]
+
+    scored = runner.score(cases, results)
+
+    assert scored["abstains"] == 1
+    assert scored["misses"] == 0
+    assert scored["false_positives"] == 0
+    assert scored["false_confirms"] == 0
 
 
 def session(user_text: str, non_message_tokens: int = 9000) -> list[dict]:
