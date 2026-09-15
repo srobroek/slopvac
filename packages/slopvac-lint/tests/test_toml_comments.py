@@ -9,6 +9,7 @@ from slopvac.config import Severity
 from slopvac.toml_comments import comment_projection, extract_comments
 from slopvac.vale import run_compiled_vale
 
+
 def test_extracts_full_and_trailing_comments_with_columns():
     text = "[tool]" + chr(10) + "value = 1 # trailing" + chr(10) + "# full" + chr(10)
     assert [(c.line, c.column, c.body) for c in extract_comments(text)] == [(2, 11, " trailing"), (3, 1, " full")]
@@ -45,8 +46,10 @@ def test_vale_projection_maps_temp_findings_to_original_path(tmp_path, monkeypat
     compiled = CompileResult(tmp_path, config, vale_rules=["style.rule"])
     monkeypatch.setattr("shutil.which", lambda _: "/fake/vale")
     def run(argv, **kwargs):
-        if "--version" in argv: return subprocess.CompletedProcess(argv, 0, "vale version 3.21.0" + chr(10), "")
-        if "ls-config" in argv: return subprocess.CompletedProcess(argv, 0, json.dumps({"Checks": ["style.rule"]}), "")
+        if "--version" in argv:
+            return subprocess.CompletedProcess(argv, 0, "vale version 3.21.0" + chr(10), "")
+        if "ls-config" in argv:
+            return subprocess.CompletedProcess(argv, 0, json.dumps({"Checks": ["style.rule"]}), "")
         target = argv[-1]
         alert = {"Check": "style.rule", "Message": "bad", "Match": "robust", "Line": 1, "Span": [7, 13], "Severity": "warning"}
         return subprocess.CompletedProcess(argv, 0, json.dumps({target: [alert]}), "")

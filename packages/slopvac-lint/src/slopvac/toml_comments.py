@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class TomlComment:
     line: int
@@ -27,10 +28,12 @@ def extract_comments(text: str) -> list[TomlComment]:
                 line += 1
                 line_start = index
                 state = "plain"
-            else: index += 1
+            else:
+                index += 1
             continue
         if state == "basic":
-            if char == "\\": index += 2
+            if char == "\\":
+                index += 2
             else:
                 state = "plain" if char == chr(34) else state
                 index += 1
@@ -67,14 +70,33 @@ def extract_comments(text: str) -> list[TomlComment]:
             else:
                 index += 1
             continue
-        if text.startswith(chr(34) * 3, index): state, index = "basic_multi", index + 3
-        elif text.startswith(chr(39) * 3, index): state, index = "literal_multi", index + 3
-        elif char == chr(34): state, index = "basic", index + 1
-        elif char == chr(39): state, index = "literal", index + 1
-        elif char == "#": comment_start, state, index = index, "comment", index + 1
-        elif char in "\r\n": index, line, line_start = _newline_at(text, index), line + 1, _newline_at(text, index)
-        else: index += 1
-    if state == "comment": comments.append(TomlComment(line + 1, comment_start - line_start + 1, text[comment_start + 1:], len(text) - line_start + 1))
+        if text.startswith(chr(34) * 3, index):
+            state, index = "basic_multi", index + 3
+        elif text.startswith(chr(39) * 3, index):
+            state, index = "literal_multi", index + 3
+        elif char == chr(34):
+            state, index = "basic", index + 1
+        elif char == chr(39):
+            state, index = "literal", index + 1
+        elif char == "#":
+            comment_start, state, index = index, "comment", index + 1
+        elif char in "\r\n":
+            index, line, line_start = (
+                _newline_at(text, index),
+                line + 1,
+                _newline_at(text, index),
+            )
+        else:
+            index += 1
+    if state == "comment":
+        comments.append(
+            TomlComment(
+                line + 1,
+                comment_start - line_start + 1,
+                text[comment_start + 1 :],
+                len(text) - line_start + 1,
+            )
+        )
     return comments
 
 def comment_projection(text: str) -> str:

@@ -36,10 +36,10 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-from .rules import RuleSet
 
 from .config import Severity
 from .model import CategoryScore, DocumentScore, Finding, Rule, RuleKind
+from .rules import RuleSet
 
 # ---------------------------------------------------------------------------
 # `--format json`
