@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "rubric_id": "slopvac-structured-prose-v1",
+  "decision": "For each case, return exactly one verdict and an exact substring quote from the input.",
+  "verdicts": ["confirm", "preserve", "reject", "abstain"],
+  "labels": {"defect": "reject", "control": "preserve"},
+  "requirements": [
+    "quote must be a non-empty exact substring of case.text",
+    "reject only when the stated structured-prose defect is present",
+    "preserve when no targeted defect is present",
+    "abstain when evidence is insufficient; never invent evidence",
+    "never discuss authorship, AI generation, or whether text was written by a person or model"
+  ],
+  "categories": ["formulaic_headings", "lamp", "technical_invariants", "factual_contrasts", "formal_legal", "l2_clarity", "accessibility_repetition", "defined_domain_terms"],
+  "score": {"range": [0, 100], "order": "failures and false positives are penalized before recall", "failure": "missing, malformed, fabricated-quote, authorship, or false-confirm output is a measured failure"}
+}

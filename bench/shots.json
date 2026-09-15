@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "shots": [
+    {"id":"shot-formula-01","text":"# One Path, One Outcome","verdict":"reject","quote":"One Path, One Outcome","reason":"Formulaic paired slogan heading."},
+    {"id":"shot-technical-01","text":"The checksum is 64 lowercase hexadecimal characters.","verdict":"preserve","quote":"The checksum is 64 lowercase hexadecimal characters.","reason":"Concrete technical invariant, not a prose defect."},
+    {"id":"shot-contrast-01","text":"The parser accepts JSON, not YAML.","verdict":"preserve","quote":"The parser accepts JSON, not YAML.","reason":"Factual contrast states a testable boundary."},
+    {"id":"shot-l2-01","text":"Restart the worker after the queue is empty.","verdict":"preserve","quote":"Restart the worker after the queue is empty.","reason":"Direct, clear instruction."}
+  ]
+}

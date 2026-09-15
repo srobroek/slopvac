@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "ordering": "JSON object keys and case/shot/arm arrays are committed in order; runner never reorders them",
+  "sha256": {
+    "rubric.json": "75eca46412e2e70bc62e093fd92c3aa99fcbf6efbe3509f40e7ba7bf43141953",
+    "prompt_template.txt": "47a96729dda4223b5bfd5791cd639ac755df2e2611597911593d6b3ab9aa3173",
+    "shots.json": "1956391af26ea9021771fead34a3b4847822d6b432431a8273d2ec2dde321e0e",
+    "cases.json": "ed2efdd0c504bf8a6d9f4eac20f6ba53924d701367b3fdd63ab8992f38dfc175",
+    "arms.json": "b7006904b4b7b18de2449abcb499efda5ea1a342c309e9491c132ce43899d5fc"
+  }
+}
