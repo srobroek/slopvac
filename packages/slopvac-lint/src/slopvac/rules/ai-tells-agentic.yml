@@ -32,7 +32,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b'
+    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b|\b(?:the|a|an|this|that|our|your|its)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+\w+(?:\s+[\w-]+){0,6}\s*[,;:—–]\s+it\s+(?:does|do|did)\s+not\s+(?:judge|decide|grade|measure|interpret|predict|replace|solve|fix|guarantee|prove|police|manage|control)\b|\b(?:the|a|an|this|that|our|your|its)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+\w+(?:\s+[\w-]+){0,6}\s*[,;:—–]\s+not\s+(?:judge|decide|grade|measure|interpret|predict|replace|solve|fix|guarantee|prove|police|manage|control)\b|\b(?:the|a|an|this|that|our|your|its|[a-z][\w-]*)\s+[\w-]+(?:\s+[\w-]+){0,4}\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|accepts?|measures?|uses?|supports?|handles?|runs?|reads?|writes?)\s+[^.!?\n]{1,60},\s+(?:it\s+)?not\s+[^.!?\n]{1,50}|\b(?:measure|use|run|choose|store|keep|accept|reject|prefer|check)\s+[^.!?\n]{1,60},\s+not\s+[^.!?\n]{1,50}'
     ignore_case: true
     fix: Delete the negated half and state what the thing is.
     examples:
@@ -41,7 +41,7 @@ rules:
       - bad: It's less about speed and more about determinism.
         good: The gate produces the same findings on every run.
     provenance:
-      source: references/ai-tells/structure.md ("Contrastive inversion")
+      source: "AI tells catalog — structure.md (\"Contrastive inversion\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         The mechanizable core of the single most-cited current tell. Judgement
@@ -62,14 +62,16 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Does the negated half of this contrast name a position someone actually
-      holds, or was it invented so the affirmed half sounds larger?
-    fix: Delete the invented alternative and state the affirmed claim alone.
+      Is the negated half mainly a rhetorical foil, or is keeping it essential to
+      safety or compliance, or materially clearer than a positive statement? Flag
+      the contrast only when the positive rewrite preserves the same actionable
+      meaning and is at least as clear; a factual boundary by itself is not an
+      exemption.
     examples:
       - bad: Where other gates check words, this one reads the shape of the argument.
         good: The gate scores paragraph symmetry and passive density.
     provenance:
-      source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
+      source: "AI tells catalog — structure.md (\"Contrastive inversion\", \"Strawman antithesis\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The
@@ -694,7 +696,7 @@ rules:
 
   - id: absolute-assertion-core
     name: State the claim with its actual scope
-    kind: tokens
+    kind: pattern
     severity: warning
     message: 'absolute assertion: {match} -- state the claim with its actual scope'
     scope: prose
@@ -702,22 +704,19 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    tokens:
-      - the only way to
-      - the single most important
-      - make no mistake
-      - there is no substitute for
-      - the one thing you need
-      - without exception the
-      - always the right
-      - never the right
-    ignore_case: true
-    fix: Replace the absolute with the claim's actual scope.
+    pattern: '(?i:\b(?:the only way to|the single most important|make no mistake|there is no substitute for|the one thing you need|without exception the|always the right|never the right)\b)|\bEvery\s+(?:[A-Z][a-z]*\s+){1,5}(?:Is|Are|Was|Were|Does|Do|Did|Has|Have|Had|Can|Will|Must|Should|Requires?|Accepts?|Maps?|Traces?|Needs?|Uses?|Produces?|Supports?|Contains?|Returns?|Runs?|Fails?)\s+(?:[A-Z][a-z]*\s+){0,8}[A-Z][a-z]*(?=[.!?,;:]|$)'
+    ignore_case: false
     examples:
       - bad: The only way to fix this is to re-run the sync.
         good: Re-running the sync fixes it when the cache is stale.
+      - bad: Every Number Traces To A Record.
+        good: Every request to this endpoint requires authentication.
+      - bad: The only way to fix this is to re-run the sync.
+        good: Every number in the index traces to a record.
+      - bad: The only way to fix this is to re-run the sync.
+        good: Every Number In The Index.
     provenance:
-      source: references/ai-tells/structure.md ("Absolute assertion")
+      source: "AI tells catalog — structure.md (\"Absolute assertion\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. The catalog calls this the MIRROR of hedge stacking:
@@ -738,17 +737,84 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Can you name one case in which this claim is false? If yes, the claim is
-      stated at the wrong scope.
+      Can you name one counterexample, or is this a defined scoped invariant?
+      Flag the universal only when it is unsupported or counterexample-prone;
+      do not flag a claim whose domain and evidence are explicitly bounded.
     fix: Narrow the claim to the scope the evidence supports.
     examples:
       - bad: Every project needs a lockfile.
         good: A project with more than one direct dependency needs a lockfile.
+      - bad: Every Number Traces To A Record.
+        good: Every number in the index traces to a record.
+      - good: Every request to this endpoint requires authentication.
+        bad: Every system always behaves correctly.
     provenance:
-      source: references/ai-tells/structure.md ("Absolute assertion")
+      source: "AI tells catalog — structure.md (\"Absolute assertion\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
         Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable
         by construction: the reviewer either produces a counterexample or does not.
+
+  - id: negative-inventory-core
+    name: Cut low-value negative inventory
+    kind: pattern
+    severity: warning
+    message: 'negative inventory: {match} -- state the supported behavior or constraint'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:does|do|did)\s+not\s+pin\b|\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\b(?:is|are|was|were)\s+excluded\b|\bexcluded\s+from\b|\b(?:has|have|had)\s+not\s+run\b|\bnot\s+included\b|\brecorded\s+elsewhere\b'
+    ignore_case: true
+    fix: State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
+    examples:
+      - bad: 'Tooling not pinned: versions may drift.'
+        good: The lockfile pins the formatter version used by CI.
+      - bad: 'Excluded from this review: browser checks and visual polish.'
+        good: Browser checks are not run; use the smoke command before release.
+      - bad: |-
+          | Coverage | Status |
+          |---|---|
+          | Outside tooling scope | Not included |
+        good: The parser test suite covers TOML comments; browser behavior is not run here.
+      - bad: Config is recorded elsewhere.
+        good: The deployment manifest records the region and is the source of truth.
+    provenance:
+      source: "AI tells catalog — structure.md (\"Negative/exclusion inventory\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      note: >-
+        Mechanizable vocabulary for inventories that announce what is absent without
+        giving the reader a decision, constraint, result, or reproduction path.
+        Judgement remainder in ai-tells-structure.negative-inventory-remainder.
+
+  - id: negative-inventory-remainder
+    name: Judge whether a negative constraint is actionable
+    kind: judgement
+    severity: suggestion
+    message: 'negative inventory: keep only an actionable constraint, result, or pointer'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this negative statement tell the reader a reproducible result, a safety
+      or compliance constraint, a debugging boundary, an audit fact, or an enforced
+      exclusion that changes what they should do? Keep it only if yes; otherwise is
+      it merely inventory of what was not pinned, run, included, or recorded?
+    fix: Keep the actionable constraint or result and delete the inventory wording.
+    examples:
+      - bad: The tooling is not pinned, and visual checks are outside scope.
+        good: CI rejects an unpinned formatter; visual checks are not run by this command.
+      - bad: Several checks were excluded and recorded elsewhere.
+        good: The audit log records the excluded checks and their reasons.
+      - good: This command has not run browser checks; run `make browser-smoke` before release.
+        bad: 'Not included: other things.'
+    provenance:
+      source: "AI tells catalog — structure.md (\"Negative/exclusion inventory\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      note: >-
+        Judgement remainder of ai-tells-structure.negative-inventory-core. The
+        negative form is legitimate when it changes reader action or records an
+        enforced safety, compliance, debugging, reproducibility, or audit boundary.
 
   - id: think-of-it-as-core
     name: Explain the mechanism instead of the metaphor

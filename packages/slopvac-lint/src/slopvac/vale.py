@@ -28,11 +28,13 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .config import Severity
 from .model import Finding
+from .toml_comments import comment_projection, is_toml_path
 
 TIMEOUT_SECONDS = 120
 
@@ -122,6 +124,17 @@ def run_compiled_vale(
             + (f" (+{len(missing) - 8} more)" if len(missing) > 8 else "")
         )
 
+    projected = tempfile.TemporaryDirectory(prefix="slopvac-toml-")
+    vale_paths = []
+    aliases = {}
+    for index, source in enumerate(paths):
+        if is_toml_path(source):
+            target = Path(projected.name) / f"{index}-{source.stem}.md"
+            target.write_text(comment_projection(source.read_text(encoding="utf-8", errors="replace")), encoding="utf-8")
+            vale_paths.append(target)
+            aliases[str(target)] = str(source)
+        else:
+            vale_paths.append(source)
     try:
         completed = subprocess.run(
             [
@@ -129,20 +142,24 @@ def run_compiled_vale(
                 f"--config={config_path}",
                 "--output=JSON",
                 "--no-exit",
-                *[str(p) for p in paths],
+                *[str(p) for p in vale_paths],
             ],
             capture_output=True,
             text=True,
             timeout=TIMEOUT_SECONDS,
         )
     except subprocess.TimeoutExpired:
+        projected.cleanup()
         result.unchecked.append(
             f"Vale timed out after {TIMEOUT_SECONDS}s; its rules did NOT run."
         )
         return result
     except OSError as exc:
+        projected.cleanup()
         result.unchecked.append(f"Vale could not be run ({exc}); its rules did NOT run.")
         return result
+
+    projected.cleanup()
 
     # E201 means a rule file was rejected, and Vale then lints nothing at all.
     # The compiler probes for this, so reaching it here means a rule broke after
@@ -191,13 +208,14 @@ def run_compiled_vale(
 
     line_lengths: dict[str, list[int]] = {}
     for path, alerts in data.items():
+        source_path = aliases.get(path, path)
         if not isinstance(alerts, list):
             result.unchecked.append(f"Vale returned invalid alerts for {path}.")
             continue
         if path not in line_lengths:
             try:
                 line_lengths[path] = [
-                    len(text) for text in Path(path).read_text(encoding="utf-8").split("\n")
+                    len(text) for text in Path(source_path).read_text(encoding="utf-8").split("\n")
                 ]
             except (OSError, UnicodeDecodeError):
                 line_lengths[path] = []
@@ -242,9 +260,9 @@ def run_compiled_vale(
             # companion of a split substitution map) reports under the rule that
             # owns it; that is the id a suppression annotation or config names.
             owner = getattr(compiled, "aliases", {}).get(check, check)
-            result.by_path.setdefault(path, []).append(
+            result.by_path.setdefault(source_path, []).append(
                 Finding(
-                    path=path,
+                    path=source_path,
                     line=line,
                     column=span[0],
                     end_column=end_column,
