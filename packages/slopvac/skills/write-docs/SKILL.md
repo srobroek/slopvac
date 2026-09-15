@@ -92,14 +92,14 @@ you form a sentence, so they belong in your head before you write.
 + MUST Ask it of the bare quantifiers too -- "most", "some", "many", "often", "usually". The linter cannot flag these, because "most requests complete in 15 ms" is correct and "most users prefer it" is not, and only you know whether the figure was available. If it was, use it.
 + NOT Presuming the reader: "obviously", "clearly", "of course", "note that", "it should be noted that", "as you can see", "interestingly". The sentence stands without them, so delete them.
 + NOT Puffery: an adjective that praises rather than describes ("award-winning", "innovative", "world-class", "remarkable"). State the fact that would earn it.
-+ NOT A relative time reference in a document that outlives the moment: `recently`, `currently`, `for now`, `last quarter`, `in the future`. Give a date or a version.
++ NOT In ordinary docs (`consumer`, `reference`, and `informal`), use a relative time reference in a document that outlives the moment: `recently`, `currently`, `for now`, `last quarter`, `in the future`. Give a date or version. Change communications may describe a dated delta, and internal specifications or plans may state dated future intent.
 + NOT A rhetorical question as a heading. A heading is an index entry: "Configure the pool", not "How do I configure the pool?".
 + NOT Pairing "including" or "such as" with "etc." -- either already says the list is partial. Where the list is complete, write "consisting of".
 + MUST Name who acted: an abstraction is not an actor. Write "the team fixed it", never a complaint that "becomes a fix".
-+ MUST State what the artifact does -- never effort, intent, process, or journey.
-+ MUST Cut the claim, not the hedge: a doc that describes unbuilt behavior is fixed by deleting the passage, not by deleting "coming soon".
++ MUST State what the artifact does in ordinary docs -- never effort, intent, process, or journey.
++ MUST Cut the claim, not the hedge: ordinary docs that describe unbuilt behavior are fixed by deleting the passage, not by deleting "coming soon". An internal specification or future plan may state unbuilt behavior only with explicit acceptance criteria.
 + NOT A figure of speech you are used to seeing in print.
-+ NOT Status language, or history narration in a doc body -- deltas belong to the change-comms genre only.
++ NOT In ordinary docs, use status language or history narration in a doc body. Change communications may describe deltas and past state; internal ADRs, decision records, specifications, or historical reports may retain their permitted rationale, alternatives, or future intent.
 + NOT Justify a choice inside the artifact. The doc states what IS; the reason it is that way belongs in the commit or a decision record. Write the rationale only when the reader cannot recover it from the text (a constraint, an invariant, a measured number that decided a threshold), when the genre exists to record a decision (decision record, specification, commit message, PR body), or when the user asked for it.
 + NOT Over-writing -- real content in the wrong document:
   · a rejected alternative defended in place -> move the decision to a decision record, specification, or commit

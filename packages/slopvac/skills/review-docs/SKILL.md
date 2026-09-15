@@ -22,6 +22,14 @@ resolve, run `uvx --from <path-to-checkout> slopvac` and say which one ran.
 Reporting a verdict without the gate having executed is the one failure mode this
 skill cannot recover from.
 
+## Documentation contract
+
+Ordinary docs (`consumer`, `reference`, and `informal`) describe the current artifact directly: behavior, interface, configuration, constraints, and reader actions. Consumer docs remain strict: describe shipped behavior and reader use only.
+
+MUST Keep status language, history narration, relative-time claims, chronology, job IDs, future tasks, and operational archaeology out of ordinary docs. Change communications may describe deltas, chronology, job IDs, and verification; internal ADRs, decision records, specifications, future plans, or historical reports may retain their permitted rationale, alternatives, future intent, or archaeology.
+
+MUST Delete unbuilt behavior from ordinary docs rather than weakening it with "coming soon". Internal specifications and future plans may state unbuilt behavior only with explicit acceptance criteria.
+
 ## Workflow
 
 1. Identify the genre and pick the profile. When `write-docs` invoked this
@@ -76,7 +84,9 @@ skill cannot recover from.
    NOT Editing correct prose to silence a warning. Three rules ship deliberately
    soft, so a warning that survives triage is a finding about the linter.
 
-4. LOAD the checks no pattern reaches, and select before you read:
+4. Read the document adversarially before selecting judgement passages. Apply the deletion test to every sentence, list item, table row, and paragraph, and revise when no reader action or current-contract understanding changes. Read the headings alone as an outline of current behavior. Record every section whose heading promises content that its body withholds, and record the longest paragraph for the later selection step.
+
+5. LOAD the checks no pattern reaches and select only after step 4 records its passages:
 
    ```sh
    slopvac rules --judgement --format json
@@ -85,17 +95,18 @@ skill cannot recover from.
    Keep the entries whose category's `recommended_for` (in `.categories`) names
    the `genre` from step 1; the vocabulary is the same five values. The STE
    categories name `reference` only, so `consumer` selects 44 of the 64 entries
-   and `reference` 25; the rest of the bound comes from the routing below. Run the
-   selection in this order and stop at one answer per rule per passage:
+   and `reference` 25; the rest of the bound comes from the routing below. Run
+   the selection in this order and stop at one answer per rule per passage:
 
    + `scope: document` questions once, over the whole document (15 for
      `consumer`). These are the ratio checks a per-line rule cannot see, and they
      catch the failure where every sentence passes and the whole asserts nothing.
    + `scope: paragraph`, `scope: sentence`, and `scope: prose` questions on
      passages only. A passage is the paragraph, list item, or table that holds a
-     gate finding from step 2, plus the longest paragraph and the section whose
-     heading promises what its body withholds (from the adversarial read below).
-     In each passage ask only the questions of the categories that fired there.
+     gate finding from step 2, plus the longest paragraph and every section with
+     a heading-gap finding recorded in step 4. These passages exist before this
+     selection runs. In each passage ask only the questions of the categories
+     that fired there.
    + Skip a `-remainder` rule when its mechanical core already fired on the same
      passage; the remainder exists for the shape the pattern could not name.
    + Stop after 40 passage questions. Past that, the document has failed step 3
@@ -106,12 +117,13 @@ skill cannot recover from.
    worked `examples`. Answer each question with a quote from the text, not an
    impression, and report only the questions that failed.
 
-5. Verify the claims. Every sentence checks against code at HEAD; every consumer
-   example has a runnable test under `examples/`; no sentence describes unbuilt
-   behavior in the present tense. Real defects concentrate here, more than in
-   the register.
+6. Verify the claims. Every sentence checks against code at HEAD; every consumer
+   example has a runnable test under `examples/`; ordinary docs do not describe
+   unbuilt behavior in the present tense. Real defects concentrate here, more
+   than in the register.
 
-6. Report the verdict in the shape below.
+7. Report the verdict in the shape below.
+
 
 MUST Invoke this skill rather than the linter alone. The gate is pattern-matching
 and cannot see register, symmetry, or an unsupported claim.
