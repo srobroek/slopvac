@@ -109,10 +109,23 @@ def find_results(value: Any) -> tuple[list[Any] | None, dict[str, Any] | None]:
 
 def usage(value: Any) -> dict[str, float]:
     total: dict[str, float] = {}
+    aliases = {
+        "cost": "cost",
+        "input": "input_tokens",
+        "input_tokens": "input_tokens",
+        "output": "output_tokens",
+        "output_tokens": "output_tokens",
+        "totaltokens": "total_tokens",
+        "total_tokens": "total_tokens",
+        "total": "cost",
+        "latency_ms": "latency_ms",
+        "wall_ms": "wall_ms",
+    }
     if isinstance(value, dict):
         for key, child in value.items():
-            if isinstance(child, (int, float)) and key.lower() in {"cost", "input_tokens", "output_tokens", "total_tokens", "latency_ms", "wall_ms"}:
-                total[key.lower()] = total.get(key.lower(), 0.0) + float(child)
+            normalized = aliases.get(key.lower())
+            if normalized and isinstance(child, (int, float)):
+                total[normalized] = total.get(normalized, 0.0) + float(child)
             elif isinstance(child, (dict, list)):
                 for name, number in usage(child).items():
                     total[name] = total.get(name, 0.0) + number
@@ -123,30 +136,64 @@ def usage(value: Any) -> dict[str, float]:
     return total
 
 
+def assistant_payloads(value: Any) -> list[Any]:
+    """Return JSON payloads emitted as assistant text in OMP JSON events."""
+    payloads: list[Any] = []
+    if isinstance(value, dict):
+        message = value.get("message")
+        if isinstance(message, dict) and message.get("role") == "assistant":
+            content = message.get("content")
+            if isinstance(content, list):
+                for part in content:
+                    if isinstance(part, dict) and isinstance(part.get("text"), str):
+                        try:
+                            payloads.append(json.loads(part["text"]))
+                        except json.JSONDecodeError:
+                            pass
+        for child in value.values():
+            payloads.extend(assistant_payloads(child))
+    elif isinstance(value, list):
+        for child in value:
+            payloads.extend(assistant_payloads(child))
+    return payloads
+
+
 def invoke(model: str, prompt: str, timeout: int = 300) -> tuple[list[dict[str, Any]] | None, dict[str, float], str]:
     if shutil.which("omp") is None:
         return None, {}, "missing omp"
     with tempfile.TemporaryDirectory(prefix="slopvac-online-") as session:
-        command = ["omp", "-p", "--mode", "json", "--model", model, "--thinking", "low", "--temperature", "0", "--max-output-tokens", "2048", "--max-retries", "1", "--session-dir", session, "--no-extensions", "--no-skills", "--no-rules", "--no-tools", "--no-lsp", "--no-pty", "--no-title"]
+        command = ["omp", "-p", "--mode", "json", "--model", model, "--thinking", "low", "--max-time", str(timeout), "--session-dir", session, "--no-extensions", "--no-skills", "--no-rules", "--no-tools", "--no-lsp", "--no-pty", "--no-title"]
         started = time.monotonic()
         try:
             proc = subprocess.run(command, input=prompt, text=True, capture_output=True, timeout=timeout, check=False, env=os.environ.copy())
         except (OSError, subprocess.TimeoutExpired) as exc:
             return None, {"latency_ms": (time.monotonic() - started) * 1000}, type(exc).__name__
         wall = (time.monotonic() - started) * 1000
-        parsed: Any = None
+        events: list[Any] = []
         for line in proc.stdout.splitlines():
             try:
-                parsed = json.loads(line)
+                events.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
+        parsed: Any = None
+        for event in events:
+            results, _ = find_results(event)
+            if results is not None:
+                parsed = event
+                break
+            for payload in assistant_payloads(event):
+                results, _ = find_results(payload)
+                if results is not None:
+                    parsed = payload
+                    break
+            if parsed is not None:
+                break
+        stats = {**usage(events), "latency_ms": wall}
+        if proc.returncode != 0:
+            return None, stats, f"omp exit {proc.returncode}"
         if parsed is None:
-            try:
-                parsed = json.loads(proc.stdout)
-            except json.JSONDecodeError:
-                return None, {"latency_ms": wall}, "malformed json"
+            return None, stats, "malformed json"
         results, _ = find_results(parsed)
-        stats = {**usage(parsed), "latency_ms": wall}
         if results is None:
             return None, stats, "missing results"
         if any(not isinstance(x, dict) for x in results):
