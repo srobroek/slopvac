@@ -23,8 +23,9 @@ inputs:
     default: ""
   changed-files-only:
     description: >-
-      Lint only the prose files this pull request touches. Needs
-      fetch-depth other than 1 on the checkout step.
+      Lint only the prose files this pull request touches. Requires the pull
+      request base commit to be available in the checkout; missing base data
+      fails the step instead of falling back to whole-file linting.
     required: false
     default: "false"
   min-score:
@@ -177,6 +178,8 @@ runs:
         FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
         VERSION: ${{ inputs.version }}
         SOURCE: ${{ inputs.source }}
+        CHANGED_ONLY: ${{ inputs.changed-files-only }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
       run: python3 "$ACTION_PATH/scripts/action_entry.py" lint
 
     # `always()`, because the whole point is to see the findings on a run that

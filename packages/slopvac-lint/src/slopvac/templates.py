@@ -5,7 +5,7 @@ the reasoning. A config a reader cannot understand gets deleted wholesale the
 first time it produces an unwanted finding.
 """
 
-STARTER_CONFIG = '''\
+STARTER_CONFIG = """\
 # slopvac prose gate. Yours to edit; commit it.
 #
 # Resolution order, each layer patching the one above it PER FIELD:
@@ -25,12 +25,6 @@ STARTER_CONFIG = '''\
 # normal  = general writing at a high bar: README, guides, ADRs
 # relaxed = loose writing: notes, comments, drafts
 profile = "{profile}"
-
-# Input mode is global for each lint run and is not an override setting:
-#   slopvac lint --mode code-comments src/
-# `code-comments` selects supported source extensions and checks ordinary line
-# and block comments. Documentation comments are included when Vale exposes them
-# through those ordinary scopes. Omit --mode for prose, including TOML comments.
 
 # Never linted. Every top-level key must sit ABOVE the first [table] header: a
 # TOML table captures every key that follows it until the next header, so an
@@ -141,4 +135,4 @@ default = "en-US"        # en-US | en-GB | und
 enabled = true
 # binary = "vale"
 # config = ".vale.ini"
-'''
+"""

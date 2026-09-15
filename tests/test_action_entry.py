@@ -65,8 +65,9 @@ def test_lint_writes_json_outputs_and_keeps_path_argument(tmp_path: Path) -> Non
         output.write(json.dumps(report))
         return CompletedProcess(command, 1, stderr="")
 
-    with patch.dict(os.environ, environment, clear=False), patch(
-        "scripts.action_entry.subprocess.run", side_effect=fake_run
+    with (
+        patch.dict(os.environ, environment, clear=False),
+        patch("scripts.action_entry.subprocess.run", side_effect=fake_run),
     ):
         status = action_entry.lint()
 
@@ -78,3 +79,73 @@ def test_lint_writes_json_outputs_and_keeps_path_argument(tmp_path: Path) -> Non
     assert "json=" in output
     assert "sarif=" in output
     assert "score 91.5/100" in summary_path.read_text()
+
+
+def test_changed_only_without_pull_request_base_fails_closed(
+    tmp_path, monkeypatch, capsys
+):
+    monkeypatch.setenv("CHANGED_ONLY", "true")
+    monkeypatch.setenv("INPUT_PATHS", ".")
+    monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+    monkeypatch.delenv("BASE_SHA", raising=False)
+    assert action_entry.resolve_targets() == 1
+    assert "requires" in capsys.readouterr().out
+    assert not (tmp_path / "slopvac-paths").exists()
+
+
+def test_changed_only_resolves_exact_base_and_prose_paths(tmp_path, monkeypatch):
+    monkeypatch.setenv("CHANGED_ONLY", "true")
+    monkeypatch.setenv("INPUT_PATHS", "ignored.md")
+    monkeypatch.setenv("BASE_SHA", "abc123")
+    monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+    calls: list[list[str]] = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        if command[:3] == ["git", "cat-file", "-e"]:
+            return CompletedProcess(command, 0, stdout="", stderr="")
+        return CompletedProcess(
+            command, 0, stdout=b"docs/release notes.md\0", stderr=b""
+        )
+
+    with patch("scripts.action_entry.subprocess.run", side_effect=fake_run):
+        assert action_entry.resolve_targets() == 0
+
+    assert calls[0] == ["git", "cat-file", "-e", "abc123^{commit}"]
+    assert "abc123...HEAD" in calls[1]
+    assert (
+        calls[1][-7:]
+        == ["*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html", "--"]
+        or "--" in calls[1]
+    )
+    assert action_entry._read_paths(tmp_path / "slopvac-paths") == [
+        "docs/release notes.md"
+    ]
+
+
+def test_command_passes_exact_diff_base_and_path_argv(monkeypatch):
+    monkeypatch.setenv("CHANGED_ONLY", "true")
+    monkeypatch.setenv("BASE_SHA", "deadbeef")
+    monkeypatch.setenv("VALE", "false")
+    command = action_entry._command(["docs/release notes.md"])
+    assert command[-5:] == [
+        "--diff-base",
+        "deadbeef",
+        "--format",
+        "json",
+        "docs/release notes.md",
+    ]
+
+
+def test_changed_only_missing_merge_base_fails_closed(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("CHANGED_ONLY", "true")
+    monkeypatch.setenv("INPUT_PATHS", ".")
+    monkeypatch.setenv("BASE_SHA", "missing")
+    monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+
+    def missing_base(command, **kwargs):
+        return CompletedProcess(command, 128, stdout=b"", stderr=b"missing object")
+
+    with patch("scripts.action_entry.subprocess.run", side_effect=missing_base):
+        assert action_entry.resolve_targets() == 1
+    assert "merge base" in capsys.readouterr().out

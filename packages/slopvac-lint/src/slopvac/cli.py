@@ -29,7 +29,6 @@ from .compile_vale import compile_ruleset
 from .config import (
     Config,
     ConfigError,
-    Mode,
     Profile,
     Severity,
     find_config,
@@ -37,6 +36,7 @@ from .config import (
     resolve_blocklist_path,
     resolve_for,
 )
+from .diff_scope import DiffScopeError, apply_replacements, changed_scope
 from .engine import Engine
 from .model import RuleKind
 from .pipeline import (
@@ -115,11 +115,6 @@ def main(context: click.Context) -> None:
     help="Override the configured tier for this run.",
 )
 @click.option(
-    "--mode",
-    type=click.Choice([m.value for m in Mode]),
-    help="Input surface: prose or code-comments (global per run).",
-)
-@click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
@@ -179,6 +174,26 @@ def main(context: click.Context) -> None:
 @click.option(
     "--no-vale", is_flag=True, help="Skip the Vale sub-gate even when configured."
 )
+@click.option(
+    "--diff-base",
+    metavar="REV",
+    help="Scope findings to added lines in REV...HEAD (committed branch diff).",
+)
+@click.option(
+    "--diff-working-tree",
+    is_flag=True,
+    help="Scope findings to added lines in HEAD versus the index and working tree.",
+)
+@click.option(
+    "--comments",
+    is_flag=True,
+    help="Lint only source comments (an explicit upstream mode).",
+)
+@click.option(
+    "--fix",
+    is_flag=True,
+    help="Apply safe replacements; hunk mode never edits unchanged lines.",
+)
 @click.option("--no-color", is_flag=True, help="Plain output.")
 @click.option("--verbose", is_flag=True, help="Show categories with no findings.")
 @click.option(
@@ -189,7 +204,6 @@ def main(context: click.Context) -> None:
 def lint(
     targets: tuple[str, ...],
     profile: str | None,
-    mode: str | None,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
@@ -201,17 +215,27 @@ def lint(
     max_per_100_words: float | None,
     locale_tag: str | None,
     no_vale: bool,
+    diff_base: str | None,
+    diff_working_tree: bool,
+    comments: bool,
+    fix: bool,
     no_color: bool,
     verbose: bool,
     explain_config: bool,
 ) -> None:
     """Lint files or directories."""
     console = _console(no_color)
+    scope = None
+    if diff_base is not None or diff_working_tree:
+        try:
+            scope = changed_scope(base=diff_base, working_tree=diff_working_tree)
+        except DiffScopeError as exc:
+            console.print(f"[red]incomplete check[/]: {exc}")
+            raise SystemExit(EXIT_ERROR) from None
     run = _load_lint_context(
         console,
         targets,
         profile=profile,
-        mode=mode,
         config_path=config_path,
         rules_dir=rules_dir,
         only_categories=only_categories,
@@ -219,6 +243,8 @@ def lint(
         min_score=min_score,
         max_per_100_words=max_per_100_words,
         locale_tag=locale_tag,
+        diff_scope=scope,
+        comments=comments,
     )
     if not run.paths:
         # A run with nothing to lint still owes the caller a report in the format
@@ -243,9 +269,17 @@ def lint(
         raise SystemExit(EXIT_OK)
 
     scores = _run_lint_or_exit(run, console, no_vale=no_vale)
+    if fix:
+        rules = {
+            rule.qualified_id: rule
+            for ruleset in run.rulesets.values()
+            for rule in ruleset.rules
+        }
+        if apply_replacements(scores, rules, scope) > 0:
+            scores = _run_lint_or_exit(run, console, no_vale=no_vale)
     emit_report(
         scores,
-        run.rulesets,
+        run.ruleset,
         console,
         output_format=output_format,
         out_path=out_path,

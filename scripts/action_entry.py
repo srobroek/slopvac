@@ -12,7 +12,6 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-
 OUTPUT_NAMES = (
     "list",
     "score",
@@ -59,7 +58,9 @@ def _read_paths(paths_file: Path) -> list[str]:
     try:
         content = paths_file.read_bytes()
     except OSError as exc:
-        raise ActionError(f"could not read target path list {paths_file}: {exc}") from exc
+        raise ActionError(
+            f"could not read target path list {paths_file}: {exc}"
+        ) from exc
     if not content:
         return []
     if not content.endswith(b"\0"):
@@ -79,12 +80,6 @@ def parse_input_paths(value: str) -> list[str]:
         raise ActionError(f"invalid paths input: {exc}") from exc
 
 
-def _fallback_paths(paths: list[str], *, message: str | None = None) -> list[str]:
-    if message:
-        print(f"::warning title=slopvac::{message}")
-    return paths
-
-
 def resolve_targets() -> int:
     paths_file = Path(_env("RUNNER_TEMP", tempfile.gettempdir())) / "slopvac-paths"
     changed_only = _env("CHANGED_ONLY") == "true"
@@ -94,13 +89,12 @@ def resolve_targets() -> int:
     if not changed_only:
         paths = input_paths
     elif not base_sha:
-        paths = _fallback_paths(
-            input_paths,
-            message=(
-                f"changed-files-only needs a pull_request event; linting "
-                f"{_env('INPUT_PATHS')} instead"
-            ),
+        print(
+            "::error title=slopvac::changed-files-only requires "
+            "github.event.pull_request.base.sha. Fetch the pull request base "
+            "or set changed-files-only: false."
         )
+        return 1
     else:
         check = subprocess.run(
             ["git", "cat-file", "-e", f"{base_sha}^{{commit}}"],
@@ -159,7 +153,9 @@ def _temporary_path(*, suffix: str) -> Path:
     if directory:
         directory.mkdir(parents=True, exist_ok=True)
     descriptor, path = tempfile.mkstemp(
-        prefix="slopvac-action-", suffix=suffix, dir=str(directory) if directory else None
+        prefix="slopvac-action-",
+        suffix=suffix,
+        dir=str(directory) if directory else None,
     )
     os.close(descriptor)
     return Path(path)
@@ -190,6 +186,8 @@ def _command(targets: list[str]) -> list[str]:
             command.extend((option, value))
     if _env("VALE") != "true":
         command.append("--no-vale")
+    if _env("CHANGED_ONLY") == "true" and _env("BASE_SHA"):
+        command += ["--diff-base", _env("BASE_SHA")]
     command += ["--format", "json", *targets]
     return command
 
@@ -223,7 +221,6 @@ def _render(command: list[str], output_format: str, destination: Path) -> int:
             print(result.stderr, end="")
         raise ActionError(f"{output_format} report failed")
     return result.returncode
-
 
 
 def _summary_markdown(data: dict[str, Any]) -> str:
@@ -301,7 +298,9 @@ def lint() -> int:
             "json": json_path,
         }
     except (OSError, json.JSONDecodeError, KeyError, TypeError) as exc:
-        print("::error title=slopvac::the JSON report could not be read. Prose was NOT checked.")
+        print(
+            "::error title=slopvac::the JSON report could not be read. Prose was NOT checked."
+        )
         raise ActionError("invalid JSON report") from exc
 
     _write_output(values)
@@ -311,7 +310,9 @@ def lint() -> int:
         ) as summary_file:
             summary_file.write(_summary_markdown(data))
     except OSError as exc:
-        print("::error title=slopvac::the step summary could not be written from the report.")
+        print(
+            "::error title=slopvac::the step summary could not be written from the report."
+        )
         raise ActionError("could not write GitHub step summary") from exc
 
     if _env("ANNOTATE") == "true":

@@ -7,6 +7,36 @@ description: >-
 weight: 1.0
 recommended_for: [consumer, change-comms]
 rules:
+  - id: code-change-prose-scope
+    name: Keep code-change prose scoped
+    kind: judgement
+    severity: error
+    message: >-
+      Unrelated prose changed during a code edit is a scope defect. Keep only
+      prose that directly explains or specifies changed code, unless the user
+      explicitly requested the prose edit.
+    scope: document
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      For every changed comment or documentation passage, does the code diff
+      show that it directly explains or specifies the changed code? If not, did
+      the user explicitly request that prose edit? Treat unrelated same-file
+      comments and documentation elsewhere as defects, while correcting a stale
+      comment that describes changed behavior.
+    fix: >-
+      Revert unrelated prose changes; retain directly related stale-comment
+      corrections and explicitly requested prose edits.
+    provenance:
+      source: Slopvac review contract
+      url: https://github.com/srobroek/slopvac
+      note: >-
+        This judgement rule requires the code diff and user request. The native
+        engine never emits findings for judgement rules; review-docs supplies
+        that context to the reviewer.
+
   - id: rejected-alternative
     name: Move the decision to an ADR, spec, or commit
     kind: pattern

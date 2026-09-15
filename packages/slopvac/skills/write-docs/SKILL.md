@@ -12,7 +12,8 @@ TRIGGER
 + writing specifications, decision records, constitutions, CONTRIBUTING, runbooks (internal genre)
 + reviewing or de-slopping text that already exists → review-docs
 + authoring skills, steering, or agent definitions → write-agentic
-+ code comments and docstrings → language conventions
++ code comments and docstrings → language conventions; during a code change, edit only comments or documentation that directly explain or specify the changed code
++ unrelated prose cleanup during a code change → leave it unchanged unless the user explicitly requests that prose edit
 
 This skill authors. `slopvac` gates mechanically; the `review-docs` skill
 judges what no pattern reaches. Steps 4 and 5 run both, and neither is optional --
@@ -66,6 +67,7 @@ an eval corpus of informal documents scored 0 at `normal` where `relaxed` scored
 5. MUST Invoke the `review-docs` skill, passing `genre` and `profile` from
    step 1. It judges register, structural symmetry, and claims with nothing
    behind them. Fix what it returns.
+6. During a code change, keep prose edits scoped to comments or documentation that directly explain or specify the changed code. Do not clean up unrelated prose in the same file or elsewhere. An explicitly requested prose edit is in scope.
 
 ## Sentence rules
 

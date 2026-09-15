@@ -67,14 +67,6 @@ class Profile(str, Enum):
     RELAXED = "relaxed"
 
 
-class Mode(str, Enum):
-    """Input surface selected for a lint run."""
-
-    PROSE = "prose"
-    CODE_COMMENTS = "code-comments"
-
-
-
 class CategorySettings(BaseModel):
     """Per-category dials. Every field is optional so a patch layer can set one
     without restating the others.
@@ -355,7 +347,6 @@ class Config(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    mode: Mode = Field(default=Mode.PROSE, description="Input surface mode.")
     profile: Profile = Field(
         default=Profile.NORMAL,
         description="Tier applied where no override matches. `normal` is the "
@@ -388,10 +379,6 @@ class Config(BaseModel):
     source: Path | None = Field(default=None, exclude=True)
     root: Path | None = Field(default=None, exclude=True)
     _exclude_spec: pathspec.PathSpec = PrivateAttr()
-    # A command-line layer is attached by the pipeline rather than merged into
-    # the file's top-level fields. That keeps it narrower than every path
-    # override while leaving the authored cascade and its provenance intact.
-    _cli_override: Override | None = PrivateAttr(default=None)
 
     @model_validator(mode="after")
     def _compile_exclude(self) -> Config:
@@ -450,7 +437,6 @@ class ResolvedConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     path: Path
-    mode: Mode
     profile: Profile
     categories: dict[str, CategorySettings]
     rules: dict[str, RuleSettings]
@@ -642,18 +628,11 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         return f"overrides[{index}] ({', '.join(override.files)})"
 
     provenance: dict[str, str] = {}
-    # Layer 1 is the profile and global input mode. The global mode may be
-    # selected with object.__setattr__; remaining CLI values are the narrow
-    # final layer attached to `matching` below.
-    mode = config.mode
-    if "mode" in config.model_fields_set or mode is not Mode.PROSE:
-        provenance["mode"] = f"config default ({mode.value})"
+
+    # Layer 1: the profile.
     profile = config.profile
-    if "profile" in config.model_fields_set or profile is not Profile.NORMAL:
-        provenance["profile"] = f"profile default ({profile.value})"
+    provenance["profile"] = f"profile default ({profile.value})"
     matching = [(i, o) for i, o in enumerate(config.overrides) if o.matches(relative)]
-    if config._cli_override is not None:
-        matching.append((len(config.overrides), config._cli_override))
     for index, override in matching:
         if override.profile is not None:
             profile = override.profile
@@ -720,7 +699,6 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
 
     return ResolvedConfig(
         path=file_path,
-        mode=mode,
         profile=profile,
         categories=categories,
         rules=rules,
