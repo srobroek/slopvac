@@ -7,11 +7,6 @@
 # often enough (`caf391e` -> `calf`) that the file is noise-only.
 extend-exclude = [
   "CHANGELOG.md",
-  # Audit corpora and labels are verbatim third-party and model text, quoted as the
-  # linter scored it; correcting a spelling there would change the measured input.
-  # The audit report itself stays checked.
-  "evals/audit-2026-09-12/corpus/",
-  "evals/audit-2026-09-12/agent-reports/",
 ]
 
 [default.extend-words]

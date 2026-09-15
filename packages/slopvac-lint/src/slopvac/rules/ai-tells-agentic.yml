@@ -226,8 +226,9 @@ rules:
         good: The gate reports every finding with a line number.
         note: >-
           A three-item technical enumeration ("create, update, and delete") is
-          legitimate and this pattern cannot tell it apart -- see the measurement in
-          exclusions.md for ai-tells.VerbTricolon (149 hits). The last item may
+          legitimate and this pattern cannot tell it apart -- see the immutable historical record at
+          https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+          for ai-tells.VerbTricolon (149 hits). The last item may
           be hyphenated or multiword so a rhetorical "battle-tested" still fires.
     provenance:
       source: references/ai-tells/structure.md ("Rule of three / tricolon abuse")
@@ -1151,8 +1152,10 @@ rules:
       source: references/ai-tells/register.md ("Corporate-analytic filler")
       note: >-
         Mechanizable core. `granular` is deliberately OMITTED even though the catalog
-        names it: exclusions.md records that upstream ai-tells.OverusedVocabulary was
-        disabled partly for flagging `granular`, which has an ordinary technical use.
+        names it: the immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+        records that upstream ai-tells.OverusedVocabulary was disabled partly for
+        flagging `granular`, which has an ordinary technical use.
         Judgement remainder in
         ai-tells-register.corporate-analytic-filler-remainder. Overlaps upstream
         ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked, ai-tells.FillerPhrases,
@@ -1232,8 +1235,9 @@ rules:
         document metric. Threshold 12 is INFERRED from that range (a corpus of
         45-60-word paragraphs has a stdev near zero) and is NOT measured; calibrate
         before enforcing outside strict. This is the burstiness counter-signal, and
-        it is also proposed in counter-signals.md as
-        paragraph-length-dispersion -- the two are the same measurement, so ship one.
+        it is also proposed in the immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md
+        as paragraph-length-dispersion -- the two are the same measurement, so ship one.
 
   - id: hedged-symmetry
     name: Take the position the evidence supports
@@ -1589,7 +1593,8 @@ rules:
         pivots per page" and is NOT measured -- calibrate before enforcing outside
         strict. prose-format.no-unicode-dash bans the Unicode characters outright and
         is the presence rule; this is the density rule, and they are complements.
-        exclusions.md records why upstream ai-tells.EmDashUsage is disabled.
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+        records why upstream ai-tells.EmDashUsage is disabled.
 
   - id: curly-quotes
     name: Normalise curly quotes to straight ones
@@ -2074,9 +2079,11 @@ rules:
     provenance:
       source: references/ai-tells/content-shape.md ("Padded symmetry")
       note: >-
-        Judgement-only. Related to counter-signals.md's "Asymmetric structure", whose
-        positive form is proposed as a document metric -- see counter-signals.md in
-        this directory, metric `section-length-dispersion`. That metric is the
+        Judgement-only. Related to the immutable historical record's "Asymmetric
+        structure" at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md,
+        whose positive form is proposed as a document metric, `section-length-dispersion`.
+        That metric is the
         mechanizable proxy; this rule is the decidable question.
 
   - id: superficial-ing-analysis
@@ -2173,9 +2180,10 @@ rules:
       note: >-
         Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the
         catalog's claim is about consecutive OPENINGS, which is an adjacency
-        property, not a token match. exclusions.md records that upstream
-        ai-tells.FormalTransitions was DISABLED for flagging these same connectives
-        as bare tokens ("these are ordinary English connectives and this corpus uses
+        property, not a token match. The immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+        records that upstream ai-tells.FormalTransitions was DISABLED for flagging
+        these same connectives as bare tokens ("these are ordinary English connectives and this corpus uses
         them correctly"), so the adjacency form is deliberately the only one carried
         and prose-craft.wordiness maps `additionally` to `also` as a substitution
         without a position claim.

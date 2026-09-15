@@ -117,8 +117,9 @@ claimed does not exist.
 
 ### 8. A lookbehind guard on a `\b`-anchored match guards NOTHING
 
-The reason is anchoring, not width. `\b[^\s-]+ly-\w+\b` starts matching at the word
-start, so a leading lookbehind is evaluated BEFORE the stem it means to exclude.
+The guard fails because of where the match starts. Match width is irrelevant.
+`\b[^\s-]+ly-\w+\b` starts matching at the word start, so a leading lookbehind is
+evaluated BEFORE the stem it means to exclude.
 
 ```yaml
 # reports all five spans. family/supply/early/assembly were NOT excluded.
@@ -257,8 +258,8 @@ does nothing one directory down. Measured on a document with 14 findings unfilte
 | `CHANGELOG.md` | 0 | yes |
 | `sub/CHANGELOG.md` | **5** | **no** |
 
-`docs/specs/` and a per-package `sub/CHANGELOG.md` are the common case in a
-monorepo, not the edge case. Lead every genre glob with `**/`.
+`docs/specs/` and per-package `sub/CHANGELOG.md` paths are common in monorepos.
+Lead every genre glob with `**/`.
 
 ## Method note: three fixtures are not enough
 
@@ -282,7 +283,7 @@ irreducibly judgment" in this project's own `coverage.md`.
 `ai-tells-structure.ContrastiveInversionFrames` fired on the repo's own
 `tests/fixtures/vale/must-not-fire.md:15`.
 
-A corpus pass belongs INSIDE the verification loop. `evals/independent/` holds 8
+A corpus pass belongs INSIDE the verification loop. `https://github.com/srobroek/slopvac/tree/3e3ec92fc5eca871b0c1c8af0ecb16a9b8df81e3/evals` holds 8
 documents across 5 registers, none written against these rules. Four defects came
 out of it that no fixture had imagined: the RFC 2119 substitution inversion, the
 "Master Subscription Agreement" false positive, the all-caps class, and the dead
