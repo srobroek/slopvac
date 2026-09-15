@@ -282,7 +282,7 @@ irreducibly judgment" in this project's own `coverage.md`.
 `ai-tells-structure.ContrastiveInversionFrames` fired on the repo's own
 `tests/fixtures/vale/must-not-fire.md:15`.
 
-A corpus pass belongs INSIDE the verification loop. `evals/independent/` holds 8
+A corpus pass belongs INSIDE the verification loop. `https://github.com/srobroek/slopvac/tree/3e3ec92fc5eca871b0c1c8af0ecb16a9b8df81e3/evals` holds 8
 documents across 5 registers, none written against these rules. Four defects came
 out of it that no fixture had imagined: the RFC 2119 substitution inversion, the
 "Master Subscription Agreement" false positive, the all-caps class, and the dead
