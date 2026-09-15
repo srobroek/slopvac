@@ -39,24 +39,30 @@ def render(rubric,shots,cases):
  if any(re.search(rf'"{k}"\s*:',payload) for k in FORBIDDEN) or re.search(r'"(?:defect|control)"',payload): raise AssertionError('forbidden metadata or answer mapping leaked into eval payload')
  return p
 def find_results(v):
- if isinstance(v,dict):
-  if isinstance(v.get('results'),list): return v['results'],v
-  for x in v.values():
-   r=find_results(x)
-   if r[0] is not None:return r
- elif isinstance(v,list):
-  for x in v:
-   r=find_results(x)
-   if r[0] is not None:return r
+ if isinstance(v,dict) and isinstance(v.get('results'),list):return v['results'],v
  return None,None
+def _assistant_key(m):
+ for key in ('message_id','event_id','item_id','id'):
+  value=m.get(key)
+  if isinstance(value,(str,int,float)) and not isinstance(value,bool):return key,value
+ return None
 def _ams(v):
- out=[]
- if isinstance(v,dict):
-  if isinstance(v.get('message'),dict) and v['message'].get('role')=='assistant':out.append(v['message'])
-  if v.get('role')=='assistant':out.append(v)
-  for x in v.values():out.extend(_ams(x))
- elif isinstance(v,list):
-  for x in v:out.extend(_ams(x))
+ out=[]; seen_objects=set(); seen_keys=set()
+ def visit(value):
+  if isinstance(value,dict):
+   message=value.get('message')
+   if isinstance(message,dict) and message.get('role')=='assistant':add(message)
+   if value.get('role')=='assistant':add(value)
+   for child in value.values():visit(child)
+  elif isinstance(value,list):
+   for child in value:visit(child)
+ def add(message):
+  key=_assistant_key(message)
+  if id(message) in seen_objects or (key is not None and key in seen_keys):return
+  seen_objects.add(id(message))
+  if key is not None:seen_keys.add(key)
+  out.append(message)
+ visit(v)
  return out
 def usage(v):
  total={}
@@ -76,11 +82,15 @@ def _text(m):
 def assistant_payloads(v):
  ms=_ams(v)
  if not ms:return []
- text=re.sub(r'```(?:json)?\s*','',_text(ms[-1]),flags=re.I).replace('```',''); d=json.JSONDecoder(); found=[]
- for m in re.finditer(r'[\[{]',text):
-  try:x,_=d.raw_decode(text[m.start():])
-  except json.JSONDecodeError:continue
-  if isinstance(x,(dict,list)):found.append(x)
+ text=re.sub(r'```(?:json)?\s*','',_text(ms[-1]),flags=re.I).replace('```',''); d=json.JSONDecoder(); found=[]; pos=0
+ while True:
+  match=re.search(r'[\[{]',text[pos:])
+  if match is None:break
+  start=pos+match.start()
+  try:x,end=d.raw_decode(text[start:])
+  except json.JSONDecodeError:pos=start+1;continue
+  pos=start+end
+  if isinstance(x,dict) and isinstance(x.get('results'),list):found.append(x)
  return found[-1:] if found else []
 def invoke(model,prompt,timeout=300):
  if shutil.which('omp') is None:return None,{},'provider_error: omp not found'
