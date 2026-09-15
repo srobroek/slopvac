@@ -1,284 +1,129 @@
 #!/usr/bin/env python3
 """Fixed online structured-prose benchmark; all configuration is repository data."""
 from __future__ import annotations
-
-import argparse
-import hashlib
-import json
-import os
-import re
-import shutil
-import subprocess
-import sys
-import tempfile
-import time
+import argparse, hashlib, json, os, re, shutil, subprocess, tempfile, time
 from pathlib import Path
 from typing import Any
-
-ROOT = Path(__file__).resolve().parent
-RUBRIC = ROOT / "rubric.json"
-TEMPLATE = ROOT / "prompt_template.txt"
-SHOTS = ROOT / "shots.json"
-CASES = ROOT / "cases.json"
-ARMS = ROOT / "arms.json"
-ALLOWED = {"confirm", "preserve", "reject", "abstain"}
-AUTH = re.compile(r"\b(?:AI|artificial intelligence|model-generated|machine-generated|human-written|authorship|written by a (?:person|human|model))\b", re.I)
-
-
-def metric(name: str, value: Any) -> None:
-    if isinstance(value, float):
-        print(f"METRIC {name}={value:.6f}")
-    else:
-        print(f"METRIC {name}={value}")
-
-
-def load(path: Path) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as stream:
-        value = json.load(stream)
-    if not isinstance(value, dict):
-        raise ValueError(f"{path.name}: expected object")
-    return value
-
-
-def validate_assets() -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
-    manifest = load(ROOT / "manifest.json")
-    for name, expected in manifest.get("sha256", {}).items():
-        actual = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-        if actual != expected:
-            raise ValueError(f"asset hash mismatch: {name}")
-    rubric, shots, case_doc, arms_doc = load(RUBRIC), load(SHOTS), load(CASES), load(ARMS)
-    if rubric.get("schema_version") != 1 or set(rubric.get("verdicts", [])) != ALLOWED:
-        raise ValueError("rubric schema or verdict set is invalid")
-    shots_list = shots.get("shots")
-    cases = case_doc.get("cases")
-    arms = arms_doc.get("arms")
-    if shots.get("schema_version") != 1 or not isinstance(shots_list, list) or not isinstance(cases, list) or not isinstance(arms, list):
-        raise ValueError("shots, cases, or arms are malformed")
-    if len(cases) < 40:
-        raise ValueError("at least 40 evaluation cases are required")
-    ids = [x.get("id") for x in cases if isinstance(x, dict)]
-    if len(ids) != len(cases) or len(set(ids)) != len(ids) or any(not isinstance(x.get("text"), str) or not x["text"] for x in cases):
-        raise ValueError("case IDs/text must be present and unique")
-    if sum(x.get("label") == "defect" for x in cases) < 20 or sum(x.get("label") == "control" for x in cases) < 20:
-        raise ValueError("case balance requires at least 20 defects and 20 controls")
-    families: dict[str, list[dict[str, Any]]] = {}
-    for case in cases:
-        if case.get("label") not in {"defect", "control"} or not case.get("family") or not case.get("category") or AUTH.search(str(case.get("text", ""))):
-            raise ValueError(f"malformed case metadata: {case.get('id')}")
-        families.setdefault(str(case["family"]), []).append(case)
-    for shot in shots_list:
-        if shot.get("verdict") not in ALLOWED or not isinstance(shot.get("quote"), str) or not shot["quote"] or shot["quote"] not in shot.get("text", "") or AUTH.search(json.dumps(shot, ensure_ascii=False)):
-            raise ValueError(f"invalid shot: {shot.get('id')}")
-    if any(sum(bool(c.get("holdout")) for c in group) != 1 for group in families.values()):
-        raise ValueError("each near-neighbour family must have exactly one holdout")
-    shot_ids = {x.get("id") for x in shots_list}
-    if len(shot_ids) != len(shots_list) or shot_ids & set(ids):
-        raise ValueError("shots and evaluation cases must be disjoint")
-    if not all(isinstance(x.get("text"), str) and x["text"] for x in shots_list):
-        raise ValueError("shots are malformed")
-    if not arms or len({x.get("id") for x in arms}) != len(arms) or any(not x.get("model") for x in arms):
-        raise ValueError("model arm manifest is malformed")
-    return rubric, shots_list, cases, arms_doc
-
-
-def render(rubric: dict[str, Any], shots: list[dict[str, Any]], cases: list[dict[str, Any]]) -> str:
-    template = TEMPLATE.read_text(encoding="utf-8")
-    prompt = template.replace("{{RUBRIC_JSON}}", json.dumps(rubric, sort_keys=True, separators=(",", ":")))
-    prompt = prompt.replace("{{SHOTS_JSON}}", json.dumps(shots, sort_keys=True, separators=(",", ":")))
-    prompt = prompt.replace("{{CASES_JSON}}", json.dumps(cases, sort_keys=True, separators=(",", ":")))
-    if "{{" in prompt or "}}" in prompt:
-        raise ValueError("prompt template has unresolved placeholders")
-    return prompt
-
-
-def find_results(value: Any) -> tuple[list[Any] | None, dict[str, Any] | None]:
-    if isinstance(value, dict):
-        if isinstance(value.get("results"), list):
-            return value["results"], value
-        for child in value.values():
-            found = find_results(child)
-            if found[0] is not None:
-                return found
-    elif isinstance(value, list):
-        for child in value:
-            found = find_results(child)
-            if found[0] is not None:
-                return found
-    return None, None
-
-
-def usage(value: Any) -> dict[str, float]:
-    total: dict[str, float] = {}
-    aliases = {
-        "cost": "cost",
-        "input": "input_tokens",
-        "input_tokens": "input_tokens",
-        "output": "output_tokens",
-        "output_tokens": "output_tokens",
-        "totaltokens": "total_tokens",
-        "total_tokens": "total_tokens",
-        "total": "cost",
-        "latency_ms": "latency_ms",
-        "wall_ms": "wall_ms",
-    }
-    if isinstance(value, dict):
-        for key, child in value.items():
-            normalized = aliases.get(key.lower())
-            if normalized and isinstance(child, (int, float)):
-                total[normalized] = total.get(normalized, 0.0) + float(child)
-            elif isinstance(child, (dict, list)):
-                for name, number in usage(child).items():
-                    total[name] = total.get(name, 0.0) + number
-    elif isinstance(value, list):
-        for child in value:
-            for name, number in usage(child).items():
-                total[name] = total.get(name, 0.0) + number
-    return total
-
-
-def assistant_payloads(value: Any) -> list[Any]:
-    """Return JSON payloads emitted as assistant text in OMP JSON events."""
-    payloads: list[Any] = []
-    if isinstance(value, dict):
-        message = value.get("message")
-        if isinstance(message, dict) and message.get("role") == "assistant":
-            content = message.get("content")
-            if isinstance(content, list):
-                for part in content:
-                    if isinstance(part, dict) and isinstance(part.get("text"), str):
-                        try:
-                            payloads.append(json.loads(part["text"]))
-                        except json.JSONDecodeError:
-                            pass
-        for child in value.values():
-            payloads.extend(assistant_payloads(child))
-    elif isinstance(value, list):
-        for child in value:
-            payloads.extend(assistant_payloads(child))
-    return payloads
-
-
-def invoke(model: str, prompt: str, timeout: int = 300) -> tuple[list[dict[str, Any]] | None, dict[str, float], str]:
-    if shutil.which("omp") is None:
-        return None, {}, "missing omp"
-    with tempfile.TemporaryDirectory(prefix="slopvac-online-") as session:
-        command = ["omp", "-p", "--mode", "json", "--model", model, "--thinking", "low", "--max-time", str(timeout), "--session-dir", session, "--no-extensions", "--no-skills", "--no-rules", "--no-tools", "--no-lsp", "--no-pty", "--no-title"]
-        started = time.monotonic()
-        try:
-            proc = subprocess.run(command, input=prompt, text=True, capture_output=True, timeout=timeout, check=False, env=os.environ.copy())
-        except (OSError, subprocess.TimeoutExpired) as exc:
-            return None, {"latency_ms": (time.monotonic() - started) * 1000}, type(exc).__name__
-        wall = (time.monotonic() - started) * 1000
-        events: list[Any] = []
-        for line in proc.stdout.splitlines():
-            try:
-                events.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-        parsed: Any = None
-        for event in events:
-            results, _ = find_results(event)
-            if results is not None:
-                parsed = event
-                break
-            for payload in assistant_payloads(event):
-                results, _ = find_results(payload)
-                if results is not None:
-                    parsed = payload
-                    break
-            if parsed is not None:
-                break
-        stats = {**usage(events), "latency_ms": wall}
-        if proc.returncode != 0:
-            return None, stats, f"omp exit {proc.returncode}"
-        if parsed is None:
-            return None, stats, "malformed json"
-        results, _ = find_results(parsed)
-        if results is None:
-            return None, stats, "missing results"
-        if any(not isinstance(x, dict) for x in results):
-            return [x for x in results if isinstance(x, dict)], stats, "malformed result"
-        if not any(key in stats for key in ("cost", "total_tokens", "input_tokens", "output_tokens")):
-            return [x for x in results if isinstance(x, dict)], stats, "absent usage"
-        return [x for x in results if isinstance(x, dict)], stats, ""
-
-
-def score(cases: list[dict[str, Any]], results: list[dict[str, Any]] | None) -> dict[str, Any]:
-    rows = results or []
-    by_id = {x.get("case_id"): x for x in rows}
-    counts = {"failures": max(0, len(rows) - len(cases)), "false_positives": 0, "false_confirms": 0, "misses": 0, "correct": 0, "abstains": 0}
-    if [x.get("case_id") for x in rows] != [x["id"] for x in cases]:
-        counts["failures"] += 1
-    if len(by_id) != len(rows):
-        counts["failures"] += 1
-    for case in cases:
-        row = by_id.get(case["id"])
-        if row is None or not isinstance(row.get("verdict"), str) or row["verdict"] not in ALLOWED or not isinstance(row.get("quote"), str) or not row["quote"] or row["quote"] not in case["text"] or AUTH.search(json.dumps(row, ensure_ascii=False)):
-            counts["failures"] += 1
-            continue
-        verdict, label = row["verdict"], case["label"]
-        if verdict == "abstain":
-            counts["abstains"] += 1
-        expected = "reject" if label == "defect" else "preserve"
-        if verdict == expected:
-            counts["correct"] += 1
-        elif label == "control":
-            counts["false_positives"] += 1
-            if verdict == "confirm":
-                counts["false_confirms"] += 1
-        else:
-            counts["misses"] += 1
-    n = len(cases)
-    penalty = 100 * (3 * counts["failures"] + 4 * counts["false_positives"] + 5 * counts["false_confirms"] + 4 * counts["misses"]) / max(1, n * 6)
-    counts["quality_score"] = max(0.0, min(100.0, 100.0 - penalty))
-    counts["case_count"] = n
-    return counts
-
-
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--smoke", action="store_true", help="run one arm and one case without changing benchmark files")
-    args = parser.parse_args(argv)
-    try:
-        rubric, shots, cases, arms_doc = validate_assets()
-        prompt_hash = hashlib.sha256(TEMPLATE.read_bytes() + RUBRIC.read_bytes() + SHOTS.read_bytes() + CASES.read_bytes()).hexdigest()
-        prompt = render(rubric, shots, cases)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        print(f"autoresearch: asset validation failure: {exc}", file=sys.stderr)
-        metric("aggregate_quality_score", 0.0)
-        metric("validation_failure", 1)
-        return 1
-    arms = arms_doc["arms"][:1] if args.smoke else arms_doc["arms"]
-    eval_cases = cases[:1] if args.smoke else cases
-    if args.smoke:
-        prompt = render(rubric, shots, eval_cases)
-    metric("case_count", len(eval_cases))
-    metric("prompt_sha256", prompt_hash)
-    scores: list[float] = []
-    for arm in arms:
-        repeats = 2 if not args.smoke else 1
-        arm_scores: list[float] = []
-        for repeat in range(repeats):
-            results, stats, error = invoke(str(arm["model"]), prompt)
-            result = score(eval_cases, results)
-            if error:
-                result["failures"] += 1
-                result["quality_score"] = 0.0
-            arm_scores.append(float(result["quality_score"]))
-            scores.append(float(result["quality_score"]))
-            prefix = f"arm_{arm['id']}_r{repeat + 1}"
-            for key, value in result.items():
-                metric(f"{prefix}_{key}", value)
-            for key, value in stats.items():
-                metric(f"{prefix}_{key}", value)
-            if error:
-                print(f"METRIC {prefix}_error={json.dumps(error)}")
-        metric(f"arm_{arm['id']}_quality_score", min(arm_scores))
-    metric("aggregate_quality_score", min(scores) if scores else 0.0)
-    metric("aggregate_definition", "worst-survivor=min(per-arm repeated quality scores)")
-    metric("exploratory_batched_screen", 1 if not args.smoke else 0)
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+ROOT=Path(__file__).resolve().parent
+RUBRIC=ROOT/'rubric.json'; TEMPLATE=ROOT/'prompt_template.txt'; SHOTS=ROOT/'shots.json'; CASES=ROOT/'cases.json'; ARMS=ROOT/'arms.json'
+ALLOWED={'confirm','preserve','reject','abstain'}
+FORBIDDEN={'label','role','category','family','genre','holdout'}
+AUTH=re.compile(r'\b(?:AI|artificial intelligence|model-generated|machine-generated|human-written|authorship|written by a (?:person|human|model))\b',re.I)
+def metric(name:str,value:Any)->None: print(f'METRIC {name}={value:.6f}' if isinstance(value,float) else f'METRIC {name}={value}')
+def load(path:Path)->dict[str,Any]:
+ with path.open(encoding='utf-8') as f: value=json.load(f)
+ if not isinstance(value,dict): raise ValueError(f'{path.name}: expected object')
+ return value
+def validate_assets():
+ manifest=load(ROOT/'manifest.json')
+ for name,expected in manifest.get('sha256',{}).items():
+  if hashlib.sha256((ROOT/name).read_bytes()).hexdigest()!=expected: raise ValueError(f'asset changed: {name}')
+ rubric,sd,cd,ad=load(RUBRIC),load(SHOTS),load(CASES),load(ARMS); shots,cases,arms=sd.get('shots'),cd.get('cases'),ad.get('arms')
+ if set(rubric.get('verdicts',[]))!=ALLOWED or not all(isinstance(x,list) for x in (shots,cases,arms)): raise ValueError('assets are malformed')
+ if len({x.get('id') for x in cases})!=len(cases) or any(not isinstance(x.get('text'),str) for x in cases): raise ValueError('case IDs/text must be present and unique')
+ families={}
+ for c in cases: families.setdefault(str(c.get('family')),[]).append(c)
+ if any(sum(bool(x.get('holdout')) for x in g)!=1 for g in families.values()): raise ValueError('each near-neighbour family must have exactly one holdout')
+ for s in shots:
+  if s.get('verdict') not in ALLOWED or not isinstance(s.get('quote'),str) or s['quote'] not in s.get('text','') or AUTH.search(json.dumps(s)): raise ValueError(f'invalid shot: {s.get("id")}')
+ if not arms or any(not x.get('id') or not x.get('model') for x in arms): raise ValueError('model arm manifest is malformed')
+ return rubric,shots,cases,ad
+def project_cases(cases):
+ projected=[{'id':str(c['id']),'text':str(c['text'])} for c in cases]
+ if any(set(c)!={'id','text'} for c in projected): raise AssertionError('model projection contains private metadata')
+ return projected
+def render(rubric,shots,cases):
+ p=TEMPLATE.read_text(encoding='utf-8').replace('{{RUBRIC_JSON}}',json.dumps(rubric,sort_keys=True,separators=(',',':'))).replace('{{SHOTS_JSON}}',json.dumps(shots,sort_keys=True,separators=(',',':'))).replace('{{CASES_JSON}}',json.dumps(project_cases(cases),sort_keys=True,separators=(',',':')))
+ if '{{' in p or '}}' in p: raise ValueError('prompt template has unresolved placeholders')
+ payload=json.dumps(project_cases(cases),sort_keys=True)
+ if any(re.search(rf'"{k}"\s*:',payload) for k in FORBIDDEN) or re.search(r'"(?:defect|control)"',payload): raise AssertionError('forbidden metadata or answer mapping leaked into eval payload')
+ return p
+def find_results(v):
+ if isinstance(v,dict):
+  if isinstance(v.get('results'),list): return v['results'],v
+  for x in v.values():
+   r=find_results(x)
+   if r[0] is not None:return r
+ elif isinstance(v,list):
+  for x in v:
+   r=find_results(x)
+   if r[0] is not None:return r
+ return None,None
+def _ams(v):
+ out=[]
+ if isinstance(v,dict):
+  if isinstance(v.get('message'),dict) and v['message'].get('role')=='assistant':out.append(v['message'])
+  if v.get('role')=='assistant':out.append(v)
+  for x in v.values():out.extend(_ams(x))
+ elif isinstance(v,list):
+  for x in v:out.extend(_ams(x))
+ return out
+def usage(v):
+ total={}
+ for m in _ams(v):
+  u=m.get('usage');
+  if not isinstance(u,dict):continue
+  for k in ('input_tokens','output_tokens','total_tokens'):
+   if isinstance(u.get(k),int) and not isinstance(u[k],bool):total[k]=total.get(k,0)+u[k]
+  c=u.get('cost')
+  if isinstance(c,dict) and isinstance(c.get('total'),(int,float)) and not isinstance(c['total'],bool):total['cost']=float(total.get('cost',0))+float(c['total'])
+ return total
+def _text(m):
+ c=m.get('content','')
+ if isinstance(c,str):return c
+ if isinstance(c,list):return ''.join(x['text'] for x in c if isinstance(x,dict) and isinstance(x.get('text'),str))
+ return ''
+def assistant_payloads(v):
+ ms=_ams(v)
+ if not ms:return []
+ text=re.sub(r'```(?:json)?\s*','',_text(ms[-1]),flags=re.I).replace('```',''); d=json.JSONDecoder(); found=[]
+ for m in re.finditer(r'[\[{]',text):
+  try:x,_=d.raw_decode(text[m.start():])
+  except json.JSONDecodeError:continue
+  if isinstance(x,(dict,list)):found.append(x)
+ return found[-1:] if found else []
+def invoke(model,prompt,timeout=300):
+ if shutil.which('omp') is None:return None,{},'provider_error: omp not found'
+ with tempfile.TemporaryDirectory(prefix='slopvac-online-') as run_dir:
+  cmd=['omp','-p','slopvac-online-','--mode','json','--model',model,'--thinking','low','--max-time',str(timeout),'--no-extensions','--no-skills','--no-tools','--no-slop','--no-memory']; start=time.monotonic()
+  try:proc=subprocess.run(cmd,input=prompt,text=True,capture_output=True,timeout=timeout,check=False,env={**os.environ,'OMP_RUN_DIR':run_dir})
+  except subprocess.TimeoutExpired:return None,{'latency_ms':(time.monotonic()-start)*1000},'provider_error: timeout'
+  events=[]
+  for line in proc.stdout.splitlines():
+   try:events.append(json.loads(line))
+   except json.JSONDecodeError:pass
+  stats={'latency_ms':(time.monotonic()-start)*1000};stats.update(usage(events)); payloads=assistant_payloads(events)
+  if proc.returncode!=0:return None,stats,f'provider_error: omp exit {proc.returncode}'
+  if not payloads:return None,stats,'undecodable: no assistant JSON'
+  rows,_=find_results(payloads[-1])
+  if not isinstance(rows,list):return None,stats,'schema_invalid: missing results'
+  if any(not isinstance(x,dict) for x in rows):return None,stats,'schema_invalid: result row is not object'
+  return rows,stats,''
+def score(cases,results):
+ by={x.get('case_id'):x for x in (results or []) if isinstance(x,dict)}; out={'failures':0,'false_positives':0,'false_confirms':0,'misses':0,'correct':0,'abstains':0,'missing':0}
+ for c in cases:
+  r=by.get(c.get('id'))
+  if r is None:out['missing']+=1;continue
+  if r.get('verdict') not in ALLOWED or not isinstance(r.get('quote'),str) or not r['quote'] or r['quote'] not in c.get('text','') or AUTH.search(json.dumps(r)):out['failures']+=1;continue
+  expected='reject' if c.get('label')=='defect' else 'preserve'
+  if r['verdict']=='abstain':out['abstains']+=1
+  if r['verdict']==expected:out['correct']+=1
+  elif c.get('label')=='control' and r['verdict']=='reject':out['false_positives']+=1
+  elif c.get('label')=='defect' and r['verdict']=='preserve':out['false_confirms']+=1
+  else:out['misses']+=1
+ n=max(1,len(cases)-out['missing']); penalty=100*(3*out['failures']+4*out['false_positives']+5*out['false_confirms']+4*out['misses'])/n;out['quality_score']=max(0.,100.-penalty);return out
+def main(argv=None):
+ ap=argparse.ArgumentParser();ap.add_argument('--smoke',action='store_true');a=ap.parse_args(argv)
+ try:r,s,c,ad=validate_assets(); ec=[x for x in c if not x.get('holdout')]; arms=ad['arms'][:1] if a.smoke else ad['arms'];ec=ec[:1] if a.smoke else ec;p=render(r,s,ec)
+ except (OSError,ValueError,AssertionError,json.JSONDecodeError) as e:print(f'autoresearch: asset validation failure: {e}',file=os.sys.stderr);return 2
+ metric('case-count',len(ec));metric('holdout-count',sum(bool(x.get('holdout')) for x in c));metric('prompt-sha256',hashlib.sha256(p.encode()).hexdigest())
+ for arm in arms:
+  scores=[]
+  for i in range(1 if a.smoke else int(ad.get('fixed',{}).get('repeats',2))):
+   rows,stats,error=invoke(str(arm['model']),p);metric(f"arm-{arm['id']}-repeat-{i+1}-outcome",'ok' if not error else error.split(':',1)[0]);
+   for k,v in stats.items():metric(f"arm-{arm['id']}-repeat-{i+1}-{k}",v)
+   if error:print(f"METRIC arm-{arm['id']}-error={json.dumps(error)}");continue
+   sc=score(ec,rows);scores.append(float(sc['quality_score']));metric(f"arm-{arm['id']}-repeat-{i+1}-quality_score",sc['quality_score'])
+  metric(f"arm-{arm['id']}-quality_score",min(scores) if scores else 'unmeasured')
+ return 0
+if __name__=='__main__':raise SystemExit(main())
