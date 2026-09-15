@@ -710,28 +710,54 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--smoke", action="store_true", help="one arm, one non-holdout case, one request")
     parser.add_argument(
         "--smoke-arm",
-        help=f"exact arm id for --smoke (default {DEFAULT_SMOKE_ARM}); scored arm order never changes",
+        help=f"exact arm id for --smoke (default {DEFAULT_SMOKE_ARM}); alias for --arm",
     )
+    parser.add_argument(
+        "--partition",
+        choices=("screen", "holdout"),
+        default="screen",
+        help="evaluate non-holdout screen cases or the one-per-family holdout partition",
+    )
+    parser.add_argument(
+        "--one-unit",
+        action="store_true",
+        help="send one isolated case per provider request instead of a batched request",
+    )
+    parser.add_argument("--arm", help="run exactly this arm id")
+    parser.add_argument("--repeats", type=int, help="override the manifest repeat count")
     parser.add_argument("--run-dir", help="directory for retained redacted evidence")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT, help="per-request seconds")
     args = parser.parse_args(argv)
+    selected_arm = args.arm or args.smoke_arm or (DEFAULT_SMOKE_ARM if args.smoke else None)
+    if args.smoke_arm is not None and args.arm is not None and args.smoke_arm != args.arm:
+        parser.error("--smoke-arm and --arm select different arms")
     if args.smoke_arm is not None and not args.smoke:
-        parser.error("--smoke-arm selects the --smoke arm; it does not change scored arm order")
-    smoke_arm = args.smoke_arm or DEFAULT_SMOKE_ARM
+        parser.error("--smoke-arm is only supported with --smoke; use --arm otherwise")
+    if args.repeats is not None and args.repeats < 1:
+        parser.error("--repeats must be at least 1")
 
     try:
         rubric, shots, cases, arm_doc = validate_assets()
-        eligible = [case for case in cases if not case.get("holdout")]
+        if args.partition == "holdout":
+            eligible = [case for case in cases if case.get("holdout")]
+        else:
+            eligible = [case for case in cases if not case.get("holdout")]
         if args.smoke:
-            arms = [arm for arm in arm_doc["arms"] if str(arm["id"]) == smoke_arm]
+            if args.partition != "screen":
+                parser.error("--smoke only supports the screen partition")
+            eligible = eligible[:1]
+        if selected_arm is not None:
+            arms = [arm for arm in arm_doc["arms"] if str(arm["id"]) == selected_arm]
             if not arms:
                 known = ", ".join(str(arm["id"]) for arm in arm_doc["arms"])
-                raise ValueError(f"unknown smoke arm {smoke_arm!r}; known arms: {known}")
-            eligible = eligible[:1]
+                label = "smoke arm" if args.smoke else "arm"
+                raise ValueError(f"unknown {label} {selected_arm!r}; known arms: {known}")
         else:
             arms = list(arm_doc["arms"])
         if not eligible:
-            raise ValueError("no non-holdout evaluation cases")
+            raise ValueError(f"no {args.partition} evaluation cases")
+        # The batched prompt is retained for the default screen and for the
+        # run-level provenance metric. One-unit prompts are rendered below.
         prompt = render(rubric, shots, eligible)
     except (OSError, ValueError, AssertionError, json.JSONDecodeError) as exc:
         print(f"autoresearch: asset validation failure: {exc}", file=sys.stderr)
@@ -739,9 +765,13 @@ def main(argv: list[str] | None = None) -> int:
 
     run_dir = Path(args.run_dir).expanduser() if args.run_dir else default_run_dir()
     run_dir.mkdir(parents=True, exist_ok=True)
-    repeats = 1 if args.smoke else int(arm_doc.get("fixed", {}).get("repeats", 2))
+    repeats = args.repeats if args.repeats is not None else (
+        1 if args.smoke else int(arm_doc.get("fixed", {}).get("repeats", 2))
+    )
 
     metric("run_dir", run_dir)
+    metric("partition", args.partition)
+    metric("one_unit", args.one_unit)
     metric("case_count", len(eligible))
     metric("holdout_count", sum(bool(case.get("holdout")) for case in cases))
     metric("prompt_sha256", hashlib.sha256(prompt.encode()).hexdigest())
@@ -749,38 +779,73 @@ def main(argv: list[str] | None = None) -> int:
     metric("repeats", repeats)
 
     measured = 0
+    unavailable = 0
+    measured_scores: list[float] = []
     for arm in arms:
         name = f'arm_{slug(arm["id"])}'
         scores: list[float] = []
+        arm_unavailable = False
         for index in range(1, repeats + 1):
-            nonce = secrets.token_hex(8)
-            tag = f"{name}_repeat_{index}"
-            try:
-                composed = compose(prompt, nonce)
-                preflight(composed, rubric, shots, eligible, nonce)
-            except AssertionError as exc:
-                print(f"autoresearch: prompt preflight failure: {exc}", file=sys.stderr)
-                return 2
-            rows, stats, error = invoke(
-                str(arm["model"]), composed, nonce, run_dir, tag, eligible, args.timeout
-            )
-            metric(f"{tag}_nonce", nonce)
-            metric(f"{tag}_outcome", "ok" if not error else error.split(":", 1)[0])
-            for key, value in sorted(stats.items()):
-                metric(f"{tag}_{key}", value)
-            if error:
-                metric(f"{tag}_error", error)
+            repeat_tag = f"{name}_repeat_{index}"
+            repeat_results: list[dict] = []
+            repeat_error: str | None = None
+            request_cases = eligible if not args.one_unit else eligible
+            for case_index, request_case in enumerate(request_cases, start=1):
+                request_prompt = prompt if not args.one_unit else render(rubric, shots, [request_case])
+                nonce = secrets.token_hex(8)
+                tag = repeat_tag if not args.one_unit else f"{repeat_tag}_case_{case_index}"
+                try:
+                    composed = compose(request_prompt, nonce)
+                    preflight(composed, rubric, shots, [request_case] if args.one_unit else eligible, nonce)
+                except AssertionError as exc:
+                    print(f"autoresearch: prompt preflight failure: {exc}", file=sys.stderr)
+                    return 2
+                rows, stats, error = invoke(
+                    str(arm["model"]),
+                    composed,
+                    nonce,
+                    run_dir,
+                    tag,
+                    [request_case] if args.one_unit else eligible,
+                    args.timeout,
+                )
+                metric(f"{tag}_nonce", nonce)
+                metric(f"{tag}_outcome", "ok" if not error else error.split(":", 1)[0])
+                for key, value in sorted(stats.items()):
+                    metric(f"{tag}_{key}", value)
+                if error:
+                    metric(f"{tag}_error", error)
+                    repeat_error = error
+                    if error.startswith("provider_error:"):
+                        arm_unavailable = True
+                    break
+                if args.one_unit:
+                    repeat_results.extend(rows or [])
+                else:
+                    repeat_results = rows or []
+            if repeat_error:
                 continue
-            result = score(eligible, rows or [])
+            result = score(eligible, repeat_results)
             for key, value in sorted(result.items()):
-                metric(f"{tag}_{key}", value)
+                metric(f"{repeat_tag}_{key}", value)
             scores.append(float(result["quality_score"]))
         if scores:
             measured += 1
-            metric(f"{name}_quality_score", min(scores))
+            arm_score = min(scores)
+            measured_scores.append(arm_score)
+            metric(f"{name}_quality_score", arm_score)
         else:
             metric(f"{name}_quality_score", "unmeasured")
-    return 0 if measured else 1
+        if arm_unavailable:
+            unavailable += 1
+    metric("measured_arm_count", measured)
+    metric("unavailable_arm_count", unavailable)
+    if measured_scores:
+        metric("quality_score", min(measured_scores))
+        return 0
+    metric("quality_score", 0)
+    metric("run_valid", False)
+    return 1
 
 
 if __name__ == "__main__":
