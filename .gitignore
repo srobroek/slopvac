@@ -9,6 +9,10 @@ __pycache__/
 
 .pytest_cache/
 
+# Retained benchmark evidence: redacted provider stdout, stderr and session
+# transcripts, written per run by bench/runner.py --run-dir.
+.bench-runs/
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
