@@ -10,6 +10,8 @@ rules:
   - id: semicolon-used
     name: Do not use a semicolon
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: The semicolon is not permitted. Write two sentences.
     scope: prose
@@ -43,6 +45,8 @@ rules:
   - id: hyphen-missing-in-compound-modifier
     name: Hyphenate a compound modifier before a noun
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: suggestion
     message: 'Hyphenate the compound modifier "{match}".'
     scope: prose
@@ -81,6 +85,8 @@ rules:
   - id: hyphen-group-too-long
     name: Do not hyphenate more than three words
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'This hyphen group joins more than three words ("{match}").'
     scope: prose
@@ -116,6 +122,18 @@ rules:
   - id: parentheses-misuse
     name: Use parentheses only for the listed purposes
     kind: judgement
+    dimension: architecture
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The sentence contains a parenthetical whose full text is inside the unit.
+      protects: >-
+        technical_invariant and defined_domain_term: a parenthetical carrying an identifier, a step number, an
+        abbreviation, or a cross-reference outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: Check that this parenthetical serves a listed purpose.
     scope: sentence
@@ -128,6 +146,7 @@ rules:
       Does this parenthetical give a cross-reference, an item identifier, a step number, an
       abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it
       carries a second idea, promote it to its own sentence.
+    exceptions:
       - code-span
       - quotation
     allowlist: []
@@ -150,6 +169,8 @@ rules:
   - id: colon-terminates-sentence-for-count
     name: Count a list lead-in as its own sentence
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: error
     message: 'The lead-in before the colon has {value} words. Use the sentence cap.'
     scope: sentence

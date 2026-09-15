@@ -11,6 +11,8 @@ rules:
     exceptions: [quotation]
     name: Replace a marketing adjective with a measurable claim
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'slop lexicon: {match} -- delete it or replace it with a measurable claim'
     scope: prose
@@ -38,6 +40,8 @@ rules:
   - id: business-jargon
     name: Use the plain verb
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'business jargon: {match} -- use the plain verb'
     scope: prose
@@ -67,6 +71,8 @@ rules:
     exceptions: [quotation]
     name: Name the specific thing
     kind: pattern
+    dimension: specificity
+    ownership: deterministic
     severity: error
     message: 'vague declarative: {match} -- name the specific thing'
     scope: prose
@@ -92,6 +98,8 @@ rules:
   - id: additive-hedge
     name: Keep the claim that carries load
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'additive hedge: {match} -- keep the claim that carries load'
     scope: prose
@@ -118,6 +126,8 @@ rules:
   - id: hedge-stack
     name: One hedge or none
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'stacked hedge: {match} -- one hedge or none; commit to the claim or cut it'
     scope: prose
@@ -146,6 +156,8 @@ rules:
   - id: intensifier
     name: Delete the degree adverb
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'intensifier: {match} -- delete it, or replace the adjective with a number'
     scope: prose
@@ -175,6 +187,8 @@ rules:
     exceptions: [quotation]
     name: Drop the intensifier from an absolute
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'not comparable: {match} -- the adjective is already absolute; drop the intensifier'
     scope: prose
@@ -205,6 +219,8 @@ rules:
     exceptions: [quotation]
     name: Give the count
     kind: pattern
+    dimension: specificity
+    ownership: deterministic
     severity: warning
     message: 'vague quantifier: {match} -- give the count, or name the cases'
     scope: prose
@@ -240,6 +256,8 @@ rules:
     exceptions: [quotation]
     name: Use the verb, not the noun
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: error
     message: 'nominalisation: {match} -- use the verb (''validate'', not ''perform validation'')'
     scope: prose
@@ -272,6 +290,8 @@ rules:
   - id: document-preamble
     name: Start with the first fact
     kind: pattern
+    dimension: redundancy
+    ownership: deterministic
     severity: error
     message: 'preamble: {match} -- the title already says this; start with the first fact'
     scope: prose
@@ -302,6 +322,8 @@ rules:
   - id: apologizing
     name: Answer the question or cut the passage
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: error
     message: 'deferred claim: {match} -- answer it, or cut the passage that raises it'
     scope: prose
@@ -332,6 +354,8 @@ rules:
     exceptions: [quotation]
     name: Back the claim with a number or example
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: 'borderline hype: {match} -- keep it only if a number or example backs it'
     scope: prose

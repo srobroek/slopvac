@@ -10,6 +10,8 @@ rules:
   - id: rejected-alternative
     name: Move the decision to an ADR, spec, or commit
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: error
     message: 'rejected alternative: {match} -- state what it does; the decision belongs in an ADR, spec, or commit'
     scope: prose
@@ -42,6 +44,8 @@ rules:
     exceptions: [quotation]
     name: Move a benchmark result out of the doc
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: error
     message: 'implementation leak: {match} -- the reader cannot act on this; move it to the commit, ADR, or spec'
     scope: paragraph
@@ -79,6 +83,8 @@ rules:
   - id: unrequested-reassurance
     name: State the positive, or say nothing
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: error
     message: 'unrequested reassurance: {match} -- state what it does, or say nothing'
     scope: prose
@@ -108,6 +114,8 @@ rules:
   - id: epigram
     name: Cut the closing flourish
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'epigram: {match} -- the section already made this point; cut the flourish'
     scope: paragraph
@@ -144,6 +152,8 @@ rules:
   - id: formulaic-subject-verb-slogan
     name: Replace a paired subject-verb slogan with a title
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'formulaic slogan: {match} -- title it with a noun phrase, or state one scoped fact'
     scope: paragraph

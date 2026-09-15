@@ -10,6 +10,18 @@ rules:
   - id: information-not-gradual
     name: Give information gradually
     kind: judgement
+    dimension: architecture
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph has at least two sentences, and every term it introduces is inside the unit.
+      protects: >-
+        l2_clarity and defined_domain_term: an order a procedure fixes, and a term the glossary defines before the
+        document begins, outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: Check that this paragraph introduces one idea at a time.
     scope: paragraph
@@ -22,6 +34,7 @@ rules:
       Does each sentence introduce at most one new idea, and does every term appear after
       the sentence that introduced it? If a reader must already know a later term to parse
       an earlier sentence, reorder.
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -46,6 +59,18 @@ rules:
   - id: missing-key-word-structure
     name: Use key words to structure the text
     kind: judgement
+    dimension: consistency
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph has at least two consecutive sentences whose key words are quotable inside the unit.
+      protects: >-
+        defined_domain_term and l2_clarity: a key word the controlled vocabulary fixes, and a second term a non-native
+        reader needs, outrank this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: Check that this paragraph repeats its key words instead of varying them.
     scope: paragraph
@@ -57,6 +82,7 @@ rules:
     judgement_question: >-
       Does each sentence pick up a key word or key phrase from the sentence before it, and
       is that key word written the same way each time?
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -78,6 +104,8 @@ rules:
   - id: sentence-too-long-descriptive
     name: Keep an explanatory sentence to twenty-five words
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: error
     message: 'This sentence has {value} words. Use twenty-five or fewer.'
     scope: sentence
@@ -115,6 +143,17 @@ rules:
   - id: paragraph-without-related-information
     name: Group related information in a paragraph
     kind: judgement
+    dimension: architecture
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph has at least two sentences, and its first sentence is quotable inside the unit.
+      protects: >-
+        l2_clarity and formal_legal: an opening a template or a standard fixes outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: Check that this paragraph opens with a topic sentence.
     scope: paragraph
@@ -126,6 +165,7 @@ rules:
     judgement_question: >-
       Does the first sentence of this paragraph tell the reader what the paragraph is about,
       and does every later sentence add to that topic?
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -147,6 +187,22 @@ rules:
   - id: paragraph-has-multiple-topics
     name: Keep one topic per paragraph
     kind: judgement
+    dimension: architecture
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-descriptive.paragraph-too-many-sentences
+      - prose-format.prose-block
+    judgement_contract:
+      admission: >-
+        The paragraph is the one a length seed matched, and the sentence boundary a split would use is inside the
+        unit.
+      protects: >-
+        l2_clarity and technical_invariant: a paragraph whose halves depend on each other, or whose order a procedure
+        fixes, outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: Check that this paragraph carries one topic.
     scope: paragraph
@@ -158,6 +214,7 @@ rules:
     judgement_question: >-
       Could this paragraph be split at any sentence boundary without either half needing the
       other? If yes, it carries more than one topic.
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -180,6 +237,8 @@ rules:
   - id: paragraph-too-many-sentences
     name: Keep a paragraph to six sentences
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'This paragraph has {value} sentences. Use six or fewer.'
     scope: paragraph

@@ -10,6 +10,8 @@ rules:
   - id: multiword-noun-too-long
     name: Keep a noun stack to three words
     kind: metric
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'This noun stack has {value} words. Use three or fewer.'
     scope: sentence
@@ -47,6 +49,21 @@ rules:
   - id: long-domain-term-without-short-form
     name: Give a short form for a long domain term
     kind: judgement
+    dimension: consistency
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-nouns.multiword-noun-too-long
+    judgement_contract:
+      admission: >-
+        The document contains the long domain term a seed matched, at its first use and at a later use, both inside
+        the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a term whose full spelling an identifier, an API name, or a
+        standard fixes outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that this long domain term is written in full once and then given a short form.
     scope: document
@@ -59,6 +76,7 @@ rules:
       This domain term is longer than three words and cannot be shortened, because the
       project owns the name. Is it written in full at first use, and is either a short form
       declared or the words joined with hyphens as one unit?
+    exceptions:
       - code-span
       - identifier-fidelity
     allowlist: []

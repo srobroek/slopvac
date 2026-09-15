@@ -25,6 +25,22 @@ rules:
   - id: contrastive-inversion-remainder
     name: Judge whether a contrast names a real alternative
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-agentic.contrastive-inversion-frames
+      - ai-tells-structure.definitional-negation-pair
+    judgement_contract:
+      admission: >-
+        The paragraph holds a negated-half contrast a seed matched, or one of the ambiguous bare-clause and
+        subjectless-imperative forms the seed leaves clean, and both halves are quotable inside the unit.
+      protects: >-
+        factual_contrast and technical_invariant: a negated half that states a real boundary, a safety constraint, or
+        a documented invariant outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: 'contrastive inversion: state what the thing is; cut the strawman'
     scope: paragraph
@@ -66,6 +82,8 @@ rules:
     exceptions: [quotation, factual-correction]
     name: Cut a cross-sentence definitional contrast
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'definitional contrast across sentences: {match} -- state what the thing is once; cut the invented alternative'
     scope: paragraph
@@ -124,6 +142,8 @@ rules:
   - id: staccato-negative-parallel-frames
     name: Replace a staccato negative run with one sentence
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'staccato negative parallel: {match} -- one plain sentence naming the thing'
     scope: paragraph
@@ -149,6 +169,21 @@ rules:
   - id: staccato-negative-parallel-remainder
     name: Judge whether a fragment run carries content
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.staccato-negative-parallel-frames
+    judgement_contract:
+      admission: >-
+        The paragraph holds the run of consecutive fragments a seed matched, and every fragment in the run is quotable
+        inside the unit.
+      protects: >-
+        accessibility_repetition and l2_clarity: a short-sentence run written for scanning or for a non-native reader
+        outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'fragment cadence: rejoin the fragments and let the fact carry the weight'
     scope: paragraph
@@ -174,6 +209,8 @@ rules:
   - id: tricolon-abuse-core
     name: Cut a three-item list to the items that carry load
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'tricolon: {match} -- cut to the one or two that carry load; break the symmetry'
     scope: sentence
@@ -210,6 +247,21 @@ rules:
   - id: tricolon-abuse-remainder
     name: Judge whether parallel bullets carry distinct substance
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.tricolon-abuse-core
+    judgement_contract:
+      admission: >-
+        The document holds the three identical-shape items, or the two consecutive tricolons, a seed matched, and
+        every item is quotable inside the unit.
+      protects: >-
+        technical_invariant and accessibility_repetition: parallel items that enumerate a fixed set, and repetition an
+        assisted reader navigates by, outrank this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'parallel symmetry: keep only the items with distinct substance'
     scope: document
@@ -237,6 +289,8 @@ rules:
   - id: false-suspense-frames
     name: Delete the drumroll
     kind: tokens
+    dimension: staleness
+    ownership: deterministic
     severity: error
     message: 'false suspense: {match} -- delete the drumroll; state the point'
     scope: prose
@@ -273,6 +327,20 @@ rules:
   - id: false-suspense-remainder
     name: Judge whether a transition withholds the point
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.false-suspense-frames
+    judgement_contract:
+      admission: >-
+        The paragraph opens on the announcement phrase a seed matched, and the sentences that would state the point
+        are inside the unit.
+      protects: >-
+        l2_clarity: a transition a non-native reader needs to follow the turn outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'false suspense: delete the drumroll; state the point'
     scope: paragraph
@@ -297,6 +365,8 @@ rules:
   - id: fragment-question-pivot
     name: Replace a question-answer fragment pair with a declarative
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'fragment-question pivot: {match} -- one declarative sentence'
     scope: prose
@@ -321,6 +391,8 @@ rules:
   - id: rhetorical-question-transition
     name: Answer directly instead of asking
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'rhetorical question: {match} -- answer directly; delete the question'
     scope: prose
@@ -347,6 +419,8 @@ rules:
   - id: meta-narration-frames
     name: Delete the navigation announcement
     kind: tokens
+    dimension: redundancy
+    ownership: deterministic
     severity: error
     message: 'meta-narration: {match} -- delete it; navigation is the TOC''s job'
     scope: prose
@@ -384,6 +458,21 @@ rules:
   - id: meta-narration-remainder
     name: Judge whether a sentence spends itself on navigation
     kind: judgement
+    dimension: redundancy
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.meta-narration-frames
+    judgement_contract:
+      admission: >-
+        The paragraph contains the navigational frame a seed matched, and the whole framing sentence is quotable
+        inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: a statement about document structure that a standard or a contract
+        requires outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'meta-narration: delete it; navigation is the TOC''s job'
     scope: paragraph
@@ -407,6 +496,21 @@ rules:
   - id: heading-echo
     name: Start with the first new fact after a heading
     kind: judgement
+    dimension: redundancy
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-craft.self-reference
+    judgement_contract:
+      admission: >-
+        The unit is the first paragraph under a heading and the heading text sits in the same block, so heading and
+        opening sentence are both quotable.
+      protects: >-
+        accessibility_repetition and l2_clarity: a restatement that orients a reader arriving from a link, a search
+        result, or a screen reader outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'heading echo: start with the first new fact'
     scope: paragraph
@@ -434,6 +538,8 @@ rules:
     exceptions: [quotation]
     name: End on the last fact
     kind: tokens
+    dimension: redundancy
+    ownership: deterministic
     severity: error
     message: 'summary closer: {match} -- end on the last fact'
     scope: prose
@@ -482,6 +588,20 @@ rules:
   - id: summary-closer-remainder
     name: Judge whether a closing section adds a fact
     kind: judgement
+    dimension: redundancy
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.summary-closer-frames
+    judgement_contract:
+      admission: >-
+        The document's final section opens on the closer frame a seed matched, and the sections it may be re-listing
+        are inside the unit.
+      protects: >-
+        accessibility_repetition: a recap a long reference document gives a returning reader outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'summary closer: end on the last fact'
     scope: document
@@ -509,6 +629,19 @@ rules:
   - id: listicle-in-a-trench-coat
     name: Make it a real list or real prose
     kind: judgement
+    dimension: architecture
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document holds at least two consecutive paragraphs that open on an ordinal position in a sequence, both
+        quotable inside the unit.
+      protects: >-
+        l2_clarity and accessibility_repetition: ordinal signposting a reader needs to keep place in a long procedure
+        outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'listicle in prose: either a real list, or prose with connective logic'
     scope: document
@@ -534,6 +667,19 @@ rules:
   - id: anaphora-abuse
     name: Say it once and merge the objects
     kind: judgement
+    dimension: staleness
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph holds three or more consecutive sentences whose opening subject-verb pair repeats, and each
+        opening is quotable inside the unit.
+      protects: >-
+        accessibility_repetition and l2_clarity: a repeated frame that carries parallel instructions for an assisted
+        or non-native reader outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'anaphora: say it once; merge the objects'
     scope: paragraph
@@ -558,6 +704,19 @@ rules:
   - id: analogy-stack-authority
     name: Keep one apt comparison, or none
     kind: judgement
+    dimension: veracity
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph names at least one well-known company, product, or system, and the claim it is attached to is
+        quotable inside the unit.
+      protects: >-
+        technical_invariant and defined_domain_term: a named product that is part of the mechanism, or a term of art,
+        outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'analogy stack: one apt comparison, or none'
     scope: paragraph
@@ -582,6 +741,19 @@ rules:
   - id: invented-concept-label
     name: Coin nothing
     kind: judgement
+    dimension: wording
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document presents a title-cased or quoted concept label, and any definition or citation the label carries
+        is inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a label the project glossary, the schema, or the code defines
+        outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: 'invented concept label: use the plain description; coin nothing'
     scope: document
@@ -607,6 +779,8 @@ rules:
   - id: cataphoric-lead-in-core
     name: Cut the count forecast
     kind: pattern
+    dimension: redundancy
+    ownership: deterministic
     severity: warning
     message: 'cataphoric lead-in: {match} -- let the list carry its own length; cut the forecast'
     scope: prose
@@ -634,6 +808,19 @@ rules:
   - id: cataphoric-lead-in-remainder
     name: Judge whether a forecast tells the reader anything
     kind: judgement
+    dimension: redundancy
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.cataphoric-lead-in-core
+    judgement_contract:
+      admission: >-
+        The paragraph contains the count forecast a seed matched, and the list it forecasts is inside the unit.
+      protects: >-
+        l2_clarity: a forecast a reader needs to budget effort before a long list outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'cataphoric lead-in: cut the forecast'
     scope: paragraph
@@ -655,6 +842,19 @@ rules:
   - id: hollow-acknowledgment
     name: Solve it, or cut the paragraph that raises it
     kind: judgement
+    dimension: specificity
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph names a risk, a limitation, or a problem, and any action, measurement, or pointer it offers is
+        inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: a disclosure a standard or a contract requires, and a documented
+        limitation, outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'hollow acknowledgment: solve it, or cut the paragraph that raises it'
     scope: paragraph
@@ -681,6 +881,8 @@ rules:
   - id: absolute-assertion-core
     name: State the claim with its actual scope
     kind: pattern
+    dimension: veracity
+    ownership: deterministic
     severity: warning
     message: 'absolute assertion: {match} -- state the claim with its actual scope'
     scope: prose
@@ -709,6 +911,21 @@ rules:
   - id: absolute-assertion-remainder
     name: Judge whether an absolute claim survives one counterexample
     kind: judgement
+    dimension: veracity
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.absolute-assertion-core
+    judgement_contract:
+      admission: >-
+        The sentence carries the universal quantifier or absolute adverb a seed matched, and any scope that bounds the
+        claim is in the same sentence.
+      protects: >-
+        technical_invariant and formal_legal: a defined scoped invariant, and a normative requirement whose force
+        depends on the absolute, outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: 'absolute assertion: state the claim with its actual scope'
     scope: sentence
@@ -735,6 +952,8 @@ rules:
   - id: negative-inventory-core
     name: Cut low-value negative inventory
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: warning
     message: 'negative inventory: {match} -- state the supported behavior or constraint'
     scope: prose
@@ -767,6 +986,21 @@ rules:
   - id: negative-inventory-remainder
     name: Judge whether a negative constraint is actionable
     kind: judgement
+    dimension: scope
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.negative-inventory-core
+    judgement_contract:
+      admission: >-
+        The paragraph contains the negative statement a seed matched, and any constraint, result, or pointer it
+        carries is inside the unit.
+      protects: >-
+        technical_invariant and formal_legal: an enforced exclusion, an audit fact, or a compliance constraint
+        outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'negative inventory: keep only an actionable constraint, result, or pointer'
     scope: paragraph
@@ -797,6 +1031,8 @@ rules:
   - id: think-of-it-as-core
     name: Explain the mechanism instead of the metaphor
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'teacher voice: {match} -- explain the actual mechanism once; cut the teacher voice'
     scope: prose
@@ -821,6 +1057,20 @@ rules:
   - id: think-of-it-as-remainder
     name: Judge whether an analogy replaces the mechanism
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.think-of-it-as-core
+    judgement_contract:
+      admission: >-
+        The paragraph contains the analogy frame a seed matched, and any statement of the mechanism is inside the
+        unit.
+      protects: >-
+        l2_clarity: an analogy that shortens the explanation for a non-specialist reader outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'teacher voice: explain the actual mechanism once'
     scope: paragraph
@@ -842,6 +1092,18 @@ rules:
   - id: false-range
     name: List the actual items or name the real dimension
     kind: judgement
+    dimension: wording
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The sentence contains a from-X-to-Y construction whose two endpoints are both quotable inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a real scale whose endpoints the domain or the schema defines
+        outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'false range: list the actual items, or name the real dimension'
     scope: sentence
@@ -869,6 +1131,8 @@ rules:
     exceptions: [quotation]
     name: Name the source or own the claim
     kind: pattern
+    dimension: specificity
+    ownership: deterministic
     severity: error
     message: 'vague attribution: {match} -- name the source or own the claim'
     scope: prose
@@ -896,6 +1160,21 @@ rules:
   - id: vague-attribution-remainder
     name: Judge whether a cited source is checkable
     kind: judgement
+    dimension: specificity
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.vague-attribution-core
+    judgement_contract:
+      admission: >-
+        The sentence contains the unnamed-source phrase a seed matched, and any citation it offers is in the same
+        sentence.
+      protects: >-
+        formal_legal and technical_invariant: an attribution a licence, a citation standard, or an anonymity
+        requirement fixes outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'vague attribution: name the source or own the claim'
     scope: sentence
@@ -920,6 +1199,8 @@ rules:
   - id: audience-straddle-core
     name: Write for the one audience the doc has
     kind: pattern
+    dimension: consistency
+    ownership: deterministic
     severity: warning
     message: 'audience straddle: {match} -- write for the one audience the doc has'
     scope: prose
@@ -944,6 +1225,21 @@ rules:
   - id: audience-straddle-remainder
     name: Judge whether the document holds one audience
     kind: judgement
+    dimension: consistency
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-structure.audience-straddle-core
+    judgement_contract:
+      admission: >-
+        The document explains a term in one place and uses it without explanation in another, and both places are
+        inside the unit.
+      protects: >-
+        l2_clarity and accessibility_repetition: an explanation repeated for a reader who enters the document mid-way
+        outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'audience straddle: write for the one audience the doc has'
     scope: document
@@ -974,6 +1270,8 @@ rules:
   - id: faux-candor-core
     name: Cut the intimacy performance
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'faux candor: {match} -- cut the intimacy performance; candor is the unhedged claim'
     scope: prose
@@ -1008,6 +1306,20 @@ rules:
   - id: faux-candor-remainder
     name: Judge whether an admission carries risk
     kind: judgement
+    dimension: inflation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.faux-candor-core
+    judgement_contract:
+      admission: >-
+        The paragraph contains the admission frame a seed matched, and any named cost, mistake, or refused feature is
+        inside the unit.
+      protects: >-
+        formal_legal: a disclosure a licence, a policy, or a contract requires outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'faux candor: candor is the unhedged claim itself'
     scope: paragraph
@@ -1032,6 +1344,8 @@ rules:
   - id: intensifier-tics-core
     name: Drop the unearned intensifier
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'intensifier tic: {match} -- drop it; add the specific claim that would justify it'
     scope: prose
@@ -1068,6 +1382,21 @@ rules:
   - id: intensifier-tics-remainder
     name: Judge whether emotion is announced or earned
     kind: judgement
+    dimension: inflation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.intensifier-tics-core
+    judgement_contract:
+      admission: >-
+        The sentence carries the intensifying adverb a seed matched, and the passage that would support the reaction
+        is inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: an adverb that belongs to a defined term or reports a measured
+        degree outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'unearned emotion: add the specific claim, or drop the adverb'
     scope: sentence
@@ -1089,6 +1418,8 @@ rules:
   - id: corporate-analytic-filler-core
     name: Delete the analysis wrapper and keep the noun
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'analytic filler: {match} -- delete the wrapper; keep the noun'
     scope: prose
@@ -1129,6 +1460,20 @@ rules:
   - id: corporate-analytic-filler-remainder
     name: Judge whether an analysis frame contains analysis
     kind: judgement
+    dimension: inflation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.corporate-analytic-filler-core
+    judgement_contract:
+      admission: >-
+        The paragraph opens on the analysis frame a seed matched, and the sentence the frame wraps is quotable inside
+        the unit.
+      protects: >-
+        formal_legal: framing a report format, a template, or a standard requires outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'analytic filler: analysis-flavored packaging around no analysis'
     scope: paragraph
@@ -1150,6 +1495,22 @@ rules:
   - id: over-formatting-reflex
     name: Format only when the data has columns
     kind: judgement
+    dimension: presentation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-formatting.inline-header-list
+      - ai-tells-formatting.bold-spray
+    judgement_contract:
+      admission: >-
+        The document contains at least one table, bold-colon bullet, or inline-header run a seed matched, and its rows
+        or items are inside the unit.
+      protects: >-
+        accessibility_repetition and l2_clarity: structure a screen reader or a scanning reader navigates by outranks
+        this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'over-formatting: format only when the data has columns or the items are parallel and independent'
     scope: document
@@ -1180,6 +1541,8 @@ rules:
   - id: uniform-paragraph-mass
     name: Vary paragraph length deliberately
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'uniform paragraph mass: stdev of paragraph word count is {match} -- vary length deliberately'
     scope: document
@@ -1207,6 +1570,18 @@ rules:
   - id: hedged-symmetry
     name: Take the position the evidence supports
     kind: judgement
+    dimension: veracity
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph states a position and at least one counter-claim, both quotable inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: a counter-claim a standard records, and a measured variance, outrank
+        this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'hedged symmetry: take the position the evidence supports; cut the ballast'
     scope: paragraph
@@ -1235,6 +1610,8 @@ rules:
   - id: sycophantic-meta-residue
     name: Delete the approval residue and audit the surrounding text
     kind: tokens
+    dimension: veracity
+    ownership: deterministic
     severity: error
     message: 'sycophancy residue: {match} -- delete it, then audit the surrounding text'
     scope: prose
@@ -1270,6 +1647,8 @@ rules:
   - id: figurative-verb-verdict-core
     name: State the judgement literally
     kind: tokens
+    dimension: staleness
+    ownership: deterministic
     severity: error
     message: 'figurative verdict: {match} -- state the judgement literally, with the observation that supports it'
     scope: prose
@@ -1307,6 +1686,20 @@ rules:
   - id: figurative-verb-verdict-remainder
     name: Judge whether a metaphor carries a verdict with no evidence
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.figurative-verb-verdict-core
+    judgement_contract:
+      admission: >-
+        The sentence carries the figurative verdict verb a seed matched, and any observation that would support the
+        verdict is in the same sentence.
+      protects: >-
+        defined_domain_term: a figurative verb that belongs to a defined term of art outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'figurative verdict: the construction carries the verdict so no evidence has to'
     scope: sentence
@@ -1331,6 +1724,8 @@ rules:
   - id: urgency-inflation-core
     name: Name what breaks, or drop the framing
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'urgency inflation: {match} -- name what breaks if the reader ignores it, or drop the framing'
     scope: prose
@@ -1364,6 +1759,20 @@ rules:
   - id: urgency-inflation-remainder
     name: Judge whether stakes name a consequence
     kind: judgement
+    dimension: inflation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.urgency-inflation-core
+    judgement_contract:
+      admission: >-
+        The paragraph carries the urgency phrase a seed matched, and any named failure mode is inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: urgency a safety requirement, a deprecation deadline, or a regulation
+        fixes outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'urgency inflation: name what breaks if the reader ignores it'
     scope: paragraph
@@ -1385,6 +1794,8 @@ rules:
   - id: organic-consequence-core
     name: Say the choice was made, and why
     kind: tokens
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'organic-consequence framing: {match} -- say the choice was made, and who made it'
     scope: prose
@@ -1418,6 +1829,20 @@ rules:
   - id: organic-consequence-remainder
     name: Judge whether a design is presented as self-caused
     kind: judgement
+    dimension: agency
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.organic-consequence-core
+    judgement_contract:
+      admission: >-
+        The sentence carries the self-causation frame a seed matched, and its subject is quotable in the same
+        sentence.
+      protects: >-
+        technical_invariant: emergent behaviour the system genuinely has, with no chooser to name, outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'organic-consequence framing: a designed decision presented as something that happened'
     scope: sentence
@@ -1438,6 +1863,20 @@ rules:
   - id: false-agency-remainder
     name: Judge whether an abstraction occupies the subject slot
     kind: judgement
+    dimension: agency
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-agency.false-agency
+    judgement_contract:
+      admission: >-
+        The sentence's subject is the abstraction a seed matched, and the verb it governs is in the same sentence.
+      protects: >-
+        defined_domain_term and technical_invariant: a subject the domain defines as an actor, such as a named service
+        or job, outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'false agency: name the human, or use "you" and put the reader in the seat'
     scope: sentence
@@ -1469,6 +1908,8 @@ rules:
     exceptions: [quotation]
     name: State the measured property, not the desert
     kind: tokens
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'anthropomorphised justification: {match} -- state the measured property'
     scope: prose
@@ -1504,6 +1945,21 @@ rules:
   - id: anthropomorphised-justification-remainder
     name: Judge whether a component is granted intent
     kind: judgement
+    dimension: agency
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-register.anthropomorphised-justification-core
+    judgement_contract:
+      admission: >-
+        The sentence grants a component the merit term a seed matched, and the property it claims is in the same
+        sentence.
+      protects: >-
+        defined_domain_term: a merit word that names a measured property or belongs to a defined term outranks this
+        rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'anthropomorphised justification: a component granted intent so its value needs no argument'
     scope: sentence
@@ -1534,6 +1990,8 @@ rules:
   - id: em-dash-density
     name: Keep only the em dashes that mark a real aside
     kind: metric
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'dash density: {match} dashes per 1000 words -- most become commas, colons, or two sentences'
     scope: document
@@ -1564,6 +2022,8 @@ rules:
   - id: curly-quotes
     name: Normalise curly quotes to straight ones
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'curly quote: {match} -- normalise to a straight quote'
     scope: raw
@@ -1590,6 +2050,8 @@ rules:
   - id: title-case-heading
     name: Use sentence case in headings
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'title-case heading: {match} -- use sentence case unless house style says otherwise'
     scope: heading
@@ -1630,6 +2092,8 @@ rules:
   - id: bold-spray
     name: Bold at most the first definitional use
     kind: metric
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'bold spray: {match} bold spans per 1000 words -- bold at most first definitional use'
     scope: document
@@ -1654,6 +2118,8 @@ rules:
   - id: inline-header-list
     name: Convert a repeated bold-colon bullet run to prose or a table
     kind: metric
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'inline-header list: {match} consecutive bold-colon bullets -- prose, or a table with real columns'
     scope: document
@@ -1678,6 +2144,8 @@ rules:
   - id: heading-hierarchy
     name: Fix a skipped heading level
     kind: structure
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'heading hierarchy: {match} -- fix the level; delete the rule before it'
     scope: document
@@ -1700,6 +2168,17 @@ rules:
   - id: table-wrapping-one-sentence
     name: Unwrap a table that holds one sentence
     kind: judgement
+    dimension: presentation
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document contains at least one table whose header and rows are inside the unit.
+      protects: >-
+        accessibility_repetition: a table a screen reader or a reference reader navigates by outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'table wrapping prose: unwrap it'
     scope: document
@@ -1724,6 +2203,8 @@ rules:
   - id: italicised-copula
     name: Delete manufactured emphasis
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'italicised copula: {match} -- delete the emphasis; let word order carry the contrast'
     scope: raw
@@ -1750,6 +2231,8 @@ rules:
   - id: cross-reference-signposting
     name: Delete the cross-reference signpost
     kind: tokens
+    dimension: redundancy
+    ownership: deterministic
     severity: warning
     message: 'cross-reference signposting: {match} -- delete it; a doc with a TOC is not read linearly'
     scope: prose
@@ -1784,6 +2267,8 @@ rules:
   - id: emoji-list-markers
     name: Delete emoji used as list markers
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'emoji list marker: {match} -- delete it; the list marker carries the structure'
     scope: raw
@@ -1824,6 +2309,8 @@ rules:
   - id: fabricated-citations-core
     name: Strip citation junk
     kind: pattern
+    dimension: veracity
+    ownership: deterministic
     severity: error
     message: 'damaged citation: {match} -- verify the reference and strip the tracking junk'
     scope: raw
@@ -1851,6 +2338,20 @@ rules:
   - id: fabricated-citations-remainder
     name: Verify every reference you did not fetch yourself
     kind: judgement
+    dimension: veracity
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ai-tells-content-shape.fabricated-citations-core
+    judgement_contract:
+      admission: >-
+        The document contains the reference a seed matched, and the sentence whose claim rests on it is inside the
+        unit.
+      protects: >-
+        formal_legal: a citation a licence, a standard, or an attribution requirement fixes outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'unverified citation: verify every reference you did not fetch yourself'
     scope: document
@@ -1881,6 +2382,8 @@ rules:
   - id: fake-specificity
     name: Give the number or drop the quantifier
     kind: pattern
+    dimension: specificity
+    ownership: deterministic
     severity: error
     message: 'fake specificity: {match} -- give the number or drop the quantifier'
     scope: prose
@@ -1913,6 +2416,18 @@ rules:
   - id: vaporware-description
     name: Cut the claim, not the qualifier
     kind: judgement
+    dimension: veracity
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document describes a behaviour in the present tense and names the artifact the behaviour belongs to.
+      protects: >-
+        formal_legal and technical_invariant: a specification, a standard, or a contract that states required
+        behaviour outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'vaporware: cut the CLAIM, not the qualifier'
     scope: document
@@ -1951,6 +2466,8 @@ rules:
   - id: adjective-per-noun-spray
     name: Cut decorative modifiers
     kind: metric
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: 'adjective spray: {match} adjectives per noun -- keep the ones that carry load'
     scope: document
@@ -1976,6 +2493,17 @@ rules:
   - id: elegant-variation
     name: Repeat the noun
     kind: judgement
+    dimension: consistency
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document refers to one thing by two or more names, and every spelling is quotable inside the unit.
+      protects: >-
+        defined_domain_term and l2_clarity: two names the domain genuinely distinguishes outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: 'elegant variation: repeat the noun; precision beats variety'
     scope: document
@@ -2001,6 +2529,18 @@ rules:
   - id: one-point-dilution
     name: Say it once and stop
     kind: judgement
+    dimension: redundancy
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document restates an argument it already made, and both the first statement and the restatement are
+        quotable inside the unit.
+      protects: >-
+        accessibility_repetition: a restatement a long document gives a reader who enters mid-way outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'one-point dilution: say it once; stop'
     scope: document
@@ -2026,6 +2566,19 @@ rules:
   - id: padded-symmetry
     name: Let a section be two sentences
     kind: judgement
+    dimension: redundancy
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document contains the section under question and the sibling section whose length it may be matching, or a
+        FAQ, Tips, or Troubleshooting section, inside the unit.
+      protects: >-
+        accessibility_repetition and formal_legal: a section a template, a standard, or a publishing contract requires
+        outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'padded symmetry: two sentences is a fine section'
     scope: document
@@ -2054,6 +2607,8 @@ rules:
   - id: superficial-ing-analysis
     name: State the analysis as a fact or delete it
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'superficial -ing analysis: {match} -- state it as a fact, or delete it'
     scope: prose
@@ -2079,6 +2634,8 @@ rules:
     exceptions: [quotation]
     name: Use the concrete verb
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: "copula avoidance: use '{replacement}' instead of '{match}'"
     scope: prose
@@ -2126,6 +2683,18 @@ rules:
   - id: textbook-connector-runs
     name: Do not open consecutive sentences on a textbook connector
     kind: judgement
+    dimension: staleness
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        Two consecutive sentences in the paragraph each open on a connector, and both openings are quotable inside the
+        unit.
+      protects: >-
+        l2_clarity: a connector that makes the relation explicit for a non-native reader outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'textbook connectors: replace with the concrete relation, or delete'
     scope: paragraph
@@ -2156,6 +2725,22 @@ rules:
   - id: over-writing-remainder
     name: Judge whether the reader acts differently for having read it
     kind: judgement
+    dimension: scope
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-scope.rejected-alternative
+      - prose-scope.implementation-leak
+    judgement_contract:
+      admission: >-
+        The paragraph contains the rejected alternative or implementation detail a seed matched, and the behaviour
+        statement it surrounds is inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: content the genre exists to record, such as an ADR, a spec, or an audit
+        trail, outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'over-writing: cut it to the behavior; move the decision to an ADR, spec, or commit'
     scope: paragraph
@@ -2183,6 +2768,18 @@ rules:
   - id: unasked-for-rationale
     name: Delete the clause and keep the behavior
     kind: judgement
+    dimension: scope
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The paragraph defends a choice, and the behaviour the defence is attached to is inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: a reason the genre exists to record, and a constraint or measured
+        threshold a reader cannot recover from the text, outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'unasked-for rationale: delete the clause and keep the behavior, or move the reason to the commit'
     scope: paragraph
@@ -2221,6 +2818,20 @@ rules:
   - id: epigram-closer-remainder
     name: Judge whether a closing line adds a fact
     kind: judgement
+    dimension: staleness
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-scope.epigram
+    judgement_contract:
+      admission: >-
+        The paragraph's closing line is the epigram a seed matched, and the paragraph or table it closes is inside the
+        unit.
+      protects: >-
+        accessibility_repetition: a closing line that carries the one fact a scanning reader needs outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: 'epigram closer: the paragraph or table above already carried the content'
     scope: paragraph
@@ -2257,6 +2868,8 @@ rules:
   - id: formulaic-universal-heading
     name: Replace a universal slogan with a title
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'universal slogan: {match} -- title it with a noun phrase, or state one scoped fact'
     scope: paragraph
@@ -2302,6 +2915,8 @@ rules:
   - id: contrastive-inversion-frames
     name: Cut the strawman half of a contrastive frame
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: error
     message: 'contrastive inversion: {match} -- state what the thing is; cut the strawman'
     scope: paragraph

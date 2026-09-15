@@ -16,6 +16,20 @@ rules:
   - id: competing-actor-terms
     name: Pick one term for one subject
     kind: judgement
+    dimension: consistency
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-words.inconsistent-term-for-same-thing
+    judgement_contract:
+      admission: >-
+        The document uses two or more actor terms, and every term is quotable inside the unit.
+      protects: >-
+        defined_domain_term and l2_clarity: two actor terms the document defines as different subjects at first use
+        outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     message: >-
       Two or more terms name what may be the same subject. Pick one and use it
       everywhere, or state the distinction at first use.
@@ -30,6 +44,7 @@ rules:
       operator, admin, developer, integrator, subscriber, end user. For each
       pair, do they name the same subject? If yes, that is rotation and one term
       must win. If no, does the document define the difference at first use?
+    exceptions:
       - defined-distinction
       - quotation
       - api-name
@@ -67,6 +82,8 @@ rules:
   - id: frozen-verb
     name: Put the action in the verb
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: error
     message: >-
       "{match}" freezes the action in a noun. Use the plain verb.
@@ -117,6 +134,8 @@ rules:
   - id: run-on
     name: Split the run-on
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: >-
       This sentence stitches {match} independent ideas together; the limit is
@@ -162,6 +181,8 @@ rules:
   - id: phrasal-verb
     name: Use the plain verb
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Use "{replacement}" rather than "{match}".'
     scope: prose
@@ -260,6 +281,23 @@ rules:
   - id: marketing-register
     name: Describe, do not sell
     kind: judgement
+    dimension: inflation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-discipline.marketing-lexicon
+      - orwell.unsupported-evaluative
+      - prose-promotion.promotional-puffery
+    judgement_contract:
+      admission: >-
+        The paragraph contains the evaluative claim a seed matched, and the sentence that would support it is in the
+        same unit or the one after it.
+      protects: >-
+        formal_legal and defined_domain_term: a claim a licence, a trademark, or a defined term of art fixes outranks
+        this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     message: >-
       This passage sells rather than describes. State what the artifact does and
       what a reader can measure.
@@ -274,6 +312,7 @@ rules:
       next one? And would the claim's opposite be recognized as a disagreement
       about fact rather than a difference of opinion? A claim that fails both is
       marketing.
+    exceptions:
       - quantified
       - quotation
       - defined-term-of-art
@@ -304,6 +343,8 @@ rules:
   - id: marketing-lexicon
     name: Cut the marketing adjective
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: '"{match}" is sales register. State the measurable fact instead.'
     scope: prose
@@ -375,6 +416,21 @@ rules:
   - id: overloaded-sentence
     name: One sentence, one idea
     kind: judgement
+    dimension: architecture
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-discipline.run-on
+      - prose-craft.sentence-length
+    judgement_contract:
+      admission: >-
+        The sentence is the one a length or run-on seed matched, and its clause boundaries are inside the unit.
+      protects: >-
+        formal_legal and technical_invariant: a sentence whose normative force or invariant depends on staying one
+        clause outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     message: >-
       This sentence carries more than one idea. Split it at the point where the
       reader has to start holding something new.
@@ -390,6 +446,7 @@ rules:
       A list of parallel actions sharing one subject and one verb is ONE idea,
       however long; two clauses joined by "and" that could each stand alone are
       two.
+    exceptions:
       - quotation
       - code-span
       - vertical-list
@@ -435,6 +492,24 @@ rules:
   - id: hedged-into-uselessness
     name: The document must assert something
     kind: judgement
+    dimension: inflation
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-discipline.bidirectional-hedge
+      - prose-discipline.hedged-hedge
+      - prose-inflation.hedge-stack
+      - prose-inflation.additive-hedge
+    judgement_contract:
+      admission: >-
+        The unit is a whole document, at least one hedge a seed matched is inside it, and the load-bearing claims the
+        hedges attach to are quotable.
+      protects: >-
+        formal_legal and technical_invariant: a hedge a warranty disclaimer, a safety statement, or a measured
+        variance requires outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     message: >-
       This document hedges its own claims to the point of asserting nothing. Take
       the position the evidence supports.
@@ -453,6 +528,7 @@ rules:
       help in some cases")? A document where the majority of load-bearing claims
       carry a hedge is a document that says nothing, whatever each sentence
       looks like on its own.
+    exceptions:
       - genuine-uncertainty
       - quotation
       - legal-force
@@ -495,6 +571,8 @@ rules:
   - id: bidirectional-hedge
     name: Do not hedge both ways
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: >-
       "{match}" hedges in both directions, so the two halves cancel. State which
@@ -537,6 +615,8 @@ rules:
   - id: hedged-hedge
     name: One hedge or none
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: >-
       "{match}" hedges a hedge. Keep at most one, or state the claim plainly.
@@ -580,6 +660,22 @@ rules:
   - id: bare-quantifier-with-figure-available
     name: Give the bare quantifier its number
     kind: judgement
+    dimension: specificity
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - prose-inflation.vague-quantifier
+      - ai-tells-content-shape.fake-specificity
+    judgement_contract:
+      admission: >-
+        The document contains the bare quantifier a seed matched together with the count, list, or measurement it
+        quantifies over, both inside the unit.
+      protects: >-
+        technical_invariant and formal_legal: a quantifier over a genuinely unbounded set, and one a standard's
+        wording fixes, outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 2
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     message: >-
       A bare quantifier stands where a figure was available. Give the number.
     scope: document
@@ -595,6 +691,7 @@ rules:
       or over a measurement it reports is a withheld figure and must be
       replaced. A quantifier over a genuinely unbounded or unmeasured set is
       correct and stays.
+    exceptions:
       - genuinely-unmeasured
       - quotation
       - unbounded-set

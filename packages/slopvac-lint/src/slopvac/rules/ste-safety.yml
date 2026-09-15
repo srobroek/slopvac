@@ -10,6 +10,21 @@ rules:
   - id: risk-level-word-missing-or-wrong
     name: Mark the risk level with the right word
     kind: judgement
+    dimension: veracity
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-safety.safety-block-missing-consequence
+    judgement_contract:
+      admission: >-
+        The paragraph is a safety block whose stated consequence is inside the unit, so the real risk level can be
+        read from the text.
+      protects: >-
+        formal_legal and technical_invariant: a marker a standard, a regulation, or the product's own safety scheme
+        fixes outranks this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: error
+      rewrite_exempt: true
     severity: error
     message: Check that this block uses the risk word that matches its actual risk level.
     scope: paragraph
@@ -22,6 +37,7 @@ rules:
       Does this block describe a risk of harm to a person, or only a risk of damage to data,
       systems, or equipment? Harm to a person takes the higher marker; damage alone takes the
       lower one; when both apply, use the higher marker.
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -45,6 +61,8 @@ rules:
   - id: safety-block-does-not-start-with-command
     name: Start a safety block with the command or the condition
     kind: pattern
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'This safety block does not open with a command or condition ("{match}").'
     scope: paragraph
@@ -79,6 +97,8 @@ rules:
   - id: safety-block-missing-consequence
     name: Explain the consequence
     kind: structure
+    dimension: specificity
+    ownership: deterministic
     severity: error
     message: This safety block gives no explanation of the risk or the result.
     scope: paragraph

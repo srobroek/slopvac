@@ -10,6 +10,8 @@ rules:
   - id: sentence-too-long-procedural
     name: Keep an instruction to twenty words
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: error
     message: 'This instruction has {value} words. Use twenty or fewer.'
     scope: sentence
@@ -45,6 +47,8 @@ rules:
   - id: multiple-instructions-per-sentence
     name: Write one instruction per sentence
     kind: pattern
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'This step carries more than one instruction ("{match}").'
     scope: sentence
@@ -82,6 +86,8 @@ rules:
   - id: instruction-not-imperative
     name: Write instructions in the imperative
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'This step is not in the imperative ("{match}").'
     scope: sentence
@@ -120,6 +126,8 @@ rules:
   - id: condition-after-command
     name: Put the condition before the command
     kind: pattern
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'The condition follows the command ("{match}"). Put the condition first.'
     scope: sentence
@@ -153,6 +161,8 @@ rules:
   - id: note-gives-instruction
     name: Keep notes free of instructions
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: warning
     message: 'This note gives an instruction ("{match}"). A note only gives information.'
     scope: paragraph

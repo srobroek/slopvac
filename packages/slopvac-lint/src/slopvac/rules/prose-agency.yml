@@ -10,6 +10,8 @@ rules:
   - id: false-agency
     name: Name who acted
     kind: pattern
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'false agency: {match} -- name who acted'
     scope: prose
@@ -47,6 +49,8 @@ rules:
     exceptions: [quotation]
     name: Name who acted in a passive
     kind: pattern
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'agentless passive: {match} -- name who acted'
     scope: prose
@@ -76,6 +80,8 @@ rules:
   - id: anthropomorphism
     name: Name the mechanism, not a mind
     kind: pattern
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'anthropomorphism: {match} -- name the mechanism, not a mind'
     scope: prose
@@ -106,6 +112,8 @@ rules:
   - id: narrator-distance
     name: Put the reader in the scene
     kind: pattern
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'narrator-from-a-distance: {match} -- put the reader in the scene, or name who acted'
     scope: prose
@@ -134,6 +142,8 @@ rules:
   - id: unattributed-recommendation
     name: Name who recommends it
     kind: pattern
+    dimension: agency
+    ownership: deterministic
     severity: error
     message: 'unattributed recommendation: {match} -- name who recommends it, or give the instruction'
     scope: prose

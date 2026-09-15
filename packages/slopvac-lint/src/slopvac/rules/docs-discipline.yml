@@ -10,6 +10,8 @@ rules:
     exceptions: [quotation]
     name: State what the artifact does at HEAD
     kind: pattern
+    dimension: veracity
+    ownership: deterministic
     severity: error
     message: 'status language: {match} -- state what the artifact does at HEAD'
     scope: prose
@@ -41,6 +43,8 @@ rules:
     exceptions: [quotation]
     name: Keep deltas out of a doc body
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: error
     message: 'history narration: {match} -- deltas belong in change comms, not a doc body'
     scope: prose
@@ -67,6 +71,8 @@ rules:
     exceptions: [quotation]
     name: Keep internal references out of consumer docs
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: error
     message: 'internal reference: {match} -- consumer docs describe the released artifact only'
     scope: prose

@@ -7,6 +7,8 @@ rules:
   - id: stale-figure
     name: Cut the stale figure
     kind: tokens
+    dimension: staleness
+    ownership: deterministic
     severity: error
     message: '"{match}" is a worn figure. State the fact it stands in for.'
     tiers: {strict: enforced, normal: enforced, relaxed: advisory}
@@ -50,6 +52,8 @@ rules:
   - id: not-un
     name: Drop the not-un formation
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Replace "{match}" with the positive adjective.'
     tiers: {strict: enforced, normal: enforced, relaxed: excluded}
@@ -67,6 +71,8 @@ rules:
   - id: compound-preposition
     name: Use the single preposition
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Use "{replacement}" rather than "{match}".'
     tiers: {strict: enforced, normal: enforced, relaxed: excluded}
@@ -98,6 +104,8 @@ rules:
   - id: unsupported-evaluative
     name: Back the adjective or cut it
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: '"{match}" evaluates without evidence. Add the number, or cut the word.'
     tiers: {strict: enforced, normal: enforced, relaxed: advisory}
@@ -146,6 +154,19 @@ rules:
   - id: concrete-floor
     name: Name a checkable particular
     kind: judgement
+    dimension: specificity
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The unit makes a factual claim about the artifact, and any number, identifier, path, command, or dated event
+        it offers is inside the unit.
+      protects: >-
+        l2_clarity and defined_domain_term: a general statement that opens a section, and a defined term standing for
+        a class rather than an instance, outrank this rule.
+      dims: [FIT, WARRANT, HARM]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     message: This paragraph makes a factual claim with no checkable particular.
     tiers: {strict: enforced, normal: enforced, relaxed: advisory}
     judgement_question: >-

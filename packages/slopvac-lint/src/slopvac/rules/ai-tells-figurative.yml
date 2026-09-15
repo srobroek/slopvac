@@ -28,6 +28,8 @@ rules:
   - id: figurative-sits
     name: Name the literal relation
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "sits": {match} -- write the literal relation: is at, rests with, is unused'
     scope: prose
@@ -55,6 +57,8 @@ rules:
   - id: figurative-runs
     name: Name the actual behaviour
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "runs": {match} -- name the behaviour, not the motion'
     scope: prose
@@ -80,6 +84,8 @@ rules:
   - id: figurative-falls
     name: Name the shortfall or the membership
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "falls": {match} -- name the shortfall, or say which set it belongs to'
     scope: prose
@@ -105,6 +111,8 @@ rules:
   - id: figurative-draws
     name: Name the source or the comparison
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "draws": {match} -- name the source, or state the comparison directly'
     scope: prose
@@ -130,6 +138,8 @@ rules:
   - id: figurative-casts
     name: State the doubt or the effect
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "casts": {match} -- state the doubt and what supports it'
     scope: prose
@@ -150,6 +160,8 @@ rules:
   - id: figurative-strikes
     name: State the effect or the tradeoff
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "strikes": {match} -- state the effect or the tradeoff directly'
     scope: prose
@@ -176,6 +188,8 @@ rules:
   - id: figurative-wins
     name: State the benefit or the outcome
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "wins": {match} -- state the benefit and its size'
     scope: prose
@@ -199,6 +213,8 @@ rules:
   - id: figurative-lends
     name: State what it adds or enables
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "lends": {match} -- say what it adds, or what it makes possible'
     scope: prose
@@ -219,6 +235,8 @@ rules:
   - id: figurative-rides
     name: Name the dependency or the mechanism
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "rides": {match} -- name what depends on what'
     scope: prose
@@ -242,6 +260,8 @@ rules:
   - id: figurative-loud
     name: Name the behaviour, not the volume
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "loud": {match} -- name what it actually does'
     scope: prose
@@ -265,6 +285,8 @@ rules:
   - id: resonate-overuse
     name: Name what connects and why
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'figurative "resonate": {match} -- name what connects, and with whom'
     scope: prose
@@ -288,6 +310,8 @@ rules:
   - id: colloquial-assessment
     name: State the assessment directly
     kind: pattern
+    dimension: staleness
+    ownership: deterministic
     severity: warning
     message: 'colloquial assessment: {match} -- state the judgement and the evidence for it'
     scope: prose
@@ -322,6 +346,8 @@ rules:
   - id: promotional-puffery
     name: Use neutral, specific language
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'puffery: {match} -- replace with the fact that would justify it'
     scope: prose
@@ -350,6 +376,8 @@ rules:
   - id: strategy-buzzwords
     name: Describe the mechanism
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: error
     message: 'strategy buzzword: {match} -- describe the actual mechanism or advantage'
     scope: prose
@@ -377,6 +405,8 @@ rules:
   - id: promotional-adjective-noun
     name: Cut the promotional adjective
     kind: pattern
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: 'promotional adjective: {match} -- delete it, or give the measurement'
     scope: prose
@@ -407,6 +437,8 @@ rules:
   - id: promotional-verbs
     name: Use the direct verb
     kind: tokens
+    dimension: inflation
+    ownership: deterministic
     severity: warning
     message: 'promotional verb: {match} -- use the direct verb'
     scope: prose

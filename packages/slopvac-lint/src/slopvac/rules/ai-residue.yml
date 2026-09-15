@@ -11,6 +11,8 @@ rules:
     exceptions: [quotation]
     name: Delete chat-session leakage
     kind: pattern
+    dimension: veracity
+    ownership: deterministic
     severity: error
     message: 'chat-session leakage: {match} -- delete it, then audit the surrounding prose'
     scope: prose

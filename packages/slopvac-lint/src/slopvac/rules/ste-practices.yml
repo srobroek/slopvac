@@ -10,6 +10,22 @@ rules:
   - id: word-swap-insufficient
     name: Rewrite the sentence when a word swap fails
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-words.approved-word-substitution
+      - ste-practices.phrasal-verb
+    judgement_contract:
+      admission: >-
+        The sentence contains the word a substitution seed matched, and the whole clause the swap would change is
+        inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a word an identifier, an API name, or a defined term fixes
+        outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check whether this sentence needs a rewrite rather than a word swap.
     scope: sentence
@@ -22,6 +38,7 @@ rules:
       After you substitute the replacement word, is the sentence still grammatical, still
       meaningful, and still carrying your original meaning? If any of the three fails, or the
       word has no replacement at all, restructure the sentence instead.
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -42,6 +59,20 @@ rules:
   - id: word-sense-incorrect
     name: Use each word in its correct sense
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-words.word-used-in-wrong-part-of-speech
+    judgement_contract:
+      admission: >-
+        The sentence contains the vocabulary word a seed matched, and the clause that fixes its sense is inside the
+        unit.
+      protects: >-
+        defined_domain_term: a word whose sense the project's own vocabulary or glossary records outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that each word carries the sense the vocabulary records for it.
     scope: sentence
@@ -53,6 +84,7 @@ rules:
     judgement_question: >-
       For each vocabulary word in this sentence, does the sentence use the single sense the
       vocabulary entry records, rather than another common sense of the same spelling?
+    exceptions:
       - quotation
       - code-span
     allowlist: []
@@ -73,6 +105,8 @@ rules:
   - id: phrasal-verb
     name: Do not use a phrasal verb
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Phrasal verb "{match}". Use "{replacement}".'
     scope: prose
@@ -136,6 +170,8 @@ rules:
   - id: inconsistent-wording-for-same-step
     name: Word the same step the same way
     kind: structure
+    dimension: consistency
+    ownership: deterministic
     severity: warning
     message: 'This step is worded two ways in one document ("{match}" and "{other}").'
     scope: document
@@ -169,6 +205,8 @@ rules:
   - id: omitted-conjunction-that
     name: Keep the conjunction
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: suggestion
     message: 'Add "that" after "{match}".'
     scope: prose
@@ -210,6 +248,18 @@ rules:
   - id: ambiguous-preposition-with
     name: Keep the instrument sense clear
     kind: judgement
+    dimension: wording
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The sentence uses "with" outside a code span, and the anchors of every reading are inside the sentence.
+      protects: >-
+        defined_domain_term and technical_invariant: "with" inside a defined term, a command flag, or an API name
+        outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: false
     severity: suggestion
     message: Check which of the three senses "with" carries here.
     scope: sentence
@@ -222,6 +272,7 @@ rules:
       Does "with" mean an association, a shared action, or an instrument? If a reader could
       pick more than one, name the instrument in a separate clause or state the condition
       first.
+    exceptions:
       - quotation
       - code-span
     allowlist: []
@@ -242,6 +293,8 @@ rules:
   - id: unclear-pronoun
     name: Replace an unclear pronoun with the noun
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: suggestion
     message: 'Pronoun "{match}" may have more than one referent.'
     scope: sentence
@@ -276,6 +329,8 @@ rules:
   - id: unclear-demonstrative-this
     name: Give the referent for a bare demonstrative
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: suggestion
     message: 'Bare demonstrative "{match}". Name the thing it refers to.'
     scope: sentence
@@ -316,6 +371,8 @@ rules:
   - id: false-friend-term
     name: Avoid a false friend
     kind: substitution
+    dimension: inclusion
+    ownership: deterministic
     severity: suggestion
     message: '"{match}" reads differently to a non-native reader. Use "{replacement}".'
     scope: prose
@@ -369,6 +426,8 @@ rules:
   - id: latin-abbreviation
     name: Do not use a Latin abbreviation
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Use "{replacement}" rather than "{match}".'
     scope: prose
@@ -414,6 +473,8 @@ rules:
   - id: gendered-or-exclusionary-language
     name: Use inclusive language
     kind: substitution
+    dimension: inclusion
+    ownership: deterministic
     severity: warning
     message: 'Use "{replacement}" rather than "{match}".'
     scope: prose
@@ -463,6 +524,8 @@ rules:
   - id: possessive-form-unclear
     name: Use the possessive only when it is clear
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: suggestion
     message: 'Possessive "{match}" may be unclear. Consider "of the ...".'
     scope: prose

@@ -9,6 +9,8 @@ rules:
   - id: no-unicode-dash
     name: Write ASCII double-hyphen instead of an em or en dash
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: error
     message: 'em/en dash: {match} -- write `--` instead, or a comma, colon, or two sentences'
     scope: raw
@@ -50,6 +52,8 @@ rules:
   - id: emoji-heading
     name: Delete emoji from a heading
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'emoji in heading: {match} -- delete it'
     scope: heading
@@ -77,6 +81,8 @@ rules:
   - id: prose-block
     name: Convert a long paragraph to a list or table
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'prose block of {match} words > 80 -- convert to a list or table'
     scope: paragraph

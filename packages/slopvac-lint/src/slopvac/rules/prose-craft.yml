@@ -11,6 +11,8 @@ rules:
   - id: acronym-periods
     name: Write an initialism unpunctuated
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'initialism periods: {match} -- write it unpunctuated'
     scope: prose
@@ -37,6 +39,8 @@ rules:
   - id: ambiguity
     name: Pick the reading you meant
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'ambiguous: {match} -- pick the reading you meant'
     scope: prose
@@ -70,6 +74,8 @@ rules:
     exceptions: [quotation]
     name: Move an annotation to an issue
     kind: pattern
+    dimension: scope
+    ownership: deterministic
     severity: warning
     message: 'annotation: {match} -- move it to an issue or a code comment'
     scope: prose
@@ -97,6 +103,8 @@ rules:
   - id: articles
     name: Match the article to the initialism's pronunciation
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: "article: use '{replacement}' instead of '{match}' (the article follows pronunciation)"
     scope: prose
@@ -163,6 +171,8 @@ rules:
   - id: command-prompt
     name: Drop the shell prompt from a command
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'shell prompt: {match} -- drop the prompt so the command can be copied'
     scope: raw
@@ -196,6 +206,8 @@ rules:
   - id: conflict-markers
     name: Resolve the merge conflict
     kind: pattern
+    dimension: veracity
+    ownership: deterministic
     severity: error
     message: 'merge conflict marker: {match} -- resolve the conflict'
     scope: raw
@@ -221,6 +233,8 @@ rules:
   - id: dead-opener
     name: Start the sentence with its real subject
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'dead opener: {match} -- start the sentence with its real subject'
     scope: prose
@@ -254,6 +268,8 @@ rules:
     exceptions: [quotation]
     name: Link the heading by name instead of by position
     kind: substitution
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: "directional reference: use '{replacement}' instead of '{match}', or link the heading by name"
     scope: prose
@@ -299,6 +315,8 @@ rules:
     exceptions: [quotation]
     name: Name the artifact, not the vendor
     kind: pattern
+    dimension: agency
+    ownership: deterministic
     severity: warning
     message: 'first-person plural: {match} -- name the artifact instead of the vendor'
     scope: prose
@@ -327,6 +345,8 @@ rules:
   - id: future-tense
     name: Describe what it does now
     kind: pattern
+    dimension: consistency
+    ownership: deterministic
     severity: warning
     message: 'future tense: {match} -- describe what it does now'
     scope: prose
@@ -357,6 +377,8 @@ rules:
   - id: gerund-heading
     name: Use the imperative in a task heading
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'gerund heading: {match} -- use the imperative (''Install'', not ''Installing'')'
     scope: heading
@@ -418,6 +440,8 @@ rules:
   - id: hyphens
     name: Drop the hyphen after an -ly adverb
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'adverb hyphen: {match} -- an -ly adverb takes no hyphen'
     scope: prose
@@ -460,6 +484,8 @@ rules:
     exceptions: [quotation]
     name: Use the English phrase
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: "Latin abbreviation: use '{replacement}' instead of '{match}'"
     scope: prose
@@ -496,6 +522,8 @@ rules:
   - id: link-text
     name: Name the destination in the link text
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'link text: {match} -- name the destination in the link text'
     scope: raw
@@ -526,6 +554,8 @@ rules:
   - id: misnomer
     name: Drop the word the initialism already contains
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'misnomer: {match} -- the initialism already contains that word'
     scope: prose
@@ -555,6 +585,8 @@ rules:
   - id: negative-requirement
     name: State what is required
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'negative requirement: {match} -- state what is required, not what is forbidden'
     scope: prose
@@ -580,6 +612,8 @@ rules:
   - id: optional-plural
     name: Use the plural
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'optional plural: {match} -- use the plural'
     scope: prose
@@ -605,6 +639,8 @@ rules:
   - id: ordinals
     name: Write the word ordinal, or let the list carry the order
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'ordinal: {match} -- use ''first'', or let the list carry the order'
     scope: prose
@@ -631,6 +667,8 @@ rules:
   - id: politeness
     name: State the step, not a request
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'politeness: {match} -- an instruction is not a request; state the step'
     scope: prose
@@ -660,6 +698,8 @@ rules:
   - id: redundancy
     name: Cut the repeated half
     kind: pattern
+    dimension: redundancy
+    ownership: deterministic
     severity: warning
     message: 'redundant: {match} -- cut the repeated half'
     scope: prose
@@ -688,6 +728,8 @@ rules:
   - id: relative-date
     name: Give the absolute date or version
     kind: pattern
+    dimension: specificity
+    ownership: deterministic
     severity: warning
     message: 'relative date: {match} -- give the absolute date or version'
     scope: prose
@@ -716,6 +758,8 @@ rules:
   - id: self-reference
     name: Start with the first new fact
     kind: pattern
+    dimension: redundancy
+    ownership: deterministic
     severity: warning
     message: 'self-reference: {match} -- the heading already says this; start with the first new fact'
     scope: prose
@@ -748,6 +792,8 @@ rules:
   - id: sentence-length
     name: Split a long sentence
     kind: metric
+    dimension: architecture
+    ownership: deterministic
     severity: warning
     message: 'sentence of {match} words > 34 -- split it, or convert the enumeration to a list'
     scope: sentence
@@ -775,6 +821,8 @@ rules:
   - id: spacing
     name: Use one space after a period
     kind: pattern
+    dimension: presentation
+    ownership: deterministic
     severity: warning
     message: 'sentence spacing: {match} -- use exactly one space after the period'
     scope: prose
@@ -803,6 +851,8 @@ rules:
   - id: unclear-antecedent
     name: Name the noun the demonstrative points at
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'unclear antecedent: {match} -- name the noun the demonstrative points at'
     scope: prose
@@ -830,6 +880,8 @@ rules:
   - id: versions
     name: State version order, not magnitude
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: "version comparison: use '{replacement}' instead of '{match}'"
     scope: prose
@@ -861,6 +913,8 @@ rules:
     exceptions: [quotation]
     name: Use the short word
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: "wordy: use '{replacement}' instead of '{match}'"
     scope: prose
@@ -1012,6 +1066,8 @@ rules:
   - id: plural-abbreviation
     name: Drop the apostrophe from a plural initialism
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'plural initialism: {match} -- drop the apostrophe'
     scope: prose

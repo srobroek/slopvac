@@ -10,6 +10,8 @@ rules:
   - id: word-outside-controlled-vocabulary
     name: Do not use a word this project refuses
     kind: vocabulary
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: '"{match}" is on this project''s word blocklist.'
     scope: prose
@@ -62,6 +64,8 @@ rules:
   - id: approved-word-substitution
     name: Use the controlled replacement word
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Use "{replacement}" rather than "{match}".'
     scope: prose
@@ -114,6 +118,8 @@ rules:
   - id: obligation-word-substitution
     name: Use one obligation word
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Use "{replacement}" rather than "{match}".'
     scope: prose
@@ -162,6 +168,8 @@ rules:
   - id: word-used-in-wrong-part-of-speech
     name: Use the word only in its permitted part of speech
     kind: vocabulary
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: '"{match}" is permitted as {allowed_pos} but not as {found_pos}.'
     scope: prose
@@ -192,6 +200,20 @@ rules:
   - id: word-used-outside-permitted-sense
     name: Use the word only in its permitted sense
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-words.word-outside-controlled-vocabulary
+    judgement_contract:
+      admission: >-
+        The sentence contains the controlled word a seed matched, and the clause that fixes its meaning is inside the
+        unit.
+      protects: >-
+        defined_domain_term: a word whose permitted sense the vocabulary entry itself records outranks this rule.
+      dims: [FIT, WARRANT, REPAIR]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that each controlled word carries its permitted meaning.
     scope: sentence
@@ -203,6 +225,7 @@ rules:
     judgement_question: >-
       Does every controlled word in this sentence carry the single meaning recorded in the
       vocabulary entry, rather than another dictionary meaning of the same spelling?
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -220,6 +243,8 @@ rules:
   - id: verb-or-adjective-form-not-permitted
     name: Use only permitted word forms
     kind: vocabulary
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: '"{match}" is not a permitted form of "{lemma}".'
     scope: prose
@@ -248,6 +273,21 @@ rules:
   - id: domain-noun-category-membership
     name: Confirm the domain noun belongs to a declared category
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-words.word-outside-controlled-vocabulary
+    judgement_contract:
+      admission: >-
+        The sentence contains the out-of-vocabulary noun a seed matched, outside a code span, and the check needs the
+        project's declared domain-noun categories as a repo fact.
+      protects: >-
+        defined_domain_term and technical_invariant: a noun an identifier, an API name, or a schema fixes outranks
+        this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that each out-of-vocabulary noun belongs to a declared domain-noun category.
     scope: sentence
@@ -260,6 +300,7 @@ rules:
       For each noun in this sentence that is not in the controlled vocabulary, does it name
       a specified concept inside one of the declared domain-noun categories for this
       project?
+    exceptions:
       - code-span
       - identifier-fidelity
     allowlist: []
@@ -278,6 +319,21 @@ rules:
   - id: unapproved-word-not-a-domain-noun
     name: Allow an out-of-vocabulary word only as a domain noun
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-words.word-outside-controlled-vocabulary
+    judgement_contract:
+      admission: >-
+        The sentence contains the out-of-vocabulary word a seed matched, and the multi-word noun it may belong to is
+        inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a word inside a registered domain noun, an identifier, or an API
+        name outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that this out-of-vocabulary word is a domain noun or part of one.
     scope: sentence
@@ -289,6 +345,7 @@ rules:
     judgement_question: >-
       Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain
       noun? If it is neither, it must be replaced.
+    exceptions:
       - code-span
       - identifier-fidelity
       - quotation
@@ -308,6 +365,8 @@ rules:
   - id: noun-used-as-verb
     name: Do not use a domain noun as a verb
     kind: substitution
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Do not use "{match}" as a verb. Use "{replacement}".'
     scope: sentence
@@ -356,6 +415,18 @@ rules:
   - id: domain-noun-not-organization-approved
     name: Use the domain term your project already uses
     kind: judgement
+    dimension: consistency
+    ownership: document_probe
+    judgement_contract:
+      admission: >-
+        The document names a domain thing whose term is quotable inside the unit, and the check needs the project
+        glossary, API reference, or schema as a repo fact.
+      protects: >-
+        defined_domain_term: a term the glossary itself declares outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that this term is the one your project's glossary defines.
     scope: document
@@ -367,6 +438,7 @@ rules:
     judgement_question: >-
       Does the project glossary, API reference, or schema already name this thing? If yes,
       does the document use that exact name?
+    exceptions:
       - quotation
     allowlist: []
     examples:
@@ -383,6 +455,20 @@ rules:
   - id: domain-noun-too-long-or-unclear
     name: Choose a short and clear domain term
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-nouns.multiword-noun-too-long
+    judgement_contract:
+      admission: >-
+        The sentence contains the invented multi-word term a seed matched, and its whole span is inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a term whose length an identifier, an API name, or a standard
+        fixes outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that this new domain term is short and understandable.
     scope: sentence
@@ -412,6 +498,8 @@ rules:
   - id: slang-or-jargon-term
     name: Do not use slang or jargon as a domain term
     kind: tokens
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: '"{match}" is slang or jargon. Use a plain term.'
     scope: prose
@@ -462,6 +550,8 @@ rules:
   - id: inconsistent-term-for-same-thing
     name: Use one term per thing
     kind: structure
+    dimension: consistency
+    ownership: deterministic
     severity: warning
     message: 'This document calls the same thing "{match}" and "{other}".'
     scope: document
@@ -490,6 +580,20 @@ rules:
   - id: domain-verb-category-membership
     name: Confirm the domain verb belongs to a declared category
     kind: judgement
+    dimension: wording
+    ownership: seeded_adjudication
+    seed_rule_ids:
+      - ste-verbs.verb-form-not-listed
+    judgement_contract:
+      admission: >-
+        The sentence contains the out-of-vocabulary verb a seed matched, and the clause it governs is inside the unit.
+      protects: >-
+        defined_domain_term and technical_invariant: a verb an API name or a declared domain-verb category fixes
+        outranks this rule.
+      dims: [FIT, WARRANT]
+      evidence_arity: 1
+      judgement_ceiling: suggestion
+      rewrite_exempt: true
     severity: suggestion
     message: Check that this out-of-vocabulary verb is a declared domain verb used in its own context.
     scope: sentence
@@ -502,6 +606,7 @@ rules:
       Could this sentence be written with vocabulary verbs alone? If yes, the domain verb
       is not permitted. If no, does the verb belong to a declared domain-verb category and
       carry its category meaning in this sentence?
+    exceptions:
       - code-span
       - api-name
     allowlist: []
@@ -525,6 +630,8 @@ rules:
   - id: verb-used-as-noun
     name: Do not use a domain verb as a noun
     kind: pattern
+    dimension: wording
+    ownership: deterministic
     severity: warning
     message: 'Do not use "{match}" as a noun. Use the noun form.'
     scope: sentence
