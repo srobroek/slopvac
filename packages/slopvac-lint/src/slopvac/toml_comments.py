@@ -43,8 +43,14 @@ def extract_comments(text: str) -> list[TomlComment]:
             index += 1
             continue
         if state == "basic_multi":
-            if text.startswith(chr(34) * 3, index):
-                state, index = "plain", index + 3
+            if char == chr(34):
+                run_end = index
+                while run_end < len(text) and text[run_end] == char:
+                    run_end += 1
+                if run_end - index >= 3:
+                    state, index = "plain", run_end
+                else:
+                    index = run_end
             elif char == "\\":
                 next_index = index + 1
                 if next_index < len(text) and text[next_index] in "\r\n":
@@ -61,8 +67,14 @@ def extract_comments(text: str) -> list[TomlComment]:
                 index += 1
             continue
         if state == "literal_multi":
-            if text.startswith(chr(39) * 3, index):
-                state, index = "plain", index + 3
+            if char == chr(39):
+                run_end = index
+                while run_end < len(text) and text[run_end] == char:
+                    run_end += 1
+                if run_end - index >= 3:
+                    state, index = "plain", run_end
+                else:
+                    index = run_end
             elif char in "\r\n":
                 index = _newline_at(text, index)
                 line += 1
