@@ -18,7 +18,7 @@ rules:
       normal: enforced
       relaxed: advisory
     pattern: '\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft|being (specified|designed|implemented|built)|not yet (implemented|supported|available)|will (eventually|later|soon)\b|to be (implemented|defined|determined)|TBD|TODO|for now|at the moment|currently(?! (running|active|open|connected|executing|loaded|mounted))|as of (now|writing|today)|planned( for)?|on the roadmap|in (a )?future (release|version)|stay tuned)\b'
-    ignore_case: true
+    match_all_caps: true
     fix: Delete the passage, or state the behaviour the code has now.
     examples:
       - bad: The globbing flag is coming soon.
