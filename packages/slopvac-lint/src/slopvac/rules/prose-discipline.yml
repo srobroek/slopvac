@@ -22,10 +22,9 @@ rules:
       - ste-words.inconsistent-term-for-same-thing
     judgement_contract:
       admission: >-
-        The document uses two or more actor terms, and every term is quotable inside the unit.
+        The unit uses two or more terms for the same actor; the occurrences needed to compare them are within the unit.
       protects: >-
-        defined_domain_term and l2_clarity: two actor terms the document defines as different subjects at first use
-        outrank this rule.
+        Exception: retain terms explicitly defined as different subjects at first use.
       dims: [FIT, WARRANT, HARM]
       evidence_arity: 2
       judgement_ceiling: suggestion

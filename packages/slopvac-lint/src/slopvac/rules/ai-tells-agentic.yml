@@ -33,10 +33,10 @@ rules:
     judgement_contract:
       admission: >-
         The paragraph holds a negated-half contrast a seed matched, or one of the ambiguous bare-clause and
-        subjectless-imperative forms the seed leaves clean, and both halves are quotable inside the unit.
+        subjectless-imperative forms the seed leaves clean, and both halves are within the unit.
       protects: >-
-        factual_contrast and technical_invariant: a negated half that states a real boundary, a safety constraint, or
-        a documented invariant outranks this rule.
+        Exception: retain a negated half that states a real boundary, a safety constraint, or a documented invariant.
+
       dims: [FIT, WARRANT, REPAIR]
       evidence_arity: 2
       judgement_ceiling: suggestion
@@ -2858,10 +2858,8 @@ rules:
 id: ai-tells-agentic
 title: AI tells -- agentic slogan formulae
 description: >-
-  The formulae an agent reaches for when it has to name a section and has no fact
-  to name it with: a universal claim about a whole class, standing in for a title.
-  The shape is the tell, not the vocabulary, so these rules match syntax and a
-  rewritten slogan does not escape by swapping words.
+  Recurring agent-generated heading patterns that make a universal claim stand in for a section title.
+  The rule matches the syntactic shape, so replacing its vocabulary does not avoid it.
 weight: 1.5
 recommended_for: [consumer, internal, change-comms]
 rules:
@@ -2903,7 +2901,7 @@ rules:
         And the match runs to the end of the block through word characters only, so
         any terminal punctuation excludes it -- a heading carries none, a body
         sentence does. Together they select the title-shaped universal claim and leave
-        the class invariant, which is the one construction "every" is genuinely for.
+        the class invariant, which preserves uses of “every” that state a scoped invariant.
         `scope: paragraph`, not `heading`: the native engine's paragraph scope covers
         every rendered block INCLUDING headings, list items, and quotes, whereas
         heading scope compiles to a Vale `heading` payload and Vale then owns the
