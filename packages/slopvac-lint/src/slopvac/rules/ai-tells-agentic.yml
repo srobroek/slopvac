@@ -32,7 +32,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b'
+    pattern: '\b(?:it''s|it is|this isn''t|this is not|that''s not|it''s not|it isn''t)\s+(?:not|less about)\b[^.!?]{1,80}\b(?:it''s|it is|and more about|but rather)\b|(?:^|[.!?][ \t]+)(?:the|a|an|this|that|these|those|our|your|my|his|her|its|their)\s+[\w-]+(?:\s+[\w-]+){0,3}\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\w-]*(?:s|ed))\b(?:\s+[\w-]+){0,6}\s*[,;]\s+(?:(?:it|this|that|they|these|those)\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must)\s+not|not)\s+[^.!?\n]{1,50}'
     ignore_case: true
     fix: Delete the negated half and state what the thing is.
     examples:
@@ -40,6 +40,12 @@ rules:
         good: The linter reports 61 rules and scores the document.
       - bad: It's less about speed and more about determinism.
         good: The gate produces the same findings on every run.
+      - bad: The Harness Measures, It Does Not Judge
+        good: The Harness Measures.
+      - bad: The parser reads JSON; it does not read YAML.
+        good: The parser reads JSON.
+      - bad: The client supports HTTP; it does not support FTP.
+        good: The client supports HTTP.
     provenance:
       source: references/ai-tells/structure.md ("Contrastive inversion")
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -62,12 +68,26 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Does the negated half of this contrast name a position someone actually
-      holds, or was it invented so the affirmed half sounds larger?
-    fix: Delete the invented alternative and state the affirmed claim alone.
+      Is the negated half mainly a rhetorical foil, or is keeping it essential to
+      safety or compliance, or materially clearer than a positive statement? This
+      judgement explicitly includes ambiguous sentence-initial bare clauses such
+      as "Parser reads JSON, not YAML" and "System validates input, not output",
+      plus subjectless imperatives such as "Monitor services, not processes" and
+      "Choose SHA-256, not MD5"; the deterministic pattern leaves those forms
+      clean. Flag the contrast only when the positive rewrite preserves the same
+      actionable meaning and is at least as clear; a factual boundary by itself
+      is not an exemption.
     examples:
       - bad: Where other gates check words, this one reads the shape of the argument.
         good: The gate scores paragraph symmetry and passive density.
+      - bad: Parser reads JSON, not YAML.
+        good: Parser reads JSON.
+      - bad: System validates input, not output.
+        good: System validates input.
+      - bad: Monitor services, not processes.
+        good: Monitor services.
+      - bad: Choose SHA-256, not MD5.
+        good: Choose SHA-256.
     provenance:
       source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -206,8 +226,9 @@ rules:
         good: The gate reports every finding with a line number.
         note: >-
           A three-item technical enumeration ("create, update, and delete") is
-          legitimate and this pattern cannot tell it apart -- see the measurement in
-          exclusions.md for ai-tells.VerbTricolon (149 hits). The last item may
+          legitimate and this pattern cannot tell it apart -- see the immutable historical record at
+          https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+          for ai-tells.VerbTricolon (149 hits). The last item may
           be hyphenated or multiword so a rhetorical "battle-tested" still fires.
     provenance:
       source: references/ai-tells/structure.md ("Rule of three / tricolon abuse")
@@ -694,7 +715,7 @@ rules:
 
   - id: absolute-assertion-core
     name: State the claim with its actual scope
-    kind: tokens
+    kind: pattern
     severity: warning
     message: 'absolute assertion: {match} -- state the claim with its actual scope'
     scope: prose
@@ -702,20 +723,13 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    tokens:
-      - the only way to
-      - the single most important
-      - make no mistake
-      - there is no substitute for
-      - the one thing you need
-      - without exception the
-      - always the right
-      - never the right
-    ignore_case: true
-    fix: Replace the absolute with the claim's actual scope.
+    pattern: '(?i:\b(?:the only way to|the single most important|make no mistake|there is no substitute for|the one thing you need|without exception the|always the right|never the right)\b)|\bEvery\s+(?:[A-Z][a-z]*\s+){1,5}(?:Is|Are|Was|Were|Does|Do|Did|Has|Have|Had|Can|Will|Must|Should|Requires?|Accepts?|Maps?|Traces?|Needs?|Uses?|Produces?|Supports?|Contains?|Returns?|Runs?|Fails?)\s+(?:[A-Z][a-z]*\s+){0,8}[A-Z][a-z]*(?=[.!?,;:]|$)'
+    ignore_case: false
     examples:
       - bad: The only way to fix this is to re-run the sync.
-        good: Re-running the sync fixes it when the cache is stale.
+        good: One way to fix this is to re-run the sync when the cache is stale.
+      - bad: Every Project Needs A Lockfile.
+        good: A project with more than one direct dependency needs a lockfile.
     provenance:
       source: references/ai-tells/structure.md ("Absolute assertion")
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -738,17 +752,82 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Can you name one case in which this claim is false? If yes, the claim is
-      stated at the wrong scope.
+      Can you name one counterexample, or is this a defined scoped invariant?
+      Flag the universal only when it is unsupported or counterexample-prone;
+      do not flag a claim whose domain and evidence are explicitly bounded.
     fix: Narrow the claim to the scope the evidence supports.
     examples:
-      - bad: Every project needs a lockfile.
+      - bad: Every Project Needs A Lockfile.
         good: A project with more than one direct dependency needs a lockfile.
+      - good: Every request to this endpoint requires authentication.
+        bad: Every system always behaves correctly.
     provenance:
       source: references/ai-tells/structure.md ("Absolute assertion")
       note: >-
         Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable
         by construction: the reviewer either produces a counterexample or does not.
+
+  - id: negative-inventory-core
+    name: Cut low-value negative inventory
+    kind: pattern
+    severity: warning
+    message: 'negative inventory: {match} -- state the supported behavior or constraint'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\b(?:does|do|did)\s+not\s+pin\b|\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\b(?:is|are|was|were)\s+excluded\b|\bexcluded\s+from\b|\bnot\s+included\b|\brecorded\s+elsewhere\b'
+    ignore_case: true
+    fix: State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
+    examples:
+      - bad: 'Tooling not pinned: versions may drift.'
+        good: The lockfile pins the formatter version used by CI.
+      - bad: 'Excluded from this review: browser checks and visual polish.'
+        good: Browser checks are not run; use the smoke command before release.
+      - bad: |-
+          | Coverage | Status |
+          |---|---|
+          | Outside tooling scope | Not included |
+        good: The parser test suite covers TOML comments; browser behavior is not run here.
+      - bad: Config is recorded elsewhere.
+        good: The deployment manifest records the region and is the source of truth.
+    provenance:
+      source: "AI tells catalog — structure.md (\"Negative/exclusion inventory\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      note: >-
+        Mechanizable vocabulary for inventories that announce what is absent without
+        giving the reader a decision, constraint, result, or reproduction path.
+        Judgement remainder in ai-tells-structure.negative-inventory-remainder.
+
+  - id: negative-inventory-remainder
+    name: Judge whether a negative constraint is actionable
+    kind: judgement
+    severity: suggestion
+    message: 'negative inventory: keep only an actionable constraint, result, or pointer'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this negative statement tell the reader a reproducible result, a safety
+      or compliance constraint, a debugging boundary, an audit fact, or an enforced
+      exclusion that changes what they should do? Keep it only if yes; otherwise is
+      it merely inventory of what was not pinned, run, included, or recorded?
+    fix: Keep the actionable constraint or result and delete the inventory wording.
+    examples:
+      - bad: The tooling is not pinned, and visual checks are outside scope.
+        good: CI rejects an unpinned formatter; visual checks are not run by this command.
+      - bad: Several checks were excluded and recorded elsewhere.
+        good: The audit log records the excluded checks and their reasons.
+      - good: This command has not run browser checks; run `make browser-smoke` before release.
+        bad: 'Not included: other things.'
+    provenance:
+      source: "AI tells catalog — structure.md (\"Negative/exclusion inventory\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      note: >-
+        Judgement remainder of ai-tells-structure.negative-inventory-core. The
+        negative form is legitimate when it changes reader action or records an
+        enforced safety, compliance, debugging, reproducibility, or audit boundary.
 
   - id: think-of-it-as-core
     name: Explain the mechanism instead of the metaphor
@@ -1073,8 +1152,10 @@ rules:
       source: references/ai-tells/register.md ("Corporate-analytic filler")
       note: >-
         Mechanizable core. `granular` is deliberately OMITTED even though the catalog
-        names it: exclusions.md records that upstream ai-tells.OverusedVocabulary was
-        disabled partly for flagging `granular`, which has an ordinary technical use.
+        names it: the immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+        records that upstream ai-tells.OverusedVocabulary was disabled partly for
+        flagging `granular`, which has an ordinary technical use.
         Judgement remainder in
         ai-tells-register.corporate-analytic-filler-remainder. Overlaps upstream
         ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked, ai-tells.FillerPhrases,
@@ -1154,8 +1235,9 @@ rules:
         document metric. Threshold 12 is INFERRED from that range (a corpus of
         45-60-word paragraphs has a stdev near zero) and is NOT measured; calibrate
         before enforcing outside strict. This is the burstiness counter-signal, and
-        it is also proposed in counter-signals.md as
-        paragraph-length-dispersion -- the two are the same measurement, so ship one.
+        it is also proposed in the immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md
+        as paragraph-length-dispersion -- the two are the same measurement, so ship one.
 
   - id: hedged-symmetry
     name: Take the position the evidence supports
@@ -1511,7 +1593,8 @@ rules:
         pivots per page" and is NOT measured -- calibrate before enforcing outside
         strict. prose-format.no-unicode-dash bans the Unicode characters outright and
         is the presence rule; this is the density rule, and they are complements.
-        exclusions.md records why upstream ai-tells.EmDashUsage is disabled.
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+        records why upstream ai-tells.EmDashUsage is disabled.
 
   - id: curly-quotes
     name: Normalise curly quotes to straight ones
@@ -1996,9 +2079,11 @@ rules:
     provenance:
       source: references/ai-tells/content-shape.md ("Padded symmetry")
       note: >-
-        Judgement-only. Related to counter-signals.md's "Asymmetric structure", whose
-        positive form is proposed as a document metric -- see counter-signals.md in
-        this directory, metric `section-length-dispersion`. That metric is the
+        Judgement-only. Related to the immutable historical record's "Asymmetric
+        structure" at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md,
+        whose positive form is proposed as a document metric, `section-length-dispersion`.
+        That metric is the
         mechanizable proxy; this rule is the decidable question.
 
   - id: superficial-ing-analysis
@@ -2095,9 +2180,10 @@ rules:
       note: >-
         Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the
         catalog's claim is about consecutive OPENINGS, which is an adjacency
-        property, not a token match. exclusions.md records that upstream
-        ai-tells.FormalTransitions was DISABLED for flagging these same connectives
-        as bare tokens ("these are ordinary English connectives and this corpus uses
+        property, not a token match. The immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
+        records that upstream ai-tells.FormalTransitions was DISABLED for flagging
+        these same connectives as bare tokens ("these are ordinary English connectives and this corpus uses
         them correctly"), so the adjacency form is deliberately the only one carried
         and prose-craft.wordiness maps `additionally` to `also` as a substitution
         without a position claim.
