@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "arms": [
-    {"id":"gpt-oss-120b","model":"amazon-bedrock/openai.gpt-oss-120b"},
+    {"id":"claude-sonnet","model":"amazon-bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0","provider":"amazon-bedrock"},
     {"id":"gpt-5.6-luna","model":"amazon-bedrock/us.openai.gpt-5.6-luna"},
     {"id":"claude-haiku","model":"amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0"},
     {"id":"gpt-5.6-sol","model":"amazon-bedrock/us.openai.gpt-5.6-sol"}
