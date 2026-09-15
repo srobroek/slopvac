@@ -100,6 +100,33 @@ def test_judgement_rules_never_fire(ruleset):
     assert not fired & judgement
 
 
+def test_code_change_prose_scope_judgement_uses_diff_context(ruleset):
+    rule = ruleset.by_id("prose-scope.code-change-prose-scope")
+    assert rule is not None
+    assert rule.kind is RuleKind.JUDGEMENT
+    assert "scope defect" in rule.message
+    question = rule.judgement_question.lower()
+    for phrase in (
+        "code diff",
+        "directly explains or specifies",
+        "explicitly request",
+        "elsewhere",
+        "stale",
+    ):
+        assert phrase in question
+    assert "native engine never emits" in (rule.provenance.note or "")
+
+
+def test_hunk_feature_preserves_base_inventory_and_adds_scope_rule(ruleset):
+    ids = {rule.qualified_id for rule in ruleset.rules}
+    assert {
+        "ai-tells-structure.negative-inventory-core",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-scope.code-change-prose-scope",
+    } <= ids
+    assert len(ids) == 231
+
+
 def test_reads_better_is_never_an_exception(ruleset):
     """The whole point of the annotation contract: an unnamed override collapses
     the ruleset, which is what Orwell's sixth rule does in an automated pipeline."""
@@ -289,9 +316,21 @@ def test_uncommented_starter_examples_load(tmp_path):
     from slopvac.templates import STARTER_CONFIG
 
     lines = []
-    syntax = ("# [", "# [[", "# profile =", "# severity =", "# minimum_severity =",
-              "# max_per_100_words =", "# files =", "# default =", "# allow =",
-              "# path =", "# enabled =", "# binary =", "# config =")
+    syntax = (
+        "# [",
+        "# [[",
+        "# profile =",
+        "# severity =",
+        "# minimum_severity =",
+        "# max_per_100_words =",
+        "# files =",
+        "# default =",
+        "# allow =",
+        "# path =",
+        "# enabled =",
+        "# binary =",
+        "# config =",
+    )
     for line in STARTER_CONFIG.format(profile="normal").splitlines():
         stripped = line.lstrip()
         lines.append(line[2:] if stripped.startswith(syntax) else line)
@@ -314,7 +353,9 @@ def test_shipped_lexical_examples_fire_through_engine(ruleset):
     for rule in ruleset.rules:
         if rule.kind not in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION):
             continue
-        profile = next((name for name in profiles if rule.tier_for(name) is Tier.ENFORCED), None)
+        profile = next(
+            (name for name in profiles if rule.tier_for(name) is Tier.ENFORCED), None
+        )
         if profile is None:
             continue
         config = Config(profile=profile)
@@ -329,13 +370,19 @@ def test_shipped_lexical_examples_fire_through_engine(ruleset):
                     bad = f"# {bad}"
                 if good is not None and not good.lstrip().startswith("#"):
                     good = f"# {good}"
-            bad_ids = {finding.rule_id for finding in engine.run(parse("a.md", bad + "\n"))}
+            bad_ids = {
+                finding.rule_id for finding in engine.run(parse("a.md", bad + "\n"))
+            }
             if rule.qualified_id not in bad_ids:
                 failures.append(f"{rule.qualified_id} bad example {index}")
             if good is not None:
-                good_ids = {finding.rule_id for finding in engine.run(parse("a.md", good + "\n"))}
+                good_ids = {
+                    finding.rule_id for finding in engine.run(parse("a.md", good + "\n"))
+                }
                 if rule.qualified_id in good_ids:
                     failures.append(f"{rule.qualified_id} good example {index}")
     known_failures = {}
-    unexpected = [failure for failure in failures if failure.split(" ", 1)[0] not in known_failures]
+    unexpected = [
+        failure for failure in failures if failure.split(" ", 1)[0] not in known_failures
+    ]
     assert not unexpected, "\n".join(unexpected)
