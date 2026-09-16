@@ -26,6 +26,7 @@ COVERAGE_COUNTS = ("eligible", "attempted", "confirmed", "rejected", "preserved"
 
 
 
+
 def outer_payloads(text: str) -> list[dict[str, Any]]:
     """Extract top-level ``results`` objects from prose, fenced, or plain JSON."""
     cleaned = re.sub(r"```(?:json)?\s*", "", text, flags=re.I).replace("```", "")
