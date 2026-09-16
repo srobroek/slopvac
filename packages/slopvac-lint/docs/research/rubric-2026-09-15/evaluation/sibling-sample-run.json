@@ -1,0 +1,233 @@
+{
+  "corpus_frozen_in": "corpus.json (exclusions: .git, node_modules, .venv, caches, .beads, .agents, CHANGELOG*, LICENSE*, fixtures, specimens, omp-orchestrate/scratch)",
+  "deterministic_baseline_full_corpus": {
+    "omp-orchestrate": {
+      "documents": 18,
+      "errors": 4,
+      "findings": 443,
+      "per_100_words": 4.185,
+      "score": 87.4,
+      "suggestions": 358,
+      "warnings": 81,
+      "words": 10585
+    },
+    "omp-plugins": {
+      "documents": 196,
+      "errors": 139,
+      "findings": 3230,
+      "per_100_words": 5.242,
+      "score": 82.2,
+      "suggestions": 2219,
+      "warnings": 872,
+      "words": 61623
+    }
+  },
+  "model": "amazon-bedrock/global.anthropic.claude-fable-5-1 (schema in prompt)",
+  "packs": [
+    "SPAN-ai-tells-structure-1",
+    "SPAN-ai-tells-structure-2",
+    "SPAN-ai-tells-register-1",
+    "PROBE-1",
+    "PROBE-2",
+    "PROBE-3"
+  ],
+  "run": "sibling-sample-1",
+  "sample": {
+    "omp-orchestrate": {
+      "calls": 234,
+      "confirms": [
+        {
+          "adjudication": "B",
+          "path": "agents/orc-reviewer.md",
+          "quote": "reviewed task reopens for the same implementer with your findings; you re-check it.",
+          "rewrite_status": "withheld_checker_veto",
+          "rule": "ai-tells-content-shape.elegant-variation"
+        },
+        {
+          "adjudication": "B",
+          "path": "agents/orc-reviewer.md",
+          "quote": "The brief may name several implementations from one wave; judge each against its own criteria and report per bead.",
+          "rewrite_status": "withheld_checker_veto",
+          "rule": "ai-tells-content-shape.elegant-variation"
+        }
+      ],
+      "counts": {
+        "a2_no_prose": 156,
+        "a2_text_unavailable": 612,
+        "admissible_units": 4440,
+        "calls": 234,
+        "documents": 5,
+        "passages": 387,
+        "units": 5052
+      },
+      "documents": [
+        "skills/orchestrate-with-bd/references/decisions.md",
+        "docs/testing.md",
+        "agents/orc-planner.md",
+        "agents/orc-reviewer.md",
+        "agents/orc-lead.md"
+      ],
+      "outcomes": {
+        "ABSTAIN": 116,
+        "CONFIRM": 2,
+        "DROP": 612,
+        "PRESERVE": 41,
+        "REJECT": 4019
+      },
+      "per_document": [
+        {
+          "abstained": 25,
+          "adjusted_score": 83.3,
+          "confirmed": 0,
+          "deterministic_findings": 57,
+          "deterministic_score": 83.3,
+          "failed": 44,
+          "path": "skills/orchestrate-with-bd/references/decisions.md",
+          "preserved": 9
+        },
+        {
+          "abstained": 70,
+          "adjusted_score": 84.1,
+          "confirmed": 0,
+          "deterministic_findings": 109,
+          "deterministic_score": 84.1,
+          "failed": 100,
+          "path": "docs/testing.md",
+          "preserved": 8
+        },
+        {
+          "abstained": 7,
+          "adjusted_score": 82.8,
+          "confirmed": 0,
+          "deterministic_findings": 24,
+          "deterministic_score": 82.8,
+          "failed": 0,
+          "path": "agents/orc-planner.md",
+          "preserved": 6
+        },
+        {
+          "abstained": 8,
+          "adjusted_score": 84.6,
+          "confirmed": 2,
+          "deterministic_findings": 24,
+          "deterministic_score": 84.9,
+          "failed": 0,
+          "path": "agents/orc-reviewer.md",
+          "preserved": 8
+        },
+        {
+          "abstained": 3,
+          "adjusted_score": 85.0,
+          "confirmed": 0,
+          "deterministic_findings": 48,
+          "deterministic_score": 85.0,
+          "failed": 0,
+          "path": "agents/orc-lead.md",
+          "preserved": 10
+        }
+      ]
+    },
+    "omp-plugins": {
+      "calls": 150,
+      "confirms": [
+        {
+          "adjudication": "FP",
+          "path": "find-tools/skills/find-tools/references/discovery-sources.md",
+          "quote": "It reports the seven surfaces below",
+          "rewrite_status": "withheld_checker_veto",
+          "rule": "ai-tells-structure.cataphoric-lead-in-remainder"
+        },
+        {
+          "adjudication": "B",
+          "path": "whats-new/skills/whats-new/references/recipes.md",
+          "quote": "it's the curated source",
+          "rewrite_status": "withheld_needs_fact",
+          "rule": "ai-tells-register.anthropomorphised-justification-remainder"
+        },
+        {
+          "adjudication": "FP",
+          "path": "whats-new/skills/whats-new/references/recipes.md",
+          "quote": "Some projects ship neither.",
+          "rewrite_status": "withheld_checker_veto",
+          "rule": "ai-tells-structure.heading-echo"
+        }
+      ],
+      "counts": {
+        "a2_no_prose": 96,
+        "a2_text_unavailable": 900,
+        "admissible_units": 2748,
+        "calls": 150,
+        "documents": 5,
+        "passages": 361,
+        "units": 4752
+      },
+      "documents": [
+        "project/skills/journey-init/templates/FORMAT.md",
+        "find-tools/skills/find-tools/references/discovery-sources.md",
+        "whats-new/skills/whats-new/references/recipes.md",
+        "authoring/skills/omp-extension-safety/SKILL.md",
+        "design/skills/ui-review/references/probes.md"
+      ],
+      "outcomes": {
+        "ABSTAIN": 52,
+        "CONFIRM": 3,
+        "DROP": 1992,
+        "PRESERVE": 42,
+        "REJECT": 2553
+      },
+      "per_document": [
+        {
+          "abstained": 0,
+          "adjusted_score": 72.3,
+          "confirmed": 0,
+          "deterministic_findings": 76,
+          "deterministic_score": 72.3,
+          "failed": 0,
+          "path": "project/skills/journey-init/templates/FORMAT.md",
+          "preserved": 0
+        },
+        {
+          "abstained": 3,
+          "adjusted_score": 33.0,
+          "confirmed": 1,
+          "deterministic_findings": 20,
+          "deterministic_score": 33.2,
+          "failed": 0,
+          "path": "find-tools/skills/find-tools/references/discovery-sources.md",
+          "preserved": 2
+        },
+        {
+          "abstained": 19,
+          "adjusted_score": 79.4,
+          "confirmed": 2,
+          "deterministic_findings": 94,
+          "deterministic_score": 79.7,
+          "failed": 40,
+          "path": "whats-new/skills/whats-new/references/recipes.md",
+          "preserved": 15
+        },
+        {
+          "abstained": 7,
+          "adjusted_score": 59.7,
+          "confirmed": 0,
+          "deterministic_findings": 14,
+          "deterministic_score": 59.7,
+          "failed": 20,
+          "path": "authoring/skills/omp-extension-safety/SKILL.md",
+          "preserved": 10
+        },
+        {
+          "abstained": 21,
+          "adjusted_score": 86.9,
+          "confirmed": 0,
+          "deterministic_findings": 85,
+          "deterministic_score": 86.9,
+          "failed": 40,
+          "path": "design/skills/ui-review/references/probes.md",
+          "preserved": 15
+        }
+      ]
+    }
+  },
+  "scope": "PARTIAL: five worst deterministic documents per repository (by errors*10+warnings), not the full 196+18 corpora"
+}
