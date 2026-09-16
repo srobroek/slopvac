@@ -636,7 +636,7 @@ Cut the strawman half of a contrastive frame
 - **Kind.** pattern — a regular expression
 - **Ships as.** error
 - **strict / normal / relaxed.** enforced / enforced / advisory
-- **Scope.** paragraph
+- **Scope.** prose
 - **Fix.** Delete the negated half and state what the thing is.
 - **Source.** references/ai-tells/structure.md ("Contrastive inversion") — <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
 

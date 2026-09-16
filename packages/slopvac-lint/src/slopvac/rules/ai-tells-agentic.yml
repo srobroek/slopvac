@@ -27,7 +27,7 @@ rules:
     kind: pattern
     severity: error
     message: 'contrastive inversion: {match} -- state what the thing is; cut the strawman'
-    scope: paragraph
+    scope: prose
     tiers:
       strict: enforced
       normal: enforced
