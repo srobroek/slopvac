@@ -32,7 +32,7 @@
       "rule": "coverage = completed/eligible per pack and rule; a document with any failed, truncated, or not-run eligible unit is PARTIAL, never CLEAN; abstention is a completed adjudication reported separately with reason counts"
     },
     "judgement_score": {
-      "gating": "Judgement findings never enter min_score, max_warnings, density budgets, or the min_score guard (score.py:267-272). A judgement confirm counts toward max_errors only when its rule's judgement_ceiling is error (today: ste-safety.risk-level-word-missing-or-wrong). The only other gating path is the cluster gate.",
+      "gating": "Judgement findings never enter min_score, max_warnings, density budgets, or the min_score guard (score.py:267-272). A judgement confirm counts toward max_errors only when its rule's judgement_ceiling is error (today: ste-safety.risk-level-word-missing-or-wrong and prose-scope.code-change-prose-scope). The only other gating path is the cluster gate.",
       "judgement_max_penalty": {
         "derivation": "narrowest passing band: strict min_score 85 leaves 15 points on a clean document; any larger cap gates alone at strict (100-20=80<85). Profile-relative bound if a single composite ever gates: J_max = max(0, 100 - min_score - suggestion_penalty), i.e. strict 0, normal 15. No published precedent for a stochastic-component cap exists; report capped and uncapped values until Q09 is answered.",
         "status": "provisional",
@@ -157,6 +157,19 @@
       ],
       "weight_use": "initial prior only; effective weight is profile-resolved and must be recalibrated before activation",
       "weight_yaml": 1.5
+    },
+    {
+      "id": "prose-scope",
+      "judgement_ceiling": "error",
+      "local_rules": 0,
+      "probe_rules": 1,
+      "protects": [],
+      "recommended_for": [
+        "consumer",
+        "change-comms"
+      ],
+      "weight_use": "initial prior only; effective weight is profile-resolved and must be recalibrated before activation",
+      "weight_yaml": 1.0
     },
     {
       "id": "ste-descriptive",
@@ -387,6 +400,7 @@
       {
         "categories": [
           "orwell",
+          "prose-scope",
           "ste-words"
         ],
         "chunk": 5,
@@ -398,6 +412,7 @@
         ],
         "rules": [
           "orwell.concrete-floor",
+          "prose-scope.code-change-prose-scope",
           "ste-words.domain-noun-not-organization-approved"
         ],
         "scope_class": "probe"
@@ -722,7 +737,9 @@
   "decision_algorithm": [
     "gates run in order A5, A1, A2, A4, A3; if any admission gate fails: DROP the judgement remainder (audit only). A5 never suppresses the mechanical core finding, whose own exclusions live in slopvac.toml",
     "if preservation_reason: PRESERVE (recorded, never a finding)",
-    "if abstain_reason or not evidence_ok: ABSTAIN (counts against coverage; evidence_ok = exact slice match in the named source, in-range offsets, rule min_arity and roles satisfied, role=defect evidence unit-local)",
+    "if abstain_reason: ABSTAIN (counts against coverage)",
+    "if fit in {absent, partial} and model verdict == reject: REJECT (nothing to quote for an absent shape; no evidence required; 1.1.2)",
+    "if not evidence_ok: ABSTAIN(no_exact_evidence) (evidence_ok = exact slice match in the named source, in-range offsets, rule min_arity and roles satisfied, role=defect evidence unit-local; required for every candidate confirm or preserve)",
     "if fit in {absent, partial}: REJECT",
     "if warrant_code < rule.warrant_min: REJECT",
     "if harm == none and repair != safe_deletion: REJECT (skipped when the rule masks harm=inapplicable; a masked harm caps severity at suggestion)",
@@ -1505,6 +1522,20 @@
     }
   ],
   "research_date": "2026-09-15",
+  "revision_history": [
+    {
+      "change": "first accepted synthesis after the contract challenge",
+      "version": "1.1.0"
+    },
+    {
+      "change": "66th provisional rule record; target_base_commit",
+      "version": "1.1.1"
+    },
+    {
+      "change": "decision order: a model reject with fit absent or partial needs no evidence; the README live run had turned 570 honest rejects into abstentions",
+      "version": "1.1.2"
+    }
+  ],
   "rewrite_requirements": {
     "additions": "authorised only by (a) the source occurrence under a declared typed normalisation (spelled-number<->digit, date format, unit, case, punctuation), (b) a cited glossary/schema/repository referent supplied as evidence, or (c) an exact rule-declared allowed_transition. Presence elsewhere in the document is not authorisation. Numerals are never introduced without (a) or (b).",
     "checker": "compare typed, located protected tokens between unit and rewrite; require semantic equivalence and referent/location preservation per occurrence",
@@ -2621,6 +2652,35 @@
       "warrant_min": 2
     },
     {
+      "added_in": "1.1.1: the rule entered origin/main after source_commit; its record is inferred from its YAML, not from the review",
+      "category": "prose-scope",
+      "dims": {
+        "fit": "ask",
+        "harm": "ask",
+        "repair": "ask",
+        "warrant": "ask"
+      },
+      "evidence": {
+        "min_arity": 2,
+        "roles": [
+          "defect",
+          "referent"
+        ]
+      },
+      "host_predicates": [
+        {
+          "definition": "the changed hunk is supplied as role=referent repository evidence (path@blob_sha); without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM",
+          "id": "code_diff_available"
+        }
+      ],
+      "id": "prose-scope.code-change-prose-scope",
+      "judgement_ceiling": "error",
+      "protects": [],
+      "scope_class": "probe",
+      "status": "provisional",
+      "warrant_min": 2
+    },
+    {
       "category": "ste-descriptive",
       "dims": {
         "fit": "ask",
@@ -3098,7 +3158,7 @@
       "warrant_min": 2
     }
   ],
-  "schema_version": "1.1.0",
+  "schema_version": "1.1.2",
   "scope": {
     "in": "prose-quality defect judgement layered over the deterministic slopvac ruleset",
     "out": [
@@ -3108,6 +3168,8 @@
     ]
   },
   "source_commit": "df7ba4412387c474dc8ef646a8d594dc44c1c7eb",
+  "target_base_commit": "12042c9e7d1758f9f02c37884ccf98d38b8e2493",
+  "target_base_note": "origin/main at implementation start; carries 66 kind: judgement rules (65 reviewed + prose-scope.code-change-prose-scope, whose record is inferred). Measurements and the review refer to source_commit.",
   "unit_schema": {
     "fields": {
       "category": "owning category; dimensions key on the rule record, never on the category",
