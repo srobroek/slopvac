@@ -305,12 +305,17 @@ def _one(
         if _value(unit, name) is False:
             return _record(unit, rule, outcome="DROP", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=None, rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
 
-    if (_value(unit, "region_class") in {"quoted", "example"} and "quoted_specimen" in protected):
+    if _value(unit, "region_class") in {"quoted", "example"} and "quoted_specimen" in protected:
         preservation_reason = "quoted_specimen"
+    fit = scores.get("fit") if scores else None
+    model_verdict = str(model_output.get("verdict", "")).upper()
+    reject_without_evidence = model_verdict == "REJECT" and fit in {"absent", "partial"}
     if preservation_reason in protected and preservation_reason != adjudicates:
+        if not evidence_ok:
+            return _record(unit, rule, outcome="ABSTAIN", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=evidence_reason or "no_exact_evidence", rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
         return _record(unit, rule, outcome="PRESERVE", severity=None, scores=scores, evidence=evidence, preservation_reason=preservation_reason, abstain_reason=None, rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
 
-    if abstain_reason or evidence_reason or not evidence_ok:
+    if (abstain_reason or evidence_reason or not evidence_ok) and not reject_without_evidence:
         return _record(unit, rule, outcome="ABSTAIN", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=abstain_reason or evidence_reason or "no_exact_evidence", rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
 
     fit = scores.get("fit") if scores else None
