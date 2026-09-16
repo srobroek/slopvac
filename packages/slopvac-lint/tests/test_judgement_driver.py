@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from slopvac.analyze import parse
 from slopvac.judgement.driver import (
+    _admission,
     _unit_from_block,
     _unit_from_sentence,
     compare,
@@ -39,7 +41,7 @@ def test_prepare_writes_units_and_bounded_json_prompts(tmp_path: Path) -> None:
 
 def test_finish_records_missing_calls_and_compare_shows_both_scores(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
-    document.write_text("A paragraph.", encoding="utf-8")
+    document.write_text("A useful paragraph.", encoding="utf-8")
     out = tmp_path / "run"
     prepare(config=CONFIG, out=out, paths=(document,), packs="all")
     responses = tmp_path / "responses.jsonl"
@@ -54,7 +56,7 @@ def test_finish_records_missing_calls_and_compare_shows_both_scores(tmp_path: Pa
 
 def test_span_calls_group_passages_and_rules(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
-    document.write_text("One paragraph.\n\nTwo paragraph.\n\nThree paragraph.", encoding="utf-8")
+    document.write_text("One authored paragraph.\n\nTwo authored paragraph.\n\nThree authored paragraph.", encoding="utf-8")
     out = tmp_path / "run"
     manifest = prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
     prompts = [json.loads(line) for line in (out / "prompts.jsonl").read_text().splitlines() if line]
@@ -68,7 +70,7 @@ def test_span_calls_group_passages_and_rules(tmp_path: Path) -> None:
 
 def test_probe_units_have_rule_identity_and_finish_coverage(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
-    document.write_text("A paragraph.", encoding="utf-8")
+    document.write_text("A useful paragraph.", encoding="utf-8")
     out = tmp_path / "run"
     prepare(
         config=CONFIG,
@@ -163,7 +165,7 @@ def test_heading_and_nonzero_offset_units_keep_source_text(tmp_path: Path) -> No
 
 def test_finish_records_malformed_response_call(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
-    document.write_text("A paragraph.", encoding="utf-8")
+    document.write_text("A useful paragraph.", encoding="utf-8")
     out = tmp_path / "run"
     prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
     call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
@@ -241,3 +243,41 @@ def test_numeric_table_cells_are_not_units(tmp_path: Path) -> None:
     table = next(block for block in document.blocks if block.kind.value == "table")
     pack = Pack("demo", (), 1, "local", (), ("demo.rule",))
     assert _unit_from_block(document, table, "demo.rule", pack) == []
+
+
+def _admission_unit(text: str, *, document_text: str | None = None, raw_start: int = 0) -> SimpleNamespace:
+    return SimpleNamespace(
+        text=text,
+        origin="authored",
+        region_class="authored",
+        document_text=document_text or text,
+        projection=SimpleNamespace(segments=(SimpleNamespace(raw_start=raw_start),)),
+    )
+
+
+def test_admission_drops_fragment_units_but_keeps_three_words() -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    fragments = (
+        _admission_unit("MUST At"),
+        _admission_unit("A"),
+        _admission_unit("A B"),
+        _admission_unit("# Alpha beta gamma"),
+        _admission_unit("alpha beta gamma", document_text="prefixalpha beta gamma", raw_start=6),
+    )
+    assert [_admission(unit, pack) for unit in fragments] == [
+        ("DROP", "a2_fragment_unit"),
+        ("DROP", "a2_fragment_unit"),
+        ("DROP", "a2_fragment_unit"),
+        ("DROP", "a2_fragment_unit"),
+        ("DROP", "a2_fragment_unit"),
+    ]
+    assert _admission(_admission_unit("One useful sentence"), pack) == ("ELIGIBLE", None)
+
+
+def test_admission_preserves_normative_register() -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    assert _admission(_admission_unit("MUST reject malformed input"), pack) == (
+        "PRESERVE",
+        "normative_obligation",
+    )
+    assert _admission(_admission_unit("The parser rejects input"), pack) == ("ELIGIBLE", None)

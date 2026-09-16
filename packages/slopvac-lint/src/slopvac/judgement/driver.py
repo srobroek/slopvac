@@ -425,13 +425,64 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
     return units
 
 
+_NORMATIVE_START = re.compile(
+    r"^(?:MUST(?:\s+NOT)?|SHOULD|SHALL|MAY|NEVER|NOT|DEFAULT|AVOID|REQUIRED|PROHIBITED|GOTCHA|ALWAYS)\b"
+)
+_IMPERATIVE_STEERING_START = re.compile(
+    r"^(?:do not|don't|never|always|run|use|choose|keep|set|add|delete|avoid|ensure|check|record|confirm|create|prefer|treat|start|stop|read|write|pass|include|exclude|name|state|pick|select|report|return|preserve|flag|fix|replace|narrow|quote|apply|remove|make|call|open|close|inspect|verify|follow)\b",
+    re.IGNORECASE,
+)
+
+
+def _source_start(unit: Any) -> int | None:
+    segments = tuple(getattr(getattr(unit, "projection", None), "segments", ()))
+    return min((int(segment.raw_start) for segment in segments), default=None)
+
+
+def _source_line(unit: Any) -> tuple[str, int]:
+    raw = str(getattr(unit, "document_text", ""))
+    start = _source_start(unit)
+    if start is None or not raw:
+        return "", 0
+    prefix = raw.encode("utf-8")[:start].decode("utf-8", errors="ignore")
+    line_start = raw.rfind("\n", 0, len(prefix)) + 1
+    line_end = raw.find("\n", len(prefix))
+    if line_end < 0:
+        line_end = len(raw)
+    return raw[line_start:line_end], len(prefix) - line_start
+
+
+def _is_fragment_unit(unit: Any) -> bool:
+    text = str(getattr(unit, "text", "")).strip()
+    if len(re.findall(r"[^\W\d_]+", text, flags=re.UNICODE)) < 3:
+        return True
+    source_line, offset = _source_line(unit)
+    if source_line and offset > 0 and source_line[offset - 1].isalnum():
+        return True
+    return bool(re.match(r"^\s{0,3}#{1,6}(?:\s|$)", source_line))
+
+
+def _is_normative_register(unit: Any) -> bool:
+    text = str(getattr(unit, "text", "")).strip()
+    if _NORMATIVE_START.match(text):
+        return True
+    source_line, _ = _source_line(unit)
+    if not re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", source_line):
+        return False
+    return bool(_IMPERATIVE_STEERING_START.match(text))
+
+
 def _admission(unit: Any, pack: Pack) -> tuple[str, str | None]:
     if not str(unit.text).strip():
         return "DROP", "a2_text_unavailable"
+    if _is_fragment_unit(unit):
+        return "DROP", "a2_fragment_unit"
     if unit.origin in {"generated", "vendored", "template"}:
         return "DROP", None
     if unit.region_class in {"quoted", "example"} and "quoted_specimen" in pack.protects:
         return "PRESERVE", "quoted_specimen"
+    if _is_normative_register(unit) and "normative_obligation" in pack.protects:
+        return "PRESERVE", "normative_obligation"
     return "ELIGIBLE", None
 
 
@@ -559,6 +610,7 @@ def prepare(
     )
     spine_revision = rubric_revision(_SPINE)
     a2_no_prose_total = 0
+    a2_fragment_unit_total = 0
     for path in context.paths:
         path = Path(path)
         config_for_path = context.configs[path]
@@ -638,7 +690,9 @@ def prepare(
                 admission, reason = _admission(unit, pack)
                 unit.admission = admission
                 unit.admission_reason = reason
-                unit.preservation_reason = reason
+                if reason == "a2_fragment_unit":
+                    a2_fragment_unit_total += 1
+                unit.preservation_reason = reason if admission == "PRESERVE" else None
                 if unit.kind == "SPAN_CANDIDATE" and admission == "ELIGIBLE":
                     try:
                         source_text = unit.projection.slice_raw(0, len(unit.text)).decode("utf-8")
@@ -751,6 +805,7 @@ def prepare(
             "admissible_units": sum(item["admission"] == "ELIGIBLE" for item in all_units),
             "a2_text_unavailable": sum(item.get("admission_reason") == "a2_text_unavailable" for item in all_units),
             "a2_no_prose": a2_no_prose_total,
+            "a2_fragment_unit": a2_fragment_unit_total,
         },
         "response_schema": "Calls with multiple units wrap outputs as {\"results\": [model_output...]}; a single probe may return one model_output object.",
         "pack_counts": {

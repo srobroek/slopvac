@@ -28,7 +28,7 @@ class Pack:
     rules: tuple[str, ...]
     rule_records: tuple[Mapping[str, Any], ...] = ()
     units_max: int = 5
-    template_revision: str = "1"
+    template_revision: str = "2"
     shots: tuple[Mapping[str, str], ...] = ()
 
 
@@ -199,6 +199,20 @@ def render_pack(pack: Pack, spine: str) -> str:
             roles = ", ".join(evidence.get("roles", ()))
             arity = evidence.get("min_arity", 1)
             criteria.append(f"- {record['id']}: {question} (evidence roles: {roles}; minimum quotes: {arity})")
+            for example in record.get("examples", ()):
+                if not isinstance(example, Mapping):
+                    continue
+                bad = str(example.get("bad", "")).strip()
+                if not bad:
+                    continue
+                good = example.get("good")
+                note = str(example.get("note", "")).strip()
+                if good:
+                    criteria.append(f"  exemplar: {bad} -> {str(good).strip()}")
+                elif note:
+                    criteria.append(f"  exemplar: {bad} [{note}]")
+                else:
+                    criteria.append(f"  exemplar: {bad}")
     forbidden = re.compile(r"\b(?:error|warning|suggestion|threshold|weight|severity)\b", re.I)
     text = spine.rstrip() + "\n\nPACK " + pack.id + "\n" + "\n".join(criteria)
     text += "\n\nProtected classes: " + ", ".join(pack.protects)

@@ -68,26 +68,21 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Is the negated half mainly a rhetorical foil, or is keeping it essential to
-      safety or compliance, or materially clearer than a positive statement? This
-      judgement explicitly includes ambiguous sentence-initial bare clauses such
-      as "Parser reads JSON, not YAML" and "System validates input, not output",
-      plus subjectless imperatives such as "Monitor services, not processes" and
-      "Choose SHA-256, not MD5"; the deterministic pattern leaves those forms
-      clean. Flag the contrast only when the positive rewrite preserves the same
-      actionable meaning and is at least as clear; a factual boundary by itself
-      is not an exemption.
+      Does this contrast either negate an alternative nobody proposed or add no information?
+      Factual corrections and instructions that name a real alternative are not defects;
+      preserve them. Flag only when removing the contrast preserves the same actionable
+      meaning.
     examples:
       - bad: Where other gates check words, this one reads the shape of the argument.
         good: The gate scores paragraph symmetry and passive density.
-      - bad: Parser reads JSON, not YAML.
-        good: Parser reads JSON.
-      - bad: System validates input, not output.
-        good: System validates input.
-      - bad: Monitor services, not processes.
-        good: Monitor services.
-      - bad: Choose SHA-256, not MD5.
-        good: Choose SHA-256.
+      - bad: It's less about speed and more about determinism.
+        good: The gate is deterministic.
+      - bad: "The parser reads JSON, not YAML."
+        good: null
+        note: "preserve: factual correction naming the actual boundary"
+      - bad: "Choose SHA-256, not MD5."
+        good: null
+        note: "preserve: instruction naming a real alternative"
     provenance:
       source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -485,8 +480,8 @@ rules:
       normal: enforced
       relaxed: advisory
     judgement_question: >-
-      Does the first sentence under this heading state any fact the heading did
-      not already state?
+      Given the heading alone, does the first sentence repeat its proposition with no new
+      operation, constraint, path, metric, or scope? Same topic is not enough to flag.
     judgement:
       scope_class: local
       dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
@@ -497,7 +492,11 @@ rules:
     fix: Delete the restatement and open on the first new fact.
     examples:
       - bad: "## Install the plugin\n\nThis section covers installing the plugin."
-        good: "## Install the plugin\n\nRun `apm install slopvac`."
+        good: "## Install the plugin\n\nRun apm install slopvac."
+      - bad: "## Authentication\n\nAuthentication covers access control."
+        good: "## Authentication\n\nEvery request sends a bearer token."
+      - bad: "Deployment\n\nDeployment is the act of releasing software."
+        good: "Deployment\n\nThe pipeline signs the image before publishing it."
     provenance:
       source: references/ai-tells/structure.md ("Heading echo")
       note: >-
@@ -843,9 +842,9 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Can you name one counterexample, or is this a defined scoped invariant?
-      Flag the universal only when it is unsupported or counterexample-prone;
-      do not flag a claim whose domain and evidence are explicitly bounded.
+      Within the stated domain, corpus, version, and exceptions, is the universal
+      contradicted by an observed or documented counterexample? If the sentence is
+      an explicit specification invariant and its domain is stated, PRESERVE it.
     judgement:
       scope_class: local
       dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
@@ -857,8 +856,15 @@ rules:
     examples:
       - bad: Every Project Needs A Lockfile.
         good: A project with more than one direct dependency needs a lockfile.
-      - good: Every request to this endpoint requires authentication.
-        bad: Every system always behaves correctly.
+      - bad: Every request to this endpoint requires authentication.
+        good: null
+        note: "preserve: bounded endpoint domain"
+      - bad: MUST reject every invalid request.
+        good: null
+        note: "preserve: explicit specification invariant"
+      - bad: Every system always behaves correctly.
+        good: null
+        note: "flag: unsupported universal; require an observed counterexample"
     provenance:
       source: references/ai-tells/structure.md ("Absolute assertion")
       note: >-
@@ -1670,7 +1676,10 @@ rules:
       normal: enforced
       relaxed: enforced
     judgement_question: >-
-      Is the subject of this sentence a thing that can act? If not, who acted?
+      Is the subject performing deliberate intent or choice, or is it a checkable technical
+      actor under a specification? If it is a MUST/MUST NOT/DEFAULT line, imperative
+      steering, quoted text, or a component causally operating, PRESERVE; flag only
+      unowned intent, merit, or self-causation.
     judgement:
       scope_class: local
       dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
@@ -1684,6 +1693,20 @@ rules:
         good: The team fixed it that week.
       - bad: A bet lives or dies in days.
         good: You learn within a week whether the bet paid.
+      - bad: The parser rejects malformed JSON.
+        good: null
+        note: "preserve: technical actor performing a checkable operation"
+      - bad: The cache evicts entries.
+        good: null
+        note: "preserve: component performing a checkable operation"
+      - bad: MUST reject invalid input.
+        good: null
+        note: "preserve: normative specification line"
+      - bad: Run the migration.
+        good: null
+        note: "preserve: imperative steering"
+      - bad: The cache wants to protect you.
+        good: The cache evicts entries.
     provenance:
       source: references/ai-tells/register.md ("False agency")
       note: >-
