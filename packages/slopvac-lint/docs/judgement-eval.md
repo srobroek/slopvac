@@ -54,3 +54,19 @@ uv run slopvac judgement compare --out .slopvac-judgement
 `finish` rejects malformed calls, records schema errors in `failed.jsonl`, and
 writes `findings.jsonl`, `report.json`, and `report.md`. `compare --apply-preview`
 writes checker-passed proposed rewrites under `.slopvac-judgement/preview/`.
+
+## Reading confirms
+
+A confirm is a suggestion, never a gate. The layer is reporting-only: no confirm
+changes a pass/fail result, and the adjusted score moves by at most two points.
+
+Measured precision on the two full runs so far
+(`docs/research/rubric-2026-09-15/evaluation/`): 6 of 37 confirms on the local
+corpus and 5 of 95 on the sibling repositories were real defects. Most wrong
+confirms are style objections to ordinary technical agency ("the parser rejects"),
+to normative lines (MUST, NOT, DEFAULT), to factual "X, not Y" contrasts, and to
+plain section titles. When you act on a report, discard a confirm whose rewrite
+changes what the sentence claims, targets a specification or steering line, or
+rests on an evidence quote that is not in the unit. Do not add rule-level
+suppressions for these cases; they also remove the true positives, which sit on the
+same rules.
