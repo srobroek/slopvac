@@ -80,9 +80,9 @@ def _plain(value: Any) -> Any:
     if hasattr(value, "value") and not isinstance(value, (str, bytes)):
         return value.value
     if hasattr(value, "model_dump"):
-        return value.model_dump()
+        return _plain(value.model_dump())
     if is_dataclass(value):
-        return asdict(value)
+        return _plain(asdict(value))
     if isinstance(value, Mapping):
         return {key: _plain(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
@@ -90,19 +90,30 @@ def _plain(value: Any) -> Any:
     return value
 
 
+_RECORD_FIELDS = ("category", "dims", "evidence", "id", "judgement_ceiling", "protects", "scope_class", "warrant_min")
+_OPTIONAL_RECORD_FIELDS = ("adjudicates", "allowed_transitions", "host_predicates", "scope_class_derivation", "added_in", "status")
+
+
 def _merged_record(rid: str, rule: Any) -> dict[str, Any]:
-    contract = _judgement_value(rule, "model_dump", None)
-    if contract is None:
-        contract = _value(rule, "judgement", {})
-    result = _plain(contract)
-    if not isinstance(result, dict):
-        result = {}
-    result["id"] = rid
-    for key in ("judgement_question", "message", "fix", "examples", "tiers", "exceptions", "scope", "severity"):
-        value = _value(rule, key)
+    """Render the contract record without dataclass defaults or dropped fields."""
+    contract = _value(rule, "judgement", {})
+    plain = _plain(contract)
+    if not isinstance(plain, Mapping):
+        plain = {}
+    result: dict[str, Any] = {}
+    category = _value(rule, "category", rid.rsplit(".", 1)[0])
+    result["category"] = _plain(category)
+    for key in _RECORD_FIELDS[1:]:
+        value = rid if key == "id" else plain.get(key, _value(rule, key))
         if value is not None:
             result[key] = _plain(value)
+    for key in _OPTIONAL_RECORD_FIELDS:
+        value = plain.get(key, _value(rule, key))
+        if value not in (None, (), [], {}):
+            result[key] = _plain(value)
     return result
+
+
 
 def pack_object(pack: Pack) -> dict[str, Any]:
     return {
