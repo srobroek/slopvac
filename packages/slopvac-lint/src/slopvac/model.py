@@ -435,3 +435,8 @@ class DocumentScore(BaseModel):
         description="What did NOT run, and why. A missing vale binary or an "
         "unsynced style must never read as a pass.",
     )
+    judgement_penalty: float = Field(default=0.0, ge=0)
+    judgement_penalty_uncapped: float = Field(default=0.0, ge=0)
+    judgement_adjusted_score: float = Field(default=100.0, ge=0, le=100)
+    judgement_cluster_gate: Literal["REVISE"] | None = None
+    judgement_unchecked: list[str] = Field(default_factory=list)

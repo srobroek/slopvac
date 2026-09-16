@@ -47,6 +47,19 @@ exclude = [
 [thresholds]
 max_errors = 0
 
+# Judgement aggregation. Threshold statuses are provisional unless noted.
+[judgement]
+# Provisional: reporting-only deduction cap.
+max_penalty = 15
+# Provisional: components required for the review gate.
+cluster_min_components = 3
+# Provisional: excess probe occurrences become not_run coverage.
+probe_occurrences_max = 12
+# Disabled experimental: preserve exposure never opens review by default.
+preserve_review_trigger = false
+# Provisional: frozen held-out relation table identity.
+dependence_table = "packages/slopvac-lint/src/slopvac/judgement/dependence_table.json"
+
 # --- Simplified Technical English --------------------------------------------
 [categories.ste-descriptive]
 severity = "suggestion"

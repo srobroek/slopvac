@@ -76,6 +76,10 @@ class RunSummary(BaseModel):
     score: float = Field(ge=0, le=100)
     passed: bool
     categories: list[CategorySummary] = Field(default_factory=list)
+    judgement_penalty: float = Field(default=0.0, ge=0)
+    judgement_penalty_uncapped: float = Field(default=0.0, ge=0)
+    judgement_adjusted_score: float = Field(default=100.0, ge=0, le=100)
+    judgement_cluster_gate: Literal["REVISE"] | None = None
 
 
 class LintReport(BaseModel):
@@ -382,12 +386,7 @@ def build_sarif(
 
 
 def summarize(scores: list[DocumentScore]) -> RunSummary:
-    """Roll several documents into one summary.
-
-    Density is recomputed over TOTAL words rather than averaged over documents:
-    averaging per-document densities lets a 30-word file outweigh a 3,000-word
-    one, which misreports a repository.
-    """
+    """Roll several documents into one summary."""
     if not scores:
         return RunSummary(
             documents=0,
@@ -401,46 +400,57 @@ def summarize(scores: list[DocumentScore]) -> RunSummary:
             passed=True,
         )
 
-    words = sum(s.words for s in scores)
-    findings = sum(s.total_findings for s in scores)
-
-    # Word-weighted mean, so a long document counts for more than a stub.
-    if words:
-        overall = sum(s.score * max(s.words, 1) for s in scores) / sum(
-            max(s.words, 1) for s in scores
-        )
-    else:
-        overall = sum(s.score for s in scores) / len(scores)
-
+    words = sum(score.words for score in scores)
+    findings = sum(score.total_findings for score in scores)
+    denominator = sum(max(score.words, 1) for score in scores)
+    overall = (
+        sum(score.score * max(score.words, 1) for score in scores) / denominator
+        if words
+        else sum(score.score for score in scores) / len(scores)
+    )
+    adjusted = (
+        sum(score.judgement_adjusted_score * max(score.words, 1) for score in scores)
+        / denominator
+        if words
+        else sum(score.judgement_adjusted_score for score in scores) / len(scores)
+    )
     buckets: dict[str, list[CategoryScore]] = {}
     for score in scores:
         for entry in score.categories:
             buckets.setdefault(entry.category, []).append(entry)
-
     categories = [
         CategorySummary(
             category=name,
-            findings=sum(e.findings for e in entries),
-            errors=sum(e.errors for e in entries),
-            warnings=sum(e.warnings for e in entries),
-            suggestions=sum(e.suggestions for e in entries),
+            findings=sum(entry.findings for entry in entries),
+            errors=sum(entry.errors for entry in entries),
+            warnings=sum(entry.warnings for entry in entries),
+            suggestions=sum(entry.suggestions for entry in entries),
             per_100_words=(
-                round(sum(e.findings for e in entries) / words * 100, 3) if words else 0.0
+                round(sum(entry.findings for entry in entries) / words * 100, 3)
+                if words
+                else 0.0
             ),
-            score=round(sum(e.score for e in entries) / len(entries), 1),
+            score=round(sum(entry.score for entry in entries) / len(entries), 1),
         )
         for name, entries in sorted(buckets.items())
     ]
-
     return RunSummary(
         documents=len(scores),
         words=words,
         findings=findings,
-        errors=sum(s.errors for s in scores),
-        warnings=sum(s.warnings for s in scores),
-        suggestions=sum(s.suggestions for s in scores),
+        errors=sum(score.errors for score in scores),
+        warnings=sum(score.warnings for score in scores),
+        suggestions=sum(score.suggestions for score in scores),
         per_100_words=round(findings / words * 100, 3) if words else 0.0,
         score=round(overall, 1),
-        passed=all(s.passed for s in scores),
+        judgement_penalty=round(sum(score.judgement_penalty for score in scores), 1),
+        judgement_penalty_uncapped=round(
+            sum(score.judgement_penalty_uncapped for score in scores), 1
+        ),
+        judgement_adjusted_score=round(adjusted, 1),
+        judgement_cluster_gate=(
+            "REVISE" if any(score.judgement_cluster_gate == "REVISE" for score in scores) else None
+        ),
+        passed=all(score.passed for score in scores),
         categories=categories,
     )
