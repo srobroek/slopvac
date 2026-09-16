@@ -212,6 +212,35 @@ def _passage_id(document: Document, doc_range: tuple[int, int]) -> str:
     return f"{document.path}:{doc_range[0]}:{doc_range[1]}"
 
 
+def _document_range_for_local(
+    document: Document,
+    local_projection: ProjectionMap,
+    start: int,
+    end: int,
+) -> tuple[int, int]:
+    selected = [
+        segment
+        for segment in local_projection.segments
+        if segment.proj_end > start and segment.proj_start < end
+    ]
+    if not selected:
+        return (0, 0)
+    raw_start = min(segment.raw_start for segment in selected)
+    raw_end = max(segment.raw_end for segment in selected)
+    document_segments = [
+        segment
+        for segment in document.projection.segments
+        if segment.raw_end > raw_start and segment.raw_start < raw_end
+    ]
+    if not document_segments:
+        before = [segment for segment in document.projection.segments if segment.raw_end <= raw_start and segment.raw_end > 0]
+        after = [segment for segment in document.projection.segments if segment.raw_start >= raw_end and segment.raw_end > segment.raw_start]
+        if before and after:
+            return (max(before, key=lambda segment: segment.proj_end).proj_end, min(after, key=lambda segment: segment.proj_start).proj_start)
+        return (0, 0)
+    return (document_segments[0].proj_start, document_segments[-1].proj_end)
+
+
 def _raw_unit_projection(
     document: Document,
     doc_range: tuple[int, int],
@@ -267,7 +296,9 @@ def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: in
     end = start + len(sentence.text)
     if block.projection is None:
         raise ValueError("parsed block has no projection")
-    doc_range = (block.doc_range[0] + start, block.doc_range[0] + end)
+    doc_range = _document_range_for_local(document, block.projection, start, end)
+    if doc_range == (0, 0):
+        doc_range = (block.doc_range[0] + start, block.doc_range[0] + end)
     raw_text, raw_projection = _raw_unit_projection(document, doc_range)
     unit = SpanCandidate(
         rule_id=rule_id,
@@ -320,6 +351,9 @@ def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> li
                 continue
             part_cursor = part_start + len(part)
             if not value:
+                continue
+            if not any(character.isalpha() for character in value):
+                document._a2_no_prose_count = getattr(document, "_a2_no_prose_count", 0) + 1
                 continue
             start_cp = content_start + part_start + (len(part) - len(part.lstrip()))
             end_cp = start_cp + len(value)
@@ -524,6 +558,7 @@ def prepare(
         lambda: {"units": 0, "calls": 0, "passages": set()}
     )
     spine_revision = rubric_revision(_SPINE)
+    a2_no_prose_total = 0
     for path in context.paths:
         path = Path(path)
         config_for_path = context.configs[path]
@@ -678,6 +713,7 @@ def prepare(
                 doc_calls.append(call)
                 all_prompts.append(call)
                 pack_stats[pack.id]["calls"] += 1
+        a2_no_prose_total += int(getattr(document, "_a2_no_prose_count", 0))
         per_doc.append(
             {
                 "path": str(path),
@@ -714,6 +750,7 @@ def prepare(
             "passages": len({(item["document_ref"], item["passage_id"]) for item in all_units}),
             "admissible_units": sum(item["admission"] == "ELIGIBLE" for item in all_units),
             "a2_text_unavailable": sum(item.get("admission_reason") == "a2_text_unavailable" for item in all_units),
+            "a2_no_prose": a2_no_prose_total,
         },
         "response_schema": "Calls with multiple units wrap outputs as {\"results\": [model_output...]}; a single probe may return one model_output object.",
         "pack_counts": {
@@ -829,12 +866,17 @@ def _score_with_judgement(
     )
 
 
-def _markdown_report(documents: list[dict[str, Any]], units: dict[str, dict[str, Any]], findings: list[dict[str, Any]]) -> str:
+def _markdown_report(
+    documents: list[dict[str, Any]],
+    units: dict[str, dict[str, Any]],
+    findings: list[dict[str, Any]],
+    evidence_offset_mismatch: int = 0,
+) -> str:
     by_doc: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for finding in findings:
         unit = units.get(str(finding["unit_id"]))
         by_doc[str(unit.get("path", "<unknown>")) if unit else "<unknown>"].append(finding)
-    lines = ["# Judgement comparison", ""]
+    lines = ["# Judgement comparison", "", f"evidence_offset_mismatch: {evidence_offset_mismatch}", ""]
     for doc in documents:
         path = str(doc["path"])
         lines.extend([f"## {path}", "", "| measure | deterministic | judgement |", "| --- | ---: | ---: |"])
@@ -875,9 +917,24 @@ def _markdown_report(documents: list[dict[str, Any]], units: dict[str, dict[str,
             if f.get("outcome") == "ABSTAIN"
         )
         lines.append("PRESERVE: " + (", ".join(f"{key}={value}" for key, value in sorted(preserve.items())) or "0"))
+
         lines.append("ABSTAIN: " + (", ".join(f"{key}={value}" for key, value in sorted(abstain.items())) or "0"))
         lines.append("")
     return "\n".join(lines)
+def _evidence_offset_mismatches(unit: dict[str, Any], output: dict[str, Any]) -> int:
+    verdict = str(output.get("verdict", "")).upper()
+    if verdict != "CONFIRM" and output.get("preservation_reason") is None:
+        return 0
+    text = str(unit.get("model_text", unit.get("text", "")))
+    mismatches = 0
+    for evidence in output.get("evidence") or ():
+        quote = evidence.get("quote")
+        start = evidence.get("start")
+        end = evidence.get("end")
+        if isinstance(quote, str) and quote and quote in text and isinstance(start, int) and isinstance(end, int):
+            if text[start:end] != quote:
+                mismatches += 1
+    return mismatches
 
 
 def finish(*, out: Path, responses: Path) -> dict[str, Any]:
@@ -897,6 +954,7 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
     rule_map, config, weights = _load_rules_for_manifest(manifest, unit_items)
     records: list[FindingRecord] = []
     failed: list[dict[str, Any]] = []
+    evidence_offset_mismatch = 0
     unit_objects = {unit_id: _unit_from_dict(item, documents) for unit_id, item in units.items()}
 
     for item in unit_items:
@@ -957,6 +1015,7 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             output["unit_id"] = unit_id
             output["rule_id"] = str(unit_item["rule_id"])
             output["kind"] = unit.kind
+            evidence_offset_mismatch += _evidence_offset_mismatches(unit_item, output)
             cache_keys = call.get("cache_keys", [""])
             index = call.get("unit_ids", []).index(unit_id)
             result = adjudicate(
@@ -1022,10 +1081,11 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         "coverage": coverage_dict,
         "preserve_rates": preserve_rates(records),
         "failed": failed,
-        "counts": {"findings": len(finding_items), "failed_calls": len(failed)},
+        "evidence_offset_mismatch": evidence_offset_mismatch,
+        "counts": {"findings": len(finding_items), "failed_calls": len(failed), "evidence_offset_mismatch": evidence_offset_mismatch},
     }
     (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    (out / "report.md").write_text(_markdown_report(report_documents, units, finding_items), encoding="utf-8")
+    (out / "report.md").write_text(_markdown_report(report_documents, units, finding_items, evidence_offset_mismatch), encoding="utf-8")
     return report
 
 
