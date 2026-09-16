@@ -41,6 +41,13 @@ rules:
         glossary term), but the one-idea-per-sentence half is not, and a checker that fires
         on term order alone would misjudge every summary paragraph. Judgement, with the
         sentence-length rule carrying most of the practical benefit.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Split the paragraph so each sentence adds one idea in reading order.
 
   - id: missing-key-word-structure
@@ -73,6 +80,13 @@ rules:
         The consistency half overlaps ste-words/inconsistent-term-for-same-thing, which is
         the mechanizable part given a synonym-group list. What is unique here is the positive
         requirement to carry a key word forward, which no checker can measure.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Repeat the key word from the previous sentence rather than substituting a synonym.
 
   - id: sentence-too-long-descriptive
@@ -142,6 +156,13 @@ rules:
         Advisory at both upper tiers because the failure it names (a paragraph with no topic
         sentence) is a drafting problem a reviewer catches faster than a checker, and no
         threshold makes it decidable.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Add a topic sentence, or move the unrelated sentence to its own paragraph.
 
   - id: paragraph-has-multiple-topics
@@ -175,6 +196,13 @@ rules:
         The split test above is our decidable restatement of "one topic", and it is a
         reviewer question rather than a finding because measuring topical cohesion needs a
         model, not a rule. Kept enforced at strict and normal so the reviewer is prompted.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Split the paragraph at the topic change.
 
   - id: paragraph-too-many-sentences

@@ -3274,7 +3274,7 @@ Name a checkable particular
 - **Kind.** judgement — not mechanizable; a reader or a reviewing agent settles it
 - **Ships as.** suggestion
 - **strict / normal / relaxed.** enforced / enforced / advisory
-- **Scope.** prose
+- **Scope.** document
 - **Fix.** Replace the category with the instance from the source material.
 - **Question.** Does this paragraph name at least one number, identifier, path, command, or dated event? If the writer possesses a more specific term than the one used, did they use it?
 - **Source.** Orwell 1946, rule concrete-floor

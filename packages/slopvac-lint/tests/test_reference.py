@@ -18,6 +18,7 @@ def test_judgement_example_without_good_renders():
         kind=RuleKind.JUDGEMENT,
         message="delete it",
         judgement_question="Does this sentence add a fact?",
+        judgement={"dims": {"fit": "ask", "harm": "ask", "repair": "ask", "warrant": "ask"}, "evidence": {"min_arity": 1, "roles": ["defect"]}, "warrant_min": 2, "protects": ["normative_obligation"], "judgement_ceiling": "suggestion"},
         examples=[Example(bad="In conclusion, the cache is cold.")],
         provenance=Provenance(source="test"),
     )

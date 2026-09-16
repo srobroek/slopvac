@@ -56,6 +56,13 @@ rules:
         co-occurrence alone does not prove rotation: a document may
         legitimately distinguish a user from the client library that acts for
         them.
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, contrast]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: >-
       Choose the narrowest accurate term, replace every other, and define the
       distinction at first use only when two subjects genuinely differ.
@@ -297,6 +304,13 @@ rules:
         This half exists because the token list is perishable and incomplete: a
         passage can carry the marketing register with no listed word in it, and
         that is the commoner failure in generated prose.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: >-
       Replace each unmeasurable claim with the fact that motivated it, or delete
       the sentence.
@@ -423,6 +437,13 @@ rules:
         count is a candidate finder: it cannot tell a parallel list sharing one
         subject from two unrelated clauses, and both shapes appear at the same
         boundary count. This half carries the decision.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: >-
       Split at the boundary where the reader starts holding a second thing, and
       make the shared noun explicit in the new sentence.
@@ -487,6 +508,13 @@ rules:
         A hedge is permitted where the uncertainty is real and named -- a
         measured variance, a documented platform difference -- and the exception
         list is what a suppression must cite.
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: >-
       For each hedged claim, either state it plainly with the evidence, or delete
       it. Where the uncertainty is real, name its cause and its bound instead of
@@ -628,6 +656,16 @@ rules:
         gets disabled. The multi-word forms that carry the evasion in their
         shape -- "a number of", "in most cases" -- ARE mechanized, in
         prose-inflation.vague-quantifier.
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
+      host_predicates:
+        - id: figure_available
+          definition: the figure must be quoted as role=referent from the unit, context, or a repository source; without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM
     fix: >-
       Replace the quantifier with the figure. Where the set is genuinely
       unmeasured, say so and name why.
