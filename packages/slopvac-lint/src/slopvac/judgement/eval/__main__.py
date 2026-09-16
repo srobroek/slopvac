@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .runner import (
-    HostRecord,
+    EvalRecord,
     ReplayProvider,
     aggregate,
     parse_provider_response,
@@ -15,8 +15,13 @@ from .runner import (
 )
 
 
-def _decode_records(rows: list[dict[str, Any]]) -> list[HostRecord]:
-    return [HostRecord(**row) for row in rows]
+def _decode_records(rows: list[dict[str, Any]]) -> list[EvalRecord]:
+    fields = {
+        "repeat_index", "frozen_fields", "instrument_id", "unit_id", "arm_id",
+        "provider", "model_id_and_revision", "judgement_cache_key", "model_output",
+        "status", "usage",
+    }
+    return [EvalRecord(**{key: row[key] for key in fields if key in row}) for row in rows]
 
 
 def main(argv: list[str] | None = None) -> int:

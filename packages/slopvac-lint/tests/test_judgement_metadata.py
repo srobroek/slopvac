@@ -92,11 +92,13 @@ def test_shipped_rules_load_and_contract_records_match() -> None:
     records = json.loads(CONTRACT.read_text(encoding="utf-8"))["rule_records"]
     by_id = {record["id"]: record for record in records}
     rules = ruleset.judgement_rules()
-    assert len(ruleset.rules) == 231
+    # Companion inventory digest in tests/test_ruleset.py guards the exact shipped IDs.
+    assert len(ruleset.rules) == 233
     assert len(rules) == 66
     assert {rule.qualified_id for rule in rules} == set(by_id)
     for rule in rules:
         assert _loaded_contract(rule) == _contract_record(by_id[rule.qualified_id])
+
 
 def test_loader_rejects_missing_or_mismatched_contract(tmp_path: Path) -> None:
     valid = _rule()
@@ -108,6 +110,7 @@ def test_loader_rejects_missing_or_mismatched_contract(tmp_path: Path) -> None:
         (tmp_path / "category.yml").write_text(json.dumps(bad_category), encoding="utf-8")
         with pytest.raises(RuleLoadError):
             load_ruleset([tmp_path], verify=False)
+
 
 def test_loader_rejects_unknown_transition_token_class(tmp_path: Path) -> None:
     raw = _rule(

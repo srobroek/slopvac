@@ -25,9 +25,13 @@ ABSTAIN_REASONS = {
     "needs_repository_fact", "no_exact_evidence", "unit_out_of_scope",
 }
 COVERAGE_COUNTS = ("eligible", "attempted", "confirmed", "rejected", "preserved", "abstained", "failed", "truncated", "not_run")
-
-
-
+OUTCOME_STATUS = {
+    "CONFIRM": "confirmed",
+    "REJECT": "rejected",
+    "PRESERVE": "preserved",
+    "ABSTAIN": "abstained",
+    "DROP": "not_run",
+}
 
 
 def outer_payloads(text: str) -> list[dict[str, Any]]:
@@ -145,6 +149,7 @@ def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
         return "result unit_ids are not in expected order"
     return None
 
+
 def select_units(units: list[dict[str, Any]], *, partition: str | None = None,
                  unit: str | None = None) -> list[dict[str, Any]]:
     """Apply stable partition and unit selectors without changing source order."""
@@ -184,32 +189,48 @@ class Instrument:
     arms: tuple[Arm, ...] = ()
 
 
-HostRecord = FindingRecord
+@dataclass(frozen=True)
+class EvalRecord:
+    """A provider evaluation row carrying an optional host adjudication."""
+
+    finding: FindingRecord | None = None
+    repeat_index: int = 0
+    frozen_fields: dict[str, Any] = field(default_factory=dict)
+    instrument_id: str | None = None
+    unit_id: str | None = None
+    arm_id: str | None = None
+    provider: str | None = None
+    model_id_and_revision: str | None = None
+    judgement_cache_key: str | None = None
+    model_output: dict[str, Any] | None = None
+    status: str | None = None
+    usage: dict[str, Any] | None = None
 
 
-def aggregate(records: list[HostRecord], *, eligible: int | None = None) -> dict[str, Any]:
+def aggregate(records: list[EvalRecord], *, eligible: int | None = None) -> dict[str, Any]:
     if not records:
         return {"coverage": {key: 0 for key in COVERAGE_COUNTS}, "abstentions": {}}
-    baseline = getattr(records[0], "frozen_fields", None)
-    if baseline is not None and any(getattr(record, "frozen_fields", baseline) != baseline for record in records):
+    baseline = records[0].frozen_fields
+    if any(record.frozen_fields != baseline for record in records):
         raise ValueError("cannot aggregate rows with differing frozen fields")
     counts = {key: 0 for key in COVERAGE_COUNTS}
     counts["eligible"] = eligible if eligible is not None else len(records)
     reasons: dict[str, int] = {}
     for record in records:
-        status = getattr(record, "status", None)
-        if status is None:
-            status = {"ABSTAIN": "abstained", "DROP": "not_run"}.get(record.outcome, record.outcome.lower())
+        finding = record.finding
+        status = record.status
+        if finding is not None:
+            status = OUTCOME_STATUS[finding.outcome]
+        elif status is None:
+            status = "failed"
         status = "abstained" if status == "abstain" else status
         counts["attempted"] += status != "not_run"
         if status in counts and status not in {"eligible", "attempted"}:
             counts[status] += 1
         if status == "abstained":
-            reason = getattr(record, "abstain_reason", None) or "unknown"
+            reason = (finding.abstain_reason if finding is not None else None) or "unknown"
             reasons[reason] = reasons.get(reason, 0) + 1
     return {"coverage": counts, "abstentions": reasons}
-
-
 
 
 class ReplayProvider:

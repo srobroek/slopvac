@@ -55,3 +55,27 @@ def test_report_decodes_records_and_prints_coverage(tmp_path: Path, capsys) -> N
     output = json.loads(capsys.readouterr().out)
     assert output["coverage"]["confirmed"] == 1
     assert output["coverage"]["attempted"] == 1
+
+
+def test_aggregate_counts_finding_backed_outcomes() -> None:
+    from slopvac.judgement.adjudicate import FindingRecord
+    from slopvac.judgement.eval.runner import EvalRecord, aggregate
+
+    def finding(outcome: str, *, reason: str | None = None) -> FindingRecord:
+        return FindingRecord(
+            unit_id=f"u-{outcome}", rule_id="ai-tells-structure.heading-echo", kind="SPAN_CANDIDATE",
+            outcome=outcome, severity="suggestion" if outcome == "CONFIRM" else None, scores=None,
+            evidence=(), preservation_reason=None, abstain_reason=reason, rewrite=None,
+            rewrite_status="not_applicable", core_fired=False, component_id=None,
+            source_sha256="s", path="doc.md", instrument_id="i", judgement_cache_key="k",
+            occurrence_index=None,
+        )
+
+    frozen = {"pack_id": "p"}
+    rows = [EvalRecord(finding=finding(o), frozen_fields=frozen) for o in ("CONFIRM", "REJECT", "PRESERVE", "DROP")]
+    rows.append(EvalRecord(finding=finding("ABSTAIN", reason="no_exact_evidence"), frozen_fields=frozen))
+    report = aggregate(rows)
+    coverage = report["coverage"]
+    assert (coverage["confirmed"], coverage["rejected"], coverage["preserved"]) == (1, 1, 1)
+    assert (coverage["abstained"], coverage["not_run"], coverage["attempted"]) == (1, 1, 4)
+    assert report["abstentions"] == {"no_exact_evidence": 1}
