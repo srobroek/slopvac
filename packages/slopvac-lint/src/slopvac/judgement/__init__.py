@@ -1,6 +1,7 @@
 """Judgement layer: rule contracts, prompt packs, rewrite checking, evaluation."""
 
 from .adjudicate import EvidenceSpan, FindingRecord, adjudicate
+from .checker import CheckerResult, Violation, check_rewrite
 from .packs import (
     Pack,
     build_packs,
@@ -26,6 +27,7 @@ from .types import (
 )
 
 __all__ = [
+    "CheckerResult",
     "DimMask",
     "EvidenceRole",
     "EvidenceSpan",
@@ -38,9 +40,11 @@ __all__ = [
     "Severity",
     "Transition",
     "TransitionTable",
+    "Violation",
     "adjudicate",
     "build_packs",
     "canonical_bytes",
+    "check_rewrite",
     "instrument_id",
     "judgement_cache_key",
     "pack_id",

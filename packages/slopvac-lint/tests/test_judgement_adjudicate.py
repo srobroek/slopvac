@@ -161,6 +161,18 @@ def test_partial_fit_and_insufficient_warrant_reject() -> None:
     assert weak.outcome == "REJECT"
 
 
+def test_model_reject_with_absent_fit_does_not_need_evidence() -> None:
+    unit = _unit()
+    record = _adjudicate(unit, _rule(), _output(unit, verdict="reject", fit="absent", evidence=[]))
+    assert record.outcome == "REJECT"
+
+
+def test_model_confirm_with_unambiguous_fit_and_empty_evidence_abstains() -> None:
+    unit = _unit()
+    record = _adjudicate(unit, _rule(), _output(unit, verdict="confirm", fit="unambiguous_match", evidence=[]))
+    assert record.outcome == "ABSTAIN"
+    assert record.abstain_reason == "no_exact_evidence"
+
 def test_harm_none_requires_safe_deletion() -> None:
     unit = _unit()
     substitution = _adjudicate(unit, _rule(), _output(unit, harm="none", repair="local_substitution", evidence=[_evidence(unit)], verdict="reject"))
@@ -184,6 +196,8 @@ def test_checker_veto_withholds_rewrite_and_demotes() -> None:
     assert record.outcome == "CONFIRM"
     assert record.rewrite is None
     assert record.rewrite_status == "withheld_checker_veto"
+    assert record.attempted_rewrite == "MAY use the command"
+    assert record.checker_violations
     assert record.severity == "warning"
 
 

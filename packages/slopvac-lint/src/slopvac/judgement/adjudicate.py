@@ -1,11 +1,11 @@
 """Host-side reconciliation of model judgements with deterministic gates."""
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from .checker import check_rewrite
+from .checker import Violation, check_rewrite
 from .schema import validate_model_output
 
 Outcome = Literal["DROP", "PRESERVE", "ABSTAIN", "REJECT", "CONFIRM"]
@@ -51,6 +51,8 @@ class FindingRecord:
     judgement_cache_key: str
     occurrence_index: int | None
     occurrences_truncated: bool = False
+    attempted_rewrite: str | None = None
+    checker_violations: tuple[Violation, ...] = ()
 
 
 _WARRANT_CODES = {
@@ -225,6 +227,8 @@ def _record(
     preservation_reason: str | None, abstain_reason: str | None, rewrite: str | None,
     rewrite_status: RewriteStatus, instrument_id: str, cache_key: str,
     occurrence_index: int | None, occurrences_truncated: bool,
+    attempted_rewrite: str | None = None,
+    checker_violations: tuple[Violation, ...] = (),
 ) -> FindingRecord:
     return FindingRecord(
         unit_id=_unit_id(unit), rule_id=_rule_id(rule), kind=_unit_kind(unit),
@@ -235,6 +239,7 @@ def _record(
         source_sha256=str(_value(unit, "source_sha256", "")), path=str(_value(unit, "path", "")),
         instrument_id=instrument_id, judgement_cache_key=cache_key,
         occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated,
+        attempted_rewrite=attempted_rewrite, checker_violations=checker_violations,
     )
 
 
@@ -269,10 +274,51 @@ def _host_predicate_outcome(unit: Any, predicate: Any, evidence: tuple[EvidenceS
     return None
 
 
+def _defined_terms(unit: Any, rule: Any, contract: Any, explicit: Sequence[str] | None) -> tuple[str, ...]:
+    """Resolve configured vocabulary, falling back to the contract's protected classes."""
+    values: list[str] = []
+
+    def collect(value: Any) -> None:
+        if value is None:
+            return
+        if isinstance(value, str):
+            values.append(value)
+            return
+        if isinstance(value, Mapping):
+            nested = value.get("defined_terms", value.get("terms", value.get("glossary")))
+            if nested is not None:
+                collect(nested)
+                return
+            values.extend(str(key) for key in value if isinstance(key, str))
+            return
+        if hasattr(value, "terms"):
+            collect(value.terms)
+            return
+        if hasattr(value, "blocked") and callable(value.blocked):
+            collect(value.blocked())
+            return
+        if isinstance(value, Sequence):
+            for item in value:
+                if isinstance(item, str):
+                    values.append(item)
+                else:
+                    word = _value(item, "word")
+                    if isinstance(word, str):
+                        values.append(word)
+
+    if explicit is not None:
+        collect(explicit)
+    for owner in (unit, rule, contract):
+        for name in ("defined_terms", "glossary", "vocabulary"):
+            collect(_value(owner, name))
+    if not values:
+        collect(_value(contract, "protects", ()))
+    return tuple(dict.fromkeys(values))
+
 def _one(
     unit: Any, rule: Any, model_output: Mapping[str, Any], *, instrument_id: str,
     cache_key: str, repository_lookup: Any, occurrence_index: int | None,
-    occurrences_truncated: bool,
+    occurrences_truncated: bool, defined_terms: Sequence[str],
 ) -> FindingRecord:
     contract = _rule_contract(rule)
     scores_raw = model_output.get("scores")
@@ -307,16 +353,19 @@ def _one(
 
     if (_value(unit, "region_class") in {"quoted", "example"} and "quoted_specimen" in protected):
         preservation_reason = "quoted_specimen"
-    if preservation_reason in protected and preservation_reason != adjudicates:
-        return _record(unit, rule, outcome="PRESERVE", severity=None, scores=scores, evidence=evidence, preservation_reason=preservation_reason, abstain_reason=None, rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
-
-    if abstain_reason or evidence_reason or not evidence_ok:
-        return _record(unit, rule, outcome="ABSTAIN", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=abstain_reason or evidence_reason or "no_exact_evidence", rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
-
     fit = scores.get("fit") if scores else None
     harm = scores.get("harm") if scores else None
     repair = scores.get("repair") if scores else None
     warrant = scores.get("warrant") if scores else None
+    model_verdict = str(model_output.get("verdict", "")).upper()
+    reject_without_evidence = model_verdict == "REJECT" and fit in {"absent", "partial"}
+    if preservation_reason in protected and preservation_reason != adjudicates:
+        if not evidence_ok:
+            return _record(unit, rule, outcome="ABSTAIN", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=evidence_reason or "no_exact_evidence", rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
+        return _record(unit, rule, outcome="PRESERVE", severity=None, scores=scores, evidence=evidence, preservation_reason=preservation_reason, abstain_reason=None, rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
+
+    if (abstain_reason or evidence_reason or not evidence_ok) and not reject_without_evidence:
+        return _record(unit, rule, outcome="ABSTAIN", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=abstain_reason or evidence_reason or "no_exact_evidence", rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
     if fit in {"absent", "partial"}:
         derived: Outcome = "REJECT"
     elif warrant not in _WARRANT_CODES or _WARRANT_CODES[warrant] < int(_value(contract, "warrant_min", 0)):
@@ -348,9 +397,9 @@ def _one(
             return _record(unit, rule, outcome="REJECT", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=None, rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
 
     if rewrite_status == "proposed" and rewrite is not None:
-        checker = check_rewrite(unit.text, rewrite, document_text=document_text, referent_quotes=[span.quote for span in evidence if span.role == "referent"], allowed_transitions=_transition_rows(contract), rule_id=_rule_id(rule))
+        checker = check_rewrite(unit.text, rewrite, document_text=document_text, referent_quotes=[span.quote for span in evidence if span.role == "referent"], allowed_transitions=_transition_rows(contract), rule_id=_rule_id(rule), defined_terms=defined_terms)
         if not checker.ok:
-            return _record(unit, rule, outcome="CONFIRM", severity=_demote(severity), scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=None, rewrite=None, rewrite_status="withheld_checker_veto", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
+            return _record(unit, rule, outcome="CONFIRM", severity=_demote(severity), scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=None, rewrite=None, rewrite_status="withheld_checker_veto", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated, attempted_rewrite=rewrite, checker_violations=checker.violations)
     model_verdict = str(model_output.get("verdict", "")).upper()
     if model_verdict != "CONFIRM":
         return _record(unit, rule, outcome="ABSTAIN", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason="inconsistent_output", rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
@@ -365,11 +414,14 @@ def adjudicate(
     instrument_id: str,
     cache_key: str,
     repository_lookup: Any = None,
+    defined_terms: Sequence[str] | None = None,
 ) -> FindingRecord | tuple[FindingRecord, ...]:
     """Reconcile one model output with admission, evidence, and repair policy."""
     errors = validate_model_output(model_output)
     if errors:
         raise ValueError("invalid model output: " + "; ".join(errors))
+    contract = _rule_contract(rule)
+    terms = _defined_terms(unit, rule, contract, defined_terms)
     kind = _unit_kind(unit)
     if kind == "PASSAGE_PROBE":
         occurrences = model_output.get("occurrences") or []
@@ -383,6 +435,7 @@ def adjudicate(
                 repository_lookup=repository_lookup,
                 occurrence_index=index,
                 occurrences_truncated=bool(model_output.get("occurrences_truncated", False)),
+                defined_terms=terms,
             )
             for index, occurrence in enumerate(occurrences)
         )
@@ -395,6 +448,7 @@ def adjudicate(
         repository_lookup=repository_lookup,
         occurrence_index=None,
         occurrences_truncated=False,
+        defined_terms=terms,
     )
 
 
