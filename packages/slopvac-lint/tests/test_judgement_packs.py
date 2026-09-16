@@ -36,7 +36,7 @@ def test_local_rules_are_sorted_and_chunked() -> None:
 
 def test_jcs_vectors() -> None:
     assert canonical_bytes({"b": 1, "a": 2}) == b'{"a":2,"b":1}'
-    assert canonical_bytes({"text": "café"}) == b'{"text":"caf\xc3\xa9"}'
+    assert canonical_bytes({"text": "Zürich"}) == b'{"text":"Z\xc3\xbcrich"}'
     assert canonical_bytes({"n": 1.0, "small": 1e-7}) == b'{"n":1,"small":1e-7}'
 
 
