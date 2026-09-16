@@ -6,6 +6,11 @@ max_retries = 2
 accept = [200, 429]
 accept_timeouts = true
 
+# Verbatim adversarial-review reports stored as evidence under the research record; their
+# citations are not edited (dead ones are marked unsupported inside the files), so they are
+# not link-checked. The two authored files beside them are checked.
+exclude_path = ["packages/slopvac-lint/docs/research/rubric-2026-09-15/challenges"]
+
 exclude = [
   # lychee cannot verify an in-page anchor on a rendered GitHub file.
   "github\\.com.*#[a-z]",
@@ -20,22 +25,4 @@ exclude = [
   "journals\\.sagepub\\.com",
   "doi\\.org/10\\.1111/",
   "www\\.sec\\.gov/pdf/handbook\\.pdf",
-  # Standards bodies and publishers cited as evidence in the research record's verbatim
-  # challenge reports; each serves 403 to non-browser clients.
-  "www\\.iso\\.org/",
-  "direct\\.mit\\.edu/",
-  "www\\.tandfonline\\.com/",
-  "ansi\\.org/",
-  "support\\.acrolinx\\.com/",
-  "help\\.smartling\\.com/",
-  # Three citations in the verbatim challenge reports were dead at review time (404);
-  # the reports are evidence records and are not edited.
-  "inspect\\.aisi\\.org\\.uk/logs\\.html",
-  "commission\\.europa\\.eu/resources-partners/clear-writing_en",
-  "press\\.uchicago\\.edu/ucp/books/book/chicago/L/bo3684275\\.html",
-  # Three W3C citations in challenges/ProtectedClassesLit.md were dead at review time; the
-  # file's verification note marks those evidence items unsupported.
-  "www\\.w3\\.org/International/questions/qa-i18n-glossary",
-  "www\\.w3\\.org/standards/history/mqm/",
-  "www\\.w3\\.org/TR/its21/",
 ]

@@ -7,7 +7,7 @@ Genre: internal research record. This file records how the review was run and wh
 | Path | Content |
 |---|---|
 | `rubric-review.md` | Verdicts on the 14 design claims, evidence, 13 adversarial cases, the three highest-yield false-positive reducers, the second-round contract challenge. |
-| `rubric-contract.json` | The accepted machine-readable contract, schema_version 1.1.1, source_commit `df7ba4412387c474dc8ef646a8d594dc44c1c7eb`, target_base_commit `12042c9e7d`. Authoritative for the downstream implementation; the 66th rule record is provisional (see rubric-review.md section 6.1). |
+| `rubric-contract.json` | The accepted machine-readable contract, schema_version 1.1.2, source_commit `df7ba4412387c474dc8ef646a8d594dc44c1c7eb`, target_base_commit `12042c9e7d`. Authoritative for the downstream implementation; the 66th rule record is provisional (see rubric-review.md section 6.1). |
 | `rubric-contract.sha256` | SHA-256 of the exact `rubric-contract.json` bytes. |
 | `challenges/claims.md` | The numbered claim list C1-C14 every challenge used. |
 | `challenges/Ch*.md` | Adversarial-challenger reports: one per research question, one on the aggregation measurements, one on the synthesised contract, one on the sibling `autoresearch/*` branch. |
@@ -31,7 +31,7 @@ Genre: internal research record. This file records how the review was run and wh
   sha256sum -c packages/slopvac-lint/docs/research/rubric-2026-09-15/rubric-contract.sha256
   ```
 
-  `build_contract.py` writes `rubric-contract.json` and its digest next to itself, sorts every key, orders every ID-keyed list, and asserts the 65 rule records equal the 65 `kind: judgement` rules in the YAML, that the probe and span packs partition them exactly once, and that no machine path leaks.
+  `build_contract.py` writes `rubric-contract.json` and its digest next to itself, sorts every key, orders every ID-keyed list, and asserts that its 66 rule records carry unique ids, that the probe and span packs partition them exactly once, and that no machine path leaks. It does not read the YAML; the equality of the loaded YAML contracts with these records is asserted by the package test `tests/test_judgement_metadata.py` (PR #81).
 
 ## How the review was run
 
