@@ -97,6 +97,13 @@ rules:
         pattern can supply. Also absorbs the catalog's "Strawman antithesis" row,
         whose "While other tools struggle, X ..." shape is the same defect.
 
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, contrast]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
   - id: definitional-negation-pair
     exceptions: [quotation, factual-correction]
     name: Cut a cross-sentence definitional contrast
@@ -194,6 +201,13 @@ rules:
     judgement_question: >-
       Do the consecutive fragments in this passage each add a fact, or does the
       run exist to build rhythm toward the last one?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Rejoin the fragments into one or two sentences.
     examples:
       - bad: Fast. Deterministic. Auditable.
@@ -255,6 +269,13 @@ rules:
     judgement_question: >-
       Do the parallel items -- three identical-shape bullets, or two tricolons in
       consecutive sentences -- each state a fact the others do not?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Merge into prose, or keep only the items with distinct substance.
     examples:
       - bad: "- **Speed:** it is fast.\n- **Safety:** it is safe.\n- **Scale:** it scales."
@@ -318,6 +339,13 @@ rules:
     judgement_question: >-
       Does this transition announce that something important follows without
       stating any part of it?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Delete the transition and open on the point.
     examples:
       - bad: What follows is the part that changes how you read the rest of this page.
@@ -429,6 +457,13 @@ rules:
     judgement_question: >-
       Does this sentence describe what the document is doing rather than state a
       fact about the subject?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Delete the sentence.
     examples:
       - bad: Before getting to the flags, some background on why the loader exists.
@@ -452,6 +487,13 @@ rules:
     judgement_question: >-
       Does the first sentence under this heading state any fact the heading did
       not already state?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, antecedent]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Delete the restatement and open on the first new fact.
     examples:
       - bad: "## Install the plugin\n\nThis section covers installing the plugin."
@@ -527,6 +569,13 @@ rules:
     judgement_question: >-
       Does the final section state anything the sections above did not, or does it
       re-list them?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, antecedent]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Delete the section.
     examples:
       - bad: 'The gate has three parts, described above: the loader, the checkers, and the scorer.'
@@ -554,6 +603,13 @@ rules:
     judgement_question: >-
       Do consecutive paragraphs enumerate positions in a sequence ("The first X
       is ... The second X is ...") without any of them depending on the one before?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Convert to a list, or rewrite as prose where each paragraph follows from the last.
     examples:
       - bad: The first wall is latency. The second wall is memory. The third wall is cost.
@@ -579,6 +635,13 @@ rules:
     judgement_question: >-
       Do three or more consecutive sentences open on the same subject-verb pair,
       with only the object changing?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, antecedent]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Write the subject-verb once and list the objects.
     examples:
       - bad: They assume a lockfile. They assume a network. They assume a token.
@@ -603,6 +666,13 @@ rules:
     judgement_question: >-
       Does this passage borrow authority by naming well-known companies or products
       that have no causal connection to the claim?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Keep the one comparison that shares a mechanism with the subject, or cut all of them.
     examples:
       - bad: Apple didn't build Uber. Facebook didn't build Spotify.
@@ -628,6 +698,13 @@ rules:
       Does this document name a concept in title-case or quoted form ("the
       supervision paradox", "workload creep") without defining it and without
       citing a source that uses the term?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Replace the coinage with the plain description.
     examples:
       - bad: This is the supervision paradox.
@@ -679,6 +756,13 @@ rules:
     judgement_question: >-
       Does announcing the count change what the reader does, or does the list
       immediately below already show its own length?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Delete the forecast unless the reader must budget effort before reading.
     examples:
       - bad: A handful of considerations apply here.
@@ -700,6 +784,13 @@ rules:
     judgement_question: >-
       Does this passage name a risk, limitation, or problem and then give the
       reader no action, no measurement, and no pointer to where it is handled?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: State the action, or delete the paragraph.
     examples:
       - bad: Rate limits are a real concern here.
@@ -755,6 +846,13 @@ rules:
       Can you name one counterexample, or is this a defined scoped invariant?
       Flag the universal only when it is unsupported or counterexample-prone;
       do not flag a claim whose domain and evidence are explicitly bounded.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Narrow the claim to the scope the evidence supports.
     examples:
       - bad: Every Project Needs A Lockfile.
@@ -814,6 +912,13 @@ rules:
       or compliance constraint, a debugging boundary, an audit fact, or an enforced
       exclusion that changes what they should do? Keep it only if yes; otherwise is
       it merely inventory of what was not pinned, run, included, or recorded?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Keep the actionable constraint or result and delete the inventory wording.
     examples:
       - bad: The tooling is not pinned, and visual checks are outside scope.
@@ -866,6 +971,13 @@ rules:
     judgement_question: >-
       Is the mechanism stated anywhere in this passage, or does the analogy stand
       in place of it?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: State the mechanism; keep the analogy only if it shortens the explanation.
     examples:
       - bad: The scheduler is the traffic warden of the cluster.
@@ -887,6 +999,13 @@ rules:
     judgement_question: >-
       Do the two endpoints of this "from X to Y" construction sit on a real scale,
       or are they two unordered members of a set?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: List the items, or name the dimension that actually varies.
     examples:
       - bad: from beef to chicken
@@ -941,6 +1060,13 @@ rules:
     judgement_question: >-
       Could a reader locate the source behind this claim from what the sentence
       gives them?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, referent]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Add the citation, or restate the claim as your own.
     examples:
       - bad: The literature is clear on this.
@@ -989,6 +1115,13 @@ rules:
     judgement_question: >-
       Does this document explain a term in one section that it assumes without
       explanation in another?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Pick the audience and cut whichever half does not serve it.
     examples:
       - bad: 'A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG.'
@@ -1053,6 +1186,13 @@ rules:
     judgement_question: >-
       Does this admission cost the author anything -- a named mistake, a measured
       failure, a refused feature -- or is it performed vulnerability with no exposure?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Replace the performance with the specific admission and its cost.
     examples:
       - bad: We're not perfect, and we're always learning.
@@ -1113,6 +1253,13 @@ rules:
     judgement_question: >-
       Is the reaction this adverb announces supported anywhere in the passage by a
       measurement, an example, or a named consequence?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Supply the support, or delete the adverb.
     examples:
       - bad: The rewrite is remarkably clean.
@@ -1174,6 +1321,13 @@ rules:
     judgement_question: >-
       Does the sentence inside this analysis frame state a fact, a measurement, or
       a consequence, or only that the topic is important?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Delete the paragraph, or replace it with the fact it was framing.
     examples:
       - bad: The nuance here is that caching is a tradeoff worth understanding.
@@ -1196,6 +1350,13 @@ rules:
       Does each table, heading, and bold-colon bullet in this document carry data
       with real columns or items that are parallel AND independent, or would two
       sentences of prose say the same thing?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Unwrap the structure into prose where the items are neither columnar nor independent.
     examples:
       - bad: "| Field | Value |\n|---|---|\n| Purpose | It loads things |"
@@ -1252,6 +1413,13 @@ rules:
     judgement_question: >-
       Is each counter-claim in this passage one somebody actually makes, or was it
       added so the passage reads even-handed?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Delete the invented counter-claim and state the position the evidence supports.
     examples:
       - bad: Lockfiles help reproducibility, though some argue they add friction.
@@ -1352,6 +1520,13 @@ rules:
     judgement_question: >-
       Does this sentence deliver a judgement through a metaphor while stating no
       observation that would let a reader disagree?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Replace the metaphor with the observation and the judgement it supports.
     examples:
       - bad: The design pays for itself.
@@ -1409,6 +1584,13 @@ rules:
     judgement_question: >-
       Does this passage name what breaks if the reader ignores it, or only that the
       matter is urgent?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: State the failure mode, or delete the urgency.
     examples:
       - bad: Getting this right is critical.
@@ -1462,6 +1644,13 @@ rules:
       relaxed: advisory
     judgement_question: >-
       Did a person choose the thing this sentence describes as arising on its own?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Name the chooser and the reason.
     examples:
       - bad: The threshold settles at 34 words.
@@ -1482,6 +1671,13 @@ rules:
       relaxed: enforced
     judgement_question: >-
       Is the subject of this sentence a thing that can act? If not, who acted?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Name the human. Where no specific person fits, use "you" and put the reader in the seat.
     examples:
       - bad: The complaint becomes a fix.
@@ -1549,6 +1745,13 @@ rules:
     judgement_question: >-
       Does this sentence assert a component's value by granting it merit rather
       than by naming a property a reader could check?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Replace the merit claim with the checkable property.
     examples:
       - bad: The cache more than repays its complexity.
@@ -1745,6 +1948,13 @@ rules:
     judgement_question: >-
       Does each table in this document have at least two rows whose cells vary in
       the same dimension, or is it one sentence in a grid?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [quoted_specimen]
+      judgement_ceiling: suggestion
     fix: Unwrap the table into the sentence it holds.
     examples:
       - bad: "| Note |\n|---|\n| The loader reads the lockfile. |"
@@ -1896,6 +2106,13 @@ rules:
     judgement_question: >-
       For each reference in this document, did you fetch it yourself and confirm it
       says what the sentence claims?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, referent]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Fetch each reference, or delete the claim that rests on it.
     examples:
       - bad: Smith (2019) reports a 40% reduction, doi:10.1000/182.
@@ -1958,6 +2175,13 @@ rules:
     judgement_question: >-
       For each behaviour this document describes in the present tense, does code at
       HEAD do it?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: >-
       In order: delete the whole passage if the feature does not exist; move it to
       an issue or a spec if the plan matters; keep it only as a documented opt-in
@@ -2021,6 +2245,13 @@ rules:
     judgement_question: >-
       Does this document refer to one thing by two or more different names without
       saying they are the same thing?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Pick one name and use it every time.
     examples:
       - bad: The loader reads it. The resolver caches it. The component then exits.
@@ -2046,6 +2277,13 @@ rules:
     judgement_question: >-
       Does any section of this document restate an argument already made, in a
       fresh metaphor, without adding a fact?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Delete every restatement after the first.
     examples:
       - bad: Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
@@ -2071,6 +2309,13 @@ rules:
     judgement_question: >-
       Does any section exist to match a sibling's length, or does any
       FAQ/Tips/Troubleshooting section answer a question nobody asked?
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Delete the padding and let the section be short.
     examples:
       - bad: "## Troubleshooting\n\nIf the loader fails, check the logs."
@@ -2171,6 +2416,13 @@ rules:
     judgement_question: >-
       Do two consecutive sentences in this paragraph open on a textbook connector
       (moreover, furthermore, additionally, consequently)?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Delete the connectors; if the relation is real, rewrite so the sentences carry it.
     examples:
       - bad: Moreover, the cache is warm. Furthermore, the lockfile is present.
@@ -2200,6 +2452,13 @@ rules:
       relaxed: excluded
     judgement_question: >-
       Does a reader of THIS document act differently for having read this sentence?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Cut to the behaviour; move the decision to an ADR, a spec, or the commit that made it.
     examples:
       - bad: A paragraph of loosely related reasoning appended to a section that had already finished.
@@ -2232,6 +2491,13 @@ rules:
       or a measured number that decided a threshold); the genre exists to record
       decisions (an ADR, a spec, a commit message, a PR body); or the user asked for
       the reasoning.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Delete the clause and keep the behavior, or move the reason to the commit.
     examples:
       - bad: This keeps the logic in one place.
@@ -2266,6 +2532,13 @@ rules:
     judgement_question: >-
       Does this closing line state a fact the paragraph or table above did not, or
       does it perform having concluded?
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, quoted_specimen]
+      judgement_ceiling: warning
     fix: Delete it.
     examples:
       - bad: The linter is deterministic. The reviewer is not.

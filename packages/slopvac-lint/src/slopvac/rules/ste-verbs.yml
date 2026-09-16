@@ -111,6 +111,13 @@ rules:
         regex. Note the specification permits some participle-shaped words as adjectives in
         their own right even when the matching verb is not permitted, so a naive "no
         participles" check would be wrong.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation]
+      judgement_ceiling: suggestion
     fix: Move the participle before the noun it describes, or rewrite in the active voice.
 
   - id: auxiliary-stacking
@@ -187,6 +194,13 @@ rules:
         uses such as "the logging config" or "load balancing". Judgement rather than a
         regex for exactly that reason: a bare "-ing" pattern would fire on every legal
         compound term in software documentation.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation]
+      judgement_ceiling: suggestion
     fix: Rewrite the clause with a finite verb, or split it into a separate sentence.
 
   - id: passive-voice

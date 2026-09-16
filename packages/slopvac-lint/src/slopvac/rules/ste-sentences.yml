@@ -40,6 +40,13 @@ rules:
         descriptive chapters and are mechanized there as sentence-too-long-procedural and
         sentence-too-long-descriptive. What is left here is the one-topic test, which is
         judgement. Enforced at normal tier as a reviewer question, not as a finding.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Split the sentence into one instruction or topic per sentence.
 
   - id: omitted-word-or-contraction
@@ -217,6 +224,13 @@ rules:
         Not mechanizable in either direction: a checker cannot detect a missing logical
         relation, and an "add more connectors" heuristic degrades prose. Kept as a reviewer
         question so the reviewer has one source of truth rather than inventing the rule.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, antecedent]}
+      warrant_min: 2
+      protects: [controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Add a connecting word or phrase that names the relation.
 
   - id: missing-article-or-determiner

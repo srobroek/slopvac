@@ -145,6 +145,13 @@ rules:
         permitted purposes and no counter-example, so there is nothing to anchor a regex on.
         A length-based proxy (flag any parenthetical over N words) would fire on legitimate
         explanations. Advisory at both upper tiers for the same reason.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [source_locked_legal_text]
+      judgement_ceiling: suggestion
     fix: Promote the parenthetical to its own sentence, or delete it.
 
   - id: colon-terminates-sentence-for-count
