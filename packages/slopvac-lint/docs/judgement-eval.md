@@ -21,3 +21,10 @@ Abstention is a completed adjudication. It reduces coverage. The report lists it
 reason in a separate table. The evaluator reports a document as partial when a unit
 is failed, truncated, or not-run. The evaluator never changes those states into
 abstentions.
+
+## Dependence table status
+
+The shipped `src/slopvac/judgement/dependence_table.json` has status
+`uncalibrated` and contains no rule pairs. The aggregation layer therefore
+builds components from span overlap only and logs that limitation. B3 remains
+open until a held-out labelled set derives and validates the dependence pairs.

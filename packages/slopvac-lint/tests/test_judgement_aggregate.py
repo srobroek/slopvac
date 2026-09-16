@@ -98,6 +98,30 @@ def test_components_merge_overlaps_and_dependence_pairs_only():
     }
 
 
+def test_components_assign_ids_to_frozen_host_records():
+    record = finding("one", "rule.one", 0, 5)
+    grouped = components([record], [(0, 10)], {})
+    assigned = grouped[0].findings[0]
+    assert assigned is not record
+    assert assigned.component_id == grouped[0].component_id
+    assert record.component_id is None
+
+
+def test_uncalibrated_dependence_logs_span_overlap_only(caplog):
+    caplog.set_level("INFO")
+    records = [
+        finding("one", "a.first", 0, 1),
+        finding("two", "b.second", 4, 5),
+    ]
+    grouped = components(
+        records,
+        [(0, 10)],
+        {"status": "uncalibrated", "pairs": [["a.first", "b.second"]]},
+    )
+    assert len(grouped) == 2
+    assert "span overlap only" in caplog.text
+
+
 def test_judgement_defaults_are_provisional_and_disabled_by_default():
     settings = cfg().judgement
     assert settings.max_penalty == 15
@@ -251,11 +275,30 @@ def test_coverage_keeps_distinct_unit_ids_distinct():
     assert document.confirmed == 2
 
 
+def test_coverage_deduplicates_eligible_rows_by_unit_id():
+    eligible = [
+        {"unit_id": "one", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.one"},
+        {"unit_id": "one", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.one"},
+    ]
+    result = coverage([finding("one", "rule.one", 0, 1)], eligible)
+    document = result.documents["doc.md"]
+    assert document.eligible == 1
+    assert document.attempted == 1
+    assert document.confirmed == 1
+
+
 def test_dependence_table_rejects_a_digest_mismatch(tmp_path: Path):
     table = tmp_path / "dependence.json"
     table.write_text(json.dumps({"dependence_table_sha": "bad", "pairs": []}))
     with pytest.raises(ValueError, match="sha mismatch"):
         load_dependence_table(table)
+
+
+def test_dependence_loader_reports_uncalibrated_status():
+    table = Path(__file__).parents[1] / "src" / "slopvac" / "judgement" / "dependence_table.json"
+    loaded = load_dependence_table(table)
+    assert loaded.status == "uncalibrated"
+    assert loaded["status"] == "uncalibrated"
 
 
 def test_cluster_component_primary_span_is_available_for_precomputed_components():

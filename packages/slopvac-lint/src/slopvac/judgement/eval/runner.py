@@ -8,11 +8,13 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
 from ..adjudicate import FindingRecord
+from ..aggregate import coverage
 
 TOKEN_FIELDS = {
     "promptTokens": "prompt_tokens", "completionTokens": "completion_tokens",
@@ -22,7 +24,6 @@ ABSTAIN_REASONS = {
     "ambiguous_unit", "conflicting_context", "missing_context", "needs_external_fact",
     "needs_repository_fact", "no_exact_evidence", "unit_out_of_scope",
 }
-COVERAGE_COUNTS = ("eligible", "attempted", "confirmed", "rejected", "preserved", "abstained", "failed", "truncated", "not_run")
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -199,27 +200,41 @@ class Instrument:
 HostRecord = FindingRecord
 
 
-def aggregate(records: list[HostRecord], *, eligible: int | None = None) -> dict[str, Any]:
-    if not records:
-        return {"coverage": {key: 0 for key in COVERAGE_COUNTS}, "abstentions": {}}
-    baseline = getattr(records[0], "frozen_fields", None)
-    if baseline is not None and any(getattr(record, "frozen_fields", baseline) != baseline for record in records):
-        raise ValueError("cannot aggregate rows with differing frozen fields")
-    counts = {key: 0 for key in COVERAGE_COUNTS}
-    counts["eligible"] = eligible if eligible is not None else len(records)
-    reasons: dict[str, int] = {}
-    for record in records:
-        status = getattr(record, "status", None)
-        if status is None:
-            status = {"ABSTAIN": "abstained", "DROP": "not_run"}.get(record.outcome, record.outcome.lower())
-        status = "abstained" if status == "abstain" else status
-        counts["attempted"] += status != "not_run"
-        if status in counts and status not in {"eligible", "attempted"}:
-            counts[status] += 1
-        if status == "abstained":
-            reason = getattr(record, "abstain_reason", None) or "unknown"
-            reasons[reason] = reasons.get(reason, 0) + 1
-    return {"coverage": counts, "abstentions": reasons}
+def aggregate(
+    records: list[HostRecord],
+    *,
+    eligible: int | None = None,
+    eligible_units: list[Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Route evaluation reports through the judgement coverage model."""
+    rows = list(records)
+    if eligible_units is None:
+        eligible_units = [
+            {
+                "unit_id": _field(record, "unit_id", ""),
+                "path": _field(record, "path", "<unknown>"),
+                "pack_id": _field(record, "pack_id", "<unknown>"),
+                "rule_id": _field(record, "rule_id", "<unknown>"),
+            }
+            for record in rows
+        ]
+        if eligible is not None and eligible > len(eligible_units):
+            eligible_units.extend(
+                {
+                    "unit_id": f"<missing-{index}>",
+                    "path": "<unknown>",
+                    "pack_id": "<unknown>",
+                    "rule_id": "<unknown>",
+                }
+                for index in range(len(eligible_units), eligible)
+            )
+    return coverage(rows, eligible_units).as_dict()
+
+
+def _field(record: Any, name: str, default: Any = None) -> Any:
+    if isinstance(record, Mapping):
+        return record.get(name, default)
+    return getattr(record, name, default)
 
 
 
