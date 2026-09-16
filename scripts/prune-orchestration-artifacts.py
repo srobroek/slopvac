@@ -89,7 +89,7 @@ def candidates(root: Path, *, audit_days: int, backup_count: int, max_bytes: int
             ensure_tree_is_safe(root, run)
             if is_protected(root, run):
                 fail(f"refusing protected path: {run}")
-            if run.is_dir() and run.stat().st_mtime < cutoff:
+            if run.stat().st_mtime < cutoff:
                 old_audits.append(run)
 
     old_backups: list[Path] = []
@@ -139,11 +139,11 @@ def truncate_log(path: Path, max_bytes: int) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent)
-    parser.add_argument("--dry-run", action="store_true", help="report changes without applying them (default)")
+    parser.add_argument("--dry-run", action="store_true", help="report changes without applying them")
     parser.add_argument("--apply", action="store_true", help="apply the reported changes")
-    parser.add_argument("--audit-days", type=int, default=DEFAULT_AUDIT_DAYS)
-    parser.add_argument("--backup-count", type=int, default=DEFAULT_BACKUP_COUNT)
-    parser.add_argument("--interactions-max-bytes", type=int, default=DEFAULT_INTERACTIONS_MAX_BYTES)
+    parser.add_argument("--audit-days", type=int, default=DEFAULT_AUDIT_DAYS, help="retain audit entries for this many days")
+    parser.add_argument("--backup-count", type=int, default=DEFAULT_BACKUP_COUNT, help="retain this many newest backup archives")
+    parser.add_argument("--interactions-max-bytes", type=int, default=DEFAULT_INTERACTIONS_MAX_BYTES, help="retain at most this many interaction-log bytes")
     args = parser.parse_args()
     if args.apply and args.dry_run:
         parser.error("--apply and --dry-run are mutually exclusive")

@@ -8,7 +8,7 @@ language for something that does not ship yet, and hedging on every claim.
 
 This repository ships the `slopvac` CLI and two skills.
 
-The CLI scores prose against 229 rules in 25 categories. Configure it with
+The CLI scores prose against 228 rules in 25 categories. Configure it with
 `slopvac.toml`. Profiles set the strictness. `<!-- slopvac-allow -->` comments
 suppress a finding when the reason is on that rule's list.
 
@@ -109,7 +109,7 @@ flowchart TD
 
     IN --> GATE
 
-    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 229 rules in 25 categories<br/>optional Vale sub-gate"]
+    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 228 rules in 25 categories<br/>optional Vale sub-gate"]
 
     GATE --> REG["<b>2. Register judgement</b><br/>read the tells catalog and apply it:<br/>voice, struc
 tural symmetry, dilution,<br/>and the counter-signals expert prose has"]
@@ -147,7 +147,7 @@ absent, nothing more"]
 
 ## Categories
 
-`slopvac` ships **229 rules** across **25 categories**: 164 checked, 65 judgement. `slopvac rules` lists one more, the spelling rule it generates for the configured locale.
+`slopvac` ships **228 rules** across **25 categories**: 164 checked, 64 judgement. `slopvac rules` lists one more, the spelling rule it generates for the configured locale.
 `slopvac rules` lists them. The generated reference is
 [`packages/slopvac-lint/docs/rules.md`](packages/slopvac-lint/docs/rules.md).
 
@@ -367,20 +367,19 @@ cargo install --locked agnix-cli --version 0.52.2
 The installer sets a worktree hook path and preserves existing hooks.
 Before each commit, the hook validates the Git index.
 
-<!-- slopvac-disable-next-line -->
-## Orchestration and Beads artefact retention
+## Orchestration and Beads artifact retention
 
-Audit run records under `.orchestration/audit/` stay for 30 days. The ten newest `.beads/backup/*.darc` archives stay. The `.beads/interactions.jsonl` log stays until it reaches 10 MiB. At that limit, the script keeps the newest complete records.
+Keep audit records under `.orchestration/audit/` for 30 days. Keep the ten newest `.beads/backup/*.darc` archives. Keep `.beads/interactions.jsonl` at 10 MiB. When pruning this log, retain complete records. These limits preserve enough history for incident review. They also bound operational growth.
 
-The script never prunes these paths: `.beads/metadata.json`, `.beads/config.yaml`, `.beads/issues.jsonl`, `.beads/hooks/`, and `.orchestration/.active-run`. It accepts only paths inside the repository root.
+The `slopvac-zal.7.3` task owns this policy. The pruner leaves metadata and hooks unchanged. It also leaves the active run marker unchanged. Every accepted path stays inside the repository root.
 
-Run this command from the repository root to preview removals:
+Use `scripts/prune-orchestration-artifacts.py` from the repository root to preview removals:
 
 ```sh
 ./scripts/prune-orchestration-artifacts.py --dry-run
 ```
 
-Pass `--apply` to delete reported paths or truncate the log. Defaults are 30 audit days, 10 backup archives, and 10 MiB for the interactions log. Use `--audit-days`, `--backup-count`, or `--interactions-max-bytes` to change them.
+Pass `--apply` to delete reported paths or truncate the log. Use `--audit-days`, `--backup-count`, or `--interactions-max-bytes` to change the defaults.
 
 ## License
 
