@@ -176,6 +176,7 @@ class Coverage:
     rules: dict[str, CoverageBucket]
     status: Literal["CLEAN", "PARTIAL"]
     abstention_reasons: dict[str, int] = field(default_factory=dict)
+    dropped: int = 0
 
     @property
     def by_document(self) -> dict[str, CoverageBucket]:
@@ -195,6 +196,7 @@ class Coverage:
             "packs": {key: value.as_dict() for key, value in self.packs.items()},
             "rules": {key: value.as_dict() for key, value in self.rules.items()},
             "abstention_reasons": dict(self.abstention_reasons),
+            "dropped": self.dropped,
             "status": self.status,
         }
 
@@ -509,7 +511,12 @@ def _representative_coverage_record(records: list[FindingLike]) -> FindingLike:
 
 
 def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> Coverage:
-    """Count judgement coverage at document, pack, and rule granularity."""
+    """Count judgement coverage at document, pack, and rule granularity.
+
+    A unit whose host record is DROP failed an admission gate: it leaves the eligible
+    set (audit only) and touches no counter, so a whitespace or generated unit never
+    marks a document PARTIAL and never inflates ``attempted``.
+    """
     eligible_by_id: dict[str, Any] = {}
     for unit in eligible_units:
         unit_id = _unit_key(unit)
@@ -524,18 +531,22 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
     }
     reasons: dict[str, int] = {}
     partial = False
+    dropped = 0
 
     def bucket(kind: str, key: str) -> CoverageBucket:
         return buckets[kind].setdefault(key, CoverageBucket())
 
     for unit in eligible:
         unit_id = _unit_key(unit)
+        record_group = records.get(unit_id, [])
+        finding = _representative_coverage_record(record_group) if record_group else None
+        if finding is not None and _coverage_status(finding) == "drop":
+            dropped += 1
+            continue
         path, pack, rule = _dimensions(unit)
         target = [bucket("documents", path), bucket("packs", pack), bucket("rules", rule)]
         for current in target:
             current.eligible += 1
-        record_group = records.get(unit_id, [])
-        finding = _representative_coverage_record(record_group) if record_group else None
         status = str(_value(unit, "status", "" if finding else "not_run")).lower()
         truncated = bool(_value(unit, "truncated", False))
         truncated |= any(
@@ -591,6 +602,7 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
         rules=buckets["rules"],
         status="PARTIAL" if partial else "CLEAN",
         abstention_reasons=reasons,
+        dropped=dropped,
     )
 
 

@@ -2,7 +2,7 @@
 
 from .runner import (
     Arm,
-    HostRecord,
+    EvalRecord,
     Instrument,
     ReplayProvider,
     aggregate,
@@ -16,7 +16,7 @@ from .runner import (
 )
 
 __all__ = [
-    "Arm", "HostRecord", "Instrument", "ReplayProvider", "aggregate",
+    "Arm", "EvalRecord", "Instrument", "ReplayProvider", "aggregate",
     "judgement_cache_key", "outer_payloads", "parse_provider_response",
     "select_repeats", "select_units", "usage", "validate_result_set",
 ]
