@@ -206,6 +206,9 @@ def test_readme_units_match_document_source_ranges(tmp_path: Path) -> None:
         else:
             assert unit["text"]
             assert source == unit["text"]
+            previous = raw[: unit["source_range"][0]].decode("utf-8")[-1:]
+            if unit["text"][0].isalpha():
+                assert not previous.isalnum()
 
 
 def test_table_block_yields_cell_units_only(tmp_path: Path) -> None:
@@ -225,3 +228,16 @@ def test_table_block_yields_cell_units_only(tmp_path: Path) -> None:
     quote = "C"
     assert cell.text == quote
     assert cell.projection.slice_raw(0, len(quote)).decode("utf-8") == quote
+
+
+def test_numeric_table_cells_are_not_units(tmp_path: Path) -> None:
+    raw = "| 0 | 5 |\n|---|---|\n| 70 | ! |\n"
+    document_path = tmp_path / "numeric.md"
+    document_path.write_text(raw, encoding="utf-8")
+    document = parse(str(document_path), raw)
+    projected, projection = project(raw)
+    document._judgement_text = projected  # type: ignore[attr-defined]
+    document._judgement_projection = projection  # type: ignore[attr-defined]
+    table = next(block for block in document.blocks if block.kind.value == "table")
+    pack = Pack("demo", (), 1, "local", (), ("demo.rule",))
+    assert _unit_from_block(document, table, "demo.rule", pack) == []
