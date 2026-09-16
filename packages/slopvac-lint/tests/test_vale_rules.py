@@ -362,3 +362,26 @@ def test_complex_tense_accepts_status_report_suppression():
     )
     assert "ste-verbs.complex-tense" not in suppressed
     assert "meta.invalid-suppression" not in suppressed
+
+
+def test_formulaic_heading_rules_cover_bad_and_good_shapes():
+    cases = (
+        ("prose-scope.formulaic-subject-verb-slogan", "## The Harness Reports, The Customer Decides\n", "## Reporting and approval responsibilities\n"),
+        ("ai-tells-agentic.formulaic-universal-heading", "## Every Change Tells A Story\n", "## Installation\n"),
+    )
+    for rule_id, bad, good in cases:
+        assert rule_id in _native_ids(bad)
+        assert rule_id not in _native_ids(good)
+
+
+def test_formulaic_headings_leave_factual_contrasts_and_invariants_alone():
+    ids = _native_ids(
+        "## Installation\n\n"
+        "It is not faster but it is cheaper.\n"
+        "Every request to this endpoint requires authentication.\n"
+    )
+    assert "prose-scope.formulaic-subject-verb-slogan" not in ids
+    assert "ai-tells-agentic.formulaic-universal-heading" not in ids
+    from slopvac.rules import load_ruleset
+    assert load_ruleset().by_id("ai-tells-structure.contrastive-inversion-remainder") is not None
+    assert "ai-tells-structure.contrastive-inversion-frames" in ids
