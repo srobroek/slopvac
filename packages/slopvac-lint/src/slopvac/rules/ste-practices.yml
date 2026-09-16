@@ -37,6 +37,13 @@ rules:
         substitution rule must never auto-apply without review. Two entries in the
         specification's own recurring-error table have no lexical replacement at all and can
         only be flagged. Kept as a judgement so the reviewer owns the rewrite decision.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term]
+      judgement_ceiling: suggestion
     fix: Restructure the sentence around a permitted verb, rather than swapping one word.
 
   - id: word-sense-incorrect
@@ -68,6 +75,13 @@ rules:
         keep both entries so every rule number is traceable. A runtime should report only one.
         Needs the sense gloss in the vocabulary dataset, which is the largest remaining
         extraction job.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term]
+      judgement_ceiling: suggestion
     fix: Replace the word with one whose recorded sense matches your intent.
 
   - id: phrasal-verb
@@ -237,6 +251,13 @@ rules:
         A recommendation, and not mechanizable: the ambiguity is in the reading, not in the
         surface form, and "with" is far too common to flag. Advisory at both upper tiers so it
         surfaces in review without generating findings.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term]
+      judgement_ceiling: suggestion
     fix: Rewrite so the sense of "with" is explicit, or state the condition first.
 
   - id: unclear-pronoun

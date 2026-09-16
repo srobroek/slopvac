@@ -8,6 +8,7 @@ weight: 1.0
 recommended_for: [consumer, change-comms]
 rules:
   - id: code-change-prose-scope
+    # contract 1.1.2 record; status: provisional
     name: Keep code-change prose scoped
     kind: judgement
     severity: error
@@ -26,6 +27,17 @@ rules:
       the user explicitly request that prose edit? Treat unrelated same-file
       comments and documentation elsewhere as defects, while correcting a stale
       comment that describes changed behavior.
+    # contract 1.1.2 record; status: provisional
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, referent]}
+      warrant_min: 2
+      protects: []
+      judgement_ceiling: error
+      host_predicates:
+        - id: code_diff_available
+          definition: the changed hunk is supplied as role=referent repository evidence (path@blob_sha); without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM
     fix: >-
       Revert unrelated prose changes; retain directly related stale-comment
       corrections and explicitly requested prose edits.
