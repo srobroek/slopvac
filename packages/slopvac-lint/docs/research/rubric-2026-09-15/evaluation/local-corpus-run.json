@@ -571,6 +571,25 @@
   ],
   "precision_excluding_borderline": 0.31,
   "precision_strict": 0.24,
+  "reconciliation": {
+    "check": "14240 + 420 + 4 = 14664 = distinct 14664",
+    "distinct_unit_ids": 14664,
+    "distinct_units_with_record": 14240,
+    "duplicate_unit_rows": 576,
+    "failed_units": 420,
+    "note": "the report's eligible=15240 counts duplicate unit rows; coverage denominators must use distinct unit ids (14,664). Confirm rate = 37 / (14,240 adjudicated - 996 whitespace DROP) = 0.28%.",
+    "probe_records": 221,
+    "probe_units_with_records": 188,
+    "probe_units_without_record_or_failure": 4,
+    "span_unit_outcomes": {
+      "ABSTAIN": 352,
+      "CONFIRM": 32,
+      "DROP": 996,
+      "PRESERVE": 99,
+      "REJECT": 12573
+    },
+    "units_rows": 15240
+  },
   "run": "local-corpus-1",
   "unit_rule_pairs": 15240
 }
