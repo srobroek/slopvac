@@ -31,6 +31,25 @@
     "PROBE-2",
     "PROBE-3"
   ],
+  "reconciliation": {
+    "note": "same accounting defects as the local run (bug slopvac-5mf.11): duplicate unit rows and probe rows omitted by the model not flagged; failed calls are model schema violations (stray keys, misspelled enum 'debect', wrong enum in rewrite_status)",
+    "omp-orchestrate": {
+      "adjudicated": 4497,
+      "coverage_distinct": 0.968,
+      "distinct_units": 4644,
+      "failed_units": 144,
+      "probe_units_unaccounted": 3,
+      "unit_rows": 5052
+    },
+    "omp-plugins": {
+      "adjudicated": 4220,
+      "coverage_distinct": 0.974,
+      "distinct_units": 4332,
+      "failed_units": 100,
+      "probe_units_unaccounted": 12,
+      "unit_rows": 4752
+    }
+  },
   "run": "sibling-sample-1",
   "sample": {
     "omp-orchestrate": {
