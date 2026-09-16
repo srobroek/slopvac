@@ -201,7 +201,7 @@ class Coverage:
         }
 
     def __getitem__(self, key: str) -> Any:
-        if key in {"documents", "packs", "rules", "status", "abstention_reasons"}:
+        if key in {"documents", "packs", "rules", "status", "abstention_reasons", "dropped"}:
             return getattr(self, key)
         raise KeyError(key)
 
