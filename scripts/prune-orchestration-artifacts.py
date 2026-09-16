@@ -326,10 +326,14 @@ def _remove_handle(root: Path, handle: RemovalHandle, protected: ProtectedSnapsh
     if handle.is_dir:
         target_fd = os.open(handle.name, PARENT_FLAGS, dir_fd=handle.directory_fd)
         try:
-            _remove_tree_fd(target_fd, handle.candidate.path)
+            try:
+                _remove_tree_fd(target_fd, handle.candidate.path)
+                os.rmdir(handle.name, dir_fd=handle.directory_fd)
+            except (OSError, PruneError):
+                print(f"partially deleted {handle.candidate.path}")
+                raise
         finally:
             os.close(target_fd)
-        os.rmdir(handle.name, dir_fd=handle.directory_fd)
     else:
         os.unlink(handle.name, dir_fd=handle.directory_fd)
 

@@ -371,7 +371,7 @@ Before each commit, the hook validates the Git index.
 
 Keep audit records under `.orchestration/audit/` for 30 days. Keep the ten newest `.beads/backup/*.darc` archives. Keep `.beads/interactions.jsonl` at 10 MiB. When pruning this log, retain complete records. These limits preserve enough history for incident review. They also bound operational growth.
 
-The `slopvac-zal.7.3` task owns this policy. The pruner leaves metadata and hooks unchanged. It also leaves the active run marker unchanged. Every accepted path stays inside the repository root.
+Repository maintainers own these limits. The pruner leaves metadata and hooks unchanged. It also leaves the active run marker unchanged. Every accepted path stays inside the repository root.
 
 Use `scripts/prune-orchestration-artifacts.py` from the repository root to preview removals:
 
