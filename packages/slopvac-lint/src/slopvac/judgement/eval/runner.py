@@ -129,22 +129,30 @@ def usage(messages: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, str]:
 
 def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
     expected = [str(u["unit_id"]) for u in units]
+    expected_kinds = {str(u["unit_id"]): u.get("kind") for u in units}
+    missing = object()
     if not isinstance(rows, list):
         return "results is not a list"
-    actual = []
+    actual: list[str] = []
     for row in rows:
         if not isinstance(row, dict) or not isinstance(row.get("unit_id"), str):
             return "result row missing unit_id"
-        actual.append(row["unit_id"])
+        unit_id = row["unit_id"]
+        occurrences = row.get("occurrences", missing)
+        if expected_kinds.get(unit_id) == "PASSAGE_PROBE" and not isinstance(occurrences, list):
+            return "probe result row occurrences is not a list"
+        if expected_kinds.get(unit_id) != "PASSAGE_PROBE" and occurrences is not None:
+            return "span result row occurrences is not null"
+        actual.append(unit_id)
     duplicates = sorted({x for x in actual if actual.count(x) > 1})
     if duplicates:
         return "duplicate unit_id: " + ",".join(duplicates)
     unknown = sorted(set(actual) - set(expected))
     if unknown:
         return "unknown unit_id: " + ",".join(unknown)
-    missing = [x for x in expected if x not in actual]
-    if missing:
-        return "missing unit_id: " + ",".join(missing)
+    missing_ids = [x for x in expected if x not in actual]
+    if missing_ids:
+        return "missing unit_id: " + ",".join(missing_ids)
     if actual != expected:
         return "result unit_ids are not in expected order"
     return None
