@@ -13,6 +13,16 @@ PreservationClass = Literal[
     "source_locked_legal_text",
 ]
 Severity = Literal["error", "warning", "suggestion"]
+TokenClass = Literal[
+    "code_and_identifiers",
+    "cross_reference_target",
+    "defined_terms",
+    "modality",
+    "named_entities",
+    "negation_polarity",
+    "numerals_units_versions_dates",
+    "procedure_dependency",
+]
 
 
 @dataclass(frozen=True)
@@ -23,7 +33,7 @@ class EvidenceSpec:
 
 @dataclass(frozen=True)
 class Transition:
-    token_class: str
+    token_class: TokenClass
     src: str
     dst: str
 
