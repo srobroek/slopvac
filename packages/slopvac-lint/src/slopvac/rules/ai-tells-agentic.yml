@@ -92,7 +92,7 @@ rules:
       source: references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis")
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
-        Judgement remainder of ai-tells-agentic.contrastive-inversion-frames. The
+        Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The
         remainder needs a reader who knows whether the alternative exists, which no
         pattern can supply. Also absorbs the catalog's "Strawman antithesis" row,
         whose "While other gates struggle, X ..." shape is the same defect.
@@ -136,7 +136,7 @@ rules:
       note: >-
         The two-sentence form of the contrastive inversion: "X is A. X is not B."
         and its mirror, with the subject repeated or pronominalised. The
-        single-sentence frame (ai-tells-agentic.contrastive-inversion-frames)
+        single-sentence frame (ai-tells-structure.contrastive-inversion-frames)
         stops at a sentence boundary, so this rule runs at paragraph scope, where
         the native engine matches against the whole block (list items and quotes
         included; Vale's paragraph scope skips both, so the rule stays native). The
