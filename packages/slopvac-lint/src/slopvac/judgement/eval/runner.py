@@ -12,6 +12,9 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from ..adjudicate import FindingRecord
+from ..packs import (
+    judgement_cache_key as judgement_cache_key,  # re-export: the single implementation lives in packs
+)
 
 TOKEN_FIELDS = {
     "promptTokens": "prompt_tokens", "completionTokens": "completion_tokens",
