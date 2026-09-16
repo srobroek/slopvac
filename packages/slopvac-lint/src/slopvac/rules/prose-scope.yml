@@ -48,7 +48,6 @@ rules:
         This judgement rule requires the code diff and user request. The native
         engine never emits findings for judgement rules; review-docs supplies
         that context to the reviewer.
-
   - id: rejected-alternative
     name: Move the decision to an ADR, spec, or commit
     kind: pattern
@@ -182,3 +181,47 @@ rules:
         alternative cannot have been matching under a pure RE2 engine; the Python
         `regex` module supports it, so the ported rule is stricter and this
         alternative newly becomes live. Test it against the corpus before enforcing.
+  - id: formulaic-subject-verb-slogan
+    name: Replace a paired subject-verb slogan with a title
+    kind: pattern
+    severity: warning
+    message: 'formulaic slogan: {match} -- title it with a noun phrase, or state one scoped fact'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '^(?:the|a|an|this|that|these|those|its|our|your|their)\s+[\w-]+(?:\s+[\w-]+)?\s+(?:is|are|was|were|has|have|does|do|can|cannot|will|would|should|must|[a-z][\w-]*(?<!s)s)(?:\s+[\w-]+){0,3}\s*,\s*(?:the|a|an|this|that|these|those|its|our|your|their)\s+[\w-]+(?:\s+[\w-]+)?\s+(?:is|are|was|were|has|have|does|do|can|cannot|will|would|should|must|[a-z][\w-]*(?<!s)s)(?:\s+[\w-]+){0,3}$'
+    ignore_case: true
+    fix: Name the section with a noun phrase, or state the one fact the two clauses gesture at.
+    examples:
+      - bad: The Harness Reports, The Customer Decides
+        good: Reporting and approval responsibilities
+      - bad: The Boundary Protects, The Audit Proves
+        good: The boundary rejects unsigned requests; the audit log records each rejection.
+      - bad: The Parser Reads, The Loader Rejects
+        good: The parser reads JSON, not YAML.
+        note: >-
+          The rewrite is an object-level factual contrast, which is the shape this
+          rule must never claim. The loader proves the non-match: the second half
+          of a real contrast is a bare object, not a second determiner-led clause.
+    provenance:
+      source: packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
+      note: >-
+        The comma-joined sibling of prose-scope.epigram. Epigram matches the parallel
+        pair written as two SENTENCES and uses the full stops to tell it apart from an
+        ordinary two-clause sentence; this rule matches the same pair written as a
+        TITLE, and the absence of terminal punctuation does that same work here. Both
+        halves must be determiner-led with a finite-looking predicate, which is what
+        keeps the rule off a factual contrast ("The parser reads JSON, not YAML.") and
+        off a contrastive inversion whose second subject is a pronoun ("The Harness
+        Measures, It Does Not Judge") -- that shape belongs to
+        ai-tells-structure.contrastive-inversion-frames.
+        The predicate alternation ends in `[a-z][\w-]*(?<!s)s` rather than `\w+s`, so a
+        plural noun spelled with a double s ("The Address Class, The Access Class")
+        cannot pose as a verb.
+        `scope: paragraph`, not `heading`: the native engine's paragraph scope covers
+        every rendered block INCLUDING headings, list items, and quotes, so the rule
+        reaches a bolded pseudo-heading too. Heading scope would instead compile to a
+        Vale `heading` payload, and Vale then owns the rule -- which means `--no-vale`
+        leaves it unchecked. See compile_vale.PARAGRAPH_SCOPE_REASON.
