@@ -21,3 +21,36 @@ Abstention is a completed adjudication. It reduces coverage. The report lists it
 reason in a separate table. The evaluator reports a document as partial when a unit
 is failed, truncated, or not-run. The evaluator never changes those states into
 abstentions.
+
+## CLI driver
+
+Use the driver when a model call must run outside `slopvac`. The first command runs
+the deterministic scan once and writes compact prompts, units, per-document data,
+and a manifest. Runs are bounded to 300 calls by default; pass `--yes` to override
+the bound after reviewing the per-pack counts printed by an over-limit run.
+
+```sh
+uv run slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement docs/guide.md
+```
+
+For a stricter bound, set `--max-calls N`. A SPAN call contains up to five passages
+and one pair per passage/rule; each passage's text and neighbouring context occur
+once, while `pairs` gives the expected result order. `units.jsonl` contains only
+unit-local data. Shared projection segments, source hash, and full projected text
+are stored once in `documents/<document>.json`.
+
+Fill `.slopvac-judgement/responses.jsonl` with one record per prompt. Each record
+has the form `{"call_id": "...", "response": ...}`. Calls with multiple units
+wrap outputs as `{"results": [model_output, ...]}` in the documented pair order;
+a single PROBE call may return one model output object.
+
+Run the host checks and report generation after the responses are complete.
+
+```sh
+uv run slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
+uv run slopvac judgement compare --out .slopvac-judgement
+```
+
+`finish` rejects malformed calls, records schema errors in `failed.jsonl`, and
+writes `findings.jsonl`, `report.json`, and `report.md`. `compare --apply-preview`
+writes checker-passed proposed rewrites under `.slopvac-judgement/preview/`.

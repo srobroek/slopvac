@@ -1,0 +1,70 @@
+{
+  "abstention_reasons": {
+    "ambiguous_unit": 129,
+    "missing_context": 8,
+    "needs_external_fact": 1,
+    "needs_repository_fact": 2,
+    "no_exact_evidence": 4,
+    "unit_out_of_scope": 40
+  },
+  "adjusted_score": 91.9,
+  "calls": 108,
+  "candidate_confirms_blocked_by_evidence": [
+    {
+      "fit": "ambiguous_match",
+      "host": "ABSTAIN no_exact_evidence (model offsets did not match the quote)",
+      "quote": "AI generated documentation has a clear fingerprint.",
+      "rule": "ai-tells-structure.absolute-assertion-remainder"
+    },
+    {
+      "fit": null,
+      "host": "ABSTAIN no_exact_evidence (no quote supplied for a document-scope confirm)",
+      "model_note": "review-docs step is called judgement pass, review, and Model-based review",
+      "quote": null,
+      "rule": "ai-tells-content-shape.elegant-variation"
+    }
+  ],
+  "cluster_gate": null,
+  "confirmed": 0,
+  "deterministic": {
+    "findings": 25,
+    "passed": true,
+    "score": 91.9
+  },
+  "document": "README.md",
+  "host_outcomes": {
+    "ABSTAIN": 184,
+    "PRESERVE": 1,
+    "REJECT": 1728
+  },
+  "model": "amazon-bedrock/global.anthropic.claude-fable-5-1 (session model, schema in prompt)",
+  "model_verdicts": {
+    "abstain": 201,
+    "confirm": 2,
+    "preserve": 3,
+    "reject": 1868
+  },
+  "packs": [
+    "SPAN-ai-tells-structure-1",
+    "SPAN-ai-tells-structure-2",
+    "SPAN-ai-tells-register-1",
+    "PROBE-1",
+    "PROBE-2",
+    "PROBE-3"
+  ],
+  "passages": 176,
+  "preserves": [
+    {
+      "quote": "reported rather than honoured",
+      "reason": "factual_polarity_or_contrast",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder"
+    }
+  ],
+  "residual_defects": [
+    "3 passages still start mid-word (blocks with a code span after a soft line break)",
+    "129 ambiguous_unit abstentions are bare-number table cells; cell units without letters should not be dispatched",
+    "model offsets unreliable: earlier run 174/502 quotes were exact substrings at wrong offsets; policy for host-located quotes is open (Q02)"
+  ],
+  "run": "smoke-4",
+  "unit_rule_pairs": 2112
+}

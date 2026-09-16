@@ -131,6 +131,22 @@ def test_authored_quoted_region_is_preserved() -> None:
     assert record.preservation_reason == "quoted_specimen"
 
 
+
+def test_preserve_requires_exact_evidence() -> None:
+    unit = _unit()
+    unit.region_class = "quoted"
+    output = _output(unit, evidence=[_evidence(unit, quote="not present")], preservation_reason=None)
+    record = _adjudicate(unit, _rule(protects=("quoted_specimen",)), output)
+    assert record.outcome == "ABSTAIN"
+    assert record.abstain_reason == "no_exact_evidence"
+
+
+def test_reject_absent_fit_precedes_missing_evidence() -> None:
+    unit = _unit()
+    output = _output(unit, fit="absent", verdict="reject", evidence=[])
+    record = _adjudicate(unit, _rule(), output)
+    assert record.outcome == "REJECT"
+
 def test_exact_slice_mismatch_abstains() -> None:
     unit = _unit("actual")
     record = _adjudicate(unit, _rule(), _output(unit, evidence=[_evidence(unit, quote="other")]))
