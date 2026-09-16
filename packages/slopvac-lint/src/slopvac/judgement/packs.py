@@ -6,8 +6,7 @@ import json
 import math
 import re
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
-from pathlib import Path
+from dataclasses import asdict, dataclass, is_dataclass
 from typing import Any
 
 _PROBE_PACKS = (
@@ -33,13 +32,8 @@ class Pack:
     shots: tuple[Mapping[str, str], ...] = ()
 
 
-def load_rule_records(path: str | Path) -> dict[str, Mapping[str, Any]]:
-    """Load contract rule records, indexed by fully-qualified rule id."""
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {record["id"]: record for record in data["rule_records"]}
-
-
 _SHOTS = ({"label": "worked-example-1", "message": "<<<SHOT worked-example-1>>>\nEvidence: quote the exact unit text.\nScores: provide fit, harm, repair, and warrant level ids.\nVerdict: choose one documented outcome.\n<<<END SHOT>>>"},)
+
 
 def _value(rule: Any, name: str, default: Any = None) -> Any:
     if isinstance(rule, Mapping):
@@ -51,12 +45,19 @@ def _rule_id(rule: Any) -> str:
     return str(_value(rule, "qualified_id", _value(rule, "id")))
 
 
-def build_packs(rules: Sequence[Any], judgement_fields: Mapping[str, Mapping[str, Any]]) -> list[Pack]:
-    """Partition local rules and place probe rules in the contract's five packs."""
+def _judgement_value(rule: Any, name: str, default: Any = None) -> Any:
+    contract = _value(rule, "judgement")
+    if contract is None:
+        return default
+    return _value(contract, name, default)
+
+
+def build_packs(rules: Sequence[Any]) -> list[Pack]:
+    """Partition loaded judgement rules into local and contract probe packs."""
     by_id = {_rule_id(rule): rule for rule in rules}
     local: dict[str, list[str]] = {}
-    for rid, fields in judgement_fields.items():
-        if fields.get("scope_class") == "local" and rid in by_id:
+    for rid, rule in by_id.items():
+        if _judgement_value(rule, "scope_class") == "local":
             category = rid.rsplit(".", 1)[0]
             local.setdefault(category, []).append(rid)
     result: list[Pack] = []
@@ -65,12 +66,13 @@ def build_packs(rules: Sequence[Any], judgement_fields: Mapping[str, Mapping[str
         for index in range(0, len(ids), 4):
             chunk = index // 4 + 1
             selected = tuple(ids[index : index + 4])
-            records = tuple(_merged_record(rid, by_id[rid], judgement_fields[rid]) for rid in selected)
+            records = tuple(_merged_record(rid, by_id[rid]) for rid in selected)
             protects = tuple(sorted({p for record in records for p in record.get("protects", ())}))
             result.append(Pack(f"SPAN-{category}-{chunk}", (category,), chunk, "local", protects, selected, records, shots=_SHOTS))
     for chunk, categories, ids, protects in _PROBE_PACKS:
-        records = tuple(_merged_record(rid, by_id.get(rid, {}), judgement_fields.get(rid, {})) for rid in ids)
-        result.append(Pack(f"PROBE-{chunk}", categories, chunk, "probe", protects, ids, records, shots=_SHOTS))
+        records = tuple(_merged_record(rid, by_id[rid]) for rid in ids if rid in by_id)
+        selected = tuple(record["id"] for record in records)
+        result.append(Pack(f"PROBE-{chunk}", categories, chunk, "probe", protects, selected, records, shots=_SHOTS))
     return result
 
 
@@ -79,20 +81,28 @@ def _plain(value: Any) -> Any:
         return value.value
     if hasattr(value, "model_dump"):
         return value.model_dump()
+    if is_dataclass(value):
+        return asdict(value)
     if isinstance(value, Mapping):
         return {key: _plain(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_plain(item) for item in value]
     return value
-def _merged_record(rid: str, rule: Any, fields: Mapping[str, Any]) -> dict[str, Any]:
-    result = {key: _plain(value) for key, value in fields.items()}
+
+
+def _merged_record(rid: str, rule: Any) -> dict[str, Any]:
+    contract = _judgement_value(rule, "model_dump", None)
+    if contract is None:
+        contract = _value(rule, "judgement", {})
+    result = _plain(contract)
+    if not isinstance(result, dict):
+        result = {}
     result["id"] = rid
     for key in ("judgement_question", "message", "fix", "examples", "tiers", "exceptions", "scope", "severity"):
         value = _value(rule, key)
         if value is not None:
             result[key] = _plain(value)
     return result
-
 
 def pack_object(pack: Pack) -> dict[str, Any]:
     return {
