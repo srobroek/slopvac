@@ -5,7 +5,6 @@ object, while this module owns parsing, validation, cache identity, and coverage
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from collections.abc import Mapping
@@ -15,6 +14,9 @@ from typing import Any, Protocol
 
 from ..adjudicate import FindingRecord
 from ..aggregate import coverage
+from ..packs import (
+    judgement_cache_key as judgement_cache_key,  # re-export: the single implementation lives in packs
+)
 
 TOKEN_FIELDS = {
     "promptTokens": "prompt_tokens", "completionTokens": "completion_tokens",
@@ -26,21 +28,7 @@ ABSTAIN_REASONS = {
 }
 
 
-def canonical_bytes(value: Any) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
-
-def judgement_cache_key(*, instrument_id: str, unit_id: str, context_hash: str = "", provider: str,
-                        model_id_and_revision: str, full_rendered_request_digest: str,
-                        system_prompt: str, decoding_config: dict[str, Any], seed: int | None,
-                        repeat_index: int, evaluator_runner_revision: str) -> str:
-    fields = {"instrument_id": instrument_id, "unit_id": unit_id + context_hash,
-              "provider": provider, "model_id_and_revision": model_id_and_revision,
-              "full_rendered_request_digest": full_rendered_request_digest,
-              "system_prompt": system_prompt, "decoding_config": decoding_config,
-              "seed": seed, "repeat_index": repeat_index,
-              "evaluator_runner_revision": evaluator_runner_revision}
-    return hashlib.sha256(canonical_bytes(fields)).hexdigest()
 
 
 def outer_payloads(text: str) -> list[dict[str, Any]]:

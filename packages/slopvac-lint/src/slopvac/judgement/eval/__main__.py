@@ -4,13 +4,19 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from .runner import (
+    HostRecord,
     ReplayProvider,
     aggregate,
     parse_provider_response,
     validate_result_set,
 )
+
+
+def _decode_records(rows: list[dict[str, Any]]) -> list[HostRecord]:
+    return [HostRecord(**row) for row in rows]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -32,24 +38,23 @@ def main(argv: list[str] | None = None) -> int:
         provider = ReplayProvider(args.replay)
         outputs = []
         for _ in range(args.repeats or 1):
-            outputs.extend(parse_provider_response(provider.request()))
+            outputs.extend(row for payload in parse_provider_response(provider.request()) for row in payload["results"])
         print(json.dumps({"results": outputs}, sort_keys=True))
         return 0
+    payload = json.loads(Path(args.input).read_text()) if args.input else json.load(__import__("sys").stdin)
     if args.command == "validate":
-        payload = json.loads(Path(args.input).read_text()) if args.input else json.load(__import__("sys").stdin)
         error = validate_result_set(payload.get("units", []), payload.get("results"))
         if error:
             print(error)
             return 2
         print("valid")
         return 0
-    payload = json.loads(Path(args.input).read_text()) if args.input else json.load(__import__("sys").stdin)
+    records = payload.get("records", [])
+    if not isinstance(records, list) or not all(isinstance(row, dict) for row in records):
+        parser.error("report input records must be a list of objects")
     print(
         json.dumps(
-            aggregate(
-                payload.get("records", []),
-                eligible_units=payload.get("units"),
-            ),
+            aggregate(_decode_records(records), eligible_units=payload.get("units")),
             sort_keys=True,
         )
     )

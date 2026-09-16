@@ -416,15 +416,36 @@ def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionM
         )
     return ProjectionMap(tuple(segments), raw.encode("utf-8"))
 
+def _block_projected_base(document_projection: ProjectionMap, block_projection: ProjectionMap) -> int:
+    """Return the block start in the document-wide projected coordinate space."""
+    if not block_projection.segments:
+        return 0
+    raw_start = min(segment.raw_start for segment in block_projection.segments)
+    raw_end = max(segment.raw_end for segment in block_projection.segments)
+    matching = [
+        segment
+        for segment in document_projection.segments
+        if segment.raw_end > raw_start and segment.raw_start < raw_end
+    ]
+    if matching:
+        return matching[0].proj_start
+    # A block made entirely of synthetic projection characters has no raw span;
+    # anchor it at the nearest document projection boundary.
+    for segment in document_projection.segments:
+        if segment.raw_start >= raw_start:
+            return segment.proj_start
+    return document_projection.projected_length
+
+
 
 def _finalize_document(document: Document) -> Document:
     """Attach maps, origins, stable identities, and document ranges."""
 
     raw_bytes = document.raw.encode("utf-8")
-    document.projection, _ = project(document.raw)
+    projected_text, document.projection = project(document.raw)
     document.origin = classify_origin(document.path, document.raw)
     document.source_sha256 = source_sha256(raw_bytes)
-    document_offset = 0
+    projected_cursor = 0
     examples_heading = False
     for block in document.blocks:
         if block.kind is BlockKind.HEADING:
@@ -439,9 +460,13 @@ def _finalize_document(document: Document) -> Document:
         block.projection = _align_block_text(
             block.text, document.raw, block.lines[0], block.lines[1]
         )
+        block_base = projected_text.find(block.text, projected_cursor)
+        if block_base < 0:
+            block_base = _block_projected_base(document.projection, block.projection)
+        else:
+            projected_cursor = block_base + len(block.text)
         block.range = (0, len(block.text))
-        block.doc_range = (document_offset, document_offset + len(block.text))
-        document_offset = block.doc_range[1] + 1
+        block.doc_range = (block_base, block_base + len(block.text))
         block.origin = document.origin
         block.region_class = classify_region(block)
         block.source_sha256 = document.source_sha256
