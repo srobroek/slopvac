@@ -29,8 +29,6 @@ ABSTAIN_REASONS = {
 
 
 
-
-
 def outer_payloads(text: str) -> list[dict[str, Any]]:
     """Extract top-level ``results`` objects from prose, fenced, or plain JSON."""
     cleaned = re.sub(r"```(?:json)?\s*", "", text, flags=re.I).replace("```", "")
@@ -146,6 +144,7 @@ def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
         return "result unit_ids are not in expected order"
     return None
 
+
 def select_units(units: list[dict[str, Any]], *, partition: str | None = None,
                  unit: str | None = None) -> list[dict[str, Any]]:
     """Apply stable partition and unit selectors without changing source order."""
@@ -185,27 +184,45 @@ class Instrument:
     arms: tuple[Arm, ...] = ()
 
 
-HostRecord = FindingRecord
+@dataclass(frozen=True)
+class EvalRecord:
+    """A provider evaluation row carrying an optional host adjudication."""
+
+    finding: FindingRecord | None = None
+    repeat_index: int = 0
+    frozen_fields: dict[str, Any] = field(default_factory=dict)
+    instrument_id: str | None = None
+    unit_id: str | None = None
+    arm_id: str | None = None
+    provider: str | None = None
+    model_id_and_revision: str | None = None
+    judgement_cache_key: str | None = None
+    model_output: dict[str, Any] | None = None
+    status: str | None = None
+    usage: dict[str, Any] | None = None
 
 
 def aggregate(
-    records: list[HostRecord],
+    records: list[Any],
     *,
     eligible: int | None = None,
     eligible_units: list[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Route evaluation reports through the judgement coverage model."""
-    rows = list(records)
+    """Route evaluation rows through the judgement coverage model.
+
+    A row is an ``EvalRecord``, a ``FindingRecord``, or a mapping with the finding
+    fields. Rows carrying a host adjudication contribute their finding; rows without
+    one (schema failures, provider errors) contribute only their eligible unit with
+    the row's status, so they count as failed rather than vanish.
+    """
+    rows = [_normalise_row(record, index) for index, record in enumerate(records)]
+    if rows:
+        baseline = rows[0]["frozen_fields"]
+        if any(row["frozen_fields"] != baseline for row in rows):
+            raise ValueError("cannot aggregate rows with differing frozen fields")
+    findings = [row["record"] for row in rows]
     if eligible_units is None:
-        eligible_units = [
-            {
-                "unit_id": _field(record, "unit_id", ""),
-                "path": _field(record, "path", "<unknown>"),
-                "pack_id": _field(record, "pack_id", "<unknown>"),
-                "rule_id": _field(record, "rule_id", "<unknown>"),
-            }
-            for record in rows
-        ]
+        eligible_units = [row["unit"] for row in rows]
         if eligible is not None and eligible > len(eligible_units):
             eligible_units.extend(
                 {
@@ -216,15 +233,37 @@ def aggregate(
                 }
                 for index in range(len(eligible_units), eligible)
             )
-    return coverage(rows, eligible_units).as_dict()
+    return coverage(findings, eligible_units).as_dict()
+
+
+def _normalise_row(record: Any, index: int) -> dict[str, Any]:
+    if isinstance(record, EvalRecord):
+        finding, frozen, status, unit_id = record.finding, record.frozen_fields, record.status, record.unit_id
+    else:
+        finding = record
+        frozen = _field(record, "frozen_fields", {}) or {}
+        status = _field(record, "status", None)
+        unit_id = _field(record, "unit_id", None)
+    unit_id = unit_id or _field(finding, "unit_id", None) or f"<row-{index}>"
+    unit: dict[str, Any] = {
+        "unit_id": unit_id,
+        "path": _field(finding, "path", "<unknown>"),
+        "pack_id": frozen.get("pack_id", _field(finding, "pack_id", "<unknown>")),
+        "rule_id": _field(finding, "rule_id", "<unknown>"),
+    }
+    record_for_coverage: Any = finding
+    if finding is None:
+        unit["status"] = status or "failed"
+        record_for_coverage = {"unit_id": unit_id, "status": unit["status"], "rule_id": unit["rule_id"]}
+    return {"finding": finding, "frozen_fields": frozen, "unit": unit, "record": record_for_coverage}
 
 
 def _field(record: Any, name: str, default: Any = None) -> Any:
+    if record is None:
+        return default
     if isinstance(record, Mapping):
         return record.get(name, default)
     return getattr(record, name, default)
-
-
 
 
 class ReplayProvider:

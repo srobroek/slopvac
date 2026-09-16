@@ -53,5 +53,33 @@ def test_report_decodes_records_and_prints_coverage(tmp_path: Path, capsys) -> N
     }]}))
     assert main(["report", str(report)]) == 0
     output = json.loads(capsys.readouterr().out)
-    assert output["coverage"]["confirmed"] == 1
-    assert output["coverage"]["attempted"] == 1
+    unit = output["documents"]["<unknown>"]
+    assert (unit["eligible"], unit["attempted"], unit["confirmed"]) == (1, 1, 1)
+    assert output["packs"]["pack"]["confirmed"] == 1
+
+
+def test_aggregate_counts_finding_backed_outcomes() -> None:
+    from slopvac.judgement.adjudicate import FindingRecord
+    from slopvac.judgement.eval.runner import EvalRecord, aggregate
+
+    def finding(outcome: str, *, reason: str | None = None) -> FindingRecord:
+        return FindingRecord(
+            unit_id=f"u-{outcome}", rule_id="ai-tells-structure.heading-echo", kind="SPAN_CANDIDATE",
+            outcome=outcome, severity="suggestion" if outcome == "CONFIRM" else None, scores=None,
+            evidence=(), preservation_reason=None, abstain_reason=reason, rewrite=None,
+            rewrite_status="not_applicable", core_fired=False, component_id=None,
+            source_sha256="s", path="doc.md", instrument_id="i", judgement_cache_key="k",
+            occurrence_index=None,
+        )
+
+    frozen = {"pack_id": "p"}
+    rows = [EvalRecord(finding=finding(o), frozen_fields=frozen) for o in ("CONFIRM", "REJECT", "PRESERVE", "DROP")]
+    rows.append(EvalRecord(finding=finding("ABSTAIN", reason="no_exact_evidence"), frozen_fields=frozen))
+    report = aggregate(rows)
+    doc = report["documents"]["doc.md"]
+    # The DROP unit failed admission: audit-only, outside every counter, never PARTIAL.
+    assert report["dropped"] == 1
+    assert (doc["eligible"], doc["attempted"], doc["confirmed"], doc["rejected"], doc["preserved"]) == (4, 4, 1, 1, 1)
+    assert (doc["abstained"], doc["not_run"], doc["failed"], doc["status"]) == (1, 0, 0, "CLEAN")
+    assert report["abstention_reasons"] == {"no_exact_evidence": 1}
+    assert report["rules"]["ai-tells-structure.heading-echo"]["confirmed"] == 1
