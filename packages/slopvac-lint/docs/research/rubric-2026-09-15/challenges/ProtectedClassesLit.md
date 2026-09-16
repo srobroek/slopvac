@@ -1,3 +1,5 @@
+> Verification note (parent, 2026-09-15): the W3C URLs in E10 (`qa-i18n-glossary`), E21 (`TR/its21/`), and E22 (`standards/history/mqm/`) returned 404 at link check. Treat those three evidence items as unsupported; the accepted contract does not rely on them.
+
 ## Verdicts
 
 | Claim ID | Verdict | Reason | Evidence refs |
