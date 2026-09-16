@@ -27,6 +27,7 @@ exclude = [
   "www\\.tandfonline\\.com/",
   "ansi\\.org/",
   "support\\.acrolinx\\.com/",
+  "help\\.smartling\\.com/",
   # Three citations in the verbatim challenge reports were dead at review time (404);
   # the reports are evidence records and are not edited.
   "inspect\\.aisi\\.org\\.uk/logs\\.html",
