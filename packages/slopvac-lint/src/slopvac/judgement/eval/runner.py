@@ -27,17 +27,57 @@ def canonical_bytes(value: Any) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
 
-def judgement_cache_key(*, instrument_id: str, unit_id: str, context_hash: str = "", provider: str,
-                        model_id_and_revision: str, full_rendered_request_digest: str,
-                        system_prompt: str, decoding_config: dict[str, Any], seed: int | None,
-                        repeat_index: int, evaluator_runner_revision: str) -> str:
-    fields = {"instrument_id": instrument_id, "unit_id": unit_id + context_hash,
-              "provider": provider, "model_id_and_revision": model_id_and_revision,
-              "full_rendered_request_digest": full_rendered_request_digest,
-              "system_prompt": system_prompt, "decoding_config": decoding_config,
-              "seed": seed, "repeat_index": repeat_index,
-              "evaluator_runner_revision": evaluator_runner_revision}
-    return hashlib.sha256(canonical_bytes(fields)).hexdigest()
+def judgement_cache_key(
+    *,
+    instrument_id: str,
+    unit_id: str,
+    context_hash: str,
+    provider: str,
+    model_id_and_revision: str,
+    full_rendered_request_digest: str,
+    system_prompt: str,
+    decoding_config: Any,
+    seed: int | None,
+    repeat_index: int,
+    evaluator_runner_revision: str,
+) -> str:
+    values = locals()
+    fields = (
+        "instrument_id", "unit_id", "context_hash", "provider",
+        "model_id_and_revision", "full_rendered_request_digest", "system_prompt",
+        "decoding_config", "seed", "repeat_index", "evaluator_runner_revision",
+    )
+    return hashlib.sha256(canonical_bytes({field: values[field] for field in fields})).hexdigest()
+
+def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
+    expected = [str(u["unit_id"]) for u in units]
+    expected_kinds = {str(u["unit_id"]): u.get("kind") for u in units}
+    missing = object()
+    if not isinstance(rows, list):
+        return "results is not a list"
+    actual: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("unit_id"), str):
+            return "result row missing unit_id"
+        unit_id = row["unit_id"]
+        occurrences = row.get("occurrences", missing)
+        if expected_kinds.get(unit_id) == "PASSAGE_PROBE" and not isinstance(occurrences, list):
+            return "probe result row occurrences is not a list"
+        if expected_kinds.get(unit_id) != "PASSAGE_PROBE" and occurrences is not None:
+            return "span result row occurrences is not null"
+        actual.append(unit_id)
+    duplicates = sorted({x for x in actual if actual.count(x) > 1})
+    if duplicates:
+        return "duplicate unit_id: " + ",".join(duplicates)
+    unknown = sorted(set(actual) - set(expected))
+    if unknown:
+        return "unknown unit_id: " + ",".join(unknown)
+    missing_ids = [x for x in expected if x not in actual]
+    if missing_ids:
+        return "missing unit_id: " + ",".join(missing_ids)
+    if actual != expected:
+        return "result unit_ids are not in expected order"
+    return None
 
 
 def outer_payloads(text: str) -> list[dict[str, Any]]:
@@ -125,27 +165,6 @@ def usage(messages: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, str]:
     return totals, ""
 
 
-def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
-    expected = [str(u["unit_id"]) for u in units]
-    if not isinstance(rows, list):
-        return "results is not a list"
-    actual = []
-    for row in rows:
-        if not isinstance(row, dict) or not isinstance(row.get("unit_id"), str):
-            return "result row missing unit_id"
-        actual.append(row["unit_id"])
-    duplicates = sorted({x for x in actual if actual.count(x) > 1})
-    if duplicates:
-        return "duplicate unit_id: " + ",".join(duplicates)
-    unknown = sorted(set(actual) - set(expected))
-    if unknown:
-        return "unknown unit_id: " + ",".join(unknown)
-    missing = [x for x in expected if x not in actual]
-    if missing:
-        return "missing unit_id: " + ",".join(missing)
-    if actual != expected:
-        return "result unit_ids are not in expected order"
-    return None
 
 def select_units(units: list[dict[str, Any]], *, partition: str | None = None,
                  unit: str | None = None) -> list[dict[str, Any]]:
