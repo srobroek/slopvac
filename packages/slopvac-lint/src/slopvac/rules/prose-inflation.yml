@@ -133,7 +133,7 @@ rules:
         good: This drops 40 findings on the same corpus.
     provenance:
       source: Retired Vale style — prose-inflation/HedgeStack.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/HedgeStack.yml
+      url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/HedgeStack.yml
       note: >-
         Deliberately COMBINATORIAL rather than a token list. hedgeclipper ships
         400+ bare tokens including `can`, `about`, `always`, and `certain`; on any
@@ -161,7 +161,7 @@ rules:
         good: The loader reads 488 files in 0.4 s.
     provenance:
       source: Retired Vale style — prose-inflation/Intensifier.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/Intensifier.yml
+      url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Intensifier.yml
       note: >-
         Deliberately EXCLUDED because each carries real meaning in a technical
         corpus: significantly/substantially/considerably (statistical and
@@ -190,7 +190,7 @@ rules:
         good: A unique approach.
     provenance:
       source: Retired Vale style — prose-inflation/Uncomparables.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/Uncomparables.yml
+      url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Uncomparables.yml
       note: >-
         The Vale rule is an `existence` check carrying BOTH `raw` (the intensifier,
         consuming the trailing space so the message quotes the whole phrase) and
@@ -220,7 +220,7 @@ rules:
         good: Three files failed.
     provenance:
       source: Retired Vale style — prose-inflation/VagueQuantifier.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/VagueQuantifier.yml
+      url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/VagueQuantifier.yml
       note: >-
         WARNING, not error, on a MEASURED base rate: 9.9 hits per 10k words across
         147,473 words of human-written technical documentation -- the highest rate of
@@ -257,7 +257,7 @@ rules:
         good: The loader supports globs.
     provenance:
       source: Retired Vale style — prose-inflation/NominalizedVerb.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/NominalizedVerb.yml
+      url: https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-inflation/NominalizedVerb.yml
       note: >-
         SLOP AXIS on a measured base rate: 0.9 hits per 10k words across 147,473
         words of human-written technical documentation, against a slop-axis median
@@ -287,7 +287,7 @@ rules:
         good: The loader resolves every path in the manifest.
     provenance:
       source: Retired Vale style — prose-inflation/DocumentPreamble.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/DocumentPreamble.yml
+      url: https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-inflation/DocumentPreamble.yml
       note: >-
         SLOP AXIS on a measured base rate, and the strongest ratio in the set:
         0.7 hits per 10k words across 147,473 words of human-written technical
@@ -317,7 +317,7 @@ rules:
         good: The loader reads 488 files in 0.4 s on the reference machine.
     provenance:
       source: Retired Vale style — prose-inflation/Apologizing.yml
-      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/Apologizing.yml
+      url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Apologizing.yml
       note: >-
         The academic register's hedge: the sentence announces that the document will
         not answer its own question. Distinct from ai-residue.chat-leakage, which
