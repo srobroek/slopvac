@@ -110,6 +110,8 @@ RULES = {
         "arity2": {"anaphora-abuse": ["defect", "antecedent"], "contrastive-inversion-remainder": ["defect", "contrast"], "heading-echo": ["defect", "antecedent"], "summary-closer-remainder": ["defect", "antecedent"], "vague-attribution-remainder": ["defect", "referent"]}},
     "orwell": {"weight": 1.5, "recommended_for": ["consumer", "internal", "informal"], "ceiling": "warning",
         "protects": ["authoritative_domain_term", "normative_obligation"], "local": [], "probe": ["concrete-floor"], "arity2": {}},
+    "prose-scope": {"weight": 1.0, "recommended_for": ["consumer", "change-comms"], "ceiling": "error",
+        "protects": [], "local": [], "probe": ["code-change-prose-scope"], "arity2": {"code-change-prose-scope": ["defect", "referent"]}},
     "prose-discipline": {"weight": 1.5, "recommended_for": ["consumer", "reference", "internal"], "ceiling": "warning",
         "protects": ["authoritative_domain_term", "normative_obligation", "quoted_specimen"],
         "local": ["marketing-register", "overloaded-sentence"],
@@ -153,6 +155,11 @@ RULE_EXTRA = {
     "prose-discipline.bare-quantifier-with-figure-available": {
         "host_predicates": [{"id": "figure_available", "definition": "the figure must be quoted as role=referent from the unit, context, or a repository source; without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM"}],
     },
+    "prose-scope.code-change-prose-scope": {
+        "added_in": "1.1.1: the rule entered origin/main after source_commit; its record is inferred from its YAML, not from the review",
+        "status": "provisional",
+        "host_predicates": [{"id": "code_diff_available", "definition": "the changed hunk is supplied as role=referent repository evidence (path@blob_sha); without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM"}],
+    },
     "orwell.concrete-floor": {
         "scope_class_derivation": "orwell.yml declares no scope; treated as document scope (design §0 counted it as the one prose-scope rule); add scope: document to the YAML before activation",
     },
@@ -168,7 +175,7 @@ PROBE_PACKS = [
     {"id": "PROBE-2", "rules": ["ai-tells-content-shape.fabricated-citations-remainder", "ai-tells-content-shape.one-point-dilution", "ai-tells-content-shape.padded-symmetry", "ai-tells-content-shape.vaporware-description"]},
     {"id": "PROBE-3", "rules": ["ai-tells-content-shape.elegant-variation", "prose-discipline.bare-quantifier-with-figure-available", "prose-discipline.competing-actor-terms", "prose-discipline.hedged-into-uselessness"]},
     {"id": "PROBE-4", "rules": ["ai-tells-formatting.table-wrapping-one-sentence", "ai-tells-register.over-formatting-reflex", "ai-tells-structure.audience-straddle-remainder", "ste-nouns.long-domain-term-without-short-form"]},
-    {"id": "PROBE-5", "rules": ["orwell.concrete-floor", "ste-words.domain-noun-not-organization-approved"]},
+    {"id": "PROBE-5", "rules": ["orwell.concrete-floor", "prose-scope.code-change-prose-scope", "ste-words.domain-noun-not-organization-approved"]},
 ]
 
 
@@ -304,7 +311,7 @@ contract = {
             "rule": "coverage = completed/eligible per pack and rule; a document with any failed, truncated, or not-run eligible unit is PARTIAL, never CLEAN; abstention is a completed adjudication reported separately with reason counts",
         },
         "judgement_score": {
-            "gating": "Judgement findings never enter min_score, max_warnings, density budgets, or the min_score guard (score.py:267-272). A judgement confirm counts toward max_errors only when its rule's judgement_ceiling is error (today: ste-safety.risk-level-word-missing-or-wrong). The only other gating path is the cluster gate.",
+            "gating": "Judgement findings never enter min_score, max_warnings, density budgets, or the min_score guard (score.py:267-272). A judgement confirm counts toward max_errors only when its rule's judgement_ceiling is error (today: ste-safety.risk-level-word-missing-or-wrong and prose-scope.code-change-prose-scope). The only other gating path is the cluster gate.",
             "reporting": "judgement_adjusted_score = deterministic_score - min(judgement_penalty, judgement_max_penalty) is reported beside the deterministic score and does not decide pass/fail.",
             "judgement_max_penalty": {"value": 15, "status": "provisional", "derivation": "narrowest passing band: strict min_score 85 leaves 15 points on a clean document; any larger cap gates alone at strict (100-20=80<85). Profile-relative bound if a single composite ever gates: J_max = max(0, 100 - min_score - suggestion_penalty), i.e. strict 0, normal 15. No published precedent for a stochastic-component cap exists; report capped and uncapped values until Q09 is answered."},
             "severity_weight": "reuse SEVERITY_WEIGHT error 1.0 / warning 0.5 / suggestion 0.1 for the reporting score; publish effective weights",
@@ -386,9 +393,11 @@ contract = {
         "removal_or_alteration": "forbidden; a rewrite that drops or alters a protected token is rejected mechanically: the finding survives, rewrite_status=withheld_checker_veto, severity demoted one level",
         "status_enum": ["not_applicable", "proposed", "withheld_checker_veto", "withheld_needs_fact"],
     },
-    "schema_version": "1.1.0",
+    "schema_version": "1.1.1",
     "scope": {"in": "prose-quality defect judgement layered over the deterministic slopvac ruleset", "out": ["AI-authorship or provenance detection", "a fifth dimension", "model confidence as a score"]},
     "source_commit": SOURCE_COMMIT,
+    "target_base_commit": "12042c9e7d1758f9f02c37884ccf98d38b8e2493",
+    "target_base_note": "origin/main at implementation start; carries 66 kind: judgement rules (65 reviewed + prose-scope.code-change-prose-scope, whose record is inferred). Measurements and the review refer to source_commit.",
     "unit_schema": {
         "fields": {"category": "owning category; dimensions key on the rule record, never on the category", "context": "surrounding blocks with their own range and projection map; quotable only for non-defect roles", "kind": "SPAN_CANDIDATE | PASSAGE_PROBE", "origin": "authored | generated | vendored | template", "path": "repository-relative path", "projection_map": "see evidence_requirements.projection_map", "range": "code-point offsets into the projected prose text plus document code-point offsets; the projection map resolves raw bytes", "region_class": "prose | quoted | code | example", "register_target": "consumer | reference | change-comms | internal | informal | formal_legal", "rule_id": "always set (PASSAGE_PROBE carries the probe pack's rule list)", "source_sha256": "sha256 of the raw source file", "text": "the unit's exact projected text", "unit_id": "sha256(kind, rule_id, path, source_sha256, start, end)[:16]"},
     },
@@ -466,7 +475,7 @@ check_unique(contract["rule_records"], "rule records")
 check_unique(contract["composition"]["span_packs"], "span packs")
 check_unique(contract["composition"]["probe_packs"], "probe packs")
 check_unique(contract["unresolved_evaluation_questions"], "questions")
-assert len(contract["rule_records"]) == 65, len(contract["rule_records"])
+assert len(contract["rule_records"]) == 66, len(contract["rule_records"])
 probe_rules = [r for p in contract["composition"]["probe_packs"] for r in p["rules"]]
 assert sorted(probe_rules) == sorted(r["id"] for r in contract["rule_records"] if r["scope_class"] == "probe"), "probe packs != probe rules"
 assert all(len(p["rules"]) <= PROBE_CRITERIA_MAX for p in contract["composition"]["probe_packs"])

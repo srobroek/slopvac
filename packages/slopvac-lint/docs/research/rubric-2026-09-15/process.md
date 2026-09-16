@@ -7,7 +7,7 @@ Genre: internal research record. This file records how the review was run and wh
 | Path | Content |
 |---|---|
 | `rubric-review.md` | Verdicts on the 14 design claims, evidence, 13 adversarial cases, the three highest-yield false-positive reducers, the second-round contract challenge. |
-| `rubric-contract.json` | The accepted machine-readable contract, schema_version 1.1.0, source_commit `df7ba4412387c474dc8ef646a8d594dc44c1c7eb`. Authoritative for the downstream implementation. |
+| `rubric-contract.json` | The accepted machine-readable contract, schema_version 1.1.1, source_commit `df7ba4412387c474dc8ef646a8d594dc44c1c7eb`, target_base_commit `12042c9e7d`. Authoritative for the downstream implementation; the 66th rule record is provisional (see rubric-review.md section 6.1). |
 | `rubric-contract.sha256` | SHA-256 of the exact `rubric-contract.json` bytes. |
 | `challenges/claims.md` | The numbered claim list C1-C14 every challenge used. |
 | `challenges/Ch*.md` | Adversarial-challenger reports: one per research question, one on the aggregation measurements, one on the synthesised contract, one on the sibling `autoresearch/*` branch. |
