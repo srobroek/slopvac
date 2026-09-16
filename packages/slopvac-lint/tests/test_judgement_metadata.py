@@ -7,10 +7,15 @@ import pytest
 from slopvac.model import Rule
 from slopvac.rules import RuleLoadError, load_ruleset
 
-CONTRACT = (
-    Path(__file__).parents[4]
-    / "research-rubric-review-20260915/packages/slopvac-lint/docs/research/rubric-2026-09-15/rubric-contract.json"
-)
+
+def _repo_root() -> Path:
+    for directory in (Path(__file__).resolve().parent, *Path(__file__).resolve().parents):
+        if (directory / "slopvac.toml").is_file():
+            return directory
+    raise RuntimeError("Could not locate repository root containing slopvac.toml")
+
+
+CONTRACT = _repo_root() / "packages/slopvac-lint/docs/research/rubric-2026-09-15/rubric-contract.json"
 
 
 def _rule(**judgement):
