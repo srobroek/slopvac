@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
 from slopvac.judgement.packs import (
     Pack,
     build_packs,
@@ -8,6 +13,7 @@ from slopvac.judgement.packs import (
     rubric_revision,
 )
 from slopvac.judgement.types import EvidenceSpec, JudgementContract
+from slopvac.rules import load_ruleset
 
 
 def _contract(scope: str = "local") -> JudgementContract:
@@ -47,6 +53,16 @@ def test_pack_hash_excludes_unlisted_rule_fields() -> None:
     changed = Pack("SPAN-cat-1", ("cat",), 1, "local", (), ("cat.rule",), ({"id": "cat.rule", "judgement_question": "B?"},))
     assert pack_id(one) == pack_id(two)
     assert pack_id(one) != pack_id(changed)
+
+def test_span_pack_id_matches_contract_record_bytes() -> None:
+    root = Path(__file__).parents[1]
+    contract = json.loads((root / "docs/research/rubric-2026-09-15/rubric-contract.json").read_text())
+    ruleset = load_ruleset(verify=False)
+    generated = next(pack for pack in build_packs(ruleset.judgement_rules()) if pack.id == "SPAN-ai-tells-structure-1")
+    expected_ids = next(pack["rules"] for pack in contract["composition"]["span_packs"] if pack["id"] == generated.id)
+    records = tuple(record for rule_id in expected_ids for record in contract["rule_records"] if record["id"] == rule_id)
+    expected = Pack(generated.id, generated.categories, generated.chunk, generated.scope_class, generated.protects, tuple(expected_ids), records, shots=generated.shots)
+    assert pack_id(generated) == pack_id(expected)
 
 
 def test_cache_key_changes_for_each_field() -> None:
