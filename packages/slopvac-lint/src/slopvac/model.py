@@ -17,6 +17,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .config import Severity
+from .judgement.types import JudgementContract
 
 
 class Tier(str, Enum):
@@ -197,6 +198,7 @@ class Rule(BaseModel):
     )
     examples: list[Example] = Field(default_factory=list)
     provenance: Provenance
+    judgement: JudgementContract | None = None
     judgement_question: str | None = Field(
         default=None,
         description="Required for kind=judgement: the question the reviewer must "
@@ -206,6 +208,56 @@ class Rule(BaseModel):
 
     # Set by the loader.
     category: str = Field(default="", description="Owning category; set on load.")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_judgement(cls, data: object) -> object:
+        if not isinstance(data, dict) or "judgement" not in data or data["judgement"] is None:
+            return data
+        raw = data["judgement"]
+        if not isinstance(raw, dict):
+            return data
+        allowed = {
+            "scope_class", "dims", "evidence", "warrant_min", "protects",
+            "judgement_ceiling", "adjudicates", "allowed_transitions",
+            "host_predicates",
+        }
+        unknown = set(raw) - allowed
+        if unknown:
+            raise ValueError(f"{data.get('id', '<unknown>')}: judgement has unknown field(s): {sorted(unknown)}")
+        normalized = dict(raw)
+        rid = data.get("id", "<unknown>")
+        dims = raw.get("dims")
+        if isinstance(dims, dict) and set(dims) != {"fit", "harm", "repair", "warrant"}:
+            raise ValueError(f"{rid}: judgement.dims must contain exactly fit, harm, repair, warrant")
+        evidence = raw.get("evidence")
+        if isinstance(evidence, dict):
+            roles = evidence.get("roles", [])
+            if "defect" not in roles:
+                raise ValueError(f"{rid}: judgement.evidence.roles must contain defect")
+            if evidence.get("min_arity") not in (1, 2):
+                raise ValueError(f"{rid}: judgement.evidence.min_arity must be 1 or 2")
+            if evidence["min_arity"] > len(roles):
+                raise ValueError(f"{rid}: judgement.evidence.min_arity exceeds evidence.roles")
+        protected = {"accessibility_consistency", "authoritative_domain_term", "controlled_language_clarity", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen", "source_locked_legal_text"}
+        if isinstance(raw.get("protects"), list) and not set(raw["protects"]) <= protected:
+            raise ValueError(f"{rid}: judgement.protects contains an unknown class")
+        if raw.get("adjudicates") is not None and raw.get("adjudicates") not in raw.get("protects", []):
+            raise ValueError(f"{rid}: judgement.adjudicates must be listed in protects")
+        table = normalized.get("allowed_transitions")
+        if isinstance(table, dict):
+            table = dict(table)
+            if "table" in table and "rows" not in table:
+                table["rows"] = table.pop("table")
+            rows = []
+            for row in table.get("rows", []):
+                if isinstance(row, dict):
+                    rows.append({"token_class": row.get("class"), "src": row.get("from"), "dst": row.get("to")})
+            table["rows"] = rows
+            normalized["allowed_transitions"] = table
+        result = dict(data)
+        result["judgement"] = normalized
+        return result
 
     @property
     def qualified_id(self) -> str:
@@ -226,6 +278,7 @@ class Rule(BaseModel):
             "metric": RuleKind.METRIC,
             "threshold": RuleKind.METRIC,
             "judgement_question": RuleKind.JUDGEMENT,
+            "judgement": RuleKind.JUDGEMENT,
         }
         for name, owner in owners.items():
             if getattr(self, name) is not None and self.kind is not owner:
@@ -242,6 +295,29 @@ class Rule(BaseModel):
                 f"{self.id}: kind=judgement cannot declare `exceptions`; "
                 "judgement rules never emit findings to suppress"
             )
+        if self.judgement is not None:
+            if set(self.judgement.dims) != {"fit", "harm", "repair", "warrant"}:
+                raise ValueError(f"{self.id}: judgement.dims must contain exactly fit, harm, repair, warrant")
+            if self.judgement.evidence.min_arity not in (1, 2):
+                raise ValueError(f"{self.id}: judgement.evidence.min_arity must be 1 or 2")
+            if "defect" not in self.judgement.evidence.roles:
+                raise ValueError(f"{self.id}: judgement.evidence.roles must contain defect")
+            if self.judgement.evidence.min_arity > len(self.judgement.evidence.roles):
+                raise ValueError(f"{self.id}: judgement.evidence.min_arity exceeds evidence.roles")
+            protected = {"accessibility_consistency", "authoritative_domain_term", "controlled_language_clarity", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen", "source_locked_legal_text"}
+            if not set(self.judgement.protects) <= protected:
+                raise ValueError(f"{self.id}: judgement.protects contains an unknown class")
+            if self.judgement.warrant_min not in (1, 2):
+                raise ValueError(f"{self.id}: judgement.warrant_min must be 1 or 2")
+            if self.judgement.adjudicates is not None and self.judgement.adjudicates not in self.judgement.protects:
+                raise ValueError(f"{self.id}: judgement.adjudicates must be listed in protects")
+            table = self.judgement.allowed_transitions
+            if table is not None and not table.rows:
+                raise ValueError(f"{self.id}: judgement.allowed_transitions.rows must be non-empty")
+        if self.kind is RuleKind.JUDGEMENT and self.judgement is None:
+            raise ValueError(f"{self.id}: kind=judgement requires `judgement`")
+        if self.kind is not RuleKind.JUDGEMENT and self.judgement is not None:
+            raise ValueError(f"{self.id}: `judgement` is not valid for kind={self.kind.value}")
         if self.kind is RuleKind.JUDGEMENT and not self.judgement_question:
             raise ValueError("kind=judgement requires `judgement_question`")
         if self.kind is RuleKind.JUDGEMENT and self.severity is not Severity.OFF:

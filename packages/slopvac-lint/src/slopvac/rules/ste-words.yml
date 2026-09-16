@@ -215,6 +215,13 @@ rules:
         Sense, not spelling. No regex distinguishes "follow" meaning "come after" from
         "follow" meaning "comply with", so this stays a reviewer question rather than a
         fabricated pattern.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Replace the word with one whose permitted sense matches your intent.
 
   - id: verb-or-adjective-form-not-permitted
@@ -273,6 +280,13 @@ rules:
         The specification states its own category example lists are not exhaustive, so
         absence from a list proves nothing. Membership is therefore a judgement, and the
         category set itself is project configuration (see domain-categories.md).
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Register the term in a domain-noun category, or replace it with a vocabulary word.
 
   - id: unapproved-word-not-a-domain-noun
@@ -303,6 +317,13 @@ rules:
         This is the escape hatch that makes word-outside-controlled-vocabulary usable. The
         two rules run as a pair: the vocabulary rule finds the candidate, this question
         decides whether the candidate is legitimate domain vocabulary.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Register the domain noun, or replace the word.
 
   - id: noun-used-as-verb
@@ -378,6 +399,13 @@ rules:
       note: >-
         The authority is the project's own glossary, so this cannot be a shipped word list.
         Partially mechanizable once a glossary file exists, as an unknown-synonym check.
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 2, roles: [defect, referent]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Replace the term with the glossary term.
 
   - id: domain-noun-too-long-or-unclear
@@ -407,6 +435,13 @@ rules:
         The three-word length half of this rule is mechanized by
         ste-nouns/multiword-noun-too-long; the "easy to understand" half is not
         mechanizable, so this entry carries only the judgement.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Shorten the term to three words or fewer, or define it once and use a short form.
 
   - id: slang-or-jargon-term
@@ -520,6 +555,13 @@ rules:
         has one verb permitted in a machine-subject sentence and refused in a
         reader-subject sentence. Our second example above reproduces that shape with our
         own wording.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, controlled_language_clarity]
+      judgement_ceiling: suggestion
     fix: Rewrite with a vocabulary verb, or register the verb in a domain-verb category.
 
   - id: verb-used-as-noun
