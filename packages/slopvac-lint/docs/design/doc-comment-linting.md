@@ -4,7 +4,7 @@
 
 ## Decision summary
 
-`slopvac` should add a future `--mode doc-comments` mode that extracts documentation comments with Vale 3.21 tree-sitter Views. The extractor should emit virtual text with source coordinates and should run a deliberately smaller prose-rule subset. It should not parse source with a new Python parser dependency. The existing `prose` mode and the opt-in `--mode code-comments` mode remain unchanged.
+`slopvac` should add a future `--mode doc-comments` mode that extracts documentation comments with Vale tree-sitter Views. The extractor should emit virtual text with source coordinates and should run a deliberately smaller prose-rule subset. It should not parse source with a new Python parser dependency. Origin/main currently exposes only the `--comments` boolean flag (`packages/slopvac-lint/src/slopvac/cli.py:187-190`); the `--mode code-comments` enum, config names, comment scopes, `COMMENT_SAFE_KINDS`, and `tests/test_comment_modes.py` belong to the unmerged `slopvac-8xe.1` source-comment work, not shipped behavior. The existing `prose` route remains unchanged.
 
 The first release should support Python, Java, and Rust. Swift remains deferred until the Vale binary used by the project exposes Swift Views. The release should report Go and Swift as unsupported when the capability probe cannot load their Views. The implementation must fail closed when extraction is unavailable: it must report an explicit diagnostic rather than linting the source file as prose.
 
@@ -12,7 +12,7 @@ The first release should support Python, Java, and Rust. Swift remains deferred 
 
 **Decision.** Admit Python, Java, and Rust in the first implementation. Use an explicit admission table keyed by source extension and language. Defer Go, Swift, and every other language until the selected Vale binary exposes a View and a fixture proves extraction, coordinates, malformed-input behavior, and false-positive controls.
 
-**Evidence.** Vale's tree-sitter View exposes language-specific captures. The repository's comment mode already has an extension admission table in `packages/slopvac-lint/src/slopvac/`. The design must extend that table rather than infer support from a filename suffix. Vale 3.21.0 doc-only probes succeeded for Python, Java, and Rust. A three-line marker-less Go comment returned only its last line when queried with the available adjacency form. Swift admission requires a capability probe because Vale 3.21 does not expose a Swift View in every binary.
+**Evidence.** Vale's tree-sitter View exposes language-specific captures. The repository's source-comment work is not merged into origin/main: the current CLI has only `--comments` (`packages/slopvac-lint/src/slopvac/cli.py:187-190`). Vale 3.21.0 doc-only probes succeeded for Python, Java, and Rust. A three-line marker-less Go comment returned only its last line when queried with the available adjacency form. Swift admission requires a capability probe because Vale 3.21 does not expose a Swift View in every binary.
 
 ## 2. Docstrings
 
@@ -48,7 +48,7 @@ The first release should support Python, Java, and Rust. Swift remains deferred 
 
 **Decision.** Every virtual document span carries `(source_path, source_line, source_column)` for its first character and a per-character or per-line offset map. Findings must report the original path and the original location. A finding spanning removed delimiters maps to the first retained character.
 
-**Evidence.** `--mode code-comments` already promises source paths and finding locations in `packages/slopvac-lint/README.md`. The implementation must reuse the existing finding-location contract rather than introduce virtual paths. Mapping fixtures must assert path, first line, and first column for block, line, and docstring cases.
+**Evidence.** The source-mapping contract is coordination with the unmerged `slopvac-8xe.1` source-comment work; origin/main currently exposes only `--comments` (`packages/slopvac-lint/src/slopvac/cli.py:187-190`) and has no `--mode code-comments` route. The implementation must reuse that work's finding-location contract rather than introduce virtual paths. Mapping fixtures must assert path, first line, and first column for block, line, and docstring cases.
 
 ## 8. Indentation and delimiter removal
 
@@ -72,7 +72,7 @@ The first release should support Python, Java, and Rust. Swift remains deferred 
 
 **Decision.** An explicitly named unsupported source file is an error with `DOC_COMMENT_UNSUPPORTED_LANGUAGE` and a list of admitted extensions. Unsupported files discovered inside a directory are skipped with a counted diagnostic, matching the existing source-comment mode policy. The run exits nonzero when an explicit target cannot be processed.
 
-**Evidence.** `packages/slopvac-lint/README.md` documents explicit-file errors and directory skipping for `code-comments`. A new mode must make the same distinction and must never silently reinterpret an unsupported source file as Markdown or plain text.
+**Evidence.** The explicit-file and directory distinction is coordination with the unmerged `slopvac-8xe.1` source-comment work. Origin/main currently exposes only `--comments` (`packages/slopvac-lint/src/slopvac/cli.py:187-190`), so its `code-comments` diagnostics are not shipped. A new mode must make the same distinction and must never silently reinterpret an unsupported source file as Markdown or plain text.
 
 ## 12. False-positive controls
 
@@ -88,32 +88,34 @@ The first release should support Python, Java, and Rust. Swift remains deferred 
 
 ## 14. Interaction with `--mode code-comments`
 
-**Decision.** Keep `--mode code-comments` as the broad ordinary-comment mode. Add `--mode doc-comments` as a mutually exclusive mode value, not as a boolean modifier. `doc-comments` selects documentation nodes only; `code-comments` selects ordinary line and block comment scopes, including documentation comments where the language exposes them. The default `prose` mode is unchanged.
+**Decision.** Coordinate with the unmerged `slopvac-8xe.1` source-comment work for ordinary-comment behavior. Origin/main currently exposes only `--comments` (`packages/slopvac-lint/src/slopvac/cli.py:187-190`), not a `--mode code-comments` enum. Once that work lands, `doc-comments` should be a mutually exclusive mode value, not a boolean modifier. `doc-comments` selects documentation nodes only; the ordinary source-comment route selects its documented ordinary and documentation-comment scopes. The default `prose` mode is unchanged.
+
+**Evidence.** `packages/slopvac-lint/src/slopvac/cli.py:187-190` shows the shipped `--comments` flag and no `--mode` option. The `slopvac-8xe.1` acceptance criteria define the separate ordinary and documentation-comment profiles that this design must coordinate with.
 
 ## 15. Vale-native scopes versus tree-sitter versus a native lexer
 
 **Decision.** Use generated Vale tree-sitter Views as the extraction mechanism. Vale-native scopes are the execution surface and provide the existing rule engine. A generated View named `__slopvac_doc` is consumed through `text.comment.__slopvac_doc.line` and `text.comment.__slopvac_doc.block`. Tree-sitter queries provide syntax-aware selection. Do not add a Python tree-sitter parser or a native lexer in the first implementation.
 
-**Evidence.** Vale 3.21.0 exposes tree-sitter Views whose named scopes use the `text.comment.<view>.<kind>` form. Generated Views ran against Python, Java, and Rust fixtures. A Python parser bundle would add binary dependencies, platform packaging work, and a second grammar source. A native lexer would duplicate grammar behavior and mishandle nested strings, raw strings, and recovery. The generated View keeps the dependency footprint at zero.
+**Evidence.** Vale appends a tree-sitter View scope entry's `name` to `text.comment`, then appends `.line` or `.block`; the View filename does not create that scope. The generated scope entry must therefore be named `__slopvac_doc`, so the exact targets are `text.comment.__slopvac_doc.line` and `text.comment.__slopvac_doc.block`. The repository's supported Vale floor is 3.15.0 (`packages/slopvac-lint/src/slopvac/vale_probe.py:26-29`). The 3.21.0 probes are development evidence only; implementation acceptance requires the same fixture matrix to pass on a separately probed minimum for this feature, because the existing floor does not yet have View evidence. A Python parser bundle would add binary dependencies, platform packaging work, and a second grammar source. A native lexer would duplicate grammar behavior and mishandle nested strings, raw strings, and recovery. The generated View keeps the dependency footprint at zero.
 
 
 ## 16. Vale 3.21 limitations and rejected options
 
-**Decision.** Treat View behavior as version- and language-specific. Pin the minimum tested version to the repository's supported Vale floor, run a startup capability probe, and report a diagnostic when a required View query is unavailable. Defer Go until the adjacency and quantified-capture limitations are resolved upstream or a safe query exists.
+**Decision.** Treat View behavior as version- and language-specific. Probe a separate minimum Vale version for this feature instead of assuming the repository floor supports Views. Run a startup capability probe and report a diagnostic when a required View query is unavailable. Defer Go until the adjacency and quantified-capture limitations are resolved upstream or a safe query exists.
 
-**Evidence.** In Vale 3.21.0, a `#match?` predicate on a quantified capture dropped the whole match in measurement. An adjacency anchor rejected a quantified capture. These behaviors make marker-less Go runs unreliable. The repository's `docs/vale-traps.md` records version-sensitive Vale behavior and requires execution-backed fixtures. The implementation must verify the behavior against the selected Vale binary. Reference material includes [Vale code format](https://docs.vale.sh/formats/code), [Views](https://docs.vale.sh/topics/views/), and the [View key](https://docs.vale.sh/keys/view/). Vale issue 1125 and PR 1151 concern language support, so they are not evidence for these query limitations.
+**Evidence.** In Vale 3.21.0, a `#match?` predicate on a quantified capture dropped the whole match in measurement. An adjacency anchor rejected a quantified capture. These behaviors make marker-less Go runs unreliable. The repository's supported Vale floor is 3.15.0 (`packages/slopvac-lint/src/slopvac/vale_probe.py:26-29`), while `packages/slopvac-lint/docs/vale-traps.md:3-4` records execution-backed evidence on Vale 3.15.2. The implementation must add an execution-backed View fixture on the selected minimum before claiming support; until then, 3.21.0 remains development evidence, not the support floor. Reference material includes [Vale code format](https://docs.vale.sh/formats/code), [Views](https://docs.vale.sh/topics/views/), and the [View key](https://docs.vale.sh/keys/view/). Vale issue 1125 and PR 1151 concern language support, so they are not evidence for these query limitations.
 
 ## 17. Performance and dependency implications
 
 **Decision.** Generate Views once per invocation, cache compiled query definitions, and process each source file once. The acceptance target is no more than 1.25 times the existing comment-mode wall time on the repository fixture set, excluding Vale startup. Record cold and warm measurements in the implementation PR. Add no runtime Python dependency.
 
-**Evidence.** On 23 repository source files, 270 compiled checks, Vale 3.21.0 measured doc-only runs at 0.98 to 1.11 seconds, versus 1.33 to 1.59 seconds for all comments. The existing Python comment-mode run measured 13.79 to 19.50 seconds warm or cold. A rejected Python tree-sitter stack measured 5,488 KiB installed and 4.1 seconds for first import, so it has a material startup and packaging cost.
+**Evidence.** The implementation team must measure these figures. The implementation PR must run `uv run --project packages/slopvac-lint python -m pytest packages/slopvac-lint/tests` against the repository fixture corpus and attach cold and warm wall-time output for 23 source files and 270 compiled checks. It must report the comparison between doc-only and ordinary-comment runs and measure the rejected parser stack's installed size and first-import time. The implementation team must record the Vale version with each result.
 
 ## 18. Migration and unchanged defaults
 
 **Decision.** Ship the mode behind an explicit CLI value and no automatic migration. Existing configurations continue to use `prose` by default. Existing `--mode code-comments` invocations retain their current scope. Documentation may add an opt-in example after the implementation passes the fixture and performance gates.
 
-**Evidence.** The current CLI and README define `prose` as the default and `code-comments` as opt-in. Changing default discovery would lint source trees unexpectedly and break existing CI assumptions. Migration consists of choosing `doc-comments` for selected commands, reviewing the smaller profile subset, and enabling the mode only after diagnostics are clean.
+**Evidence.** Origin/main defines `prose` as the default route and exposes `--comments` as the source-comment flag (`packages/slopvac-lint/src/slopvac/cli.py:187-190`). The `--mode code-comments` invocation and its scope are coordination points for the unmerged `slopvac-8xe.1` work, not current shipped behavior. Changing default discovery would lint source trees unexpectedly and break existing CI assumptions. Migration consists of choosing `doc-comments` for selected commands after implementation and fixture gates pass.
 
 ## Implementation boundary and follow-on beads
 
@@ -131,4 +133,4 @@ This design creates no implementation. A future implementation should create the
 
 ## Relationship to existing comment work
 
-This design does not replace `slopvac-8xe`, which investigates broader prose rules and TOML comments. It does not implement or broaden `slopvac-8xe.1`, which covers opt-in Vale-native source-code comment profiles. Those efforts remain separate because ordinary comments and documentation comments have different extraction boundaries and rule budgets.
+This design does not replace `slopvac-8xe`, which investigates broader prose rules and TOML comments. It coordinates with, but does not implement, `slopvac-8xe.1`, the unmerged source-comment work. Origin/main currently has only the `--comments` flag (`packages/slopvac-lint/src/slopvac/cli.py:187-190`); the mode enum, config names, scopes, and tests described by that bead are not shipped. Ordinary comments and documentation comments remain separate because they have different extraction boundaries and rule budgets.
