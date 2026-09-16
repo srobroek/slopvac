@@ -434,10 +434,46 @@ def _dimensions(item: Any) -> tuple[str, str, str]:
     )
 
 
+_COVERAGE_OUTCOME_RANK = {
+    "confirm": 4,
+    "confirmed": 4,
+    "reject": 3,
+    "rejected": 3,
+    "preserve": 2,
+    "preserved": 2,
+    "abstain": 1,
+    "abstained": 1,
+    "failed": 0,
+    "failure": 0,
+    "error": 0,
+    "not_run": -1,
+    "not-run": -1,
+    "missing": -1,
+    "": -1,
+}
+
+
+def _coverage_status(record: Any) -> str:
+    return str(_value(record, "status", _value(record, "outcome", ""))).lower()
+
+
+def _group_coverage_records(findings: Iterable[FindingLike]) -> dict[str, list[FindingLike]]:
+    grouped: dict[str, list[FindingLike]] = defaultdict(list)
+    for finding in findings:
+        unit_id = _unit_key(finding)
+        if unit_id:
+            grouped[unit_id].append(finding)
+    return grouped
+
+
+def _representative_coverage_record(records: list[FindingLike]) -> FindingLike:
+    return max(records, key=lambda record: _COVERAGE_OUTCOME_RANK.get(_coverage_status(record), 0))
+
+
 def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> Coverage:
     """Count judgement coverage at document, pack, and rule granularity."""
     eligible = list(eligible_units)
-    records = {_unit_key(finding): finding for finding in findings if _unit_key(finding)}
+    records = _group_coverage_records(findings)
     buckets: dict[str, dict[str, CoverageBucket]] = {
         "documents": {},
         "packs": {},
@@ -455,12 +491,16 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
         target = [bucket("documents", path), bucket("packs", pack), bucket("rules", rule)]
         for current in target:
             current.eligible += 1
-        finding = records.get(unit_id)
+        record_group = records.get(unit_id, [])
+        finding = _representative_coverage_record(record_group) if record_group else None
         status = str(_value(unit, "status", "" if finding else "not_run")).lower()
         truncated = bool(_value(unit, "truncated", False))
+        truncated |= any(
+            bool(_value(record, "occurrences_truncated", False))
+            for record in record_group
+        )
         if finding is not None:
-            status = str(_value(finding, "status", _value(finding, "outcome", ""))).lower()
-            truncated |= bool(_value(finding, "occurrences_truncated", False))
+            status = _coverage_status(finding)
         if status in {"not_run", "not-run", "missing", ""}:
             for current in target:
                 current.not_run += 1

@@ -52,6 +52,7 @@ class Finding:
     judgement_cache_key: str = "cache"
     occurrence_index: int | None = None
     kind: str = "SPAN_CANDIDATE"
+    occurrences_truncated: bool = False
 
 
 def finding(
@@ -212,6 +213,42 @@ def test_coverage_separates_abstention_from_failure_and_marks_not_run_partial():
     assert document.not_run == 1
     assert result.status == "PARTIAL"
     assert document.abstention_reasons["unknown"] == 1
+
+
+def test_probe_occurrences_merge_to_one_unit_with_precedence_and_truncation():
+    eligible = [{"unit_id": "probe", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.probe"}]
+    records = [
+        finding("probe", "rule.probe", 0, 1, outcome="ABSTAIN"),
+        finding("probe", "rule.probe", 2, 3, outcome="CONFIRM"),
+        replace(
+            finding("probe", "rule.probe", 4, 5, outcome="ABSTAIN"),
+            occurrences_truncated=True,
+        ),
+    ]
+    result = coverage(records, eligible)
+    document = result.documents["doc.md"]
+    assert document.eligible == 1
+    assert document.attempted == 1
+    assert document.confirmed == 1
+    assert document.abstained == 0
+    assert document.truncated == 1
+    assert document.not_run == 1
+    assert result.status == "PARTIAL"
+
+
+def test_coverage_keeps_distinct_unit_ids_distinct():
+    eligible = [
+        {"unit_id": "one", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.probe"},
+        {"unit_id": "two", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.probe"},
+    ]
+    records = [
+        finding("one", "rule.probe", 0, 1),
+        finding("two", "rule.probe", 2, 3),
+    ]
+    document = coverage(records, eligible).documents["doc.md"]
+    assert document.eligible == 2
+    assert document.attempted == 2
+    assert document.confirmed == 2
 
 
 def test_dependence_table_rejects_a_digest_mismatch(tmp_path: Path):
