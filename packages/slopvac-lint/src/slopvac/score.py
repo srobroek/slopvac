@@ -271,6 +271,7 @@ def _failure_reasons(
     if (
         thresholds.min_score is not None
         and (mechanical_errors or warnings)
+        and overall < thresholds.min_score
     ):
         reasons.append(f"score {overall:.1f}, minimum {thresholds.min_score}")
     reasons.extend(
@@ -280,6 +281,87 @@ def _failure_reasons(
         if entry.over_budget
     )
     return reasons
+
+def _deterministic_report(
+    findings: list[Finding],
+    words: int,
+    config: ResolvedConfig,
+    categories_meta: dict[str, float],
+) -> tuple[list[object], float, set[str] | None]:
+    by_category: dict[str, list[Finding]] = {name: [] for name in categories_meta}
+    for finding in findings:
+        by_category.setdefault(finding.category, []).append(finding)
+    entries = [
+        _category_result(name, items, words, config, categories_meta)
+        for name, items in sorted(by_category.items())
+    ]
+    category_scores = [entry for entry, _ in entries]
+    active_categories = {entry.category for entry, weight in entries if weight > 0} or None
+    overall = min(
+        _weighted_category_score(entries),
+        _whole_document_score(
+            findings,
+            words,
+            config.thresholds.max_total_per_100_words,
+            active_categories,
+        ),
+    )
+    return category_scores, overall, active_categories
+
+
+def _resolve_judgement_ceilings(
+    ceilings: Mapping[str, object] | None,
+    rules: Mapping[str, object] | None,
+) -> Mapping[str, object]:
+    if ceilings:
+        return ceilings
+    return {
+        rule_id: getattr(getattr(rule, "judgement", rule), "judgement_ceiling", None)
+        for rule_id, rule in (rules or {}).items()
+    }
+
+
+def _judgement_error_count(
+    findings: list[object], ceilings: Mapping[str, object]
+) -> int:
+    return sum(
+        getattr(finding, "outcome", None) == "CONFIRM"
+        and getattr(finding, "severity", None) == "error"
+        and getattr(
+            ceilings.get(
+                getattr(finding, "rule_id", ""),
+                getattr(finding, "judgement_ceiling", None),
+            ),
+            "value",
+            ceilings.get(
+                getattr(finding, "rule_id", ""),
+                getattr(finding, "judgement_ceiling", None),
+            ),
+        )
+        == "error"
+        for finding in findings
+    )
+
+
+def _judgement_report(
+    findings: list[object],
+    weights: Mapping[str, float],
+    config: ResolvedConfig,
+    deterministic_score: float,
+    ceilings: Mapping[str, object] | None,
+    rules: Mapping[str, object] | None,
+) -> tuple[int, float, float, float]:
+    resolved_ceilings = _resolve_judgement_ceilings(ceilings, rules)
+    uncapped = judgement_penalty_uncapped(findings, weights)
+    capped = judgement_penalty(
+        findings, weights, max_penalty=config.judgement.max_penalty
+    )
+    return (
+        _judgement_error_count(findings, resolved_ceilings),
+        capped,
+        uncapped,
+        max(0.0, deterministic_score - capped),
+    )
 
 
 def score_document(
@@ -301,50 +383,22 @@ def score_document(
 ) -> DocumentScore:
     """Build the deterministic result and its reporting-only judgement view."""
     unchecked = unchecked or []
-    if not judgement_rule_ceilings and judgement_rules:
-        judgement_rule_ceilings = {
-            rule_id: getattr(getattr(rule, "judgement", rule), "judgement_ceiling", None)
-            for rule_id, rule in judgement_rules.items()
-        }
     judgement_findings = judgement_findings or []
     judgement_weights = judgement_weights or categories_meta
-    judgement_rule_ceilings = judgement_rule_ceilings or {}
-    by_category: dict[str, list[Finding]] = {name: [] for name in categories_meta}
-    for finding in findings:
-        by_category.setdefault(finding.category, []).append(finding)
-
-    entries = [
-        _category_result(name, items, words, config, categories_meta)
-        for name, items in sorted(by_category.items())
-    ]
-    category_scores = [entry for entry, _ in entries]
-    active_categories = {entry.category for entry, weight in entries if weight > 0}
-    if not active_categories:
-        active_categories = None
-    overall = min(
-        _weighted_category_score(entries),
-        _whole_document_score(
-            findings,
-            words,
-            config.thresholds.max_total_per_100_words,
-            active_categories,
-        ),
+    category_scores, overall, active_categories = _deterministic_report(
+        findings, words, config, categories_meta
     )
     mechanical_errors = sum(f.severity is Severity.ERROR for f in findings)
     warnings = sum(f.severity is Severity.WARNING for f in findings)
     suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
-    judgement_error_count = 0
-    for finding in judgement_findings:
-        if getattr(finding, "outcome", None) != "CONFIRM":
-            continue
-        if getattr(finding, "severity", None) != "error":
-            continue
-        ceiling = judgement_rule_ceilings.get(
-            getattr(finding, "rule_id", ""), getattr(finding, "judgement_ceiling", None)
-        )
-        ceiling = getattr(ceiling, "value", ceiling)
-        if ceiling == "error":
-            judgement_error_count += 1
+    judgement_error_count, capped_penalty, uncapped_penalty, adjusted = _judgement_report(
+        judgement_findings,
+        judgement_weights,
+        config,
+        overall,
+        judgement_rule_ceilings,
+        judgement_rules,
+    )
     reasons = _failure_reasons(
         findings,
         category_scores,
@@ -355,12 +409,6 @@ def score_document(
         active_categories,
         judgement_error_count,
     )
-    uncapped_penalty = judgement_penalty_uncapped(judgement_findings, judgement_weights)
-    max_penalty = config.judgement.max_penalty
-    capped_penalty = judgement_penalty(
-        judgement_findings, judgement_weights, max_penalty=max_penalty
-    )
-    adjusted = max(0.0, overall - capped_penalty)
     per_100 = (
         len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0
     )
