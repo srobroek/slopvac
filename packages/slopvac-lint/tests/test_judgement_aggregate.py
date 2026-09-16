@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from slopvac.config import Config, Profile, resolve_for
+from slopvac.config import Config, Profile, Severity, resolve_for
 from slopvac.judgement.aggregate import (
     Component,
     cluster_gate,
@@ -16,6 +16,7 @@ from slopvac.judgement.aggregate import (
     coverage,
     load_dependence_table,
 )
+from slopvac.model import Finding as MechanicalFinding
 from slopvac.score import score_document
 
 
@@ -171,6 +172,27 @@ def test_judgement_warning_does_not_enter_warning_gate():
     )
     assert result.passed
     assert not any("warning(s)" in reason for reason in result.failure_reasons)
+def test_warning_document_above_min_score_passes():
+    result = score_document(
+        "doc.md",
+        [
+            MechanicalFinding(
+                path="doc.md",
+                line=1,
+                rule_id="cat.rule",
+                category="cat",
+                severity=Severity.WARNING,
+                message="warning",
+            )
+        ],
+        100,
+        1,
+        1,
+        cfg(),
+        {"cat": 1.0},
+    )
+    assert result.score > cfg().thresholds.min_score
+    assert result.passed
 
 
 def test_coverage_separates_abstention_from_failure_and_marks_not_run_partial():
