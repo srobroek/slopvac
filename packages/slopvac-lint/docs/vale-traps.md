@@ -260,4 +260,3 @@ does nothing one directory down. Measured on a document with 14 findings unfilte
 
 `docs/specs/` and per-package `sub/CHANGELOG.md` paths are common in monorepos.
 Lead every genre glob with `**/`.
-
