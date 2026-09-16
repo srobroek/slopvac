@@ -68,3 +68,23 @@ def test_rendering_hides_policy_vocabulary() -> None:
     rendered = render_pack(pack, "Judge the unit.")
     assert all(word not in rendered.lower() for word in ("severity", "threshold", "weight", "warning", "error"))
     assert rubric_revision("spine") != rubric_revision("spine ")
+
+
+def test_rendering_includes_paired_exemplars() -> None:
+    pack = Pack(
+        "SPAN-cat-1",
+        ("cat",),
+        1,
+        "local",
+        (),
+        ("cat.rule",),
+        (
+            {
+                "id": "cat.rule",
+                "judgement_question": "Is the shape present?",
+                "examples": [{"bad": "The claim repeats.", "good": "The claim advances."}],
+            },
+        ),
+    )
+    rendered = render_pack(pack, "Judge the unit.")
+    assert "exemplar: The claim repeats. -> The claim advances." in rendered
