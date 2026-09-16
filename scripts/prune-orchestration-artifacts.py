@@ -236,9 +236,15 @@ def _remove_at(root_fd: int, candidate: Candidate, protected: set[tuple[int, int
             fail(f"candidate changed before removal: {candidate.label}")
         if _is_symlink(st) or _identity(st) in protected:
             fail(f"refusing protected or symlink path: {candidate.label}")
-        _remove_tree(parent_fd, candidate.name, protected)
+        try:
+            _remove_tree(parent_fd, candidate.name, protected)
+        except (OSError, PruneError) as error:
+            if stat.S_ISDIR(st.st_mode):
+                raise PruneError(f"partially deleted {candidate.label}: {error}") from error
+            raise
     finally:
         os.close(parent_fd)
+
 
 
 def truncate_log(beads_fd: int, candidate: Candidate, max_bytes: int) -> None:
@@ -290,10 +296,12 @@ def main() -> int:
         protected = _protected_snapshot(root_fd)
         paths, interactions = candidates(root_fd, audit_days=args.audit_days, backup_count=args.backup_count, max_bytes=args.interactions_max_bytes)
         for candidate in paths:
-            print(f"{'would delete' if not args.apply else 'deleted'} {candidate.label}")
-            if args.apply:
-                _verify_at(root_fd, candidate, protected)
-                _remove_at(root_fd, candidate, protected)
+            if not args.apply:
+                print(f"would delete {candidate.label}")
+                continue
+            _verify_at(root_fd, candidate, protected)
+            _remove_at(root_fd, candidate, protected)
+            print(f"deleted {candidate.label}")
         if interactions is not None:
             print(f"{'would truncate' if not args.apply else 'truncated'} {interactions.label} to at most {args.interactions_max_bytes} bytes")
             if args.apply:
