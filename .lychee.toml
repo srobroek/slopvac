@@ -15,4 +15,9 @@ exclude = [
   # Medium serves 403 to any non-browser client, so the check reports a live
   # article as dead. `docs/rules.md` cites one as a rule source.
   "medium\\.com",
+  # The same 403-to-non-browser behaviour from two publishers and the SEC, cited as
+  # primary sources by docs/research/rubric-2026-09-15/rubric-review.md.
+  "journals\\.sagepub\\.com",
+  "doi\\.org/10\\.1111/",
+  "www\\.sec\\.gov/pdf/handbook\\.pdf",
 ]

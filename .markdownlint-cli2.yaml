@@ -50,3 +50,6 @@ globs:
   # Marketplace skill instructions follow the harness grammar rather than the
   # repository's Markdown house style.
   - "!packages/slopvac/skills/**"
+  # Verbatim adversarial-review reports stored as evidence under the rubric research record;
+  # their structure is the agents' output and is not edited.
+  - "!packages/slopvac-lint/docs/research/*/challenges/**"
