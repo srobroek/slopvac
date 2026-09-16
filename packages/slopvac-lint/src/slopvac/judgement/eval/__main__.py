@@ -44,7 +44,15 @@ def main(argv: list[str] | None = None) -> int:
         print("valid")
         return 0
     payload = json.loads(Path(args.input).read_text()) if args.input else json.load(__import__("sys").stdin)
-    print(json.dumps(aggregate([] if not payload.get("records") else payload["records"]), sort_keys=True))
+    print(
+        json.dumps(
+            aggregate(
+                payload.get("records", []),
+                eligible_units=payload.get("units"),
+            ),
+            sort_keys=True,
+        )
+    )
     return 0
 
 
