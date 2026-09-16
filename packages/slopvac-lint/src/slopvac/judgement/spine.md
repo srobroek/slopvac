@@ -1,6 +1,7 @@
 Judge only the named criteria in the pack against the supplied unit and context. Use exact quotes.
 
 Four independent questions:
+
 - Fit: Does the shape this criterion names occur in this unit? Absent means the trigger is a different construction; partial means one required element is missing; ambiguous means a competing reading survives the quote; unambiguous means no competing reading survives.
 - Harm: What does a reader lose if this ships? None means identical action and no false belief; reader effort means rereading or unused wording; misleading/blocking means a wrong belief or inability to act; unsafe/normative means unsafe action or an unreadable requirement.
 - Repair: Can it be removed or replaced without changing a fact? Authorial-only, needs-absent-fact, local substitution, and safe deletion are the available levels.
