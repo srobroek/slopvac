@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from ..adjudicate import FindingRecord
+
 TOKEN_FIELDS = {
     "promptTokens": "prompt_tokens", "completionTokens": "completion_tokens",
     "cachedPromptTokens": "cached_prompt_tokens", "reasoningTokens": "reasoning_tokens",
@@ -186,35 +188,28 @@ class Instrument:
     arms: tuple[Arm, ...] = ()
 
 
-@dataclass
-class HostRecord:
-    instrument_id: str
-    unit_id: str
-    repeat_index: int
-    judgement_cache_key: str
-    model_output: dict[str, Any] | None
-    status: str
-    abstain_reason: str | None = None
-    evidence: list[dict[str, Any]] = field(default_factory=list)
-    full_rendered_request_digest: str = ""
-    frozen_fields: dict[str, Any] = field(default_factory=dict)
+HostRecord = FindingRecord
+
 
 def aggregate(records: list[HostRecord], *, eligible: int | None = None) -> dict[str, Any]:
     if not records:
         return {"coverage": {key: 0 for key in COVERAGE_COUNTS}, "abstentions": {}}
-    baseline = records[0].frozen_fields
-    if any(record.frozen_fields != baseline for record in records):
+    baseline = getattr(records[0], "frozen_fields", None)
+    if baseline is not None and any(getattr(record, "frozen_fields", baseline) != baseline for record in records):
         raise ValueError("cannot aggregate rows with differing frozen fields")
     counts = {key: 0 for key in COVERAGE_COUNTS}
     counts["eligible"] = eligible if eligible is not None else len(records)
     reasons: dict[str, int] = {}
     for record in records:
-        status = "abstained" if record.status == "abstain" else record.status
+        status = getattr(record, "status", None)
+        if status is None:
+            status = {"ABSTAIN": "abstained", "DROP": "not_run"}.get(record.outcome, record.outcome.lower())
+        status = "abstained" if status == "abstain" else status
         counts["attempted"] += status != "not_run"
         if status in counts and status not in {"eligible", "attempted"}:
             counts[status] += 1
         if status == "abstained":
-            reason = record.abstain_reason or "unknown"
+            reason = getattr(record, "abstain_reason", None) or "unknown"
             reasons[reason] = reasons.get(reason, 0) + 1
     return {"coverage": counts, "abstentions": reasons}
 

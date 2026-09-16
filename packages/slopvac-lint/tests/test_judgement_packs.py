@@ -7,28 +7,29 @@ from slopvac.judgement.packs import (
     render_pack,
     rubric_revision,
 )
+from slopvac.judgement.types import EvidenceSpec, JudgementContract
 
 
-def _fields(*ids: str) -> dict[str, dict]:
-    return {
-        rid: {
-            "scope_class": "local",
-            "protects": ["quoted_specimen"],
-            "judgement_ceiling": "suggestion",
-            "dims": {"fit": "ask"},
-            "evidence": {"min_arity": 1, "roles": ["defect"]},
-            "warrant_min": 2,
-        }
-        for rid in ids
-    }
+def _contract(scope: str = "local") -> JudgementContract:
+    return JudgementContract(
+        dims={"fit": "ask", "harm": "ask", "repair": "ask", "warrant": "ask"},
+        protects=("quoted_specimen",),
+        evidence=EvidenceSpec(1, ("defect",)),
+        warrant_min=2,
+        judgement_ceiling="suggestion",
+        scope_class=scope,
+    )
 
 
 def test_local_rules_are_sorted_and_chunked() -> None:
     ids = [f"cat.rule-{n}" for n in range(5)]
+
     class Rule:
         def __init__(self, qualified_id: str) -> None:
             self.qualified_id = qualified_id
-    packs = build_packs([Rule(rid) for rid in reversed(ids)], _fields(*ids))
+            self.judgement = _contract()
+
+    packs = build_packs([Rule(rid) for rid in reversed(ids)])
     local = [pack for pack in packs if pack.scope_class == "local"]
     assert [pack.rules for pack in local] == [tuple(sorted(ids)[:4]), (ids[-1],)]
     assert all(len(pack.rules) <= 4 for pack in local)

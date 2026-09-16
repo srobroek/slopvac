@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "occurrence": {
+      "additionalProperties": false,
+      "properties": {
+        "abstain_reason": {"enum": ["ambiguous_unit", "conflicting_context", "missing_context", "needs_external_fact", "needs_repository_fact", "no_exact_evidence", "unit_out_of_scope", null]},
+        "evidence": {"items": {"$ref": "#/properties/evidence/items"}, "type": "array"},
+        "preservation_reason": {"enum": ["accessibility_consistency", "authoritative_domain_term", "controlled_language_clarity", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen", "source_locked_legal_text", null]},
+        "rewrite": {"type": ["string", "null"]},
+        "rewrite_status": {"enum": ["not_applicable", "proposed", "withheld_needs_fact"]},
+        "scores": {"$ref": "#/$defs/scores"},
+        "verdict": {"enum": ["abstain", "confirm", "preserve", "reject"]}
+      },
+      "required": ["abstain_reason", "evidence", "preservation_reason", "rewrite", "rewrite_status", "scores", "verdict"],
+      "type": "object"
+    },
+    "scores": {
+      "additionalProperties": false,
+      "properties": {
+        "fit": {"enum": ["absent", "partial", "ambiguous_match", "unambiguous_match"]},
+        "harm": {"enum": ["none", "reader_effort", "misleads_or_blocks", "unsafe_or_normative", "inapplicable"]},
+        "repair": {"enum": ["authorial_only", "needs_absent_fact", "local_substitution", "safe_deletion", "inapplicable"]},
+        "warrant": {"enum": ["none", "quote_only", "quote_plus_particular", "two_locators"]}
+      },
+      "required": ["fit", "harm", "repair", "warrant"],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "else": {
+    "properties": {
+      "evidence": {"type": "array"},
+      "occurrences": {"type": "null"},
+      "occurrences_truncated": {"const": false},
+      "scores": {"$ref": "#/$defs/scores"}
+    }
+  },
+  "if": {"properties": {"kind": {"const": "PASSAGE_PROBE"}}},
+  "properties": {
+    "abstain_reason": {"enum": ["ambiguous_unit", "conflicting_context", "missing_context", "needs_external_fact", "needs_repository_fact", "no_exact_evidence", "unit_out_of_scope", null]},
+    "admissible": {"type": "boolean"},
+    "evidence": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {"minimum": 0, "type": "integer"},
+          "quote": {"minLength": 1, "type": "string"},
+          "role": {"enum": ["antecedent", "contrast", "defect", "invariant", "referent"]},
+          "source": {"enum": ["context", "repository", "unit"]},
+          "source_ref": {"description": "unit_id for unit/context; path@blob_sha for repository", "type": ["string", "null"]},
+          "start": {"minimum": 0, "type": "integer"}
+        },
+        "required": ["end", "quote", "role", "source", "start"],
+        "type": "object"
+      },
+      "type": ["array", "null"]
+    },
+    "kind": {"enum": ["PASSAGE_PROBE", "SPAN_CANDIDATE"]},
+    "note": {"description": "<=20 words; no rubric vocabulary", "maxLength": 160, "type": "string"},
+    "occurrences": {"description": "PASSAGE_PROBE only: one entry per located occurrence; the top-level scores/evidence/rewrite are null and the top-level verdict is confirm if any occurrence confirms, else the most severe of preserve/abstain/reject among occurrences", "items": {"$ref": "#/$defs/occurrence"}, "maxItems": 12, "type": ["array", "null"]},
+    "occurrences_truncated": {"description": "true when the model located more occurrences than maxItems; the host records the remainder as not_run for coverage, never as an abstention of the located ones", "type": "boolean"},
+    "preservation_reason": {"enum": ["accessibility_consistency", "authoritative_domain_term", "controlled_language_clarity", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen", "source_locked_legal_text", null]},
+    "rewrite": {"type": ["string", "null"]},
+    "rewrite_status": {"enum": ["not_applicable", "proposed", "withheld_needs_fact"]},
+    "rule_id": {"type": "string"},
+    "scores": {"anyOf": [{"$ref": "#/$defs/scores"}, {"type": "null"}]},
+    "unit_id": {"type": "string"},
+    "verdict": {"enum": ["abstain", "confirm", "preserve", "reject"]}
+  },
+  "required": ["abstain_reason", "admissible", "evidence", "kind", "note", "occurrences", "occurrences_truncated", "preservation_reason", "rewrite", "rewrite_status", "rule_id", "scores", "unit_id", "verdict"],
+  "then": {
+    "properties": {
+      "evidence": {"type": "null"},
+      "occurrences": {"type": "array"},
+      "rewrite": {"type": "null"},
+      "rewrite_status": {"const": "not_applicable"},
+      "scores": {"type": "null"}
+    }
+  },
+  "type": "object",
+  "x-conditionals": [
+    "verdict=preserve requires preservation_reason != null and rewrite=null",
+    "verdict=abstain requires abstain_reason != null",
+    "verdict=confirm requires rewrite_status in {proposed, withheld_needs_fact, not_applicable}; rewrite != null iff rewrite_status=proposed; not_applicable only when the rule masks repair=inapplicable",
+    "verdict=confirm requires scores.fit=unambiguous_match or ambiguous_match and scores.warrant != none; otherwise the host assigns inconsistent_output",
+    "kind=PASSAGE_PROBE: occurrences is the verdict carrier; top-level evidence/scores/rewrite are null and rewrite_status=not_applicable (enforced by if/then). kind=SPAN_CANDIDATE: occurrences=null (enforced by else)",
+    "evidence with role=defect requires source=unit; antecedent/contrast/invariant/referent may use context or repository",
+    "repository evidence requires source_ref of the form path@blob_sha and offsets into that blob's UTF-8 text"
+  ],
+  "x-host_finding_record": "The host wraps every model output in a finding record adding: outcome (decision_outcome_enum), severity, core_fired, component_id, rewrite_status extended with withheld_checker_veto, source_sha256, document-coordinate spans, instrument_id, judgement_cache_key. The model never emits any of these.",
+  "x-reconciliation": "The host recomputes the outcome from scores, evidence, gates, and rule record. The model's verdict is advisory: when it disagrees with the host outcome the finding is ABSTAIN(inconsistent_output) and counted in coverage; the model's verdict never overrides the algorithm.",
+  "x-serialization": "Level ids are the wire format. Codes 0-3 are ordinal serialization aliases for storage only and MUST NOT be summed or averaged."
+}
