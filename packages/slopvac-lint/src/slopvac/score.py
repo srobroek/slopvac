@@ -31,7 +31,10 @@ the defaults below are the shipped calibration.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from .config import ResolvedConfig, Severity
+from .judgement.aggregate import judgement_penalty, judgement_penalty_uncapped
 from .model import CategoryScore, DocumentScore, Finding
 
 # Severity is the multiplier used by both category and document gates.
@@ -218,7 +221,6 @@ def _blocking_density(
         * 100
     )
 
-
 def _failure_reasons(
     findings: list[Finding],
     category_scores: list[CategoryScore],
@@ -227,6 +229,7 @@ def _failure_reasons(
     config: ResolvedConfig,
     unchecked: list[str],
     active_categories: set[str] | None = None,
+    judgement_errors: int = 0,
 ) -> list[str]:
     # An informational (weight-0) category reports its findings and gates nothing:
     # not the score, not the density, and not the error and warning counts either.
@@ -236,7 +239,8 @@ def _failure_reasons(
         if active_categories is None
         else [f for f in findings if f.category in active_categories]
     )
-    errors = sum(f.severity is Severity.ERROR for f in gated)
+    mechanical_errors = sum(f.severity is Severity.ERROR for f in gated)
+    errors = mechanical_errors + judgement_errors
     warnings = sum(f.severity is Severity.WARNING for f in gated)
     thresholds = config.thresholds
     reasons = ["incomplete check: " + "; ".join(unchecked)] if unchecked else []
@@ -266,8 +270,7 @@ def _failure_reasons(
         )
     if (
         thresholds.min_score is not None
-        and (errors or warnings)
-        and overall < thresholds.min_score
+        and (mechanical_errors or warnings)
     ):
         reasons.append(f"score {overall:.1f}, minimum {thresholds.min_score}")
     reasons.extend(
@@ -288,9 +291,24 @@ def score_document(
     config: ResolvedConfig,
     categories_meta: dict[str, float],
     unchecked: list[str] | None = None,
+    *,
+    judgement_findings: list[object] | None = None,
+    judgement_weights: Mapping[str, float] | None = None,
+    judgement_rule_ceilings: Mapping[str, object] | None = None,
+    judgement_rules: Mapping[str, object] | None = None,
+    judgement_gate: str | None = None,
+    judgement_unchecked: list[str] | None = None,
 ) -> DocumentScore:
-    """Build the full result for one file."""
+    """Build the deterministic result and its reporting-only judgement view."""
     unchecked = unchecked or []
+    if not judgement_rule_ceilings and judgement_rules:
+        judgement_rule_ceilings = {
+            rule_id: getattr(getattr(rule, "judgement", rule), "judgement_ceiling", None)
+            for rule_id, rule in judgement_rules.items()
+        }
+    judgement_findings = judgement_findings or []
+    judgement_weights = judgement_weights or categories_meta
+    judgement_rule_ceilings = judgement_rule_ceilings or {}
     by_category: dict[str, list[Finding]] = {name: [] for name in categories_meta}
     for finding in findings:
         by_category.setdefault(finding.category, []).append(finding)
@@ -300,10 +318,6 @@ def score_document(
         for name, items in sorted(by_category.items())
     ]
     category_scores = [entry for entry, _ in entries]
-    # A weight-0 category is informational: it contributes to neither side of the
-    # mean, and its findings do not spend the document's density budget either.
-    # Unless EVERY category is zero-weighted -- then nothing would be measured and a
-    # slop document would score 100, so the clamp falls back to all findings.
     active_categories = {entry.category for entry, weight in entries if weight > 0}
     if not active_categories:
         active_categories = None
@@ -316,9 +330,21 @@ def score_document(
             active_categories,
         ),
     )
-    errors = sum(f.severity is Severity.ERROR for f in findings)
+    mechanical_errors = sum(f.severity is Severity.ERROR for f in findings)
     warnings = sum(f.severity is Severity.WARNING for f in findings)
     suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
+    judgement_error_count = 0
+    for finding in judgement_findings:
+        if getattr(finding, "outcome", None) != "CONFIRM":
+            continue
+        if getattr(finding, "severity", None) != "error":
+            continue
+        ceiling = judgement_rule_ceilings.get(
+            getattr(finding, "rule_id", ""), getattr(finding, "judgement_ceiling", None)
+        )
+        ceiling = getattr(ceiling, "value", ceiling)
+        if ceiling == "error":
+            judgement_error_count += 1
     reasons = _failure_reasons(
         findings,
         category_scores,
@@ -327,10 +353,18 @@ def score_document(
         config,
         unchecked,
         active_categories,
+        judgement_error_count,
     )
+    uncapped_penalty = judgement_penalty_uncapped(judgement_findings, judgement_weights)
+    max_penalty = config.judgement.max_penalty
+    capped_penalty = judgement_penalty(
+        judgement_findings, judgement_weights, max_penalty=max_penalty
+    )
+    adjusted = max(0.0, overall - capped_penalty)
     per_100 = (
         len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0
     )
+    judgement_unchecked = judgement_unchecked or []
     return DocumentScore(
         path=path,
         profile=config.profile.value,
@@ -340,11 +374,16 @@ def score_document(
         findings=findings,
         categories=category_scores,
         total_findings=len(findings),
-        errors=errors,
+        errors=mechanical_errors + judgement_error_count,
         warnings=warnings,
         suggestions=suggestions,
         per_100_words=round(per_100, 3),
         score=round(overall, 1),
+        judgement_penalty=round(capped_penalty, 1),
+        judgement_penalty_uncapped=round(uncapped_penalty, 1),
+        judgement_adjusted_score=round(adjusted, 1),
+        judgement_cluster_gate=judgement_gate,
+        judgement_unchecked=judgement_unchecked,
         passed=not reasons,
         failure_reasons=reasons,
         unchecked=unchecked,
