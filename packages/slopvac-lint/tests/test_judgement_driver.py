@@ -4,9 +4,12 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from slopvac.analyze import parse
 from slopvac.judgement.driver import (
     _admission,
+    _preview_document,
     _unit_from_block,
     _unit_from_sentence,
     compare,
@@ -281,3 +284,101 @@ def test_admission_preserves_normative_register() -> None:
         "normative_obligation",
     )
     assert _admission(_admission_unit("The parser rejects input"), pack) == ("ELIGIBLE", None)
+
+
+def _result_row(unit: dict[str, object]) -> dict[str, object]:
+    kind = str(unit["kind"])
+    return {
+        "unit_id": unit["unit_id"],
+        "rule_id": unit["rule_id"],
+        "kind": kind,
+        "note": "No occurrence.",
+        "admissible": True,
+        "evidence": None,
+        "occurrences": [] if kind == "PASSAGE_PROBE" else None,
+        "occurrences_truncated": False,
+        "scores": None,
+        "preservation_reason": None,
+        "abstain_reason": None,
+        "rewrite": None,
+        "rewrite_status": "not_applicable",
+        "verdict": "reject",
+    }
+
+
+def test_preview_replaces_one_span_and_keeps_absolute_source_inside_output(tmp_path: Path) -> None:
+    source = tmp_path / "nested" / "README.md"
+    source.parent.mkdir()
+    source.write_text("before old after\n", encoding="utf-8")
+    out = tmp_path / "run"
+    unit = {"unit_id": "unit-1", "text": "old", "source_range": [7, 10], "path": str(source)}
+    finding = {"unit_id": "unit-1", "rewrite_status": "proposed", "rewrite": "new"}
+    skipped: list[str] = []
+    target = _preview_document(out, str(source), [finding], {"unit-1": unit}, skipped)
+    assert target.read_text(encoding="utf-8") == "before new after\n"
+    assert target != source
+    assert target.resolve().is_relative_to(out.resolve())
+    assert skipped == []
+
+
+def test_preview_skips_duplicate_span_and_reports_it(tmp_path: Path) -> None:
+    source = tmp_path / "README.md"
+    source.write_text("before old after\n", encoding="utf-8")
+    out = tmp_path / "run"
+    units = {
+        "unit-1": {"unit_id": "unit-1", "text": "old", "source_range": [7, 10], "path": str(source)},
+        "unit-2": {"unit_id": "unit-2", "text": "old", "source_range": [7, 10], "path": str(source)},
+    }
+    findings = [
+        {"unit_id": "unit-1", "rewrite_status": "proposed", "rewrite": "first"},
+        {"unit_id": "unit-2", "rewrite_status": "proposed", "rewrite": "second"},
+    ]
+    skipped: list[str] = []
+    target = _preview_document(out, str(source), findings, units, skipped)
+    assert target.read_text(encoding="utf-8") == "before first after\n"
+    assert any("duplicate span" in item for item in skipped)
+
+
+@pytest.mark.parametrize(
+    ("packs", "kind"),
+    [("PROBE-4", "PASSAGE_PROBE"), ("SPAN-ai-tells-structure-1", "SPAN_CANDIDATE")],
+)
+def test_finish_flags_omitted_probe_or_span_rows(tmp_path: Path, packs: str, kind: str) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("First authored paragraph.\n\nSecond authored paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs=packs)
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    matching = [unit for unit in units if unit["kind"] == kind]
+    assert len(matching) >= 2
+    call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
+    omitted = matching[1]
+    rows = [_result_row(matching[0])]
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"call_id": call["call_id"], "response": {"results": rows}}) + "\n", encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    missing = [item for item in report["failed"] if item.get("reason") == "row_missing"]
+    assert any(omitted["unit_id"] in item["unit_ids"] for item in missing)
+
+
+def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
+    first = tmp_path / "one" / "README.md"
+    second = tmp_path / "two" / "README.md"
+    first.parent.mkdir()
+    second.parent.mkdir()
+    first.write_text("First document paragraph.", encoding="utf-8")
+    second.write_text("Second document paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(first, second), packs="SPAN-ai-tells-structure-1")
+    manifest = json.loads((out / "manifest.json").read_text())
+    refs = [str(doc["document_ref"]) for doc in manifest["documents"]]
+    assert len(refs) == 2
+    assert len(set(refs)) == 2
+    stores = [json.loads((out / "documents" / f"{ref}.json").read_text()) for ref in refs]
+    assert {store["text"] for store in stores} == {first.read_text(), second.read_text()}
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    for unit in units:
+        store = json.loads((out / "documents" / f"{unit['document_ref']}.json").read_text())
+        raw = store["text"].encode("utf-8")
+        assert raw[unit["source_range"][0] : unit["source_range"][1]].decode("utf-8") == unit["text"]
+    finish(out=out, responses=tmp_path / "responses.jsonl")
