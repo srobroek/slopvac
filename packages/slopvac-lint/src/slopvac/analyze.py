@@ -160,6 +160,10 @@ IMPERATIVE_MARKERS = re.compile(
     rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
     re.I,
 )
+NEGATIVE_IMPERATIVE = re.compile(
+    r"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+\b",
+    re.I,
+)
 TO_VERB = re.compile(
     rf"^to\s+(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
     re.I,
@@ -169,12 +173,12 @@ REMEMBER_TO = re.compile(
     re.I,
 )
 SAFETY_MARKER = re.compile(
-    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT)\b"
+    r"^\s*(?:>\s*)?(?:\*{0,2})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT)\b"
     r"(?:\*{0,2})?\s*[:.!]?",
     re.I,
 )
 NOTE_MARKER = re.compile(
-    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:NOTE|TIP|HINT|INFO|IMPORTANT)\b"
+    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:NOTE|TIP|HINT|INFO)\b"
     r"(?:\*{0,2})?\s*[:.!]?",
     re.I,
 )
@@ -352,19 +356,30 @@ def count_words(text: str) -> int:
 def classify_text_type(text: str) -> TextType:
     """Select the sentence cap, conservatively distinguishing instructions.
 
-    The audit's runbook probe contained imperative steps beginning with verbs not
-    present in the original closed list (``record``, ``reload``, ``remember`` and
-    ``notify``). The vocabulary below is intentionally finite: an unknown opening
-    remains descriptive, which is safer than applying the 20-word cap to prose.
+    Safety labels retain ``SAFETY`` for descriptive warnings, but an instruction
+    following the label is still procedural. Notes remain descriptive regardless
+    of the wording that follows them.
     """
     stripped = text.strip()
-    if SAFETY_MARKER.match(stripped):
-        return TextType.SAFETY
+    safety_match = SAFETY_MARKER.match(stripped)
+    if safety_match:
+        marker = safety_match.group("marker").upper()
+        marker_body = stripped[safety_match.end() :].lstrip(" :.!?*-+")
+        if (
+            IMPERATIVE_MARKERS.match(marker_body)
+            or NEGATIVE_IMPERATIVE.match(marker_body)
+            or TO_VERB.match(marker_body)
+            or REMEMBER_TO.match(marker_body)
+            or re.match(r"^you\s+(?:should|must|need\s+to)\b", marker_body, re.I)
+        ):
+            return TextType.PROCEDURAL
+        return TextType.DESCRIPTIVE if marker == "IMPORTANT" else TextType.SAFETY
     if NOTE_MARKER.match(stripped):
         return TextType.DESCRIPTIVE
     body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
     if (
         IMPERATIVE_MARKERS.match(body)
+        or NEGATIVE_IMPERATIVE.match(body)
         or TO_VERB.match(body)
         or REMEMBER_TO.match(body)
         or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I)

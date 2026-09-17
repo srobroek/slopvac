@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+from collections import defaultdict
+from pathlib import Path
+
 import pytest
 
 from slopvac.analyze import classify_text_type, count_words, split_sentences
@@ -155,10 +159,22 @@ def test_runbook_descriptions_are_descriptive(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.DESCRIPTIVE
 
 
-def test_labelled_runbook_set_reaches_ninety_percent_agreement() -> None:
-    labelled = [
-        ("Rotate the certificate.", TextType.PROCEDURAL),
-        ("The certificate is valid.", TextType.DESCRIPTIVE),
-    ]
-    agreement = sum(classify_text_type(text) is expected for text, expected in labelled)
-    assert agreement / len(labelled) >= 0.90
+def test_labelled_runbook_set_reaches_documented_agreement() -> None:
+    path = Path(__file__).parent / "fixtures" / "text_type" / "runbook-labels-v1.jsonl"
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    header, rows = records[0], records[1:]
+    threshold = header["threshold"]
+    counts: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    correct = 0
+    for row in rows:
+        expected = TextType[row["expected"]]
+        actual = classify_text_type(row["text"])
+        correct += actual is expected
+        counts[row["facet"]][0] += actual is expected
+        counts[row["facet"]][1] += 1
+    agreement = correct / len(rows)
+    table = "; ".join(
+        f"{facet}: {right}/{total} ({right / total:.3f})"
+        for facet, (right, total) in sorted(counts.items())
+    )
+    assert agreement >= threshold, f"agreement {agreement:.3f} < {threshold:.3f}; {table}"
