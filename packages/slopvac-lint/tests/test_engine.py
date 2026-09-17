@@ -998,9 +998,44 @@ def test_case_sensitive_prose_rules_can_report_all_caps_matches():
     hits = {(finding.rule_id, finding.matched_text) for finding in findings}
     assert {
         ("prose-craft.acronym-periods", "A.P.I."),
-        ("prose-craft.annotations", "TODO"),
         ("prose-craft.articles", "a HTML"),
     } <= hits
+
+
+
+def test_todo_status_language_has_exclusive_owner():
+    """TODO status prose belongs to docs-discipline, not chat leakage."""
+    ruleset = load_ruleset()
+    config = _config(profile=Profile.STRICT)
+    path = Path("/repo/docs/guide.md")
+    engine = Engine(ruleset.rules, resolve_for(config, path))
+    findings = engine.run(parse("docs/guide.md", "TODO: document the flag."))
+    todo_hits = [finding for finding in findings if finding.matched_text == "TODO"]
+
+    assert [(finding.rule_id, finding.matched_text) for finding in todo_hits] == [
+        ("docs-discipline.status-language", "TODO")
+    ]
+
+
+@pytest.mark.parametrize(
+    "phrase",
+    ["Coming soon", "Under construction", "Not yet implemented"],
+)
+def test_mixed_case_status_language_still_fires(phrase):
+    """Sentence-initial status phrases remain case-insensitive."""
+    findings = _run(phrase, profile=Profile.STRICT)
+    status_hits = [
+        (finding.rule_id, finding.matched_text)
+        for finding in findings
+        if finding.rule_id == "docs-discipline.status-language"
+    ]
+    assert status_hits == [("docs-discipline.status-language", phrase)]
+
+    assert not [
+        finding
+        for finding in findings
+        if finding.rule_id in {"prose-craft.annotations", "ai-residue.todo"}
+    ]
 
 
 def test_lowercase_equivalent_still_fires():
