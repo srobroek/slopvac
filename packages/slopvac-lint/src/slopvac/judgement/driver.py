@@ -21,6 +21,9 @@ from pathlib import Path
 from typing import Any
 
 from ..analyze import (
+    IMPERATIVE_MARKERS,
+    REMEMBER_TO,
+    TO_VERB,
     BlockKind,
     Document,
     PassageProbe,
@@ -428,10 +431,26 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
 _NORMATIVE_START = re.compile(
     r"^(?:MUST(?:\s+NOT)?|SHOULD|SHALL|MAY|NEVER|NOT|DEFAULT|AVOID|REQUIRED|PROHIBITED|GOTCHA|ALWAYS)\b"
 )
-_IMPERATIVE_STEERING_START = re.compile(
-    r"^(?:do not|don't|never|always|run|use|choose|keep|set|add|delete|avoid|ensure|check|record|confirm|create|prefer|treat|start|stop|read|write|pass|include|exclude|name|state|pick|select|report|return|preserve|flag|fix|replace|narrow|quote|apply|remove|make|call|open|close|inspect|verify|follow)\b",
-    re.IGNORECASE,
-)
+_IMPERATIVE_STEERING_START = IMPERATIVE_MARKERS
+
+
+def _imperative_directive(text: str) -> bool:
+    """Recognize analyzer-classified directives without promoting prose subjects."""
+    stripped = text.strip()
+    if "?" in stripped or re.match(r"^(?:i|we|me|us|my|our|ours|let's)\b", stripped, re.I):
+        return False
+    if not (
+        _IMPERATIVE_STEERING_START.match(stripped)
+        or TO_VERB.match(stripped)
+        or REMEMBER_TO.match(stripped)
+    ):
+        return False
+    # A marker followed by a plural noun and a predicate is a descriptive
+    # subject, not an imperative (for example, ``Run scripts live in bin.``).
+    words = re.findall(r"[A-Za-z][A-Za-z-]*", stripped)
+    if len(words) >= 4 and words[0].lower() == "run" and words[1].lower().endswith("s"):
+        return not re.search(r"\b(?:live|lives|run|runs|exist|exists|sit|sits)\s+(?:in|on|at|from|under|near)\b", stripped, re.I)
+    return True
 
 
 def _source_start(unit: Any) -> int | None:
@@ -466,11 +485,7 @@ def _is_normative_register(unit: Any) -> bool:
     text = str(getattr(unit, "text", "")).strip()
     if _NORMATIVE_START.match(text):
         return True
-    source_line, _ = _source_line(unit)
-    if not re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", source_line):
-        return False
-    return bool(_IMPERATIVE_STEERING_START.match(text))
-
+    return _imperative_directive(text)
 
 def _admission(unit: Any, pack: Pack) -> tuple[str, str | None]:
     if not str(unit.text).strip():
