@@ -124,6 +124,12 @@ def test_dotted_initialisms_distinguish_continuations_from_openers() -> None:
     opener = split_sentences("Use U.S. Next.", 1)
     assert [sentence.text for sentence in continuation] == ["e.g. the U.S. Navy sails."]
     assert [sentence.text for sentence in opener] == ["Use U.S.", "Next."]
+    pronoun = split_sentences("It ships to the U.S. It also ships to Canada.", 1)
+    assert [sentence.text for sentence in pronoun] == ["It ships to the U.S.", "It also ships to Canada."]
+    proper_nouns = split_sentences("The U.S. Army and the U.K. Navy met.", 1)
+    assert [sentence.text for sentence in proper_nouns] == ["The U.S. Army and the U.K. Navy met."]
+    adverb = split_sentences("We flew to the U.K. Then we drove.", 1)
+    assert [sentence.text for sentence in adverb] == ["We flew to the U.K.", "Then we drove."]
 
 
 def test_sentence_offsets_and_vertical_item_cuts_keep_source_lines() -> None:
