@@ -1,0 +1,232 @@
+{
+  "abstention_reasons": {
+    "ambiguous_unit": 129,
+    "missing_context": 8,
+    "needs_external_fact": 1,
+    "needs_repository_fact": 2,
+    "no_exact_evidence": 4,
+    "unit_out_of_scope": 40
+  },
+  "adjusted_score": 91.9,
+  "artifacts": {
+    "instrument_id": "a2f305dd317afeb1ff973e063ac4cb0e81c8f5c5bd70f38886154a8326196d41",
+    "location": "local scratch, not committed (prompts.jsonl 1.6 MB, responses.jsonl 1.0 MB); replayable with `slopvac judgement finish` given the responses file",
+    "prompts_sha256": "b62d2bcb7b3b72f244a81a517690f8b9f9b199d311e4c9ef7dce033623ed5b01",
+    "responses_sha256": "5a1185fbe98007fd9446f136af0c5e61bd5e36da8975f1887fc7ad26d10b2c53",
+    "revision_under_test": "d2d47b87af0d4e0f7a6e755b7341d5a6524f916e",
+    "rubric_revision": "9f267eb151f83562897a8ea5780c8a319e6fbb7cfbc663c104e3695cd5c662d6"
+  },
+  "calls": 108,
+  "candidate_confirms_blocked_by_evidence": [
+    {
+      "fit": "ambiguous_match",
+      "host": "ABSTAIN no_exact_evidence (model offsets did not match the quote)",
+      "quote": "AI generated documentation has a clear fingerprint.",
+      "rule": "ai-tells-structure.absolute-assertion-remainder"
+    },
+    {
+      "fit": null,
+      "host": "ABSTAIN no_exact_evidence (no quote supplied for a document-scope confirm)",
+      "model_note": "review-docs step is called judgement pass, review, and Model-based review",
+      "quote": null,
+      "rule": "ai-tells-content-shape.elegant-variation"
+    }
+  ],
+  "cluster_gate": null,
+  "confirmed": 0,
+  "deterministic": {
+    "findings": 25,
+    "passed": true,
+    "score": 91.9
+  },
+  "deterministic_findings": [
+    {
+      "line": 1,
+      "message": "uniform paragraph mass: stdev of paragraph word count is 9.52 -- vary length deliberately",
+      "rule_id": "ai-tells-register.uniform-paragraph-mass",
+      "severity": "suggestion"
+    },
+    {
+      "line": 3,
+      "message": "This noun stack has 4 words. Use three or fewer.",
+      "rule_id": "ste-nouns.multiword-noun-too-long",
+      "severity": "suggestion"
+    },
+    {
+      "line": 9,
+      "message": "Missing article before \"This repository\".",
+      "rule_id": "ste-sentences.missing-article-or-determiner",
+      "severity": "suggestion"
+    },
+    {
+      "line": 21,
+      "message": "tricolon: Code, Codex, and Kiro -- cut to the one or two that carry load; break the symmetry",
+      "rule_id": "ai-tells-structure.tricolon-abuse-core",
+      "severity": "suggestion"
+    },
+    {
+      "line": 21,
+      "message": "This sentence carries 4 coordinated items. Use a vertical list.",
+      "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+      "severity": "suggestion"
+    },
+    {
+      "line": 64,
+      "message": "Use the en-US spelling \"judgment\".",
+      "rule_id": "ste-words.spelling",
+      "severity": "suggestion"
+    },
+    {
+      "line": 150,
+      "message": "This sentence has 27 words. Use twenty-five or fewer.",
+      "rule_id": "ste-descriptive.sentence-too-long-descriptive",
+      "severity": "suggestion"
+    },
+    {
+      "line": 150,
+      "message": "Use the en-US spelling \"judgment\".",
+      "rule_id": "ste-words.spelling",
+      "severity": "suggestion"
+    },
+    {
+      "line": 154,
+      "message": "Use the en-US spelling \"judgment\".",
+      "rule_id": "ste-words.spelling",
+      "severity": "suggestion"
+    },
+    {
+      "line": 182,
+      "message": "The semicolon is not permitted. Write two sentences.",
+      "rule_id": "ste-punctuation.semicolon-used",
+      "severity": "suggestion"
+    },
+    {
+      "line": 182,
+      "message": "Use the en-US spelling \"judgment\".",
+      "rule_id": "ste-words.spelling",
+      "severity": "suggestion"
+    },
+    {
+      "line": 193,
+      "message": "The condition follows the command (\"Read the text before you ship it.\"). Put the condition first.",
+      "rule_id": "ste-procedural.condition-after-command",
+      "severity": "suggestion"
+    },
+    {
+      "line": 206,
+      "message": "The condition follows the command (\"The CLI still scores native rules when Vale is absent.\"). Put the condition first.",
+      "rule_id": "ste-procedural.condition-after-command",
+      "severity": "suggestion"
+    },
+    {
+      "line": 225,
+      "message": "title-case heading: GitHub Action -- use sentence case unless house style says otherwise",
+      "rule_id": "ai-tells-formatting.title-case-heading",
+      "severity": "suggestion"
+    },
+    {
+      "line": 234,
+      "message": "This sentence carries 12 coordinated items. Use a vertical list.",
+      "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+      "severity": "suggestion"
+    },
+    {
+      "line": 234,
+      "message": "This sentence carries 7 coordinated items. Use a vertical list.",
+      "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+      "severity": "suggestion"
+    },
+    {
+      "line": 239,
+      "message": "title-case heading: Oh My Pi -- use sentence case unless house style says otherwise",
+      "rule_id": "ai-tells-formatting.title-case-heading",
+      "severity": "suggestion"
+    },
+    {
+      "line": 248,
+      "message": "The condition follows the command (\"Start a new session after installation.\"). Put the condition first.",
+      "rule_id": "ste-procedural.condition-after-command",
+      "severity": "suggestion"
+    },
+    {
+      "line": 249,
+      "message": "The semicolon is not permitted. Write two sentences.",
+      "rule_id": "ste-punctuation.semicolon-used",
+      "severity": "suggestion"
+    },
+    {
+      "line": 259,
+      "message": "title-case heading: Claude Code -- use sentence case unless house style says otherwise",
+      "rule_id": "ai-tells-formatting.title-case-heading",
+      "severity": "suggestion"
+    },
+    {
+      "line": 308,
+      "message": "This sentence carries 4 coordinated items. Use a vertical list.",
+      "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+      "severity": "suggestion"
+    },
+    {
+      "line": 317,
+      "message": "The semicolon is not permitted. Write two sentences.",
+      "rule_id": "ste-punctuation.semicolon-used",
+      "severity": "suggestion"
+    },
+    {
+      "line": 334,
+      "message": "Passive voice \"is reported\". Name the actor and use the active voice.",
+      "rule_id": "ste-verbs.passive-voice",
+      "severity": "suggestion"
+    },
+    {
+      "line": 352,
+      "message": "Passive voice \"be trusted\". Name the actor and use the active voice.",
+      "rule_id": "ste-verbs.passive-voice",
+      "severity": "suggestion"
+    },
+    {
+      "line": 354,
+      "message": "This sentence carries 4 coordinated items. Use a vertical list.",
+      "rule_id": "ste-sentences.complex-text-not-in-vertical-list",
+      "severity": "suggestion"
+    }
+  ],
+  "document": "README.md",
+  "host_outcomes": {
+    "ABSTAIN": 184,
+    "PRESERVE": 1,
+    "REJECT": 1728
+  },
+  "judgement_findings_added": [],
+  "model": "amazon-bedrock/global.anthropic.claude-fable-5-1 (session model, schema in prompt)",
+  "model_verdicts": {
+    "abstain": 201,
+    "confirm": 2,
+    "preserve": 3,
+    "reject": 1868
+  },
+  "packs": [
+    "SPAN-ai-tells-structure-1",
+    "SPAN-ai-tells-structure-2",
+    "SPAN-ai-tells-register-1",
+    "PROBE-1",
+    "PROBE-2",
+    "PROBE-3"
+  ],
+  "passages": 176,
+  "per_finding_diff": "identical: the 25 deterministic findings are unchanged and the judgement layer confirmed none, so the new scan of README.md equals the old scan",
+  "preserves": [
+    {
+      "quote": "reported rather than honoured",
+      "reason": "factual_polarity_or_contrast",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder"
+    }
+  ],
+  "residual_defects": [
+    "3 passages still start mid-word (blocks with a code span after a soft line break)",
+    "129 ambiguous_unit abstentions are bare-number table cells; cell units without letters should not be dispatched",
+    "model offsets unreliable: earlier run 174/502 quotes were exact substrings at wrong offsets; policy for host-located quotes is open (Q02)"
+  ],
+  "run": "smoke-4",
+  "unit_rule_pairs": 2112
+}

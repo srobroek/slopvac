@@ -8,7 +8,7 @@ language for something that does not ship yet, and hedging on every claim.
 
 This repository ships the `slopvac` CLI and two skills.
 
-The CLI scores prose against 233 rules in 26 categories. Configure it with
+The CLI scores prose against 232 rules in 26 categories. Configure it with
 `slopvac.toml`. Profiles set the strictness. `<!-- slopvac-allow -->` comments
 suppress a finding when the reason is on that rule's list.
 
@@ -109,7 +109,7 @@ flowchart TD
 
     IN --> GATE
 
-    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 233 rules in 26 categories<br/>optional Vale sub-gate"]
+    GATE["<b>1. Deterministic gate</b><br/>slopvac CLI, 232 rules in 26 categories<br/>optional Vale sub-gate"]
 
     GATE --> REG["<b>2. Register judgement</b><br/>read the tells catalog and apply it:<br/>voice, struc
 tural symmetry, dilution,<br/>and the counter-signals expert prose has"]
@@ -147,7 +147,7 @@ absent, nothing more"]
 
 ## Categories
 
-`slopvac` ships **233 rules** across **26 categories**: 167 checked, 66 judgement. `slopvac rules` lists one more, the spelling rule it generates for the configured locale.
+`slopvac` ships **232 rules** across **26 categories**: 166 checked, 66 judgement. `slopvac rules` lists one more, the spelling rule it generates for the configured locale.
 `slopvac rules` lists them. The generated reference is
 [`packages/slopvac-lint/docs/rules.md`](packages/slopvac-lint/docs/rules.md).
 
@@ -367,6 +367,20 @@ cargo install --locked agnix-cli --version 0.52.2
 
 The installer sets a worktree hook path and preserves existing hooks.
 Before each commit, the hook validates the Git index.
+
+## Orchestration and Beads artifact retention
+
+Keep audit records under `.orchestration/audit/` for 30 days. Keep the ten newest `.beads/backup/*.darc` archives. Keep `.beads/interactions.jsonl` at 10 MiB. When pruning this log, retain complete records. These limits preserve enough history for incident review. They also bound operational growth.
+
+Repository maintainers own these limits. The pruner leaves metadata and hooks unchanged. It also leaves the active run marker unchanged. Every accepted path stays inside the repository root.
+
+Use `scripts/prune-orchestration-artifacts.py` from the repository root to preview removals:
+
+```sh
+./scripts/prune-orchestration-artifacts.py --dry-run
+```
+
+Pass `--apply` to delete reported paths or truncate the log. Use `--audit-days`, `--backup-count`, or `--interactions-max-bytes` to change the defaults.
 
 ## License
 
