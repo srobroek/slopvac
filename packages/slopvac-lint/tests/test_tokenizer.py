@@ -196,7 +196,7 @@ def test_runbook_descriptions_are_descriptive(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.DESCRIPTIVE
 
 
-@pytest.mark.xfail(strict=True, reason="classifier below 0.90; failing facets: contractions, safety markers")
+
 def test_labelled_runbook_set_reaches_documented_agreement() -> None:
     path = Path(__file__).parent / "fixtures" / "text_type" / "runbook-labels-v1.jsonl"
     records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
