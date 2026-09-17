@@ -121,8 +121,14 @@ def _paragraph_ranges(raw: str, projection: ProjectionMap | None = None) -> list
         ranges.append((start + left, start + right))
     if projection is None:
         return ranges
+    # ProjectionMap raw offsets are UTF-8 byte positions, while the parser
+    # and regex above operate on Python character indices.
+    byte_offsets = [0]
+    for char in raw:
+        byte_offsets.append(byte_offsets[-1] + len(char.encode("utf-8")))
     projected_ranges: list[tuple[int, int]] = []
-    for raw_start, raw_end in ranges:
+    for char_start, char_end in ranges:
+        raw_start, raw_end = byte_offsets[char_start], byte_offsets[char_end]
         selected = [segment for segment in projection.segments if segment.raw_end > raw_start and segment.raw_start < raw_end]
         if selected:
             projected_ranges.append((selected[0].proj_start, selected[-1].proj_end))
@@ -1070,6 +1076,16 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         target_units = [units[unit_id] for unit_id in call.get("unit_ids", ()) if unit_id in units]
         response_item = response_items.get(call_id)
         if response_item is None:
+            for unit in target_units:
+                unit["status"] = "failed"
+            failed.append(
+                {
+                    "call_id": call_id,
+                    "unit_ids": call.get("unit_ids", []),
+                    "reason": "response_missing",
+                    "errors": ["response_missing"],
+                }
+            )
             continue
         try:
             payload = _response_payload(response_item.get("response"))

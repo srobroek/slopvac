@@ -46,12 +46,19 @@ def test_finish_records_missing_calls_and_compare_shows_both_scores(tmp_path: Pa
     document = tmp_path / "fixture.md"
     document.write_text("A useful paragraph.", encoding="utf-8")
     out = tmp_path / "run"
-    prepare(config=CONFIG, out=out, paths=(document,), packs="all")
+    prepare(config=CONFIG, out=out, paths=(document,), packs="PROBE-4")
     responses = tmp_path / "responses.jsonl"
     responses.write_text("", encoding="utf-8")
     report = finish(out=out, responses=responses)
     assert report["documents"][0]["deterministic_score"] >= 0
     assert "coverage" in report
+    failed = [json.loads(line) for line in (out / "failed.jsonl").read_text().splitlines() if line]
+    assert len(failed) == 1
+    assert failed[0]["reason"] == "response_missing"
+    assert report["counts"]["failed_calls"] == 1
+    coverage = report["coverage"]["documents"][str(document)]
+    assert coverage["failed"] == coverage["eligible"]
+    assert coverage["not_run"] == 0
     text = compare(out=out, doc=document)
     assert "deterministic (old): score=" in text
     assert "judgement (new): score=" in text
@@ -385,9 +392,9 @@ def test_finish_flags_omitted_probe_or_span_rows(tmp_path: Path, packs: str, kin
 
 def test_finish_uses_projected_paragraph_boundaries_for_cluster_gate(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
-    prefix = "[prefix](https://" + "x" * 200 + ")"
+    prefix = "café"
     document.write_text(
-        prefix + "\n\nFirst target sentence.\n\nSecond target sentence.\n\nThird target sentence.",
+        prefix + "\n\nFirst target sentence.\n\n```python\nprint('code')\n```\n\nSecond target sentence.\n\nThird target sentence.",
         encoding="utf-8",
     )
     out = tmp_path / "run"
