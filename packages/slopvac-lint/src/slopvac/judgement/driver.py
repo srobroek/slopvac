@@ -34,7 +34,13 @@ from ..projection import ProjectionMap, Segment, project
 from ..rules import load_ruleset
 from ..score import score_document
 from .adjudicate import FindingRecord, adjudicate
-from .aggregate import cluster_gate, components, coverage, preserve_rates
+from .aggregate import (
+    cluster_gate,
+    components,
+    coverage,
+    load_dependence_table,
+    preserve_rates,
+)
 from .eval.runner import validate_result_set
 from .packs import (
     Pack,
@@ -53,6 +59,7 @@ _SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 _SPINE = resources.files("slopvac.judgement").joinpath("spine.md").read_text(encoding="utf-8")
+_DEPENDENCE_TABLE = load_dependence_table(Path(__file__).with_name("dependence_table.json"))
 
 
 def _json_line(path: Path, value: Any) -> None:
@@ -83,9 +90,31 @@ def _safe_name(path: Path, root: Path | None = None) -> str:
     try:
         value = str(path.resolve().relative_to((root or Path.cwd()).resolve()))
     except ValueError:
-        value = path.name
+        # Paths outside the configured root still need a stable, unique name.
+        # Falling back to ``path.name`` makes sibling documents collide.
+        value = str(path.resolve())
     value = value.replace("\\", "/").strip("/")
     return value.replace("/", "__") or path.name
+
+
+def _paragraph_ranges(raw: str) -> list[tuple[int, int]]:
+    """Return blank-line paragraph boundaries in document coordinates."""
+    ranges: list[tuple[int, int]] = []
+    start = 0
+    separators = re.finditer(r"(?:\r?\n)[ \t]*(?:\r?\n)+", raw)
+    for separator in separators:
+        block = raw[start : separator.start()]
+        left = len(block) - len(block.lstrip())
+        right = len(block.rstrip())
+        if left < right:
+            ranges.append((start + left, start + right))
+        start = separator.end()
+    block = raw[start:]
+    left = len(block) - len(block.lstrip())
+    right = len(block.rstrip())
+    if left < right:
+        ranges.append((start + left, start + right))
+    return ranges
 
 
 def _schema_wrapper(units: list[dict[str, Any]], kind: str) -> dict[str, Any]:
@@ -655,6 +684,7 @@ def prepare(
                 json.dumps(score.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8"
             )
         doc_units: list[dict[str, Any]] = []
+        seen_unit_ids: set[str] = set()
         doc_calls: list[dict[str, Any]] = []
         for pack in selected_packs:
             candidates: list[Any] = []
@@ -687,6 +717,9 @@ def prepare(
 
             admissible: list[dict[str, Any]] = []
             for unit in candidates:
+                if unit.unit_id in seen_unit_ids:
+                    continue
+                seen_unit_ids.add(unit.unit_id)
                 admission, reason = _admission(unit, pack)
                 unit.admission = admission
                 unit.admission_reason = reason
@@ -1040,9 +1073,29 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             rows = [payload]
         else:
             rows = None
+        missing_ids: list[str] = []
+        if isinstance(rows, list) and all(isinstance(row, dict) for row in rows):
+            actual_ids = [str(row.get("unit_id")) for row in rows]
+            missing_ids = [unit_id for unit_id in call.get("unit_ids", ()) if unit_id not in actual_ids]
+        elif rows is None:
+            missing_ids = [str(unit_id) for unit_id in call.get("unit_ids", ())]
         validation_error = validate_result_set(target_units, rows)
-        row_values = rows if validation_error is None else []
-        if validation_error is not None:
+        missing_payload = rows is None or (validation_error is not None and validation_error.startswith("missing unit_id:"))
+        if validation_error is not None and missing_ids and missing_payload:
+            for unit_id in missing_ids:
+                units[unit_id]["status"] = "failed"
+                failed.append(
+                    {
+                        "call_id": call_id,
+                        "unit_ids": [unit_id],
+                        "reason": "row_missing",
+                        "errors": ["row_missing"],
+                    }
+                )
+            row_values = [dict(row) for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+        else:
+            row_values = rows if validation_error is None else []
+        if validation_error is not None and not missing_payload:
             failed.append({"call_id": call_id, "unit_ids": call.get("unit_ids", []), "errors": [validation_error]})
             for unit in target_units:
                 unit["status"] = "failed"
@@ -1091,7 +1144,6 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             "path": item.get("path", ""),
             "pack_id": item.get("pack_id", ""),
             "rule_id": item.get("rule_id", ""),
-            "status": item.get("status", "not_run"),
             "truncated": item.get("truncated", False),
         }
         for item in unit_items
@@ -1108,7 +1160,9 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         deterministic = json.loads(deterministic_path.read_text(encoding="utf-8"))
         doc_records = by_path.get(path, [])
         score = _score_with_judgement(deterministic, doc_records, manifest, config, rule_map, weights, path)
-        doc_components = components(doc_records, [(item.get("doc_range", [0, 0])) for item in unit_items if item.get("path") == path], {})
+        document_data_for_components = documents.get(str(doc.get("document_ref", "")), {})
+        paragraph_boundaries = _paragraph_ranges(str(document_data_for_components.get("text", "")))
+        doc_components = components(doc_records, paragraph_boundaries, _DEPENDENCE_TABLE)
         gate = cluster_gate(doc_components, doc_records, config)
         outcomes = Counter(record.outcome for record in doc_records)
         severities = Counter(record.severity for record in doc_records if record.severity)
@@ -1144,33 +1198,62 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
     return report
 
 
-def _preview_document(out: Path, doc: str, findings: list[dict[str, Any]], units: dict[str, dict[str, Any]]) -> Path:
+def _preview_document(
+    out: Path,
+    doc: str,
+    findings: list[dict[str, Any]],
+    units: dict[str, dict[str, Any]],
+    skipped: list[str] | None = None,
+) -> Path:
     source = Path(doc)
     raw = source.read_text(encoding="utf-8")
-    replacements: list[tuple[int, int, str]] = []
-    document_cache: dict[str, ProjectionMap] = {}
+    raw_bytes = raw.encode("utf-8")
+    skipped = skipped if skipped is not None else []
+    replacements: list[tuple[int, int, str, str]] = []
     for finding in findings:
         if finding.get("rewrite_status") != "proposed" or not finding.get("rewrite"):
             continue
-        unit = units.get(str(finding.get("unit_id")))
+        unit_id = str(finding.get("unit_id", ""))
+        unit = units.get(unit_id)
         if unit is None:
+            skipped.append(f"{unit_id}: unit not found")
             continue
+        source_range = unit.get("source_range")
+        if (
+            not isinstance(source_range, list)
+            or len(source_range) != 2
+            or not all(isinstance(value, int) for value in source_range)
+            or source_range[0] < 0
+            or source_range[0] > source_range[1]
+            or source_range[1] > len(raw_bytes)
+        ):
+            skipped.append(f"{unit_id}: invalid source range")
+            continue
+        start, end = source_range
         try:
-            document_ref = str(unit["document_ref"])
-            projection = document_cache.get(document_ref)
-            if projection is None:
-                data = json.loads((out / "documents" / f"{document_ref}.json").read_text(encoding="utf-8"))
-                projection = _projection_from_dict(data["projection"])
-                document_cache[document_ref] = projection
-            start = projection.to_raw(int(unit.get("range", [0, 0])[0]))
-            end = projection.to_raw(int(unit.get("range", [0, 0])[1]))
-        except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
+            source_text = raw_bytes[start:end].decode("utf-8")
+        except UnicodeDecodeError:
+            skipped.append(f"{unit_id}: source range is not valid UTF-8")
             continue
-        replacements.append((start, end, str(finding["rewrite"])))
-    data = raw.encode("utf-8")
-    for start, end, replacement in sorted(replacements, reverse=True):
+        if source_text != str(unit.get("text", "")):
+            skipped.append(f"{unit_id}: source text mismatch")
+            continue
+        replacements.append((start, end, str(finding["rewrite"]), unit_id))
+
+    accepted: list[tuple[int, int, str, str]] = []
+    for candidate in sorted(replacements, key=lambda value: (value[0], value[1], value[3])):
+        start, end, _, unit_id = candidate
+        conflict = next((item for item in accepted if start < item[1] and item[0] < end), None)
+        if conflict is not None:
+            reason = "duplicate span" if (start, end) == conflict[:2] else "overlapping span"
+            skipped.append(f"{unit_id}: {reason} ({start}:{end})")
+            continue
+        accepted.append(candidate)
+
+    data = raw_bytes
+    for start, end, replacement, _ in sorted(accepted, key=lambda value: value[0], reverse=True):
         data = data[:start] + replacement.encode("utf-8") + data[end:]
-    target = out / "preview" / source
+    target = out.resolve() / "preview" / _safe_name(source)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)
     return target
@@ -1198,8 +1281,16 @@ def compare(*, out: Path, doc: Path | None = None, apply_preview: bool = False) 
             if finding.get("outcome") == "CONFIRM" and unit and unit.get("path") == item["path"]:
                 lines.append(f"  CONFIRM {finding['rule_id']} [{finding.get('severity')}] rewrite={finding.get('rewrite')!r}")
         if apply_preview:
-            preview = _preview_document(out, str(item["path"]), [f for f in findings if units.get(str(f.get("unit_id")), {}).get("path") == item["path"]], units)
+            skipped: list[str] = []
+            preview = _preview_document(
+                out,
+                str(item["path"]),
+                [f for f in findings if units.get(str(f.get("unit_id")), {}).get("path") == item["path"]],
+                units,
+                skipped,
+            )
             lines.append(f"preview: {preview}")
+            lines.extend(f"preview skipped: {reason}" for reason in skipped)
     return "\n".join(lines)
 
 
