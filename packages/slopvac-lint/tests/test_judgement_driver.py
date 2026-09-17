@@ -57,6 +57,26 @@ def test_finish_records_missing_calls_and_compare_shows_both_scores(tmp_path: Pa
     assert "judgement (new): score=" in text
 
 
+def test_finish_counts_failed_responses_in_coverage(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("A useful authored paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(
+        config=CONFIG,
+        out=out,
+        paths=(document,),
+        packs="PROBE-4",
+        categories=("ai-tells-register", "ai-tells-structure"),
+    )
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"call_id": call["call_id"], "response": "{bad"}) + "\n", encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    coverage = report["coverage"]["documents"][str(document)]
+    assert coverage["failed"] == len(units)
+    assert coverage["not_run"] == 0
+
 def test_span_calls_group_passages_and_rules(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
     document.write_text("One authored paragraph.\n\nTwo authored paragraph.\n\nThree authored paragraph.", encoding="utf-8")
@@ -358,12 +378,58 @@ def test_finish_flags_omitted_probe_or_span_rows(tmp_path: Path, packs: str, kin
     responses.write_text(json.dumps({"call_id": call["call_id"], "response": {"results": rows}}) + "\n", encoding="utf-8")
     report = finish(out=out, responses=responses)
     missing = [item for item in report["failed"] if item.get("reason") == "row_missing"]
-    assert any(omitted["unit_id"] in item["unit_ids"] for item in missing)
+    call_missing = [item for item in missing if item["call_id"] == call["call_id"]]
+    assert len(call_missing) == 1
+    assert len(call_missing[0]["unit_ids"]) == len(call["unit_ids"]) - 1
+    assert any(omitted["unit_id"] in item["unit_ids"] for item in call_missing)
+
+def test_finish_uses_projected_paragraph_boundaries_for_cluster_gate(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    prefix = "[prefix](https://" + "x" * 200 + ")"
+    document.write_text(
+        prefix + "\n\nFirst target sentence.\n\nSecond target sentence.\n\nThird target sentence.",
+        encoding="utf-8",
+    )
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
+    selected_rule = "ai-tells-structure.absolute-assertion-remainder"
+    targets = {"First target sentence.", "Second target sentence.", "Third target sentence."}
+    rows = []
+    units_by_id = {unit["unit_id"]: unit for unit in units}
+    for unit_id in call["unit_ids"]:
+        unit = units_by_id[unit_id]
+        row = _result_row(unit)
+        if unit["rule_id"] == selected_rule and unit["text"] in targets:
+            quote = str(unit["text"])
+            row.update(
+                {
+                    "evidence": [{"quote": quote, "start": 0, "end": len(quote), "role": "defect", "source": "unit", "source_ref": unit["unit_id"]}],
+                    "occurrences": None,
+                    "scores": {"fit": "unambiguous_match", "harm": "misleads_or_blocks", "repair": "local_substitution", "warrant": "quote_plus_particular"},
+                    "verdict": "confirm",
+                }
+            )
+        else:
+            row.update(
+                {
+                    "evidence": [],
+                    "occurrences": None,
+                    "scores": {"fit": "absent", "harm": "none", "repair": "inapplicable", "warrant": "none"},
+                }
+            )
+        rows.append(row)
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"call_id": call["call_id"], "response": {"results": rows}}) + "\n", encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    assert report["documents"][0]["confirmed"] == 3
+    assert report["documents"][0]["cluster_gate"] is None
 
 
 def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
-    first = tmp_path / "one" / "README.md"
-    second = tmp_path / "two" / "README.md"
+    first = tmp_path / "a" / "b__c.md"
+    second = tmp_path / "a__b" / "c.md"
     first.parent.mkdir()
     second.parent.mkdir()
     first.write_text("First document paragraph.", encoding="utf-8")

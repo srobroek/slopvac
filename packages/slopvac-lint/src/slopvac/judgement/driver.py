@@ -94,11 +94,16 @@ def _safe_name(path: Path, root: Path | None = None) -> str:
         # Falling back to ``path.name`` makes sibling documents collide.
         value = str(path.resolve())
     value = value.replace("\\", "/").strip("/")
-    return value.replace("/", "__") or path.name
+    # Escape every character that participates in the flattening scheme.  Escaping
+    # ``%`` first keeps the encoding injective even when the source contains a
+    # sequence that looks like an escape.
+    value = value.replace("%", "%25").replace("_", "%5F").replace("/", "%2F")
+    return value or path.name
 
 
-def _paragraph_ranges(raw: str) -> list[tuple[int, int]]:
-    """Return blank-line paragraph boundaries in document coordinates."""
+
+def _paragraph_ranges(raw: str, projection: ProjectionMap | None = None) -> list[tuple[int, int]]:
+    """Return blank-line paragraph boundaries in raw or projected coordinates."""
     ranges: list[tuple[int, int]] = []
     start = 0
     separators = re.finditer(r"(?:\r?\n)[ \t]*(?:\r?\n)+", raw)
@@ -114,7 +119,14 @@ def _paragraph_ranges(raw: str) -> list[tuple[int, int]]:
     right = len(block.rstrip())
     if left < right:
         ranges.append((start + left, start + right))
-    return ranges
+    if projection is None:
+        return ranges
+    projected_ranges: list[tuple[int, int]] = []
+    for raw_start, raw_end in ranges:
+        selected = [segment for segment in projection.segments if segment.raw_end > raw_start and segment.raw_start < raw_end]
+        if selected:
+            projected_ranges.append((selected[0].proj_start, selected[-1].proj_end))
+    return projected_ranges
 
 
 def _schema_wrapper(units: list[dict[str, Any]], kind: str) -> dict[str, Any]:
@@ -1084,14 +1096,14 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         if validation_error is not None and missing_ids and missing_payload:
             for unit_id in missing_ids:
                 units[unit_id]["status"] = "failed"
-                failed.append(
-                    {
-                        "call_id": call_id,
-                        "unit_ids": [unit_id],
-                        "reason": "row_missing",
-                        "errors": ["row_missing"],
-                    }
-                )
+            failed.append(
+                {
+                    "call_id": call_id,
+                    "unit_ids": missing_ids,
+                    "reason": "row_missing",
+                    "errors": ["row_missing"],
+                }
+            )
             row_values = [dict(row) for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
         else:
             row_values = rows if validation_error is None else []
@@ -1144,6 +1156,7 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             "path": item.get("path", ""),
             "pack_id": item.get("pack_id", ""),
             "rule_id": item.get("rule_id", ""),
+            "status": item.get("status", "not_run"),
             "truncated": item.get("truncated", False),
         }
         for item in unit_items
@@ -1161,7 +1174,9 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         doc_records = by_path.get(path, [])
         score = _score_with_judgement(deterministic, doc_records, manifest, config, rule_map, weights, path)
         document_data_for_components = documents.get(str(doc.get("document_ref", "")), {})
-        paragraph_boundaries = _paragraph_ranges(str(document_data_for_components.get("text", "")))
+        raw_text = str(document_data_for_components.get("text", ""))
+        _, projection = project(raw_text)
+        paragraph_boundaries = _paragraph_ranges(raw_text, projection)
         doc_components = components(doc_records, paragraph_boundaries, _DEPENDENCE_TABLE)
         gate = cluster_gate(doc_components, doc_records, config)
         outcomes = Counter(record.outcome for record in doc_records)
