@@ -491,17 +491,21 @@ def _split_vertical_list(text: str) -> list[tuple[str, int]]:
     for index, line in enumerate(lines):
         if not re.search(r":\s*$", line.rstrip("\r\n")):
             continue
-        tail = [part.strip() for part in lines[index + 1 :] if part.strip()]
+        tail = [
+            (line_index, part.strip())
+            for line_index, part in enumerate(lines[index + 1 :], index + 1)
+            if part.strip()
+        ]
         if not tail or not all(
-            re.match(r"^(?:[-*+]|\d+[.)]|[A-Za-z][.)])\s+", part) for part in tail
+            re.match(r"^(?:[-*+]|\d+[.)]|[A-Za-z][.)])\s+", part) for _, part in tail
         ):
             continue
         head = "".join(lines[: index + 1]).strip()
         result: list[tuple[str, int]] = [(head, 0)]
-        for tail_index, part in enumerate(tail, index + 1):
-            raw = lines[tail_index]
+        for line_index, part in tail:
+            raw = lines[line_index]
             leading = len(raw) - len(raw.lstrip())
-            result.append((part, offsets[tail_index] + leading))
+            result.append((part, offsets[line_index] + leading))
         return result
     return [(text, 0)]
 

@@ -145,6 +145,12 @@ def test_sentence_offsets_and_vertical_item_cuts_keep_source_lines() -> None:
         ("Second.", 11),
         ("- Third.", 12),
     ]
+    blank_lines = split_sentences("Set values:\n\n- First\n- Second", 10)
+    assert [(sentence.text, sentence.line) for sentence in blank_lines] == [
+        ("Set values:", 10),
+        ("- First", 12),
+        ("- Second", 13),
+    ]
 
 
 @pytest.mark.parametrize(
