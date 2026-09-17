@@ -367,6 +367,20 @@ cargo install --locked agnix-cli --version 0.52.2
 The installer sets a worktree hook path and preserves existing hooks.
 Before each commit, the hook validates the Git index.
 
+## Orchestration and Beads artifact retention
+
+Keep audit records under `.orchestration/audit/` for 30 days. Keep the ten newest `.beads/backup/*.darc` archives. Keep `.beads/interactions.jsonl` at 10 MiB. When pruning this log, retain complete records. These limits preserve enough history for incident review. They also bound operational growth.
+
+Repository maintainers own these limits. The pruner leaves metadata and hooks unchanged. It also leaves the active run marker unchanged. Every accepted path stays inside the repository root.
+
+Use `scripts/prune-orchestration-artifacts.py` from the repository root to preview removals:
+
+```sh
+./scripts/prune-orchestration-artifacts.py --dry-run
+```
+
+Pass `--apply` to delete reported paths or truncate the log. Use `--audit-days`, `--backup-count`, or `--interactions-max-bytes` to change the defaults.
+
 ## License
 
 Apache-2.0. Bundles rules harvested from
