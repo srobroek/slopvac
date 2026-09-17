@@ -37,16 +37,26 @@ stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 
 from __future__ import annotations
 
+import hashlib
 import unicodedata
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
+from html import unescape
 from html.parser import HTMLParser
 
 import regex as re
 from markdown_it import MarkdownIt
 
 from .model import TextType
+from .projection import (
+    ProjectionMap,
+    Segment,
+    classify_origin,
+    classify_region,
+    project,
+    source_sha256,
+)
 
 # --- Markdown structure ------------------------------------------------------
 
@@ -209,34 +219,88 @@ class Sentence:
 
 
 @dataclass
+class Unit:
+    """A judgement unit with exact projected and document coordinates."""
+
+    kind: str
+    rule_id: str
+    path: str
+    text: str
+    range: tuple[int, int]
+    doc_range: tuple[int, int]
+    projection: ProjectionMap
+    origin: str
+    region_class: str
+    source_sha256: str
+    unit_id: str = ""
+
+    def __post_init__(self) -> None:
+        start, end = self.range
+        if not self.unit_id:
+            payload = "\0".join(
+                (self.kind, self.rule_id, self.path, self.source_sha256, str(start), str(end))
+            ).encode("utf-8")
+            self.unit_id = hashlib.sha256(payload).hexdigest()[:16]
+
+
+class SpanCandidate(Unit):
+    """A local span unit sent to the judgement layer."""
+
+    def __init__(self, **kwargs: object) -> None:
+        super().__init__(kind="SPAN_CANDIDATE", **kwargs)
+
+
+class PassageProbe(Unit):
+    """A whole-passage probe unit sent to the judgement layer."""
+
+    def __init__(self, **kwargs: object) -> None:
+        super().__init__(kind="PASSAGE_PROBE", **kwargs)
+
+
+SPAN_CANDIDATE = "SPAN_CANDIDATE"
+PASSAGE_PROBE = "PASSAGE_PROBE"
+
+
+@dataclass
 class Block:
     kind: BlockKind
     lines: tuple[int, int]
     text: str
     sentences: list[Sentence] = field(default_factory=list)
     level: int = 0
-    # Each entry is (offset in normalized text, source line). Wrapped pieces
-    # are joined with one space for matching, while their starts remain mapped
-    # to the physical lines that supplied them.
+    projection: ProjectionMap | None = None
+    range: tuple[int, int] = (0, 0)
+    doc_range: tuple[int, int] = (0, 0)
+    origin: str = "authored"
+    region_class: str = "prose"
+    source_sha256: str = ""
+    unit_id: str = ""
+    # Compatibility for callers that display line-aligned prose. Position
+    # resolution itself is projection-backed.
     line_starts: list[tuple[int, int]] = field(default_factory=list)
+    raw_bytes: bytes = b""
+    under_examples: bool = False
+    heading: str = ""
 
     def position(self, offset: int) -> tuple[int, int]:
-        """Map a normalized text offset to its physical source line/column."""
-        if not self.line_starts:
-            return self.lines[0], offset + 1
-        index = max(0, bisect_right(self.line_starts, (offset, float("inf"))) - 1)
-        start, line = self.line_starts[index]
-        return line, offset - start + 1
+        """Map a projected offset to the source line and column."""
+
+        if self.projection is None:
+            if not self.line_starts:
+                return self.lines[0], offset + 1
+            index = max(0, bisect_right(self.line_starts, (offset, float("inf"))) - 1)
+            start, line = self.line_starts[index]
+            return line, offset - start + 1
+        raw_offset = self.projection.to_raw(offset)
+        prefix = self.raw_bytes[:raw_offset].decode("utf-8", errors="replace")
+        line = prefix.count("\n") + 1
+        column = len(prefix.rsplit("\n", 1)[-1]) + 1
+        return line, column
 
 
 @dataclass
 class Document:
-    """A parsed document.
-
-    `prose_lines` is line-aligned with the source: index i holds line i+1's prose
-    with code, links, and markup removed, or "" for a non-prose line. Rules match
-    against this, so every finding's line number is the real one.
-    """
+    """A parsed document and its lossless prose projection."""
 
     path: str
     raw: str
@@ -244,6 +308,9 @@ class Document:
     prose_lines: list[str]
     blocks: list[Block]
     front_matter: dict[str, str] = field(default_factory=dict)
+    projection: ProjectionMap | None = None
+    origin: str = "authored"
+    source_sha256: str = ""
 
     @property
     def words(self) -> int:
@@ -262,16 +329,169 @@ class Document:
 
     def markup_text(self) -> str:
         """Prose lines with their markup intact, for rules that measure the markup."""
+
         skip: set[int] = set()
         for block in self.blocks:
             if block.kind in {BlockKind.CODE, BlockKind.FRONT_MATTER}:
                 skip.update(range(block.lines[0], block.lines[1] + 1))
-        kept = [
-            line
-            for number, line in enumerate(self.raw_lines, start=1)
-            if number not in skip
-        ]
+        kept = [line for number, line in enumerate(self.raw_lines, start=1) if number not in skip]
         return INLINE_CODE.sub(" ", "\n".join(kept))
+
+
+def _unit_for_block(
+    block: Block,
+    *,
+    rule_id: str,
+    path: str,
+    kind: str = SPAN_CANDIDATE,
+) -> Unit:
+    if block.projection is None:
+        raise ValueError("block has no projection map")
+    unit_type = PassageProbe if kind == PASSAGE_PROBE else SpanCandidate
+    return unit_type(
+        rule_id=rule_id,
+        path=path,
+        text=block.text,
+        range=block.range,
+        doc_range=block.doc_range,
+        projection=block.projection,
+        origin=block.origin,
+        region_class=block.region_class,
+        source_sha256=block.source_sha256,
+    )
+
+
+unit_from_block = _unit_for_block
+
+
+
+_ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]+);?")
+
+
+def _raw_cp_bytes(raw: str) -> list[int]:
+    offsets = [0]
+    for char in raw:
+        offsets.append(offsets[-1] + len(char.encode("utf-8")))
+    return offsets
+
+
+def _line_cp_starts(raw: str) -> list[int]:
+    starts = [0]
+    for index, char in enumerate(raw):
+        if char == "\n":
+            starts.append(index + 1)
+    return starts
+
+
+def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionMap:
+    """Align parser-rendered block text with its source line span."""
+
+    offsets = _raw_cp_bytes(raw)
+    starts = _line_cp_starts(raw)
+    start_cp = starts[max(0, min(first - 1, len(starts) - 1))]
+    end_line = max(first, min(last, len(starts)))
+    end_cp = starts[end_line] if end_line < len(starts) else len(raw)
+    cursor = start_cp
+    segments: list[Segment] = []
+    for position, char in enumerate(text):
+        raw_start_cp = cursor
+        raw_end_cp = cursor
+        if char == " " and cursor < end_cp and raw[cursor] in "\r\n":
+            # Parser joins a soft break or HTML text line with one synthetic
+            # space. Consume the source newline but keep the projected space
+            # zero-width in raw coordinates.
+            while cursor < end_cp and raw[cursor] in "\r\n":
+                cursor += 1
+            segments.append(
+                Segment(position, position + 1, offsets[raw_start_cp], offsets[raw_start_cp])
+            )
+            continue
+        found = raw.find(char, cursor, end_cp)
+        entity_match = None
+        for candidate in _ENTITY.finditer(raw, cursor, end_cp):
+            if unescape(candidate.group(0)) == char:
+                entity_match = candidate
+                break
+        if entity_match is not None and (found < 0 or entity_match.start() <= found):
+            raw_start_cp = entity_match.start()
+            raw_end_cp = entity_match.start()
+            cursor = entity_match.end()
+        elif found >= 0:
+            raw_start_cp = found
+            raw_end_cp = found + 1
+            cursor = raw_end_cp
+        segments.append(
+            Segment(position, position + 1, offsets[raw_start_cp], offsets[raw_end_cp])
+        )
+    return ProjectionMap(tuple(segments), raw.encode("utf-8"))
+
+
+def _block_projected_base(document_projection: ProjectionMap, block_projection: ProjectionMap) -> int:
+    """Return the block start in the document-wide projected coordinate space."""
+    if not block_projection.segments:
+        return 0
+    raw_start = min(segment.raw_start for segment in block_projection.segments)
+    raw_end = max(segment.raw_end for segment in block_projection.segments)
+    matching = [
+        segment
+        for segment in document_projection.segments
+        if segment.raw_end > raw_start and segment.raw_start < raw_end
+    ]
+    if matching:
+        return matching[0].proj_start
+    # A block made entirely of synthetic projection characters has no raw span;
+    # anchor it at the nearest document projection boundary.
+    for segment in document_projection.segments:
+        if segment.raw_start >= raw_start:
+            return segment.proj_start
+    return document_projection.projected_length
+
+
+def _finalize_document(document: Document) -> Document:
+    """Attach maps, origins, stable identities, and document ranges."""
+
+    raw_bytes = document.raw.encode("utf-8")
+    projected_text, document.projection = project(document.raw)
+    document.origin = classify_origin(document.path, document.raw)
+    document.source_sha256 = source_sha256(raw_bytes)
+    examples_heading = False
+    projected_cursor = 0
+    for block in document.blocks:
+        if block.kind is BlockKind.HEADING:
+            heading_lines = document.raw_lines[block.lines[0] - 1 : block.lines[1]]
+            heading_text = " ".join(heading_lines).lstrip("# ").strip()
+            block.heading = heading_text
+            examples_heading = heading_text.lower() == "examples"
+        block.under_examples = examples_heading and block.kind not in {
+            BlockKind.FRONT_MATTER,
+            BlockKind.CODE,
+        }
+        block.projection = _align_block_text(
+            block.text, document.raw, block.lines[0], block.lines[1]
+        )
+        block_base = projected_text.find(block.text, projected_cursor)
+        if block_base < 0:
+            block_base = _block_projected_base(document.projection, block.projection)
+        else:
+            projected_cursor = block_base + len(block.text)
+        block.range = (0, len(block.text))
+        block.doc_range = (block_base, block_base + len(block.text))
+        block.origin = document.origin
+        block.region_class = classify_region(block)
+        block.source_sha256 = document.source_sha256
+        block.raw_bytes = raw_bytes
+        payload = "\0".join(
+            (
+                block.kind.value,
+                "",
+                document.path,
+                document.source_sha256,
+                str(block.doc_range[0]),
+                str(block.doc_range[1]),
+            )
+        ).encode("utf-8")
+        block.unit_id = hashlib.sha256(payload).hexdigest()[:16]
+    return document
 
 
 _NUMBER_WITH_UNIT = re.compile(
@@ -732,13 +952,13 @@ def _parse_html(path: str, raw: str) -> Document:
         block.sentences = split_sentences(text, number)
         blocks.append(block)
 
-    return Document(
+    return _finalize_document(Document(
         path=path,
         raw=raw,
         raw_lines=raw_lines,
         prose_lines=prose_lines,
         blocks=blocks,
-    )
+    ))
 
 
 def parse(path: str, raw: str) -> Document:
@@ -943,14 +1163,14 @@ def parse(path: str, raw: str) -> Document:
     )
     prose_lines = joined.split("\n")
 
-    return Document(
+    return _finalize_document(Document(
         path=path,
         raw=raw,
         raw_lines=raw_lines,
         prose_lines=prose_lines,
         blocks=blocks,
         front_matter=front_matter,
-    )
+    ))
 
 
 

@@ -5,7 +5,10 @@
 [files]
 # CHANGELOG entries carry commit SHAs, and a 7-hex abbreviation lands on a word
 # often enough (`caf391e` -> `calf`) that the file is noise-only.
-extend-exclude = ["CHANGELOG.md"]
+extend-exclude = [
+  "CHANGELOG.md",
+  "packages/slopvac-lint/tests/fixtures/text_type/runbook-labels-v1.jsonl",
+]
 
 [default.extend-words]
 # Suffix and prefix FRAGMENTS inside character alternations. Each one is a piece of
@@ -28,3 +31,13 @@ utiliz = "utiliz"
 # A real word with two accepted spellings, and this one is the spelling used
 # throughout. Not a typo to correct.
 unparseable = "unparseable"
+
+# Cited author surname (Sclar et al. 2023), a statistics term, and the MUC coreference
+# metric, all in the rubric research record.
+Sclar = "Sclar"
+nonsignificant = "nonsignificant"
+MUC = "MUC"
+
+[default]
+# Abbreviated commit SHAs cited in the research record (`cace892253`, `ba...`).
+extend-ignore-re = ["\\b[0-9a-f]{10,40}\\b"]

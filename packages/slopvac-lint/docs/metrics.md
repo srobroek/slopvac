@@ -291,3 +291,20 @@ per paragraph, no minimum sentence length, no limit on list items or list nestin
 readability-score target. The specification declines to regulate units of measurement,
 abbreviation style, and text formatting. The uppercase presentation of safety blocks in the
 source examples is example-specific formatting.
+
+## 8. Composite judgement reporting
+
+The deterministic score remains the score used by every existing gate. Host judgement
+results are reported beside it as a separate, bounded signal:
+
+`judgement_adjusted_score = max(0, deterministic_score - min(judgement_penalty, max_penalty))`.
+
+The shipped `max_penalty` is 15 points and is **provisional**. The uncapped penalty and
+the capped penalty are both present in JSON so a later calibration can be compared with
+the shipped result. Severity uses the existing `error = 1.0`, `warning = 0.5`, and
+`suggestion = 0.1` weights, multiplied by the finding's own resolved category weight.
+
+Judgement deductions never enter deterministic density, category scores, `max_warnings`,
+or the `min_score` gate. A confirmed judgement finding counts toward `max_errors` only
+when its rule's `judgement_ceiling` is `error`. A cluster result is reported separately
+as `REVISE`; it does not alter either score.

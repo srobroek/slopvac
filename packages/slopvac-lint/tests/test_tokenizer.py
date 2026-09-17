@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import json
+from collections import defaultdict
+from pathlib import Path
+
 import pytest
 
 from slopvac.analyze import classify_text_type, count_words, split_sentences
 from slopvac.model import TextType
 
 
-# Each case is taken from the corresponding worked example in docs/metrics.md.
 def test_phase_0_strips_step_and_paragraph_markers() -> None:
     assert count_words("Step 3. Restart the worker.") == 3
     assert count_words("(1) Restart the worker.") == 3
@@ -47,9 +50,7 @@ def test_phase_1_review_findings_remain_single_observable_tokens(
 
 
 def test_phase_2_collapses_quotes_without_pairing_contractions() -> None:
-    assert count_words(
-        'Set the timeout to 30 s for the HTTP client in the "edge gateway" service.'
-    ) == 13
+    assert count_words("Set the timeout to 30 s for the HTTP client in the \"edge gateway\" service.") == 13
     assert count_words("Don't run the team's failed build now.") == 7
 
 
@@ -91,32 +92,15 @@ def test_phase_9_counts_remaining_tokens_and_ignores_punctuation() -> None:
 def test_colon_only_splits_a_vertical_list() -> None:
     ordinary = split_sentences("The value is set: then the parser reads it.", 1)
     vertical = split_sentences("Set these values:\n- one\n- two", 1)
-    assert [sentence.text for sentence in ordinary] == [
-        "The value is set: then the parser reads it."
-    ]
-    assert [sentence.text for sentence in vertical] == [
-        "Set these values:",
-        "- one",
-        "- two",
-    ]
+    assert [sentence.text for sentence in ordinary] == ["The value is set: then the parser reads it."]
+    assert [sentence.text for sentence in vertical] == ["Set these values:", "- one", "- two"]
 
 
 def test_parenthetical_and_non_terminal_periods_do_not_split() -> None:
-    parenthetical = split_sentences(
-        "A sentence (with another sentence. And more words inside). End.", 1
-    )
-    abbreviations = split_sentences(
-        "Use e.g. this value. Version v1.2.3 works. Done.", 1
-    )
-    assert [sentence.text for sentence in parenthetical] == [
-        "A sentence (with another sentence. And more words inside).",
-        "End.",
-    ]
-    assert [sentence.text for sentence in abbreviations] == [
-        "Use e.g. this value.",
-        "Version v1.2.3 works.",
-        "Done.",
-    ]
+    parenthetical = split_sentences("A sentence (with another sentence. And more words inside). End.", 1)
+    abbreviations = split_sentences("Use e.g. this value. Version v1.2.3 works. Done.", 1)
+    assert [sentence.text for sentence in parenthetical] == ["A sentence (with another sentence. And more words inside).", "End."]
+    assert [sentence.text for sentence in abbreviations] == ["Use e.g. this value.", "Version v1.2.3 works.", "Done."]
 
 
 def test_dotted_initialisms_distinguish_continuations_from_openers() -> None:
@@ -207,42 +191,28 @@ def test_runbook_imperatives_are_procedural(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.PROCEDURAL
 
 
-@pytest.mark.parametrize(
-    "sentence",
-    [
-        "The runbook walks you through the process.",
-        "It is a critical procedure that should be approached with care.",
-        "Generally speaking, a lag of under a few seconds is acceptable.",
-        "A lag of under a few seconds is considered acceptable.",
-        "The ingress reads its certificate from the secret.",
-        "Reloading an ingress node drops open connections.",
-        "The process stages the new certificate on two nodes.",
-        "The certificate and key match.",
-        "The old primary can no longer be reattached.",
-        "These nodes carry roughly a third of the traffic.",
-        "Verification fails on the staged nodes.",
-        "All nodes should show the new expiry date.",
-        "The expected result is shown below.",
-        "Before starting, check the expiry.",
-        "If verification fails, proceed to rollback.",
-        "Because the node is drained, connections are moved.",
-        "The certificate is valid for the host.",
-        "During staging, traffic remains available.",
-        "NOTE: The import reads the cache at startup.",
-        "Step 3 is the final verification.",
-    ],
-)
+@pytest.mark.parametrize("sentence", ["The runbook walks you through the process.", "It is a critical procedure that should be approached with care.", "Generally speaking, a lag of under a few seconds is acceptable.", "A lag of under a few seconds is considered acceptable.", "The ingress reads its certificate from the secret.", "Reloading an ingress node drops open connections.", "The process stages the new certificate on two nodes.", "The certificate and key match.", "The old primary can no longer be reattached.", "These nodes carry roughly a third of the traffic.", "Verification fails on the staged nodes.", "All nodes should show the new expiry date.", "The expected result is shown below.", "Before starting, check the expiry.", "If verification fails, proceed to rollback.", "Because the node is drained, connections are moved.", "The certificate is valid for the host.", "During staging, traffic remains available.", "NOTE: The import reads the cache at startup.", "Step 3 is the final verification."])
 def test_runbook_descriptions_are_descriptive(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.DESCRIPTIVE
 
 
-def test_labelled_runbook_set_reaches_ninety_percent_agreement() -> None:
-    labelled = [
-        ("Rotate the certificate.", TextType.PROCEDURAL),
-        ("The certificate is valid.", TextType.DESCRIPTIVE),
-    ]
-    agreement = sum(classify_text_type(text) is expected for text, expected in labelled)
-    assert agreement / len(labelled) >= 0.90
+@pytest.mark.xfail(strict=True, reason="classifier below 0.90; failing facets: contractions, safety markers")
+def test_labelled_runbook_set_reaches_documented_agreement() -> None:
+    path = Path(__file__).parent / "fixtures" / "text_type" / "runbook-labels-v1.jsonl"
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    header, rows = records[0], records[1:]
+    threshold = header["threshold"]
+    counts: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+    correct = 0
+    for row in rows:
+        expected = TextType[row["expected"]]
+        actual = classify_text_type(row["text"])
+        correct += actual is expected
+        counts[row["facet"]][0] += actual is expected
+        counts[row["facet"]][1] += 1
+    agreement = correct / len(rows)
+    table = "; ".join(f"{facet}: {right}/{total} ({right / total:.3f})" for facet, (right, total) in sorted(counts.items()))
+    assert agreement >= threshold, f"agreement {agreement:.3f} < {threshold:.3f}; {table}"
 
 
 @pytest.mark.parametrize(
