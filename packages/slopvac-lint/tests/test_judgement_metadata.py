@@ -41,7 +41,9 @@ def test_shipped_rules_load_and_contract_records_match() -> None:
     ruleset = load_ruleset([], verify=False)
     records = json.loads(CONTRACT.read_text())['rule_records']
     by_id = {record['id']: record for record in records}
-    assert len(ruleset.rules) == 231
+    # 230 = main's inventory (prose-craft.annotations was retired on main) plus this
+    # branch's judgement rules; the digest test in test_ruleset.py guards the exact ids.
+    assert len(ruleset.rules) == 230
     assert len(ruleset.judgement_rules()) == 66
     for rule in ruleset.judgement_rules():
         contract = asdict(rule.judgement)
