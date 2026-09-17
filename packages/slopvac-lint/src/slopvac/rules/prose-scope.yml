@@ -54,8 +54,8 @@ rules:
       - bad: The loader uses a lockfile rather than a resolver because resolution is slow.
         good: The loader reads the lockfile.
     provenance:
-      source: vale-styles/prose-scope/RejectedAlternative.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-scope/RejectedAlternative.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/RejectedAlternative.yml
       note: >-
         Excluded at relaxed and disabled by glob for specs/, .specify/, ADR paths,
         and CONTRIBUTING/constitution in .vale.ini: an ADR or spec IS the place for
@@ -86,8 +86,8 @@ rules:
       - bad: The in-process walk beats the subprocess by 104x, taking 0.4 ms.
         good: The loader walks the parent chain in process.
     provenance:
-      source: vale-styles/prose-scope/ImplementationLeak.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-scope/ImplementationLeak.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/ImplementationLeak.yml
       note: >-
         A unit must sit next to the number, so version strings, ports, exit codes,
         and byte sizes in a config table stay clean. A stated ceiling is a
@@ -123,8 +123,8 @@ rules:
       - bad: No configuration required -- it just works.
         good: The linter reads `.slopvac.toml` when one is present.
     provenance:
-      source: vale-styles/prose-scope/UnrequestedReassurance.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-scope/UnrequestedReassurance.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/UnrequestedReassurance.yml
       note: >-
         Anchored to the frame, never to "nothing" or "no" alone: "no rule matches"
         is a measurement and "nothing is committed" states where files live. The
@@ -154,8 +154,8 @@ rules:
       - bad: The scripts are its tools, not yours.
         good: The skill invokes the scripts.
     provenance:
-      source: vale-styles/prose-scope/Epigram.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — prose-scope/Epigram.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/Epigram.yml
       note: >-
         Two matched forms: a parallel pair (N V O. N V O. with the same or a
         mirrored verb) and a negated maxim (... X, not Y. as a standalone
