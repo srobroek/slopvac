@@ -37,6 +37,7 @@ stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 
 from __future__ import annotations
 
+import unicodedata
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
@@ -99,16 +100,18 @@ UNIT = (
     r"USD|EUR|GBP"
     r")(?:\^?-?\d)?"
 )
-WORDLIKE = re.compile(r"[A-Za-z0-9]")
+WORDLIKE = re.compile(r"[\p{L}\p{Nd}]")
+WORD_CHAR = re.compile(r"[\p{L}\p{Nd}\p{M}]")
+TOKEN_JOINER = frozenset({"'", "’", "ʼ", "＇", "-", "‐", "‑", "﹣", "－"})
 
 CODE_SPAN = re.compile(r"(?<!`)`{1,}(?P<body>[^`\n]*?)`{1,}(?!`)")
 URL_OR_PATH = re.compile(
-    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
+    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[\p{L}\p{Nd}_.-]+/)+[\p{L}\p{Nd}_.-]*[\p{L}\p{Nd}_]|"
+    r"(?<!\w)(?:\./)?(?:[\p{L}\p{Nd}_.-]+/)+[\p{L}\p{Nd}_.-]*[\p{L}\p{Nd}_]"
 )
 FLAG_OR_ENV = re.compile(r"--[A-Za-z][A-Za-z0-9-]*|\$[A-Z][A-Z0-9_]*")
 IDENTIFIER = re.compile(
-    r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
-    r"[A-Za-z_][A-Za-z0-9_]*(?:(?:[.:])[A-Za-z0-9_]+)+(?!\w)"
+    r"(?<!\w)[\p{L}_][\p{L}\p{Nd}_]*(?:(?:\.|::)[\p{L}\p{Nd}_]+)+(?!\w)"
 )
 MIXED_IDENTIFIER = re.compile(
     r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
@@ -273,6 +276,7 @@ _NUMBER_WITH_UNIT = re.compile(
 _ABBREVIATION_NUMBER = re.compile(
     r"(?<!\w)(?:no|number|fig|figure|sec|section|ref)\.\s+\d+(?!\w)", re.I
 )
+ABBREVIATION = re.compile(r"(?<!\w)(?:[A-Za-z]\.){2,}(?!\w)")
 _PROPER_NAME = re.compile(
     r"(?<!\w)(?:[A-Z][A-Za-z0-9'’’-]*|of|and|for|the)"
     r"(?:\s+(?:[A-Z][A-Za-z0-9'’’-]*|of|and|for|the)){1,}(?!\w)"
@@ -311,14 +315,13 @@ def _collapse_proper_names(text: str) -> str:
     return _PROPER_NAME.sub(replace, text)
 
 
-def count_words(text: str) -> int:
-    """Count words according to the ordered phases in ``docs/metrics.md``.
+def _ste_tokens(text: str) -> tuple[str, ...]:
+    """Return the canonical STE 8.4-8.7 token stream.
 
-    The measured audit probes exposed three different over-counting paths in the
-    old whitespace counter: numbered steps added one, identifiers and units were
-    split apart, and an apostrophe in a contraction could pair with a later one as
-    a quotation. The phase order is therefore explicit rather than a collection of
-    independent substitutions.
+    The ordered span phases run before lexical scanning.  Scanning rather than
+    splitting on whitespace makes Unicode letters/digits wordlike, keeps
+    combining marks attached to their base, and treats an apostrophe or hyphen
+    as interior punctuation only when word characters surround it.
     """
     # Phase 0: delete the uncounted step or paragraph marker.
     text = STEP_NUMBER.sub("", text)
@@ -334,19 +337,42 @@ def count_words(text: str) -> int:
     text = _collapse_proper_names(text)
     text = _collapse(text, (PAREN_SPAN,))
 
-    # Phases 6-7: number/unit pairs and abbreviations. A bare number is also
-    # replaced: it still counts once, but cannot split from a following unit.
-    text = _collapse(text, (_NUMBER_WITH_UNIT,))
+    # Phases 6-7: number/unit pairs and abbreviations.
+    text = _collapse(text, (_NUMBER_WITH_UNIT, ABBREVIATION))
 
-    count = 0
+    tokens: list[str] = []
+    current: list[str] = []
 
-    for token in text.split():
-        token = token.strip(",;:!? .—–")
-        if not token:
+    def flush() -> None:
+        if current:
+            tokens.append("".join(current))
+            current.clear()
+
+    def is_word(char: str) -> bool:
+        return bool(WORD_CHAR.fullmatch(char))
+
+    for index, char in enumerate(text):
+        if char == SENTINEL:
+            flush()
+            tokens.append(SENTINEL)
             continue
-        if token == SENTINEL or WORDLIKE.search(token):
-            count += 1
-    return count
+        if is_word(char) and (not unicodedata.category(char).startswith("M") or current):
+            current.append(char)
+            continue
+        if char in TOKEN_JOINER:
+            previous = text[index - 1] if index else ""
+            following = text[index + 1] if index + 1 < len(text) else ""
+            if current and is_word(previous) and is_word(following):
+                current.append(char)
+                continue
+        flush()
+    flush()
+    return tuple(tokens)
+
+
+def count_words(text: str) -> int:
+    """Count words according to the ordered phases in ``docs/metrics.md``."""
+    return len(_ste_tokens(text))
 
 
 def classify_text_type(text: str) -> TextType:
