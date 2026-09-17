@@ -1,0 +1,117 @@
+{
+  "caveats": [
+    "one run per arm; the repeat-run noise floor is not measured",
+    "single adjudicator (run lead), same procedure as the baseline record",
+    "small confirm counts: 34 baseline, 6 v2; precision intervals are wide",
+    "the baseline's one anaphora-abuse TP did not recur; that rule was not changed, so the loss is model variance or a unit-admission effect and is unattributed"
+  ],
+  "classes": {
+    "human": {
+      "a2_fragment_unit": 4368,
+      "adjudication": {
+        "borderline": 1
+      },
+      "calls": 968,
+      "confirms_per_1000_words": 0.02,
+      "host_confirms": 1,
+      "instrument_id": "9c427f8a05e1f8da189ec7dafb3c98ad53e35d6dc087d1c02c2dd2212a29d579",
+      "outcomes": {
+        "ABSTAIN": 2207,
+        "CONFIRM": 1,
+        "DROP": 4392,
+        "PRESERVE": 74,
+        "REJECT": 20389
+      },
+      "pairs": 27063
+    },
+    "llm": {
+      "a2_fragment_unit": 2652,
+      "adjudication": {
+        "FP": 2,
+        "TP": 1,
+        "borderline": 2
+      },
+      "calls": 321,
+      "confirms_per_1000_words": 0.47,
+      "host_confirms": 5,
+      "instrument_id": "9c427f8a05e1f8da189ec7dafb3c98ad53e35d6dc087d1c02c2dd2212a29d579",
+      "outcomes": {
+        "ABSTAIN": 439,
+        "CONFIRM": 5,
+        "DROP": 1944,
+        "PRESERVE": 29,
+        "REJECT": 7939
+      },
+      "pairs": 10356
+    }
+  },
+  "comparison": {
+    "human": {
+      "FP": [
+        17,
+        0
+      ],
+      "TP": [
+        0,
+        0
+      ],
+      "borderline": [
+        3,
+        1
+      ],
+      "calls": [
+        1215,
+        968
+      ],
+      "confirms": [
+        20,
+        1
+      ],
+      "confirms_per_1000_words": [
+        0.42,
+        0.02
+      ],
+      "preserve": [
+        3,
+        74
+      ]
+    },
+    "llm": {
+      "FP": [
+        7,
+        2
+      ],
+      "TP": [
+        1,
+        1
+      ],
+      "borderline": [
+        6,
+        2
+      ],
+      "calls": [
+        474,
+        321
+      ],
+      "confirms": [
+        14,
+        5
+      ],
+      "confirms_per_1000_words": [
+        1.32,
+        0.47
+      ],
+      "preserve": [
+        3,
+        29
+      ]
+    },
+    "llm_over_human_confirm_rate": [
+      3.1,
+      23.5
+    ]
+  },
+  "corpus": "heldout/corpus/md (13 human, 8 stated-LLM; go-spec excluded)",
+  "instrument": "PR #94 (template_revision 2: fragment admission, normative preset, four rule questions with exemplars)",
+  "schema": "heldout-run"
+}

@@ -1,0 +1,56 @@
+[
+ {
+  "class": "llm",
+  "index": 0,
+  "rule": "ai-tells-structure.contrastive-inversion-remainder",
+  "path": "api-service-foundation.md",
+  "quote": "This is one more place where the current packaging is functional but indirect.",
+  "rewrite": "This is one more place where the current packaging is functional.",
+  "verdict": "FP"
+ },
+ {
+  "class": "llm",
+  "index": 1,
+  "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+  "path": "architecture-overview.md",
+  "quote": "The strongest part of the current architecture is operational structure: app boundaries, runtime separation, containerization, and release automation.",
+  "rewrite": "The architecture includes app boundaries, runtime separation, containerization, and release automation.",
+  "verdict": "TP"
+ },
+ {
+  "class": "llm",
+  "index": 2,
+  "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+  "path": "architecture-overview.md",
+  "quote": "The weakest part is application depth: no domain modules, no persistence, no auth, and no implemented service-to-service flows.",
+  "rewrite": "",
+  "verdict": "borderline"
+ },
+ {
+  "class": "llm",
+  "index": 3,
+  "rule": "ai-tells-structure.cataphoric-lead-in-remainder",
+  "path": "quickstart.md",
+  "quote": "The repo currently contains a few port and naming mismatches:",
+  "rewrite": "The repo contains port and naming mismatches:",
+  "verdict": "borderline"
+ },
+ {
+  "class": "llm",
+  "index": 4,
+  "rule": "ai-tells-structure.heading-echo",
+  "path": "repository-automation-scripts.md",
+  "quote": "The root `package.json` exposes these wrappers:",
+  "rewrite": "",
+  "verdict": "FP"
+ },
+ {
+  "class": "human",
+  "index": 0,
+  "rule": "ai-tells-structure.absolute-assertion-remainder",
+  "path": "postgres-array.md",
+  "quote": "In all of these cases the whitespace will be ignored.",
+  "rewrite": "Whitespace outside quoted element values will be ignored.",
+  "verdict": "borderline"
+ }
+]
