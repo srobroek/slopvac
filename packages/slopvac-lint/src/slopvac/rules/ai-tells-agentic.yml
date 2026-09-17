@@ -453,6 +453,14 @@ rules:
       Does the first sentence under this heading state any fact the heading did
       not already state?
     fix: Delete the restatement and open on the first new fact.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
+      judgement_ceiling: suggestion
+      host_predicates: [heading_echo_material_redundancy]
     examples:
       - bad: "## Install the plugin\n\nThis section covers installing the plugin."
         good: "## Install the plugin\n\nRun `apm install slopvac`."
