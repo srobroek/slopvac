@@ -33,6 +33,11 @@ exclude = [
   "CHANGELOG.md",
   ".beads/**",
   ".agents/**",
+  # Verbatim adversarial-review reports and git evidence under the 2026-09-15 rubric research
+  # record. They quote rule specimens and design text as evidence, so the gate reads the quoted
+  # defects back as findings, and editing them would alter the evidence. The two authored files
+  # beside them (rubric-review.md, process.md) are gated and pass.
+  "packages/slopvac-lint/docs/research/*/challenges/**",
   #
   # The nine other files under `docs/` are NOT excluded. The blanket `docs/**` form was wider than
   # its own justification: only the two files above quote their own specimens, and every other file
