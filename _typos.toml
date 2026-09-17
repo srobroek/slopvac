@@ -5,7 +5,10 @@
 [files]
 # CHANGELOG entries carry commit SHAs, and a 7-hex abbreviation lands on a word
 # often enough (`caf391e` -> `calf`) that the file is noise-only.
-extend-exclude = ["CHANGELOG.md"]
+extend-exclude = [
+  "CHANGELOG.md",
+  "packages/slopvac-lint/tests/fixtures/text_type/runbook-labels-v1.jsonl",
+]
 
 [default.extend-words]
 # Suffix and prefix FRAGMENTS inside character alternations. Each one is a piece of

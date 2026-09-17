@@ -351,8 +351,9 @@ def _one(
         if _value(unit, name) is False:
             return _record(unit, rule, outcome="DROP", severity=None, scores=scores, evidence=evidence, preservation_reason=None, abstain_reason=None, rewrite=None, rewrite_status="not_applicable", instrument_id=instrument_id, cache_key=cache_key, occurrence_index=occurrence_index, occurrences_truncated=occurrences_truncated)
 
-    if (_value(unit, "region_class") in {"quoted", "example"} and "quoted_specimen" in protected):
+    if _value(unit, "region_class") in {"quoted", "example"} and "quoted_specimen" in protected:
         preservation_reason = "quoted_specimen"
+
     fit = scores.get("fit") if scores else None
     harm = scores.get("harm") if scores else None
     repair = scores.get("repair") if scores else None

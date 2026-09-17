@@ -1,0 +1,121 @@
+{"threshold":0.9,"version":1}
+{"text":"Check the certificate.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Restart the worker.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Verify the backup.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Open the dashboard.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Record the lag.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Notify the owner.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Rotate the key.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Save the file.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Ensure a maintenance window.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Promote the replica.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Monitor the rollout.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Read the notes.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Choose the region.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Connect the node.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Inspect the report.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Release the lock.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"You must verify the checksum.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You should restart the service.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You need to save the token.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You must record the result.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You should inspect the logs.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You need to notify the owner.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You must close the session.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You should confirm the endpoint.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You need to rotate the key.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You must update the manifest.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You should clear the cache.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You need to mount the volume.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You must choose one replica.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"You should wait for readiness.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"WARNING: Stop the migration.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"CAUTION: Check the drain state.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"DANGER: Disconnect power.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"NOTICE: Do not delete the snapshot.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"ATTENTION: Keep the console open.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"IMPORTANT: Save the manifest.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"WARNING Do not restart both nodes.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"CAUTION! Verify the lock owner.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"Step 1: Check the service.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"Step 2: Drain the worker.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"1. Restart the service.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"2) Verify the response.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"- Save the state.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"* Open the status page.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"+ Record the request ID.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"A. Confirm the owner.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"B. Release the lock.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"i. Read the warning.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"Don't restart the primary.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Don't delete the snapshot.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Don't skip the health check.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Don't expose the secret.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Do not overwrite the archive.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Do not close the audit window.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Please don't rotate both keys.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Please don't clear the queue.","expected":"PROCEDURAL","facet":"contractions"}
+{"text":"Apply the migration.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"Update the route.","expected":"PROCEDURAL","facet":"imperative verbs"}
+{"text":"You must test the rollback.","expected":"PROCEDURAL","facet":"modal instructions"}
+{"text":"Step 3: Report the outcome.","expected":"PROCEDURAL","facet":"list and step markers"}
+{"text":"NOTE: The cache is rebuilt at startup.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"TIP: The short path uses less storage.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"HINT: The preview is read-only.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"INFO: The worker reports its state hourly.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"NOTE. The import reads the cache.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"TIP! The local run uses mock data.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"HINT: A warm cache reduces latency.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"INFO: The command is available.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"État: le service reste actif.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"La sauvegarde est complète.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"Über Nacht läuft der Dienst.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"El proceso está listo.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"Сервис работает штатно.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"日本語のジョブは毎晩実行されます。","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"L’état du cache est stable.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"The worker’s state is stable.","expected":"DESCRIPTIVE","facet":"Unicode"}
+{"text":"The script runs nightly.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Restarting is optional.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The service starts after boot.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The backup completes before noon.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The monitor reports healthy nodes.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The command accepts a path.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The replica remains available.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The archive contains three files.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The endpoint returns a status code.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The process stages the manifest.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The certificate matches the key.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The old node can be reattached.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The expected result appears below.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The queue drains during shutdown.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The report includes the timestamp.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The token expires after an hour.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"This procedure explains the rotation.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"This guide describes the import.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"It is a routine maintenance task.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"A low-traffic window is preferred.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"A lag under five seconds is acceptable.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Verification fails on a stale node.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Connections move when the node drains.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Traffic remains available during staging.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The import reads its cache at startup.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The procedure should be approached carefully.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"All nodes should show the new expiry.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The process must finish before cleanup.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The runbook walks through the process.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Before starting, the expiry is recorded.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"If verification fails, rollback is available.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Because the node is drained, traffic moves.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"During staging, connections remain open.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The host’s certificate is valid.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The result is shown in the table.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The deployment finished without errors.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The worker does not restart automatically.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The operator's choice is recorded.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The service can't reach the registry.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The backup isn't encrypted by default.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The new route is ready.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The key belongs to the host.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The cluster has three members.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"The node reports a healthy status.","expected":"DESCRIPTIVE","facet":"descriptive controls"}

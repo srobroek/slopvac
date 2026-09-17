@@ -38,6 +38,7 @@ from .config import (
 )
 from .diff_scope import DiffScopeError, apply_replacements, changed_scope
 from .engine import Engine
+from .judgement import driver as judgement_driver
 from .model import RuleKind
 from .pipeline import (
     EXIT_ERROR,
@@ -851,6 +852,71 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
     destination.write_text(rendered)
     console.print(f"wrote [bold]{destination}[/] ({len(ruleset.rules)} rules)")
     raise SystemExit(EXIT_OK)
+
+@main.group("judgement")
+def judgement() -> None:
+    """Prepare and finish model-backed judgement evaluations."""
+
+
+@judgement.command("prepare")
+@click.option("--config", "config_path", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--profile", type=click.Choice([profile.value for profile in Profile]), default=None)
+@click.option("--packs", default="all", help="Comma-separated pack ids, or all.")
+@click.option("--categories", default="", help="Comma-separated category ids.")
+@click.option("--out", "out_path", required=True, type=click.Path(file_okay=False, path_type=Path))
+@click.option("--max-calls", type=click.IntRange(min=0), default=300, show_default=True, help="Refuse runs above this call count unless --yes.")
+@click.option("--yes", is_flag=True, help="Write a run even when it exceeds --max-calls.")
+@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path))
+def judgement_prepare(
+    config_path: Path,
+    profile: str | None,
+    packs: str,
+    categories: str,
+    out_path: Path,
+    max_calls: int,
+    yes: bool,
+    paths: tuple[Path, ...],
+) -> None:
+    """Create deterministic reports, units, and prompts for PATHS."""
+    try:
+        judgement_driver.prepare(
+            config=config_path,
+            out=out_path,
+            paths=paths,
+            profile=profile,
+            packs=packs,
+            categories=tuple(part.strip() for part in categories.split(",") if part.strip()),
+            max_calls=max_calls,
+            yes=yes,
+        )
+    except (OSError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"prepared judgement run in {out_path}")
+
+
+@judgement.command("finish")
+@click.option("--out", "out_path", required=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option("--responses", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
+def judgement_finish(out_path: Path, responses: Path) -> None:
+    """Adjudicate RESPONSES and write the judgement report."""
+    try:
+        judgement_driver.finish(out=out_path, responses=responses)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"finished judgement run in {out_path}")
+
+
+@judgement.command("compare")
+@click.option("--out", "out_path", required=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option("--doc", type=click.Path(path_type=Path), default=None)
+@click.option("--apply-preview", is_flag=True, help="Write checker-passed rewrites under OUT/preview.")
+def judgement_compare(out_path: Path, doc: Path | None, apply_preview: bool) -> None:
+    """Show deterministic and judgement scores side by side."""
+    try:
+        click.echo(judgement_driver.compare(out=out_path, doc=doc, apply_preview=apply_preview))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
 
 
 if __name__ == "__main__":
