@@ -103,7 +103,90 @@ def test_parenthetical_and_non_terminal_periods_do_not_split() -> None:
     assert [sentence.text for sentence in abbreviations] == ["Use e.g. this value.", "Version v1.2.3 works.", "Done."]
 
 
-@pytest.mark.parametrize("sentence", ["Make sure you have the required access.", "Check the current certificate's expiration date.", "Record the notAfter date.", "Confirm the secret version.", "Identify the expiring certificate's name and namespace.", "Verify you have the new certificate and key files.", "Backup the existing TLS secret.", "Ensure a low-traffic window.", "Notify stakeholders of the rotation window.", "Step 1: Check replication lag.", "Fence the old primary.", "Promote the replica.", "Update the pooler to point at the host.", "Reload the ingress process.", "Save this file safely.", "Monitor the rollout.", "Wait for all pods to stabilize.", "To rotate the certificate, drain one node.", "Remember to update the incident channel.", "You should always verify the signature before processing a delivery."])
+def test_dotted_initialisms_distinguish_continuations_from_openers() -> None:
+    continuation = split_sentences("e.g. the U.S. Navy sails.", 1)
+    opener = split_sentences("Use U.S. Next.", 1)
+    assert [sentence.text for sentence in continuation] == ["e.g. the U.S. Navy sails."]
+    assert [sentence.text for sentence in opener] == ["Use U.S.", "Next."]
+    pronoun = split_sentences("It ships to the U.S. It also ships to Canada.", 1)
+    assert [sentence.text for sentence in pronoun] == ["It ships to the U.S.", "It also ships to Canada."]
+    proper_nouns = split_sentences("The U.S. Army and the U.K. Navy met.", 1)
+    assert [sentence.text for sentence in proper_nouns] == ["The U.S. Army and the U.K. Navy met."]
+    adverb = split_sentences("We flew to the U.K. Then we drove.", 1)
+    assert [sentence.text for sentence in adverb] == ["We flew to the U.K.", "Then we drove."]
+
+
+def test_sentence_offsets_and_vertical_item_cuts_keep_source_lines() -> None:
+    mapped = split_sentences("Alpha beta.\nSecond line.", 10)
+    assert [(sentence.text, sentence.line) for sentence in mapped] == [
+        ("Alpha beta.", 10),
+        ("Second line.", 11),
+    ]
+    vertical = split_sentences("Set values:\n- First. Second.\n- Third.", 10)
+    assert [(sentence.text, sentence.line) for sentence in vertical] == [
+        ("Set values:", 10),
+        ("- First.", 11),
+        ("Second.", 11),
+        ("- Third.", 12),
+    ]
+    blank_lines = split_sentences("Set values:\n\n- First\n- Second", 10)
+    assert [(sentence.text, sentence.line) for sentence in blank_lines] == [
+        ("Set values:", 10),
+        ("- First", 12),
+        ("- Second", 13),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ('He said "Stop." Then left.', ['He said "Stop."', "Then left."]),
+        ("(See below.) Next.", ["(See below.)", "Next."]),
+        ("Use U.S. standards. Then continue.", ["Use U.S. standards.", "Then continue."]),
+        ("Measure 1.5 s. Then stop.", ["Measure 1.5 s.", "Then stop."]),
+        ("Call foo.bar(). Then return.", ["Call foo.bar().", "Then return."]),
+        ("The value is set: then the parser reads it.", ["The value is set: then the parser reads it."]),
+        ("end.Next", ["end.Next"]),
+    ],
+)
+def test_sentence_boundaries_preserve_lexical_spans_and_spacing(
+    text: str, expected: list[str]
+) -> None:
+    assert [sentence.text for sentence in split_sentences(text, 1)] == expected
+
+
+def test_malformed_terminal_runs_preserve_all_prose() -> None:
+    text = "First.. Second?! Third."
+    segments = split_sentences(text, 1)
+    assert [sentence.text for sentence in segments] == ["First..", "Second?!", "Third."]
+    assert " ".join(sentence.text for sentence in segments) == text
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Make sure you have the required access.",
+        "Check the current certificate's expiration date.",
+        "Record the notAfter date.",
+        "Confirm the secret version.",
+        "Identify the expiring certificate's name and namespace.",
+        "Verify you have the new certificate and key files.",
+        "Backup the existing TLS secret.",
+        "Ensure a low-traffic window.",
+        "Notify stakeholders of the rotation window.",
+        "Step 1: Check replication lag.",
+        "Fence the old primary.",
+        "Promote the replica.",
+        "Update the pooler to point at the host.",
+        "Reload the ingress process.",
+        "Save this file safely.",
+        "Monitor the rollout.",
+        "Wait for all pods to stabilize.",
+        "To rotate the certificate, drain one node.",
+        "Remember to update the incident channel.",
+        "You should always verify the signature before processing a delivery.",
+    ],
+)
 def test_runbook_imperatives_are_procedural(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.PROCEDURAL
 

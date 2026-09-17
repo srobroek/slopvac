@@ -154,9 +154,15 @@ NON_TERMINAL = {
     "vol", "ch", "sec", "min", "max", "avg", "std", "resp",
 }
 
-# A closed vocabulary is safer than treating every sentence-initial word as an
-# imperative. It covers the base forms in the runbook corpus and keeps ordinary
-# descriptive openings such as ``The`` and ``This`` out of procedural rules.
+# A dotted initialism splits before a closed-class opener; a proper-noun
+# continuation stays joined (the accepted error class).
+INITIALISM_SENTENCE_OPENERS = tuple(sorted({
+    "After", "Also", "And", "An", "At", "Before", "But", "By", "For", "From",
+    "He", "However", "I", "If", "In", "Its", "It", "Next", "Now", "On", "Once",
+    "Our", "She", "So", "That", "The", "Their", "These", "They", "This", "Those",
+    "Then", "To", "Unless", "We", "When", "While", "With", "You", "Your",
+}))
+
 IMPERATIVE_VERBS = frozenset(
     "add apply attach backup build call check choose clear clone close confirm "
     "connect configure copy create delete deploy detach disable disconnect do "
@@ -631,75 +637,129 @@ def _inside(index: int, ranges: list[tuple[int, int]]) -> bool:
 
 
 def _is_non_terminal_period(text: str, index: int) -> bool:
+    """Return whether a period is lexical punctuation, not a sentence end."""
+    if index > 0 and index + 1 < len(text) and text[index - 1].isdigit() and text[index + 1].isdigit():
+        return True
     prefix = text[: index + 1]
     for abbreviation in NON_TERMINAL:
         if re.search(rf"(?<![A-Za-z]){re.escape(abbreviation)}\.$", prefix, re.I):
             return True
-    # A leading ordered marker such as ``A. Restart`` is not a sentence.
+    if index + 1 < len(text) and text[index + 1].isalpha():
+        return True
     line_prefix = prefix.rsplit("\n", 1)[-1].strip()
     if re.fullmatch(r"(?:\(?[A-Za-z0-9ivxIVX]+\)?|Step\s+\d+(?:\.\d+)*)\.", line_prefix, re.I):
         return True
     return False
 
+def _dotted_initialism_at(text: str, index: int) -> bool:
+    """Recognize the final period in a dotted initialism such as ``U.S.``."""
+    return bool(re.search(r"(?<![A-Za-z.])(?:[A-Za-z]\.){2,}$", text[: index + 1]))
 
-def _split_vertical_list(text: str) -> list[str]:
-    """Split a lead-in and its items only when the colon introduces a list."""
-    lines = text.splitlines()
+
+def _is_initialism_sentence_opener(text: str) -> bool:
+    """Return whether text starts with a closed-class, capitalized opener."""
+    match = re.match(r"([A-Z][a-z]*)\b", text)
+    return bool(match and match.group(1) in INITIALISM_SENTENCE_OPENERS)
+
+
+def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> int | None:
+    """Return the end offset for a valid terminal mark, or ``None``.
+
+    A dotted initialism is kept with a following continuation word. Its period
+    is terminal only at end-of-line/end-of-text, after two or more spaces before
+    a capitalized word, or after one space before a closed-class sentence opener.
+    """
+    protected_end: int | None = None
+    if _inside(index, protected):
+        for start, end in protected:
+            if start <= index < end:
+                # A period immediately before a closing quote/parenthesis is
+                # terminal punctuation of the containing segment, while any
+                # punctuation in the protected span remains opaque.
+                if text[index + 1 : end].strip("\"'”’)]"):
+                    return None
+                protected_end = end
+                break
+    if text[index] == "." and _dotted_initialism_at(text, index):
+        gap = re.match(r"\s*", text[index + 1 :]).group(0)
+        remainder = text[index + 1 + len(gap) :]
+        if remainder and len(gap) < 2 and (gap != " " or not _is_initialism_sentence_opener(remainder)):
+            return None
+    end = protected_end or index + 1
+    while end < len(text) and text[end] in "\"'”’)]":
+        end += 1
+    if end < len(text) and not text[end].isspace():
+        return None
+    cursor = end
+    while cursor < len(text) and text[cursor].isspace():
+        cursor += 1
+    if cursor == len(text) or text[cursor].isupper() or text[cursor].isdigit():
+        return end
+    return None
+
+
+def _split_vertical_list(text: str) -> list[tuple[str, int]]:
+    """Split a lead-in and its items, retaining each item's source offset."""
+    lines = text.splitlines(keepends=True)
     if len(lines) < 2:
-        return [text]
+        return [(text, 0)]
+    offsets: list[int] = []
+    cursor = 0
+    for line in lines:
+        offsets.append(cursor)
+        cursor += len(line)
     for index, line in enumerate(lines):
-        if not re.search(r":\s*$", line):
+        if not re.search(r":\s*$", line.rstrip("\r\n")):
             continue
-        tail = [part.strip() for part in lines[index + 1 :] if part.strip()]
+        tail = [
+            (line_index, part.strip())
+            for line_index, part in enumerate(lines[index + 1 :], index + 1)
+            if part.strip()
+        ]
         if not tail or not all(
-            re.match(r"^(?:[-*+]|\d+[.)]|[A-Za-z][.)])\s+", part) for part in tail
+            re.match(r"^(?:[-*+]|\d+[.)]|[A-Za-z][.)])\s+", part) for _, part in tail
         ):
             continue
-        head = "\n".join(lines[: index + 1]).strip()
-        return [head, *tail]
-    return [text]
+        head = "".join(lines[: index + 1]).strip()
+        result: list[tuple[str, int]] = [(head, 0)]
+        for line_index, part in tail:
+            raw = lines[line_index]
+            leading = len(raw) - len(raw.lstrip())
+            result.append((part, offsets[line_index] + leading))
+        return result
+    return [(text, 0)]
 
 
 def split_sentences(text: str, start_line: int) -> list[Sentence]:
-    """Split at real sentence boundaries and vertical-list lead-in colons."""
+    """Split prose, applying vertical-list structure before punctuation cuts."""
     if not text.strip():
         return []
-    protected = _protected_ranges(text)
-    cuts: list[int] = []
-    index = 0
-    while index < len(text):
-        char = text[index]
-        if char in ".!?" and not _inside(index, protected):
-            if char == "." and _is_non_terminal_period(text, index):
-                index += 1
-                continue
-            end = index + 1
-            while end < len(text) and text[end] in "\"'”’)]":
-                end += 1
-            cursor = end
-            while cursor < len(text) and text[cursor].isspace():
-                cursor += 1
-            if cursor == len(text) or text[cursor].isupper() or text[cursor].isdigit():
-                cuts.append(end)
-                index = cursor
-                continue
-        index += 1
-
     pieces: list[Sentence] = []
-    start = 0
-    for end in [*cuts, len(text)]:
-        chunk = text[start:end].strip()
-        start = end
-        if not chunk:
-            continue
-        for part in _split_vertical_list(chunk):
-            part = part.strip()
+    for structural_chunk, chunk_offset in _split_vertical_list(text):
+        protected = _protected_ranges(structural_chunk)
+        cuts: list[int] = []
+        index = 0
+        while index < len(structural_chunk):
+            if structural_chunk[index] in ".!?":
+                end = _terminal_cut(structural_chunk, index, protected)
+                if end is not None:
+                    cuts.append(end)
+                    index = end
+                    continue
+            index += 1
+        start = 0
+        for end in [*cuts, len(structural_chunk)]:
+            raw = structural_chunk[start:end]
+            part = raw.strip()
+            leading = len(raw) - len(raw.lstrip())
+            absolute_offset = chunk_offset + start + leading
+            start = end
             if not part or not WORDLIKE.search(part):
                 continue
             pieces.append(
                 Sentence(
                     text=part,
-                    line=start_line,
+                    line=start_line + text[:absolute_offset].count("\n"),
                     column=1,
                     word_count=count_words(part),
                     text_type=classify_text_type(part),
