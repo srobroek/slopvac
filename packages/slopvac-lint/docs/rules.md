@@ -2718,7 +2718,7 @@ Judge whether an abstraction occupies the subject slot
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** sentence
 - **Fix.** Name the human. Where no specific person fits, use "you" and put the reader in the seat.
-- **Question.** Is the subject of this sentence a thing that can act? If not, who acted?
+- **Question.** Is the subject performing deliberate intent or choice, or is it a checkable technical actor under a specification? If it is a MUST/MUST NOT/DEFAULT line, imperative steering, quoted text, or a component causally operating, PRESERVE; flag only unowned intent, merit, or self-causation.
 - **Source.** references/ai-tells/register.md ("False agency")
 
 Judgement remainder of prose-agency.false-agency, which mechanises the seven named subject-verb bands. This rule carries the open case, because the catalog's own definition -- "an abstraction promoted to actor" -- is productive: any abstract noun can occupy the subject slot, so no closed list finishes the job. The catalog distinguishes it from the two entries around it: those grant a component desert ("earns its keep", ai-tells-register.anthropomorphised-justification-core) or self-causation ("falls out naturally", ai-tells-register.organic-consequence-core).
@@ -2882,7 +2882,7 @@ Judge whether an absolute claim survives one counterexample
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Narrow the claim to the scope the evidence supports.
-- **Question.** Can you name one counterexample, or is this a defined scoped invariant? Flag the universal only when it is unsupported or counterexample-prone; do not flag a claim whose domain and evidence are explicitly bounded.
+- **Question.** Within the stated domain, corpus, version, and exceptions, is the universal contradicted by an observed or documented counterexample? If the sentence is an explicit specification invariant and its domain is stated, PRESERVE it.
 - **Source.** references/ai-tells/structure.md ("Absolute assertion")
 
 Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable by construction: the reviewer either produces a counterexample or does not.
@@ -2891,9 +2891,11 @@ Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable by 
   >
   > **This.** A project with more than one direct dependency needs a lockfile.
 
-  > **Not this.** Every system always behaves correctly.
+  > **Not this.** Every request to this endpoint requires authentication.
   >
-  > **This.** Every request to this endpoint requires authentication.
+  > **This.** *(delete it)*
+  >
+  > preserve: bounded endpoint domain
 
 
 #### `ai-tells-structure.analogy-stack-authority`
@@ -2980,7 +2982,7 @@ Judge whether a contrast names a real alternative
 - **Ships as.** suggestion
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** paragraph
-- **Question.** Is the negated half mainly a rhetorical foil, or is keeping it essential to safety or compliance, or materially clearer than a positive statement? This judgement explicitly includes ambiguous sentence-initial bare clauses such as "Parser reads JSON, not YAML" and "System validates input, not output", plus subjectless imperatives such as "Monitor services, not processes" and "Choose SHA-256, not MD5"; the deterministic pattern leaves those forms clean. Flag the contrast only when the positive rewrite preserves the same actionable meaning and is at least as clear; a factual boundary by itself is not an exemption.
+- **Question.** Does this contrast either negate an alternative nobody proposed or add no information? Factual corrections and instructions that name a real alternative are not defects; preserve them. Flag only when removing the contrast preserves the same actionable meaning.
 - **Source.** references/ai-tells/structure.md ("Contrastive inversion", "Strawman antithesis") — <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
 
 Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The remainder needs a reader who knows whether the alternative exists, which no pattern can supply. Also absorbs the catalog's "Strawman antithesis" row, whose "While other tools struggle, X ..." shape is the same defect.
@@ -2989,9 +2991,9 @@ Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The rema
   >
   > **This.** The gate scores paragraph symmetry and passive density.
 
-  > **Not this.** Parser reads JSON, not YAML.
+  > **Not this.** It's less about speed and more about determinism.
   >
-  > **This.** Parser reads JSON.
+  > **This.** The gate is deterministic.
 
 
 #### `ai-tells-structure.false-range`
@@ -3045,7 +3047,7 @@ Start with the first new fact after a heading
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** paragraph
 - **Fix.** Delete the restatement and open on the first new fact.
-- **Question.** Does the first sentence under this heading state any fact the heading did not already state?
+- **Question.** Given the heading alone, does the first sentence repeat its proposition with no new operation, constraint, path, metric, or scope? Same topic is not enough to flag.
 - **Source.** references/ai-tells/structure.md ("Heading echo")
 
 Judgement, not pattern: deciding it requires comparing the sentence's content against the heading's, and paraphrase defeats any string test. prose-craft.self-reference catches the subset that names the section explicitly ("This section explains"), and prose-inflation.document-preamble catches the document-level form.
@@ -3056,7 +3058,15 @@ This section covers installing the plugin.
   >
   > **This.** ## Install the plugin
 
-Run `apm install slopvac`.
+Run apm install slopvac.
+
+  > **Not this.** ## Authentication
+
+Authentication covers access control.
+  >
+  > **This.** ## Authentication
+
+Every request sends a bearer token.
 
 
 #### `ai-tells-structure.hollow-acknowledgment`
