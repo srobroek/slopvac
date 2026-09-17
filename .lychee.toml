@@ -9,7 +9,9 @@ accept_timeouts = true
 # Verbatim adversarial-review reports stored as evidence under the research record; their
 # citations are not edited (dead ones are marked unsupported inside the files), so they are
 # not link-checked. The two authored files beside them are checked.
-exclude_path = ["packages/slopvac-lint/docs/research/rubric-2026-09-15/challenges"]
+exclude_path = [
+  "packages/slopvac-lint/docs/research/rubric-2026-09-15/challenges",
+]
 
 exclude = [
   # lychee cannot verify an in-page anchor on a rendered GitHub file.
@@ -25,4 +27,7 @@ exclude = [
   "journals\\.sagepub\\.com",
   "doi\\.org/10\\.1111/",
   "www\\.sec\\.gov/pdf/handbook\\.pdf",
+  # These cited source pages return 403 to lychee's non-browser HTTP client.
+  "support\\.acrolinx\\.com/hc/en-us/articles/10210995244178-The-AcroLinx-Score-Explained",
+  "www\\.iso\\.org/standard/79077\\.html",
 ]
