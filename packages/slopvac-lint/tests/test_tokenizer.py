@@ -199,3 +199,9 @@ def test_labelled_runbook_set_reaches_ninety_percent_agreement() -> None:
 )
 def test_unicode_token_boundaries_are_observable(text: str, expected: int) -> None:
     assert count_words(text) == expected
+
+
+def test_paths_leave_sentence_period_visible_to_segmentation() -> None:
+    assert len(split_sentences("Open документы/файл.md. Then go.", 1)) == 2
+    assert len(split_sentences("Open docs/file.md. Then go.", 1)) == 2
+    assert count_words("Open docs/readme.md now.") == 3
