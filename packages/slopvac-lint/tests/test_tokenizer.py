@@ -24,6 +24,24 @@ def test_phase_1_collapses_code_identifiers_paths_urls_and_flags() -> None:
     assert count_words("Use v1beta1.Deployment now.") == 3
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Use client.retry.limit now.", 3),
+        ("Use namespace::member now.", 3),
+        ("Open docs/readme.md now.", 3),
+        ("Use ¼ now.", 2),
+        ("Ⅷ ¼", 0),
+        ("Use \u0301 now.", 2),
+        ("\u0301", 0),
+    ],
+)
+def test_phase_1_review_findings_remain_single_observable_tokens(
+    text: str, expected: int
+) -> None:
+    assert count_words(text) == expected
+
+
 def test_phase_2_collapses_quotes_without_pairing_contractions() -> None:
     assert count_words(
         'Set the timeout to 30 s for the HTTP client in the "edge gateway" service.'
