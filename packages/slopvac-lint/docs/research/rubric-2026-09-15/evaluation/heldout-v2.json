@@ -113,5 +113,16 @@
   },
   "corpus": "heldout/corpus/md (13 human, 8 stated-LLM; go-spec excluded)",
   "instrument": "PR #94 (template_revision 2: fragment admission, normative preset, four rule questions with exemplars)",
+  "measured": [
+    "host outcomes per class including ABSTAIN by reason and PRESERVE (outcomes)",
+    "confirm precision by hand adjudication",
+    "confirms per 1,000 words per class",
+    "fragment-unit drops (a2_fragment_unit)"
+  ],
+  "not_measured": [
+    "TP recall: no gold-labelled defect set exists for this corpus; only confirm precision and confirm volume are measured, so a drop in confirms cannot be separated from lost recall except through the adjudicated confirms",
+    "repeat-run noise floor",
+    "per-rule precision with confidence intervals (per-rule confirm counts are in the adjudication files; counts are too small for intervals)"
+  ],
   "schema": "heldout-run"
 }
