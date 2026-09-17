@@ -146,6 +146,7 @@ rules:
   - id: concrete-floor
     name: Name a checkable particular
     kind: judgement
+    scope: document
     message: This paragraph makes a factual claim with no checkable particular.
     tiers: {strict: enforced, normal: enforced, relaxed: advisory}
     judgement_question: >-
@@ -163,4 +164,11 @@ rules:
         own worst-case specimen ("success or failure in competitive activities
         exhibits no tendency to be commensurate with innate capacity"), which is
         the gap this rule closes.
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term, normative_obligation]
+      judgement_ceiling: warning
     fix: Replace the category with the instance from the source material.

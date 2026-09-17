@@ -74,4 +74,14 @@ rules:
         Judgement because the checker cannot know whether a long term is an immovable
         project name or careless stacking. The related hyphen constraint (no more than three
         words joined as one unit) is mechanized in ste-punctuation/hyphen-group-too-long.
+    judgement:
+      scope_class: probe
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [authoritative_domain_term]
+      judgement_ceiling: suggestion
+      host_predicates:
+        - id: no_short_form_in_document
+          definition: the model names the expected short form as a particular; the host verifies by exact search that it occurs nowhere in the document; a hit converts the outcome to REJECT
     fix: Write the term in full once, then declare a short form or hyphenate the fixed unit.

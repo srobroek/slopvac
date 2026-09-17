@@ -40,6 +40,24 @@ rules:
         recoverable failure; that mapping is our adaptation, since the specification's own
         split is injury against equipment damage. Enforced at every tier, and the category
         weight is raised, because a missing warning is the highest-cost defect in a runbook.
+    judgement:
+      scope_class: local
+      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
+      evidence: {min_arity: 1, roles: [defect]}
+      warrant_min: 2
+      protects: [normative_obligation, source_locked_legal_text]
+      judgement_ceiling: error
+      adjudicates: normative_obligation
+      allowed_transitions:
+        status: provisional
+        requires: the consequence that fixes the level is quoted as role=invariant from the unit or context
+        rows:
+          - class: modality
+            from: CAUTION
+            to: WARNING
+          - class: modality
+            from: WARNING
+            to: CAUTION
     fix: Add the correct risk marker, or raise the existing marker to match the consequence.
 
   - id: safety-block-does-not-start-with-command
