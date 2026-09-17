@@ -120,6 +120,31 @@ def test_parenthetical_and_non_terminal_periods_do_not_split() -> None:
 
 
 @pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ('He said "Stop." Then left.', ['He said "Stop."', "Then left."]),
+        ("(See below.) Next.", ["(See below.)", "Next."]),
+        ("Use U.S. standards. Then continue.", ["Use U.S. standards.", "Then continue."]),
+        ("Measure 1.5 s. Then stop.", ["Measure 1.5 s.", "Then stop."]),
+        ("Call foo.bar(). Then return.", ["Call foo.bar().", "Then return."]),
+        ("The value is set: then the parser reads it.", ["The value is set: then the parser reads it."]),
+        ("end.Next", ["end.Next"]),
+    ],
+)
+def test_sentence_boundaries_preserve_lexical_spans_and_spacing(
+    text: str, expected: list[str]
+) -> None:
+    assert [sentence.text for sentence in split_sentences(text, 1)] == expected
+
+
+def test_malformed_terminal_runs_preserve_all_prose() -> None:
+    text = "First.. Second?! Third."
+    segments = split_sentences(text, 1)
+    assert [sentence.text for sentence in segments] == ["First..", "Second?!", "Third."]
+    assert " ".join(sentence.text for sentence in segments) == text
+
+
+@pytest.mark.parametrize(
     "sentence",
     [
         "Make sure you have the required access.",

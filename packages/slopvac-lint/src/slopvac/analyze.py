@@ -411,15 +411,49 @@ def _inside(index: int, ranges: list[tuple[int, int]]) -> bool:
 
 
 def _is_non_terminal_period(text: str, index: int) -> bool:
+    """Return whether a period is lexical punctuation, not a sentence end."""
+    if index > 0 and index + 1 < len(text) and text[index - 1].isdigit() and text[index + 1].isdigit():
+        return True
     prefix = text[: index + 1]
     for abbreviation in NON_TERMINAL:
         if re.search(rf"(?<![A-Za-z]){re.escape(abbreviation)}\.$", prefix, re.I):
             return True
-    # A leading ordered marker such as ``A. Restart`` is not a sentence.
+    if index + 1 < len(text) and text[index + 1].isalpha():
+        return True
     line_prefix = prefix.rsplit("\n", 1)[-1].strip()
     if re.fullmatch(r"(?:\(?[A-Za-z0-9ivxIVX]+\)?|Step\s+\d+(?:\.\d+)*)\.", line_prefix, re.I):
         return True
     return False
+
+
+def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> int | None:
+    """Return the end offset for a valid terminal mark, or ``None``."""
+    protected_end: int | None = None
+    if _inside(index, protected):
+        for start, end in protected:
+            if start <= index < end:
+                # A period immediately before a closing quote/parenthesis is
+                # terminal punctuation of the containing segment, while any
+                # punctuation in the protected span remains opaque.
+                if text[index + 1 : end].strip("\"'”’)]"):
+                    return None
+                protected_end = end
+                break
+        if protected_end is None:
+            return None
+    if text[index] == "." and _is_non_terminal_period(text, index):
+        return None
+    end = protected_end or index + 1
+    while end < len(text) and text[end] in "\"'”’)]":
+        end += 1
+    if end < len(text) and not text[end].isspace():
+        return None
+    cursor = end
+    while cursor < len(text) and text[cursor].isspace():
+        cursor += 1
+    if cursor == len(text) or text[cursor].isupper() or text[cursor].isdigit():
+        return end
+    return None
 
 
 def _split_vertical_list(text: str) -> list[str]:
@@ -449,19 +483,11 @@ def split_sentences(text: str, start_line: int) -> list[Sentence]:
     index = 0
     while index < len(text):
         char = text[index]
-        if char in ".!?" and not _inside(index, protected):
-            if char == "." and _is_non_terminal_period(text, index):
-                index += 1
-                continue
-            end = index + 1
-            while end < len(text) and text[end] in "\"'”’)]":
-                end += 1
-            cursor = end
-            while cursor < len(text) and text[cursor].isspace():
-                cursor += 1
-            if cursor == len(text) or text[cursor].isupper() or text[cursor].isdigit():
+        if char in ".!?":
+            end = _terminal_cut(text, index, protected)
+            if end is not None:
                 cuts.append(end)
-                index = cursor
+                index = end
                 continue
         index += 1
 
@@ -472,14 +498,19 @@ def split_sentences(text: str, start_line: int) -> list[Sentence]:
         start = end
         if not chunk:
             continue
+        search_from = 0
         for part in _split_vertical_list(chunk):
             part = part.strip()
             if not part or not WORDLIKE.search(part):
                 continue
+            part_offset = chunk.find(part, search_from)
+            if part_offset < 0:
+                part_offset = search_from
+            search_from = part_offset + len(part)
             pieces.append(
                 Sentence(
                     text=part,
-                    line=start_line,
+                    line=start_line + chunk[:part_offset].count("\n"),
                     column=1,
                     word_count=count_words(part),
                     text_type=classify_text_type(part),
