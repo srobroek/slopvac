@@ -98,7 +98,6 @@ The first release should support Python, Java, and Rust. Swift remains deferred 
 
 **Evidence.** Vale appends a tree-sitter View scope entry's `name` to `text.comment`, then appends `.line` or `.block`; the View filename does not create that scope. The generated scope entry must therefore be named `__slopvac_doc`, so the exact targets are `text.comment.__slopvac_doc.line` and `text.comment.__slopvac_doc.block`. The repository's supported Vale floor is 3.15.0 (`packages/slopvac-lint/src/slopvac/vale_probe.py:26-29`). The 3.21.0 probes are development evidence only; implementation acceptance requires the same fixture matrix to pass on a separately probed minimum for this feature, because the existing floor does not yet have View evidence. A Python parser bundle would add binary dependencies, platform packaging work, and a second grammar source. A native lexer would duplicate grammar behavior and mishandle nested strings, raw strings, and recovery. The generated View keeps the dependency footprint at zero.
 
-
 ## 16. Vale 3.21 limitations and rejected options
 
 **Decision.** Treat View behavior as version- and language-specific. Probe a separate minimum Vale version for this feature instead of assuming the repository floor supports Views. Run a startup capability probe and report a diagnostic when a required View query is unavailable. Defer Go until the adjacency and quantified-capture limitations are resolved upstream or a safe query exists.
