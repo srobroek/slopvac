@@ -144,14 +144,15 @@ NON_TERMINAL = {
     "vol", "ch", "sec", "min", "max", "avg", "std", "resp",
 }
 
-# These connectives are unambiguous sentence openers after a dotted initialism.
-SENTENCE_OPENERS = frozenset(
-    {"also", "and", "but", "finally", "however", "meanwhile", "next", "now", "then"}
-)
+# A dotted initialism splits before a closed-class opener; a proper-noun
+# continuation stays joined (the accepted error class).
+INITIALISM_SENTENCE_OPENERS = tuple(sorted({
+    "After", "Also", "And", "An", "At", "Before", "But", "By", "For", "From",
+    "He", "However", "I", "If", "In", "Its", "It", "Next", "Now", "On", "Once",
+    "Our", "She", "So", "That", "The", "Their", "These", "They", "This", "Those",
+    "Then", "To", "Unless", "We", "When", "While", "With", "You", "Your",
+}))
 
-# A closed vocabulary is safer than treating every sentence-initial word as an
-# imperative. It covers the base forms in the runbook corpus and keeps ordinary
-# descriptive openings such as ``The`` and ``This`` out of procedural rules.
 IMPERATIVE_VERBS = frozenset(
     "add apply attach backup build call check choose clear clone close confirm "
     "connect configure copy create delete deploy detach disable disconnect do "
@@ -435,12 +436,10 @@ def _dotted_initialism_at(text: str, index: int) -> bool:
     return bool(re.search(r"(?<![A-Za-z.])(?:[A-Za-z]\.){2,}$", text[: index + 1]))
 
 
-def _is_known_sentence_opener(text: str) -> bool:
-    remainder = text.lstrip()
-    if STEP_NUMBER.match(remainder) or SAFETY_MARKER.match(remainder) or NOTE_MARKER.match(remainder):
-        return True
-    match = re.match(r"([A-Za-z]+)\b", remainder)
-    return bool(match and match.group(1).lower() in SENTENCE_OPENERS)
+def _is_initialism_sentence_opener(text: str) -> bool:
+    """Return whether text starts with a closed-class, capitalized opener."""
+    match = re.match(r"([A-Z][a-z]*)\b", text)
+    return bool(match and match.group(1) in INITIALISM_SENTENCE_OPENERS)
 
 
 def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> int | None:
@@ -448,7 +447,7 @@ def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> in
 
     A dotted initialism is kept with a following continuation word. Its period
     is terminal only at end-of-line/end-of-text, after two or more spaces before
-    a capitalized word, or before a known sentence opener (for example ``Next``).
+    a capitalized word, or after one space before a closed-class sentence opener.
     """
     protected_end: int | None = None
     if _inside(index, protected):
@@ -461,14 +460,10 @@ def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> in
                     return None
                 protected_end = end
                 break
-        if protected_end is None:
-            return None
-    if text[index] == "." and _is_non_terminal_period(text, index):
-        return None
     if text[index] == "." and _dotted_initialism_at(text, index):
         gap = re.match(r"\s*", text[index + 1 :]).group(0)
         remainder = text[index + 1 + len(gap) :]
-        if remainder and len(gap) < 2 and not _is_known_sentence_opener(remainder):
+        if remainder and len(gap) < 2 and (gap != " " or not _is_initialism_sentence_opener(remainder)):
             return None
     end = protected_end or index + 1
     while end < len(text) and text[end] in "\"'”’)]":
