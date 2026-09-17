@@ -106,12 +106,12 @@ TOKEN_JOINER = frozenset({"'", "’", "ʼ", "＇", "-", "‐", "‑", "﹣", "�
 
 CODE_SPAN = re.compile(r"(?<!`)`{1,}(?P<body>[^`\n]*?)`{1,}(?!`)")
 URL_OR_PATH = re.compile(
-    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+|"
-    r"(?<!\w)(?:\./)?(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
+    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[\p{L}\p{Nd}_.-]+/)+[\p{L}\p{Nd}_.-]+|"
+    r"(?<!\w)(?:\./)?(?:[\p{L}\p{Nd}_.-]+/)+[\p{L}\p{Nd}_.-]+"
 )
 FLAG_OR_ENV = re.compile(r"--[A-Za-z][A-Za-z0-9-]*|\$[A-Z][A-Z0-9_]*")
 IDENTIFIER = re.compile(
-    r"(?<!\w)[A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z0-9_]+)+(?!\w)"
+    r"(?<!\w)[\p{L}_][\p{L}\p{Nd}_]*(?:(?:\.|::)[\p{L}\p{Nd}_]+)+(?!\w)"
 )
 MIXED_IDENTIFIER = re.compile(
     r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
