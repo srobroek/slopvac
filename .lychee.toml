@@ -30,4 +30,5 @@ exclude = [
   # These cited source pages return 403 to lychee's non-browser HTTP client.
   "support\\.acrolinx\\.com/hc/en-us/articles/10210995244178-The-AcroLinx-Score-Explained",
   "www\\.iso\\.org/standard/79077\\.html",
+  "www\\.iso\\.org/sites/directives/current/part2/index\\.xhtml",
 ]
