@@ -179,6 +179,15 @@ IMPERATIVE_MARKERS = re.compile(
     rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
     re.I,
 )
+PHRASAL_IMPERATIVE = re.compile(
+    rf"^(?:please\s+)?(?:"
+    rf"(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\s+"
+    r"(?:up|down|off|on|out|in|over|back|away)|"
+    r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
+    r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
+    r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))\b",
+    re.I,
+)
 NEGATIVE_IMPERATIVE = re.compile(
     r"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+\b",
     re.I,
@@ -641,6 +650,7 @@ def classify_text_type(text: str) -> TextType:
         marker_body = stripped[safety_match.end() :].lstrip(" :.!?*-+")
         if (
             IMPERATIVE_MARKERS.match(marker_body)
+            or PHRASAL_IMPERATIVE.match(marker_body)
             or NEGATIVE_IMPERATIVE.match(marker_body)
             or TO_VERB.match(marker_body)
             or REMEMBER_TO.match(marker_body)
