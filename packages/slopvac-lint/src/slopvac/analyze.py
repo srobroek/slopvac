@@ -425,6 +425,27 @@ def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionM
         )
     return ProjectionMap(tuple(segments), raw.encode("utf-8"))
 
+def _block_projected_base(document_projection: ProjectionMap, block_projection: ProjectionMap) -> int:
+    """Return the block start in the document-wide projected coordinate space."""
+    if not block_projection.segments:
+        return 0
+    raw_start = min(segment.raw_start for segment in block_projection.segments)
+    raw_end = max(segment.raw_end for segment in block_projection.segments)
+    matching = [
+        segment
+        for segment in document_projection.segments
+        if segment.raw_end > raw_start and segment.raw_start < raw_end
+    ]
+    if matching:
+        return matching[0].proj_start
+    # A block made entirely of synthetic projection characters has no raw span;
+    # anchor it at the nearest document projection boundary.
+    for segment in document_projection.segments:
+        if segment.raw_start >= raw_start:
+            return segment.proj_start
+    return document_projection.projected_length
+
+
 
 def _block_projected_base(document_projection: ProjectionMap, block_projection: ProjectionMap) -> int:
     """Return the block start in the document-wide projected coordinate space."""
@@ -454,6 +475,7 @@ def _finalize_document(document: Document) -> Document:
     projected_text, document.projection = project(document.raw)
     document.origin = classify_origin(document.path, document.raw)
     document.source_sha256 = source_sha256(raw_bytes)
+
     examples_heading = False
     projected_cursor = 0
     for block in document.blocks:

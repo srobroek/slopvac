@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal, Protocol, runtime_checkable
+
+LOGGER = logging.getLogger(__name__)
 
 COVERAGE_COUNTERS = (
     "eligible",
@@ -68,7 +71,7 @@ class DependenceTable:
 
     dependence_table_sha: str
     pairs: tuple[tuple[str, str], ...] = ()
-
+    status: Literal["calibrated", "uncalibrated"] = "calibrated"
     def related(self, left: str, right: str) -> bool:
         pair = tuple(sorted((left, right)))
         return pair in self.pairs
@@ -78,6 +81,8 @@ class DependenceTable:
             return self.dependence_table_sha
         if key == "pairs":
             return [list(pair) for pair in self.pairs]
+        if key == "status":
+            return self.status
         raise KeyError(key)
     def get(self, key: str, default: Any = None) -> Any:
         try:
@@ -171,6 +176,7 @@ class Coverage:
     rules: dict[str, CoverageBucket]
     status: Literal["CLEAN", "PARTIAL"]
     abstention_reasons: dict[str, int] = field(default_factory=dict)
+    dropped: int = 0
 
     @property
     def by_document(self) -> dict[str, CoverageBucket]:
@@ -190,11 +196,12 @@ class Coverage:
             "packs": {key: value.as_dict() for key, value in self.packs.items()},
             "rules": {key: value.as_dict() for key, value in self.rules.items()},
             "abstention_reasons": dict(self.abstention_reasons),
+            "dropped": self.dropped,
             "status": self.status,
         }
 
     def __getitem__(self, key: str) -> Any:
-        if key in {"documents", "packs", "rules", "status", "abstention_reasons"}:
+        if key in {"documents", "packs", "rules", "status", "abstention_reasons", "dropped"}:
             return getattr(self, key)
         raise KeyError(key)
 
@@ -219,8 +226,11 @@ def load_dependence_table(path: str | Path) -> DependenceTable:
         raise ValueError("dependence table must be an object")
     digest = payload.get("dependence_table_sha")
     pairs = payload.get("pairs")
+    status = payload.get("status", "uncalibrated")
     if not isinstance(digest, str) or not isinstance(pairs, list):
         raise ValueError("dependence table requires dependence_table_sha and pairs")
+    if status not in {"calibrated", "uncalibrated"}:
+        raise ValueError("dependence table status must be calibrated or uncalibrated")
     normalized: list[tuple[str, str]] = []
     for pair in pairs:
         if (
@@ -235,7 +245,7 @@ def load_dependence_table(path: str | Path) -> DependenceTable:
         raise ValueError(
             f"dependence table sha mismatch: expected {expected}, got {digest}"
         )
-    return DependenceTable(digest, tuple(normalized))
+    return DependenceTable(digest, tuple(normalized), status)
 
 
 def _table_pairs(table: Any) -> set[tuple[str, str]]:
@@ -250,6 +260,19 @@ def _table_pairs(table: Any) -> set[tuple[str, str]]:
         if isinstance(pair, Sequence) and len(pair) == 2:
             pairs.add(tuple(sorted((str(pair[0]), str(pair[1])))))
     return pairs
+
+
+def _table_status(table: Any) -> str:
+    if isinstance(table, (str, Path)):
+        table = load_dependence_table(table)
+    if isinstance(table, DependenceTable):
+        return table.status
+    if isinstance(table, Mapping):
+        status = table.get("status")
+        if status is not None:
+            return str(status)
+        return "calibrated" if table.get("pairs") else "uncalibrated"
+    return "calibrated" if table else "uncalibrated"
 
 
 def _value(obj: Any, name: str, default: Any = None) -> Any:
@@ -330,6 +353,13 @@ def _is_unsafe(finding: FindingLike) -> bool:
     return harm in {"unsafe_or_normative", "unsafe", 3, "3"}
 
 
+def _with_component_id(finding: FindingLike, component_id: str) -> FindingLike:
+    """Return the host record with its immutable component assignment."""
+    if isinstance(finding, Mapping):
+        return {**finding, "component_id": component_id}  # type: ignore[return-value]
+    return replace(finding, component_id=component_id)
+
+
 def components(
     findings: Iterable[FindingLike], paragraphs: Any, table: Any
 ) -> list[Component]:
@@ -341,7 +371,14 @@ def components(
         span = _defect_span(finding)
         if span is not None:
             by_paragraph[_paragraph_for(finding, paragraph_ranges)].append((finding, span))
-    pairs = _table_pairs(table)
+    status = _table_status(table)
+    if status == "uncalibrated":
+        LOGGER.info(
+            "dependence table status=uncalibrated; cluster components use span overlap only"
+        )
+        pairs: set[tuple[str, str]] = set()
+    else:
+        pairs = _table_pairs(table)
     result: list[Component] = []
     component_number = 0
     for paragraph, entries in by_paragraph.items():
@@ -372,6 +409,7 @@ def components(
             groups[root(index)].append(entry)
         for group in groups.values():
             component_number += 1
+            component_id = f"component-{component_number}"
             severity_order = {"suggestion": 0, "warning": 1, "error": 2}
             severity = max(
                 (_value(finding, "severity") for finding, _ in group),
@@ -380,8 +418,10 @@ def components(
             )
             result.append(
                 Component(
-                    component_id=f"component-{component_number}",
-                    findings=tuple(finding for finding, _ in group),
+                    component_id=component_id,
+                    findings=tuple(
+                        _with_component_id(finding, component_id) for finding, _ in group
+                    ),
                     paragraph=paragraph,
                     primary_spans=tuple(span for _, span in group),
                     severity=severity,
@@ -471,8 +511,18 @@ def _representative_coverage_record(records: list[FindingLike]) -> FindingLike:
 
 
 def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> Coverage:
-    """Count judgement coverage at document, pack, and rule granularity."""
-    eligible = list(eligible_units)
+    """Count judgement coverage at document, pack, and rule granularity.
+
+    A unit whose host record is DROP failed an admission gate: it leaves the eligible
+    set (audit only) and touches no counter, so a whitespace or generated unit never
+    marks a document PARTIAL and never inflates ``attempted``.
+    """
+    eligible_by_id: dict[str, Any] = {}
+    for unit in eligible_units:
+        unit_id = _unit_key(unit)
+        if unit_id not in eligible_by_id:
+            eligible_by_id[unit_id] = unit
+    eligible = list(eligible_by_id.values())
     records = _group_coverage_records(findings)
     buckets: dict[str, dict[str, CoverageBucket]] = {
         "documents": {},
@@ -481,18 +531,22 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
     }
     reasons: dict[str, int] = {}
     partial = False
+    dropped = 0
 
     def bucket(kind: str, key: str) -> CoverageBucket:
         return buckets[kind].setdefault(key, CoverageBucket())
 
     for unit in eligible:
         unit_id = _unit_key(unit)
+        record_group = records.get(unit_id, [])
+        finding = _representative_coverage_record(record_group) if record_group else None
+        if finding is not None and _coverage_status(finding) == "drop":
+            dropped += 1
+            continue
         path, pack, rule = _dimensions(unit)
         target = [bucket("documents", path), bucket("packs", pack), bucket("rules", rule)]
         for current in target:
             current.eligible += 1
-        record_group = records.get(unit_id, [])
-        finding = _representative_coverage_record(record_group) if record_group else None
         status = str(_value(unit, "status", "" if finding else "not_run")).lower()
         truncated = bool(_value(unit, "truncated", False))
         truncated |= any(
@@ -548,6 +602,7 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
         rules=buckets["rules"],
         status="PARTIAL" if partial else "CLEAN",
         abstention_reasons=reasons,
+        dropped=dropped,
     )
 
 

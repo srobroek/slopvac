@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
-from slopvac.analyze import BlockKind, Unit, parse
-from slopvac.projection import classify_origin, classify_region, project
+from slopvac.analyze import BlockKind, Document, Unit, parse
+from slopvac.projection import ProjectionMap, classify_origin, classify_region, project
 
 
 def test_projection_maps_unicode_entities_crlf_markup_and_code() -> None:
@@ -87,6 +88,47 @@ def test_unit_id_is_stable_and_source_sensitive() -> None:
 
     assert make(first).unit_id == make(second).unit_id
     assert make(first).unit_id != make(changed).unit_id
+
     assert first.source_sha256 == second.source_sha256
     assert first.doc_range == first.range
     assert first.projection is not None
+
+def test_document_projection_is_a_projection_map() -> None:
+    document = parse("README.md", "```\nignored\n```\n\nVisible paragraph.\n")
+
+    assert isinstance(document, Document)
+    assert isinstance(document.projection, ProjectionMap)
+
+
+def test_later_blocks_use_document_projection_offsets() -> None:
+    raw = "```\nignored\n```\n\nLater paragraph.\n\n| A | B |\n| - | - |\n| cell | value |\n"
+    document = parse("fixture.md", raw)
+    paragraph = next(block for block in document.blocks if block.kind is BlockKind.PARAGRAPH)
+    table = next(block for block in document.blocks if block.kind is BlockKind.TABLE)
+    projected, _ = project(raw)
+
+    assert paragraph.doc_range == (projected.index("Later paragraph."), projected.index("Later paragraph.") + len(paragraph.text))
+    assert table.doc_range[0] == projected.index("A | B")
+    assert table.doc_range[0] > paragraph.doc_range[1]
+
+
+def test_nonzero_offset_unit_projection_round_trips_raw_bytes() -> None:
+    raw = "Intro paragraph.\n\n```\nignored\n```\n\nVisible paragraph.\n"
+    block = next(block for block in parse("fixture.md", raw).blocks if block.text == "Visible paragraph.")
+
+    assert block.doc_range[0] > 0
+    assert block.projection is not None
+    assert block.projection.slice_raw(0, len(block.text)) == block.text.encode()
+
+
+def test_readme_units_do_not_start_mid_word() -> None:
+    root = Path(__file__).parents[3]
+    raw = (root / "README.md").read_text(encoding="utf-8")
+    projected, _ = project(raw)
+    document = parse("README.md", raw)
+
+    for block in document.blocks:
+        if not block.text or block.doc_range[0] == 0:
+            continue
+        start = block.doc_range[0]
+        assert not (projected[start - 1].isalnum() and projected[start].isalnum())

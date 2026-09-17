@@ -5,14 +5,18 @@ object, while this module owns parsing, validation, cache identity, and coverage
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
 from ..adjudicate import FindingRecord
+from ..aggregate import coverage
+from ..packs import (
+    judgement_cache_key as judgement_cache_key,  # re-export: the single implementation lives in packs
+)
 
 TOKEN_FIELDS = {
     "promptTokens": "prompt_tokens", "completionTokens": "completion_tokens",
@@ -22,24 +26,7 @@ ABSTAIN_REASONS = {
     "ambiguous_unit", "conflicting_context", "missing_context", "needs_external_fact",
     "needs_repository_fact", "no_exact_evidence", "unit_out_of_scope",
 }
-COVERAGE_COUNTS = ("eligible", "attempted", "confirmed", "rejected", "preserved", "abstained", "failed", "truncated", "not_run")
 
-
-def canonical_bytes(value: Any) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
-
-
-def judgement_cache_key(*, instrument_id: str, unit_id: str, context_hash: str = "", provider: str,
-                        model_id_and_revision: str, full_rendered_request_digest: str,
-                        system_prompt: str, decoding_config: dict[str, Any], seed: int | None,
-                        repeat_index: int, evaluator_runner_revision: str) -> str:
-    fields = {"instrument_id": instrument_id, "unit_id": unit_id + context_hash,
-              "provider": provider, "model_id_and_revision": model_id_and_revision,
-              "full_rendered_request_digest": full_rendered_request_digest,
-              "system_prompt": system_prompt, "decoding_config": decoding_config,
-              "seed": seed, "repeat_index": repeat_index,
-              "evaluator_runner_revision": evaluator_runner_revision}
-    return hashlib.sha256(canonical_bytes(fields)).hexdigest()
 
 
 def outer_payloads(text: str) -> list[dict[str, Any]]:
@@ -157,6 +144,7 @@ def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
         return "result unit_ids are not in expected order"
     return None
 
+
 def select_units(units: list[dict[str, Any]], *, partition: str | None = None,
                  unit: str | None = None) -> list[dict[str, Any]]:
     """Apply stable partition and unit selectors without changing source order."""
@@ -196,32 +184,86 @@ class Instrument:
     arms: tuple[Arm, ...] = ()
 
 
-HostRecord = FindingRecord
+@dataclass(frozen=True)
+class EvalRecord:
+    """A provider evaluation row carrying an optional host adjudication."""
+
+    finding: FindingRecord | None = None
+    repeat_index: int = 0
+    frozen_fields: dict[str, Any] = field(default_factory=dict)
+    instrument_id: str | None = None
+    unit_id: str | None = None
+    arm_id: str | None = None
+    provider: str | None = None
+    model_id_and_revision: str | None = None
+    judgement_cache_key: str | None = None
+    model_output: dict[str, Any] | None = None
+    status: str | None = None
+    usage: dict[str, Any] | None = None
 
 
-def aggregate(records: list[HostRecord], *, eligible: int | None = None) -> dict[str, Any]:
-    if not records:
-        return {"coverage": {key: 0 for key in COVERAGE_COUNTS}, "abstentions": {}}
-    baseline = getattr(records[0], "frozen_fields", None)
-    if baseline is not None and any(getattr(record, "frozen_fields", baseline) != baseline for record in records):
-        raise ValueError("cannot aggregate rows with differing frozen fields")
-    counts = {key: 0 for key in COVERAGE_COUNTS}
-    counts["eligible"] = eligible if eligible is not None else len(records)
-    reasons: dict[str, int] = {}
-    for record in records:
-        status = getattr(record, "status", None)
-        if status is None:
-            status = {"ABSTAIN": "abstained", "DROP": "not_run"}.get(record.outcome, record.outcome.lower())
-        status = "abstained" if status == "abstain" else status
-        counts["attempted"] += status != "not_run"
-        if status in counts and status not in {"eligible", "attempted"}:
-            counts[status] += 1
-        if status == "abstained":
-            reason = getattr(record, "abstain_reason", None) or "unknown"
-            reasons[reason] = reasons.get(reason, 0) + 1
-    return {"coverage": counts, "abstentions": reasons}
+def aggregate(
+    records: list[Any],
+    *,
+    eligible: int | None = None,
+    eligible_units: list[Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Route evaluation rows through the judgement coverage model.
+
+    A row is an ``EvalRecord``, a ``FindingRecord``, or a mapping with the finding
+    fields. Rows carrying a host adjudication contribute their finding; rows without
+    one (schema failures, provider errors) contribute only their eligible unit with
+    the row's status, so they count as failed rather than vanish.
+    """
+    rows = [_normalise_row(record, index) for index, record in enumerate(records)]
+    if rows:
+        baseline = rows[0]["frozen_fields"]
+        if any(row["frozen_fields"] != baseline for row in rows):
+            raise ValueError("cannot aggregate rows with differing frozen fields")
+    findings = [row["record"] for row in rows]
+    if eligible_units is None:
+        eligible_units = [row["unit"] for row in rows]
+        if eligible is not None and eligible > len(eligible_units):
+            eligible_units.extend(
+                {
+                    "unit_id": f"<missing-{index}>",
+                    "path": "<unknown>",
+                    "pack_id": "<unknown>",
+                    "rule_id": "<unknown>",
+                }
+                for index in range(len(eligible_units), eligible)
+            )
+    return coverage(findings, eligible_units).as_dict()
 
 
+def _normalise_row(record: Any, index: int) -> dict[str, Any]:
+    if isinstance(record, EvalRecord):
+        finding, frozen, status, unit_id = record.finding, record.frozen_fields, record.status, record.unit_id
+    else:
+        finding = record
+        frozen = _field(record, "frozen_fields", {}) or {}
+        status = _field(record, "status", None)
+        unit_id = _field(record, "unit_id", None)
+    unit_id = unit_id or _field(finding, "unit_id", None) or f"<row-{index}>"
+    unit: dict[str, Any] = {
+        "unit_id": unit_id,
+        "path": _field(finding, "path", "<unknown>"),
+        "pack_id": frozen.get("pack_id", _field(finding, "pack_id", "<unknown>")),
+        "rule_id": _field(finding, "rule_id", "<unknown>"),
+    }
+    record_for_coverage: Any = finding
+    if finding is None:
+        unit["status"] = status or "failed"
+        record_for_coverage = {"unit_id": unit_id, "status": unit["status"], "rule_id": unit["rule_id"]}
+    return {"finding": finding, "frozen_fields": frozen, "unit": unit, "record": record_for_coverage}
+
+
+def _field(record: Any, name: str, default: Any = None) -> Any:
+    if record is None:
+        return default
+    if isinstance(record, Mapping):
+        return record.get(name, default)
+    return getattr(record, name, default)
 
 
 class ReplayProvider:

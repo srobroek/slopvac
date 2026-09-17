@@ -37,32 +37,67 @@ def _rule(**judgement):
     }
 
 
+def _contract_record(record: dict) -> dict:
+    expected = {
+        key: record[key]
+        for key in (
+            "dims",
+            "evidence",
+            "warrant_min",
+            "protects",
+            "judgement_ceiling",
+            "adjudicates",
+            "scope_class",
+        )
+        if key in record
+    }
+    expected.setdefault("adjudicates", None)
+    transitions = record.get("allowed_transitions")
+    if transitions is not None:
+        expected["allowed_transitions"] = {
+            "status": transitions["status"],
+            "requires": transitions["requires"],
+            "rows": tuple(
+                {
+                    "token_class": row["class"],
+                    "src": row["from"],
+                    "dst": row["to"],
+                }
+                for row in transitions["table"]
+            ),
+        }
+    else:
+        expected["allowed_transitions"] = None
+    expected["evidence"] = {
+        **expected["evidence"],
+        "roles": tuple(expected["evidence"]["roles"]),
+    }
+    expected["protects"] = tuple(expected["protects"])
+    expected.setdefault("scope_class", "local")
+    expected["host_predicates"] = tuple(record.get("host_predicates", ()))
+    return expected
+
+
+def _loaded_contract(rule) -> dict:
+    contract = asdict(rule.judgement)
+    table = contract["allowed_transitions"]
+    if table is not None:
+        table["rows"] = tuple(table["rows"])
+    contract["host_predicates"] = tuple(contract["host_predicates"])
+    return contract
+
+
 def test_shipped_rules_load_and_contract_records_match() -> None:
     ruleset = load_ruleset([], verify=False)
-    records = json.loads(CONTRACT.read_text())['rule_records']
-    by_id = {record['id']: record for record in records}
-    # 230 = main's inventory (prose-craft.annotations was retired on main) plus this
-    # branch's judgement rules; the digest test in test_ruleset.py guards the exact ids.
-    assert len(ruleset.rules) == 230
-    assert len(ruleset.judgement_rules()) == 66
-    for rule in ruleset.judgement_rules():
-        contract = asdict(rule.judgement)
-        if rule.qualified_id == 'prose-scope.code-change-prose-scope':
-            assert contract == {
-                'dims': {'fit': 'ask', 'harm': 'ask', 'repair': 'ask', 'warrant': 'ask'},
-                'evidence': {'min_arity': 2, 'roles': ('defect', 'referent')},
-                'warrant_min': 2, 'protects': (), 'judgement_ceiling': 'error',
-                'adjudicates': None, 'allowed_transitions': None,
-                'host_predicates': ({'id': 'code_diff_available', 'definition': 'the host provides the applicable code diff for the document'},),
-                'scope_class': 'probe',
-            }
-        else:
-            expected = by_id[rule.qualified_id]
-            assert contract['dims'] == expected['dims']
-            assert contract['evidence']['min_arity'] == expected['evidence']['min_arity']
-            assert tuple(contract['evidence']['roles']) == tuple(expected['evidence']['roles'])
-            for key in ('warrant_min', 'protects', 'judgement_ceiling', 'scope_class'):
-                assert contract[key] == expected[key] if key != 'protects' else tuple(contract[key]) == tuple(expected[key])
+    records = json.loads(CONTRACT.read_text(encoding="utf-8"))["rule_records"]
+    by_id = {record["id"]: record for record in records}
+    rules = ruleset.judgement_rules()
+    # Companion inventory digest in tests/test_ruleset.py guards the exact shipped IDs.
+    assert len(ruleset.rules) == 232
+    assert len(rules) == 66
+    assert {rule.qualified_id for rule in rules} == set(by_id)
+    for rule in rules:
+        assert _loaded_contract(rule) == _contract_record(by_id[rule.qualified_id])
 
 
 def test_loader_rejects_missing_or_mismatched_contract(tmp_path: Path) -> None:
@@ -75,6 +110,20 @@ def test_loader_rejects_missing_or_mismatched_contract(tmp_path: Path) -> None:
         (tmp_path / "category.yml").write_text(json.dumps(bad_category), encoding="utf-8")
         with pytest.raises(RuleLoadError):
             load_ruleset([tmp_path], verify=False)
+
+
+def test_loader_rejects_unknown_transition_token_class(tmp_path: Path) -> None:
+    raw = _rule(
+        allowed_transitions={
+            "status": "provisional",
+            "requires": "an invariant",
+            "rows": [{"class": "modality_typo", "from": "A", "to": "B"}],
+        }
+    )
+    category = {"id": "custom", "title": "Custom", "description": "x", "rules": [raw]}
+    (tmp_path / "category.yml").write_text(json.dumps(category), encoding="utf-8")
+    with pytest.raises(RuleLoadError, match="modality_typo"):
+        load_ruleset([tmp_path], verify=False)
 
 
 @pytest.mark.parametrize("change", [
