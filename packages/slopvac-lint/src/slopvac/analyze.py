@@ -144,6 +144,11 @@ NON_TERMINAL = {
     "vol", "ch", "sec", "min", "max", "avg", "std", "resp",
 }
 
+# These connectives are unambiguous sentence openers after a dotted initialism.
+SENTENCE_OPENERS = frozenset(
+    {"also", "and", "but", "finally", "however", "meanwhile", "next", "now", "then"}
+)
+
 # A closed vocabulary is safer than treating every sentence-initial word as an
 # imperative. It covers the base forms in the runbook corpus and keeps ordinary
 # descriptive openings such as ``The`` and ``This`` out of procedural rules.
@@ -425,9 +430,26 @@ def _is_non_terminal_period(text: str, index: int) -> bool:
         return True
     return False
 
+def _dotted_initialism_at(text: str, index: int) -> bool:
+    """Recognize the final period in a dotted initialism such as ``U.S.``."""
+    return bool(re.search(r"(?<![A-Za-z.])(?:[A-Za-z]\.){2,}$", text[: index + 1]))
+
+
+def _is_known_sentence_opener(text: str) -> bool:
+    remainder = text.lstrip()
+    if STEP_NUMBER.match(remainder) or SAFETY_MARKER.match(remainder) or NOTE_MARKER.match(remainder):
+        return True
+    match = re.match(r"([A-Za-z]+)\b", remainder)
+    return bool(match and match.group(1).lower() in SENTENCE_OPENERS)
+
 
 def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> int | None:
-    """Return the end offset for a valid terminal mark, or ``None``."""
+    """Return the end offset for a valid terminal mark, or ``None``.
+
+    A dotted initialism is kept with a following continuation word. Its period
+    is terminal only at end-of-line/end-of-text, after two or more spaces before
+    a capitalized word, or before a known sentence opener (for example ``Next``).
+    """
     protected_end: int | None = None
     if _inside(index, protected):
         for start, end in protected:
@@ -443,6 +465,11 @@ def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> in
             return None
     if text[index] == "." and _is_non_terminal_period(text, index):
         return None
+    if text[index] == "." and _dotted_initialism_at(text, index):
+        gap = re.match(r"\s*", text[index + 1 :]).group(0)
+        remainder = text[index + 1 + len(gap) :]
+        if remainder and len(gap) < 2 and not _is_known_sentence_opener(remainder):
+            return None
     end = protected_end or index + 1
     while end < len(text) and text[end] in "\"'”’)]":
         end += 1
@@ -456,61 +483,64 @@ def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> in
     return None
 
 
-def _split_vertical_list(text: str) -> list[str]:
-    """Split a lead-in and its items only when the colon introduces a list."""
-    lines = text.splitlines()
+def _split_vertical_list(text: str) -> list[tuple[str, int]]:
+    """Split a lead-in and its items, retaining each item's source offset."""
+    lines = text.splitlines(keepends=True)
     if len(lines) < 2:
-        return [text]
+        return [(text, 0)]
+    offsets: list[int] = []
+    cursor = 0
+    for line in lines:
+        offsets.append(cursor)
+        cursor += len(line)
     for index, line in enumerate(lines):
-        if not re.search(r":\s*$", line):
+        if not re.search(r":\s*$", line.rstrip("\r\n")):
             continue
         tail = [part.strip() for part in lines[index + 1 :] if part.strip()]
         if not tail or not all(
             re.match(r"^(?:[-*+]|\d+[.)]|[A-Za-z][.)])\s+", part) for part in tail
         ):
             continue
-        head = "\n".join(lines[: index + 1]).strip()
-        return [head, *tail]
-    return [text]
+        head = "".join(lines[: index + 1]).strip()
+        result: list[tuple[str, int]] = [(head, 0)]
+        for tail_index, part in enumerate(tail, index + 1):
+            raw = lines[tail_index]
+            leading = len(raw) - len(raw.lstrip())
+            result.append((part, offsets[tail_index] + leading))
+        return result
+    return [(text, 0)]
 
 
 def split_sentences(text: str, start_line: int) -> list[Sentence]:
-    """Split at real sentence boundaries and vertical-list lead-in colons."""
+    """Split prose, applying vertical-list structure before punctuation cuts."""
     if not text.strip():
         return []
-    protected = _protected_ranges(text)
-    cuts: list[int] = []
-    index = 0
-    while index < len(text):
-        char = text[index]
-        if char in ".!?":
-            end = _terminal_cut(text, index, protected)
-            if end is not None:
-                cuts.append(end)
-                index = end
-                continue
-        index += 1
-
     pieces: list[Sentence] = []
-    start = 0
-    for end in [*cuts, len(text)]:
-        chunk = text[start:end].strip()
-        start = end
-        if not chunk:
-            continue
-        search_from = 0
-        for part in _split_vertical_list(chunk):
-            part = part.strip()
+    for structural_chunk, chunk_offset in _split_vertical_list(text):
+        protected = _protected_ranges(structural_chunk)
+        cuts: list[int] = []
+        index = 0
+        while index < len(structural_chunk):
+            if structural_chunk[index] in ".!?":
+                end = _terminal_cut(structural_chunk, index, protected)
+                if end is not None:
+                    cuts.append(end)
+                    index = end
+                    continue
+            index += 1
+        start = 0
+        for end in [*cuts, len(structural_chunk)]:
+            raw = structural_chunk[start:end]
+            part = raw.strip()
+            leading = len(raw) - len(raw.lstrip())
+            absolute_offset = chunk_offset + start + leading
+            start = end
             if not part or not WORDLIKE.search(part):
                 continue
-            part_offset = chunk.find(part, search_from)
-            if part_offset < 0:
-                part_offset = search_from
-            search_from = part_offset + len(part)
             pieces.append(
                 Sentence(
                     text=part,
-                    line=start_line + chunk[:part_offset].count("\n"),
+                    line=start_line + text[:absolute_offset].count("\n"),
                     column=1,
                     word_count=count_words(part),
                     text_type=classify_text_type(part),

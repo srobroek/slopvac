@@ -119,6 +119,28 @@ def test_parenthetical_and_non_terminal_periods_do_not_split() -> None:
     ]
 
 
+def test_dotted_initialisms_distinguish_continuations_from_openers() -> None:
+    continuation = split_sentences("e.g. the U.S. Navy sails.", 1)
+    opener = split_sentences("Use U.S. Next.", 1)
+    assert [sentence.text for sentence in continuation] == ["e.g. the U.S. Navy sails."]
+    assert [sentence.text for sentence in opener] == ["Use U.S.", "Next."]
+
+
+def test_sentence_offsets_and_vertical_item_cuts_keep_source_lines() -> None:
+    mapped = split_sentences("Alpha beta.\nSecond line.", 10)
+    assert [(sentence.text, sentence.line) for sentence in mapped] == [
+        ("Alpha beta.", 10),
+        ("Second line.", 11),
+    ]
+    vertical = split_sentences("Set values:\n- First. Second.\n- Third.", 10)
+    assert [(sentence.text, sentence.line) for sentence in vertical] == [
+        ("Set values:", 10),
+        ("- First.", 11),
+        ("Second.", 11),
+        ("- Third.", 12),
+    ]
+
+
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
