@@ -1,8 +1,10 @@
 id: docs-discipline
 title: Docs discipline
 description: >-
-  House genre rules for consumer documentation: describe the released artifact at
-  HEAD, with no status claims, no delta narration, and no internal references.
+  Deterministic consumer-document rules: describe the released artifact at HEAD,
+  with no status claims, delta narration, or internal references. Change
+  communications, migrations, decision records, plans/specs, and historical reports
+  are routed to their own genres rather than judged by these consumer-doc rules.
 weight: 1.0
 recommended_for: [consumer]
 rules:
@@ -19,6 +21,7 @@ rules:
       relaxed: advisory
     pattern: '\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft|being (specified|designed|implemented|built)|not yet (implemented|supported|available)|will (eventually|later|soon)\b|to be (implemented|defined|determined)|TBD|TODO|for now|at the moment|currently(?! (running|active|open|connected|executing|loaded|mounted))|as of (now|writing|today)|planned( for)?|on the roadmap|in (a )?future (release|version)|stay tuned)\b'
     ignore_case: true
+    match_all_caps: true
     fix: Delete the passage, or state the behaviour the code has now.
     examples:
       - bad: The globbing flag is coming soon.
@@ -26,8 +29,8 @@ rules:
       - bad: Support for MDX is not yet implemented.
         good: The parser reads Markdown.
     provenance:
-      source: vale-styles/docs-discipline/StatusLanguage.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — docs-discipline/StatusLanguage.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/StatusLanguage.yml
       note: >-
         E1 in the retired slop-lint.py. The negative lookahead on `currently`
         exempts runtime-state description (currently running/active/...), which is
@@ -55,8 +58,8 @@ rules:
       - bad: The loader was previously named the resolver.
         good: The loader resolves paths.
     provenance:
-      source: vale-styles/docs-discipline/HistoryNarration.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — docs-discipline/HistoryNarration.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/HistoryNarration.yml
       note: >-
         E4 in the retired slop-lint.py. Excluded at relaxed because it encodes a
         genre assumption: a changelog, release note, or migration guide exists to
@@ -81,8 +84,8 @@ rules:
       - bad: The threshold is set per the spec in specs/004.
         good: The threshold is 34 words.
     provenance:
-      source: vale-styles/docs-discipline/InternalRefs.yml
-      url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md
+      source: Retired Vale style — docs-discipline/InternalRefs.yml
+      url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/InternalRefs.yml
       note: >-
         E3 in the retired slop-lint.py, and a CONSUMER-genre rule only, so
         excluded at relaxed. Scope is deliberately prose and not raw: the original
@@ -92,3 +95,4 @@ rules:
         against one real prose hit. Link targets are validated by lychee in CI.
         .vale.ini disables it for specs/, .specify/, ADR paths, CONTRIBUTING,
         constitution, and the two package READMEs that document the rule itself.
+
