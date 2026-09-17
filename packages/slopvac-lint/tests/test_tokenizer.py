@@ -162,3 +162,18 @@ def test_labelled_runbook_set_reaches_ninety_percent_agreement() -> None:
     ]
     agreement = sum(classify_text_type(text) is expected for text, expected in labelled)
     assert agreement / len(labelled) >= 0.90
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Café́ works.", 2),  # combining acute stays with its base letter
+        ("日本語を読む。", 1),  # non-Latin letters are wordlike
+        ("The operator’s value is valid.", 5),  # curly apostrophe is interior
+        ("Use a non‑breaking-hyphen group.", 4),  # U+2011 is an interior hyphen
+        ("go\u200dnow safely.", 3),  # ZWJ is a boundary, not a word character
+        ("Don't pair 'quotes' with contractions.", 5),
+    ],
+)
+def test_unicode_token_boundaries_are_observable(text: str, expected: int) -> None:
+    assert count_words(text) == expected
