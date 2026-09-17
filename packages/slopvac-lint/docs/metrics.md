@@ -104,8 +104,8 @@ the second place a counter must declare its target issue.
 ### Phase 7: Collapse abbreviations to one token (rule 8.6, item 3)
 
 An acronym, an initialism, or a dotted abbreviation counts as one word: `HTTP`, `VPN`, `NASA`,
-`a.m.`, `No. 1`. When an abbreviation directly follows its number, the pair is one word, not
-two.
+`a.m.`, `No. 1`. When an abbreviation directly follows its number, the pair counts as
+one word.
 
 ### Phase 8: Collapse hyphenated groups to one token (rule 8.7)
 
@@ -194,7 +194,7 @@ annotated blocks settle it:
 The second is the decisive one. Four bullets contribute zero to the count, and the number
 matches the count of lead-in sentences exactly. A second, independent instance appears in the
 rule 6.1 example (`:1541-1542`): a paragraph whose fifth sentence carries a two-item list is
-annotated as having five sentences, not seven.
+annotated as having five sentences. The two-item list contributes zero sentences.
 
 **Confidence: high.** Three annotated instances agree, drawn from two different rules, and the
 arithmetic is unambiguous in each. The specification never states the interaction in prose, so
@@ -288,4 +288,4 @@ Recorded so no implementer invents them: there is no maximum paragraph count, no
 per paragraph, no minimum sentence length, no limit on list items or list nesting depth, and no
 readability-score target. The specification declines to regulate units of measurement,
 abbreviation style, and text formatting. The uppercase presentation of safety blocks in the
-source examples is a property of those examples, not a rule.
+source examples is example-specific formatting.
