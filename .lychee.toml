@@ -28,7 +28,7 @@ exclude = [
   "doi\\.org/10\\.1111/",
   "www\\.sec\\.gov/pdf/handbook\\.pdf",
   # These cited source pages return 403 to lychee's non-browser HTTP client.
-  "support\\.acrolinx\\.com/hc/en-us/articles/10210995244178-The-AcroLinx-Score-Explained",
+  "support\\.acrolinx\\.com/hc/en-us/articles/10210995244178",
   "www\\.iso\\.org/standard/79077\\.html",
   "www\\.iso\\.org/sites/directives/current/part2/index\\.xhtml",
 ]
