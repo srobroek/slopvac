@@ -28,6 +28,7 @@ The shipped `src/slopvac/judgement/dependence_table.json` has status
 `uncalibrated` and contains no rule pairs. The aggregation layer therefore
 builds components from span overlap only and logs that limitation. B3 remains
 open until a held-out labelled set derives and validates the dependence pairs.
+
 ## CLI driver
 
 Use the driver when a model call must run outside `slopvac`. The first command runs
