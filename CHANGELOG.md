@@ -1,5 +1,93 @@
 # Changelog
 
+## [2.6.0](https://github.com/srobroek/slopvac/compare/v2.5.0...v2.6.0) (2026-09-17)
+
+
+### Features
+
+* **judgement:** add contract evaluation runner ([af9ef8e](https://github.com/srobroek/slopvac/commit/af9ef8e6f62db72b79a256543d09b4c9ad702080))
+* **judgement:** add fact-preservation rewrite checker ([bba1e19](https://github.com/srobroek/slopvac/commit/bba1e1912d97e47da37a98c03f486fd9d47a2546))
+* **judgement:** add the prepare/finish/compare evaluation driver ([6f7021f](https://github.com/srobroek/slopvac/commit/6f7021f48cd1f58d426c4db1312cacb6d75d3db4))
+* **judgement:** add the prepare/finish/compare evaluation driver ([d2d47b8](https://github.com/srobroek/slopvac/commit/d2d47b87af0d4e0f7a6e755b7341d5a6524f916e))
+* **judgement:** adjudicate model verdicts against the rubric contract ([2df8fdd](https://github.com/srobroek/slopvac/commit/2df8fddbba2bb918de74a1fa217a7c0d78d59596))
+* **judgement:** aggregate judgement findings without gating the composite score ([36eb301](https://github.com/srobroek/slopvac/commit/36eb301a452489938f15d51860c47045c56bd37d))
+* **judgement:** aggregate judgement findings without gating the composite score ([dbf5682](https://github.com/srobroek/slopvac/commit/dbf56823621f5aba84cd0f715c99cdf79e9d30b2))
+* **judgement:** precision interventions for the dominant false-positive families ([01a4a47](https://github.com/srobroek/slopvac/commit/01a4a47d92f1aa1633539b3597c89f9786290161))
+* **judgement:** precision interventions for the four dominant false-positive families ([1beaaa6](https://github.com/srobroek/slopvac/commit/1beaaa68e69dcbfe8517d4a965b38ffe12a6c7d6))
+* **judgement:** render deterministic judgement packs ([bf518e0](https://github.com/srobroek/slopvac/commit/bf518e02744eea9162f509cfe03769a89e923d6b))
+* **lint:** detect formulaic heading patterns ([971c62c](https://github.com/srobroek/slopvac/commit/971c62c607e8156a2e9abc7f7cb3d0341a9a61c2))
+* **slopvac-lint:** add typed judgement rule contracts ([55dc78c](https://github.com/srobroek/slopvac/commit/55dc78c2dc69a5b817369f4ffdf2ed863c52f461))
+* **slopvac-lint:** map projected prose to raw bytes and classify unit origin ([74495c2](https://github.com/srobroek/slopvac/commit/74495c2f02ec159168e2a8f8a2fc33a6636b39b9))
+* **slopvac-lint:** STE sentence segmentation boundaries ([3522ca4](https://github.com/srobroek/slopvac/commit/3522ca4d10d0ef7e0c491560cbdcb02ac7977adf))
+* **slopvac-lint:** STE sentence segmentation boundaries ([f1bd0a3](https://github.com/srobroek/slopvac/commit/f1bd0a3dde4087983393785d294317e4b8fac1c2))
+* **slopvac-lint:** Unicode-aware STE token boundaries ([e936045](https://github.com/srobroek/slopvac/commit/e936045d6c214e1d2291d87260b7c395ba89e95a))
+* **slopvac-lint:** Unicode-aware STE token boundaries ([e6b1431](https://github.com/srobroek/slopvac/commit/e6b1431da4e57d6209ac295e92c833eb77bd1ae9))
+* **slopvac:** keep documentation on the current artifact ([9114362](https://github.com/srobroek/slopvac/commit/91143620ff1a344238b01131e28f8fe45cd70287))
+* **slopvac:** keep documentation on the current artifact ([86a3d9f](https://github.com/srobroek/slopvac/commit/86a3d9f4d24dcb4e971b06e8c2fc487db104faac))
+
+
+### Bug Fixes
+
+* anchor pruning beneath repository root ([2f56dc0](https://github.com/srobroek/slopvac/commit/2f56dc076556aef2394552717c7a15f2a5eaf710))
+* close retention policy review findings ([75eb882](https://github.com/srobroek/slopvac/commit/75eb882401d1c9dc6eabd15a3fc390f41b3e7dc2))
+* **judgement:** adjudicate in the 1.1.2 order, keep contract-shaped pack identities, record veto details ([a631066](https://github.com/srobroek/slopvac/commit/a6310669061fd612e17a0197d52367b48d8824d5))
+* **judgement:** aggregate probe occurrence records per unit in coverage ([a2d1172](https://github.com/srobroek/slopvac/commit/a2d1172e074996f37d7030fca0a035fd23f1af0b))
+* **judgement:** check probe and span result rows carry the schema's occurrences shape ([e6d1825](https://github.com/srobroek/slopvac/commit/e6d18251ebc2e7dfb4d2383162e5522dd1b707b2))
+* **judgement:** count distinct units, carry component ids, mark the dependence table uncalibrated ([42242dd](https://github.com/srobroek/slopvac/commit/42242dd9fe6b2e80adebe39e516e0c99e91659bb))
+* **judgement:** expose Coverage.dropped through the mapping accessor ([d53ee16](https://github.com/srobroek/slopvac/commit/d53ee168de880cb13c57f1ff65cc3c8196e70d08))
+* **judgement:** keep score_document under the complexity gate and restore the min_score guard ([d77d267](https://github.com/srobroek/slopvac/commit/d77d267ab9dbfb23d918e35b8b87601dee1bf0c2))
+* **judgement:** make the rewrite checker contract-complete ([e6085ea](https://github.com/srobroek/slopvac/commit/e6085ea2a107779db4a47bf6be0afb1a555ce348))
+* **judgement:** one eval record model over adjudicated findings; count every host outcome ([4ad7af4](https://github.com/srobroek/slopvac/commit/4ad7af4088dec9291c673052d89f69986728e542))
+* **judgement:** re-export judgement_cache_key from eval.runner ([7817ca8](https://github.com/srobroek/slopvac/commit/7817ca85a2dee798c60b64e46c8c945387078616))
+* **judgement:** skip non-prose cells, map sentence starts through the document projection, count offset mismatches ([46bf519](https://github.com/srobroek/slopvac/commit/46bf5198abf5d87edb681b922ad3fd91d4e8ed0c))
+* **judgement:** use a typos-neutral JCS vector and blank-line the spine list ([e42c2f4](https://github.com/srobroek/slopvac/commit/e42c2f4298fdfc10194cf6cf1bea9f106481618a))
+* **judgement:** validate probe row shape, flatten run output, decode report rows, one cache key ([b4bb9b0](https://github.com/srobroek/slopvac/commit/b4bb9b00a2793e723584608a739a162c797e3d65))
+* **lint:** correct the contrastive-core provenance and sync README counts with the reference ([9b4d0a2](https://github.com/srobroek/slopvac/commit/9b4d0a2ea0a99108406b37f2b68d00cbf648e4e6))
+* **lint:** keep the contrastive core at prose scope ([69e770e](https://github.com/srobroek/slopvac/commit/69e770ed6aaf386345faa631ea74c81d05a871ba))
+* name a real policy owner and report partial removals ([07f25b1](https://github.com/srobroek/slopvac/commit/07f25b175e65e1453332f9f568107c59b9a8d683))
+* report partial artifact removal failures ([3dd78b7](https://github.com/srobroek/slopvac/commit/3dd78b7151ba8916c4a16da394e2fcd5dc4c2cc8))
+* **slopvac-lint:** closed-class openers after dotted initialisms, documented in metrics.md ([b3bed5a](https://github.com/srobroek/slopvac/commit/b3bed5ab3c62e34a6c4005c3a51655ae28e1ac44))
+* **slopvac-lint:** keep the document ProjectionMap and locate block bases in projected text ([7b18601](https://github.com/srobroek/slopvac/commit/7b18601f8d43008a6fa6e14472a783a2a66e358f))
+* **slopvac-lint:** paths leave the sentence period to segmentation ([e99c352](https://github.com/srobroek/slopvac/commit/e99c3521be40a0ce07145935882ddfeaf47addb6))
+* **slopvac-lint:** refresh the rule reference and accept research-record spellings ([6e2d2f3](https://github.com/srobroek/slopvac/commit/6e2d2f3e9b2ff40144c79a6d11d6d7501b778f59))
+* **slopvac-lint:** regenerate the rule reference at its shipped path ([510062f](https://github.com/srobroek/slopvac/commit/510062f221e2479be46e4c39c01cb0b5c169124e))
+* **slopvac-lint:** repair provenance links and doc lint for PR 79 ([42f8e3c](https://github.com/srobroek/slopvac/commit/42f8e3cf217ef6ef242f9d7f50d36bc5c6daba71))
+* **slopvac-lint:** resolve the rubric contract from the repository root in tests ([2b95d98](https://github.com/srobroek/slopvac/commit/2b95d985bdade7c37ed132922d73ecd69a62f5ed))
+* **slopvac-lint:** segmentation review round - initialisms, offsets, list items ([00e978d](https://github.com/srobroek/slopvac/commit/00e978d045eee3108c1a93a82d797feef1c35e75))
+* **slopvac-lint:** ship contract 1.1.2, compare every judgement record field, close the token-class type ([6fb480e](https://github.com/srobroek/slopvac/commit/6fb480e251bd40436ed74a9733f31a218f8617a9))
+* **slopvac-lint:** tokenizer review round - identifiers, paths, decimal digits, attached marks ([ad1e4e3](https://github.com/srobroek/slopvac/commit/ad1e4e3bdcd3be04bf500ff9fe6680bc379c87d9))
+* **slopvac-lint:** Unicode-aware phase-1 path and identifier classes ([8c4d245](https://github.com/srobroek/slopvac/commit/8c4d24596977339f259846b71f970d63232881a1))
+* **slopvac-lint:** vertical-list items keep their physical line after blank lines ([9edf002](https://github.com/srobroek/slopvac/commit/9edf0029c7d3e53919cc24443a690bb7abf016c1))
+
+
+### Documentation
+
+* define orchestration and Beads artefact retention ([5ac6a0a](https://github.com/srobroek/slopvac/commit/5ac6a0a3fcabfa1360489ac61532f46b3b282b52))
+* define orchestration and Beads artefact retention ([f17dc58](https://github.com/srobroek/slopvac/commit/f17dc58b347a8887d767916a93f75c020602d94e))
+* document doc-comment linting design ([cd94863](https://github.com/srobroek/slopvac/commit/cd948631d4baa327aa41ea214ec9c1c23dd5d2ae))
+* **slopvac-lint:** add distinct-unit reconciliation to the sibling sample record ([9d4ac1e](https://github.com/srobroek/slopvac/commit/9d4ac1eaf24a8535889f1c6151e704222b6f8d3c))
+* **slopvac-lint:** blank line before the CLI driver heading (MD022) ([0e931b2](https://github.com/srobroek/slopvac/commit/0e931b2489a9854c60fc8d533c9ae27260ed9e1e))
+* **slopvac-lint:** commit the generated 1.1.2 contract and correct the record ([ad66a62](https://github.com/srobroek/slopvac/commit/ad66a6266a8b4e9c36d88d2908465c95e508c3f7))
+* **slopvac-lint:** doc-comment design review fixes ([4035341](https://github.com/srobroek/slopvac/commit/40353410f48a86e79f324e2b39392b6172b2cd8b))
+* **slopvac-lint:** doc-comment linting design (not implemented) ([72b0aad](https://github.com/srobroek/slopvac/commit/72b0aade96b4543420a2afbbeb9a7bdb7d45e53d))
+* **slopvac-lint:** exclude one more bot-blocked citation host from lychee ([9bd8072](https://github.com/srobroek/slopvac/commit/9bd8072661e0cadb5090461ff9a71124e8cb8387))
+* **slopvac-lint:** make the research record pass typos and lychee in CI ([bcb9703](https://github.com/srobroek/slopvac/commit/bcb9703edd6ef7a1bb9f332a2feeb7dec3ab3ca5))
+* **slopvac-lint:** reconcile local-corpus run counts at distinct-unit granularity ([bd19293](https://github.com/srobroek/slopvac/commit/bd1929317840f2d1885c6f08bc574eb5e8608acc))
+* **slopvac-lint:** record the 2026-09-15 judgement rubric review and contract ([d620fe9](https://github.com/srobroek/slopvac/commit/d620fe99f1ca5072cdff7294373429b8959024e0))
+* **slopvac-lint:** record the 2026-09-15 judgement rubric review and contract ([8d759c7](https://github.com/srobroek/slopvac/commit/8d759c70bf407c2e97af4891ff6dce1c7a6705b5))
+* **slopvac-lint:** record the full sibling-repository judgement run ([fa572d0](https://github.com/srobroek/slopvac/commit/fa572d062cb6505123b43e68187461d7010c8b01))
+* **slopvac-lint:** record the held-out paired comparison for the precision instrument ([298abc1](https://github.com/srobroek/slopvac/commit/298abc12ae20623517af6c3e65a613f535cde870))
+* **slopvac-lint:** record the held-out third-party baseline run ([170ab43](https://github.com/srobroek/slopvac/commit/170ab437d00a2c2958400ccfeb3940912d8ed825))
+* **slopvac-lint:** record the local-corpus judgement run with hand adjudication ([7da8921](https://github.com/srobroek/slopvac/commit/7da8921b60bc6cc214f5cdb161651f3dffd6e084))
+* **slopvac-lint:** record the README smoke per-finding diff and artefact identities ([f2e4455](https://github.com/srobroek/slopvac/commit/f2e4455fba10701d0134dae9c35f9551ce20c6d3))
+* **slopvac-lint:** record the sibling-repository judgement sample and frozen corpus ([01bc29e](https://github.com/srobroek/slopvac/commit/01bc29e3bc3a6a898bcaaaa183d0ac046b0db012))
+* **slopvac-lint:** record the unified diff of rewrites the judgement layer proposed on the local corpus ([a291998](https://github.com/srobroek/slopvac/commit/a291998c2d05ca3647ab4d55501f7e3c7332c8b0))
+* **slopvac-lint:** regenerate the rule reference after the judgement question rewrites ([5e158c3](https://github.com/srobroek/slopvac/commit/5e158c3182695bee25f215eb70a244b79d255731))
+* **slopvac-lint:** remove a double blank line (MD012) ([c0284fd](https://github.com/srobroek/slopvac/commit/c0284fd346758f4df76822f1f1daf4ab7e315832))
+* **slopvac-lint:** revise rubric contract to 1.1.1 for the 66th judgement rule ([3e60c5b](https://github.com/srobroek/slopvac/commit/3e60c5b5bc5427a1cde7702c951de4d23e4bcda7))
+* **slopvac-lint:** state measured confirm precision and the reader policy for judgement confirms ([9008662](https://github.com/srobroek/slopvac/commit/9008662f7923b201cd7213a105af5dd880baaf7a))
+* **slopvac-lint:** state what the held-out comparison does not measure ([a16cdb1](https://github.com/srobroek/slopvac/commit/a16cdb1c93e8b97b65e5a548cb85373f90f4968a))
+
 ## [2.5.0](https://github.com/srobroek/slopvac/compare/v2.4.0...v2.5.0) (2026-09-15)
 
 
