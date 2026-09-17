@@ -37,6 +37,7 @@ stops the two drifting apart. See `docs/metrics.md` for the contract itself.
 
 from __future__ import annotations
 
+import unicodedata
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
@@ -99,18 +100,18 @@ UNIT = (
     r"USD|EUR|GBP"
     r")(?:\^?-?\d)?"
 )
-WORDLIKE = re.compile(r"[\p{L}\p{N}]")
-WORD_CHAR = re.compile(r"[\p{L}\p{N}\p{M}]")
+WORDLIKE = re.compile(r"[\p{L}\p{Nd}]")
+WORD_CHAR = re.compile(r"[\p{L}\p{Nd}\p{M}]")
 TOKEN_JOINER = frozenset({"'", "’", "ʼ", "＇", "-", "‐", "‑", "﹣", "－"})
 
 CODE_SPAN = re.compile(r"(?<!`)`{1,}(?P<body>[^`\n]*?)`{1,}(?!`)")
 URL_OR_PATH = re.compile(
-    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
+    r"(?:https?://|ftp://)[^\s<>]+|(?<!\w)/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+|"
+    r"(?<!\w)(?:\./)?(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
 )
 FLAG_OR_ENV = re.compile(r"--[A-Za-z][A-Za-z0-9-]*|\$[A-Z][A-Z0-9_]*")
 IDENTIFIER = re.compile(
-    r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
-    r"[A-Za-z_][A-Za-z0-9_]*(?:(?:[.:])[A-Za-z0-9_]+)+(?!\w)"
+    r"(?<!\w)[A-Za-z_][A-Za-z0-9_]*(?:(?:\.|::)[A-Za-z0-9_]+)+(?!\w)"
 )
 MIXED_IDENTIFIER = re.compile(
     r"(?<!\w)(?=[A-Za-z0-9_]*[A-Za-z])(?=[A-Za-z0-9_]*\d)"
@@ -355,7 +356,7 @@ def _ste_tokens(text: str) -> tuple[str, ...]:
             flush()
             tokens.append(SENTINEL)
             continue
-        if is_word(char):
+        if is_word(char) and (not unicodedata.category(char).startswith("M") or current):
             current.append(char)
             continue
         if char in TOKEN_JOINER:
