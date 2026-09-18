@@ -312,6 +312,22 @@ def test_heading_echo_fixture_holds_the_decided_controls() -> None:
 
 
 @pytest.mark.parametrize(
+    ("heading", "sentence", "expected"),
+    [
+        ("Install the plugin", "Run apm install slopvac.", "heading_echo_unit_adds_material"),
+        ("Authentication", "Every request sends a bearer token.", "heading_echo_no_lexical_echo"),
+        ("Overview", "This section gives an overview.", None),
+        ("Retention policy", "The retention policy is described below.", None),
+        ("Limits", "Limits apply.", None),
+        ("Limits", "Requests are capped at 100 per minute.", "heading_echo_no_lexical_echo"),
+    ],
+    ids=["install-run-apm", "authentication-bearer-token", "overview", "retention-policy", "limits-apply", "limits-capped"],
+)
+def test_heading_echo_review_acceptance_pairs(heading: str, sentence: str, expected: str | None) -> None:
+    assert _heading_echo_material_redundancy(heading, sentence) == expected
+
+
+@pytest.mark.parametrize(
     ("index", "outcome"),
     [(0, "CONFIRM"), (1, "CONFIRM"), (2, "CONFIRM"), (3, "REJECT"), (4, "REJECT"), (5, "REJECT"), (6, "REJECT")],
     ids=[
@@ -336,7 +352,7 @@ def test_heading_echo_control_outcome(index: int, outcome: str) -> None:
     [
         ("Install the plugin", "This section covers installing the plugin.", None),
         ("Task", "Read", "heading_echo_unit_not_a_sentence"),
-        ("Task", "Claim it first.", "heading_echo_unit_not_a_sentence"),
+        ("Task", "Claim it first.", "heading_echo_no_lexical_echo"),
         ("Task", "Read the brief\nand claim the bead.", "heading_echo_unit_not_a_sentence"),
         ("History", "We first developed these guidelines in the mid-90s.", "heading_echo_no_lexical_echo"),
         ("Example", "This example uses 54 words of prose.", "heading_echo_unit_adds_material"),

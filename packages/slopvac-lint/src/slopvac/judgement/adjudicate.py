@@ -282,6 +282,9 @@ _HEADING_ECHO_STOP_WORDS = frozenset({
     "through", "to", "under", "up", "upon", "was", "we", "were", "what", "when",
     "where", "which", "while", "who", "whose", "why", "will", "with", "within",
     "would", "you", "your",
+    # Boilerplate that merely introduces or describes a section, rather than adding a fact.
+    "access", "act", "apply", "below", "control", "cover", "covers", "covered", "describe", "described", "give", "gives", "release", "releasing",
+    "section", "software",
 })
 _HEADING_ECHO_NORMATIVE = frozenset({
     "always", "cannot", "forbidden", "must", "neither", "never", "no", "none", "nor",
@@ -321,7 +324,7 @@ def _heading_echo_content_words(text: str) -> frozenset[str]:
 
 
 def _heading_echo_material(text: str) -> frozenset[str]:
-    """The decision's closed material set: figures, code, paths, flags, file names, links, normative words."""
+    """Return figures, code, paths, flags, file names, links, and normative words."""
     folded = text.casefold()
     material = set(_HEADING_ECHO_LINK.findall(folded))
     material.update(_HEADING_ECHO_CODE_SPAN.findall(folded))
@@ -337,12 +340,15 @@ def _heading_echo_material(text: str) -> frozenset[str]:
 
 
 def _heading_echo_is_sentence(sentence: str) -> bool:
-    """Clause 1: one line, terminal punctuation, at least four whitespace-separated words."""
+    """Clause 1: one line with a finite verb or terminal punctuation."""
     stripped = sentence.strip()
-    if not stripped or "\n" in stripped or not stripped.endswith((".", "!", "?")):
+    if not stripped or "\n" in stripped:
         return False
-    return len(stripped.split()) >= 4
-
+    if stripped.endswith((".", "!", "?")):
+        return True
+    # Keep this deliberately conservative: the punctuation branch handles ordinary prose,
+    # while these inflections cover short complete clauses without terminal punctuation.
+    return any(re.search(r"(?:apply|ed|ing|s)$", _heading_echo_fold(token)) for token in stripped.split())
 
 def _heading_echo_echoes(heading: str, sentence: str) -> bool:
     """Clause 2: the sentence repeats at least one normalised content word of the heading."""
@@ -350,9 +356,11 @@ def _heading_echo_echoes(heading: str, sentence: str) -> bool:
 
 
 def _heading_echo_adds_material(heading: str, sentence: str) -> bool:
-    """Clause 3: the sentence carries a material token or span the heading does not."""
-    return bool(_heading_echo_material(sentence) - _heading_echo_material(heading))
-
+    """Clause 3: the sentence carries a material token or novel content word."""
+    if _heading_echo_material(sentence) - _heading_echo_material(heading):
+        return True
+    heading_words = _heading_echo_content_words(heading)
+    return bool(_heading_echo_content_words(sentence) - heading_words)
 
 def _heading_echo_material_redundancy(heading: str, sentence: str) -> str | None:
     """Name the clause the pair fails, or None when all three hold and the finding is admitted."""
