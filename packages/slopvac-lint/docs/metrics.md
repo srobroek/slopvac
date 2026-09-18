@@ -324,3 +324,27 @@ Judgement deductions never enter deterministic density, category scores, `max_wa
 or the `min_score` gate. A confirmed judgement finding counts toward `max_errors` only
 when its rule's `judgement_ceiling` is `error`. A cluster result is reported separately
 as `REVISE`; it does not alter either score.
+
+## 9. Determinism
+
+The determinism tests repeat preparation with different Python hash seeds and locales.
+They also reverse the input-file order.
+
+The tests compare JSONL and document artefacts byte-for-byte. They replace only these
+environment-dependent fields:
+
+- `path`
+- `document`
+- `config`
+- `timestamp`
+- `created_at`
+
+The source hash keeps NFC and NFD spellings distinct. Both forms remain deterministic.
+
+The edge fixtures check these parser results:
+
+- An unclosed fence yields a paragraph and a code block over the fence lines.
+- NFD text keeps a sentence span that round-trips to NFD bytes.
+- CRLF sentences exclude the carriage return.
+- HTML entities decode in sentence text. The source span covers the entity bytes.
+- Stray pipes remain a paragraph. They do not become a table.
