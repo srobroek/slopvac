@@ -2237,6 +2237,12 @@
           "antecedent"
         ]
       },
+      "host_predicates": [
+        {
+          "definition": "the host reads the antecedent heading and the defect sentence from the evidence and admits the finding only when the sentence is one line of at least four words ending in terminal punctuation, shares a normalised content word with the heading, and adds no material token or span the heading lacks; a failing clause converts the outcome to REJECT, and a missing or blank heading is ABSTAIN(heading_echo_no_antecedent)",
+          "id": "heading_echo_material_redundancy"
+        }
+      ],
       "id": "ai-tells-structure.heading-echo",
       "judgement_ceiling": "suggestion",
       "protects": [

@@ -1,6 +1,7 @@
 """Host-side reconciliation of model judgements with deterministic gates."""
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -261,6 +262,109 @@ def _transition_rows(contract: Any) -> tuple[dict[str, str], ...]:
     return tuple({"class": str(_plain(_value(row, "token_class", _value(row, "class", "")))), "from": str(_plain(_value(row, "src", _value(row, "from", "")))), "to": str(_plain(_value(row, "dst", _value(row, "to", ""))))} for row in rows)
 
 
+# Heading-echo material redundancy (root decision omp-plugins-q4bb.10). The rule fires on
+# a heading whose first sentence only restates it; the measured false positives were plain
+# section titles followed by a table cell or a list fragment. The three clauses below are
+# that decision's, read over the antecedent heading and the defect sentence alone.
+#
+# Two readings the decision leaves to the implementation, both recorded here: the stop-word
+# list is closed but unenumerated, so it is the function-word set below and is applied
+# before stemming, in the decision's stated order; and the character tests for material
+# ("contains a backtick, a `/`, or a `--flag`") read the raw token, because stripping token
+# edges first would erase the very backtick they test for, while the file-name and normative
+# tests read the edge-stripped form so a sentence-final `report.md.` still counts.
+_HEADING_ECHO_STOP_WORDS = frozenset({
+    "a", "about", "an", "and", "any", "are", "as", "at", "be", "been", "being", "both",
+    "but", "by", "can", "do", "does", "each", "either", "for", "from", "had", "has",
+    "have", "how", "if", "in", "into", "is", "it", "its", "may", "of", "on", "onto",
+    "or", "our", "out", "over", "own", "same", "should", "so", "some", "such", "than",
+    "that", "the", "their", "them", "then", "there", "these", "they", "this", "those",
+    "through", "to", "under", "up", "upon", "was", "we", "were", "what", "when",
+    "where", "which", "while", "who", "whose", "why", "will", "with", "within",
+    "would", "you", "your",
+})
+_HEADING_ECHO_NORMATIVE = frozenset({
+    "always", "cannot", "forbidden", "must", "neither", "never", "no", "none", "nor",
+    "not", "only", "prohibited", "required", "shall",
+})
+_HEADING_ECHO_FILE_SUFFIXES = (
+    ".py", ".md", ".json", ".jsonl", ".yml", ".yaml", ".toml", ".txt", ".sh", ".rs", ".ts", ".js",
+)
+_HEADING_ECHO_EDGES = "`./-"
+_HEADING_ECHO_LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
+_HEADING_ECHO_CODE_SPAN = re.compile(r"`[^`]+`")
+
+
+def _heading_echo_fold(token: str) -> str:
+    """Case-fold one whitespace token and strip the edge characters the decision names."""
+    return token.casefold().strip(_HEADING_ECHO_EDGES)
+
+
+def _heading_echo_stem(word: str) -> str:
+    """Reduce a trailing `ing` on words longer than 4 and a trailing `s` on words longer than 3."""
+    if len(word) > 4 and word.endswith("ing"):
+        return word[:-3]
+    if len(word) > 3 and word.endswith("s"):
+        return word[:-1]
+    return word
+
+
+def _heading_echo_content_words(text: str) -> frozenset[str]:
+    """Fold, strip edges, drop stop words, then stem -- the decision's order."""
+    words = []
+    for raw in text.split():
+        token = _heading_echo_fold(raw)
+        if not token or token in _HEADING_ECHO_STOP_WORDS:
+            continue
+        words.append(_heading_echo_stem(token))
+    return frozenset(words)
+
+
+def _heading_echo_material(text: str) -> frozenset[str]:
+    """The decision's closed material set: figures, code, paths, flags, file names, links, normative words."""
+    folded = text.casefold()
+    material = set(_HEADING_ECHO_LINK.findall(folded))
+    material.update(_HEADING_ECHO_CODE_SPAN.findall(folded))
+    for raw in text.split():
+        token = _heading_echo_fold(raw)
+        if not token:
+            continue
+        if any(character.isdigit() for character in raw) or "`" in raw or "/" in raw or "--" in raw:
+            material.add(token)
+        elif token.endswith(_HEADING_ECHO_FILE_SUFFIXES) or token in _HEADING_ECHO_NORMATIVE:
+            material.add(token)
+    return frozenset(material)
+
+
+def _heading_echo_is_sentence(sentence: str) -> bool:
+    """Clause 1: one line, terminal punctuation, at least four whitespace-separated words."""
+    stripped = sentence.strip()
+    if not stripped or "\n" in stripped or not stripped.endswith((".", "!", "?")):
+        return False
+    return len(stripped.split()) >= 4
+
+
+def _heading_echo_echoes(heading: str, sentence: str) -> bool:
+    """Clause 2: the sentence repeats at least one normalised content word of the heading."""
+    return bool(_heading_echo_content_words(heading) & _heading_echo_content_words(sentence))
+
+
+def _heading_echo_adds_material(heading: str, sentence: str) -> bool:
+    """Clause 3: the sentence carries a material token or span the heading does not."""
+    return bool(_heading_echo_material(sentence) - _heading_echo_material(heading))
+
+
+def _heading_echo_material_redundancy(heading: str, sentence: str) -> str | None:
+    """Name the clause the pair fails, or None when all three hold and the finding is admitted."""
+    if not _heading_echo_is_sentence(sentence):
+        return "heading_echo_unit_not_a_sentence"
+    if not _heading_echo_echoes(heading, sentence):
+        return "heading_echo_no_lexical_echo"
+    if _heading_echo_adds_material(heading, sentence):
+        return "heading_echo_unit_adds_material"
+    return None
+
+
 def _host_predicate_outcome(unit: Any, predicate: Any, evidence: tuple[EvidenceSpan, ...], document_text: str) -> tuple[Outcome, str | None] | None:
     predicate_id = str(_plain(_value(predicate, "id", predicate)))
     referents = [span.quote for span in evidence if span.role == "referent"]
@@ -271,6 +375,15 @@ def _host_predicate_outcome(unit: Any, predicate: Any, evidence: tuple[EvidenceS
         return "ABSTAIN", "needs_repository_fact"
     elif predicate_id == "code_diff_available" and not any(span.source == "repository" for span in evidence):
         return "ABSTAIN", "needs_repository_fact"
+    elif predicate_id == "heading_echo_material_redundancy":
+        heading = next((span.quote for span in evidence if span.role == "antecedent" and span.quote.strip()), "")
+        if not heading:
+            return "ABSTAIN", "heading_echo_no_antecedent"
+        sentence = next((span.quote for span in evidence if span.role == "defect"), "")
+        # The caller's REJECT record carries no reason field, so the failing clause is named
+        # by the helper alone; the tests assert the attribution on it directly.
+        if _heading_echo_material_redundancy(heading, sentence) is not None:
+            return "REJECT", None
     return None
 
 

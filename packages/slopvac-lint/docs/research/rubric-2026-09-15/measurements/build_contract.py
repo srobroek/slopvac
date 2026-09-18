@@ -149,6 +149,9 @@ RULE_EXTRA = {
                                 "requires": "the consequence that fixes the level is quoted as role=invariant from the unit or context",
                                 "note": "only the CAUTION<->WARNING pair is evidenced by the rule's own examples (ste-safety.yml:10-43); DANGER and NOTE transitions were marked unsupported by ChContract and are admitted only after a safety authority or calibration supplies them"},
     },
+    "ai-tells-structure.heading-echo": {
+        "host_predicates": [{"id": "heading_echo_material_redundancy", "definition": "the host reads the antecedent heading and the defect sentence from the evidence and admits the finding only when the sentence is one line of at least four words ending in terminal punctuation, shares a normalised content word with the heading, and adds no material token or span the heading lacks; a failing clause converts the outcome to REJECT, and a missing or blank heading is ABSTAIN(heading_echo_no_antecedent)"}],
+    },
     "ste-nouns.long-domain-term-without-short-form": {
         "host_predicates": [{"id": "no_short_form_in_document", "definition": "the model names the expected short form as a particular; the host verifies by exact search that it occurs nowhere in the document; a hit converts the outcome to REJECT"}],
     },
