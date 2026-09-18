@@ -1,0 +1,148 @@
+{
+  "denominators": {
+    "abstention": {
+      "definition": "ABSTAIN / all distinct units",
+      "value": null
+    },
+    "all_units": {
+      "definition": "distinct unit_ids; failed/truncated/not-run are counted as not-run",
+      "value": null
+    },
+    "evidence_validity": {
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
+      "value": null
+    },
+    "failed": null,
+    "not_run": null,
+    "precision": {
+      "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
+      "value": 6
+    },
+    "response_rows": {
+      "definition": "response rows, not units; duplicate rows are not additional units",
+      "value": null
+    },
+    "truncated": null
+  },
+  "derivation": {
+    "adjudication": "per-confirm adjudication rows",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
+  },
+  "metrics": {
+    "abstention_rate": null,
+    "evidence_validity": null,
+    "lenient_precision": 0.6666666666666666,
+    "strict_precision": 0.16666666666666666
+  },
+  "not_derivable": [
+    "denominators.all_units.distinct_unit_ids",
+    "metrics.abstention_rate",
+    "metrics.evidence_validity"
+  ],
+  "per_rule": [
+    {
+      "borderline": 1,
+      "fp": 0,
+      "lenient_precision": 1.0,
+      "rule_id": "ai-tells-register.anthropomorphised-justification-remainder",
+      "strict_precision": 0.5,
+      "tp": 1
+    },
+    {
+      "borderline": 1,
+      "fp": 0,
+      "lenient_precision": 1.0,
+      "rule_id": "ai-tells-structure.absolute-assertion-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 1,
+      "fp": 0,
+      "lenient_precision": 1.0,
+      "rule_id": "ai-tells-structure.cataphoric-lead-in-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 0,
+      "fp": 1,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-structure.contrastive-inversion-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 0,
+      "fp": 1,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-structure.heading-echo",
+      "strict_precision": 0.0,
+      "tp": 0
+    }
+  ],
+  "raw_adjudication": {
+    "B": 3,
+    "FP": 2,
+    "TP": 1
+  },
+  "raw_outcomes": {},
+  "raw_record": [
+    {
+      "class": "llm",
+      "index": 0,
+      "path": "api-service-foundation.md",
+      "quote": "This is one more place where the current packaging is functional but indirect.",
+      "rewrite": "This is one more place where the current packaging is functional.",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "llm",
+      "index": 1,
+      "path": "architecture-overview.md",
+      "quote": "The strongest part of the current architecture is operational structure: app boundaries, runtime separation, containerization, and release automation.",
+      "rewrite": "The architecture includes app boundaries, runtime separation, containerization, and release automation.",
+      "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+      "verdict": "TP"
+    },
+    {
+      "class": "llm",
+      "index": 2,
+      "path": "architecture-overview.md",
+      "quote": "The weakest part is application depth: no domain modules, no persistence, no auth, and no implemented service-to-service flows.",
+      "rewrite": "",
+      "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 3,
+      "path": "quickstart.md",
+      "quote": "The repo currently contains a few port and naming mismatches:",
+      "rewrite": "The repo contains port and naming mismatches:",
+      "rule": "ai-tells-structure.cataphoric-lead-in-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 4,
+      "path": "repository-automation-scripts.md",
+      "quote": "The root `package.json` exposes these wrappers:",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 0,
+      "path": "postgres-array.md",
+      "quote": "In all of these cases the whitespace will be ignored.",
+      "rewrite": "Whitespace outside quoted element values will be ignored.",
+      "rule": "ai-tells-structure.absolute-assertion-remainder",
+      "verdict": "borderline"
+    }
+  ],
+  "schema_version": 1,
+  "source": "heldout-v2-adjudication.json"
+}
