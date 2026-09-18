@@ -212,6 +212,11 @@ def _passage_id(document: Document, doc_range: tuple[int, int]) -> str:
     return f"{document.path}:{doc_range[0]}:{doc_range[1]}"
 
 
+def _occurrence_index(document_text: str, text: str, start: int) -> int:
+    """Return the zero-based occurrence ordinal for text at start."""
+    return document_text[:start].count(text)
+
+
 def _document_range_for_local(
     document: Document,
     local_projection: ProjectionMap,
@@ -301,6 +306,7 @@ def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: in
         doc_range = (block.doc_range[0] + start, block.doc_range[0] + end)
     raw_text, raw_projection = _raw_unit_projection(document, doc_range)
     unit = SpanCandidate(
+        ordinal=_occurrence_index(getattr(document, "_judgement_text", document.raw), raw_text, doc_range[0]),
         rule_id=rule_id,
         path=document.path,
         text=raw_text,
@@ -369,6 +375,7 @@ def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> li
             doc_range = (selected[0].proj_start, selected[-1].proj_end)
             projection = _identity_projection(value, start_byte, raw_bytes)
             unit = SpanCandidate(
+                ordinal=_occurrence_index(getattr(document, "_judgement_text", document.raw), value, doc_range[0]),
                 rule_id=rule_id,
                 path=document.path,
                 text=value,
@@ -401,6 +408,7 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
     if not sentences:
         raw_text, raw_projection = _raw_unit_projection(document, block.doc_range)
         unit = SpanCandidate(
+            ordinal=_occurrence_index(getattr(document, "_judgement_text", document.raw), raw_text, block.doc_range[0]),
             rule_id=rule_id,
             path=document.path,
             text=raw_text,
@@ -664,6 +672,7 @@ def prepare(
                         document, (0, len(judgement_text))
                     )
                     unit = PassageProbe(
+                        ordinal=_occurrence_index(document.raw, raw_probe_text, 0),
                         rule_id=rule_id,
                         path=str(path),
                         text=raw_probe_text,
