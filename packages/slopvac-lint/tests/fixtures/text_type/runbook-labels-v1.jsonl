@@ -35,8 +35,10 @@
 {"text":"NOTICE: Do not delete the snapshot.","expected":"PROCEDURAL","facet":"safety markers"}
 {"text":"ATTENTION: Keep the console open.","expected":"PROCEDURAL","facet":"safety markers"}
 {"text":"IMPORTANT: Save the manifest.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"IMPORTANT: back up first.","expected":"PROCEDURAL","facet":"safety markers"}
 {"text":"WARNING Do not restart both nodes.","expected":"PROCEDURAL","facet":"safety markers"}
 {"text":"CAUTION! Verify the lock owner.","expected":"PROCEDURAL","facet":"safety markers"}
+{"text":"WARNING: Shut down the node before unplugging it.","expected":"PROCEDURAL","facet":"safety markers"}
 {"text":"Step 1: Check the service.","expected":"PROCEDURAL","facet":"list and step markers"}
 {"text":"Step 2: Drain the worker.","expected":"PROCEDURAL","facet":"list and step markers"}
 {"text":"1. Restart the service.","expected":"PROCEDURAL","facet":"list and step markers"}
@@ -101,6 +103,8 @@
 {"text":"Traffic remains available during staging.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"The import reads its cache at startup.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"The procedure should be approached carefully.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"IMPORTANT: Backups are nightly.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"NOTE: Backups run nightly.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"All nodes should show the new expiry.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"The process must finish before cleanup.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"The runbook walks through the process.","expected":"DESCRIPTIVE","facet":"descriptive controls"}

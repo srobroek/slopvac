@@ -75,6 +75,43 @@ directory are ignored; an explicitly named unsupported source file is an error.
 Code-comments mode uses the packaged Vale config and styles; custom `vale.config`
 and nonempty `vale.styles` settings are rejected, including in per-file overrides.
 
+## Judgement layer
+
+The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. A CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate, so reporting-only does not mean that every judgement outcome is non-gating.
+
+The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response.
+
+Run the three stages in one output directory:
+
+```sh
+uv run --project packages/slopvac-lint slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 --yes packages/slopvac-lint/README.md
+# Send each prompts.jsonl row to your provider, then append responses.jsonl.
+uv run --project packages/slopvac-lint slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
+uv run --project packages/slopvac-lint slopvac judgement compare --out .slopvac-judgement
+```
+
+`--packs` accepts `all` or a comma-separated pack list. `prepare` creates `--out`, runs lint, and writes deterministic reports before it checks the call count. If the count exceeds `--max-calls` (300 by default), it refuses before writing prompts, units, or the manifest; the earlier output remains. Pass `--yes` after reviewing the printed counts to continue.
+
+Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`, and `cache_keys`. The JSON string in `prompt.user` contains `passages` and `pairs`; `pairs` is not a top-level row field. Each `responses.jsonl` row contains `call_id` and `response`.
+
+```python
+import json
+from pathlib import Path
+
+def call_model(system: str, user: str, schema: dict) -> object:
+    """Call your provider and return its JSON response."""
+    raise NotImplementedError
+
+run = Path(".slopvac-judgement")
+with (run / "prompts.jsonl").open() as prompts, (run / "responses.jsonl").open("w") as responses:
+    for line in prompts:
+        row = json.loads(line)
+        result = call_model(row["prompt"]["system"], row["prompt"]["user"], row["response_schema"])
+        responses.write(json.dumps({"call_id": row["call_id"], "response": result}) + "\n")
+```
+
+`prepare` writes `prompts.jsonl`, `units.jsonl`, `documents/*.json`, deterministic reports under `deterministic/`, and `manifest.json`. `finish` writes `findings.jsonl`, `report.json`, and `report.md`; `compare --apply-preview` writes checker-passed rewrites under `preview/`.
+
 ## Profiles
 
 A profile is the strictness dial. It sets which rules run, how loud each one is,
