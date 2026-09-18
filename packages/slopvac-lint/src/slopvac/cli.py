@@ -29,6 +29,7 @@ from .compile_vale import compile_ruleset
 from .config import (
     Config,
     ConfigError,
+    Mode,
     Profile,
     Severity,
     find_config,
@@ -116,6 +117,13 @@ def main(context: click.Context) -> None:
     help="Override the configured tier for this run.",
 )
 @click.option(
+    "--mode",
+    type=click.Choice([m.value for m in Mode]),
+    default=Mode.PROSE.value,
+    show_default=True,
+    help="Input surface: prose or code-comments.",
+)
+@click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
@@ -188,7 +196,7 @@ def main(context: click.Context) -> None:
 @click.option(
     "--comments",
     is_flag=True,
-    help="Lint only source comments (an explicit upstream mode).",
+    help="Alias for --mode code-comments.",
 )
 @click.option(
     "--fix",
@@ -205,6 +213,7 @@ def main(context: click.Context) -> None:
 def lint(
     targets: tuple[str, ...],
     profile: str | None,
+    mode: str,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
@@ -224,7 +233,6 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
-    """Lint files or directories."""
     console = _console(no_color)
     scope = None
     if diff_base is not None or diff_working_tree:
@@ -237,6 +245,7 @@ def lint(
         console,
         targets,
         profile=profile,
+        mode=mode,
         config_path=config_path,
         rules_dir=rules_dir,
         only_categories=only_categories,

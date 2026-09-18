@@ -259,20 +259,22 @@ def run_compiled_vale(
     return result
 
 
-def unchecked_for_skipped(compiled, cause: str = "--no-vale") -> list[str]:
-    """The note that skipping Vale produces, naming what skipped it.
-
-    Skipping Vale skips most of the ruleset, so the rules that would have run are
-    reported as unchecked rather than dropped. A gate that silently stops checking
-    most of its rules while still printing a score is the exact failure mode this
-    project refuses to ship. `cause` is the flag or setting responsible, because
-    `--no-vale` and `[vale] enabled = false` are fixed in different places.
-    """
-    if not compiled.vale_rules:
-        return []
-    return [
-        f"{cause} skipped the Vale engine, so {len(compiled.vale_rules)} of the "
-        f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
-        f"did NOT run. The score below reflects only the "
-        f"{len(compiled.native_rules)} rules that stayed native."
-    ]
+def unchecked_for_skipped(
+    compiled, cause: str = "--no-vale", *, vale_skipped: bool = True
+) -> list[str]:
+    """Return unchecked notes for skipped and comment-excluded rules."""
+    notes: list[str] = []
+    if vale_skipped and compiled.vale_rules:
+        notes.append(
+            f"{cause} skipped the Vale engine, so {len(compiled.vale_rules)} of the "
+            f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "
+            f"did NOT run. The score below reflects only the "
+            f"{len(compiled.native_rules)} rules that stayed native."
+        )
+    excluded = getattr(compiled, "excluded_rules", [])
+    if excluded:
+        notes.append(
+            f"{len(excluded)} active rule(s) are not safe for code-comment scopes "
+            f"and did NOT run: {', '.join(excluded)}"
+        )
+    return notes
