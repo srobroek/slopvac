@@ -29,6 +29,8 @@ The shipped `src/slopvac/judgement/dependence_table.json` has status
 builds components from span overlap only and logs that limitation. B3 remains
 open until a held-out labelled set derives and validates the dependence pairs.
 
+The recall gold set is `tests/fixtures/judgement/gold/gold-v1.jsonl`: 100 seeded defects and 100 matched controls spanning every shipped judgement family. A seeded row is a hit when the model's evidence quote overlaps that row's `defect_span`; a confirm on a control is a false positive. Recall is therefore `hits / 100`, while controls measure false positives separately.
+
 ## CLI driver
 
 The CLI driver prepares and adjudicates a judgement run. It reports model confirms and rejects, and a CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate. See the [README judgement layer guide](../README.md#judgement-layer) for the user workflow.

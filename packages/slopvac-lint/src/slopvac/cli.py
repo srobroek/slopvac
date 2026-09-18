@@ -863,6 +863,7 @@ def judgement() -> None:
 @click.option("--profile", type=click.Choice([profile.value for profile in Profile]), default=None)
 @click.option("--packs", default="all", help="Comma-separated pack ids, or all.")
 @click.option("--categories", default="", help="Comma-separated category ids.")
+@click.option("--gold", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None, help="Gold span JSONL manifest; defaults to gold.jsonl beside inputs.")
 @click.option("--out", "out_path", required=True, type=click.Path(file_okay=False, path_type=Path))
 @click.option("--max-calls", type=click.IntRange(min=0), default=300, show_default=True, help="Refuse runs above this call count unless --yes.")
 @click.option("--yes", is_flag=True, help="Write a run even when it exceeds --max-calls.")
@@ -875,6 +876,7 @@ def judgement_prepare(
     out_path: Path,
     max_calls: int,
     yes: bool,
+    gold: Path | None,
     paths: tuple[Path, ...],
 ) -> None:
     """Create deterministic reports, units, and prompts for PATHS."""
@@ -887,6 +889,7 @@ def judgement_prepare(
             packs=packs,
             categories=tuple(part.strip() for part in categories.split(",") if part.strip()),
             max_calls=max_calls,
+            gold=gold,
             yes=yes,
         )
     except (OSError, ValueError) as exc:
@@ -894,13 +897,14 @@ def judgement_prepare(
     click.echo(f"prepared judgement run in {out_path}")
 
 
+@click.option("--offset-salvage", type=click.Choice(["unique-quote"]), default=None, help="Q02: salvage quoted offsets only when the quote occurs once in its unit.")
+@click.option("--responses", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @judgement.command("finish")
 @click.option("--out", "out_path", required=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
-@click.option("--responses", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
-def judgement_finish(out_path: Path, responses: Path) -> None:
+def judgement_finish(out_path: Path, responses: Path, offset_salvage: str | None) -> None:
     """Adjudicate RESPONSES and write the judgement report."""
     try:
-        judgement_driver.finish(out=out_path, responses=responses)
+        judgement_driver.finish(out=out_path, responses=responses, offset_salvage=offset_salvage)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         raise click.ClickException(str(exc)) from exc
     click.echo(f"finished judgement run in {out_path}")
