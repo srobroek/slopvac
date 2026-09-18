@@ -1,0 +1,985 @@
+{
+  "denominators": {
+    "abstention": {
+      "definition": "ABSTAIN / all distinct units",
+      "value": null
+    },
+    "all_units": {
+      "definition": "distinct unit_ids; failed/truncated/not-run are counted as not-run",
+      "value": null
+    },
+    "evidence_validity": {
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
+      "value": null
+    },
+    "failed": null,
+    "not_run": null,
+    "precision": {
+      "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
+      "value": 90
+    },
+    "response_rows": {
+      "definition": "response rows, not units; duplicate rows are not additional units",
+      "value": null
+    },
+    "truncated": null
+  },
+  "derivation": {
+    "adjudication": "per-confirm adjudication rows",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
+  },
+  "metrics": {
+    "abstention_rate": null,
+    "evidence_validity": null,
+    "lenient_precision": 0.14444444444444443,
+    "strict_precision": 0.05555555555555555
+  },
+  "not_derivable": [
+    "denominators.all_units.distinct_unit_ids",
+    "metrics.abstention_rate",
+    "metrics.evidence_validity",
+    "raw_adjudication.unknown_labels"
+  ],
+  "per_rule": [
+    {
+      "borderline": 0,
+      "fp": 1,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-content-shape.one-point-dilution",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 0,
+      "fp": 1,
+      "lenient_precision": 0.5,
+      "rule_id": "ai-tells-register.anthropomorphised-justification-remainder",
+      "strict_precision": 0.5,
+      "tp": 1
+    },
+    {
+      "borderline": 3,
+      "fp": 16,
+      "lenient_precision": 0.2,
+      "rule_id": "ai-tells-register.false-agency-remainder",
+      "strict_precision": 0.05,
+      "tp": 1
+    },
+    {
+      "borderline": 0,
+      "fp": 2,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-structure.absolute-assertion-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 1,
+      "fp": 1,
+      "lenient_precision": 0.5,
+      "rule_id": "ai-tells-structure.cataphoric-lead-in-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 2,
+      "fp": 16,
+      "lenient_precision": 0.2,
+      "rule_id": "ai-tells-structure.contrastive-inversion-remainder",
+      "strict_precision": 0.1,
+      "tp": 2
+    },
+    {
+      "borderline": 0,
+      "fp": 3,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-structure.false-suspense-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 2,
+      "fp": 36,
+      "lenient_precision": 0.07692307692307693,
+      "rule_id": "ai-tells-structure.heading-echo",
+      "strict_precision": 0.02564102564102564,
+      "tp": 1
+    },
+    {
+      "borderline": 0,
+      "fp": 1,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-structure.invented-concept-label",
+      "strict_precision": 0.0,
+      "tp": 0
+    }
+  ],
+  "raw_adjudication": {
+    "B": 8,
+    "FP": 77,
+    "TP": 5
+  },
+  "raw_outcomes": {},
+  "raw_record": [
+    {
+      "index": 0,
+      "path": "README.md",
+      "quote": "It appears in full in [LICENSE](LICENSE).",
+      "repo": "omp-plugins",
+      "rewrite": "The full text appears in [LICENSE](LICENSE).",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "borderline"
+    },
+    {
+      "index": 1,
+      "path": "architecture/agents/architect.md",
+      "quote": "A second convention beside\n   an existing one is a finding about your own design, not a choice.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 2,
+      "path": "architecture/rules/architecture-docs-files.md",
+      "quote": "When one of these files is missing and the project setup or brownfield workflow\nneeds the information, create the smallest useful file instead of embedding the\nknowledge in agent context files.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 3,
+      "path": "architecture/rules/architecture-ownership.md",
+      "quote": "Use root `data/` only",
+      "repo": "omp-plugins",
+      "rewrite": "Keep shared assets with no single owner in root `data/`. Keep all other data with its owning app, service, worker, or library.",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 4,
+      "path": "authoring/skills/omp-extension-safety/SKILL.md",
+      "quote": "an extension that took the session down (TypeError, uncaughtException)",
+      "repo": "omp-plugins",
+      "rewrite": "an extension that caused the session to stop (TypeError, uncaughtException)",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 5,
+      "path": "authoring/skills/omp-plugin-authoring/SKILL.md",
+      "quote": "Marketplace installs also load `package.json` `omp.extensions` (see `omp://marketplace.md`).",
+      "repo": "omp-plugins",
+      "rewrite": "The marketplace installer also loads `package.json` `omp.extensions` (see `omp://marketplace.md`).",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 6,
+      "path": "authoring/skills/omp-plugin-authoring/SKILL.md",
+      "quote": "What loads",
+      "repo": "omp-plugins",
+      "rewrite": "Install path determines what loads",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 7,
+      "path": "authoring/skills/omp-surface-choice/SKILL.md",
+      "quote": "Schema cannot carry it.",
+      "repo": "omp-plugins",
+      "rewrite": "The schema cannot represent it.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "index": 8,
+      "path": "authoring/skills/omp-surface-choice/SKILL.md",
+      "quote": "TTSR and gates layer above it.",
+      "repo": "omp-plugins",
+      "rewrite": "TTSR and gates are layered above it.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 9,
+      "path": "beads/rules/beads-carriers.md",
+      "quote": "The\norchestration package maps its run model onto these carriers; it does not\nredefine their authority.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "TP"
+    },
+    {
+      "index": 10,
+      "path": "beads/rules/beads-core.md",
+      "quote": "IDENTITY",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 11,
+      "path": "beads/rules/beads-core.md",
+      "quote": "CLAIMING AND LEASES",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 12,
+      "path": "beads/rules/beads-core.md",
+      "quote": "description and notes, never labels/metadata",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 13,
+      "path": "beads/skills/beads-storage-mode/SKILL.md",
+      "quote": "The reference owns backend resolution, persisted mode, migration, and\nserver lifecycle details.",
+      "repo": "omp-plugins",
+      "rewrite": "The reference documents backend resolution, persisted mode, migration, and server lifecycle details.",
+      "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+      "verdict": "TP"
+    },
+    {
+      "index": 14,
+      "path": "beads/skills/beads-storage-mode/SKILL.md",
+      "quote": "The reference owns backend resolution, persisted mode, migration, and\nserver lifecycle details.",
+      "repo": "omp-plugins",
+      "rewrite": "The reference documents backend resolution, persisted mode, migration, and server lifecycle details.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "TP"
+    },
+    {
+      "index": 15,
+      "path": "beads/skills/beads-storage-mode/SKILL.md",
+      "quote": "# Beads storage diagnosis",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.invented-concept-label",
+      "verdict": "FP"
+    },
+    {
+      "index": 16,
+      "path": "beads/skills/beads-storage-mode/references/storage-mode.md",
+      "quote": "The gate accepts the first two carriers and not the third.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 17,
+      "path": "beads/skills/build-formula/references/authoring.md",
+      "quote": "All of these reach the poured bead.",
+      "repo": "omp-plugins",
+      "rewrite": "Delete the sentence.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "TP"
+    },
+    {
+      "index": 18,
+      "path": "beads/skills/build-formula/references/authoring.md",
+      "quote": "The only field `bd ready` enforces; everything else is advisory",
+      "repo": "omp-plugins",
+      "rewrite": "Only `bd ready` is enforced; all other fields are advisory.",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 19,
+      "path": "beads/skills/build-formula/references/composition.md",
+      "quote": "A child cannot delete a parent step",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 20,
+      "path": "beads/skills/build-formula/references/conditions.md",
+      "quote": "Conditional steps and the anchor rule",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 21,
+      "path": "beads/skills/build-formula/references/conditions.md",
+      "quote": "It is not: `optional` is inert, `condition` works.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 22,
+      "path": "beads/skills/build-formula/references/gates.md",
+      "quote": "Skipped, not errored.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 23,
+      "path": "beads/skills/build-formula/references/verify.md",
+      "quote": "Assertions 3 and 8 require a **real pour**, not `--dry-run`.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 24,
+      "path": "chezmoi/skills/chezmoi-editor/SKILL.md",
+      "quote": "Determine whether the target is managed:",
+      "repo": "omp-plugins",
+      "rewrite": "Determine whether the target is managed.",
+      "rule": "ai-tells-structure.false-suspense-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 25,
+      "path": "debate/skills/debate/SKILL.md",
+      "quote": "If delegation is unavailable, research inline and",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 26,
+      "path": "dep-update/README.md",
+      "quote": "The scanner requires a complete version:",
+      "repo": "omp-plugins",
+      "rewrite": "Supported formats:",
+      "rule": "ai-tells-structure.cataphoric-lead-in-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 27,
+      "path": "design/README.md",
+      "quote": "The loader documentation says `enabledServers` can force-enable a same-named disabled entry.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 28,
+      "path": "design/README.md",
+      "quote": "Method",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 29,
+      "path": "design/agents/a11y-auditor.md",
+      "quote": "Read",
+      "repo": "omp-plugins",
+      "rewrite": "Inputs: URL or route, changed file paths, viewport widths, and token file paths.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 30,
+      "path": "design/agents/design-critic.md",
+      "quote": "You are a read-only visual and UX critic.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 31,
+      "path": "design/agents/design-critic.md",
+      "quote": "Read the brief:",
+      "repo": "omp-plugins",
+      "rewrite": "Brief and inspection task",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 32,
+      "path": "design/agents/design-critic.md",
+      "quote": "judge the changed files",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 33,
+      "path": "design/rules/design-no-slop.md",
+      "quote": "list or table, not a card grid",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 34,
+      "path": "design/skills/accessibility-audit/references/upstream.md",
+      "quote": "2 rule\nengine and the gradient-aware contrast resolution, not for DOM access.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 35,
+      "path": "design/skills/design-md/SKILL.md",
+      "quote": "A bare `DESIGN.md` resolves against the session cwd",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 36,
+      "path": "design/skills/design-md/references/upstream.md",
+      "quote": "reading reference and not an install",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 37,
+      "path": "design/skills/platform-conformance/SKILL.md",
+      "quote": "Route by target platform to the upstream skill.",
+      "repo": "omp-plugins",
+      "rewrite": "Rename the heading “Workflow” to “Platform routing”.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 38,
+      "path": "design/skills/platform-conformance/SKILL.md",
+      "quote": "It needs network.\n   -> baseline support and current APIs cited from the tool, not from memory.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "index": 39,
+      "path": "design/skills/ui-review/SKILL.md",
+      "quote": "Phase VERIFY. Drive the real surface and measure what a picture can only suggest.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-content-shape.one-point-dilution",
+      "verdict": "FP"
+    },
+    {
+      "index": 40,
+      "path": "design/skills/ui-review/references/probes.md",
+      "quote": "Settle the transition",
+      "repo": "omp-plugins",
+      "rewrite": "Settle the transition, or the next read may be wrong",
+      "rule": "ai-tells-structure.absolute-assertion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 41,
+      "path": "design/skills/ui-review/references/probes.md",
+      "quote": "Resolve it by hit-testing,",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 42,
+      "path": "design/skills/ui-review/references/storybook.md",
+      "quote": "Gate readiness on the PORT, never on a log pattern.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 43,
+      "path": "design/skills/ui-review/references/storybook.md",
+      "quote": "Describe why, not what.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "index": 44,
+      "path": "design/skills/ui-review/references/tools.md",
+      "quote": "Any skill, formula, or agent that actually runs a command keeps that command inline, so its\nworkflow stays self-contained without following a link.",
+      "repo": "omp-plugins",
+      "rewrite": "Any skill, formula, or agent that runs a command contains that command inline, so its workflow remains self-contained without following a link.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 45,
+      "path": "design/skills/ui-review/references/viewport-checks.md",
+      "quote": "Whitespace",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "index": 46,
+      "path": "design/skills/wireloom/SKILL.md",
+      "quote": "NOT Describe the layout in prose instead of emitting the block.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 47,
+      "path": "eli5/skills/eli5/SKILL.md",
+      "quote": "ELI5",
+      "repo": "omp-plugins",
+      "rewrite": "Replace the heading with “Explain the topic from the user request.”",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 48,
+      "path": "ops/agents/data-metrics-summarizer.md",
+      "quote": "Output",
+      "repo": "omp-plugins",
+      "rewrite": "Output:",
+      "rule": "ai-tells-structure.false-suspense-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 49,
+      "path": "project/README.md",
+      "quote": "Filesystem safety checks are preflight checks",
+      "repo": "omp-plugins",
+      "rewrite": "Filesystem safety checks are preflight checks and do not lock concurrent writers.",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 50,
+      "path": "project/agents/journey-scribe.md",
+      "quote": "Link sources in `trace:`.",
+      "repo": "omp-plugins",
+      "rewrite": "Add source links to `trace:`.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 51,
+      "path": "project/skills/journey-write/SKILL.md",
+      "quote": "Legacy history",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "index": 52,
+      "path": "project/skills/license-picker/references/common-contradictions.md",
+      "quote": "Only strong copyleft (GPL/AGPL)\nprevents this.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 53,
+      "path": "project/skills/license-picker/references/decision-matrix.md",
+      "quote": "Less aggressive than AGPL\n(no network clause), fewer blanket bans for tools people just run.",
+      "repo": "omp-plugins",
+      "rewrite": "Has no network clause and fewer blanket bans on tools people only run.",
+      "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 54,
+      "path": "project/skills/license-picker/references/framework.md",
+      "quote": "Copyleft strength should match the threat model, not the principle.**\n   \"People should contribute\" is a value; the license is a mechanism.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "TP"
+    },
+    {
+      "index": 55,
+      "path": "quality/agents/docs-guard.md",
+      "quote": "Confirm",
+      "repo": "omp-plugins",
+      "rewrite": "Confirm each targeted file exists and matches the declared scope.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 56,
+      "path": "quality/agents/lint-guard.md",
+      "quote": "Reply to `main` as:",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 57,
+      "path": "rust/rules/rust-contract-boundary.md",
+      "quote": "Conformance tests must run against the real surface, not the mock.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 58,
+      "path": "rust/rules/rust-crate-boundaries.md",
+      "quote": "That\n  constraint, not file count, decides where a split goes.",
+      "repo": "omp-plugins",
+      "rewrite": "Use that constraint, not file count, to decide where a split goes.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "index": 59,
+      "path": "rust/rules/rust-crate-boundaries.md",
+      "quote": "When IO or network creeps into a domain crate, extract it into a sibling\n  adapter crate instead of feature-gating it in place.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 60,
+      "path": "rust/rules/rust-persistence.md",
+      "quote": "Embed macro gotcha: a new migration file goes unapplied until the crate recompiles.",
+      "repo": "omp-plugins",
+      "rewrite": "Embed macro gotcha: a new migration remains unapplied until the crate recompiles.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 61,
+      "path": "rust/rules/rust-persistence.md",
+      "quote": "DB is the durable record; on-disk artifacts are reproducible projections.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 62,
+      "path": "rust/rules/rust-safe-mutation.md",
+      "quote": "For side-effecting operations behind a plan/approve/apply flow:",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 63,
+      "path": "rust/rules/rust-workspace.md",
+      "quote": "Gate propagates: edge binary declares it, app crate enables it, leaf crates compile only when enabled.",
+      "repo": "omp-plugins",
+      "rewrite": "The edge binary declares the gate, the app crate enables it, and leaf crates compile only when enabled.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 64,
+      "path": "safety/rules/srobroek-attribution-guard.md",
+      "quote": "Rewrite the `-m`/`--message` text, or rewrite the file supplied to `-F`/`--file`, so the commit names only the human author.",
+      "repo": "omp-plugins",
+      "rewrite": "Rewrite the `-m`/`--message` text, or rewrite the file supplied to `-F`/`--file`, so that only the human author is named in the commit.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 65,
+      "path": "speckit/rules/speckit-workflow.md",
+      "quote": "MUST When a later phase instructs reading tasks.md",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 66,
+      "path": "speckit/rules/speckit-workflow.md",
+      "quote": "MUST At",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "index": 67,
+      "path": "speckit/skills/speckit-bugfix/SKILL.md",
+      "quote": "Triage**: Parse input (issue, stack trace, or description).",
+      "repo": "omp-plugins",
+      "rewrite": "Triage: parse and classify the issue.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 68,
+      "path": "typescript/README.md",
+      "quote": "skipped checks are not a PASS.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.absolute-assertion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 69,
+      "path": "typescript/rules/typescript-type-safety.md",
+      "quote": "A runtime i18n library complements",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "index": 70,
+      "path": "whats-new/skills/whats-new/references/recipes.md",
+      "quote": "Some projects ship neither.",
+      "repo": "omp-plugins",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 0,
+      "path": "agents/orc-implementer-max.md",
+      "quote": "Helpers",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 1,
+      "path": "agents/orc-implementer.md",
+      "quote": "OMP's assignment tells you to skip them",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 2,
+      "path": "agents/orc-implementer.md",
+      "quote": "A brief that tells you",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 3,
+      "path": "agents/orc-planner.md",
+      "quote": "Read",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.false-suspense-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 4,
+      "path": "agents/orc-planner.md",
+      "quote": "A",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "index": 5,
+      "path": "agents/orc-planner.md",
+      "quote": "Begin",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 6,
+      "path": "docs/testing.md",
+      "quote": "WORKS (0.4.11): `orc-implementer` re-ran the task, the review re-entered and approved",
+      "repo": "omp-orchestrate",
+      "rewrite": "WORKS (0.4.11): `orc-implementer` re-ran the task; the review re-entered and was approved",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 7,
+      "path": "docs/testing.md",
+      "quote": "WORKS on 0.4.8",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 8,
+      "path": "skills/orchestrate-with-bd/SKILL.md",
+      "quote": "You are the lead.",
+      "repo": "omp-orchestrate",
+      "rewrite": "The lead role is yours.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 9,
+      "path": "skills/orchestrate-with-bd/SKILL.md",
+      "quote": "OMP owns the agents and their workspaces.",
+      "repo": "omp-orchestrate",
+      "rewrite": "The agents and their workspaces belong to OMP.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 10,
+      "path": "skills/orchestrate-with-bd/SKILL.md",
+      "quote": "The run header the plugin injected on your prompt is the contract.",
+      "repo": "omp-orchestrate",
+      "rewrite": "The injected run header is the contract.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 11,
+      "path": "skills/orchestrate-with-bd/SKILL.md",
+      "quote": "Take a bead (workers)",
+      "repo": "omp-orchestrate",
+      "rewrite": "Move the worker qualification into the heading, leaving this sentence as the procedural instruction.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 12,
+      "path": "skills/orchestrate-with-bd/SKILL.md",
+      "quote": "Close or block a bead with evidence (workers, lead for the epic)",
+      "repo": "omp-orchestrate",
+      "rewrite": "Move the role assignments into the heading, leaving this sentence as the procedural instruction.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 13,
+      "path": "skills/orchestrate-with-bd/SKILL.md",
+      "quote": "Bot round at the exact PR head",
+      "repo": "omp-orchestrate",
+      "rewrite": "Move the bot-round details into the heading, leaving this sentence as the procedural instruction.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 14,
+      "path": "skills/orchestrate-with-bd/references/beads-store.md",
+      "quote": "`bd init` result",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 15,
+      "path": "skills/orchestrate-with-bd/references/beads-store.md",
+      "quote": "Effect on an embedded project",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 16,
+      "path": "skills/orchestrate-with-bd/references/beads-store.md",
+      "quote": "complete: server database created",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 17,
+      "path": "skills/orchestrate-with-bd/references/beads-store.md",
+      "quote": ". A write in any of them\n  is visible in all of t",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 18,
+      "path": "skills/orchestrate-with-bd/references/decisions.md",
+      "quote": "Edge reasoning lives in ",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 19,
+      "path": "skills/orchestrate-with-bd/references/planning.md",
+      "quote": "The description names the scope",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "index": 20,
+      "path": "skills/orchestrate-with-bd/references/review-providers.md",
+      "quote": "A provider response or review proves observation.",
+      "repo": "omp-orchestrate",
+      "rewrite": "A provider response or review is sufficient evidence of observation.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "index": 21,
+      "path": "skills/orchestrate-with-bd/references/review-providers.md",
+      "quote": "The review-request tool accepts only the providers and modes in this table.",
+      "repo": "omp-orchestrate",
+      "rewrite": "The tool accepts only the providers and modes in this table.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "borderline"
+    },
+    {
+      "index": 22,
+      "path": "skills/orchestrate-with-bd/references/review-providers.md",
+      "quote": "Probe identity",
+      "repo": "omp-orchestrate",
+      "rewrite": "Review-request probe identity and accepted providers",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "index": 23,
+      "path": "skills/orchestrate-with-bd/references/roles.md",
+      "quote": "Eight agents ship with the plugin.",
+      "repo": "omp-orchestrate",
+      "rewrite": "",
+      "rule": "ai-tells-structure.cataphoric-lead-in-remainder",
+      "verdict": "borderline"
+    }
+  ],
+  "schema_version": 1,
+  "source": "sibling-full-run-adjudication.json",
+  "unknown_adjudication_labels": [
+    "FP-FRAGMENT-UNIT"
+  ]
+}

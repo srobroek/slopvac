@@ -166,6 +166,22 @@ A sentence ends at any of:
 
 After a dotted initialism, one space followed by a capitalized word is a sentence boundary only when the word is in the closed-class `INITIALISM_SENTENCE_OPENERS` set (the determiners, pronouns, conjunction/adverbial openers, and prepositions listed by that constant); any other capitalized word is treated as a proper-noun continuation and remains joined. The accepted error is that a sentence beginning with a proper noun directly after an initialism stays joined.
 
+### Projected source mapping and identity
+
+Every sentence and prose segment has a deterministic `id` derived from the document path,
+segment kind, NFC-normalised segment text, its occurrence index among identical text in the
+document, and (for sentences) the enclosing block kind. Block ids use the same construction
+with the block kind and normalised block text. The identity hash deliberately excludes the
+document digest and absolute source offsets: inserting unrelated text therefore leaves
+existing ids unchanged, while changing a segment's own text changes its id. Occurrence indices
+keep repeated identical segments unique within one document. The shared Markdown/HTML
+projection maps normalized text back to source spans and 1-based source line and Unicode-scalar
+column coordinates. Lists, tables, front matter, soft breaks, HTML, and excluded code use this
+same map; excluded regions produce no prose sentence or segment. `source_spans` and
+`source_range` remain separate observable fields and may move when source text is inserted.
+Judgement units expose the same identity as `unit_id` and must consume this projection rather
+than reconstructing coordinates.
+
 Non-terminators, because each produces a false split:
 
 - A period inside a collapsed span from phases 1 through 8. Run the collapse phases before
@@ -308,3 +324,27 @@ Judgement deductions never enter deterministic density, category scores, `max_wa
 or the `min_score` gate. A confirmed judgement finding counts toward `max_errors` only
 when its rule's `judgement_ceiling` is `error`. A cluster result is reported separately
 as `REVISE`; it does not alter either score.
+
+## 9. Determinism
+
+The determinism tests repeat preparation with different Python hash seeds and locales.
+They also reverse the input-file order.
+
+The tests compare JSONL and document artefacts byte-for-byte. They replace only these
+environment-dependent fields:
+
+- `path`
+- `document`
+- `config`
+- `timestamp`
+- `created_at`
+
+The source hash keeps NFC and NFD spellings distinct. Both forms remain deterministic.
+
+The edge fixtures check these parser results:
+
+- An unclosed fence yields a paragraph and a code block over the fence lines.
+- NFD text keeps a sentence span that round-trips to NFD bytes.
+- CRLF sentences exclude the carriage return.
+- HTML entities decode in sentence text. The source span covers the entity bytes.
+- Stray pipes remain a paragraph. They do not become a table.
