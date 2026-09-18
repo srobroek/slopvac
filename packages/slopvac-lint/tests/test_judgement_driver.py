@@ -535,3 +535,23 @@ def test_finish_precision_fields_require_adjudication_file(tmp_path: Path) -> No
     with_file = finish(out=out, responses=responses, adjudication=adjudication)
     assert with_file["strict_precision"] == pytest.approx(1 / 3)
     assert with_file["lenient_precision"] == pytest.approx(2 / 3)
+
+    # A summary-only record (sibling shape): each label counted once, the
+    # diagnostic FP_fragment_units subset never enters the denominator, and a
+    # nested summary beside rows is not added on top of them.
+    summary = tmp_path / "summary.json"
+    summary.write_text(json.dumps({
+        "adjudication": {"TP": 5, "borderline": 8, "FP": 82, "FP_fragment_units": 5},
+    }), encoding="utf-8")
+    from_summary = finish(out=out, responses=responses, adjudication=summary)
+    assert from_summary["strict_precision"] == pytest.approx(5 / 95)
+    assert from_summary["lenient_precision"] == pytest.approx(13 / 95)
+
+    mixed = tmp_path / "mixed.json"
+    mixed.write_text(json.dumps({
+        "adjudication": {"TP": 15, "B": 16, "FP": 36},
+        "rows": [{"verdict": "TP"}, {"verdict": "FP-PRESERVE-MISS"}],
+    }), encoding="utf-8")
+    from_rows = finish(out=out, responses=responses, adjudication=mixed)
+    assert from_rows["strict_precision"] == pytest.approx(1 / 2)
+    assert from_rows["lenient_precision"] == pytest.approx(1 / 2)
