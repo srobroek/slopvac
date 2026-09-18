@@ -77,22 +77,22 @@ and nonempty `vale.styles` settings are rejected, including in per-file override
 
 ## Judgement layer
 
-The judgement layer asks an external model to review passages that deterministic rules cannot settle. It is reporting-only: `finish` never changes lint pass or fail results.
+The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. A CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate, so reporting-only does not mean that every judgement outcome is non-gating.
 
 The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response.
 
 Run the three stages in one output directory:
 
 ```sh
-uv run slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 packages/slopvac-lint/README.md
+uv run --project packages/slopvac-lint slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 --yes packages/slopvac-lint/README.md
 # Send each prompts.jsonl row to your provider, then append responses.jsonl.
-uv run slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
-uv run slopvac judgement compare --out .slopvac-judgement
+uv run --project packages/slopvac-lint slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
+uv run --project packages/slopvac-lint slopvac judgement compare --out .slopvac-judgement
 ```
 
-`--packs` accepts `all` or a comma-separated pack list. `prepare` refuses to write when the call count exceeds `--max-calls` (300 by default); pass `--yes` after reviewing the printed counts.
+`--packs` accepts `all` or a comma-separated pack list. `prepare` creates `--out`, runs lint, and writes deterministic reports before it checks the call count. If the count exceeds `--max-calls` (300 by default), it refuses before writing prompts, units, or the manifest; the earlier output remains. Pass `--yes` after reviewing the printed counts to continue.
 
-Each `prompts.jsonl` row contains `call_id`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, and `units` or `pairs`. Each `responses.jsonl` row contains `call_id` and `response`.
+Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`, and `cache_keys`. The JSON string in `prompt.user` contains `passages` and `pairs`; `pairs` is not a top-level row field. Each `responses.jsonl` row contains `call_id` and `response`.
 
 ```python
 import json
