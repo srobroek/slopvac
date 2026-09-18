@@ -320,8 +320,15 @@ def test_heading_echo_fixture_holds_the_decided_controls() -> None:
         ("Retention policy", "The retention policy is described below.", None),
         ("Limits", "Limits apply.", None),
         ("Limits", "Requests are capped at 100 per minute.", "heading_echo_no_lexical_echo"),
+        ("Configuration", "Configuration is covered here.", None),
+        ("Configuration", "Set `SLOPVAC_PROFILE` to choose a profile.", "heading_echo_no_lexical_echo"),
+        ("Why", "Because latency matters.", "heading_echo_no_lexical_echo"),
+        ("Examples", "Examples follow.", None),
+        ("Install", "Installation.", None),
+        ("Configure", "Configuration.", None),
+        ("Authenticate", "Authentication.", None),
     ],
-    ids=["install-run-apm", "authentication-bearer-token", "overview", "retention-policy", "limits-apply", "limits-capped"],
+    ids=["install-run-apm", "authentication-bearer-token", "overview", "retention-policy", "limits-apply", "limits-capped", "configuration-covered", "configuration-profile", "why-latency", "examples-follow", "install-installation", "configure-configuration", "authenticate-authentication"],
 )
 def test_heading_echo_review_acceptance_pairs(heading: str, sentence: str, expected: str | None) -> None:
     assert _heading_echo_material_redundancy(heading, sentence) == expected
