@@ -1433,7 +1433,90 @@ def _gold_recall(
     return recall, {"count": len(confirmed_controls), "total": len(controls)}
 
 
-def finish(*, out: Path, responses: Path, offset_salvage: str | None = None) -> dict[str, Any]:
+# Row verdicts. Summary blocks may carry diagnostic subset counters such as
+# `FP_fragment_units` (a subset of FP, not extra adjudications); those keys are
+# deliberately absent so they never enter a denominator.
+_ADJUDICATION_LABELS: dict[str, str] = {
+    "TP": "TP",
+    "B": "B",
+    "BORDERLINE": "B",
+    "FP": "FP",
+    "FP-PRESERVE-MISS": "FP",
+    "FP_PRESERVE_MISS": "FP",
+    "FP-FRAGMENT-UNIT": "FP",
+    "FP_FRAGMENT_UNIT": "FP",
+}
+
+
+def _adjudication_rows(value: Any) -> list[str]:
+    """Collect per-confirm verdict labels; summary count blocks are ignored."""
+    labels: list[str] = []
+    if isinstance(value, dict):
+        verdict = value.get("verdict", value.get("adjudication"))
+        if isinstance(verdict, str):
+            labels.append(verdict.upper())
+        for child in value.values():
+            labels.extend(_adjudication_rows(child))
+    elif isinstance(value, list):
+        for child in value:
+            labels.extend(_adjudication_rows(child))
+    return labels
+
+
+def _adjudication_summary(value: Any) -> Counter[str]:
+    """Fallback: the first `adjudication` count block found, when no rows exist."""
+    if isinstance(value, dict):
+        nested = value.get("adjudication")
+        if isinstance(nested, dict):
+            counts: Counter[str] = Counter()
+            for label, count in nested.items():
+                if isinstance(count, (int, float)) and not isinstance(count, bool):
+                    counts[str(label).upper()] += int(count)
+            return counts
+        for child in value.values():
+            found = _adjudication_summary(child)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found = _adjudication_summary(child)
+            if found:
+                return found
+    return Counter()
+
+
+def _adjudication_precision(path: Path | None) -> tuple[float | None, float | None]:
+    """Return strict/lenient precision when an adjudication file is supplied.
+
+    Each adjudicated confirm is counted once, from its row; summary blocks are
+    used only when a file carries no rows. Labels outside the explicit map
+    (diagnostic subsets such as FP_FRAGMENT_UNITS) never enter the denominator.
+    """
+    if path is None:
+        return None, None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    counts: Counter[str] = Counter()
+    rows = _adjudication_rows(payload)
+    if rows:
+        for label in rows:
+            mapped = _ADJUDICATION_LABELS.get(label)
+            if mapped:
+                counts[mapped] += 1
+    else:
+        for label, count in _adjudication_summary(payload).items():
+            mapped = _ADJUDICATION_LABELS.get(label)
+            if mapped:
+                counts[mapped] += count
+    tp = counts["TP"]
+    fp = counts["FP"]
+    borderline = counts["B"]
+    denominator = tp + fp + borderline
+    if not denominator:
+        return None, None
+    return tp / denominator, (tp + borderline) / denominator
+
+
+def finish(*, out: Path, responses: Path, offset_salvage: str | None = None, adjudication: Path | None = None) -> dict[str, Any]:
     """Validate response JSONL, adjudicate records, and write reports."""
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     unit_items = _read_jsonl(out / "units.jsonl")
@@ -1622,8 +1705,10 @@ def finish(*, out: Path, responses: Path, offset_salvage: str | None = None) -> 
     gold_rows = gold_config.get("spans", []) if isinstance(gold_config, dict) else []
     gold_recall, control_false_confirms = _gold_recall(gold_rows, units, finding_items)
     gold_attachment = gold_config.get("attachment_counts", {}) if isinstance(gold_config, dict) else {}
+    strict_precision, lenient_precision = _adjudication_precision(adjudication)
     report = {
         "version": 1,
+        **({"strict_precision": strict_precision, "lenient_precision": lenient_precision} if adjudication is not None else {}),
         "documents": report_documents,
         "coverage": coverage_dict,
         "preserve_rates": preserve_rates(records),
