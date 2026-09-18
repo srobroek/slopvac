@@ -283,7 +283,7 @@ _HEADING_ECHO_STOP_WORDS = frozenset({
     "where", "which", "while", "who", "whose", "why", "will", "with", "within",
     "would", "you", "your",
     # Boilerplate that merely introduces or describes a section, rather than adding a fact.
-    "access", "act", "apply", "below", "control", "cover", "covers", "covered", "describe", "described", "give", "gives", "release", "releasing",
+    "access", "act", "above", "apply", "below", "chapter", "control", "cover", "covers", "covered", "describe", "described", "discussed", "explained", "follow", "follows", "following", "give", "gives", "here", "part", "release", "releasing",
     "section", "software",
 })
 _HEADING_ECHO_NORMATIVE = frozenset({
@@ -294,6 +294,9 @@ _HEADING_ECHO_FILE_SUFFIXES = (
     ".py", ".md", ".json", ".jsonl", ".yml", ".yaml", ".toml", ".txt", ".sh", ".rs", ".ts", ".js",
 )
 _HEADING_ECHO_EDGES = "`./-"
+_HEADING_ECHO_DERIVATIONAL_SUFFIXES = (
+    "ation", "ition", "tion", "sion", "ment", "ness", "ity", "ing", "ed", "es", "s",
+)
 _HEADING_ECHO_LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
 _HEADING_ECHO_CODE_SPAN = re.compile(r"`[^`]+`")
 
@@ -304,11 +307,10 @@ def _heading_echo_fold(token: str) -> str:
 
 
 def _heading_echo_stem(word: str) -> str:
-    """Reduce a trailing `ing` on words longer than 4 and a trailing `s` on words longer than 3."""
-    if len(word) > 4 and word.endswith("ing"):
-        return word[:-3]
-    if len(word) > 3 and word.endswith("s"):
-        return word[:-1]
+    """Strip one derivational suffix when at least three stem characters remain."""
+    for suffix in _HEADING_ECHO_DERIVATIONAL_SUFFIXES:
+        if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+            return word[:-len(suffix)]
     return word
 
 
@@ -350,9 +352,20 @@ def _heading_echo_is_sentence(sentence: str) -> bool:
     # while these inflections cover short complete clauses without terminal punctuation.
     return any(re.search(r"(?:apply|ed|ing|s)$", _heading_echo_fold(token)) for token in stripped.split())
 
+def _heading_echo_stems_match(left: str, right: str) -> bool:
+    """Match exact stems, or their first four characters as a conservative fallback.
+
+    This is intentionally lexical: unrelated synonyms remain material, and unusual
+    content words in otherwise boilerplate prose err toward PRESERVE.
+    """
+    return left == right or (len(left) >= 4 and len(right) >= 4 and left[:4] == right[:4])
+
+
 def _heading_echo_echoes(heading: str, sentence: str) -> bool:
     """Clause 2: the sentence repeats at least one normalised content word of the heading."""
-    return bool(_heading_echo_content_words(heading) & _heading_echo_content_words(sentence))
+    heading_words = _heading_echo_content_words(heading)
+    sentence_words = _heading_echo_content_words(sentence)
+    return any(_heading_echo_stems_match(left, right) for left in heading_words for right in sentence_words)
 
 
 def _heading_echo_adds_material(heading: str, sentence: str) -> bool:
@@ -360,7 +373,10 @@ def _heading_echo_adds_material(heading: str, sentence: str) -> bool:
     if _heading_echo_material(sentence) - _heading_echo_material(heading):
         return True
     heading_words = _heading_echo_content_words(heading)
-    return bool(_heading_echo_content_words(sentence) - heading_words)
+    return any(
+        not any(_heading_echo_stems_match(word, heading_word) for heading_word in heading_words)
+        for word in _heading_echo_content_words(sentence)
+    )
 
 def _heading_echo_material_redundancy(heading: str, sentence: str) -> str | None:
     """Name the clause the pair fails, or None when all three hold and the finding is admitted."""
