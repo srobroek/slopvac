@@ -58,11 +58,21 @@ from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
 from .vale_probe import rst_converter
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
-LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html", "*.toml", "mise.toml")
+LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
 SOURCE_LINTABLE = tuple(f"*{suffix}" for suffix in SOURCE_LANGUAGE_BY_EXTENSION) + tuple(
     SOURCE_FILENAMES
 )
-COMMENTABLE = SOURCE_LINTABLE
+COMMENTABLE = (*SOURCE_LINTABLE, "*.toml", "mise.toml")
+
+
+def _comment_source_language(path: Path | str) -> tuple[str, str]:
+    """Return a comment scope identity, including TOML's syntax projection."""
+    candidate = Path(path)
+    if candidate.suffix.lower() == ".toml":
+        return "toml", ".toml"
+    return canonical_source_language(candidate)
+
+
 SKIP_SOURCE_DIRS = frozenset(
     {
         ".git",
@@ -178,7 +188,7 @@ def _expand_paths(
         elif path.is_file():
             if comments is True:
                 try:
-                    canonical_source_language(path)
+                    _comment_source_language(path)
                 except ValueError as exc:
                     raise click.ClickException(str(exc)) from None
             found.append(path)
@@ -197,7 +207,7 @@ def _expand_paths(
                     continue
                 if comments is True:
                     try:
-                        canonical_source_language(match)
+                        _comment_source_language(match)
                     except ValueError as exc:
                         raise click.ClickException(str(exc)) from None
                 found.append(match)
@@ -411,7 +421,7 @@ def _compile_for(
     resolved = resolve_for(config, sample)
     source_language = source_extension = None
     if resolved.mode is Mode.CODE_COMMENTS:
-        source_language, source_extension = canonical_source_language(sample)
+        source_language, source_extension = _comment_source_language(sample)
     try:
         if validate:
             return (
@@ -841,10 +851,9 @@ def load_run_context(
             config = effective_by_source[source]
             if config.mode is Mode.CODE_COMMENTS:
                 try:
-                    canonical_source_language(path)
+                    _comment_source_language(path)
                 except ValueError as exc:
                     raise PipelineError(f"[red]{exc}[/]") from None
-
     informational: list[str] = []
     incomplete: list[str] = []
     for path, message in skipped_collections.items():
@@ -936,7 +945,7 @@ def group_inputs(
                 repr(resolved.vale.model_dump()),
                 repr(resolved.locale.model_dump()),
                 resolved.mode.value,
-                repr(canonical_source_language(path))
+                repr(_comment_source_language(path))
                 if resolved.mode is Mode.CODE_COMMENTS
                 else "",
             )
@@ -1032,6 +1041,10 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 DocumentScore(
                     path="<collection>",
                     profile=first.profile.value if first else Profile.NORMAL.value,
+                    words=0,
+                    sentences=0,
+                    paragraphs=0,
+                    passed=False,
                     unchecked=list(ctx.collection_unchecked),
                 )
             )
