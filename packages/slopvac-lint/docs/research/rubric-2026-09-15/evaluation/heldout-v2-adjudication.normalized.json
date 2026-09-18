@@ -9,7 +9,7 @@
       "value": null
     },
     "evidence_validity": {
-      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
       "value": null
     },
     "failed": null,
@@ -23,6 +23,10 @@
       "value": null
     },
     "truncated": null
+  },
+  "derivation": {
+    "adjudication": "per-confirm adjudication rows",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
   },
   "metrics": {
     "abstention_rate": null,
@@ -78,7 +82,7 @@
     }
   ],
   "raw_adjudication": {
-    "BORDERLINE": 3,
+    "B": 3,
     "FP": 2,
     "TP": 1
   },

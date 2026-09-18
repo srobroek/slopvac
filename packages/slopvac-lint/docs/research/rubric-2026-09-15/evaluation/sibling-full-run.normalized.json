@@ -9,14 +9,14 @@
       "value": null
     },
     "evidence_validity": {
-      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
       "value": 1969
     },
     "failed": null,
     "not_run": null,
     "precision": {
       "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
-      "value": 100
+      "value": 95
     },
     "response_rows": {
       "definition": "response rows, not units; duplicate rows are not additional units",
@@ -24,15 +24,20 @@
     },
     "truncated": null
   },
+  "derivation": {
+    "adjudication": "summary adjudication counts (no per-confirm rows available)",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
+  },
   "metrics": {
     "abstention_rate": null,
-    "evidence_validity": 0.01218892839004571,
-    "lenient_precision": 0.13,
-    "strict_precision": 0.05
+    "evidence_validity": 0.04824784154393093,
+    "lenient_precision": 0.1368421052631579,
+    "strict_precision": 0.05263157894736842
   },
   "not_derivable": [
     "denominators.all_units.distinct_unit_ids",
-    "metrics.abstention_rate"
+    "metrics.abstention_rate",
+    "raw_adjudication.unknown_labels"
   ],
   "per_rule": [
     {
@@ -77,10 +82,10 @@
     },
     {
       "borderline": 2,
-      "fp": 19,
-      "lenient_precision": 0.17391304347826086,
+      "fp": 16,
+      "lenient_precision": 0.2,
       "rule_id": "ai-tells-structure.contrastive-inversion-remainder",
-      "strict_precision": 0.08695652173913043,
+      "strict_precision": 0.1,
       "tp": 2
     },
     {
@@ -93,10 +98,10 @@
     },
     {
       "borderline": 2,
-      "fp": 38,
-      "lenient_precision": 0.07317073170731707,
+      "fp": 36,
+      "lenient_precision": 0.07692307692307693,
       "rule_id": "ai-tells-structure.heading-echo",
-      "strict_precision": 0.024390243902439025,
+      "strict_precision": 0.02564102564102564,
       "tp": 1
     },
     {
@@ -109,12 +114,8 @@
     }
   ],
   "raw_adjudication": {
-    "BORDERLINE": 8,
-    "CONFIRMS": 95,
+    "B": 8,
     "FP": 82,
-    "FP_FRAGMENT_UNITS": 5,
-    "PRECISION_LENIENT": 0.137,
-    "PRECISION_STRICT": 0.053,
     "TP": 5
   },
   "raw_outcomes": {
@@ -243,5 +244,11 @@
     "shards": 8
   },
   "schema_version": 1,
-  "source": "sibling-full-run.json"
+  "source": "sibling-full-run.json",
+  "unknown_adjudication_labels": [
+    "CONFIRMS",
+    "FP_FRAGMENT_UNITS",
+    "PRECISION_LENIENT",
+    "PRECISION_STRICT"
+  ]
 }

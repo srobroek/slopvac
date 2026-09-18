@@ -9,14 +9,14 @@
       "value": null
     },
     "evidence_validity": {
-      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
-      "value": 37
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
+      "value": null
     },
     "failed": 21,
     "not_run": null,
     "precision": {
       "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
-      "value": 71
+      "value": 37
     },
     "response_rows": {
       "definition": "response rows, not units; duplicate rows are not additional units",
@@ -24,11 +24,15 @@
     },
     "truncated": null
   },
+  "derivation": {
+    "adjudication": "per-confirm adjudication rows",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
+  },
   "metrics": {
     "abstention_rate": null,
     "evidence_validity": null,
-    "lenient_precision": 0.43661971830985913,
-    "strict_precision": 0.2112676056338028
+    "lenient_precision": 0.4594594594594595,
+    "strict_precision": 0.24324324324324326
   },
   "not_derivable": [
     "denominators.all_units.distinct_unit_ids",
@@ -110,10 +114,9 @@
     }
   ],
   "raw_adjudication": {
-    "B": 16,
-    "FP": 36,
-    "FP-PRESERVE-MISS": 4,
-    "TP": 15
+    "B": 8,
+    "FP": 20,
+    "TP": 9
   },
   "raw_outcomes": {
     "ABSTAIN": 416,

@@ -10,11 +10,14 @@ Unavailable measurements are `null` and named in `not_derivable`.
 - `metrics.strict_precision`: `TP / (TP + FP + borderline)`. Borderline is an
   FP in the strict view.
 - `metrics.lenient_precision`: `(TP + borderline) / (TP + FP + borderline)`.
-  Borderline is a TP in the lenient view. `FP-*` labels remain false positives.
+  Borderline is a TP in the lenient view. `FP-*` labels remain false positives;
+  in particular, `FP-PRESERVE-MISS` is a false positive that should have been
+  preserved and is counted as FP.
 - `metrics.abstention_rate`: `ABSTAIN / all units`.
-- `metrics.evidence_validity`: confirmations passing the exact-evidence gate /
-  model confirmations. The numerator is a host-confirmed exact quote and
-  offset; the denominator is the model's CONFIRM count.
+- `metrics.evidence_validity`: `host_confirms_after_gate /
+  model_confirms_before_gate`. The numerator sums host confirms across all
+  repositories in a record; the denominator is only the explicit pre-gate
+  model `confirm` counter. Outcome `CONFIRM` counters are not model confirms.
 - `per_rule`: one row per rule with TP, FP, borderline, and both precision views.
   A missing rule-level adjudication remains an empty table, never a fabricated
   zero.
