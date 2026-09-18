@@ -99,6 +99,24 @@ def test_duplicate_sentence_units_keep_distinct_identity_and_ranges(tmp_path: Pa
     assert single["unit_id"] == matching[0]["unit_id"]
 
 
+
+def test_soft_break_duplicate_sentence_units_use_source_order_ordinals(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("Run it\nnow.\n\nRun it\nnow.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    units = [
+        json.loads(line)
+        for line in (out / "units.jsonl").read_text().splitlines()
+    ]
+    matching = [unit for unit in units if unit["text"] == "Run it\nnow."]
+    assert len(matching) >= 2
+    rule_id = matching[0]["rule_id"]
+    matching = [unit for unit in matching if unit["rule_id"] == rule_id]
+    by_range = sorted(matching, key=lambda unit: unit["doc_range"])
+    assert [unit["doc_range"] for unit in by_range] == [[0, 11], [12, 23]]
+    assert len({unit["unit_id"] for unit in by_range}) == 2
+
 def test_probe_units_have_rule_identity_and_finish_coverage(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
     document.write_text("A useful paragraph.", encoding="utf-8")

@@ -212,9 +212,12 @@ def _passage_id(document: Document, doc_range: tuple[int, int]) -> str:
     return f"{document.path}:{doc_range[0]}:{doc_range[1]}"
 
 
-def _occurrence_index(document_text: str, text: str, start: int) -> int:
-    """Return the zero-based occurrence ordinal for text at start."""
-    return document_text[:start].count(text)
+def _next_ordinal(counter: Counter[tuple[str, str, str]], kind: str, rule_id: str, text: str) -> int:
+    key = (kind, rule_id, text)
+    ordinal = counter[key]
+    counter[key] += 1
+    return ordinal
+
 
 
 def _document_range_for_local(
@@ -294,7 +297,17 @@ def _neighbor_context(document: Document, block: Any) -> str:
     return "\n\n".join(neighbors)
 
 
-def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: int, rule_id: str, pack: Pack) -> Any:
+def _unit_from_sentence(
+    document: Document,
+    block: Any,
+    sentence: Any,
+    index: int,
+    rule_id: str,
+    pack: Pack,
+    ordinal_counter: Counter[tuple[str, str, str]] | None = None,
+) -> Any:
+    if ordinal_counter is None:
+        ordinal_counter = Counter()
     start = block.text.find(sentence.text, index)
     if start < 0:
         start = index
@@ -306,7 +319,7 @@ def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: in
         doc_range = (block.doc_range[0] + start, block.doc_range[0] + end)
     raw_text, raw_projection = _raw_unit_projection(document, doc_range)
     unit = SpanCandidate(
-        ordinal=_occurrence_index(getattr(document, "_judgement_text", document.raw), raw_text, doc_range[0]),
+        ordinal=_next_ordinal(ordinal_counter, "SPAN_CANDIDATE", rule_id, raw_text),
         rule_id=rule_id,
         path=document.path,
         text=raw_text,
@@ -325,7 +338,15 @@ def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: in
     return unit
 
 
-def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> list[Any]:
+def _table_units(
+    document: Document,
+    block: Any,
+    rule_id: str,
+    pack: Pack,
+    ordinal_counter: Counter[tuple[str, str, str]] | None = None,
+) -> list[Any]:
+    if ordinal_counter is None:
+        ordinal_counter = Counter()
     raw = document.raw
     raw_bytes = raw.encode("utf-8")
     cursor = 0
@@ -375,7 +396,7 @@ def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> li
             doc_range = (selected[0].proj_start, selected[-1].proj_end)
             projection = _identity_projection(value, start_byte, raw_bytes)
             unit = SpanCandidate(
-                ordinal=_occurrence_index(getattr(document, "_judgement_text", document.raw), value, doc_range[0]),
+                ordinal=_next_ordinal(ordinal_counter, "SPAN_CANDIDATE", rule_id, value),
                 rule_id=rule_id,
                 path=document.path,
                 text=value,
@@ -395,7 +416,15 @@ def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> li
     return units
 
 
-def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -> list[Any]:
+def _unit_from_block(
+    document: Document,
+    block: Any,
+    rule_id: str,
+    pack: Pack,
+    ordinal_counter: Counter[tuple[str, str, str]] | None = None,
+) -> list[Any]:
+    if ordinal_counter is None:
+        ordinal_counter = Counter()
     # Sentence units preserve exact evidence coordinates while retaining one unit
     # for a paragraph with no sentence segmentation (tables and unusual Markdown).
     if block.kind not in {BlockKind.PARAGRAPH, BlockKind.QUOTE, BlockKind.LIST_ITEM, BlockKind.TABLE, BlockKind.HEADING}:
@@ -404,11 +433,11 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
         return []
     sentences = list(block.sentences)
     if block.kind is BlockKind.TABLE:
-        return _table_units(document, block, rule_id, pack)
+        return _table_units(document, block, rule_id, pack, ordinal_counter)
     if not sentences:
         raw_text, raw_projection = _raw_unit_projection(document, block.doc_range)
         unit = SpanCandidate(
-            ordinal=_occurrence_index(getattr(document, "_judgement_text", document.raw), raw_text, block.doc_range[0]),
+            ordinal=_next_ordinal(ordinal_counter, "SPAN_CANDIDATE", rule_id, raw_text),
             rule_id=rule_id,
             path=document.path,
             text=raw_text,
@@ -428,9 +457,10 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
     units: list[Any] = []
     cursor = 0
     for sentence in sentences:
-        units.append(_unit_from_sentence(document, block, sentence, cursor, rule_id, pack))
+        units.append(_unit_from_sentence(document, block, sentence, cursor, rule_id, pack, ordinal_counter))
         cursor = max(cursor, block.text.find(sentence.text, cursor) + len(sentence.text))
     return units
+
 
 
 _NORMATIVE_START = re.compile(
@@ -647,7 +677,6 @@ def prepare(
         raw = path.read_text(encoding="utf-8")
         document = parse(str(path), raw)
         judgement_text, judgement_projection = project(raw)
-        document._judgement_text = judgement_text  # type: ignore[attr-defined]
         document._judgement_projection = judgement_projection  # type: ignore[attr-defined]
         document_ref = _safe_name(path, root)
         document_data[document_ref] = {
@@ -663,6 +692,7 @@ def prepare(
                 json.dumps(score.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8"
             )
         doc_units: list[dict[str, Any]] = []
+        ordinal_counter: Counter[tuple[str, str, str]] = Counter()
         doc_calls: list[dict[str, Any]] = []
         for pack in selected_packs:
             candidates: list[Any] = []
@@ -672,7 +702,7 @@ def prepare(
                         document, (0, len(judgement_text))
                     )
                     unit = PassageProbe(
-                        ordinal=_occurrence_index(document.raw, raw_probe_text, 0),
+                        ordinal=_next_ordinal(ordinal_counter, "PASSAGE_PROBE", rule_id, raw_probe_text),
                         rule_id=rule_id,
                         path=str(path),
                         text=raw_probe_text,
@@ -692,7 +722,7 @@ def prepare(
             else:
                 for rule_id in pack.rules:
                     for block in document.blocks:
-                        candidates.extend(_unit_from_block(document, block, rule_id, pack))
+                        candidates.extend(_unit_from_block(document, block, rule_id, pack, ordinal_counter))
 
             admissible: list[dict[str, Any]] = []
             for unit in candidates:
