@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from slopvac.analyze import Unit
-from slopvac.judgement.adjudicate import adjudicate
+from slopvac.judgement.adjudicate import _heading_echo_material_redundancy, adjudicate
 from slopvac.judgement.schema import validate_model_output
 from slopvac.judgement.types import (
     EvidenceSpec,
@@ -12,6 +15,7 @@ from slopvac.judgement.types import (
     TransitionTable,
 )
 from slopvac.projection import project
+from slopvac.rules import load_ruleset
 
 
 def _unit(text: str = "The shape is here.", *, kind: str = "SPAN_CANDIDATE", origin: str = "authored") -> Unit:
@@ -251,3 +255,157 @@ def test_transition_table_allows_safety_change_but_vetoes_unauthorised_note_chan
     note_unit = _unit("NOTE: use the command")
     failing = _adjudicate(note_unit, allowed, _output(note_unit, harm="unsafe_or_normative", evidence=[_evidence(note_unit)], rewrite="CAUTION: use the command", rewrite_status="proposed"))
     assert failing.rewrite_status == "withheld_checker_veto"
+
+
+# --- heading-echo material redundancy (root decision omp-plugins-q4bb.10) ----
+
+_HEADING_ECHO_FIXTURE = Path(__file__).resolve().parent / "fixtures/judgement/heading-echo-material-redundancy.md"
+_HEADING_ECHO_CONTROLS = [
+    ("Install the plugin", "This section covers installing the plugin."),
+    ("Authentication", "Authentication covers access control."),
+    ("Deployment", "Deployment is the act of releasing software."),
+    ("History", "We first developed these guidelines in the mid-90s."),
+    ("History", "We continue to revise them every few years to provide updated advice on clear communication."),
+    ("History", "We've broadened our coverage, but the information still bears the stamp of its origin."),
+    ("Example", "This example uses several of the techniques discussed above to cut a 54 word sentence down to 22 words, with no loss of meaning."),
+]
+
+
+def _heading_echo_pairs() -> list[tuple[str, str]]:
+    """The fixture's `## heading` and first-unit pairs, in file order."""
+    pairs: list[tuple[str, str]] = []
+    heading: str | None = None
+    for line in _HEADING_ECHO_FIXTURE.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            heading = stripped[3:]
+        elif stripped and heading is not None:
+            pairs.append((heading, stripped))
+            heading = None
+    return pairs
+
+
+def _heading_echo_rule(*, gated: bool = True) -> SimpleNamespace:
+    return _rule(
+        min_arity=2,
+        roles=("defect", "antecedent"),
+        warrant_min=2,
+        ceiling="suggestion",
+        protects=("accessibility_consistency", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen"),
+        host_predicates=("heading_echo_material_redundancy",) if gated else (),
+    )
+
+
+def _heading_echo_record(heading: str, sentence: str, *, gated: bool = True):
+    unit = _unit(sentence)
+    unit.context = heading
+    output = _output(
+        unit,
+        warrant="quote_plus_particular",
+        evidence=[_evidence(unit), _evidence(unit, quote=heading, source="context", role="antecedent")],
+    )
+    return _adjudicate(unit, _heading_echo_rule(gated=gated), output)
+
+
+def test_heading_echo_fixture_holds_the_decided_controls() -> None:
+    assert _heading_echo_pairs() == _HEADING_ECHO_CONTROLS
+
+
+@pytest.mark.parametrize(
+    ("index", "outcome"),
+    [(0, "CONFIRM"), (1, "CONFIRM"), (2, "CONFIRM"), (3, "REJECT"), (4, "REJECT"), (5, "REJECT"), (6, "REJECT")],
+    ids=[
+        "install-the-plugin-confirms",
+        "authentication-confirms",
+        "deployment-confirms",
+        "history-mid-90s-rejects",
+        "history-revise-rejects",
+        "history-coverage-rejects",
+        "example-54-words-rejects",
+    ],
+)
+def test_heading_echo_control_outcome(index: int, outcome: str) -> None:
+    heading, sentence = _heading_echo_pairs()[index]
+    record = _heading_echo_record(heading, sentence)
+    assert record.outcome == outcome
+    assert record.severity == ("suggestion" if outcome == "CONFIRM" else None)
+
+
+@pytest.mark.parametrize(
+    ("heading", "sentence", "reason"),
+    [
+        ("Install the plugin", "This section covers installing the plugin.", None),
+        ("Task", "Read", "heading_echo_unit_not_a_sentence"),
+        ("Task", "Claim it first.", "heading_echo_unit_not_a_sentence"),
+        ("Task", "Read the brief\nand claim the bead.", "heading_echo_unit_not_a_sentence"),
+        ("History", "We first developed these guidelines in the mid-90s.", "heading_echo_no_lexical_echo"),
+        ("Example", "This example uses 54 words of prose.", "heading_echo_unit_adds_material"),
+        ("Checks", "Every check MUST name its evidence.", "heading_echo_unit_adds_material"),
+        ("Tools", "Tools live in [the reference](docs/tools.md).", "heading_echo_unit_adds_material"),
+        ("Tools", "Tools are declared in `tools.toml`.", "heading_echo_unit_adds_material"),
+    ],
+    ids=[
+        "all-clauses-hold",
+        "no-terminal-punctuation",
+        "three-words",
+        "embedded-newline",
+        "no-shared-content-word",
+        "adds-a-figure",
+        "adds-a-normative-word",
+        "adds-a-markdown-link",
+        "adds-a-code-span",
+    ],
+)
+def test_heading_echo_clause_attribution(heading: str, sentence: str, reason: str | None) -> None:
+    assert _heading_echo_material_redundancy(heading, sentence) == reason
+
+
+def test_heading_echo_abstains_without_an_antecedent_span() -> None:
+    unit = _unit("Deployment is the act of releasing software.")
+    record = _adjudicate(unit, _rule(host_predicates=("heading_echo_material_redundancy",)), _output(unit, evidence=[_evidence(unit)]))
+    assert record.outcome == "ABSTAIN"
+    assert record.abstain_reason == "heading_echo_no_antecedent"
+
+
+def test_heading_echo_abstains_on_a_blank_antecedent_quote() -> None:
+    record = _heading_echo_record(" ", "Deployment is the act of releasing software.")
+    assert record.outcome == "ABSTAIN"
+    assert record.abstain_reason == "heading_echo_no_antecedent"
+
+
+def test_heading_echo_gate_changes_nothing_for_a_rule_without_the_predicate() -> None:
+    heading, sentence = _heading_echo_pairs()[3]
+    assert _heading_echo_record(heading, sentence).outcome == "REJECT"
+    assert _heading_echo_record(heading, sentence, gated=False).outcome == "CONFIRM"
+
+
+def test_shipped_heading_echo_contract_gains_only_the_host_predicate() -> None:
+    rules = {rule.qualified_id: rule for rule in load_ruleset([], verify=False).judgement_rules()}
+    rule = rules["ai-tells-structure.heading-echo"]
+    contract = rule.judgement
+    assert tuple(predicate.id for predicate in contract.host_predicates) == ("heading_echo_material_redundancy",)
+    assert contract.protects == ("accessibility_consistency", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen")
+    assert contract.judgement_ceiling == "suggestion"
+    assert contract.warrant_min == 2
+    assert contract.dims == {"fit": "ask", "harm": "ask", "repair": "ask", "warrant": "ask"}
+    assert (contract.evidence.min_arity, tuple(contract.evidence.roles)) == (2, ("defect", "antecedent"))
+    assert contract.scope_class == "local"
+    assert contract.adjudicates is None
+    assert contract.allowed_transitions is None
+    assert rule.scope == "paragraph"
+    assert rule.severity == "suggestion"
+    assert rule.tiers == {"strict": "enforced", "normal": "enforced", "relaxed": "advisory"}
+    assert rule.judgement_question == (
+        "Given the heading alone, does the first sentence repeat its proposition with no new "
+        "operation, constraint, path, metric, or scope? Same topic is not enough to flag."
+    )
+    assert {
+        qualified_id: tuple(predicate.id for predicate in loaded.judgement.host_predicates)
+        for qualified_id, loaded in rules.items()
+        if loaded.judgement.host_predicates
+    } == {
+        "ai-tells-structure.heading-echo": ("heading_echo_material_redundancy",),
+        "prose-discipline.bare-quantifier-with-figure-available": ("figure_available",),
+        "prose-scope.code-change-prose-scope": ("code_diff_available",),
+        "ste-nouns.long-domain-term-without-short-form": ("no_short_form_in_document",),
+    }
