@@ -316,3 +316,24 @@ def test_admission_does_not_preserve_questions_or_first_person() -> None:
     pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
     assert _admission(_admission_unit("Run the migration?"), pack) == ("ELIGIBLE", None)
     assert _admission(_admission_unit("We run the migration."), pack) == ("ELIGIBLE", None)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected", "document_text", "raw_start"),
+    [
+        ("Backup jobs run nightly.", "ELIGIBLE", None, 0),
+        ("Build artifacts live in dist.", "ELIGIBLE", None, 0),
+        ("Run scripts fail often.", "ELIGIBLE", None, 0),
+        ("Run the migration.", "PRESERVE", None, 0),
+        ("Restart the service after the deploy.", "PRESERVE", None, 0),
+        ("Run the migration?", "PRESERVE", "- Run the migration?", 2),
+        ("Remember to run the migration.", "ELIGIBLE", "- Remember to run the migration.", 2),
+        ("To run the migration, use sudo.", "ELIGIBLE", "- To run the migration, use sudo.", 2),
+    ],
+)
+def test_admission_distinguishes_plain_imperatives_and_list_markers(
+    text: str, expected: str, document_text: str | None, raw_start: int
+) -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    unit = _admission_unit(text, document_text=document_text, raw_start=raw_start)
+    assert _admission(unit, pack) == ((expected, "normative_obligation") if expected == "PRESERVE" else (expected, None))

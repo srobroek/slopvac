@@ -28,6 +28,8 @@ from ..analyze import (
     Document,
     PassageProbe,
     SpanCandidate,
+    TextType,
+    classify_text_type,
     parse,
 )
 from ..config import Config, Profile, resolve_for
@@ -434,23 +436,37 @@ _NORMATIVE_START = re.compile(
 _IMPERATIVE_STEERING_START = IMPERATIVE_MARKERS
 
 
+def _is_list_marker_unit(unit: Any) -> bool:
+    source_line, offset = _source_line(unit)
+    if offset <= 0 or not source_line:
+        return False
+    return bool(re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", source_line))
+
+
 def _imperative_directive(text: str) -> bool:
-    """Recognize analyzer-classified directives without promoting prose subjects."""
+    """Recognize direct imperative paragraphs without promoting prose subjects."""
     stripped = text.strip()
     if "?" in stripped or re.match(r"^(?:i|we|me|us|my|our|ours|let's)\b", stripped, re.I):
         return False
-    if not (
-        _IMPERATIVE_STEERING_START.match(stripped)
-        or TO_VERB.match(stripped)
-        or REMEMBER_TO.match(stripped)
-    ):
+    if not _IMPERATIVE_STEERING_START.match(stripped):
         return False
-    # A marker followed by a plural noun and a predicate is a descriptive
-    # subject, not an imperative (for example, ``Run scripts live in bin.``).
-    words = re.findall(r"[A-Za-z][A-Za-z-]*", stripped)
-    if len(words) >= 4 and words[0].lower() == "run" and words[1].lower().endswith("s"):
-        return not re.search(r"\b(?:live|lives|run|runs|exist|exists|sit|sits)\s+(?:in|on|at|from|under|near)\b", stripped, re.I)
-    return True
+    return classify_text_type(stripped) is TextType.PROCEDURAL
+
+
+def _is_normative_register(unit: Any) -> bool:
+    text = str(getattr(unit, "text", "")).strip()
+    if _NORMATIVE_START.match(text):
+        return True
+    # List items retain the historical direct-marker path.  In particular,
+    # question-marked direct steps are preserved, while ``remember/to`` list
+    # prose remains eligible as it was before paragraph recognition changed.
+    if _is_list_marker_unit(unit):
+        return bool(
+            _IMPERATIVE_STEERING_START.match(text)
+            and not TO_VERB.match(text)
+            and not REMEMBER_TO.match(text)
+        )
+    return _imperative_directive(text)
 
 
 def _source_start(unit: Any) -> int | None:
@@ -481,11 +497,6 @@ def _is_fragment_unit(unit: Any) -> bool:
     return bool(re.match(r"^\s{0,3}#{1,6}(?:\s|$)", source_line))
 
 
-def _is_normative_register(unit: Any) -> bool:
-    text = str(getattr(unit, "text", "")).strip()
-    if _NORMATIVE_START.match(text):
-        return True
-    return _imperative_directive(text)
 
 def _admission(unit: Any, pack: Pack) -> tuple[str, str | None]:
     if not str(unit.text).strip():

@@ -637,6 +637,16 @@ def classify_text_type(text: str) -> TextType:
     if NOTE_MARKER.match(stripped):
         return TextType.DESCRIPTIVE
     body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
+    tokens = _ste_tokens(body)
+    # A few closed-list verbs are also ordinary nouns.  When one opens a
+    # plural noun phrase, the sentence is descriptive (``Run scripts fail``),
+    # not an instruction to run the noun.
+    if (
+        len(tokens) >= 2
+        and tokens[0].casefold() in {"backup", "build", "run"}
+        and tokens[1].casefold().endswith("s")
+    ):
+        return TextType.DESCRIPTIVE
     if (
         IMPERATIVE_MARKERS.match(body)
         or TO_VERB.match(body)
