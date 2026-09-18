@@ -555,3 +555,13 @@ def test_finish_precision_fields_require_adjudication_file(tmp_path: Path) -> No
     from_rows = finish(out=out, responses=responses, adjudication=mixed)
     assert from_rows["strict_precision"] == pytest.approx(1 / 2)
     assert from_rows["lenient_precision"] == pytest.approx(1 / 2)
+
+    # The shipped sibling record: 5 TP, 8 borderline, 77 FP and 5 FP-FRAGMENT-UNIT
+    # rows are 95 adjudications; the summary's FP_fragment_units subset is not added.
+    shipped = (
+        Path(__file__).parents[1]
+        / "docs" / "research" / "rubric-2026-09-15" / "evaluation" / "sibling-full-run-adjudication.json"
+    )
+    from_shipped = finish(out=out, responses=responses, adjudication=shipped)
+    assert from_shipped["strict_precision"] == pytest.approx(5 / 95)
+    assert from_shipped["lenient_precision"] == pytest.approx(13 / 95)

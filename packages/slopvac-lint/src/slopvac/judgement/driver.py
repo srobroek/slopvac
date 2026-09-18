@@ -1394,6 +1394,9 @@ def _gold_recall(
     return recall, {"count": len(confirmed_controls), "total": len(controls)}
 
 
+# Row verdicts. Summary blocks may carry diagnostic subset counters such as
+# `FP_fragment_units` (a subset of FP, not extra adjudications); those keys are
+# deliberately absent so they never enter a denominator.
 _ADJUDICATION_LABELS: dict[str, str] = {
     "TP": "TP",
     "B": "B",
@@ -1401,6 +1404,8 @@ _ADJUDICATION_LABELS: dict[str, str] = {
     "FP": "FP",
     "FP-PRESERVE-MISS": "FP",
     "FP_PRESERVE_MISS": "FP",
+    "FP-FRAGMENT-UNIT": "FP",
+    "FP_FRAGMENT_UNIT": "FP",
 }
 
 
