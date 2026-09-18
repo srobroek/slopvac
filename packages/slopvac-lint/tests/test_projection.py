@@ -132,3 +132,78 @@ def test_readme_units_do_not_start_mid_word() -> None:
             continue
         start = block.doc_range[0]
         assert not (projected[start - 1].isalnum() and projected[start].isalnum())
+
+
+def test_segment_ids_survive_unrelated_insertions() -> None:
+    raw = (
+        "---\n"
+        "title: Fixture\n"
+        "---\n\n"
+        "First paragraph.\n\n"
+        "| A | B |\n"
+        "| - | - |\n"
+        "| C | D |\n"
+        "| E | F |\n\n"
+        "- List item.\n\n"
+        "```text\n"
+        "ignored code.\n"
+        "```\n\n"
+        "Привет мир.\n"
+    )
+    inserted = raw.replace("First paragraph.", "Inserted paragraph.\n\nFirst paragraph.")
+
+    def identities(document):
+        blocks: dict[tuple[str, str], int] = {}
+        sentences: dict[str, int] = {}
+        values = {}
+        for block in document.blocks:
+            block_key = (block.kind.value, block.text)
+            block_index = blocks.get(block_key, 0)
+            blocks[block_key] = block_index + 1
+            values[("block", block_key, block_index)] = block.id
+            for sentence in block.sentences:
+                sentence_index = sentences.get(sentence.text, 0)
+                sentences[sentence.text] = sentence_index + 1
+                values[("sentence", sentence.text, sentence_index, block.kind.value)] = sentence.id
+        return values
+
+    before = parse("fixture.md", raw)
+    after = parse("fixture.md", inserted)
+    before_ids = identities(before)
+    after_ids = identities(after)
+
+    for key, value in before_ids.items():
+        assert after_ids[key] == value
+    inserted_id = next(sentence.id for sentence in after.sentences if sentence.text == "Inserted paragraph.")
+    assert inserted_id not in before_ids.values()
+
+
+def test_unbordered_table_cells_keep_source_spans() -> None:
+    raw = "a | b\n--- | ---\nc | d\ne | f\n"
+    table = next(block for block in parse("table.md", raw).blocks if block.kind is BlockKind.TABLE)
+
+    assert [sentence.text for sentence in table.sentences] == ["a", "b", "c", "d", "e", "f"]
+    for sentence in table.sentences:
+        assert sentence.source_spans
+        assert "".join(raw[start:end] for start, end in sentence.source_spans) == sentence.text
+
+
+def test_html_spans_ignore_attribute_values() -> None:
+    raw = '<p title="Hello">Hello world.</p>'
+    sentence = parse("fixture.html", raw).sentences[0]
+
+    assert sentence.text == "Hello world."
+    assert sentence.source_spans
+    assert sentence.source_spans[0][0] == raw.index("Hello", raw.index(">"))
+    assert sentence.source_spans[0][0] != raw.index("Hello")
+    assert "".join(raw[start:end] for start, end in sentence.source_spans) == sentence.text
+
+
+def test_html_spans_follow_repeated_text_nodes() -> None:
+    raw = '<p title="Hello">Hello <b>Hello</b> world.</p>'
+    sentence = parse("fixture.html", raw).sentences[0]
+
+    assert len(sentence.source_spans) == 3
+    assert sentence.source_spans[0][0] == raw.index("Hello", raw.index(">"))
+    assert sentence.source_spans[1][0] == raw.index("Hello", sentence.source_spans[0][1])
+    assert sentence.source_spans[0][0] != raw.index("Hello")

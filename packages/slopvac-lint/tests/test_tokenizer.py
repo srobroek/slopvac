@@ -186,12 +186,12 @@ def test_sentence_identity_and_projection_cover_markdown_regions() -> None:
     assert "not prose" not in first.prose_text()
 
 
-def test_source_edit_before_segment_changes_identity_and_range() -> None:
+def test_source_edit_before_segment_preserves_identity_and_moves_range() -> None:
     raw = "First.\n\nSecond.\n"
     original = parse("guide.md", raw)
     other = parse("other.md", raw)
     edited = parse("guide.md", "Added.\n\n" + raw)
-    assert original.sentences[-1].id != edited.sentences[-1].id
+    assert original.sentences[-1].id == edited.sentences[-1].id
     assert original.sentences[-1].source_range != edited.sentences[-1].source_range
     assert original.sentences[-1].id == parse("guide.md", raw).sentences[-1].id
     assert other.sentences[-1].id != original.sentences[-1].id
