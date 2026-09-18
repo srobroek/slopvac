@@ -63,3 +63,17 @@ changes what the sentence claims, targets a specification or steering line, or
 rests on an evidence quote that is not in the unit. Do not add rule-level
 suppressions for these cases; they also remove the true positives, which sit on the
 same rules.
+
+## Normalized evaluation records
+
+The raw records and their normalization contract live in the [record schema](research/rubric-2026-09-15/evaluation/RECORD-SCHEMA.md). Each normalized file preserves the raw record, reports strict and lenient precision, per-rule adjudication, abstention and evidence-validity fields, and marks unavailable denominators as `null`.
+
+| Run | Normalized record |
+| --- | --- |
+| Local corpus | [local-corpus-run.normalized.json](research/rubric-2026-09-15/evaluation/local-corpus-run.normalized.json) |
+| Sibling full run | [sibling-full-run.normalized.json](research/rubric-2026-09-15/evaluation/sibling-full-run.normalized.json) |
+| Sibling adjudication | [sibling-full-run-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/sibling-full-run-adjudication.normalized.json) |
+| Heldout baseline | [heldout-baseline.normalized.json](research/rubric-2026-09-15/evaluation/heldout-baseline.normalized.json) |
+| Heldout baseline adjudication | [heldout-baseline-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-baseline-adjudication.normalized.json) |
+| Heldout v2 | [heldout-v2.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2.normalized.json) |
+| Heldout v2 adjudication | [heldout-v2-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2-adjudication.normalized.json) |

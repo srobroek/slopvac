@@ -1,0 +1,101 @@
+{
+  "denominators": {
+    "abstention": {
+      "definition": "ABSTAIN / all distinct units",
+      "value": null
+    },
+    "all_units": {
+      "definition": "distinct unit_ids; failed/truncated/not-run are counted as not-run",
+      "value": null
+    },
+    "evidence_validity": {
+      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
+      "value": 20
+    },
+    "failed": null,
+    "not_run": null,
+    "precision": {
+      "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
+      "value": 34
+    },
+    "response_rows": {
+      "definition": "response rows, not units; duplicate rows are not additional units",
+      "value": null
+    },
+    "truncated": null
+  },
+  "metrics": {
+    "abstention_rate": null,
+    "evidence_validity": 1.0,
+    "lenient_precision": 0.29411764705882354,
+    "strict_precision": 0.029411764705882353
+  },
+  "not_derivable": [
+    "denominators.all_units.distinct_unit_ids",
+    "metrics.abstention_rate"
+  ],
+  "per_rule": [],
+  "raw_adjudication": {
+    "BORDERLINE": 9,
+    "FP": 16,
+    "FP-FRAGMENT-UNIT": 8,
+    "TP": 1
+  },
+  "raw_outcomes": {
+    "ABSTAIN": 2494,
+    "CONFIRM": 34,
+    "DROP": 4536,
+    "PRESERVE": 6,
+    "REJECT": 27367
+  },
+  "raw_record": {
+    "classes": {
+      "human": {
+        "adjudication": {
+          "FP": 11,
+          "FP-fragment-unit": 6,
+          "borderline": 3
+        },
+        "calls": 1215,
+        "confirms_per_1000_words": 0.42,
+        "documents": 13,
+        "host_confirms": 20,
+        "instrument_id": "a2f305dd317afeb1ff973e063ac4cb0e81c8f5c5bd70f38886154a8326196d41",
+        "outcomes": {
+          "ABSTAIN": 2039,
+          "CONFIRM": 20,
+          "DROP": 2652,
+          "PRESERVE": 3,
+          "REJECT": 19516
+        },
+        "pairs": 24230
+      },
+      "llm": {
+        "adjudication": {
+          "FP": 5,
+          "FP-fragment-unit": 2,
+          "TP": 1,
+          "borderline": 6
+        },
+        "calls": 474,
+        "confirms_per_1000_words": 1.32,
+        "documents": 8,
+        "host_confirms": 14,
+        "instrument_id": "a2f305dd317afeb1ff973e063ac4cb0e81c8f5c5bd70f38886154a8326196d41",
+        "outcomes": {
+          "ABSTAIN": 455,
+          "CONFIRM": 14,
+          "DROP": 1884,
+          "PRESERVE": 3,
+          "REJECT": 7851
+        },
+        "pairs": 10207
+      }
+    },
+    "corpus": "heldout/corpus/md (13 human, 8 stated-LLM; go-spec excluded)",
+    "instrument": "baseline (template_revision 1)",
+    "schema": "heldout-run"
+  },
+  "schema_version": 1,
+  "source": "heldout-baseline.json"
+}
