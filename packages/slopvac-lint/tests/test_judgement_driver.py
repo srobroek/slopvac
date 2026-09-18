@@ -285,12 +285,27 @@ def test_admission_preserves_normative_register() -> None:
     assert _admission(_admission_unit("The parser rejects input"), pack) == ("ELIGIBLE", None)
 
 
-@pytest.mark.parametrize("text", ["Run the migration."])
-def test_admission_preserves_imperative_directives(text: str) -> None:
-    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
-    assert _admission(_admission_unit(text), pack) == ("PRESERVE", "normative_obligation")
-    list_unit = _admission_unit("Run the migration.", document_text="- Run the migration.", raw_start=2)
+@pytest.mark.parametrize(
+    "rule_id",
+    [
+        "ai-tells-register.false-agency-remainder",
+        "ai-tells-structure.absolute-assertion-remainder",
+        "ai-tells-structure.contrastive-inversion-remainder",
+    ],
+)
+def test_admission_preserves_imperative_directives(rule_id: str) -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), (rule_id,))
+    assert _admission(_admission_unit("Run the migration."), pack) == (
+        "PRESERVE",
+        "normative_obligation",
+    )
+    list_unit = _admission_unit(
+        "Run the migration.", document_text="- Run the migration.", raw_start=2
+    )
     assert _admission(list_unit, pack) == ("PRESERVE", "normative_obligation")
+    assert _admission(_admission_unit("The migration runs."), pack) == ("ELIGIBLE", None)
+
+
 def test_admission_does_not_preserve_descriptive_run_subject() -> None:
     pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
     assert _admission(_admission_unit("Backups run nightly."), pack) == ("ELIGIBLE", None)
