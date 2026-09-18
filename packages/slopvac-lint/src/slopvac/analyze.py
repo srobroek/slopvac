@@ -168,15 +168,41 @@ IMPERATIVE_VERBS = frozenset(
     "connect configure copy create delete deploy detach disable disconnect do "
     "drain edit enable ensure enter export fence fetch find fix flush follow get give "
     "go grant identify import init install invoke keep list load log login logout make "
-    "merge monitor mount move navigate notify open perform point prepend print "
+    "merge monitor mount move navigate notify note open perform point prepend print "
     "promote pull push put read record release reload remove rename replace report "
     "reset restart retry revoke roll run save select send set show skip split start "
     "stop store tag take test type unmount update upgrade use verify wait write "
     "rotate schedule stage downgrade execute inspect hold leave remember consider"
     .split()
 )
+# Finite forms are deliberately lexical: this classifier has no parser or POS tagger.
+# The closed stem set keeps plural nouns such as ``scripts`` out of the verb test.
+FINITE_VERB_STEMS = frozenset(
+    "add are be fail have is live run take exist was were".split()
+) | IMPERATIVE_VERBS
+FINITE_VERB_FORMS = frozenset("is are was were has have live lives fail fails run runs take takes exist exists".split())
+_NON_NOUN_SECOND_TOKENS = frozenset(
+    "a an the this that these those it its they them we you he she i me my our your "
+    "in on at by for from to with of as into onto over under through before after "
+    "and or but nor so yet very quite often always never more most less all any "
+    "each every either neither some no several many few one two three first second"
+    .split()
+)
 IMPERATIVE_MARKERS = re.compile(
     rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
+    re.I,
+)
+PHRASAL_IMPERATIVE = re.compile(
+    rf"^(?:please\s+)?(?:"
+    rf"(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\s+"
+    r"(?:up|down|off|on|out|in|over|back|away)|"
+    r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
+    r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
+    r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))\b",
+    re.I,
+)
+NEGATIVE_IMPERATIVE = re.compile(
+    r"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+\b",
     re.I,
 )
 TO_VERB = re.compile(
@@ -188,13 +214,13 @@ REMEMBER_TO = re.compile(
     re.I,
 )
 SAFETY_MARKER = re.compile(
-    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT)\b"
+    r"^\s*(?:>\s*)?(?:\*{0,2})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT)\b"
     r"(?:\*{0,2})?\s*[:.!]?",
     re.I,
 )
 NOTE_MARKER = re.compile(
-    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:NOTE|TIP|HINT|INFO|IMPORTANT)\b"
-    r"(?:\*{0,2})?\s*[:.!]?",
+    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:NOTE(?:\*{0,2})?\s*:\s*|(?:TIP|HINT|INFO)\b"
+    r"(?:\*{0,2})?\s*[:.!]?)",
     re.I,
 )
 
@@ -729,6 +755,14 @@ def _ste_tokens(text: str) -> tuple[str, ...]:
     return tuple(tokens)
 
 
+def _is_finite_verb(token: str) -> bool:
+    """Recognize the small finite-verb inventory used by the lexical fallback."""
+    word = token.casefold()
+    if word in FINITE_VERB_FORMS:
+        return True
+    return word.endswith("s") and len(word) > 1 and word[:-1] in FINITE_VERB_STEMS
+
+
 def count_words(text: str) -> int:
     """Count words according to the ordered phases in ``docs/metrics.md``."""
     return len(_ste_tokens(text))
@@ -737,23 +771,45 @@ def count_words(text: str) -> int:
 def classify_text_type(text: str) -> TextType:
     """Select the sentence cap, conservatively distinguishing instructions.
 
-    The audit's runbook probe contained imperative steps beginning with verbs not
-    present in the original closed list (``record``, ``reload``, ``remember`` and
-    ``notify``). The vocabulary below is intentionally finite: an unknown opening
-    remains descriptive, which is safer than applying the 20-word cap to prose.
+    Safety labels retain ``SAFETY`` for descriptive warnings, but an instruction
+    following the label is still procedural. Notes remain descriptive regardless
+    of the wording that follows them. The detector is lexical (a closed verb list,
+    with no parser); rare imperative verbs and noun-verb homographs outside that
+    list use the fallback and may be classified wrongly either way.
     """
     stripped = text.strip()
-    if SAFETY_MARKER.match(stripped):
-        return TextType.SAFETY
+    safety_match = SAFETY_MARKER.match(stripped)
+    if safety_match:
+        marker = safety_match.group("marker").upper()
+        marker_body = stripped[safety_match.end() :].lstrip(" :.!?*-+")
+        if (
+            IMPERATIVE_MARKERS.match(marker_body)
+            or PHRASAL_IMPERATIVE.match(marker_body)
+            or NEGATIVE_IMPERATIVE.match(marker_body)
+            or TO_VERB.match(marker_body)
+            or REMEMBER_TO.match(marker_body)
+            or re.match(r"^you\s+(?:should|must|need\s+to)\b", marker_body, re.I)
+        ):
+            return TextType.PROCEDURAL
+        return TextType.DESCRIPTIVE if marker == "IMPORTANT" else TextType.SAFETY
     if NOTE_MARKER.match(stripped):
         return TextType.DESCRIPTIVE
     body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
+    tokens = _ste_tokens(body)
+    # Imperative-list verbs can be noun/verb homographs. A finite verb after
+    # the opener exposes a descriptive subject clause (``Deploy scripts live``).
+    # This is intentionally lexical rather than a POS parse.
+    if len(tokens) >= 2 and tokens[0].casefold() in IMPERATIVE_VERBS and _is_finite_verb(tokens[1]):
+        return TextType.DESCRIPTIVE
     if (
-        IMPERATIVE_MARKERS.match(body)
-        or TO_VERB.match(body)
-        or REMEMBER_TO.match(body)
-        or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I)
+        len(tokens) >= 3
+        and tokens[0].casefold() in IMPERATIVE_VERBS
+        and tokens[1].casefold() not in _NON_NOUN_SECOND_TOKENS
+        and not re.fullmatch(r"\d+(?:[.,]\d+)*", tokens[1])
+        and _is_finite_verb(tokens[2])
     ):
+        return TextType.DESCRIPTIVE
+    if IMPERATIVE_MARKERS.match(body) or NEGATIVE_IMPERATIVE.match(body) or TO_VERB.match(body) or REMEMBER_TO.match(body) or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I):
         return TextType.PROCEDURAL
     return TextType.DESCRIPTIVE
 

@@ -220,18 +220,39 @@ def test_source_edit_before_segment_preserves_identity_and_moves_range() -> None
         "To rotate the certificate, drain one node.",
         "Remember to update the incident channel.",
         "You should always verify the signature before processing a delivery.",
+        "Note the retry limit.",
     ],
 )
 def test_runbook_imperatives_are_procedural(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.PROCEDURAL
 
+def test_safety_marker_phrasal_imperatives_are_procedural() -> None:
+    assert classify_text_type("IMPORTANT: back up first.") is TextType.PROCEDURAL
+    assert classify_text_type("WARNING: Shut down the node before unplugging it.") is TextType.PROCEDURAL
+    assert classify_text_type("IMPORTANT: Backups are nightly.") is TextType.DESCRIPTIVE
+    assert classify_text_type("NOTE: Backups run nightly.") is TextType.DESCRIPTIVE
+
+def test_note_marker_requires_colon() -> None:
+    assert classify_text_type("Note the retry limit.") is TextType.PROCEDURAL
+    assert classify_text_type("NOTE: the retry limit.") is TextType.DESCRIPTIVE
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Deploy scripts live in ops/.",
+        "Run scripts fail often.",
+        "Backup jobs run nightly.",
+        "Install fails on ARM.",
+    ],
+)
+def test_imperative_verb_homographs_with_finite_verbs_are_descriptive(sentence: str) -> None:
+    assert classify_text_type(sentence) is TextType.DESCRIPTIVE
+
 
 @pytest.mark.parametrize("sentence", ["The runbook walks you through the process.", "It is a critical procedure that should be approached with care.", "Generally speaking, a lag of under a few seconds is acceptable.", "A lag of under a few seconds is considered acceptable.", "The ingress reads its certificate from the secret.", "Reloading an ingress node drops open connections.", "The process stages the new certificate on two nodes.", "The certificate and key match.", "The old primary can no longer be reattached.", "These nodes carry roughly a third of the traffic.", "Verification fails on the staged nodes.", "All nodes should show the new expiry date.", "The expected result is shown below.", "Before starting, check the expiry.", "If verification fails, proceed to rollback.", "Because the node is drained, connections are moved.", "The certificate is valid for the host.", "During staging, traffic remains available.", "NOTE: The import reads the cache at startup.", "Step 3 is the final verification."])
 def test_runbook_descriptions_are_descriptive(sentence: str) -> None:
     assert classify_text_type(sentence) is TextType.DESCRIPTIVE
-
-
-@pytest.mark.xfail(strict=True, reason="classifier below 0.90; failing facets: contractions, safety markers")
 def test_labelled_runbook_set_reaches_documented_agreement() -> None:
     path = Path(__file__).parent / "fixtures" / "text_type" / "runbook-labels-v1.jsonl"
     records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]

@@ -21,10 +21,15 @@ from pathlib import Path
 from typing import Any
 
 from ..analyze import (
+    IMPERATIVE_MARKERS,
+    REMEMBER_TO,
+    TO_VERB,
     BlockKind,
     Document,
     PassageProbe,
     SpanCandidate,
+    TextType,
+    classify_text_type,
     parse,
 )
 from ..config import Config, Profile, resolve_for
@@ -34,7 +39,13 @@ from ..projection import ProjectionMap, Segment, project
 from ..rules import load_ruleset
 from ..score import score_document
 from .adjudicate import FindingRecord, adjudicate
-from .aggregate import cluster_gate, components, coverage, preserve_rates
+from .aggregate import (
+    cluster_gate,
+    components,
+    coverage,
+    load_dependence_table,
+    preserve_rates,
+)
 from .eval.runner import validate_result_set
 from .packs import (
     Pack,
@@ -53,6 +64,7 @@ _SCHEMA = json.loads(
     .read_text(encoding="utf-8")
 )
 _SPINE = resources.files("slopvac.judgement").joinpath("spine.md").read_text(encoding="utf-8")
+_DEPENDENCE_TABLE = load_dependence_table(Path(__file__).with_name("dependence_table.json"))
 
 
 def _json_line(path: Path, value: Any) -> None:
@@ -83,9 +95,49 @@ def _safe_name(path: Path, root: Path | None = None) -> str:
     try:
         value = str(path.resolve().relative_to((root or Path.cwd()).resolve()))
     except ValueError:
-        value = path.name
+        # Paths outside the configured root still need a stable, unique name.
+        # Falling back to ``path.name`` makes sibling documents collide.
+        value = str(path.resolve())
     value = value.replace("\\", "/").strip("/")
-    return value.replace("/", "__") or path.name
+    # Escape every character that participates in the flattening scheme.  Escaping
+    # ``%`` first keeps the encoding injective even when the source contains a
+    # sequence that looks like an escape.
+    value = value.replace("%", "%25").replace("_", "%5F").replace("/", "%2F")
+    return value or path.name
+
+
+
+def _paragraph_ranges(raw: str, projection: ProjectionMap | None = None) -> list[tuple[int, int]]:
+    """Return blank-line paragraph boundaries in raw or projected coordinates."""
+    ranges: list[tuple[int, int]] = []
+    start = 0
+    separators = re.finditer(r"(?:\r?\n)[ \t]*(?:\r?\n)+", raw)
+    for separator in separators:
+        block = raw[start : separator.start()]
+        left = len(block) - len(block.lstrip())
+        right = len(block.rstrip())
+        if left < right:
+            ranges.append((start + left, start + right))
+        start = separator.end()
+    block = raw[start:]
+    left = len(block) - len(block.lstrip())
+    right = len(block.rstrip())
+    if left < right:
+        ranges.append((start + left, start + right))
+    if projection is None:
+        return ranges
+    # ProjectionMap raw offsets are UTF-8 byte positions, while the parser
+    # and regex above operate on Python character indices.
+    byte_offsets = [0]
+    for char in raw:
+        byte_offsets.append(byte_offsets[-1] + len(char.encode("utf-8")))
+    projected_ranges: list[tuple[int, int]] = []
+    for char_start, char_end in ranges:
+        raw_start, raw_end = byte_offsets[char_start], byte_offsets[char_end]
+        selected = [segment for segment in projection.segments if segment.raw_end > raw_start and segment.raw_start < raw_end]
+        if selected:
+            projected_ranges.append((selected[0].proj_start, selected[-1].proj_end))
+    return projected_ranges
 
 
 def _schema_wrapper(units: list[dict[str, Any]], kind: str) -> dict[str, Any]:
@@ -130,7 +182,14 @@ def _identity_projection(raw_text: str, raw_start: int, raw_bytes: bytes) -> Pro
     )
     return ProjectionMap(segments, raw_bytes)
 
-def _unit_dict(unit: Any, *, document_ref: str, passage_id: str) -> dict[str, Any]:
+def _unit_dict(
+    unit: Any,
+    *,
+    document_ref: str,
+    passage_id: str,
+    gold_ids: Sequence[str] = (),
+    gold_control: bool = False,
+) -> dict[str, Any]:
     """Serialize only unit-local data; document-wide data lives under documents/."""
     projection_segments = tuple(getattr(unit.projection, "segments", ()))
     source_range = (
@@ -138,7 +197,7 @@ def _unit_dict(unit: Any, *, document_ref: str, passage_id: str) -> dict[str, An
         if projection_segments
         else [0, 0]
     )
-    return {
+    item = {
         "unit_id": unit.unit_id,
         "kind": unit.kind,
         "rule_id": unit.rule_id,
@@ -161,6 +220,187 @@ def _unit_dict(unit: Any, *, document_ref: str, passage_id: str) -> dict[str, An
         "preservation_reason": getattr(unit, "preservation_reason", None),
         "truncated": bool(getattr(unit, "truncated", False)),
     }
+    if gold_ids:
+        item["gold_ids"] = list(gold_ids)
+        if len(gold_ids) == 1:
+            item["gold_id"] = gold_ids[0]
+        if gold_control:
+            item["gold_control"] = True
+    return item
+
+
+def _gold_path_key(path: str | Path) -> str:
+    """Normalize path spelling for matching gold rows to input documents."""
+    return str(Path(path).expanduser().resolve()).replace("\\", "/")
+
+
+def _gold_row_path_matches(row_path: str, document_path: Path, gold_path: Path | None) -> bool:
+    candidate = Path(row_path).expanduser()
+    document_key = _gold_path_key(document_path)
+    options = {_gold_path_key(candidate)}
+    if not candidate.is_absolute():
+        options.add(_gold_path_key(Path.cwd() / candidate))
+        if gold_path is not None:
+            options.add(_gold_path_key(gold_path.parent / candidate))
+    if document_key in options:
+        return True
+    return candidate.name == document_path.name and not candidate.parent.parts
+
+
+def _gold_range(row: dict[str, Any], raw: str, *, gold_id: str) -> tuple[int, int]:
+    """Resolve a seeded span's UTF-8 byte range from a row."""
+    raw_bytes = raw.encode("utf-8")
+    value = row.get("byte_range", row.get("source_range", row.get("range")))
+    start: Any = None
+    end: Any = None
+    if isinstance(value, dict):
+        start, end = value.get("start"), value.get("end")
+    elif isinstance(value, (list, tuple)) and len(value) == 2:
+        start, end = value
+    if start is None or end is None:
+        start, end = row.get("start"), row.get("end")
+    if start is not None or end is not None:
+        if not isinstance(start, int) or not isinstance(end, int) or not 0 <= start <= end <= len(raw_bytes):
+            raise ValueError(f"gold span {gold_id} has an invalid byte range")
+        return start, end
+    quote = row.get("exact_text", row.get("quote"))
+    if quote is None and "defect_span" in row:
+        quote = row["defect_span"]
+    if quote is None:
+        quote = row.get("text")
+    if not isinstance(quote, str) or not quote:
+        raise ValueError(f"gold span {gold_id} needs byte range or exact text")
+    needle = quote.encode("utf-8")
+    first = raw_bytes.find(needle)
+    second = raw_bytes.find(needle, first + 1) if first >= 0 else -1
+    if first < 0 or second >= 0:
+        raise ValueError(f"gold span {gold_id} exact text must occur exactly once")
+    return first, first + len(needle)
+
+
+def _load_gold_rows(
+    gold: Path | None,
+    paths: Sequence[str | Path],
+) -> tuple[Path | None, list[dict[str, Any]]]:
+    """Load v1 gold rows, including the shipped text-only schema."""
+    source = gold
+    if source is None:
+        parents = {Path(path).expanduser().resolve().parent for path in paths}
+        candidates = [parent / "gold.jsonl" for parent in sorted(parents, key=str)]
+        source = next((candidate for candidate in candidates if candidate.exists()), None)
+    if source is None:
+        return None, []
+    if not source.exists():
+        raise ValueError(f"gold manifest not found: {source}")
+    rows: list[dict[str, Any]] = []
+    input_documents = [Path(path).expanduser().resolve() for path in paths]
+    document_text = {
+        document: document.read_text(encoding="utf-8") for document in input_documents
+    }
+    ordinals: Counter[tuple[str, str, str]] = Counter()
+    for index, line in enumerate(source.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        raw_row = json.loads(line)
+        if not isinstance(raw_row, dict):
+            raise ValueError(f"gold manifest line {index} must be an object")
+        if set(raw_row) == {"version"}:
+            continue
+        row_path = raw_row.get("path")
+        if row_path is not None and (not isinstance(row_path, str) or not row_path):
+            raise ValueError(f"gold manifest line {index} has invalid path")
+        if isinstance(row_path, str):
+            matches = [
+                document
+                for document in input_documents
+                if _gold_row_path_matches(row_path, document, source)
+            ]
+        else:
+            row_text = raw_row.get("text")
+            if not isinstance(row_text, str) or not row_text:
+                raise ValueError(f"gold manifest line {index} needs path or text")
+            matches = [document for document, text in document_text.items() if row_text in text]
+        unattached_reason: str | None = None
+        if len(matches) != 1:
+            if isinstance(row_path, str):
+                raise ValueError(f"gold manifest line {index} path does not identify one input: {row_path}")
+            unattached_reason = "no_unique_document"
+        kind = raw_row.get("kind")
+        if kind is None:
+            kind = "control" if bool(raw_row.get("control", False)) else "seeded"
+        if kind not in {"seeded", "control"}:
+            raise ValueError(f"gold manifest line {index} kind must be seeded or control")
+        control = kind == "control"
+        rule_id = raw_row.get("rule_id")
+        if rule_id is not None and (not isinstance(rule_id, str) or not rule_id):
+            raise ValueError(f"gold manifest line {index} has invalid rule_id")
+        if not control and not isinstance(rule_id, str):
+            raise ValueError(f"gold manifest line {index} needs rule_id")
+        document = matches[0] if matches else None
+        identity = str(rule_id) if rule_id is not None else kind
+        key = (identity, str(raw_row.get("text", "")), str(raw_row.get("defect_span", "")))
+        ordinals[key] += 1
+        gold_id = raw_row.get("gold_id")
+        if not isinstance(gold_id, str) or not gold_id:
+            gold_id = f"{identity}#{ordinals[key]}"
+        if document is None:
+            start, end = 0, 0
+        else:
+            try:
+                start, end = _gold_range(raw_row, document_text[document], gold_id=gold_id)
+            except ValueError:
+                if isinstance(row_path, str):
+                    raise
+                document = None
+                start, end = 0, 0
+                unattached_reason = "span_not_unique"
+        row = {
+            "gold_id": gold_id,
+            "path": str(document) if document is not None else "",
+            "start": start,
+            "end": end,
+            "rule_id": rule_id,
+            "kind": kind,
+            "control": control,
+        }
+        if unattached_reason is not None:
+            row["unattached_reason"] = unattached_reason
+        rows.append(row)
+    return source, rows
+
+
+def _gold_rows_for_unit(
+    gold_rows: Sequence[dict[str, Any]],
+    path: str,
+    source_range: Sequence[int],
+    rule_id: str,
+) -> list[dict[str, Any]]:
+    if len(source_range) != 2:
+        return []
+    start, end = int(source_range[0]), int(source_range[1])
+    if end <= start:
+        return []
+    return [
+        row
+        for row in gold_rows
+        if _gold_path_key(row["path"]) == _gold_path_key(path)
+        and int(row["start"]) < end
+        and start < int(row["end"])
+        and (row.get("rule_id") is None or str(row.get("rule_id")) == rule_id)
+    ]
+
+
+def _gold_for_unit(
+    gold_rows: Sequence[dict[str, Any]],
+    path: str,
+    source_range: Sequence[int],
+    rule_id: str,
+) -> tuple[str | None, bool]:
+    """Return the first overlapping gold row for legacy callers."""
+    matches = _gold_rows_for_unit(gold_rows, path, source_range, rule_id)
+    if not matches:
+        return None, False
+    return str(matches[0]["gold_id"]), bool(matches[0].get("control"))
 
 
 def _unit_from_dict(item: dict[str, Any], documents: dict[str, dict[str, Any]]) -> Any:
@@ -466,10 +706,40 @@ def _unit_from_block(
 _NORMATIVE_START = re.compile(
     r"^(?:MUST(?:\s+NOT)?|SHOULD|SHALL|MAY|NEVER|NOT|DEFAULT|AVOID|REQUIRED|PROHIBITED|GOTCHA|ALWAYS)\b"
 )
-_IMPERATIVE_STEERING_START = re.compile(
-    r"^(?:do not|don't|never|always|run|use|choose|keep|set|add|delete|avoid|ensure|check|record|confirm|create|prefer|treat|start|stop|read|write|pass|include|exclude|name|state|pick|select|report|return|preserve|flag|fix|replace|narrow|quote|apply|remove|make|call|open|close|inspect|verify|follow)\b",
-    re.IGNORECASE,
-)
+_IMPERATIVE_STEERING_START = IMPERATIVE_MARKERS
+
+
+def _is_list_marker_unit(unit: Any) -> bool:
+    source_line, offset = _source_line(unit)
+    if offset <= 0 or not source_line:
+        return False
+    return bool(re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", source_line))
+
+
+def _imperative_directive(text: str) -> bool:
+    """Recognize direct imperative paragraphs without promoting prose subjects."""
+    stripped = text.strip()
+    if "?" in stripped or re.match(r"^(?:i|we|me|us|my|our|ours|let's)\b", stripped, re.I):
+        return False
+    if not _IMPERATIVE_STEERING_START.match(stripped):
+        return False
+    return classify_text_type(stripped) is TextType.PROCEDURAL
+
+
+def _is_normative_register(unit: Any) -> bool:
+    text = str(getattr(unit, "text", "")).strip()
+    if _NORMATIVE_START.match(text):
+        return True
+    # List items retain the historical direct-marker path.  In particular,
+    # question-marked direct steps are preserved, while ``remember/to`` list
+    # prose remains eligible as it was before paragraph recognition changed.
+    if _is_list_marker_unit(unit):
+        return bool(
+            _IMPERATIVE_STEERING_START.match(text)
+            and not TO_VERB.match(text)
+            and not REMEMBER_TO.match(text)
+        )
+    return _imperative_directive(text)
 
 
 def _source_start(unit: Any) -> int | None:
@@ -499,15 +769,6 @@ def _is_fragment_unit(unit: Any) -> bool:
         return True
     return bool(re.match(r"^\s{0,3}#{1,6}(?:\s|$)", source_line))
 
-
-def _is_normative_register(unit: Any) -> bool:
-    text = str(getattr(unit, "text", "")).strip()
-    if _NORMATIVE_START.match(text):
-        return True
-    source_line, _ = _source_line(unit)
-    if not re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", source_line):
-        return False
-    return bool(_IMPERATIVE_STEERING_START.match(text))
 
 
 def _admission(unit: Any, pack: Pack) -> tuple[str, str | None]:
@@ -617,10 +878,12 @@ def prepare(
     categories: Sequence[str] = (),
     max_calls: int = 300,
     yes: bool = False,
+    gold: Path | None = None,
 ) -> dict[str, Any]:
     """Run deterministic linting and emit compact, model-ready request artifacts."""
     if max_calls < 0:
         raise ValueError("max_calls must be non-negative")
+    gold_source, gold_rows = _load_gold_rows(gold, paths)
     out.mkdir(parents=True, exist_ok=True)
     context = load_run_context(
         tuple(str(path) for path in paths),
@@ -643,6 +906,7 @@ def prepare(
     all_units: list[dict[str, Any]] = []
     all_prompts: list[dict[str, Any]] = []
     document_data: dict[str, dict[str, Any]] = {}
+    gold_attachment_counts: Counter[str] = Counter()
     pack_stats: dict[str, dict[str, Any]] = defaultdict(
         lambda: {"units": 0, "calls": 0, "passages": set()}
     )
@@ -685,6 +949,7 @@ def prepare(
             "projected_text": judgement_text,
             "source_sha256": document.source_sha256,
             "projection": _projection_dict(judgement_projection),
+            "gold_spans": [row for row in gold_rows if _gold_path_key(row["path"]) == _gold_path_key(path)],
         }
         score = score_by_path.get(str(path))
         if score is not None:
@@ -693,6 +958,7 @@ def prepare(
             )
         doc_units: list[dict[str, Any]] = []
         ordinal_counter: Counter[tuple[str, str, str]] = Counter()
+        seen_unit_ids: set[str] = set()
         doc_calls: list[dict[str, Any]] = []
         for pack in selected_packs:
             candidates: list[Any] = []
@@ -726,6 +992,9 @@ def prepare(
 
             admissible: list[dict[str, Any]] = []
             for unit in candidates:
+                if unit.unit_id in seen_unit_ids:
+                    continue
+                seen_unit_ids.add(unit.unit_id)
                 admission, reason = _admission(unit, pack)
                 unit.admission = admission
                 unit.admission_reason = reason
@@ -740,11 +1009,29 @@ def prepare(
                     if not unit.text.strip() or "\x00" in unit.text or source_text != unit.text:
                         raise AssertionError(f"eligible span has invalid source text: {unit.unit_id}")
                 unit.status = "not_run" if admission == "DROP" else ""
-                item = _unit_dict(
+                source_item = _unit_dict(
                     unit,
                     document_ref=document_ref,
                     passage_id=str(getattr(unit, "passage_id", _passage_id(document, unit.doc_range))),
                 )
+                gold_matches = _gold_rows_for_unit(
+                    gold_rows, str(path), source_item["source_range"], str(unit.rule_id)
+                )
+                gold_ids = [str(row["gold_id"]) for row in gold_matches]
+                for gold_id in gold_ids:
+                    gold_attachment_counts[gold_id] += 1
+                item = _unit_dict(
+                    unit,
+                    document_ref=document_ref,
+                    passage_id=str(getattr(unit, "passage_id", _passage_id(document, unit.doc_range))),
+                    gold_ids=gold_ids,
+                    gold_control=any(bool(row.get("control")) for row in gold_matches),
+                )
+                if gold_ids:
+                    kinds = {str(row.get("kind", "seeded")) for row in gold_matches}
+                    item["gold_kind"] = next(iter(kinds)) if len(kinds) == 1 else "mixed"
+                    if len(kinds) > 1:
+                        item["gold_kinds"] = sorted(kinds)
                 item["document"] = str(path)
                 item["pack_hash"] = pack_id(pack)
                 doc_units.append(item)
@@ -836,6 +1123,17 @@ def prepare(
         "pack_hashes": sorted(set(all_pack_hashes)),
         "rubric_revision": spine_revision,
         "instrument_id": per_doc[0]["instrument_id"] if len({doc["instrument_id"] for doc in per_doc}) == 1 and per_doc else None,
+        "gold": {
+            "path": str(gold_source) if gold_source is not None else None,
+            "spans": gold_rows,
+            "attachment_counts": dict(gold_attachment_counts),
+            "multi_unit_attachments": sum(count > 1 for count in gold_attachment_counts.values()),
+            "unattached": [
+                str(row["gold_id"])
+                for row in gold_rows
+                if not gold_attachment_counts.get(str(row["gold_id"]), 0)
+            ],
+        },
         "counts": {
             "documents": len(per_doc),
             "units": len(all_units),
@@ -1029,9 +1327,113 @@ def _evidence_offset_mismatches(unit: dict[str, Any], output: dict[str, Any]) ->
             if text[start:end] != quote:
                 mismatches += 1
     return mismatches
+def _salvage_unique_quotes(unit: dict[str, Any], output: dict[str, Any]) -> None:
+    """Repair offsets only for unique quotes located in the unit."""
+    text = str(unit.get("model_text", unit.get("text", "")))
+    for evidence in output.get("evidence") or ():
+        if evidence.get("source") != "unit":
+            continue
+        quote = evidence.get("quote")
+        if not isinstance(quote, str) or not quote:
+            continue
+        first = text.find(quote)
+        second = text.find(quote, first + 1) if first >= 0 else -1
+        if first >= 0 and second < 0:
+            evidence["start"] = first
+            evidence["end"] = first + len(quote)
 
 
-def finish(*, out: Path, responses: Path) -> dict[str, Any]:
+def _unit_gold_ids(unit: dict[str, Any]) -> tuple[str, ...]:
+    values = unit.get("gold_ids")
+    if isinstance(values, (list, tuple)):
+        return tuple(str(value) for value in values if isinstance(value, str) and value)
+    value = unit.get("gold_id")
+    return (value,) if isinstance(value, str) and value else ()
+
+
+def _evidence_document_range(
+    unit: dict[str, Any], evidence: dict[str, Any]
+) -> tuple[int, int] | None:
+    if evidence.get("source") != "unit":
+        return None
+    start, end = evidence.get("start"), evidence.get("end")
+    if not isinstance(start, int) or not isinstance(end, int) or start < 0 or end < start:
+        return None
+    text = str(unit.get("model_text", unit.get("text", "")))
+    if end > len(text):
+        return None
+    source_range = unit.get("source_range")
+    if isinstance(source_range, (list, tuple)) and len(source_range) == 2 and all(
+        isinstance(value, int) for value in source_range
+    ):
+        base = int(source_range[0])
+        return base + len(text[:start].encode("utf-8")), base + len(text[:end].encode("utf-8"))
+    doc_start, doc_end = evidence.get("doc_start"), evidence.get("doc_end")
+    if isinstance(doc_start, int) and isinstance(doc_end, int):
+        return doc_start, doc_end
+    return start, end
+
+
+def _evidence_overlaps_gold(
+    unit: dict[str, Any], finding: dict[str, Any], gold_row: dict[str, Any]
+) -> bool:
+    start, end = gold_row.get("start"), gold_row.get("end")
+    if not isinstance(start, int) or not isinstance(end, int) or end <= start:
+        return False
+    return any(
+        (located := _evidence_document_range(unit, evidence)) is not None
+        and located[0] < end
+        and start < located[1]
+        for evidence in finding.get("evidence") or ()
+        if isinstance(evidence, dict)
+    )
+
+
+def _gold_recall(
+    gold_rows: Sequence[dict[str, Any]],
+    units: dict[str, dict[str, Any]],
+    findings: Sequence[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, int]]:
+    seeded = [row for row in gold_rows if row.get("kind", "seeded") == "seeded" and not row.get("control")]
+    controls = [row for row in gold_rows if row.get("kind") == "control" or row.get("control")]
+    seeded_by_id = {str(row["gold_id"]): row for row in seeded}
+    control_ids = {str(row["gold_id"]) for row in controls}
+    confirmed_seeded: set[str] = set()
+    confirmed_controls: set[str] = set()
+    for finding in findings:
+        if finding.get("outcome") != "CONFIRM":
+            continue
+        unit = units.get(str(finding.get("unit_id")), {})
+        for gold_id in _unit_gold_ids(unit):
+            seeded_row = seeded_by_id.get(gold_id)
+            if seeded_row is not None and (
+                seeded_row.get("rule_id") is None or str(finding.get("rule_id")) == str(seeded_row.get("rule_id"))
+            ) and _evidence_overlaps_gold(unit, finding, seeded_row):
+                confirmed_seeded.add(gold_id)
+            if gold_id in control_ids:
+                confirmed_controls.add(gold_id)
+    per_rule: dict[str, float | None] = {}
+    for rule_id in sorted({str(row.get("rule_id")) for row in seeded if row.get("rule_id") is not None}):
+        rows = [row for row in seeded if str(row.get("rule_id")) == rule_id]
+        confirmed = sum(str(row["gold_id"]) in confirmed_seeded for row in rows)
+        per_rule[rule_id] = confirmed / len(rows) if rows else None
+    seeded_total = len(seeded)
+    recall: dict[str, Any] = {
+        "overall": len(confirmed_seeded) / seeded_total if seeded_total else None,
+        "per_rule": per_rule,
+    }
+    attachment_counts = Counter(
+        gold_id
+        for unit in units.values()
+        for gold_id in _unit_gold_ids(unit)
+    )
+    multi_unit = sum(count > 1 for count in attachment_counts.values())
+    if multi_unit:
+        recall["multi_unit_attachments"] = multi_unit
+    return recall, {"count": len(confirmed_controls), "total": len(controls)}
+
+
+def finish(*, out: Path, responses: Path, offset_salvage: str | None = None) -> dict[str, Any]:
     """Validate response JSONL, adjudicate records, and write reports."""
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     unit_items = _read_jsonl(out / "units.jsonl")
@@ -1049,6 +1451,8 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
     records: list[FindingRecord] = []
     failed: list[dict[str, Any]] = []
     evidence_offset_mismatch = 0
+    model_confirms = 0
+    evidence_gate_discards = 0
     unit_objects = {unit_id: _unit_from_dict(item, documents) for unit_id, item in units.items()}
 
     for item in unit_items:
@@ -1064,6 +1468,16 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         target_units = [units[unit_id] for unit_id in call.get("unit_ids", ()) if unit_id in units]
         response_item = response_items.get(call_id)
         if response_item is None:
+            for unit in target_units:
+                unit["status"] = "failed"
+            failed.append(
+                {
+                    "call_id": call_id,
+                    "unit_ids": call.get("unit_ids", []),
+                    "reason": "response_missing",
+                    "errors": ["response_missing"],
+                }
+            )
             continue
         try:
             payload = _response_payload(response_item.get("response"))
@@ -1079,9 +1493,29 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             rows = [payload]
         else:
             rows = None
+        missing_ids: list[str] = []
+        if isinstance(rows, list) and all(isinstance(row, dict) for row in rows):
+            actual_ids = [str(row.get("unit_id")) for row in rows]
+            missing_ids = [unit_id for unit_id in call.get("unit_ids", ()) if unit_id not in actual_ids]
+        elif rows is None:
+            missing_ids = [str(unit_id) for unit_id in call.get("unit_ids", ())]
         validation_error = validate_result_set(target_units, rows)
-        row_values = rows if validation_error is None else []
-        if validation_error is not None:
+        missing_payload = rows is None or (validation_error is not None and validation_error.startswith("missing unit_id:"))
+        if validation_error is not None and missing_ids and missing_payload:
+            for unit_id in missing_ids:
+                units[unit_id]["status"] = "failed"
+            failed.append(
+                {
+                    "call_id": call_id,
+                    "unit_ids": missing_ids,
+                    "reason": "row_missing",
+                    "errors": ["row_missing"],
+                }
+            )
+            row_values = [dict(row) for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+        else:
+            row_values = rows if validation_error is None else []
+        if validation_error is not None and not missing_payload:
             failed.append({"call_id": call_id, "unit_ids": call.get("unit_ids", []), "errors": [validation_error]})
             for unit in target_units:
                 unit["status"] = "failed"
@@ -1109,6 +1543,10 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             output["unit_id"] = unit_id
             output["rule_id"] = str(unit_item["rule_id"])
             output["kind"] = unit.kind
+            if offset_salvage == "unique-quote":
+                _salvage_unique_quotes(unit_item, output)
+            if str(output.get("verdict", "")).upper() == "CONFIRM":
+                model_confirms += 1
             evidence_offset_mismatch += _evidence_offset_mismatches(unit_item, output)
             cache_keys = call.get("cache_keys", [""])
             index = call.get("unit_ids", []).index(unit_id)
@@ -1119,7 +1557,14 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
                 instrument_id=str(call.get("instrument_id", "")),
                 cache_key=str(cache_keys[index] if index < len(cache_keys) else ""),
             )
-            records.extend(result if isinstance(result, tuple) else (result,))
+            result_records = result if isinstance(result, tuple) else (result,)
+            if str(output.get("verdict", "")).upper() == "CONFIRM" and any(
+                record.outcome == "ABSTAIN"
+                and record.abstain_reason == "no_exact_evidence"
+                for record in result_records
+            ):
+                evidence_gate_discards += 1
+            records.extend(result_records)
 
     _write_jsonl(out / "failed.jsonl", failed)
     finding_items = _records_json(records)
@@ -1147,7 +1592,11 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
         deterministic = json.loads(deterministic_path.read_text(encoding="utf-8"))
         doc_records = by_path.get(path, [])
         score = _score_with_judgement(deterministic, doc_records, manifest, config, rule_map, weights, path)
-        doc_components = components(doc_records, [(item.get("doc_range", [0, 0])) for item in unit_items if item.get("path") == path], {})
+        document_data_for_components = documents.get(str(doc.get("document_ref", "")), {})
+        raw_text = str(document_data_for_components.get("text", ""))
+        _, projection = project(raw_text)
+        paragraph_boundaries = _paragraph_ranges(raw_text, projection)
+        doc_components = components(doc_records, paragraph_boundaries, _DEPENDENCE_TABLE)
         gate = cluster_gate(doc_components, doc_records, config)
         outcomes = Counter(record.outcome for record in doc_records)
         severities = Counter(record.severity for record in doc_records if record.severity)
@@ -1169,12 +1618,21 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
                 "preserve_reasons": dict(Counter(record.preservation_reason or "unknown" for record in doc_records if record.outcome == "PRESERVE")),
             }
         )
+    gold_config = manifest.get("gold", {})
+    gold_rows = gold_config.get("spans", []) if isinstance(gold_config, dict) else []
+    gold_recall, control_false_confirms = _gold_recall(gold_rows, units, finding_items)
+    gold_attachment = gold_config.get("attachment_counts", {}) if isinstance(gold_config, dict) else {}
     report = {
         "version": 1,
         "documents": report_documents,
         "coverage": coverage_dict,
         "preserve_rates": preserve_rates(records),
         "failed": failed,
+        "gold_recall": gold_recall,
+        "control_false_confirms": control_false_confirms,
+        "gold_multi_unit_attachments": sum(int(count) > 1 for count in gold_attachment.values()),
+        "gold_unattached": list(gold_config.get("unattached", [])) if isinstance(gold_config, dict) else [],
+        "evidence_gate_discards": evidence_gate_discards,
         "evidence_offset_mismatch": evidence_offset_mismatch,
         "counts": {"findings": len(finding_items), "failed_calls": len(failed), "evidence_offset_mismatch": evidence_offset_mismatch},
     }
@@ -1183,33 +1641,62 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
     return report
 
 
-def _preview_document(out: Path, doc: str, findings: list[dict[str, Any]], units: dict[str, dict[str, Any]]) -> Path:
+def _preview_document(
+    out: Path,
+    doc: str,
+    findings: list[dict[str, Any]],
+    units: dict[str, dict[str, Any]],
+    skipped: list[str] | None = None,
+) -> Path:
     source = Path(doc)
     raw = source.read_text(encoding="utf-8")
-    replacements: list[tuple[int, int, str]] = []
-    document_cache: dict[str, ProjectionMap] = {}
+    raw_bytes = raw.encode("utf-8")
+    skipped = skipped if skipped is not None else []
+    replacements: list[tuple[int, int, str, str]] = []
     for finding in findings:
         if finding.get("rewrite_status") != "proposed" or not finding.get("rewrite"):
             continue
-        unit = units.get(str(finding.get("unit_id")))
+        unit_id = str(finding.get("unit_id", ""))
+        unit = units.get(unit_id)
         if unit is None:
+            skipped.append(f"{unit_id}: unit not found")
             continue
+        source_range = unit.get("source_range")
+        if (
+            not isinstance(source_range, list)
+            or len(source_range) != 2
+            or not all(isinstance(value, int) for value in source_range)
+            or source_range[0] < 0
+            or source_range[0] > source_range[1]
+            or source_range[1] > len(raw_bytes)
+        ):
+            skipped.append(f"{unit_id}: invalid source range")
+            continue
+        start, end = source_range
         try:
-            document_ref = str(unit["document_ref"])
-            projection = document_cache.get(document_ref)
-            if projection is None:
-                data = json.loads((out / "documents" / f"{document_ref}.json").read_text(encoding="utf-8"))
-                projection = _projection_from_dict(data["projection"])
-                document_cache[document_ref] = projection
-            start = projection.to_raw(int(unit.get("range", [0, 0])[0]))
-            end = projection.to_raw(int(unit.get("range", [0, 0])[1]))
-        except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
+            source_text = raw_bytes[start:end].decode("utf-8")
+        except UnicodeDecodeError:
+            skipped.append(f"{unit_id}: source range is not valid UTF-8")
             continue
-        replacements.append((start, end, str(finding["rewrite"])))
-    data = raw.encode("utf-8")
-    for start, end, replacement in sorted(replacements, reverse=True):
+        if source_text != str(unit.get("text", "")):
+            skipped.append(f"{unit_id}: source text mismatch")
+            continue
+        replacements.append((start, end, str(finding["rewrite"]), unit_id))
+
+    accepted: list[tuple[int, int, str, str]] = []
+    for candidate in sorted(replacements, key=lambda value: (value[0], value[1], value[3])):
+        start, end, _, unit_id = candidate
+        conflict = next((item for item in accepted if start < item[1] and item[0] < end), None)
+        if conflict is not None:
+            reason = "duplicate span" if (start, end) == conflict[:2] else "overlapping span"
+            skipped.append(f"{unit_id}: {reason} ({start}:{end})")
+            continue
+        accepted.append(candidate)
+
+    data = raw_bytes
+    for start, end, replacement, _ in sorted(accepted, key=lambda value: value[0], reverse=True):
         data = data[:start] + replacement.encode("utf-8") + data[end:]
-    target = out / "preview" / source
+    target = out.resolve() / "preview" / _safe_name(source)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)
     return target
@@ -1237,8 +1724,16 @@ def compare(*, out: Path, doc: Path | None = None, apply_preview: bool = False) 
             if finding.get("outcome") == "CONFIRM" and unit and unit.get("path") == item["path"]:
                 lines.append(f"  CONFIRM {finding['rule_id']} [{finding.get('severity')}] rewrite={finding.get('rewrite')!r}")
         if apply_preview:
-            preview = _preview_document(out, str(item["path"]), [f for f in findings if units.get(str(f.get("unit_id")), {}).get("path") == item["path"]], units)
+            skipped: list[str] = []
+            preview = _preview_document(
+                out,
+                str(item["path"]),
+                [f for f in findings if units.get(str(f.get("unit_id")), {}).get("path") == item["path"]],
+                units,
+                skipped,
+            )
             lines.append(f"preview: {preview}")
+            lines.extend(f"preview skipped: {reason}" for reason in skipped)
     return "\n".join(lines)
 
 
