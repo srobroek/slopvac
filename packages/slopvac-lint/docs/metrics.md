@@ -308,3 +308,15 @@ Judgement deductions never enter deterministic density, category scores, `max_wa
 or the `min_score` gate. A confirmed judgement finding counts toward `max_errors` only
 when its rule's `judgement_ceiling` is `error`. A cluster result is reported separately
 as `REVISE`; it does not alter either score.
+
+## 9. Determinism
+
+Projection and judgement preparation pin identities to the source SHA-256, path, unit kind,
+rule, and projected/source ranges. Parsing the same bytes therefore preserves block and
+sentence coordinates, unit IDs, ordinals, and evidence addresses.
+
+`judgement prepare` emits sorted-key JSONL and stable document artefacts. Its output does not
+depend on Python hash order or the active locale. Source bytes retain their original Unicode
+normalization form: NFC and NFD spellings remain distinct inputs and consequently have distinct
+source identities. Markdown fences, tables, HTML entity decoding, attributes, and CRLF line
+endings retain their source ranges through the projection.
