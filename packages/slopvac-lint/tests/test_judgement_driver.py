@@ -303,6 +303,10 @@ def test_admission_drops_fragment_units_but_keeps_three_words() -> None:
     ]
     assert _admission(_admission_unit("One useful sentence"), pack) == ("ELIGIBLE", None)
 
+def test_admission_drops_two_word_imperative_fragment() -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    assert _admission(_admission_unit("Update nightly."), pack) == ("DROP", "a2_fragment_unit")
+
 
 def test_admission_preserves_normative_register() -> None:
     pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
