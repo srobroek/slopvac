@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from slopvac.analyze import classify_text_type, count_words, split_sentences
+from slopvac.analyze import classify_text_type, count_words, parse, split_sentences
 from slopvac.model import TextType
 
 
@@ -160,6 +160,41 @@ def test_malformed_terminal_runs_preserve_all_prose() -> None:
     segments = split_sentences(text, 1)
     assert [sentence.text for sentence in segments] == ["First..", "Second?!", "Third."]
     assert " ".join(sentence.text for sentence in segments) == text
+
+def test_sentence_identity_and_projection_cover_markdown_regions() -> None:
+    raw = (
+        "---\ntitle: ignored\n---\n\n"
+        "- list item.\n\n"
+        "| Header | Cell |\n| --- | --- |\n| A | table cell. |\n\n"
+        "```\nnot prose\n```\n\nAfter café.\n"
+    )
+    first = parse("guide.md", raw)
+    second = parse("guide.md", raw)
+    assert [sentence.id for sentence in first.sentences] == [
+        sentence.id for sentence in second.sentences
+    ]
+    source = raw.encode("utf-8")
+    list_sentence = next(sentence for sentence in first.sentences if sentence.text == "list item.")
+    cell = next(sentence for sentence in first.sentences if sentence.text == "table cell.")
+    after = next(sentence for sentence in first.sentences if sentence.text == "After café.")
+    assert source[list_sentence.source_range[0] : list_sentence.source_range[1]] == b"list item."
+    assert source[cell.source_range[0] : cell.source_range[1]] == b"table cell."
+    assert source[after.source_range[0] : after.source_range[1]] == "After café.".encode()
+    assert (list_sentence.line, list_sentence.column) == (5, 3)
+    assert (cell.line, cell.column) == (9, 7)
+    assert (after.line, after.column) == (15, 1)
+    assert "not prose" not in first.prose_text()
+
+
+def test_source_edit_before_segment_changes_identity_and_range() -> None:
+    raw = "First.\n\nSecond.\n"
+    original = parse("guide.md", raw)
+    other = parse("other.md", raw)
+    edited = parse("guide.md", "Added.\n\n" + raw)
+    assert original.sentences[-1].id != edited.sentences[-1].id
+    assert original.sentences[-1].source_range != edited.sentences[-1].source_range
+    assert original.sentences[-1].id == parse("guide.md", raw).sentences[-1].id
+    assert other.sentences[-1].id != original.sentences[-1].id
 
 
 @pytest.mark.parametrize(

@@ -199,6 +199,21 @@ NOTE_MARKER = re.compile(
 )
 
 
+def _identity_id(
+    path: str,
+    kind: str,
+    source_hash: str,
+    source_spans: tuple[tuple[int, int], ...],
+    ordinal: int,
+) -> str:
+    """Return the deterministic identity for one source-backed segment."""
+
+    payload = "\0".join(
+        (path, kind, source_hash, repr(source_spans), str(ordinal))
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 class BlockKind(str, Enum):
     PARAGRAPH = "paragraph"
     HEADING = "heading"
@@ -216,7 +231,25 @@ class Sentence:
     column: int
     word_count: int
     text_type: TextType
+    start: int = 0
+    end: int = 0
+    source_spans: tuple[tuple[int, int], ...] = ()
+    projection: ProjectionMap | None = None
+    id: str = ""
 
+    @property
+    def source_range(self) -> tuple[int, int]:
+        if not self.source_spans:
+            return (0, 0)
+        return (self.source_spans[0][0], self.source_spans[-1][1])
+
+    @property
+    def unit_id(self) -> str:
+        return self.id
+
+    @property
+    def span_id(self) -> str:
+        return self.id
 
 @dataclass
 class Unit:
@@ -233,14 +266,33 @@ class Unit:
     region_class: str
     source_sha256: str
     unit_id: str = ""
+    ordinal: int = 0
+
+    @property
+    def id(self) -> str:
+        return self.unit_id
+
+    @property
+    def source_spans(self) -> tuple[tuple[int, int], ...]:
+        return self.projection.source_spans()
+
+    @property
+    def source_range(self) -> tuple[int, int]:
+        spans = self.source_spans
+        return (spans[0][0], spans[-1][1]) if spans else (0, 0)
 
     def __post_init__(self) -> None:
-        start, end = self.range
         if not self.unit_id:
-            payload = "\0".join(
-                (self.kind, self.rule_id, self.path, self.source_sha256, str(start), str(end))
-            ).encode("utf-8")
-            self.unit_id = hashlib.sha256(payload).hexdigest()[:16]
+            # A source segment can feed more than one judgement rule. Keep the
+            # shared segment identity inputs while adding the rule discriminator
+            # required for result rows to remain one-to-one with requests.
+            self.unit_id = _identity_id(
+                self.path,
+                f"{self.kind}:{self.rule_id}",
+                self.source_sha256,
+                self.source_spans,
+                self.ordinal,
+            )
 
 
 class SpanCandidate(Unit):
@@ -274,6 +326,8 @@ class Block:
     origin: str = "authored"
     region_class: str = "prose"
     source_sha256: str = ""
+    source_spans: tuple[tuple[int, int], ...] = ()
+    id: str = ""
     unit_id: str = ""
     # Compatibility for callers that display line-aligned prose. Position
     # resolution itself is projection-backed.
@@ -281,6 +335,12 @@ class Block:
     raw_bytes: bytes = b""
     under_examples: bool = False
     heading: str = ""
+
+    @property
+    def source_range(self) -> tuple[int, int]:
+        if not self.source_spans:
+            return (0, 0)
+        return (self.source_spans[0][0], self.source_spans[-1][1])
 
     def position(self, offset: int) -> tuple[int, int]:
         """Map a projected offset to the source line and column."""
@@ -478,7 +538,7 @@ def _finalize_document(document: Document) -> Document:
 
     examples_heading = False
     projected_cursor = 0
-    for block in document.blocks:
+    for block_ordinal, block in enumerate(document.blocks):
         if block.kind is BlockKind.HEADING:
             heading_lines = document.raw_lines[block.lines[0] - 1 : block.lines[1]]
             heading_text = " ".join(heading_lines).lstrip("# ").strip()
@@ -488,8 +548,13 @@ def _finalize_document(document: Document) -> Document:
             BlockKind.FRONT_MATTER,
             BlockKind.CODE,
         }
+        last = block.lines[1]
+        if block.kind is BlockKind.TABLE:
+            while last < len(document.raw_lines) and document.raw_lines[last].lstrip().startswith("|"):
+                last += 1
+            last = max(block.lines[0], last)
         block.projection = _align_block_text(
-            block.text, document.raw, block.lines[0], block.lines[1]
+            block.text, document.raw, block.lines[0], last
         )
         block_base = projected_text.find(block.text, projected_cursor)
         if block_base < 0:
@@ -502,17 +567,42 @@ def _finalize_document(document: Document) -> Document:
         block.region_class = classify_region(block)
         block.source_sha256 = document.source_sha256
         block.raw_bytes = raw_bytes
-        payload = "\0".join(
-            (
-                block.kind.value,
-                "",
+        block.source_spans = block.projection.source_spans()
+        block.id = _identity_id(
+            document.path,
+            block.kind.value,
+            document.source_sha256,
+            block.source_spans,
+            block_ordinal,
+        )
+        block.unit_id = block.id
+        sentence_cursor = 0
+        for sentence_ordinal, sentence in enumerate(block.sentences):
+            start = sentence.start
+            end = sentence.end
+            if start == 0 and end == 0:
+                start = block.text.find(sentence.text, sentence_cursor)
+                if start < 0:
+                    continue
+                end = start + len(sentence.text)
+            elif start < 0 or end <= start or end > len(block.text):
+                start = block.text.find(sentence.text, sentence_cursor)
+                if start < 0:
+                    continue
+                end = start + len(sentence.text)
+            sentence_cursor = end
+            sentence.start = start
+            sentence.end = end
+            sentence.projection = block.projection.submap(start, end)
+            sentence.source_spans = sentence.projection.source_spans()
+            sentence.line, sentence.column = block.position(start)
+            sentence.id = _identity_id(
                 document.path,
+                "sentence",
                 document.source_sha256,
-                str(block.doc_range[0]),
-                str(block.doc_range[1]),
+                sentence.source_spans,
+                sentence_ordinal,
             )
-        ).encode("utf-8")
-        block.unit_id = hashlib.sha256(payload).hexdigest()[:16]
     return document
 
 
@@ -785,6 +875,8 @@ def split_sentences(text: str, start_line: int) -> list[Sentence]:
                     column=1,
                     word_count=count_words(part),
                     text_type=classify_text_type(part),
+                    start=absolute_offset,
+                    end=absolute_offset + len(part),
                 )
             )
     return pieces
