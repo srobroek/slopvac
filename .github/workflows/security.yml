@@ -85,7 +85,7 @@ jobs:
           scan-args: |-
             --format=json
             --output=osv-results.json
-            --lockfile=packages/slopvac-lint/uv.lock
+            --lockfile=uv.lock
       - name: Create SARIF report
         if: always()
         uses: google/osv-scanner-action/osv-reporter-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
