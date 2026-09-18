@@ -119,8 +119,7 @@ def main(context: click.Context) -> None:
 @click.option(
     "--mode",
     type=click.Choice([m.value for m in Mode]),
-    default=Mode.PROSE.value,
-    show_default=True,
+    default=None,
     help="Input surface: prose or code-comments.",
 )
 @click.option(
@@ -213,7 +212,7 @@ def main(context: click.Context) -> None:
 def lint(
     targets: tuple[str, ...],
     profile: str | None,
-    mode: str,
+    mode: str | None,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
@@ -272,8 +271,10 @@ def lint(
             open_report=open_report,
             format_given=_format_was_given(),
             verbose=verbose,
+            notes=run.collection_notes,
         )
         raise SystemExit(EXIT_OK)
+
     if explain_config:
         _print_resolved_config(run, console)
         raise SystemExit(EXIT_OK)
@@ -296,6 +297,7 @@ def lint(
         open_report=open_report,
         format_given=_format_was_given(),
         verbose=verbose,
+        notes=run.collection_notes,
     )
     if any(score.unchecked for score in scores):
         raise SystemExit(EXIT_ERROR)

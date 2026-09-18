@@ -97,6 +97,7 @@ class LintReport(BaseModel):
     version: str
     summary: RunSummary
     documents: list[DocumentScore] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
 
     def emit(self) -> str:
         return self.model_dump_json(indent=2, exclude_none=False)

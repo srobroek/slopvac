@@ -63,15 +63,32 @@ def test_default_prose_mode_keeps_toml_projection(tmp_path):
     assert document["words"] > 0
 
 
-def test_unsupported_file_in_directory_is_reported_as_skip(tmp_path):
-    _write(tmp_path, "source.py", "# robust comment\n")
+def test_unsupported_file_in_directory_is_reported_as_informational_skip(tmp_path):
+    _write(tmp_path, "source.py", "# configure value\n")
     _write(tmp_path, "notes.yaml", "robust: value\n")
-    exit_code, report = _json_run(str(tmp_path), "--mode", "code-comments", "--no-vale")
-    assert exit_code == EXIT_ERROR
+    exit_code, report = _json_run(
+        str(tmp_path), "--mode", "code-comments", "--category", "prose-inflation"
+    )
+    assert exit_code == 0
     assert len(report["documents"]) == 1
-    notes = "\n".join(report["documents"][0]["unchecked"])
-    assert "notes.yaml" in notes
-    assert "unsupported source language" in notes
+    assert report["documents"][0]["unchecked"] == []
+    assert any("notes.yaml" in note for note in report["notes"])
+    assert any("unsupported source language" in note for note in report["notes"])
+
+
+def test_config_code_comments_mode_scans_directory_without_flag(tmp_path):
+    _write(tmp_path, "slopvac.toml", 'mode = "code-comments"\n')
+    source = _write(tmp_path, "source.py", "# configure value\n")
+    _, report = _json_run(str(tmp_path), "--category", "prose-inflation")
+    assert [document["path"] for document in report["documents"]] == [str(source)]
+
+
+def test_explicit_prose_mode_overrides_config_mode(tmp_path):
+    _write(tmp_path, "slopvac.toml", 'mode = "code-comments"\n')
+    _write(tmp_path, "source.py", "# robust comment\n")
+    prose = _write(tmp_path, "README.md", "Robust prose.\n")
+    _, report = _json_run(str(tmp_path), "--mode", "prose", "--no-vale")
+    assert [document["path"] for document in report["documents"]] == [str(prose)]
 
 
 def test_explicit_unsupported_file_is_an_error(tmp_path):

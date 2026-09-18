@@ -105,10 +105,14 @@ class RunContext:
     diff_scope: DiffScope | None = None
     mode: Mode = Mode.PROSE
     comments: bool = False
-    # Notes about targets that were asked for and could not be collected (an
-    # `.rst` with no converter on PATH). They ride on the first document's
-    # `unchecked` so the run exits 2 rather than reporting a clean subset.
+    # Informational notes about directory entries omitted from code-comment scans.
+    # They are emitted in JSON/text and do not affect the exit status.
     collection_notes: list[str] = field(default_factory=list)
+    # Notes about targets that were asked for and could not be collected (an
+    # `.rst` with no converter on PATH). These remain unchecked so the run exits 2.
+    collection_unchecked: list[str] = field(default_factory=list)
+
+
 
 
 def _relative_to_config(path: Path, config: Config) -> str:
@@ -125,12 +129,18 @@ def _expand_paths(
     targets: tuple[str, ...],
     notes: list[str] | None = None,
     *,
-    comments: bool = False,
+    comments: bool | None = False,
+    skipped: dict[Path, str] | None = None,
 ) -> list[Path]:
+
     """Expand targets with the document/source selection used by the CLI."""
     found: list[Path] = []
-    patterns = COMMENTABLE if comments else LINTABLE
+    if comments is None:
+        patterns = tuple(dict.fromkeys((*LINTABLE, *COMMENTABLE)))
+    else:
+        patterns = COMMENTABLE if comments else LINTABLE
     prose_patterns = LINTABLE
+
     for target in targets:
         path = Path(target)
         if path.is_dir():
@@ -151,23 +161,28 @@ def _expand_paths(
                         fnmatch.fnmatch(name.lower(), pattern.lower()) for pattern in patterns
                     ):
                         found.append(candidate)
-                    elif comments and not any(
+                    elif comments is not False and not any(
                         fnmatch.fnmatch(name.lower(), pattern.lower()) for pattern in prose_patterns
                     ):
                         try:
                             canonical_source_language(candidate)
                         except ValueError as exc:
+                            message = (
+                                f"unsupported source language skipped: {candidate} ({exc})"
+                            )
+                            if skipped is not None:
+                                skipped[candidate] = message
                             if notes is not None:
-                                notes.append(
-                                    f"unsupported source language skipped: {candidate} ({exc})"
-                                )
+                                notes.append(message)
+
         elif path.is_file():
-            if comments:
+            if comments is True:
                 try:
                     canonical_source_language(path)
                 except ValueError as exc:
                     raise click.ClickException(str(exc)) from None
             found.append(path)
+
         else:
             pattern = Path(target)
             if pattern.is_absolute():
@@ -180,12 +195,13 @@ def _expand_paths(
             for match in matches:
                 if not match.is_file():
                     continue
-                if comments:
+                if comments is True:
                     try:
                         canonical_source_language(match)
                     except ValueError as exc:
                         raise click.ClickException(str(exc)) from None
                 found.append(match)
+
 
     kept = [
         path
@@ -195,12 +211,15 @@ def _expand_paths(
     skipped_rst = [path for path in kept if path.suffix.lower() == ".rst"]
     if skipped_rst and rst_converter() is None:
         kept = [path for path in kept if path.suffix.lower() != ".rst"]
+        message = (
+            f"RST target(s) skipped: rst2html or rst2html.py not found on PATH "
+            f"({', '.join(str(path) for path in skipped_rst)}); install with `pip install docutils`."
+        )
+        if skipped is not None:
+            for path in skipped_rst:
+                skipped[path] = message
         if notes is not None:
-            names = ", ".join(str(path) for path in skipped_rst)
-            notes.append(
-                f"RST target(s) skipped: rst2html or rst2html.py not found on PATH "
-                f"({names}); install with `pip install docutils`."
-            )
+            notes.append(message)
     seen: set[Path] = set()
     unique: list[Path] = []
     for path in kept:
@@ -518,12 +537,20 @@ def vale_levels(
     return severities, categories
 
 
-def report_text(scores: list[DocumentScore], console: Console, verbose: bool) -> None:
+def report_text(
+    scores: list[DocumentScore],
+    console: Console,
+    verbose: bool,
+    notes: list[str] | None = None,
+) -> None:
+    for note in notes or []:
+        console.print(f"[yellow]SKIPPED[/] {note}")
     for score in scores:
         for finding in score.findings:
             console.print(finding.as_line(), highlight=False)
         for note in score.unchecked:
             console.print(f"[yellow]UNCHECKED[/] {score.path}: {note}")
+
 
     summary = summarize(scores)
     console.print()
@@ -573,7 +600,9 @@ def emit_report(
     open_report: bool,
     format_given: bool,
     verbose: bool,
+    notes: list[str] | None = None,
 ) -> None:
+
     """Render the run in one format and deliver it to stdout, a file, or a browser.
 
     `--out` alone means an HTML report; `--out` with an explicit `--format` writes
@@ -612,11 +641,13 @@ def emit_report(
         else:
             click.echo(page, nl=False)
     elif output_format == "text":
-        report_text(scores, console, verbose)
+        report_text(scores, console, verbose, notes)
+
     else:
         if output_format == "json":
             rendered = LintReport(
-                version=__version__, summary=summarize(scores), documents=scores
+                version=__version__, summary=summarize(scores), documents=scores,
+                notes=notes or [],
             ).emit()
         elif output_format == "github":
             # Workflow-command annotations, so findings land on the PR diff.
@@ -665,13 +696,22 @@ def load_run_context(
     comments: bool = False,
 ) -> RunContext:
     """Discover and apply the nearest config independently for every target."""
-    selected_mode = Mode.CODE_COMMENTS if comments else Mode(mode or Mode.PROSE)
+    auto_mode = mode is None and not comments
+    selected_mode = (
+        Mode(mode)
+        if mode is not None
+        else Mode.CODE_COMMENTS
+        if comments
+        else Mode.PROSE
+    )
     collection_notes: list[str] = []
+    skipped_collections: dict[Path, str] = {}
     try:
         candidates = _expand_paths(
             targets,
             collection_notes,
-            comments=selected_mode is Mode.CODE_COMMENTS,
+            comments=None if auto_mode else selected_mode is Mode.CODE_COMMENTS,
+            skipped=skipped_collections,
         )
     except click.ClickException as exc:
         raise PipelineError(f"[red]{exc.message}[/]") from None
@@ -693,12 +733,19 @@ def load_run_context(
                 raise PipelineError(f"[red]config error[/]: {exc}") from None
         return loaded[key]
 
+    # Automatic mode needs configs for explicit files and skipped directory
+    # entries before it can decide which input surface they belong to.
+    if auto_mode:
+        for target in targets:
+            path = Path(target)
+            if path.is_file():
+                load_discovered(explicit or find_config(path))
+    for path in skipped_collections:
+        load_discovered(explicit or find_config(path))
+
     # An empty directory still needs its nearest config loaded so malformed
     # configuration is reported rather than silently treated as a clean run.
-    if not candidates:
-        starts = [Path(target) for target in targets]
-    else:
-        starts = candidates
+    starts = [Path(target) for target in targets] if not candidates else candidates
     base_by_path: dict[Path, Config] = {}
     for path in starts:
         discovered = explicit or find_config(path if path.exists() else Path.cwd())
@@ -758,7 +805,8 @@ def load_run_context(
     effective_by_source: dict[Path | None, Config] = {}
     for source, base in loaded.items():
         config = copy.deepcopy(base)
-        config.mode = selected_mode
+        if not auto_mode:
+            config.mode = selected_mode
         if has_cli_override:
             config.overrides.append(copy.deepcopy(cli_override))
         effective_by_source[source] = config
@@ -769,10 +817,47 @@ def load_run_context(
         base = base_by_path[path]
         source = base.source.resolve() if base.source is not None else None
         config = effective_by_source[source]
+        if auto_mode:
+            patterns = COMMENTABLE if config.mode is Mode.CODE_COMMENTS else LINTABLE
+            if not any(
+                fnmatch.fnmatch(path.name.lower(), pattern.lower()) for pattern in patterns
+            ):
+                continue
         if config.is_excluded(_relative_to_config(path, config)):
             continue
         paths.append(path)
         configs[path] = config
+
+    # An explicit file still has to fail when its selected code-comment mode
+    # cannot map the suffix to a source language.
+    if auto_mode:
+        for target in targets:
+            path = Path(target)
+            if not path.is_file():
+                continue
+            discovered = explicit or find_config(path)
+            base = load_discovered(discovered)
+            source = base.source.resolve() if base.source is not None else None
+            config = effective_by_source[source]
+            if config.mode is Mode.CODE_COMMENTS:
+                try:
+                    canonical_source_language(path)
+                except ValueError as exc:
+                    raise PipelineError(f"[red]{exc}[/]") from None
+
+    informational: list[str] = []
+    incomplete: list[str] = []
+    for path, message in skipped_collections.items():
+        discovered = explicit or find_config(path)
+        base = load_discovered(discovered)
+        source = base.source.resolve() if base.source is not None else None
+        config = effective_by_source[source]
+        if message.startswith("unsupported source language skipped:"):
+            if config.mode is Mode.CODE_COMMENTS and message not in informational:
+                informational.append(message)
+        elif config.mode is Mode.PROSE and message not in incomplete:
+            incomplete.append(message)
+    collection_notes = informational
 
     # The generated spelling rule is part of the ruleset, so keep one ruleset
     # per final locale. All other rules are loaded once and deep-copied locally.
@@ -793,9 +878,7 @@ def load_run_context(
         local, _ = ruleset_for(config.locale.default, config.locale.allow)
         name_errors.extend(validate_names(config, local))
     if name_errors:
-        raise PipelineError(
-            [f"[red]config error[/] {message}" for message in name_errors]
-        )
+        raise PipelineError([f"[red]config error[/] {message}" for message in name_errors])
 
     rulesets: dict[Path, RuleSet] = {}
     for path in paths:
@@ -820,6 +903,7 @@ def load_run_context(
         mode=selected_mode,
         comments=selected_mode is Mode.CODE_COMMENTS,
         collection_notes=collection_notes,
+        collection_unchecked=incomplete,
     )
 
 
@@ -937,9 +1021,9 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 score.unchecked.append(note)
             scores.append(score)
 
-    if ctx.collection_notes:
+    if ctx.collection_unchecked:
         if scores:
-            scores[0].unchecked.extend(ctx.collection_notes)
+            scores[0].unchecked.extend(ctx.collection_unchecked)
         else:
             # Every target was skipped (a directory of .rst files with no
             # converter): an incomplete result, not the no-files success.
@@ -948,7 +1032,7 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 DocumentScore(
                     path="<collection>",
                     profile=first.profile.value if first else Profile.NORMAL.value,
-                    unchecked=list(ctx.collection_notes),
+                    unchecked=list(ctx.collection_unchecked),
                 )
             )
     # Back into the order the caller asked for, since the groups reordered them.
