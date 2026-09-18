@@ -166,6 +166,22 @@ A sentence ends at any of:
 
 After a dotted initialism, one space followed by a capitalized word is a sentence boundary only when the word is in the closed-class `INITIALISM_SENTENCE_OPENERS` set (the determiners, pronouns, conjunction/adverbial openers, and prepositions listed by that constant); any other capitalized word is treated as a proper-noun continuation and remains joined. The accepted error is that a sentence beginning with a proper noun directly after an initialism stays joined.
 
+### Projected source mapping and identity
+
+Every sentence and prose segment has a deterministic `id` derived from the document path,
+segment kind, NFC-normalised segment text, its occurrence index among identical text in the
+document, and (for sentences) the enclosing block kind. Block ids use the same construction
+with the block kind and normalised block text. The identity hash deliberately excludes the
+document digest and absolute source offsets: inserting unrelated text therefore leaves
+existing ids unchanged, while changing a segment's own text changes its id. Occurrence indices
+keep repeated identical segments unique within one document. The shared Markdown/HTML
+projection maps normalized text back to source spans and 1-based source line and Unicode-scalar
+column coordinates. Lists, tables, front matter, soft breaks, HTML, and excluded code use this
+same map; excluded regions produce no prose sentence or segment. `source_spans` and
+`source_range` remain separate observable fields and may move when source text is inserted.
+Judgement units expose the same identity as `unit_id` and must consume this projection rather
+than reconstructing coordinates.
+
 Non-terminators, because each produces a false split:
 
 - A period inside a collapsed span from phases 1 through 8. Run the collapse phases before
