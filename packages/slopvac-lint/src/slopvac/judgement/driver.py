@@ -182,7 +182,14 @@ def _identity_projection(raw_text: str, raw_start: int, raw_bytes: bytes) -> Pro
     )
     return ProjectionMap(segments, raw_bytes)
 
-def _unit_dict(unit: Any, *, document_ref: str, passage_id: str) -> dict[str, Any]:
+def _unit_dict(
+    unit: Any,
+    *,
+    document_ref: str,
+    passage_id: str,
+    gold_ids: Sequence[str] = (),
+    gold_control: bool = False,
+) -> dict[str, Any]:
     """Serialize only unit-local data; document-wide data lives under documents/."""
     projection_segments = tuple(getattr(unit.projection, "segments", ()))
     source_range = (
@@ -190,7 +197,7 @@ def _unit_dict(unit: Any, *, document_ref: str, passage_id: str) -> dict[str, An
         if projection_segments
         else [0, 0]
     )
-    return {
+    item = {
         "unit_id": unit.unit_id,
         "kind": unit.kind,
         "rule_id": unit.rule_id,
@@ -213,6 +220,187 @@ def _unit_dict(unit: Any, *, document_ref: str, passage_id: str) -> dict[str, An
         "preservation_reason": getattr(unit, "preservation_reason", None),
         "truncated": bool(getattr(unit, "truncated", False)),
     }
+    if gold_ids:
+        item["gold_ids"] = list(gold_ids)
+        if len(gold_ids) == 1:
+            item["gold_id"] = gold_ids[0]
+        if gold_control:
+            item["gold_control"] = True
+    return item
+
+
+def _gold_path_key(path: str | Path) -> str:
+    """Normalize path spelling for matching gold rows to input documents."""
+    return str(Path(path).expanduser().resolve()).replace("\\", "/")
+
+
+def _gold_row_path_matches(row_path: str, document_path: Path, gold_path: Path | None) -> bool:
+    candidate = Path(row_path).expanduser()
+    document_key = _gold_path_key(document_path)
+    options = {_gold_path_key(candidate)}
+    if not candidate.is_absolute():
+        options.add(_gold_path_key(Path.cwd() / candidate))
+        if gold_path is not None:
+            options.add(_gold_path_key(gold_path.parent / candidate))
+    if document_key in options:
+        return True
+    return candidate.name == document_path.name and not candidate.parent.parts
+
+
+def _gold_range(row: dict[str, Any], raw: str, *, gold_id: str) -> tuple[int, int]:
+    """Resolve a seeded span's UTF-8 byte range from a row."""
+    raw_bytes = raw.encode("utf-8")
+    value = row.get("byte_range", row.get("source_range", row.get("range")))
+    start: Any = None
+    end: Any = None
+    if isinstance(value, dict):
+        start, end = value.get("start"), value.get("end")
+    elif isinstance(value, (list, tuple)) and len(value) == 2:
+        start, end = value
+    if start is None or end is None:
+        start, end = row.get("start"), row.get("end")
+    if start is not None or end is not None:
+        if not isinstance(start, int) or not isinstance(end, int) or not 0 <= start <= end <= len(raw_bytes):
+            raise ValueError(f"gold span {gold_id} has an invalid byte range")
+        return start, end
+    quote = row.get("exact_text", row.get("quote"))
+    if quote is None and "defect_span" in row:
+        quote = row["defect_span"]
+    if quote is None:
+        quote = row.get("text")
+    if not isinstance(quote, str) or not quote:
+        raise ValueError(f"gold span {gold_id} needs byte range or exact text")
+    needle = quote.encode("utf-8")
+    first = raw_bytes.find(needle)
+    second = raw_bytes.find(needle, first + 1) if first >= 0 else -1
+    if first < 0 or second >= 0:
+        raise ValueError(f"gold span {gold_id} exact text must occur exactly once")
+    return first, first + len(needle)
+
+
+def _load_gold_rows(
+    gold: Path | None,
+    paths: Sequence[str | Path],
+) -> tuple[Path | None, list[dict[str, Any]]]:
+    """Load v1 gold rows, including the shipped text-only schema."""
+    source = gold
+    if source is None:
+        parents = {Path(path).expanduser().resolve().parent for path in paths}
+        candidates = [parent / "gold.jsonl" for parent in sorted(parents, key=str)]
+        source = next((candidate for candidate in candidates if candidate.exists()), None)
+    if source is None:
+        return None, []
+    if not source.exists():
+        raise ValueError(f"gold manifest not found: {source}")
+    rows: list[dict[str, Any]] = []
+    input_documents = [Path(path).expanduser().resolve() for path in paths]
+    document_text = {
+        document: document.read_text(encoding="utf-8") for document in input_documents
+    }
+    ordinals: Counter[tuple[str, str, str]] = Counter()
+    for index, line in enumerate(source.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        raw_row = json.loads(line)
+        if not isinstance(raw_row, dict):
+            raise ValueError(f"gold manifest line {index} must be an object")
+        if set(raw_row) == {"version"}:
+            continue
+        row_path = raw_row.get("path")
+        if row_path is not None and (not isinstance(row_path, str) or not row_path):
+            raise ValueError(f"gold manifest line {index} has invalid path")
+        if isinstance(row_path, str):
+            matches = [
+                document
+                for document in input_documents
+                if _gold_row_path_matches(row_path, document, source)
+            ]
+        else:
+            row_text = raw_row.get("text")
+            if not isinstance(row_text, str) or not row_text:
+                raise ValueError(f"gold manifest line {index} needs path or text")
+            matches = [document for document, text in document_text.items() if row_text in text]
+        unattached_reason: str | None = None
+        if len(matches) != 1:
+            if isinstance(row_path, str):
+                raise ValueError(f"gold manifest line {index} path does not identify one input: {row_path}")
+            unattached_reason = "no_unique_document"
+        kind = raw_row.get("kind")
+        if kind is None:
+            kind = "control" if bool(raw_row.get("control", False)) else "seeded"
+        if kind not in {"seeded", "control"}:
+            raise ValueError(f"gold manifest line {index} kind must be seeded or control")
+        control = kind == "control"
+        rule_id = raw_row.get("rule_id")
+        if rule_id is not None and (not isinstance(rule_id, str) or not rule_id):
+            raise ValueError(f"gold manifest line {index} has invalid rule_id")
+        if not control and not isinstance(rule_id, str):
+            raise ValueError(f"gold manifest line {index} needs rule_id")
+        document = matches[0] if matches else None
+        identity = str(rule_id) if rule_id is not None else kind
+        key = (identity, str(raw_row.get("text", "")), str(raw_row.get("defect_span", "")))
+        ordinals[key] += 1
+        gold_id = raw_row.get("gold_id")
+        if not isinstance(gold_id, str) or not gold_id:
+            gold_id = f"{identity}#{ordinals[key]}"
+        if document is None:
+            start, end = 0, 0
+        else:
+            try:
+                start, end = _gold_range(raw_row, document_text[document], gold_id=gold_id)
+            except ValueError:
+                if isinstance(row_path, str):
+                    raise
+                document = None
+                start, end = 0, 0
+                unattached_reason = "span_not_unique"
+        row = {
+            "gold_id": gold_id,
+            "path": str(document) if document is not None else "",
+            "start": start,
+            "end": end,
+            "rule_id": rule_id,
+            "kind": kind,
+            "control": control,
+        }
+        if unattached_reason is not None:
+            row["unattached_reason"] = unattached_reason
+        rows.append(row)
+    return source, rows
+
+
+def _gold_rows_for_unit(
+    gold_rows: Sequence[dict[str, Any]],
+    path: str,
+    source_range: Sequence[int],
+    rule_id: str,
+) -> list[dict[str, Any]]:
+    if len(source_range) != 2:
+        return []
+    start, end = int(source_range[0]), int(source_range[1])
+    if end <= start:
+        return []
+    return [
+        row
+        for row in gold_rows
+        if _gold_path_key(row["path"]) == _gold_path_key(path)
+        and int(row["start"]) < end
+        and start < int(row["end"])
+        and (row.get("rule_id") is None or str(row.get("rule_id")) == rule_id)
+    ]
+
+
+def _gold_for_unit(
+    gold_rows: Sequence[dict[str, Any]],
+    path: str,
+    source_range: Sequence[int],
+    rule_id: str,
+) -> tuple[str | None, bool]:
+    """Return the first overlapping gold row for legacy callers."""
+    matches = _gold_rows_for_unit(gold_rows, path, source_range, rule_id)
+    if not matches:
+        return None, False
+    return str(matches[0]["gold_id"]), bool(matches[0].get("control"))
 
 
 def _unit_from_dict(item: dict[str, Any], documents: dict[str, dict[str, Any]]) -> Any:
@@ -262,6 +450,14 @@ def _unit_from_dict(item: dict[str, Any], documents: dict[str, dict[str, Any]]) 
 
 def _passage_id(document: Document, doc_range: tuple[int, int]) -> str:
     return f"{document.path}:{doc_range[0]}:{doc_range[1]}"
+
+
+def _next_ordinal(counter: Counter[tuple[str, str, str]], kind: str, rule_id: str, text: str) -> int:
+    key = (kind, rule_id, text)
+    ordinal = counter[key]
+    counter[key] += 1
+    return ordinal
+
 
 
 def _document_range_for_local(
@@ -341,7 +537,17 @@ def _neighbor_context(document: Document, block: Any) -> str:
     return "\n\n".join(neighbors)
 
 
-def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: int, rule_id: str, pack: Pack) -> Any:
+def _unit_from_sentence(
+    document: Document,
+    block: Any,
+    sentence: Any,
+    index: int,
+    rule_id: str,
+    pack: Pack,
+    ordinal_counter: Counter[tuple[str, str, str]] | None = None,
+) -> Any:
+    if ordinal_counter is None:
+        ordinal_counter = Counter()
     start = block.text.find(sentence.text, index)
     if start < 0:
         start = index
@@ -353,6 +559,7 @@ def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: in
         doc_range = (block.doc_range[0] + start, block.doc_range[0] + end)
     raw_text, raw_projection = _raw_unit_projection(document, doc_range)
     unit = SpanCandidate(
+        ordinal=_next_ordinal(ordinal_counter, "SPAN_CANDIDATE", rule_id, raw_text),
         rule_id=rule_id,
         path=document.path,
         text=raw_text,
@@ -371,7 +578,15 @@ def _unit_from_sentence(document: Document, block: Any, sentence: Any, index: in
     return unit
 
 
-def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> list[Any]:
+def _table_units(
+    document: Document,
+    block: Any,
+    rule_id: str,
+    pack: Pack,
+    ordinal_counter: Counter[tuple[str, str, str]] | None = None,
+) -> list[Any]:
+    if ordinal_counter is None:
+        ordinal_counter = Counter()
     raw = document.raw
     raw_bytes = raw.encode("utf-8")
     cursor = 0
@@ -421,6 +636,7 @@ def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> li
             doc_range = (selected[0].proj_start, selected[-1].proj_end)
             projection = _identity_projection(value, start_byte, raw_bytes)
             unit = SpanCandidate(
+                ordinal=_next_ordinal(ordinal_counter, "SPAN_CANDIDATE", rule_id, value),
                 rule_id=rule_id,
                 path=document.path,
                 text=value,
@@ -440,7 +656,15 @@ def _table_units(document: Document, block: Any, rule_id: str, pack: Pack) -> li
     return units
 
 
-def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -> list[Any]:
+def _unit_from_block(
+    document: Document,
+    block: Any,
+    rule_id: str,
+    pack: Pack,
+    ordinal_counter: Counter[tuple[str, str, str]] | None = None,
+) -> list[Any]:
+    if ordinal_counter is None:
+        ordinal_counter = Counter()
     # Sentence units preserve exact evidence coordinates while retaining one unit
     # for a paragraph with no sentence segmentation (tables and unusual Markdown).
     if block.kind not in {BlockKind.PARAGRAPH, BlockKind.QUOTE, BlockKind.LIST_ITEM, BlockKind.TABLE, BlockKind.HEADING}:
@@ -449,10 +673,11 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
         return []
     sentences = list(block.sentences)
     if block.kind is BlockKind.TABLE:
-        return _table_units(document, block, rule_id, pack)
+        return _table_units(document, block, rule_id, pack, ordinal_counter)
     if not sentences:
         raw_text, raw_projection = _raw_unit_projection(document, block.doc_range)
         unit = SpanCandidate(
+            ordinal=_next_ordinal(ordinal_counter, "SPAN_CANDIDATE", rule_id, raw_text),
             rule_id=rule_id,
             path=document.path,
             text=raw_text,
@@ -472,9 +697,10 @@ def _unit_from_block(document: Document, block: Any, rule_id: str, pack: Pack) -
     units: list[Any] = []
     cursor = 0
     for sentence in sentences:
-        units.append(_unit_from_sentence(document, block, sentence, cursor, rule_id, pack))
+        units.append(_unit_from_sentence(document, block, sentence, cursor, rule_id, pack, ordinal_counter))
         cursor = max(cursor, block.text.find(sentence.text, cursor) + len(sentence.text))
     return units
+
 
 
 _NORMATIVE_START = re.compile(
@@ -652,10 +878,12 @@ def prepare(
     categories: Sequence[str] = (),
     max_calls: int = 300,
     yes: bool = False,
+    gold: Path | None = None,
 ) -> dict[str, Any]:
     """Run deterministic linting and emit compact, model-ready request artifacts."""
     if max_calls < 0:
         raise ValueError("max_calls must be non-negative")
+    gold_source, gold_rows = _load_gold_rows(gold, paths)
     out.mkdir(parents=True, exist_ok=True)
     context = load_run_context(
         tuple(str(path) for path in paths),
@@ -678,6 +906,7 @@ def prepare(
     all_units: list[dict[str, Any]] = []
     all_prompts: list[dict[str, Any]] = []
     document_data: dict[str, dict[str, Any]] = {}
+    gold_attachment_counts: Counter[str] = Counter()
     pack_stats: dict[str, dict[str, Any]] = defaultdict(
         lambda: {"units": 0, "calls": 0, "passages": set()}
     )
@@ -712,7 +941,6 @@ def prepare(
         raw = path.read_text(encoding="utf-8")
         document = parse(str(path), raw)
         judgement_text, judgement_projection = project(raw)
-        document._judgement_text = judgement_text  # type: ignore[attr-defined]
         document._judgement_projection = judgement_projection  # type: ignore[attr-defined]
         document_ref = _safe_name(path, root)
         document_data[document_ref] = {
@@ -721,6 +949,7 @@ def prepare(
             "projected_text": judgement_text,
             "source_sha256": document.source_sha256,
             "projection": _projection_dict(judgement_projection),
+            "gold_spans": [row for row in gold_rows if _gold_path_key(row["path"]) == _gold_path_key(path)],
         }
         score = score_by_path.get(str(path))
         if score is not None:
@@ -728,6 +957,7 @@ def prepare(
                 json.dumps(score.model_dump(mode="json"), ensure_ascii=False, indent=2), encoding="utf-8"
             )
         doc_units: list[dict[str, Any]] = []
+        ordinal_counter: Counter[tuple[str, str, str]] = Counter()
         seen_unit_ids: set[str] = set()
         doc_calls: list[dict[str, Any]] = []
         for pack in selected_packs:
@@ -738,6 +968,7 @@ def prepare(
                         document, (0, len(judgement_text))
                     )
                     unit = PassageProbe(
+                        ordinal=_next_ordinal(ordinal_counter, "PASSAGE_PROBE", rule_id, raw_probe_text),
                         rule_id=rule_id,
                         path=str(path),
                         text=raw_probe_text,
@@ -757,7 +988,7 @@ def prepare(
             else:
                 for rule_id in pack.rules:
                     for block in document.blocks:
-                        candidates.extend(_unit_from_block(document, block, rule_id, pack))
+                        candidates.extend(_unit_from_block(document, block, rule_id, pack, ordinal_counter))
 
             admissible: list[dict[str, Any]] = []
             for unit in candidates:
@@ -778,11 +1009,29 @@ def prepare(
                     if not unit.text.strip() or "\x00" in unit.text or source_text != unit.text:
                         raise AssertionError(f"eligible span has invalid source text: {unit.unit_id}")
                 unit.status = "not_run" if admission == "DROP" else ""
-                item = _unit_dict(
+                source_item = _unit_dict(
                     unit,
                     document_ref=document_ref,
                     passage_id=str(getattr(unit, "passage_id", _passage_id(document, unit.doc_range))),
                 )
+                gold_matches = _gold_rows_for_unit(
+                    gold_rows, str(path), source_item["source_range"], str(unit.rule_id)
+                )
+                gold_ids = [str(row["gold_id"]) for row in gold_matches]
+                for gold_id in gold_ids:
+                    gold_attachment_counts[gold_id] += 1
+                item = _unit_dict(
+                    unit,
+                    document_ref=document_ref,
+                    passage_id=str(getattr(unit, "passage_id", _passage_id(document, unit.doc_range))),
+                    gold_ids=gold_ids,
+                    gold_control=any(bool(row.get("control")) for row in gold_matches),
+                )
+                if gold_ids:
+                    kinds = {str(row.get("kind", "seeded")) for row in gold_matches}
+                    item["gold_kind"] = next(iter(kinds)) if len(kinds) == 1 else "mixed"
+                    if len(kinds) > 1:
+                        item["gold_kinds"] = sorted(kinds)
                 item["document"] = str(path)
                 item["pack_hash"] = pack_id(pack)
                 doc_units.append(item)
@@ -874,6 +1123,17 @@ def prepare(
         "pack_hashes": sorted(set(all_pack_hashes)),
         "rubric_revision": spine_revision,
         "instrument_id": per_doc[0]["instrument_id"] if len({doc["instrument_id"] for doc in per_doc}) == 1 and per_doc else None,
+        "gold": {
+            "path": str(gold_source) if gold_source is not None else None,
+            "spans": gold_rows,
+            "attachment_counts": dict(gold_attachment_counts),
+            "multi_unit_attachments": sum(count > 1 for count in gold_attachment_counts.values()),
+            "unattached": [
+                str(row["gold_id"])
+                for row in gold_rows
+                if not gold_attachment_counts.get(str(row["gold_id"]), 0)
+            ],
+        },
         "counts": {
             "documents": len(per_doc),
             "units": len(all_units),
@@ -1067,9 +1327,196 @@ def _evidence_offset_mismatches(unit: dict[str, Any], output: dict[str, Any]) ->
             if text[start:end] != quote:
                 mismatches += 1
     return mismatches
+def _salvage_unique_quotes(unit: dict[str, Any], output: dict[str, Any]) -> None:
+    """Repair offsets only for unique quotes located in the unit."""
+    text = str(unit.get("model_text", unit.get("text", "")))
+    for evidence in output.get("evidence") or ():
+        if evidence.get("source") != "unit":
+            continue
+        quote = evidence.get("quote")
+        if not isinstance(quote, str) or not quote:
+            continue
+        first = text.find(quote)
+        second = text.find(quote, first + 1) if first >= 0 else -1
+        if first >= 0 and second < 0:
+            evidence["start"] = first
+            evidence["end"] = first + len(quote)
 
 
-def finish(*, out: Path, responses: Path) -> dict[str, Any]:
+def _unit_gold_ids(unit: dict[str, Any]) -> tuple[str, ...]:
+    values = unit.get("gold_ids")
+    if isinstance(values, (list, tuple)):
+        return tuple(str(value) for value in values if isinstance(value, str) and value)
+    value = unit.get("gold_id")
+    return (value,) if isinstance(value, str) and value else ()
+
+
+def _evidence_document_range(
+    unit: dict[str, Any], evidence: dict[str, Any]
+) -> tuple[int, int] | None:
+    if evidence.get("source") != "unit":
+        return None
+    start, end = evidence.get("start"), evidence.get("end")
+    if not isinstance(start, int) or not isinstance(end, int) or start < 0 or end < start:
+        return None
+    text = str(unit.get("model_text", unit.get("text", "")))
+    if end > len(text):
+        return None
+    source_range = unit.get("source_range")
+    if isinstance(source_range, (list, tuple)) and len(source_range) == 2 and all(
+        isinstance(value, int) for value in source_range
+    ):
+        base = int(source_range[0])
+        return base + len(text[:start].encode("utf-8")), base + len(text[:end].encode("utf-8"))
+    doc_start, doc_end = evidence.get("doc_start"), evidence.get("doc_end")
+    if isinstance(doc_start, int) and isinstance(doc_end, int):
+        return doc_start, doc_end
+    return start, end
+
+
+def _evidence_overlaps_gold(
+    unit: dict[str, Any], finding: dict[str, Any], gold_row: dict[str, Any]
+) -> bool:
+    start, end = gold_row.get("start"), gold_row.get("end")
+    if not isinstance(start, int) or not isinstance(end, int) or end <= start:
+        return False
+    return any(
+        (located := _evidence_document_range(unit, evidence)) is not None
+        and located[0] < end
+        and start < located[1]
+        for evidence in finding.get("evidence") or ()
+        if isinstance(evidence, dict)
+    )
+
+
+def _gold_recall(
+    gold_rows: Sequence[dict[str, Any]],
+    units: dict[str, dict[str, Any]],
+    findings: Sequence[dict[str, Any]],
+) -> tuple[dict[str, Any], dict[str, int]]:
+    seeded = [row for row in gold_rows if row.get("kind", "seeded") == "seeded" and not row.get("control")]
+    controls = [row for row in gold_rows if row.get("kind") == "control" or row.get("control")]
+    seeded_by_id = {str(row["gold_id"]): row for row in seeded}
+    control_ids = {str(row["gold_id"]) for row in controls}
+    confirmed_seeded: set[str] = set()
+    confirmed_controls: set[str] = set()
+    for finding in findings:
+        if finding.get("outcome") != "CONFIRM":
+            continue
+        unit = units.get(str(finding.get("unit_id")), {})
+        for gold_id in _unit_gold_ids(unit):
+            seeded_row = seeded_by_id.get(gold_id)
+            if seeded_row is not None and (
+                seeded_row.get("rule_id") is None or str(finding.get("rule_id")) == str(seeded_row.get("rule_id"))
+            ) and _evidence_overlaps_gold(unit, finding, seeded_row):
+                confirmed_seeded.add(gold_id)
+            if gold_id in control_ids:
+                confirmed_controls.add(gold_id)
+    per_rule: dict[str, float | None] = {}
+    for rule_id in sorted({str(row.get("rule_id")) for row in seeded if row.get("rule_id") is not None}):
+        rows = [row for row in seeded if str(row.get("rule_id")) == rule_id]
+        confirmed = sum(str(row["gold_id"]) in confirmed_seeded for row in rows)
+        per_rule[rule_id] = confirmed / len(rows) if rows else None
+    seeded_total = len(seeded)
+    recall: dict[str, Any] = {
+        "overall": len(confirmed_seeded) / seeded_total if seeded_total else None,
+        "per_rule": per_rule,
+    }
+    attachment_counts = Counter(
+        gold_id
+        for unit in units.values()
+        for gold_id in _unit_gold_ids(unit)
+    )
+    multi_unit = sum(count > 1 for count in attachment_counts.values())
+    if multi_unit:
+        recall["multi_unit_attachments"] = multi_unit
+    return recall, {"count": len(confirmed_controls), "total": len(controls)}
+
+
+# Row verdicts. Summary blocks may carry diagnostic subset counters such as
+# `FP_fragment_units` (a subset of FP, not extra adjudications); those keys are
+# deliberately absent so they never enter a denominator.
+_ADJUDICATION_LABELS: dict[str, str] = {
+    "TP": "TP",
+    "B": "B",
+    "BORDERLINE": "B",
+    "FP": "FP",
+    "FP-PRESERVE-MISS": "FP",
+    "FP_PRESERVE_MISS": "FP",
+    "FP-FRAGMENT-UNIT": "FP",
+    "FP_FRAGMENT_UNIT": "FP",
+}
+
+
+def _adjudication_rows(value: Any) -> list[str]:
+    """Collect per-confirm verdict labels; summary count blocks are ignored."""
+    labels: list[str] = []
+    if isinstance(value, dict):
+        verdict = value.get("verdict", value.get("adjudication"))
+        if isinstance(verdict, str):
+            labels.append(verdict.upper())
+        for child in value.values():
+            labels.extend(_adjudication_rows(child))
+    elif isinstance(value, list):
+        for child in value:
+            labels.extend(_adjudication_rows(child))
+    return labels
+
+
+def _adjudication_summary(value: Any) -> Counter[str]:
+    """Fallback: the first `adjudication` count block found, when no rows exist."""
+    if isinstance(value, dict):
+        nested = value.get("adjudication")
+        if isinstance(nested, dict):
+            counts: Counter[str] = Counter()
+            for label, count in nested.items():
+                if isinstance(count, (int, float)) and not isinstance(count, bool):
+                    counts[str(label).upper()] += int(count)
+            return counts
+        for child in value.values():
+            found = _adjudication_summary(child)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found = _adjudication_summary(child)
+            if found:
+                return found
+    return Counter()
+
+
+def _adjudication_precision(path: Path | None) -> tuple[float | None, float | None]:
+    """Return strict/lenient precision when an adjudication file is supplied.
+
+    Each adjudicated confirm is counted once, from its row; summary blocks are
+    used only when a file carries no rows. Labels outside the explicit map
+    (diagnostic subsets such as FP_FRAGMENT_UNITS) never enter the denominator.
+    """
+    if path is None:
+        return None, None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    counts: Counter[str] = Counter()
+    rows = _adjudication_rows(payload)
+    if rows:
+        for label in rows:
+            mapped = _ADJUDICATION_LABELS.get(label)
+            if mapped:
+                counts[mapped] += 1
+    else:
+        for label, count in _adjudication_summary(payload).items():
+            mapped = _ADJUDICATION_LABELS.get(label)
+            if mapped:
+                counts[mapped] += count
+    tp = counts["TP"]
+    fp = counts["FP"]
+    borderline = counts["B"]
+    denominator = tp + fp + borderline
+    if not denominator:
+        return None, None
+    return tp / denominator, (tp + borderline) / denominator
+
+
+def finish(*, out: Path, responses: Path, offset_salvage: str | None = None, adjudication: Path | None = None) -> dict[str, Any]:
     """Validate response JSONL, adjudicate records, and write reports."""
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     unit_items = _read_jsonl(out / "units.jsonl")
@@ -1087,6 +1534,8 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
     records: list[FindingRecord] = []
     failed: list[dict[str, Any]] = []
     evidence_offset_mismatch = 0
+    model_confirms = 0
+    evidence_gate_discards = 0
     unit_objects = {unit_id: _unit_from_dict(item, documents) for unit_id, item in units.items()}
 
     for item in unit_items:
@@ -1177,6 +1626,10 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
             output["unit_id"] = unit_id
             output["rule_id"] = str(unit_item["rule_id"])
             output["kind"] = unit.kind
+            if offset_salvage == "unique-quote":
+                _salvage_unique_quotes(unit_item, output)
+            if str(output.get("verdict", "")).upper() == "CONFIRM":
+                model_confirms += 1
             evidence_offset_mismatch += _evidence_offset_mismatches(unit_item, output)
             cache_keys = call.get("cache_keys", [""])
             index = call.get("unit_ids", []).index(unit_id)
@@ -1187,7 +1640,14 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
                 instrument_id=str(call.get("instrument_id", "")),
                 cache_key=str(cache_keys[index] if index < len(cache_keys) else ""),
             )
-            records.extend(result if isinstance(result, tuple) else (result,))
+            result_records = result if isinstance(result, tuple) else (result,)
+            if str(output.get("verdict", "")).upper() == "CONFIRM" and any(
+                record.outcome == "ABSTAIN"
+                and record.abstain_reason == "no_exact_evidence"
+                for record in result_records
+            ):
+                evidence_gate_discards += 1
+            records.extend(result_records)
 
     _write_jsonl(out / "failed.jsonl", failed)
     finding_items = _records_json(records)
@@ -1241,12 +1701,23 @@ def finish(*, out: Path, responses: Path) -> dict[str, Any]:
                 "preserve_reasons": dict(Counter(record.preservation_reason or "unknown" for record in doc_records if record.outcome == "PRESERVE")),
             }
         )
+    gold_config = manifest.get("gold", {})
+    gold_rows = gold_config.get("spans", []) if isinstance(gold_config, dict) else []
+    gold_recall, control_false_confirms = _gold_recall(gold_rows, units, finding_items)
+    gold_attachment = gold_config.get("attachment_counts", {}) if isinstance(gold_config, dict) else {}
+    strict_precision, lenient_precision = _adjudication_precision(adjudication)
     report = {
         "version": 1,
+        **({"strict_precision": strict_precision, "lenient_precision": lenient_precision} if adjudication is not None else {}),
         "documents": report_documents,
         "coverage": coverage_dict,
         "preserve_rates": preserve_rates(records),
         "failed": failed,
+        "gold_recall": gold_recall,
+        "control_false_confirms": control_false_confirms,
+        "gold_multi_unit_attachments": sum(int(count) > 1 for count in gold_attachment.values()),
+        "gold_unattached": list(gold_config.get("unattached", [])) if isinstance(gold_config, dict) else [],
+        "evidence_gate_discards": evidence_gate_discards,
         "evidence_offset_mismatch": evidence_offset_mismatch,
         "counts": {"findings": len(finding_items), "failed_calls": len(failed), "evidence_offset_mismatch": evidence_offset_mismatch},
     }

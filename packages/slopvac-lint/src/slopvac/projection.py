@@ -113,6 +113,55 @@ class ProjectionMap:
         raw_end = selected[-1].raw_end
         return self._raw[raw_start:raw_end]
 
+    @property
+    def raw(self) -> bytes:
+        """Return the original UTF-8 source bytes retained by this map."""
+
+        return self._raw
+
+    def source_spans(self, start_cp: int = 0, end_cp: int | None = None) -> tuple[tuple[int, int], ...]:
+        """Return ordered, merged non-empty source byte spans for a projection slice."""
+
+        if end_cp is None:
+            end_cp = self._length
+        if start_cp < 0 or end_cp < start_cp or end_cp > self._length:
+            raise ValueError("invalid projected slice")
+        spans = [
+            (segment.raw_start, segment.raw_end)
+            for segment in self.segments
+            if segment.proj_end > start_cp
+            and segment.proj_start < end_cp
+            and segment.raw_start < segment.raw_end
+        ]
+        merged: list[tuple[int, int]] = []
+        for span_start, span_end in spans:
+            if merged and span_start <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], span_end))
+            else:
+                merged.append((span_start, span_end))
+        return tuple(merged)
+
+    def submap(self, start_cp: int, end_cp: int) -> ProjectionMap:
+        """Return a projection whose coordinates begin at ``start_cp``."""
+
+        if start_cp < 0 or end_cp < start_cp or end_cp > self._length:
+            raise ValueError("invalid projected slice")
+        segments: list[Segment] = []
+        for segment in self.segments:
+            if segment.proj_end <= start_cp or segment.proj_start >= end_cp:
+                continue
+            clipped_start = max(segment.proj_start, start_cp)
+            clipped_end = min(segment.proj_end, end_cp)
+            segments.append(
+                Segment(
+                    clipped_start - start_cp,
+                    clipped_end - start_cp,
+                    segment.raw_start,
+                    segment.raw_end,
+                )
+            )
+        return ProjectionMap(tuple(segments), self._raw)
+
 
 _LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n|$)")
 _CODE_SPAN_RE = re.compile(r"(?P<ticks>`+)(?P<body>[^`\r\n]*?)(?P=ticks)")

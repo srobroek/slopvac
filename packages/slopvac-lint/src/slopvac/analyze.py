@@ -225,6 +225,27 @@ NOTE_MARKER = re.compile(
 )
 
 
+def _identity_id(
+    path: str,
+    kind: str,
+    text: str,
+    occurrence_index: int,
+    enclosing_block_kind: str = "",
+) -> str:
+    """Return a stable identity based on the segment's normalized content."""
+
+    payload = "\0".join(
+        (
+            path,
+            kind,
+            unicodedata.normalize("NFC", text),
+            str(occurrence_index),
+            enclosing_block_kind,
+        )
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 class BlockKind(str, Enum):
     PARAGRAPH = "paragraph"
     HEADING = "heading"
@@ -242,7 +263,25 @@ class Sentence:
     column: int
     word_count: int
     text_type: TextType
+    start: int = 0
+    end: int = 0
+    source_spans: tuple[tuple[int, int], ...] = ()
+    projection: ProjectionMap | None = None
+    id: str = ""
 
+    @property
+    def source_range(self) -> tuple[int, int]:
+        if not self.source_spans:
+            return (0, 0)
+        return (self.source_spans[0][0], self.source_spans[-1][1])
+
+    @property
+    def unit_id(self) -> str:
+        return self.id
+
+    @property
+    def span_id(self) -> str:
+        return self.id
 
 @dataclass
 class Unit:
@@ -259,14 +298,32 @@ class Unit:
     region_class: str
     source_sha256: str
     unit_id: str = ""
+    ordinal: int = 0
+
+    @property
+    def id(self) -> str:
+        return self.unit_id
+
+    @property
+    def source_spans(self) -> tuple[tuple[int, int], ...]:
+        return self.projection.source_spans()
+
+    @property
+    def source_range(self) -> tuple[int, int]:
+        spans = self.source_spans
+        return (spans[0][0], spans[-1][1]) if spans else (0, 0)
 
     def __post_init__(self) -> None:
-        start, end = self.range
         if not self.unit_id:
-            payload = "\0".join(
-                (self.kind, self.rule_id, self.path, self.source_sha256, str(start), str(end))
-            ).encode("utf-8")
-            self.unit_id = hashlib.sha256(payload).hexdigest()[:16]
+            # A source segment can feed more than one judgement rule. Keep the
+            # shared segment identity inputs while adding the rule discriminator
+            # required for result rows to remain one-to-one with requests.
+            self.unit_id = _identity_id(
+                self.path,
+                f"{self.kind}:{self.rule_id}",
+                self.text,
+                self.ordinal,
+            )
 
 
 class SpanCandidate(Unit):
@@ -300,6 +357,8 @@ class Block:
     origin: str = "authored"
     region_class: str = "prose"
     source_sha256: str = ""
+    source_spans: tuple[tuple[int, int], ...] = ()
+    id: str = ""
     unit_id: str = ""
     # Compatibility for callers that display line-aligned prose. Position
     # resolution itself is projection-backed.
@@ -307,6 +366,12 @@ class Block:
     raw_bytes: bytes = b""
     under_examples: bool = False
     heading: str = ""
+
+    @property
+    def source_range(self) -> tuple[int, int]:
+        if not self.source_spans:
+            return (0, 0)
+        return (self.source_spans[0][0], self.source_spans[-1][1])
 
     def position(self, offset: int) -> tuple[int, int]:
         """Map a projected offset to the source line and column."""
@@ -494,6 +559,13 @@ def _block_projected_base(document_projection: ProjectionMap, block_projection: 
     return document_projection.projected_length
 
 
+def _is_table_row(line: str) -> bool:
+    """Return whether a source line can continue a parsed pipe table."""
+
+    stripped = line.strip()
+    return bool(stripped and "|" in stripped)
+
+
 def _finalize_document(document: Document) -> Document:
     """Attach maps, origins, stable identities, and document ranges."""
 
@@ -504,6 +576,8 @@ def _finalize_document(document: Document) -> Document:
 
     examples_heading = False
     projected_cursor = 0
+    block_occurrences: dict[tuple[str, str], int] = {}
+    sentence_occurrences: dict[str, int] = {}
     for block in document.blocks:
         if block.kind is BlockKind.HEADING:
             heading_lines = document.raw_lines[block.lines[0] - 1 : block.lines[1]]
@@ -514,9 +588,15 @@ def _finalize_document(document: Document) -> Document:
             BlockKind.FRONT_MATTER,
             BlockKind.CODE,
         }
-        block.projection = _align_block_text(
-            block.text, document.raw, block.lines[0], block.lines[1]
-        )
+        last = block.lines[1]
+        if block.kind is BlockKind.TABLE:
+            while last < len(document.raw_lines) and _is_table_row(document.raw_lines[last]):
+                last += 1
+            last = max(block.lines[0], last)
+        if block.projection is None:
+            block.projection = _align_block_text(
+                block.text, document.raw, block.lines[0], last
+            )
         block_base = projected_text.find(block.text, projected_cursor)
         if block_base < 0:
             block_base = _block_projected_base(document.projection, block.projection)
@@ -528,17 +608,48 @@ def _finalize_document(document: Document) -> Document:
         block.region_class = classify_region(block)
         block.source_sha256 = document.source_sha256
         block.raw_bytes = raw_bytes
-        payload = "\0".join(
-            (
-                block.kind.value,
-                "",
+        block.source_spans = block.projection.source_spans()
+        block_key = (block.kind.value, unicodedata.normalize("NFC", block.text))
+        block_occurrence = block_occurrences.get(block_key, 0)
+        block_occurrences[block_key] = block_occurrence + 1
+        block.id = _identity_id(
+            document.path,
+            block.kind.value,
+            block.text,
+            block_occurrence,
+            block.kind.value,
+        )
+        block.unit_id = block.id
+        sentence_cursor = 0
+        for sentence in block.sentences:
+            start = sentence.start
+            end = sentence.end
+            if start == 0 and end == 0:
+                start = block.text.find(sentence.text, sentence_cursor)
+                if start < 0:
+                    continue
+                end = start + len(sentence.text)
+            elif start < 0 or end <= start or end > len(block.text):
+                start = block.text.find(sentence.text, sentence_cursor)
+                if start < 0:
+                    continue
+                end = start + len(sentence.text)
+            sentence_cursor = end
+            sentence.start = start
+            sentence.end = end
+            sentence.projection = block.projection.submap(start, end)
+            sentence.source_spans = sentence.projection.source_spans()
+            sentence.line, sentence.column = block.position(start)
+            sentence_text = unicodedata.normalize("NFC", sentence.text)
+            sentence_occurrence = sentence_occurrences.get(sentence_text, 0)
+            sentence_occurrences[sentence_text] = sentence_occurrence + 1
+            sentence.id = _identity_id(
                 document.path,
-                document.source_sha256,
-                str(block.doc_range[0]),
-                str(block.doc_range[1]),
+                "sentence",
+                sentence.text,
+                sentence_occurrence,
+                block.kind.value,
             )
-        ).encode("utf-8")
-        block.unit_id = hashlib.sha256(payload).hexdigest()[:16]
     return document
 
 
@@ -841,6 +952,8 @@ def split_sentences(text: str, start_line: int) -> list[Sentence]:
                     column=1,
                     word_count=count_words(part),
                     text_type=classify_text_type(part),
+                    start=absolute_offset,
+                    end=absolute_offset + len(part),
                 )
             )
     return pieces
@@ -889,12 +1002,44 @@ def _inline_prose(token) -> str:
 
 
 class _HtmlTextExtractor(HTMLParser):
-    """Visible text of an HTML document, aligned to source lines."""
+    """Visible HTML text and the raw span for every visible character."""
 
-    def __init__(self, line_count: int) -> None:
-        super().__init__(convert_charrefs=True)
-        self.prose_lines = [""] * line_count
+    def __init__(
+        self,
+        line_count: int,
+        content: str,
+        raw: str,
+        raw_offset_cp: int = 0,
+    ) -> None:
+        super().__init__(convert_charrefs=False)
+        self.prose_lines = ["" for _ in range(line_count)]
+        self.text_spans: list[list[tuple[int, int]]] = [[] for _ in range(line_count)]
+        self._content_line_starts = _line_cp_starts(content)
+        self._raw = raw
+        self._raw_offset_cp = raw_offset_cp
         self._skip = 0
+        self._boundary = False
+
+    def _callback_position(self) -> tuple[int, int]:
+        line, column = self.getpos()
+        line_index = line - 1
+        local_start = self._content_line_starts[min(line_index, len(self._content_line_starts) - 1)] + column
+        return line_index, self._raw_offset_cp + local_start
+
+    def _append(self, line_index: int, char: str, raw_start: int, raw_end: int) -> None:
+        if not (0 <= line_index < len(self.prose_lines)):
+            return
+        previous = self.prose_lines[line_index]
+        if (
+            self._boundary
+            and previous
+            and not previous[-1].isspace()
+            and not char.isspace()
+        ):
+            self.prose_lines[line_index] += " "
+            self.text_spans[line_index].append((raw_start, raw_start))
+        self.prose_lines[line_index] += char
+        self.text_spans[line_index].append((raw_start, raw_end))
         self._boundary = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -913,33 +1058,61 @@ class _HtmlTextExtractor(HTMLParser):
     def handle_data(self, data: str) -> None:
         if self._skip or not data:
             return
-        line, _column = self.getpos()
-        for offset, part in enumerate(data.split("\n")):
-            index = line - 1 + offset
-            if 0 <= index < len(self.prose_lines):
-                previous = self.prose_lines[index]
-                if (
-                    self._boundary
-                    and previous
-                    and not previous[-1].isspace()
-                    and not part[:1].isspace()
-                ):
-                    part = " " + part
-                self.prose_lines[index] += part
+        line_index, raw_start = self._callback_position()
+        for offset, char in enumerate(data):
+            if char == "\n":
+                line_index += 1
+                continue
+            if char == "\r":
+                continue
+            self._append(line_index, char, raw_start + offset, raw_start + offset + 1)
         self._boundary = False
+
+    def _handle_entity(self, source: str) -> None:
+        if self._skip:
+            return
+        line_index, raw_start = self._callback_position()
+        match = _ENTITY.match(self._raw, raw_start)
+        raw_end = match.end() if match is not None else raw_start + len(source)
+        decoded = self._raw[raw_start:raw_end] if match is not None else source
+        for char in unescape(decoded):
+            self._append(line_index, char, raw_start, raw_end)
+        self._boundary = False
+
+    def handle_entityref(self, name: str) -> None:
+        self._handle_entity(f"&{name};")
+
+    def handle_charref(self, name: str) -> None:
+        self._handle_entity(f"&#{name};")
+
+
+def _html_line_projection(
+    extractor: _HtmlTextExtractor, line_index: int, raw: str
+) -> tuple[str, ProjectionMap]:
+    """Return one trimmed HTML line and its text-node-only source map."""
+
+    piece = extractor.prose_lines[line_index]
+    start = len(piece) - len(piece.lstrip())
+    end = len(piece.rstrip())
+    clean = piece[start:end]
+    offsets = _raw_cp_bytes(raw)
+    segments = tuple(
+        Segment(
+            index,
+            index + 1,
+            offsets[raw_start],
+            offsets[raw_end],
+        )
+        for index, (raw_start, raw_end) in enumerate(extractor.text_spans[line_index][start:end])
+    )
+    return clean, ProjectionMap(segments, raw.encode("utf-8"))
 
 
 _FENCE_START = re.compile(r"^\s{0,3}(?P<marker>(?P<char>`|~){3,})")
 
 
 def _html_fence_lines(content: str) -> set[int]:
-    """Return local lines occupied by Markdown fences embedded in HTML.
-
-    markdown-it deliberately hands a complete HTML block to the HTML renderer, so
-    a fenced example inside a ``<div>`` is otherwise indistinguishable from visible
-    text. Treating the fence and its body as code preserves the same non-prose
-    contract as a native Markdown fence.
-    """
+    """Return local lines occupied by Markdown fences embedded in HTML."""
     skipped: set[int] = set()
     opening: tuple[str, int, int] | None = None
     lines = content.splitlines()
@@ -960,31 +1133,59 @@ def _html_fence_lines(content: str) -> set[int]:
 
 
 def _project_html_block(
-    content: str, first: int, last: int, prose_lines: list[str]
-) -> tuple[str, list[tuple[int, int]], tuple[int, int] | None, list[tuple[int, int]]]:
-    """Extract visible HTML-block text while retaining source-line starts."""
+    content: str,
+    first: int,
+    last: int,
+    prose_lines: list[str],
+    raw: str,
+) -> tuple[
+    str,
+    list[tuple[int, int]],
+    tuple[int, int] | None,
+    list[tuple[int, int]],
+    ProjectionMap,
+]:
+    """Extract visible HTML text while retaining text-node source spans."""
     line_count = max(last - first + 1, 1)
-    extractor = _HtmlTextExtractor(line_count)
+    raw_offset_cp = _line_cp_starts(raw)[max(0, first - 1)]
+    extractor = _HtmlTextExtractor(line_count, content, raw, raw_offset_cp)
     extractor.feed(content)
     extractor.close()
     fence_lines = _html_fence_lines(content)
 
     pieces: list[str] = []
     line_starts: list[tuple[int, int]] = []
+    projection_segments: list[Segment] = []
     text_offset = 0
     visible_lines: list[int] = []
-    for local, piece in enumerate(extractor.prose_lines):
+    for local in range(len(extractor.prose_lines)):
         source_line = first + local
-        clean = "" if local in fence_lines else piece.strip()
+        clean, line_projection = _html_line_projection(extractor, local, raw)
+        if local in fence_lines:
+            clean = ""
+            line_projection = ProjectionMap((), raw.encode("utf-8"))
         if 0 < source_line <= len(prose_lines):
             prose_lines[source_line - 1] = clean
         if not clean:
             continue
         visible_lines.append(source_line)
         if pieces:
+            boundary = projection_segments[-1].raw_end if projection_segments else 0
+            projection_segments.append(
+                Segment(text_offset, text_offset + 1, boundary, boundary)
+            )
             text_offset += 1
         line_starts.append((text_offset, source_line))
         pieces.append(clean)
+        projection_segments.extend(
+            Segment(
+                segment.proj_start + text_offset,
+                segment.proj_end + text_offset,
+                segment.raw_start,
+                segment.raw_end,
+            )
+            for segment in line_projection.segments
+        )
         text_offset += len(clean)
 
     text = "".join(piece if index == 0 else " " + piece for index, piece in enumerate(pieces))
@@ -1000,9 +1201,13 @@ def _project_html_block(
                 start = line
             previous = line
         code_blocks.append((first + start, first + previous))
-    return text, line_starts, paragraph_lines, code_blocks
-
-
+    return (
+        text,
+        line_starts,
+        paragraph_lines,
+        code_blocks,
+        ProjectionMap(tuple(projection_segments), raw.encode("utf-8")),
+    )
 def _parse_html(path: str, raw: str) -> Document:
     """Project an HTML file onto line-aligned prose so native rules can run.
 
@@ -1012,10 +1217,16 @@ def _parse_html(path: str, raw: str) -> Document:
     stdlib `html.parser` and keeps `prose_lines` index-aligned with the source.
     """
     raw_lines = raw.split("\n")
-    extractor = _HtmlTextExtractor(len(raw_lines))
+    extractor = _HtmlTextExtractor(len(raw_lines), raw, raw)
     extractor.feed(raw)
     extractor.close()
-    prose_lines = [line.strip() for line in extractor.prose_lines]
+    html_lines: list[str] = []
+    html_projections: list[ProjectionMap] = []
+    for index in range(len(raw_lines)):
+        line, projection = _html_line_projection(extractor, index, raw)
+        html_lines.append(line)
+        html_projections.append(projection)
+    prose_lines = html_lines
     joined = HTML_COMMENT.sub(
         lambda m: re.sub(r"[^\n]", " ", m.group(0)), "\n".join(prose_lines)
     )
@@ -1026,7 +1237,12 @@ def _parse_html(path: str, raw: str) -> Document:
         if not text:
             continue
         number = index + 1
-        block = Block(kind=BlockKind.PARAGRAPH, lines=(number, number), text=text)
+        block = Block(
+            kind=BlockKind.PARAGRAPH,
+            lines=(number, number),
+            text=text,
+            projection=html_projections[index],
+        )
         block.sentences = split_sentences(text, number)
         blocks.append(block)
 
@@ -1093,6 +1309,7 @@ def parse(path: str, raw: str) -> Document:
         text: str,
         line_starts: list[tuple[int, int]],
         level: int = 0,
+        projection: ProjectionMap | None = None,
     ) -> None:
         block = Block(
             kind=kind,
@@ -1100,6 +1317,7 @@ def parse(path: str, raw: str) -> Document:
             text=text,
             level=level,
             line_starts=line_starts,
+            projection=projection,
         )
         block.sentences = split_sentences(text, first)
         blocks.append(block)
@@ -1111,8 +1329,8 @@ def parse(path: str, raw: str) -> Document:
         if token.type == "html_block" and token.map is not None:
             first = token.map[0] + 1 + offset
             last = token.map[1] + offset
-            text, line_starts, paragraph_lines, code_blocks = _project_html_block(
-                token.content, first, last, prose_lines
+            text, line_starts, paragraph_lines, code_blocks, html_projection = _project_html_block(
+                token.content, first, last, prose_lines, raw
             )
             if paragraph_lines is not None:
                 record(
@@ -1121,6 +1339,7 @@ def parse(path: str, raw: str) -> Document:
                     paragraph_lines[1],
                     text,
                     line_starts,
+                    projection=html_projection,
                 )
             for code_first, code_last in code_blocks:
                 blocks.append(Block(kind=BlockKind.CODE, lines=(code_first, code_last), text=""))

@@ -98,6 +98,55 @@ def test_span_calls_group_passages_and_rules(tmp_path: Path) -> None:
     assert [pair["unit_id"] for pair in payload["pairs"]] == prompts[0]["unit_ids"]
 
 
+def test_duplicate_sentence_units_keep_distinct_identity_and_ranges(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("Run it now. Then wait. Run it now.", encoding="utf-8")
+    duplicate_out = tmp_path / "duplicate-run"
+    prepare(config=CONFIG, out=duplicate_out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    duplicate_units = [
+        json.loads(line)
+        for line in (duplicate_out / "units.jsonl").read_text().splitlines()
+        if line
+    ]
+    matching = [unit for unit in duplicate_units if unit["text"] == "Run it now."]
+    rule_id = matching[0]["rule_id"]
+    matching = [unit for unit in matching if unit["rule_id"] == rule_id]
+    assert len(matching) == 2
+    assert len({unit["unit_id"] for unit in matching}) == 2
+    assert len({tuple(unit["doc_range"]) for unit in matching}) == 2
+    assert len({unit["unit_id"]: unit for unit in matching}) == 2
+
+    document.write_text("Run it now.", encoding="utf-8")
+    single_out = tmp_path / "single-run"
+    prepare(config=CONFIG, out=single_out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    single_units = [
+        json.loads(line)
+        for line in (single_out / "units.jsonl").read_text().splitlines()
+        if line
+    ]
+    single = next(unit for unit in single_units if unit["text"] == "Run it now." and unit["rule_id"] == rule_id)
+    # A single occurrence remains ordinal zero, so its identity is unchanged.
+    assert single["unit_id"] == matching[0]["unit_id"]
+
+
+
+def test_soft_break_duplicate_sentence_units_use_source_order_ordinals(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("Run it\nnow.\n\nRun it\nnow.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    units = [
+        json.loads(line)
+        for line in (out / "units.jsonl").read_text().splitlines()
+    ]
+    matching = [unit for unit in units if unit["text"] == "Run it\nnow."]
+    assert len(matching) >= 2
+    rule_id = matching[0]["rule_id"]
+    matching = [unit for unit in matching if unit["rule_id"] == rule_id]
+    by_range = sorted(matching, key=lambda unit: unit["doc_range"])
+    assert [unit["doc_range"] for unit in by_range] == [[0, 11], [12, 23]]
+    assert len({unit["unit_id"] for unit in by_range}) == 2
+
 def test_probe_units_have_rule_identity_and_finish_coverage(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
     document.write_text("A useful paragraph.", encoding="utf-8")
@@ -513,3 +562,55 @@ def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
         raw = store["text"].encode("utf-8")
         assert raw[unit["source_range"][0] : unit["source_range"][1]].decode("utf-8") == unit["text"]
     finish(out=out, responses=tmp_path / "responses.jsonl")
+
+
+def test_finish_precision_fields_require_adjudication_file(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("A useful paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="PROBE-4")
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text("", encoding="utf-8")
+    without = finish(out=out, responses=responses)
+    assert "strict_precision" not in without
+    assert "lenient_precision" not in without
+
+    adjudication = tmp_path / "adjudication.json"
+    adjudication.write_text(json.dumps([
+        {"verdict": "TP"},
+        {"verdict": "FP"},
+        {"verdict": "borderline"},
+    ]), encoding="utf-8")
+    with_file = finish(out=out, responses=responses, adjudication=adjudication)
+    assert with_file["strict_precision"] == pytest.approx(1 / 3)
+    assert with_file["lenient_precision"] == pytest.approx(2 / 3)
+
+    # A summary-only record (sibling shape): each label counted once, the
+    # diagnostic FP_fragment_units subset never enters the denominator, and a
+    # nested summary beside rows is not added on top of them.
+    summary = tmp_path / "summary.json"
+    summary.write_text(json.dumps({
+        "adjudication": {"TP": 5, "borderline": 8, "FP": 82, "FP_fragment_units": 5},
+    }), encoding="utf-8")
+    from_summary = finish(out=out, responses=responses, adjudication=summary)
+    assert from_summary["strict_precision"] == pytest.approx(5 / 95)
+    assert from_summary["lenient_precision"] == pytest.approx(13 / 95)
+
+    mixed = tmp_path / "mixed.json"
+    mixed.write_text(json.dumps({
+        "adjudication": {"TP": 15, "B": 16, "FP": 36},
+        "rows": [{"verdict": "TP"}, {"verdict": "FP-PRESERVE-MISS"}],
+    }), encoding="utf-8")
+    from_rows = finish(out=out, responses=responses, adjudication=mixed)
+    assert from_rows["strict_precision"] == pytest.approx(1 / 2)
+    assert from_rows["lenient_precision"] == pytest.approx(1 / 2)
+
+    # The shipped sibling record: 5 TP, 8 borderline, 77 FP and 5 FP-FRAGMENT-UNIT
+    # rows are 95 adjudications; the summary's FP_fragment_units subset is not added.
+    shipped = (
+        Path(__file__).parents[1]
+        / "docs" / "research" / "rubric-2026-09-15" / "evaluation" / "sibling-full-run-adjudication.json"
+    )
+    from_shipped = finish(out=out, responses=responses, adjudication=shipped)
+    assert from_shipped["strict_precision"] == pytest.approx(5 / 95)
+    assert from_shipped["lenient_precision"] == pytest.approx(13 / 95)
