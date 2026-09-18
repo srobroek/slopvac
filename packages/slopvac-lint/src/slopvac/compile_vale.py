@@ -54,10 +54,54 @@ from pathlib import Path
 
 import yaml
 
-from .config import ResolvedConfig, Severity
+from .config import Mode, ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType
 from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
 from .vale_probe import ValeUnavailable, probe_payloads, vale_version
+
+COMMENT_SAFE_KINDS = frozenset({RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION})
+SOURCE_LANGUAGE_BY_EXTENSION = {
+    ".py": "python", ".pyi": "python", ".pyw": "python",
+    ".js": "javascript", ".jsx": "javascript", ".mjs": "javascript", ".cjs": "javascript",
+    ".ts": "typescript", ".tsx": "typescript", ".rs": "rust", ".go": "go", ".java": "java",
+    ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp", ".cxx": "cpp",
+    ".hh": "cpp", ".hpp": "cpp", ".hxx": "cpp", ".cs": "csharp", ".rb": "ruby",
+    ".php": "php", ".swift": "swift", ".kt": "kotlin", ".kts": "kotlin", ".scala": "scala",
+    ".sh": "shell", ".bash": "shell", ".zsh": "shell", ".lua": "lua", ".pl": "perl",
+    ".pm": "perl", ".r": "r", ".ex": "elixir", ".exs": "elixir", ".hs": "haskell",
+    ".fs": "fsharp", ".fsx": "fsharp", ".jl": "julia", ".ps1": "powershell", ".psm1": "powershell",
+    ".proto": "proto", ".css": "css", ".scss": "scss", ".less": "less", ".clj": "clojure",
+    ".cljs": "clojure", ".dart": "dart",
+}
+SOURCE_FILENAMES = {"sconstruct": "python", "gemfile": "ruby", "rakefile": "ruby", "brewfile": "ruby"}
+SOURCE_FILE_SELECTORS = {
+    "sconstruct": "SConstruct", "gemfile": "Gemfile", "rakefile": "Rakefile", "brewfile": "Brewfile",
+}
+
+
+def canonical_source_language(path: Path | str) -> tuple[str, str]:
+    candidate = Path(path)
+    name = candidate.name.lower()
+    if name in SOURCE_FILENAMES:
+        return SOURCE_FILENAMES[name], name
+    extension = candidate.suffix.lower()
+    language = SOURCE_LANGUAGE_BY_EXTENSION.get(extension)
+    if language is None:
+        shown = extension or name or "<extensionless>"
+        supported = ", ".join(sorted(SOURCE_LANGUAGE_BY_EXTENSION))
+        raise ValueError(
+            f"unsupported source language for {shown!r}; supported extensions: {supported}"
+        )
+    return language, extension
+
+
+def source_scopes(mode: Mode, extension: str | None = None) -> tuple[str, str]:
+    if mode is not Mode.CODE_COMMENTS:
+        raise ValueError(f"comment scopes are unavailable for mode {mode.value!r}")
+    suffix = (extension or "").lstrip(".")
+    if not suffix:
+        raise ValueError("code-comments requires a source extension")
+    return (f"text.comment.line.{suffix}", f"text.comment.block.{suffix}")
 
 # Our scope vocabulary to Vale's. Vale has no document scope: a whole-document
 # rule is a `script` with `scope: raw`, which is the only extension point that
@@ -205,6 +249,10 @@ class CompileResult:
     # part of speech), so a finding has to be attributed back or it would carry a
     # rule id that `slopvac explain` cannot resolve.
     aliases: dict[str, str] = field(default_factory=dict)
+    mode: Mode = Mode.PROSE
+    language: str | None = None
+    extension: str | None = None
+    excluded_rules: list[str] = field(default_factory=list)
     # The Vale that validated the tree, as "3.21.0"; None for an unvalidated compile.
     # Part of the cache key, so a reader of the routing table can reproduce it.
     vale_version: str | None = None
@@ -690,12 +738,14 @@ def _companion_payload(rule: Rule, level: str) -> dict | None:
     return payload
 
 
-def _payload_for(rule: Rule, level: str) -> dict | None:
+def _payload_for(
+    rule: Rule, level: str, *, allow_native_scopes: bool = False
+) -> dict | None:
     """One Vale rule as a dict, or None when no extension point fits."""
     lexical = rule.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
-    if lexical and rule.scope is Scope.PARAGRAPH:
+    if not allow_native_scopes and lexical and rule.scope is Scope.PARAGRAPH:
         raise ValueError(PARAGRAPH_SCOPE_REASON)
-    if lexical and rule.scope is Scope.RAW:
+    if not allow_native_scopes and lexical and rule.scope is Scope.RAW:
         raise ValueError(RAW_SCOPE_REASON)
     scope = validate_scope(SCOPE_MAP.get(rule.scope, "text"))
     payload: dict[str, object]
@@ -792,6 +842,16 @@ def _payload_for(rule: Rule, level: str) -> dict | None:
     # the same idea, and both `existence` and `substitution` support it.
     if rule.allowlist and payload["extends"] in ("existence", "substitution"):
         payload["exceptions"] = list(rule.allowlist)
+    return payload
+
+def _source_payload(rule: Rule, level: str, scope: str) -> dict | None:
+    """Compile one lexical rule for one Vale source-comment scope."""
+    if rule.kind not in COMMENT_SAFE_KINDS:
+        return None
+    payload = _payload_for(rule, level, allow_native_scopes=True)
+    if payload is None:
+        return None
+    payload["scope"] = scope
     return payload
 
 
@@ -925,6 +985,8 @@ def compile_ruleset(
     validate: bool = True,
     vocabulary=None,
     force: bool = False,
+    source_language: str | None = None,
+    source_extension: str | None = None,
 ) -> CompileResult:
     """Compile `ruleset` into a Vale style tree plus a `.vale.ini`.
 
@@ -933,12 +995,20 @@ def compile_ruleset(
     only correct in a test that already knows the answer.
     """
     levels = compiled_levels(ruleset, resolved_config)
-
-    # The probe decides which payloads stay native, so the binary that answered it
-    # is part of what the tree IS; an unvalidated compile asked no binary and keys
-    # on the inputs alone.
     version = vale_version(binary) if validate else None
-    key = fingerprint(ruleset.rules, resolved_config, levels, vocabulary, version)
+    if resolved_config.mode is Mode.PROSE:
+        source_language = source_extension = None
+    elif source_language is None or source_extension is None:
+        source_language, source_extension = canonical_source_language(resolved_config.path)
+    key = "|".join(
+        (
+            fingerprint(ruleset.rules, resolved_config, levels, vocabulary, version),
+            resolved_config.mode.value,
+            source_language or "",
+            source_extension or "",
+            binary,
+        )
+    )
     cached_here = outdir is None
     if outdir is None:
         if not validate:
@@ -981,14 +1051,21 @@ def compile_ruleset(
                 disabled_rules=cached.get("disabled_rules", []),
                 notes=cached.get("notes", []),
                 aliases=cached.get("aliases", {}),
+                mode=Mode(cached.get("mode", resolved_config.mode.value)),
+                language=cached.get("language"),
+                extension=cached.get("extension"),
+                excluded_rules=cached.get("excluded_rules", []),
                 vale_version=cached.get("vale_version"),
             )
-
     result = CompileResult(
         outdir=outdir,
         config_path=outdir / ".vale.ini",
+        mode=resolved_config.mode,
+        language=source_language,
+        extension=source_extension,
         vale_version=".".join(str(n) for n in version) if version else None,
     )
+
 
     payloads: dict[str, dict] = {}
     categories: dict[str, str] = {}
@@ -997,6 +1074,32 @@ def compile_ruleset(
     for rule in ruleset.rules:
         if rule.kind is RuleKind.JUDGEMENT:
             result.judgement_rules.append(rule.qualified_id)
+            if resolved_config.mode is Mode.CODE_COMMENTS and rule.qualified_id in levels:
+                result.excluded_rules.append(rule.qualified_id)
+            continue
+        if rule.qualified_id not in levels:
+            result.disabled_rules.append(rule.qualified_id)
+            continue
+
+        level = levels[rule.qualified_id]
+        if resolved_config.mode is Mode.CODE_COMMENTS:
+            if rule.kind not in COMMENT_SAFE_KINDS:
+                result.excluded_rules.append(rule.qualified_id)
+                continue
+            for suffix, scope in zip(
+                ("line", "block"),
+                source_scopes(resolved_config.mode, source_extension),
+                strict=True,
+            ):
+                payload = _source_payload(rule, level, scope)
+                if payload is None:
+                    result.excluded_rules.append(rule.qualified_id)
+                    break
+                check = f"{rule.qualified_id}--comment-{suffix}"
+                payloads[check] = payload
+                categories[check] = rule.category
+                levels[check] = level
+                result.aliases[check] = rule.qualified_id
             continue
         if rule.qualified_id not in levels:
             result.disabled_rules.append(rule.qualified_id)
@@ -1143,12 +1246,22 @@ def compile_ruleset(
         result.vale_rules.append(rule_id)
 
     (staging / ".vale.ini").write_text(
-        _render_ini(sorted(payloads), levels), encoding="utf-8"
+        _render_ini(
+            sorted(payloads),
+            levels,
+            mode=resolved_config.mode,
+            extension=source_extension,
+        ),
+        encoding="utf-8",
     )
     (staging / "manifest.json").write_text(
         json.dumps(
             {
                 "fingerprint": key,
+                "mode": result.mode.value,
+                "language": result.language,
+                "extension": result.extension,
+                "excluded_rules": result.excluded_rules,
                 "vale_rules": result.vale_rules,
                 "vale_version": result.vale_version,
                 "native_rules": [n.__dict__ for n in result.native_rules],
@@ -1180,13 +1293,15 @@ def compile_ruleset(
                     outdir=outdir,
                     config_path=outdir / ".vale.ini",
                     vale_rules=cached.get("vale_rules", []),
-                    native_rules=[
-                        NativeRule(**n) for n in cached.get("native_rules", [])
-                    ],
+                    native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
                     judgement_rules=cached.get("judgement_rules", []),
                     disabled_rules=cached.get("disabled_rules", []),
                     notes=cached.get("notes", []),
                     aliases=cached.get("aliases", {}),
+                    mode=Mode(cached.get("mode", resolved_config.mode.value)),
+                    language=cached.get("language"),
+                    extension=cached.get("extension"),
+                    excluded_rules=cached.get("excluded_rules", []),
                     vale_version=cached.get("vale_version"),
                 )
 
@@ -1213,7 +1328,13 @@ def compile_ruleset(
     return result
 
 
-def _render_ini(rule_ids: list[str], levels: dict[str, str]) -> str:
+def _render_ini(
+    rule_ids: list[str],
+    levels: dict[str, str],
+    *,
+    mode: Mode = Mode.PROSE,
+    extension: str | None = None,
+) -> str:
     """The generated `.vale.ini`.
 
     Rules are ENUMERATED rather than enabled by `BasedOnStyles`, because a style
@@ -1235,7 +1356,15 @@ def _render_ini(rule_ids: list[str], levels: dict[str, str]) -> str:
         # the lowest of them or Vale filters out findings we asked for.
         "MinAlertLevel = suggestion",
         "",
-        "[*.{md,mdx,markdown,txt,rst,html}]",
+        (
+            f"[{SOURCE_FILE_SELECTORS[extension]}]"
+            if mode is Mode.CODE_COMMENTS and extension in SOURCE_FILE_SELECTORS
+            else (
+                f"[*.{extension.lstrip('.')}]"
+                if mode is Mode.CODE_COMMENTS and extension
+                else "[*.{md,mdx,markdown,txt,rst,html,toml}]"
+            )
+        ),
     ]
     for rule_id in rule_ids:
         lines.append(f"{rule_id} = {levels.get(rule_id, 'warning')}")

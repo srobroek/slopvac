@@ -67,6 +67,13 @@ class Profile(str, Enum):
     RELAXED = "relaxed"
 
 
+class Mode(str, Enum):
+    """Input surface selected for a lint run."""
+
+    PROSE = "prose"
+    CODE_COMMENTS = "code-comments"
+
+
 class CategorySettings(BaseModel):
     """Per-category dials. Every field is optional so a patch layer can set one
     without restating the others.
@@ -363,6 +370,7 @@ class Config(BaseModel):
     """A loaded slopvac.toml, before per-file resolution."""
 
     model_config = ConfigDict(extra="forbid")
+    mode: Mode = Field(default=Mode.PROSE, description="Input surface mode.")
 
     profile: Profile = Field(
         default=Profile.NORMAL,
@@ -453,6 +461,7 @@ class ResolvedConfig(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
+    mode: Mode
 
     path: Path
     profile: Profile
@@ -718,6 +727,7 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
             provenance["vocabulary"] = where
 
     return ResolvedConfig(
+        mode=config.mode,
         path=file_path,
         profile=profile,
         categories=categories,

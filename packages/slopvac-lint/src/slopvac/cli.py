@@ -29,6 +29,7 @@ from .compile_vale import compile_ruleset
 from .config import (
     Config,
     ConfigError,
+    Mode,
     Profile,
     Severity,
     find_config,
@@ -116,6 +117,12 @@ def main(context: click.Context) -> None:
     help="Override the configured tier for this run.",
 )
 @click.option(
+    "--mode",
+    type=click.Choice([m.value for m in Mode]),
+    default=None,
+    help="Input surface: prose or code-comments.",
+)
+@click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
@@ -188,7 +195,7 @@ def main(context: click.Context) -> None:
 @click.option(
     "--comments",
     is_flag=True,
-    help="Lint only source comments (an explicit upstream mode).",
+    help="Alias for --mode code-comments.",
 )
 @click.option(
     "--fix",
@@ -205,6 +212,7 @@ def main(context: click.Context) -> None:
 def lint(
     targets: tuple[str, ...],
     profile: str | None,
+    mode: str | None,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
     only_categories: tuple[str, ...],
@@ -224,7 +232,6 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
-    """Lint files or directories."""
     console = _console(no_color)
     scope = None
     if diff_base is not None or diff_working_tree:
@@ -237,6 +244,7 @@ def lint(
         console,
         targets,
         profile=profile,
+        mode=mode,
         config_path=config_path,
         rules_dir=rules_dir,
         only_categories=only_categories,
@@ -247,7 +255,7 @@ def lint(
         diff_scope=scope,
         comments=comments,
     )
-    if not run.paths:
+    if not run.paths and not run.collection_unchecked:
         # A run with nothing to lint still owes the caller a report in the format
         # it asked for: the GitHub action parses the JSON, and a bare text line
         # where JSON was expected read as "the report could not be produced" on
@@ -263,8 +271,10 @@ def lint(
             open_report=open_report,
             format_given=_format_was_given(),
             verbose=verbose,
+            notes=run.collection_notes,
         )
         raise SystemExit(EXIT_OK)
+
     if explain_config:
         _print_resolved_config(run, console)
         raise SystemExit(EXIT_OK)
@@ -287,6 +297,7 @@ def lint(
         open_report=open_report,
         format_given=_format_was_given(),
         verbose=verbose,
+        notes=run.collection_notes,
     )
     if any(score.unchecked for score in scores):
         raise SystemExit(EXIT_ERROR)
