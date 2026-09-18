@@ -273,5 +273,6 @@
   "*/fixtures/*",
   "*/specimens/*",
   "omp-orchestrate/scratch/**"
- ]
+ ],
+  "caveats": "This evaluation record was tested against revision 46bf519 under the 1.1.0 decision order. Offsets and coverage numbers must be recomputed after the 1.1.2 fixes."
 }
