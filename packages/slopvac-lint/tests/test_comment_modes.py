@@ -105,6 +105,8 @@ def test_prose_directory_does_not_scan_code_files(tmp_path):
     exit_code, report = _json_run(str(tmp_path), "--no-vale")
     assert exit_code == EXIT_ERROR
     assert {Path(doc["path"]).suffix for doc in report["documents"]} == {".md"}
+    # A prose run with nothing to note serialises exactly as before the key existed.
+    assert "notes" not in report
 
 
 def test_directory_collection_keeps_toml_only_for_code_comments(tmp_path):

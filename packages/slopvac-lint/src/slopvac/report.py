@@ -100,7 +100,10 @@ class LintReport(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
     def emit(self) -> str:
-        return self.model_dump_json(indent=2, exclude_none=False)
+        # `notes` appears only when there is something to say, so a prose run
+        # without collection notes serialises exactly as it did before the key.
+        exclude = {"notes"} if not self.notes else None
+        return self.model_dump_json(indent=2, exclude_none=False, exclude=exclude)
 
 
 # ---------------------------------------------------------------------------
