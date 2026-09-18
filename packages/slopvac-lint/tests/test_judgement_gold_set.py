@@ -33,7 +33,35 @@ def test_gold_set_schema_counts_and_spans():
         assert isinstance(row["text"], str) and 40 <= len(row["text"].split()) <= 120
         assert "defect_span" not in row
 
+def test_shipped_gold_loads_through_prepare_and_reports_attachments(tmp_path: Path) -> None:
+    from slopvac.judgement.driver import prepare
 
+    config = Path(__file__).resolve().parents[3] / "slopvac.toml"
+    document = tmp_path / "gold-fixtures.md"
+    document.write_text("\n\n".join(dict.fromkeys(row["text"] for row in _rows())), encoding="utf-8")
+    out = tmp_path / "run"
+    manifest = prepare(config=config, out=out, paths=(document,), packs="all", max_calls=0, yes=True, gold=GOLD)
+    gold = manifest["gold"]
+    attachment_counts = gold["attachment_counts"]
+    assert len(attachment_counts) == len(_rows())
+    assert all(count >= 1 for count in attachment_counts.values())
+    assert gold["unattached"] == []
+
+
+
+def test_pathless_unmatched_gold_row_is_reported(tmp_path: Path) -> None:
+    from slopvac.judgement.driver import _load_gold_rows
+
+    document = tmp_path / "fixture.md"
+    document.write_text("A different document.", encoding="utf-8")
+    gold = tmp_path / "gold.jsonl"
+    gold.write_text(
+        json.dumps({"rule_id": "rule.one", "text": "Missing gold text.", "defect_span": "Missing gold text."}) + "\n",
+        encoding="utf-8",
+    )
+    _, rows = _load_gold_rows(gold, (document,))
+    assert rows[0]["path"] == ""
+    assert rows[0]["unattached_reason"] == "no_unique_document"
 def test_every_judgement_rule_family_is_seeded():
     seeded = [row for row in _rows() if not row.get("control", False)]
     shipped = {rule.qualified_id for rule in load_ruleset([], verify=False).judgement_rules()}
@@ -44,17 +72,17 @@ def test_gold_recall_counts_confirmed_seeded_and_controls() -> None:
     from slopvac.judgement.driver import _gold_recall
 
     gold = [
-        {"gold_id": "seed-1", "kind": "seeded", "rule_id": "rule.one"},
-        {"gold_id": "seed-2", "kind": "seeded", "rule_id": "rule.two"},
-        {"gold_id": "control-1", "kind": "control", "rule_id": "rule.one"},
+        {"gold_id": "seed-1", "kind": "seeded", "rule_id": "rule.one", "start": 0, "end": 3},
+        {"gold_id": "seed-2", "kind": "seeded", "rule_id": "rule.two", "start": 0, "end": 3},
+        {"gold_id": "control-1", "kind": "control", "rule_id": "rule.one", "start": 0, "end": 3},
     ]
     units = {
-        "unit-1": {"gold_id": "seed-1"},
-        "unit-2": {"gold_id": "seed-2"},
-        "unit-3": {"gold_id": "control-1", "gold_control": True},
+        "unit-1": {"gold_id": "seed-1", "text": "one unit"},
+        "unit-2": {"gold_id": "seed-2", "text": "two unit"},
+        "unit-3": {"gold_id": "control-1", "gold_control": True, "text": "three unit"},
     }
     findings = [
-        {"unit_id": "unit-1", "rule_id": "rule.one", "outcome": "CONFIRM"},
+        {"unit_id": "unit-1", "rule_id": "rule.one", "outcome": "CONFIRM", "evidence": [{"quote": "one", "start": 0, "end": 3, "source": "unit", "role": "defect"}]},
         {"unit_id": "unit-2", "rule_id": "rule.two", "outcome": "REJECT"},
         {"unit_id": "unit-3", "rule_id": "rule.one", "outcome": "REJECT"},
     ]
@@ -73,21 +101,61 @@ def test_gold_recall_evidence_gate_discard_is_counted() -> None:
     assert recall["overall"] == 0.0
     assert controls == {"count": 0, "total": 0}
 
+def test_gold_recall_requires_overlapping_evidence() -> None:
+    from slopvac.judgement.driver import _gold_recall
+
+    gold = [{"gold_id": "seed-1", "kind": "seeded", "rule_id": "rule.one", "start": 10, "end": 15}]
+    units = {"unit-1": {"gold_id": "seed-1", "text": "wrong evidence"}}
+    findings = [{
+        "unit_id": "unit-1",
+        "rule_id": "rule.one",
+        "outcome": "CONFIRM",
+        "evidence": [{"quote": "wrong", "start": 0, "end": 5, "source": "unit", "role": "defect"}],
+    }]
+    recall, _ = _gold_recall(gold, units, findings)
+    assert recall["overall"] == 0.0
+
+
+def test_gold_span_overlapping_two_units_counts_both_attachments() -> None:
+    from slopvac.judgement.driver import _gold_recall
+
+    gold = [{"gold_id": "seed-1", "kind": "seeded", "rule_id": "rule.one", "start": 6, "end": 18}]
+    units = {
+        "unit-1": {"gold_ids": ["seed-1"], "text": "First words."},
+        "unit-2": {"gold_ids": ["seed-1"], "text": "Second sentence."},
+    }
+    findings = [
+        {"unit_id": "unit-1", "rule_id": "rule.one", "outcome": "CONFIRM", "evidence": [{"quote": "words", "start": 6, "end": 11, "source": "unit", "role": "defect"}]},
+        {"unit_id": "unit-2", "rule_id": "rule.one", "outcome": "REJECT", "evidence": []},
+    ]
+    recall, _ = _gold_recall(gold, units, findings)
+    assert recall["overall"] == 1.0
+    assert recall["multi_unit_attachments"] == 1
+
 
 def test_unique_quote_salvage_is_opt_in_and_rejects_duplicates() -> None:
     from slopvac.judgement.driver import _salvage_unique_quotes
 
     unit = {"text": "prefix unique suffix"}
-    output = {"evidence": [{"quote": "unique", "start": 0, "end": 0}]}
-    unchanged = {"evidence": [{"quote": "unique", "start": 0, "end": 0}]}
+    output = {"evidence": [{"quote": "unique", "start": 0, "end": 0, "role": "defect", "source": "unit"}]}
+    unchanged = {
+        "evidence": [
+            {"quote": "unique", "start": 0, "end": 0, "role": "antecedent", "source": "context"},
+            {"quote": "unique", "start": 1, "end": 2, "role": "referent", "source": "repository"},
+        ]
+    }
 
     _salvage_unique_quotes(unit, output)
+    _salvage_unique_quotes(unit, unchanged)
     assert output["evidence"][0]["start"] == 7
     assert output["evidence"][0]["end"] == 13
     assert unchanged["evidence"][0]["start"] == 0
+    assert unchanged["evidence"][0]["end"] == 0
+    assert unchanged["evidence"][1]["start"] == 1
+    assert unchanged["evidence"][1]["end"] == 2
 
     duplicate = {"text": "repeat repeat"}
-    duplicate_output = {"evidence": [{"quote": "repeat", "start": 1, "end": 2}]}
+    duplicate_output = {"evidence": [{"quote": "repeat", "start": 1, "end": 2, "role": "defect", "source": "unit"}]}
     _salvage_unique_quotes(duplicate, duplicate_output)
     assert duplicate_output["evidence"][0]["start"] == 1
     assert duplicate_output["evidence"][0]["end"] == 2
