@@ -65,7 +65,7 @@
 {"text":"TIP: The short path uses less storage.","expected":"DESCRIPTIVE","facet":"note markers"}
 {"text":"HINT: The preview is read-only.","expected":"DESCRIPTIVE","facet":"note markers"}
 {"text":"INFO: The worker reports its state hourly.","expected":"DESCRIPTIVE","facet":"note markers"}
-{"text":"NOTE. The import reads the cache.","expected":"DESCRIPTIVE","facet":"note markers"}
+{"text":"NOTE. The import reads the cache.","expected":"PROCEDURAL","facet":"imperative note controls"}
 {"text":"TIP! The local run uses mock data.","expected":"DESCRIPTIVE","facet":"note markers"}
 {"text":"HINT: A warm cache reduces latency.","expected":"DESCRIPTIVE","facet":"note markers"}
 {"text":"INFO: The command is available.","expected":"DESCRIPTIVE","facet":"note markers"}
@@ -123,3 +123,11 @@
 {"text":"The key belongs to the host.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"The cluster has three members.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
 {"text":"The node reports a healthy status.","expected":"DESCRIPTIVE","facet":"descriptive controls"}
+{"text":"Deploy scripts live in ops/.","expected":"DESCRIPTIVE","facet":"homograph finite clauses"}
+{"text":"Run scripts fail often.","expected":"DESCRIPTIVE","facet":"homograph finite clauses"}
+{"text":"Backup jobs run nightly.","expected":"DESCRIPTIVE","facet":"homograph finite clauses"}
+{"text":"Install fails on ARM.","expected":"DESCRIPTIVE","facet":"homograph finite clauses"}
+{"text":"Deploy the scripts.","expected":"PROCEDURAL","facet":"homograph imperative controls"}
+{"text":"Run the scripts.","expected":"PROCEDURAL","facet":"homograph imperative controls"}
+{"text":"Backup the jobs.","expected":"PROCEDURAL","facet":"homograph imperative controls"}
+{"text":"Install the package.","expected":"PROCEDURAL","facet":"homograph imperative controls"}
