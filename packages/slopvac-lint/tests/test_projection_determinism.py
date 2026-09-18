@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -18,26 +19,29 @@ CONFIG = ROOT / "slopvac.toml"
 # artefacts.  The shipped prepare output currently has no timestamps; absolute paths
 # may differ when the same corpus is copied to another checkout or temp directory.
 LEGITIMATE_VARIATION_FIELDS = frozenset({"path", "document", "config", "timestamp", "created_at"})
+_VARIATION_VALUE = re.compile(
+    rb'((?:"path"|"document"|"config"|"timestamp"|"created_at")\s*:\s*)'
+    rb'("(?:\\.|[^"\\])*"|null|true|false|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)'
+)
 
-def _scrub(item: object) -> object:
-    if isinstance(item, dict):
-        return {
-            key: "<environment-dependent>" if key in LEGITIMATE_VARIATION_FIELDS else _scrub(value)
-            for key, value in item.items()
-        }
-    if isinstance(item, list):
-        return [_scrub(entry) for entry in item]
-    return item
+
+def _scrub_emitted_bytes(raw: bytes) -> bytes:
+    """Replace only documented environment-dependent JSON values in-place."""
+
+    def replace(match: re.Match[bytes]) -> bytes:
+        value = match.group(2)
+        replacement = b'"<environment-dependent>"' if value.startswith(b'"') else b"0"
+        return match.group(1) + replacement
+
+    return _VARIATION_VALUE.sub(replace, raw)
 
 
 def _json_bytes(path: Path) -> bytes:
-    value = _scrub(json.loads(path.read_text(encoding="utf-8")))
-    return json.dumps(value, ensure_ascii=False, indent=2).encode("utf-8")
+    return _scrub_emitted_bytes(path.read_bytes())
 
 
 def _jsonl_bytes(path: Path) -> bytes:
-    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
-    return b"".join(json.dumps(_scrub(row), ensure_ascii=False, sort_keys=True).encode() + b"\n" for row in rows)
+    return _scrub_emitted_bytes(path.read_bytes())
 
 
 
@@ -179,6 +183,32 @@ def test_edge_fixture_prepare_has_stable_units_and_ranges(tmp_path: Path, name: 
     prepare(config=CONFIG, out=first, paths=(fixture,), packs="SPAN-ai-tells-structure-1", yes=True)
     prepare(config=CONFIG, out=second, paths=(fixture,), packs="SPAN-ai-tells-structure-1", yes=True)
     assert _artefacts(first) == _artefacts(second)
+
+    document = parse(str(fixture), raw)
+    if name == "unclosed-fence.md":
+        assert [(block.kind.value, block.lines) for block in document.blocks] == [
+            ("paragraph", (1, 1)),
+            ("code", (3, 4)),
+        ]
+        assert document.blocks[1].doc_range == (7, 7)
+    elif name == "nfd.md":
+        block = document.blocks[0]
+        assert [sentence.text for sentence in block.sentences] == ["cafe\u0301"]
+        assert block.projection is not None
+        assert block.projection.slice_raw(*block.range) == raw.rstrip("\n").encode("utf-8")
+    elif name == "crlf.md":
+        assert [(sentence.text, sentence.line, sentence.column) for block in document.blocks for sentence in block.sentences] == [
+            ("First.", 1, 1),
+            ("Second.", 3, 1),
+        ]
+        assert all("\r" not in sentence.text for block in document.blocks for sentence in block.sentences)
+    elif name == "entities.html":
+        block = document.blocks[0]
+        assert [sentence.text for sentence in block.sentences] == ["A & B."]
+        assert block.projection is not None
+        assert block.projection.slice_raw(*block.range) == b"A &amp; B."
+    elif name == "stray-pipes.md":
+        assert [block.kind.value for block in document.blocks] == ["paragraph"]
 
 
 def test_nfc_and_nfd_identity_is_source_sensitive_and_deterministic(tmp_path: Path) -> None:
