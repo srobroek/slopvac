@@ -31,41 +31,25 @@ open until a held-out labelled set derives and validates the dependence pairs.
 
 ## CLI driver
 
-Use the driver when a model call must run outside `slopvac`. The first command runs
-the deterministic scan once and writes compact prompts, units, per-document data,
-and a manifest. Runs are bounded to 300 calls by default; pass `--yes` to override
-the bound after reviewing the per-pack counts printed by an over-limit run.
+The CLI driver prepares and adjudicates a judgement run. It reports model confirms and rejects, and a CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate. See the [README judgement layer guide](../README.md#judgement-layer) for the user workflow.
+
+`prepare` runs the deterministic scan and writes model-ready artifacts. It never calls a provider. The caller reads each `prompts.jsonl` row, sends `prompt.system` and `prompt.user` to a provider, validates the provider response against `response_schema`, and appends a `responses.jsonl` row.
 
 ```sh
-uv run slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement docs/guide.md
+uv run --project packages/slopvac-lint slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 --yes packages/slopvac-lint/README.md
+uv run --project packages/slopvac-lint slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
+uv run --project packages/slopvac-lint slopvac judgement compare --out .slopvac-judgement
 ```
 
-For a stricter bound, set `--max-calls N`. A SPAN call contains up to five passages
-and one pair per passage/rule; each passage's text and neighbouring context occur
-once, while `pairs` gives the expected result order. `units.jsonl` contains only
-unit-local data. Shared projection segments, source hash, and full projected text
-are stored once in `documents/<document>.json`.
+`--packs` accepts `all` or comma-separated pack ids. `prepare` creates `--out`, runs lint, and writes deterministic reports before it checks the call count. If the count exceeds `--max-calls` (300 by default), it refuses before writing prompts, units, or the manifest; the earlier output remains. Pass `--yes` to continue. The caller owns provider selection, authentication, retries, and transport.
 
-Fill `.slopvac-judgement/responses.jsonl` with one record per prompt. Each record
-has the form `{"call_id": "...", "response": ...}`. Calls with multiple units
-wrap outputs as `{"results": [model_output, ...]}` in the documented pair order;
-a single PROBE call may return one model output object.
+Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`, and `cache_keys`. The JSON string in `prompt.user` contains `passages` and `pairs`; `pairs` is not a top-level row field. Each `responses.jsonl` row contains `call_id` and `response`. A multi-unit response uses `{"results": [...]}` in prompt order.
 
-Run the host checks and report generation after the responses are complete.
+`prepare` writes `prompts.jsonl`, `units.jsonl`, `documents/*.json`, deterministic per-document reports, and `manifest.json` under `--out`. `finish` writes `findings.jsonl`, `report.json`, and `report.md`. `compare --apply-preview` writes checker-passed rewrites under `--out/preview/`.
 
-```sh
-uv run slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
-uv run slopvac judgement compare --out .slopvac-judgement
-```
+The driver records malformed responses as failures instead of silently dropping units. The host then performs schema checks, evidence checks, adjudication, coverage, and aggregation.
 
-`finish` rejects malformed calls, records schema errors in `failed.jsonl`, and
-writes `findings.jsonl`, `report.json`, and `report.md`. `compare --apply-preview`
-writes checker-passed proposed rewrites under `.slopvac-judgement/preview/`.
-
-## Reading confirms
-
-A confirm is a suggestion, never a gate. The layer is reporting-only: no confirm
-changes a pass/fail result, and the adjusted score moves by at most two points.
+The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. A CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate. Other judgement outcomes can adjust the reported score without entering deterministic warning or error counts.
 
 Measured precision on the two full runs so far
 (`docs/research/rubric-2026-09-15/evaluation/`): 6 of 37 confirms on the local
