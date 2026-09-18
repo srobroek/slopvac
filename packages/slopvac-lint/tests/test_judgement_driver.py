@@ -4,9 +4,12 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from slopvac.analyze import parse
 from slopvac.judgement.driver import (
     _admission,
+    _preview_document,
     _unit_from_block,
     _unit_from_sentence,
     compare,
@@ -43,16 +46,43 @@ def test_finish_records_missing_calls_and_compare_shows_both_scores(tmp_path: Pa
     document = tmp_path / "fixture.md"
     document.write_text("A useful paragraph.", encoding="utf-8")
     out = tmp_path / "run"
-    prepare(config=CONFIG, out=out, paths=(document,), packs="all")
+    prepare(config=CONFIG, out=out, paths=(document,), packs="PROBE-4")
     responses = tmp_path / "responses.jsonl"
     responses.write_text("", encoding="utf-8")
     report = finish(out=out, responses=responses)
     assert report["documents"][0]["deterministic_score"] >= 0
     assert "coverage" in report
+    failed = [json.loads(line) for line in (out / "failed.jsonl").read_text().splitlines() if line]
+    assert len(failed) == 1
+    assert failed[0]["reason"] == "response_missing"
+    assert report["counts"]["failed_calls"] == 1
+    coverage = report["coverage"]["documents"][str(document)]
+    assert coverage["failed"] == coverage["eligible"]
+    assert coverage["not_run"] == 0
     text = compare(out=out, doc=document)
     assert "deterministic (old): score=" in text
     assert "judgement (new): score=" in text
 
+
+def test_finish_counts_failed_responses_in_coverage(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("A useful authored paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(
+        config=CONFIG,
+        out=out,
+        paths=(document,),
+        packs="PROBE-4",
+        categories=("ai-tells-register", "ai-tells-structure"),
+    )
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"call_id": call["call_id"], "response": "{bad"}) + "\n", encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    coverage = report["coverage"]["documents"][str(document)]
+    assert coverage["failed"] == len(units)
+    assert coverage["not_run"] == 0
 
 def test_span_calls_group_passages_and_rules(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
@@ -322,6 +352,10 @@ def test_admission_drops_fragment_units_but_keeps_three_words() -> None:
     ]
     assert _admission(_admission_unit("One useful sentence"), pack) == ("ELIGIBLE", None)
 
+def test_admission_drops_two_word_imperative_fragment() -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    assert _admission(_admission_unit("Update nightly."), pack) == ("DROP", "a2_fragment_unit")
+
 
 def test_admission_preserves_normative_register() -> None:
     pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
@@ -330,3 +364,201 @@ def test_admission_preserves_normative_register() -> None:
         "normative_obligation",
     )
     assert _admission(_admission_unit("The parser rejects input"), pack) == ("ELIGIBLE", None)
+
+
+@pytest.mark.parametrize(
+    "rule_id",
+    [
+        "ai-tells-register.false-agency-remainder",
+        "ai-tells-structure.absolute-assertion-remainder",
+        "ai-tells-structure.contrastive-inversion-remainder",
+    ],
+)
+def test_admission_preserves_imperative_directives(rule_id: str) -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), (rule_id,))
+    assert _admission(_admission_unit("Run the migration."), pack) == (
+        "PRESERVE",
+        "normative_obligation",
+    )
+    list_unit = _admission_unit(
+        "Run the migration.", document_text="- Run the migration.", raw_start=2
+    )
+    assert _admission(list_unit, pack) == ("PRESERVE", "normative_obligation")
+    assert _admission(_admission_unit("The migration runs."), pack) == ("ELIGIBLE", None)
+
+
+def test_admission_does_not_preserve_descriptive_run_subject() -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    assert _admission(_admission_unit("Backups run nightly."), pack) == ("ELIGIBLE", None)
+    assert _admission(_admission_unit("Run scripts live in bin."), pack) == ("ELIGIBLE", None)
+
+
+def test_admission_does_not_preserve_questions_or_first_person() -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    assert _admission(_admission_unit("Run the migration?"), pack) == ("ELIGIBLE", None)
+    assert _admission(_admission_unit("We run the migration."), pack) == ("ELIGIBLE", None)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected", "document_text", "raw_start"),
+    [
+        ("Backup jobs run nightly.", "ELIGIBLE", None, 0),
+        ("Build artifacts live in dist.", "ELIGIBLE", None, 0),
+        ("Run scripts fail often.", "ELIGIBLE", None, 0),
+        ("Run the migration.", "PRESERVE", None, 0),
+        ("Restart the service after the deploy.", "PRESERVE", None, 0),
+        ("Run the migration?", "PRESERVE", "- Run the migration?", 2),
+        ("Remember to run the migration.", "ELIGIBLE", "- Remember to run the migration.", 2),
+        ("To run the migration, use sudo.", "ELIGIBLE", "- To run the migration, use sudo.", 2),
+    ],
+)
+def test_admission_distinguishes_plain_imperatives_and_list_markers(
+    text: str, expected: str, document_text: str | None, raw_start: int
+) -> None:
+    pack = Pack("demo", (), 1, "local", ("normative_obligation",), ("demo.rule",))
+    unit = _admission_unit(text, document_text=document_text, raw_start=raw_start)
+    assert _admission(unit, pack) == ((expected, "normative_obligation") if expected == "PRESERVE" else (expected, None))
+
+
+def _result_row(unit: dict[str, object]) -> dict[str, object]:
+    kind = str(unit["kind"])
+    return {
+        "unit_id": unit["unit_id"],
+        "rule_id": unit["rule_id"],
+        "kind": kind,
+        "note": "No occurrence.",
+        "admissible": True,
+        "evidence": None,
+        "occurrences": [] if kind == "PASSAGE_PROBE" else None,
+        "occurrences_truncated": False,
+        "scores": None,
+        "preservation_reason": None,
+        "abstain_reason": None,
+        "rewrite": None,
+        "rewrite_status": "not_applicable",
+        "verdict": "reject",
+    }
+
+
+def test_preview_replaces_one_span_and_keeps_absolute_source_inside_output(tmp_path: Path) -> None:
+    source = tmp_path / "nested" / "README.md"
+    source.parent.mkdir()
+    source.write_text("before old after\n", encoding="utf-8")
+    out = tmp_path / "run"
+    unit = {"unit_id": "unit-1", "text": "old", "source_range": [7, 10], "path": str(source)}
+    finding = {"unit_id": "unit-1", "rewrite_status": "proposed", "rewrite": "new"}
+    skipped: list[str] = []
+    target = _preview_document(out, str(source), [finding], {"unit-1": unit}, skipped)
+    assert target.read_text(encoding="utf-8") == "before new after\n"
+    assert target != source
+    assert target.resolve().is_relative_to(out.resolve())
+    assert skipped == []
+
+
+def test_preview_skips_duplicate_span_and_reports_it(tmp_path: Path) -> None:
+    source = tmp_path / "README.md"
+    source.write_text("before old after\n", encoding="utf-8")
+    out = tmp_path / "run"
+    units = {
+        "unit-1": {"unit_id": "unit-1", "text": "old", "source_range": [7, 10], "path": str(source)},
+        "unit-2": {"unit_id": "unit-2", "text": "old", "source_range": [7, 10], "path": str(source)},
+    }
+    findings = [
+        {"unit_id": "unit-1", "rewrite_status": "proposed", "rewrite": "first"},
+        {"unit_id": "unit-2", "rewrite_status": "proposed", "rewrite": "second"},
+    ]
+    skipped: list[str] = []
+    target = _preview_document(out, str(source), findings, units, skipped)
+    assert target.read_text(encoding="utf-8") == "before first after\n"
+    assert any("duplicate span" in item for item in skipped)
+
+
+@pytest.mark.parametrize(
+    ("packs", "kind"),
+    [("PROBE-4", "PASSAGE_PROBE"), ("SPAN-ai-tells-structure-1", "SPAN_CANDIDATE")],
+)
+def test_finish_flags_omitted_probe_or_span_rows(tmp_path: Path, packs: str, kind: str) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("First authored paragraph.\n\nSecond authored paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs=packs)
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    matching = [unit for unit in units if unit["kind"] == kind]
+    assert len(matching) >= 2
+    call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
+    omitted = matching[1]
+    rows = [_result_row(matching[0])]
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"call_id": call["call_id"], "response": {"results": rows}}) + "\n", encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    missing = [item for item in report["failed"] if item.get("reason") == "row_missing"]
+    call_missing = [item for item in missing if item["call_id"] == call["call_id"]]
+    assert len(call_missing) == 1
+    assert len(call_missing[0]["unit_ids"]) == len(call["unit_ids"]) - 1
+    assert any(omitted["unit_id"] in item["unit_ids"] for item in call_missing)
+
+def test_finish_uses_projected_paragraph_boundaries_for_cluster_gate(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    prefix = "café"
+    document.write_text(
+        prefix + "\n\nFirst target sentence.\n\n```python\nprint('code')\n```\n\nSecond target sentence.\n\nThird target sentence.",
+        encoding="utf-8",
+    )
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    call = json.loads((out / "prompts.jsonl").read_text().splitlines()[0])
+    selected_rule = "ai-tells-structure.absolute-assertion-remainder"
+    targets = {"First target sentence.", "Second target sentence.", "Third target sentence."}
+    rows = []
+    units_by_id = {unit["unit_id"]: unit for unit in units}
+    for unit_id in call["unit_ids"]:
+        unit = units_by_id[unit_id]
+        row = _result_row(unit)
+        if unit["rule_id"] == selected_rule and unit["text"] in targets:
+            quote = str(unit["text"])
+            row.update(
+                {
+                    "evidence": [{"quote": quote, "start": 0, "end": len(quote), "role": "defect", "source": "unit", "source_ref": unit["unit_id"]}],
+                    "occurrences": None,
+                    "scores": {"fit": "unambiguous_match", "harm": "misleads_or_blocks", "repair": "local_substitution", "warrant": "quote_plus_particular"},
+                    "verdict": "confirm",
+                }
+            )
+        else:
+            row.update(
+                {
+                    "evidence": [],
+                    "occurrences": None,
+                    "scores": {"fit": "absent", "harm": "none", "repair": "inapplicable", "warrant": "none"},
+                }
+            )
+        rows.append(row)
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text(json.dumps({"call_id": call["call_id"], "response": {"results": rows}}) + "\n", encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    assert report["documents"][0]["confirmed"] == 3
+    assert report["documents"][0]["cluster_gate"] is None
+
+
+def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
+    first = tmp_path / "a" / "b__c.md"
+    second = tmp_path / "a__b" / "c.md"
+    first.parent.mkdir()
+    second.parent.mkdir()
+    first.write_text("First document paragraph.", encoding="utf-8")
+    second.write_text("Second document paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(first, second), packs="SPAN-ai-tells-structure-1")
+    manifest = json.loads((out / "manifest.json").read_text())
+    refs = [str(doc["document_ref"]) for doc in manifest["documents"]]
+    assert len(refs) == 2
+    assert len(set(refs)) == 2
+    stores = [json.loads((out / "documents" / f"{ref}.json").read_text()) for ref in refs]
+    assert {store["text"] for store in stores} == {first.read_text(), second.read_text()}
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    for unit in units:
+        store = json.loads((out / "documents" / f"{unit['document_ref']}.json").read_text())
+        raw = store["text"].encode("utf-8")
+        assert raw[unit["source_range"][0] : unit["source_range"][1]].decode("utf-8") == unit["text"]
+    finish(out=out, responses=tmp_path / "responses.jsonl")

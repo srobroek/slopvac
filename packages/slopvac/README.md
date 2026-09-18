@@ -2,7 +2,7 @@
 
 Author and review prose with `write-docs` and `review-docs`.
 
-The mechanical gate is the `slopvac` CLI: 232 rules in 25 categories, configured
+The mechanical gate is the `slopvac` CLI: 232 rules in 26 categories, configured
 by `slopvac.toml`. Install it with `uvx slopvac`. The skills do not run Vale
 as a standalone gate.
 

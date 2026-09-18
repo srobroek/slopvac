@@ -1,0 +1,23 @@
+[project]
+name = "slopvac-workspace"
+version = "0.0.0"
+description = "Repository workspace configuration for Slopvac"
+requires-python = ">=3.11"
+dependencies = ["slopvac"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-cov>=5.0"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+slopvac = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/slopvac-lint"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages/slopvac-lint/tests", "tests"]
+addopts = "-q"
+pythonpath = ["."]

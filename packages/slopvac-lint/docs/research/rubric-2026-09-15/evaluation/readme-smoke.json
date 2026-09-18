@@ -228,5 +228,6 @@
     "model offsets unreliable: earlier run 174/502 quotes were exact substrings at wrong offsets; policy for host-located quotes is open (Q02)"
   ],
   "run": "smoke-4",
-  "unit_rule_pairs": 2112
+  "unit_rule_pairs": 2112,
+  "caveats": "This evaluation record was tested against revision 46bf519 under the 1.1.0 decision order. Offsets and coverage numbers must be recomputed after the 1.1.2 fixes."
 }

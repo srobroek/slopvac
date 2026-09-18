@@ -591,5 +591,6 @@
     "units_rows": 15240
   },
   "run": "local-corpus-1",
-  "unit_rule_pairs": 15240
+  "unit_rule_pairs": 15240,
+  "caveats": "This evaluation record was tested against revision 46bf519 under the 1.1.0 decision order. Offsets and coverage numbers must be recomputed after the 1.1.2 fixes."
 }
