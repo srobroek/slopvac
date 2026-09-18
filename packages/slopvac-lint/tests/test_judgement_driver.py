@@ -513,3 +513,25 @@ def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
         raw = store["text"].encode("utf-8")
         assert raw[unit["source_range"][0] : unit["source_range"][1]].decode("utf-8") == unit["text"]
     finish(out=out, responses=tmp_path / "responses.jsonl")
+
+
+def test_finish_precision_fields_require_adjudication_file(tmp_path: Path) -> None:
+    document = tmp_path / "fixture.md"
+    document.write_text("A useful paragraph.", encoding="utf-8")
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="PROBE-4")
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text("", encoding="utf-8")
+    without = finish(out=out, responses=responses)
+    assert "strict_precision" not in without
+    assert "lenient_precision" not in without
+
+    adjudication = tmp_path / "adjudication.json"
+    adjudication.write_text(json.dumps([
+        {"verdict": "TP"},
+        {"verdict": "FP"},
+        {"verdict": "borderline"},
+    ]), encoding="utf-8")
+    with_file = finish(out=out, responses=responses, adjudication=adjudication)
+    assert with_file["strict_precision"] == pytest.approx(1 / 3)
+    assert with_file["lenient_precision"] == pytest.approx(2 / 3)

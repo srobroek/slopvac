@@ -1,0 +1,413 @@
+{
+  "denominators": {
+    "abstention": {
+      "definition": "ABSTAIN / all distinct units",
+      "value": null
+    },
+    "all_units": {
+      "definition": "distinct unit_ids; failed/truncated/not-run are counted as not-run",
+      "value": null
+    },
+    "evidence_validity": {
+      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
+      "value": null
+    },
+    "failed": null,
+    "not_run": null,
+    "precision": {
+      "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
+      "value": 34
+    },
+    "response_rows": {
+      "definition": "response rows, not units; duplicate rows are not additional units",
+      "value": null
+    },
+    "truncated": null
+  },
+  "metrics": {
+    "abstention_rate": null,
+    "evidence_validity": null,
+    "lenient_precision": 0.29411764705882354,
+    "strict_precision": 0.029411764705882353
+  },
+  "not_derivable": [
+    "denominators.all_units.distinct_unit_ids",
+    "metrics.abstention_rate",
+    "metrics.evidence_validity"
+  ],
+  "per_rule": [
+    {
+      "borderline": 2,
+      "fp": 0,
+      "lenient_precision": 1.0,
+      "rule_id": "ai-tells-register.anthropomorphised-justification-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 1,
+      "fp": 8,
+      "lenient_precision": 0.1111111111111111,
+      "rule_id": "ai-tells-register.false-agency-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 0,
+      "fp": 1,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-register.faux-candor-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 2,
+      "fp": 0,
+      "lenient_precision": 1.0,
+      "rule_id": "ai-tells-structure.anaphora-abuse",
+      "strict_precision": 0.3333333333333333,
+      "tp": 1
+    },
+    {
+      "borderline": 2,
+      "fp": 3,
+      "lenient_precision": 0.4,
+      "rule_id": "ai-tells-structure.contrastive-inversion-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 0,
+      "fp": 2,
+      "lenient_precision": 0.0,
+      "rule_id": "ai-tells-structure.false-suspense-remainder",
+      "strict_precision": 0.0,
+      "tp": 0
+    },
+    {
+      "borderline": 2,
+      "fp": 10,
+      "lenient_precision": 0.16666666666666666,
+      "rule_id": "ai-tells-structure.heading-echo",
+      "strict_precision": 0.0,
+      "tp": 0
+    }
+  ],
+  "raw_adjudication": {
+    "BORDERLINE": 9,
+    "FP": 16,
+    "FP-FRAGMENT-UNIT": 8,
+    "TP": 1
+  },
+  "raw_outcomes": {},
+  "raw_record": [
+    {
+      "class": "llm",
+      "index": 0,
+      "path": "ai-service-foundation.md",
+      "quote": "The AI service is currently a minimal FastAPI application with one health check endpoint, uv-based dependency management, and a container build path.",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 1,
+      "path": "api-service-foundation.md",
+      "quote": "Bootstrap flow",
+      "rewrite": "Remove the heading “Bootstrap flow.”",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "llm",
+      "index": 2,
+      "path": "architecture-overview.md",
+      "quote": "There are no additional routers or path groupings.",
+      "rewrite": "Module relationships and service boundaries: no additional routers or path groupings.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "llm",
+      "index": 3,
+      "path": "architecture-overview.md",
+      "quote": "The repository has strong top-level separation and very thin internal layering.",
+      "rewrite": "Module relationships and service boundaries: the repository has strong top-level separation and very thin internal layering.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "llm",
+      "index": 4,
+      "path": "architecture-overview.md",
+      "quote": "The clearest boundaries today are folder boundaries:",
+      "rewrite": "Module relationships and service boundaries: the clearest boundaries today are folder boundaries.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "llm",
+      "index": 5,
+      "path": "ci-cd-pipelines.md",
+      "quote": "The workflows define a deploy stage",
+      "rewrite": "The workflows define a deploy stage, and the repository does not contain active deployment commands.",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 6,
+      "path": "ci-cd-pipelines.md",
+      "quote": "The workflows are structurally similar",
+      "rewrite": "The workflows are structurally similar, and they differ in tooling, path scope, and a few service-specific details.",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 7,
+      "path": "data-models-reference.md",
+      "quote": "AIGravity/core currently does not define a model layer.",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 8,
+      "path": "data-models-reference.md",
+      "quote": "Health state returned by the endpoint.",
+      "rewrite": "Response fields",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "llm",
+      "index": 9,
+      "path": "quickstart.md",
+      "quote": "There are currently no repository-provided",
+      "rewrite": "No repository-provided environment example files are available for local development.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "llm",
+      "index": 10,
+      "path": "repository-automation-scripts.md",
+      "quote": "The root `package.json` exposes these wrappers:",
+      "rewrite": "The root `package.json` defines these wrappers:",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "llm",
+      "index": 11,
+      "path": "repository-automation-scripts.md",
+      "quote": "It does not create a git commit.",
+      "rewrite": "",
+      "rule": "ai-tells-structure.anaphora-abuse",
+      "verdict": "TP"
+    },
+    {
+      "class": "llm",
+      "index": 12,
+      "path": "repository-automation-scripts.md",
+      "quote": "It does not create a git tag.",
+      "rewrite": "",
+      "rule": "ai-tells-structure.anaphora-abuse",
+      "verdict": "borderline"
+    },
+    {
+      "class": "llm",
+      "index": 13,
+      "path": "repository-automation-scripts.md",
+      "quote": "It does not push changes.",
+      "rewrite": "",
+      "rule": "ai-tells-structure.anaphora-abuse",
+      "verdict": "borderline"
+    },
+    {
+      "class": "human",
+      "index": 0,
+      "path": "django-urls.md",
+      "quote": "To capture a value from the URL, use angle brackets.",
+      "rewrite": "Capturing URL values:",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 1,
+      "path": "django-views.md",
+      "quote": "For convenience",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "human",
+      "index": 2,
+      "path": "go-memory.md",
+      "quote": "Within a single goroutine, reads and writes must behave as if they executed in the order specified by the program.",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 3,
+      "path": "k8s-labels.md",
+      "quote": "For example",
+      "rewrite": "",
+      "rule": "ai-tells-structure.false-suspense-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "human",
+      "index": 4,
+      "path": "k8s-labels.md",
+      "quote": "LIST and WATCH operations may specify label selectors to filter the sets of objects returned using a query parameter.",
+      "rewrite": "Label selectors can filter the sets of objects returned by LIST and WATCH operations using a query parameter.",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 5,
+      "path": "postgres-advanced.md",
+      "quote": "It opens up interesting new possibilities of database design.",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "human",
+      "index": 6,
+      "path": "postgres-advanced.md",
+      "quote": "The details of these commands are not important here;",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 7,
+      "path": "postgres-array.md",
+      "quote": "For example:",
+      "rewrite": "",
+      "rule": "ai-tells-structure.false-suspense-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "human",
+      "index": 8,
+      "path": "python-controlflow.md",
+      "quote": "the variable *binds* a value from the subject (`point`).",
+      "rewrite": "But the next two patterns combine a literal and a variable, and matching assigns a value from the subject (`point`) to the variable. The fourth pattern captures two values, which makes it conceptually",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 9,
+      "path": "python-datastructures.md",
+      "quote": "This chapter describes some things you've learned about already in more detail, and adds some new things as well.",
+      "rewrite": "This chapter provides more detail on some things you've already learned and introduces some new things as well.",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 10,
+      "path": "python-datastructures.md",
+      "quote": "The list methods make it very easy to use a list as a stack, where the last element added is the first element retrieved (\"last-in, first-out\").",
+      "rewrite": "The list methods support using a list as a stack, where the last element added is the first element retrieved (\"last-in, first-out\").",
+      "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "human",
+      "index": 11,
+      "path": "python-datastructures.md",
+      "quote": "The list methods make it very easy to use a list as a stack, where the last element added is the first element retrieved (\"last-in, first-out\").",
+      "rewrite": "A list can be used as a stack with these methods, where the last element added is the first element retrieved (\"last-in, first-out\").",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 12,
+      "path": "python-datastructures.md",
+      "quote": "appropriately enough",
+      "rewrite": "This is called *sequence unpacking* and works for any sequence on the right-hand side.",
+      "rule": "ai-tells-register.anthropomorphised-justification-remainder",
+      "verdict": "borderline"
+    },
+    {
+      "class": "human",
+      "index": 13,
+      "path": "python-datastructures.md",
+      "quote": "Python also includes",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "human",
+      "index": 14,
+      "path": "python-datastructures.md",
+      "quote": "Empty tuples are constructed by an empty pair of parentheses; a tuple with one item is constructed by following a value with a comma (it is not sufficient to enclose a single value in parentheses).",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 15,
+      "path": "python-datastructures.md",
+      "quote": "Some examples of comparisons between sequences of the same type:",
+      "rewrite": "",
+      "rule": "ai-tells-structure.heading-echo",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 16,
+      "path": "rust-errors.md",
+      "quote": "The code in Listing 9-4 will `panic!`",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP"
+    },
+    {
+      "class": "human",
+      "index": 17,
+      "path": "rust-errors.md",
+      "quote": "The condition",
+      "rewrite": "",
+      "rule": "ai-tells-register.faux-candor-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "human",
+      "index": 18,
+      "path": "rust-errors.md",
+      "quote": "Many more of these methods can clean up",
+      "rewrite": "",
+      "rule": "ai-tells-register.false-agency-remainder",
+      "verdict": "FP-fragment-unit"
+    },
+    {
+      "class": "human",
+      "index": 19,
+      "path": "rust-ownership.md",
+      "quote": "If we *do* want to deeply copy the heap data of the `String`, not just the",
+      "rewrite": "",
+      "rule": "ai-tells-structure.contrastive-inversion-remainder",
+      "verdict": "FP"
+    }
+  ],
+  "schema_version": 1,
+  "source": "heldout-baseline-adjudication.json"
+}

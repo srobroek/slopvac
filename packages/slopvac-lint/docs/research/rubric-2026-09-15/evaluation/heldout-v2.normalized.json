@@ -1,0 +1,180 @@
+{
+  "denominators": {
+    "abstention": {
+      "definition": "ABSTAIN / all distinct units",
+      "value": null
+    },
+    "all_units": {
+      "definition": "distinct unit_ids; failed/truncated/not-run are counted as not-run",
+      "value": null
+    },
+    "evidence_validity": {
+      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
+      "value": 1
+    },
+    "failed": null,
+    "not_run": null,
+    "precision": {
+      "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
+      "value": 6
+    },
+    "response_rows": {
+      "definition": "response rows, not units; duplicate rows are not additional units",
+      "value": null
+    },
+    "truncated": null
+  },
+  "metrics": {
+    "abstention_rate": null,
+    "evidence_validity": 1.0,
+    "lenient_precision": 0.6666666666666666,
+    "strict_precision": 0.16666666666666666
+  },
+  "not_derivable": [
+    "denominators.all_units.distinct_unit_ids",
+    "metrics.abstention_rate"
+  ],
+  "per_rule": [],
+  "raw_adjudication": {
+    "BORDERLINE": 3,
+    "FP": 2,
+    "TP": 1
+  },
+  "raw_outcomes": {
+    "ABSTAIN": 2646,
+    "CONFIRM": 6,
+    "DROP": 6336,
+    "PRESERVE": 103,
+    "REJECT": 28328
+  },
+  "raw_record": {
+    "caveats": [
+      "one run per arm; the repeat-run noise floor is not measured",
+      "single adjudicator (run lead), same procedure as the baseline record",
+      "small confirm counts: 34 baseline, 6 v2; precision intervals are wide",
+      "the baseline's one anaphora-abuse TP did not recur; that rule was not changed, so the loss is model variance or a unit-admission effect and is unattributed"
+    ],
+    "classes": {
+      "human": {
+        "a2_fragment_unit": 4368,
+        "adjudication": {
+          "borderline": 1
+        },
+        "calls": 968,
+        "confirms_per_1000_words": 0.02,
+        "host_confirms": 1,
+        "instrument_id": "9c427f8a05e1f8da189ec7dafb3c98ad53e35d6dc087d1c02c2dd2212a29d579",
+        "outcomes": {
+          "ABSTAIN": 2207,
+          "CONFIRM": 1,
+          "DROP": 4392,
+          "PRESERVE": 74,
+          "REJECT": 20389
+        },
+        "pairs": 27063
+      },
+      "llm": {
+        "a2_fragment_unit": 2652,
+        "adjudication": {
+          "FP": 2,
+          "TP": 1,
+          "borderline": 2
+        },
+        "calls": 321,
+        "confirms_per_1000_words": 0.47,
+        "host_confirms": 5,
+        "instrument_id": "9c427f8a05e1f8da189ec7dafb3c98ad53e35d6dc087d1c02c2dd2212a29d579",
+        "outcomes": {
+          "ABSTAIN": 439,
+          "CONFIRM": 5,
+          "DROP": 1944,
+          "PRESERVE": 29,
+          "REJECT": 7939
+        },
+        "pairs": 10356
+      }
+    },
+    "comparison": {
+      "human": {
+        "FP": [
+          17,
+          0
+        ],
+        "TP": [
+          0,
+          0
+        ],
+        "borderline": [
+          3,
+          1
+        ],
+        "calls": [
+          1215,
+          968
+        ],
+        "confirms": [
+          20,
+          1
+        ],
+        "confirms_per_1000_words": [
+          0.42,
+          0.02
+        ],
+        "preserve": [
+          3,
+          74
+        ]
+      },
+      "llm": {
+        "FP": [
+          7,
+          2
+        ],
+        "TP": [
+          1,
+          1
+        ],
+        "borderline": [
+          6,
+          2
+        ],
+        "calls": [
+          474,
+          321
+        ],
+        "confirms": [
+          14,
+          5
+        ],
+        "confirms_per_1000_words": [
+          1.32,
+          0.47
+        ],
+        "preserve": [
+          3,
+          29
+        ]
+      },
+      "llm_over_human_confirm_rate": [
+        3.1,
+        23.5
+      ]
+    },
+    "corpus": "heldout/corpus/md (13 human, 8 stated-LLM; go-spec excluded)",
+    "instrument": "PR #94 (template_revision 2: fragment admission, normative preset, four rule questions with exemplars)",
+    "measured": [
+      "host outcomes per class including ABSTAIN by reason and PRESERVE (outcomes)",
+      "confirm precision by hand adjudication",
+      "confirms per 1,000 words per class",
+      "fragment-unit drops (a2_fragment_unit)"
+    ],
+    "not_measured": [
+      "TP recall: no gold-labelled defect set exists for this corpus; only confirm precision and confirm volume are measured, so a drop in confirms cannot be separated from lost recall except through the adjudicated confirms",
+      "repeat-run noise floor",
+      "per-rule precision with confidence intervals (per-rule confirm counts are in the adjudication files; counts are too small for intervals)"
+    ],
+    "schema": "heldout-run"
+  },
+  "schema_version": 1,
+  "source": "heldout-v2.json"
+}
