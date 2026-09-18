@@ -255,7 +255,7 @@ def lint(
         diff_scope=scope,
         comments=comments,
     )
-    if not run.paths:
+    if not run.paths and not run.collection_unchecked:
         # A run with nothing to lint still owes the caller a report in the format
         # it asked for: the GitHub action parses the JSON, and a bare text line
         # where JSON was expected read as "the report could not be produced" on

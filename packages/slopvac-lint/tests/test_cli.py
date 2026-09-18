@@ -1235,6 +1235,21 @@ def test_rst_without_converter_is_unchecked_but_other_files_score(
         for note in doc["unchecked"]
     )
 
+def test_explicit_rst_without_converter_is_unchecked(runner, tmp_path, monkeypatch):
+    path = _write(tmp_path, "only.rst", "A title\n=======\n\nPlain text.\n")
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-bin"))
+
+    result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
+
+    assert result.exit_code == EXIT_ERROR
+    report = json.loads(result.output)
+    assert report["documents"]
+    assert any(
+        "rst2html" in note and "pip install docutils" in note
+        for document in report["documents"]
+        for note in document["unchecked"]
+    )
+
 
 def test_rst_is_collected_when_converter_is_available(runner, tmp_path, monkeypatch):
     """A rst2html executable on PATH keeps RST in the lint target set."""

@@ -54,14 +54,13 @@ def test_source_mapping_uses_extension_scopes():
         canonical_source_language("notes.yaml")
 
 
-def test_default_prose_mode_keeps_toml_projection(tmp_path):
+def test_code_comments_mode_keeps_toml_projection(tmp_path):
     path = _write(tmp_path, "settings.toml", "# robust setting\nvalue = 1\n")
-    exit_code, report = _json_run(str(path), "--no-vale")
+    exit_code, report = _json_run(str(path), "--mode", "code-comments", "--no-vale")
     assert exit_code == EXIT_ERROR
     document = report["documents"][0]
     assert document["path"].endswith("settings.toml")
     assert document["words"] > 0
-
 
 def test_unsupported_file_in_directory_is_reported_as_informational_skip(tmp_path):
     _write(tmp_path, "source.py", "# configure value\n")
@@ -107,6 +106,20 @@ def test_prose_directory_does_not_scan_code_files(tmp_path):
     assert exit_code == EXIT_ERROR
     assert {Path(doc["path"]).suffix for doc in report["documents"]} == {".md"}
 
+
+def test_directory_collection_keeps_toml_only_for_code_comments(tmp_path):
+    _write(tmp_path, "README.md", "Robust prose.\n")
+    _write(tmp_path, "notes.txt", "Robust notes.\n")
+    _write(tmp_path, "sub/page.html", "<p>Robust page.</p>\n")
+    settings = _write(tmp_path, "settings.toml", "# robust setting\nvalue = 1\n")
+    mise = _write(tmp_path, "mise.toml", "# robust tool\n[tools]\npython = '3.13'\n")
+
+    prose = _expand_paths((str(tmp_path),), comments=False)
+    assert prose == [tmp_path / "README.md", tmp_path / "notes.txt", tmp_path / "sub/page.html"]
+
+    comments = _expand_paths((str(tmp_path),), comments=True)
+    assert settings in comments
+    assert mise in comments
 
 def test_comments_alias_selects_code_mode(tmp_path):
     source = _write(tmp_path, "source.py", "# robust comment\n")
