@@ -1394,33 +1394,78 @@ def _gold_recall(
     return recall, {"count": len(confirmed_controls), "total": len(controls)}
 
 
+_ADJUDICATION_LABELS: dict[str, str] = {
+    "TP": "TP",
+    "B": "B",
+    "BORDERLINE": "B",
+    "FP": "FP",
+    "FP-PRESERVE-MISS": "FP",
+    "FP_PRESERVE_MISS": "FP",
+}
+
+
+def _adjudication_rows(value: Any) -> list[str]:
+    """Collect per-confirm verdict labels; summary count blocks are ignored."""
+    labels: list[str] = []
+    if isinstance(value, dict):
+        verdict = value.get("verdict", value.get("adjudication"))
+        if isinstance(verdict, str):
+            labels.append(verdict.upper())
+        for child in value.values():
+            labels.extend(_adjudication_rows(child))
+    elif isinstance(value, list):
+        for child in value:
+            labels.extend(_adjudication_rows(child))
+    return labels
+
+
+def _adjudication_summary(value: Any) -> Counter[str]:
+    """Fallback: the first `adjudication` count block found, when no rows exist."""
+    if isinstance(value, dict):
+        nested = value.get("adjudication")
+        if isinstance(nested, dict):
+            counts: Counter[str] = Counter()
+            for label, count in nested.items():
+                if isinstance(count, (int, float)) and not isinstance(count, bool):
+                    counts[str(label).upper()] += int(count)
+            return counts
+        for child in value.values():
+            found = _adjudication_summary(child)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found = _adjudication_summary(child)
+            if found:
+                return found
+    return Counter()
+
+
 def _adjudication_precision(path: Path | None) -> tuple[float | None, float | None]:
-    """Return strict/lenient precision when an adjudication file is supplied."""
+    """Return strict/lenient precision when an adjudication file is supplied.
+
+    Each adjudicated confirm is counted once, from its row; summary blocks are
+    used only when a file carries no rows. Labels outside the explicit map
+    (diagnostic subsets such as FP_FRAGMENT_UNITS) never enter the denominator.
+    """
     if path is None:
         return None, None
     payload = json.loads(path.read_text(encoding="utf-8"))
     counts: Counter[str] = Counter()
-
-    def visit(value: Any) -> None:
-        if isinstance(value, dict):
-            nested = value.get("adjudication")
-            if isinstance(nested, dict):
-                for label, count in nested.items():
-                    if isinstance(count, (int, float)) and not isinstance(count, bool):
-                        counts[str(label).upper()] += count
-            label = value.get("verdict", value.get("adjudication"))
-            if isinstance(label, str):
-                counts[label.upper()] += 1
-            for child in value.values():
-                visit(child)
-        elif isinstance(value, list):
-            for child in value:
-                visit(child)
-
-    visit(payload)
-    tp = counts.get("TP", 0)
-    fp = sum(count for label, count in counts.items() if label.startswith("FP"))
-    borderline = counts.get("B", counts.get("BORDERLINE", 0))
+    rows = _adjudication_rows(payload)
+    if rows:
+        for label in rows:
+            mapped = _ADJUDICATION_LABELS.get(label)
+            if mapped:
+                counts[mapped] += 1
+    else:
+        for label, count in _adjudication_summary(payload).items():
+            mapped = _ADJUDICATION_LABELS.get(label)
+            if mapped:
+                counts[mapped] += count
+    tp = counts["TP"]
+    fp = counts["FP"]
+    borderline = counts["B"]
     denominator = tp + fp + borderline
     if not denominator:
         return None, None
