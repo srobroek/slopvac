@@ -9,14 +9,14 @@
       "value": null
     },
     "evidence_validity": {
-      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
       "value": null
     },
     "failed": null,
     "not_run": null,
     "precision": {
       "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
-      "value": 34
+      "value": 26
     },
     "response_rows": {
       "definition": "response rows, not units; duplicate rows are not additional units",
@@ -24,16 +24,21 @@
     },
     "truncated": null
   },
+  "derivation": {
+    "adjudication": "per-confirm adjudication rows",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
+  },
   "metrics": {
     "abstention_rate": null,
     "evidence_validity": null,
-    "lenient_precision": 0.29411764705882354,
-    "strict_precision": 0.029411764705882353
+    "lenient_precision": 0.38461538461538464,
+    "strict_precision": 0.038461538461538464
   },
   "not_derivable": [
     "denominators.all_units.distinct_unit_ids",
     "metrics.abstention_rate",
-    "metrics.evidence_validity"
+    "metrics.evidence_validity",
+    "raw_adjudication.unknown_labels"
   ],
   "per_rule": [
     {
@@ -46,17 +51,9 @@
     },
     {
       "borderline": 1,
-      "fp": 8,
-      "lenient_precision": 0.1111111111111111,
+      "fp": 6,
+      "lenient_precision": 0.14285714285714285,
       "rule_id": "ai-tells-register.false-agency-remainder",
-      "strict_precision": 0.0,
-      "tp": 0
-    },
-    {
-      "borderline": 0,
-      "fp": 1,
-      "lenient_precision": 0.0,
-      "rule_id": "ai-tells-register.faux-candor-remainder",
       "strict_precision": 0.0,
       "tp": 0
     },
@@ -77,26 +74,17 @@
       "tp": 0
     },
     {
-      "borderline": 0,
-      "fp": 2,
-      "lenient_precision": 0.0,
-      "rule_id": "ai-tells-structure.false-suspense-remainder",
-      "strict_precision": 0.0,
-      "tp": 0
-    },
-    {
       "borderline": 2,
-      "fp": 10,
-      "lenient_precision": 0.16666666666666666,
+      "fp": 7,
+      "lenient_precision": 0.2222222222222222,
       "rule_id": "ai-tells-structure.heading-echo",
       "strict_precision": 0.0,
       "tp": 0
     }
   ],
   "raw_adjudication": {
-    "BORDERLINE": 9,
+    "B": 9,
     "FP": 16,
-    "FP-FRAGMENT-UNIT": 8,
     "TP": 1
   },
   "raw_outcomes": {},
@@ -409,5 +397,8 @@
     }
   ],
   "schema_version": 1,
-  "source": "heldout-baseline-adjudication.json"
+  "source": "heldout-baseline-adjudication.json",
+  "unknown_adjudication_labels": [
+    "FP-FRAGMENT-UNIT"
+  ]
 }

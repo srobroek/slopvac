@@ -41,3 +41,31 @@ def test_real_records_normalize_deterministically_and_declare_nulls(tmp_path: Pa
         for metric, value in normalized["metrics"].items():
             if value is None:
                 assert any(entry.startswith(f"metrics.{metric}") for entry in normalized["not_derivable"])
+
+
+def test_normalized_measurements_use_authoritative_counters(tmp_path: Path) -> None:
+    records = tmp_path / "evaluation"
+    records.mkdir()
+    for name in TARGETS:
+        shutil.copy2(EVALUATION / name, records / name)
+    subprocess.run([sys.executable, str(SCRIPT), str(records)], check=True, cwd=ROOT)
+
+    def load(name: str) -> dict:
+        return json.loads((records / f"{name}.normalized.json").read_text(encoding="utf-8"))
+
+    local = load("local-corpus-run")
+    assert local["denominators"]["precision"]["value"] == 37
+    assert local["metrics"]["strict_precision"] == 9 / 37
+    assert local["metrics"]["lenient_precision"] == 17 / 37
+
+    sibling = load("sibling-full-run")
+    assert sibling["denominators"]["precision"]["value"] == 95
+    assert sibling["metrics"]["strict_precision"] == 5 / 95
+    assert sibling["metrics"]["lenient_precision"] == 13 / 95
+    assert sibling["denominators"]["evidence_validity"]["value"] == 1969
+    assert sibling["metrics"]["evidence_validity"] == 95 / 1969
+
+    for name in ("heldout-baseline", "heldout-v2"):
+        heldout = load(name)
+        assert heldout["metrics"]["evidence_validity"] is None
+        assert "metrics.evidence_validity" in heldout["not_derivable"]

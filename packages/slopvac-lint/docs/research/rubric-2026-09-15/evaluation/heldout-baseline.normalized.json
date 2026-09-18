@@ -9,14 +9,14 @@
       "value": null
     },
     "evidence_validity": {
-      "definition": "model confirms; numerator confirms passing the exact-evidence gate",
-      "value": 20
+      "definition": "model confirms before the host evidence gate; numerator sums host confirms after the gate",
+      "value": null
     },
     "failed": null,
     "not_run": null,
     "precision": {
       "definition": "TP + FP + borderline; strict treats borderline as FP, lenient treats borderline as TP",
-      "value": 34
+      "value": 26
     },
     "response_rows": {
       "definition": "response rows, not units; duplicate rows are not additional units",
@@ -24,21 +24,26 @@
     },
     "truncated": null
   },
+  "derivation": {
+    "adjudication": "summary adjudication counts (no per-confirm rows available)",
+    "evidence_validity": "host_confirms_after_gate / model_confirms_before_gate"
+  },
   "metrics": {
     "abstention_rate": null,
-    "evidence_validity": 1.0,
-    "lenient_precision": 0.29411764705882354,
-    "strict_precision": 0.029411764705882353
+    "evidence_validity": null,
+    "lenient_precision": 0.38461538461538464,
+    "strict_precision": 0.038461538461538464
   },
   "not_derivable": [
     "denominators.all_units.distinct_unit_ids",
-    "metrics.abstention_rate"
+    "metrics.abstention_rate",
+    "metrics.evidence_validity",
+    "raw_adjudication.unknown_labels"
   ],
   "per_rule": [],
   "raw_adjudication": {
-    "BORDERLINE": 9,
+    "B": 9,
     "FP": 16,
-    "FP-FRAGMENT-UNIT": 8,
     "TP": 1
   },
   "raw_outcomes": {
@@ -97,5 +102,8 @@
     "schema": "heldout-run"
   },
   "schema_version": 1,
-  "source": "heldout-baseline.json"
+  "source": "heldout-baseline.json",
+  "unknown_adjudication_labels": [
+    "FP-FRAGMENT-UNIT"
+  ]
 }
