@@ -22,12 +22,21 @@ from rich.table import Table
 
 from . import __version__
 from .analyze import parse
-from .compile_vale import CompileResult, ValeUnavailable, compile_ruleset, compiled_levels
+from .compile_vale import (
+    SOURCE_FILENAMES,
+    SOURCE_LANGUAGE_BY_EXTENSION,
+    CompileResult,
+    ValeUnavailable,
+    canonical_source_language,
+    compile_ruleset,
+    compiled_levels,
+)
 from .config import (
     CategorySettings,
     Config,
     ConfigError,
     LocalePatch,
+    Mode,
     Override,
     Profile,
     RuleSettings,
@@ -50,32 +59,20 @@ from .vale_probe import rst_converter
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
 LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
-COMMENTABLE = (
-    "*.py",
-    "*.pyi",
-    "*.js",
-    "*.jsx",
-    "*.ts",
-    "*.tsx",
-    "*.java",
-    "*.go",
-    "*.rs",
-    "*.c",
-    "*.cc",
-    "*.cpp",
-    "*.cxx",
-    "*.cs",
-    "*.kt",
-    "*.swift",
-    "*.sh",
-    "*.bash",
-    "*.zsh",
-    "*.fish",
-    "*.sql",
-    "*.toml",
-    "*.yaml",
-    "*.yml",
+SOURCE_LINTABLE = tuple(f"*{suffix}" for suffix in SOURCE_LANGUAGE_BY_EXTENSION) + tuple(
+    SOURCE_FILENAMES
 )
+COMMENTABLE = (*SOURCE_LINTABLE, "*.toml", "mise.toml")
+
+
+def _comment_source_language(path: Path | str) -> tuple[str, str]:
+    """Return a comment scope identity, including TOML's syntax projection."""
+    candidate = Path(path)
+    if candidate.suffix.lower() == ".toml":
+        return "toml", ".toml"
+    return canonical_source_language(candidate)
+
+
 SKIP_SOURCE_DIRS = frozenset(
     {
         ".git",
@@ -116,11 +113,16 @@ class RunContext:
     paths: list[Path]
     locale_notes: dict[Path, str]
     diff_scope: DiffScope | None = None
+    mode: Mode = Mode.PROSE
     comments: bool = False
-    # Notes about targets that were asked for and could not be collected (an
-    # `.rst` with no converter on PATH). They ride on the first document's
-    # `unchecked` so the run exits 2 rather than reporting a clean subset.
+    # Informational notes about directory entries omitted from code-comment scans.
+    # They are emitted in JSON/text and do not affect the exit status.
     collection_notes: list[str] = field(default_factory=list)
+    # Notes about targets that were asked for and could not be collected (an
+    # `.rst` with no converter on PATH). These remain unchecked so the run exits 2.
+    collection_unchecked: list[str] = field(default_factory=list)
+
+
 
 
 def _relative_to_config(path: Path, config: Config) -> str:
@@ -137,11 +139,18 @@ def _expand_paths(
     targets: tuple[str, ...],
     notes: list[str] | None = None,
     *,
-    comments: bool = False,
+    comments: bool | None = False,
+    skipped: dict[Path, str] | None = None,
 ) -> list[Path]:
+
     """Expand targets with the document/source selection used by the CLI."""
     found: list[Path] = []
-    patterns = COMMENTABLE if comments else LINTABLE
+    if comments is None:
+        patterns = tuple(dict.fromkeys((*LINTABLE, *COMMENTABLE)))
+    else:
+        patterns = COMMENTABLE if comments else LINTABLE
+    prose_patterns = LINTABLE
+
     for target in targets:
         path = Path(target)
         if path.is_dir():
@@ -152,14 +161,38 @@ def _expand_paths(
                     if name not in SKIP_SOURCE_DIRS
                     and not (Path(directory) / name).is_symlink()
                 )
-                found.extend(
-                    Path(directory) / name
-                    for name in sorted(files)
-                    if any(fnmatch.fnmatch(name, pattern) for pattern in patterns)
-                    and not (Path(directory) / name).is_symlink()
-                )
+                for name in sorted(files):
+                    candidate = Path(directory) / name
+                    if candidate.is_symlink():
+                        continue
+                    if not comments and candidate.name.lower() in {"slopvac.toml", ".slopvac.toml"}:
+                        continue
+                    if any(
+                        fnmatch.fnmatch(name.lower(), pattern.lower()) for pattern in patterns
+                    ):
+                        found.append(candidate)
+                    elif comments is not False and not any(
+                        fnmatch.fnmatch(name.lower(), pattern.lower()) for pattern in prose_patterns
+                    ):
+                        try:
+                            canonical_source_language(candidate)
+                        except ValueError as exc:
+                            message = (
+                                f"unsupported source language skipped: {candidate} ({exc})"
+                            )
+                            if skipped is not None:
+                                skipped[candidate] = message
+                            if notes is not None:
+                                notes.append(message)
+
         elif path.is_file():
+            if comments is True:
+                try:
+                    _comment_source_language(path)
+                except ValueError as exc:
+                    raise click.ClickException(str(exc)) from None
             found.append(path)
+
         else:
             pattern = Path(target)
             if pattern.is_absolute():
@@ -169,22 +202,34 @@ def _expand_paths(
                 matches = sorted(Path().glob(target))
             if not matches:
                 raise click.ClickException(f"no such file or directory: {target}")
-            found.extend(m for m in matches if m.is_file())
+            for match in matches:
+                if not match.is_file():
+                    continue
+                if comments is True:
+                    try:
+                        _comment_source_language(match)
+                    except ValueError as exc:
+                        raise click.ClickException(str(exc)) from None
+                found.append(match)
+
 
     kept = [
         path
         for path in found
-        if any(fnmatch.fnmatch(path.name, pattern) for pattern in patterns)
+        if any(fnmatch.fnmatch(path.name.lower(), pattern.lower()) for pattern in patterns)
     ]
     skipped_rst = [path for path in kept if path.suffix.lower() == ".rst"]
     if skipped_rst and rst_converter() is None:
         kept = [path for path in kept if path.suffix.lower() != ".rst"]
+        message = (
+            f"RST target(s) skipped: rst2html or rst2html.py not found on PATH "
+            f"({', '.join(str(path) for path in skipped_rst)}); install with `pip install docutils`."
+        )
+        if skipped is not None:
+            for path in skipped_rst:
+                skipped[path] = message
         if notes is not None:
-            names = ", ".join(str(path) for path in skipped_rst)
-            notes.append(
-                f"RST target(s) skipped: rst2html or rst2html.py not found on PATH "
-                f"({names}); install with `pip install docutils`."
-            )
+            notes.append(message)
     seen: set[Path] = set()
     unique: list[Path] = []
     for path in kept:
@@ -281,19 +326,45 @@ def lint_one(
 ) -> DocumentScore:
     resolved = resolve_for(config, path)
     text = path.read_text(encoding="utf-8", errors="replace")
-    source = _comment_projection(path, text) if comments else text
-    document = parse(str(path), source)
+
+    if resolved.mode is Mode.CODE_COMMENTS:
+        unchecked: list[str] = list(extra_unchecked or [])
+        if vale_result is not None:
+            findings = vale_result.findings_for(str(path))
+            unchecked.extend(vale_result.unchecked)
+            document = parse(str(path), _comment_projection(path, text))
+        else:
+            # An explicit --no-vale still runs the native projection where it is
+            # available, while the run notes make the Vale gap fail closed.
+            document = parse(str(path), _comment_projection(path, text))
+            findings = Engine(ruleset.rules, resolved).run(document)
+        if diff_scope is not None:
+            ranges = diff_scope.ranges_for(path)
+            by_id = {rule.qualified_id: rule for rule in ruleset.rules}
+            findings = filter_findings(findings, by_id, ranges, text)
+        return score_document(
+            path=str(path),
+            findings=findings,
+            words=document.words,
+            sentences=len(document.sentences),
+            paragraphs=len(document.paragraphs),
+            config=resolved,
+            categories_meta=ruleset.weights,
+            unchecked=unchecked,
+        )
+
+    document = parse(str(path), text)
     engine = Engine(ruleset.rules, resolved, only=native_only)
     findings = engine.run(document)
 
-    unchecked: list[str] = list(extra_unchecked or [])
+    unchecked = list(extra_unchecked or [])
     missing = engine.unimplemented_metrics()
     if missing:
         unchecked.append(
             f"{len(missing)} metric rule(s) have no implementation in either "
             f"engine, so they did NOT run: {', '.join(missing)}"
         )
-    if vale_result is not None and not comments:
+    if vale_result is not None:
         whole = Engine(ruleset.rules, resolved)
         merged: list[Finding] = []
         for finding in whole.drop_suppressed(
@@ -321,8 +392,6 @@ def lint_one(
             )
         findings.extend(merged)
         unchecked.extend(vale_result.unchecked)
-    elif comments and vale_result is not None:
-        unchecked.append("Vale is not run in source-comment mode")
 
     if diff_scope is not None:
         ranges = diff_scope.ranges_for(path)
@@ -348,25 +417,25 @@ def _compile_for(
     *,
     validate: bool = True,
 ) -> tuple[CompileResult | None, list[str]]:
-    """Compile the ruleset for `sample`'s resolved config.
-
-    Returns `(None, notes)` when Vale is unusable, so the caller reports the gap
-    rather than dying: the native rules still run, and a linter that refuses to
-    start because a Go binary is missing is worse than one that says what it
-    skipped.
-    """
+    """Compile the ruleset for `sample`'s resolved config."""
     resolved = resolve_for(config, sample)
-    # The resolved binary, not the top-level one: a path override may point one
-    # tree at another Vale, and the tree it compiles must be the one it runs.
+    source_language = source_extension = None
+    if resolved.mode is Mode.CODE_COMMENTS:
+        source_language, source_extension = _comment_source_language(sample)
     try:
         if validate:
-            return compile_ruleset(
-                ruleset,
-                resolved,
-                binary=resolved.vale.binary,
-                validate=True,
-                vocabulary=vocabulary,
-            ), []
+            return (
+                compile_ruleset(
+                    ruleset,
+                    resolved,
+                    binary=resolved.vale.binary,
+                    validate=True,
+                    vocabulary=vocabulary,
+                    source_language=source_language,
+                    source_extension=source_extension,
+                ),
+                [],
+            )
         with tempfile.TemporaryDirectory(prefix="slopvac-routing-") as directory:
             compiled = compile_ruleset(
                 ruleset,
@@ -375,6 +444,8 @@ def _compile_for(
                 binary=resolved.vale.binary,
                 validate=False,
                 vocabulary=vocabulary,
+                source_language=source_language,
+                source_extension=source_extension,
             )
             return compiled, []
     except ValeUnavailable as exc:
@@ -476,12 +547,20 @@ def vale_levels(
     return severities, categories
 
 
-def report_text(scores: list[DocumentScore], console: Console, verbose: bool) -> None:
+def report_text(
+    scores: list[DocumentScore],
+    console: Console,
+    verbose: bool,
+    notes: list[str] | None = None,
+) -> None:
+    for note in notes or []:
+        console.print(f"[yellow]SKIPPED[/] {note}")
     for score in scores:
         for finding in score.findings:
             console.print(finding.as_line(), highlight=False)
         for note in score.unchecked:
             console.print(f"[yellow]UNCHECKED[/] {score.path}: {note}")
+
 
     summary = summarize(scores)
     console.print()
@@ -531,7 +610,9 @@ def emit_report(
     open_report: bool,
     format_given: bool,
     verbose: bool,
+    notes: list[str] | None = None,
 ) -> None:
+
     """Render the run in one format and deliver it to stdout, a file, or a browser.
 
     `--out` alone means an HTML report; `--out` with an explicit `--format` writes
@@ -570,11 +651,13 @@ def emit_report(
         else:
             click.echo(page, nl=False)
     elif output_format == "text":
-        report_text(scores, console, verbose)
+        report_text(scores, console, verbose, notes)
+
     else:
         if output_format == "json":
             rendered = LintReport(
-                version=__version__, summary=summarize(scores), documents=scores
+                version=__version__, summary=summarize(scores), documents=scores,
+                notes=notes or [],
             ).emit()
         elif output_format == "github":
             # Workflow-command annotations, so findings land on the PR diff.
@@ -618,13 +701,28 @@ def load_run_context(
     min_score: float | None,
     max_per_100_words: float | None,
     locale_tag: str | None,
+    mode: str | Mode | None = None,
     diff_scope: DiffScope | None = None,
     comments: bool = False,
 ) -> RunContext:
     """Discover and apply the nearest config independently for every target."""
+    auto_mode = mode is None and not comments
+    selected_mode = (
+        Mode(mode)
+        if mode is not None
+        else Mode.CODE_COMMENTS
+        if comments
+        else Mode.PROSE
+    )
     collection_notes: list[str] = []
+    skipped_collections: dict[Path, str] = {}
     try:
-        candidates = _expand_paths(targets, collection_notes, comments=comments)
+        candidates = _expand_paths(
+            targets,
+            collection_notes,
+            comments=None if auto_mode else selected_mode is Mode.CODE_COMMENTS,
+            skipped=skipped_collections,
+        )
     except click.ClickException as exc:
         raise PipelineError(f"[red]{exc.message}[/]") from None
     if diff_scope is not None:
@@ -645,12 +743,19 @@ def load_run_context(
                 raise PipelineError(f"[red]config error[/]: {exc}") from None
         return loaded[key]
 
+    # Automatic mode needs configs for explicit files and skipped directory
+    # entries before it can decide which input surface they belong to.
+    if auto_mode:
+        for target in targets:
+            path = Path(target)
+            if path.is_file():
+                load_discovered(explicit or find_config(path))
+    for path in skipped_collections:
+        load_discovered(explicit or find_config(path))
+
     # An empty directory still needs its nearest config loaded so malformed
     # configuration is reported rather than silently treated as a clean run.
-    if not candidates:
-        starts = [Path(target) for target in targets]
-    else:
-        starts = candidates
+    starts = [Path(target) for target in targets] if not candidates else candidates
     base_by_path: dict[Path, Config] = {}
     for path in starts:
         discovered = explicit or find_config(path if path.exists() else Path.cwd())
@@ -710,6 +815,8 @@ def load_run_context(
     effective_by_source: dict[Path | None, Config] = {}
     for source, base in loaded.items():
         config = copy.deepcopy(base)
+        if not auto_mode:
+            config.mode = selected_mode
         if has_cli_override:
             config.overrides.append(copy.deepcopy(cli_override))
         effective_by_source[source] = config
@@ -720,10 +827,46 @@ def load_run_context(
         base = base_by_path[path]
         source = base.source.resolve() if base.source is not None else None
         config = effective_by_source[source]
+        if auto_mode:
+            patterns = COMMENTABLE if config.mode is Mode.CODE_COMMENTS else LINTABLE
+            if not any(
+                fnmatch.fnmatch(path.name.lower(), pattern.lower()) for pattern in patterns
+            ):
+                continue
         if config.is_excluded(_relative_to_config(path, config)):
             continue
         paths.append(path)
         configs[path] = config
+
+    # An explicit file still has to fail when its selected code-comment mode
+    # cannot map the suffix to a source language.
+    if auto_mode:
+        for target in targets:
+            path = Path(target)
+            if not path.is_file():
+                continue
+            discovered = explicit or find_config(path)
+            base = load_discovered(discovered)
+            source = base.source.resolve() if base.source is not None else None
+            config = effective_by_source[source]
+            if config.mode is Mode.CODE_COMMENTS:
+                try:
+                    _comment_source_language(path)
+                except ValueError as exc:
+                    raise PipelineError(f"[red]{exc}[/]") from None
+    informational: list[str] = []
+    incomplete: list[str] = []
+    for path, message in skipped_collections.items():
+        discovered = explicit or find_config(path)
+        base = load_discovered(discovered)
+        source = base.source.resolve() if base.source is not None else None
+        config = effective_by_source[source]
+        if message.startswith("unsupported source language skipped:"):
+            if config.mode is Mode.CODE_COMMENTS and message not in informational:
+                informational.append(message)
+        elif config.mode is Mode.PROSE and message not in incomplete:
+            incomplete.append(message)
+    collection_notes = informational
 
     # The generated spelling rule is part of the ruleset, so keep one ruleset
     # per final locale. All other rules are loaded once and deep-copied locally.
@@ -744,9 +887,7 @@ def load_run_context(
         local, _ = ruleset_for(config.locale.default, config.locale.allow)
         name_errors.extend(validate_names(config, local))
     if name_errors:
-        raise PipelineError(
-            [f"[red]config error[/] {message}" for message in name_errors]
-        )
+        raise PipelineError([f"[red]config error[/] {message}" for message in name_errors])
 
     rulesets: dict[Path, RuleSet] = {}
     for path in paths:
@@ -768,8 +909,10 @@ def load_run_context(
         paths=paths,
         locale_notes=locale_notes,
         diff_scope=diff_scope,
-        comments=comments,
+        mode=selected_mode,
+        comments=selected_mode is Mode.CODE_COMMENTS,
         collection_notes=collection_notes,
+        collection_unchecked=incomplete,
     )
 
 
@@ -801,6 +944,10 @@ def group_inputs(
                 repr(sorted(levels.items())),
                 repr(resolved.vale.model_dump()),
                 repr(resolved.locale.model_dump()),
+                resolved.mode.value,
+                repr(_comment_source_language(path))
+                if resolved.mode is Mode.CODE_COMMENTS
+                else "",
             )
         )
         groups.setdefault(key, []).append(path)
@@ -849,6 +996,7 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 )
             )
         else:
+            run_notes.extend(unchecked_for_skipped(compiled, vale_skipped=False))
             severities, categories = vale_levels(compiled, ruleset, config, sample)
             vale_result = run_compiled_vale(
                 group, compiled, severities, categories, binary=vale_settings.binary
@@ -882,9 +1030,9 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 score.unchecked.append(note)
             scores.append(score)
 
-    if ctx.collection_notes:
+    if ctx.collection_unchecked:
         if scores:
-            scores[0].unchecked.extend(ctx.collection_notes)
+            scores[0].unchecked.extend(ctx.collection_unchecked)
         else:
             # Every target was skipped (a directory of .rst files with no
             # converter): an incomplete result, not the no-files success.
@@ -893,7 +1041,11 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 DocumentScore(
                     path="<collection>",
                     profile=first.profile.value if first else Profile.NORMAL.value,
-                    unchecked=list(ctx.collection_notes),
+                    words=0,
+                    sentences=0,
+                    paragraphs=0,
+                    passed=False,
+                    unchecked=list(ctx.collection_unchecked),
                 )
             )
     # Back into the order the caller asked for, since the groups reordered them.

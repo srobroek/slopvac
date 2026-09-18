@@ -46,7 +46,8 @@ vale --config=build/vale/.vale.ini docs/
 
 ## Supported file types
 
-Directory targets collect `.md`, `.mdx`, `.markdown`, `.txt`, and `.html` files.
+Directory targets collect `.md`, `.mdx`, `.markdown`, `.txt`, `.rst`, `.html`, and `.toml` files.
+The tool excludes `slopvac.toml` and `.slopvac.toml` from directory targets.
 `.rst` files are collected when the Docutils `rst2html` (or `rst2html.py`)
 command is on `PATH`; install it with `pip install docutils`. Without that
 converter, selected RST targets are reported as unchecked and the run exits 2.
@@ -60,18 +61,20 @@ run:
 slopvac lint --mode code-comments src/
 ```
 
+The legacy `--comments` flag is an alias for `--mode code-comments`.
 The mode selects supported source extensions in a directory, or validates an
 explicit source file. Vale runs comment-safe lexical rules against ordinary line
 and block comment scopes (`text.comment.line.<extension>` and
 `text.comment.block.<extension>`). Documentation comments are included when the
-language exposes them through those ordinary scopes; this mode is not a separate
-documentation-only pass. Strings and source code are not linted.
+language exposes them through those ordinary scopes. Strings and source code are
+not linted.
 
 Comment mode accepts mixed supported extensions, preserves source paths and
-finding locations, and skips configured exclusions. Unsupported files in a
-directory are ignored; an explicitly named unsupported source file is an error.
-`--mode` is global and cannot be set by an `[[overrides]]` block. The default
-`prose` mode, including TOML comment projection, is unchanged.
+finding locations, and skips configured exclusions. An unsupported file in a
+directory produces a non-failing skip note. An explicitly named unsupported
+source file is an error. `--mode` is global and cannot be set by an
+`[[overrides]]` block. The default `prose` mode, including TOML comment
+projection, is unchanged.
 Code-comments mode uses the packaged Vale config and styles; custom `vale.config`
 and nonempty `vale.styles` settings are rejected, including in per-file overrides.
 
