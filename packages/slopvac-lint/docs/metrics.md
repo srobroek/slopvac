@@ -166,6 +166,10 @@ A sentence ends at any of:
 
 After a dotted initialism, one space followed by a capitalized word is a sentence boundary only when the word is in the closed-class `INITIALISM_SENTENCE_OPENERS` set (the determiners, pronouns, conjunction/adverbial openers, and prepositions listed by that constant); any other capitalized word is treated as a proper-noun continuation and remains joined. The accepted error is that a sentence beginning with a proper noun directly after an initialism stays joined.
 
+### Projected source mapping and identity
+
+Every sentence and prose segment has a deterministic `id` derived from the document path, segment kind, source SHA-256, ordered merged half-open UTF-8 source byte spans, and its ordinal within the containing block (or document for a block segment). The shared Markdown/HTML projection maps normalized text back to source spans and 1-based source line and Unicode-scalar column coordinates. Lists, tables, front matter, soft breaks, HTML, and excluded code use this same map; excluded regions produce no prose sentence or segment. Synthetic join spaces and inline-code sentinels have no source span. Judgement units expose the same identity as `unit_id` and must consume this projection rather than reconstructing coordinates.
+
 Non-terminators, because each produces a false split:
 
 - A period inside a collapsed span from phases 1 through 8. Run the collapse phases before
