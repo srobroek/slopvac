@@ -144,6 +144,8 @@ def invoke(args: argparse.Namespace) -> None:
                 result = client.converse(**kwargs)
                 raw_text = response_text(result)
                 stop_reason = result.get("stopReason")
+                if stop_reason != "end_turn":
+                    raise ValueError(f"stop_reason={stop_reason}")
                 parsed = parse_json(raw_text)
                 results.append({"call_id": row["call_id"], "response": parsed})
                 err = None
@@ -187,15 +189,15 @@ def collect(args: argparse.Namespace) -> None:
             if not cid:
                 continue
             try:
-                if "modelOutput" in record:
-                    value = response_text(record["modelOutput"])
-                elif "error" in record:
+                value = response_text(record.get("modelOutput", record.get("output", record)))
+                stop_reason = record.get("modelOutput", {}).get("stopReason") if isinstance(record.get("modelOutput"), dict) else record.get("stopReason")
+                if "error" in record:
                     raise ValueError(record["error"])
-                else:
-                    value = response_text(record.get("output", record))
+                if stop_reason != "end_turn":
+                    raise ValueError(f"stop_reason={stop_reason}")
                 mapped.append({"call_id": cid, "response": parse_json(value)})
             except Exception as exc:
-                mapped.append({"call_id": cid, "error": f"parse: {exc}", "raw": value if "value" in locals() else ""})
+                mapped.append({"call_id": cid, "error": str(exc)[:300], "raw": value if "value" in locals() else "", "stop_reason": stop_reason if "stop_reason" in locals() else None})
     append_rows(Path(args.out), mapped)
 
 

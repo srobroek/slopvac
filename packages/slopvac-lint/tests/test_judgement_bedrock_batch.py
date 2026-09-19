@@ -34,7 +34,7 @@ def test_parse_json_fenced_unfenced_and_garbage():
 def test_collect_maps_records(monkeypatch, tmp_path):
     class Body:
         def read(self):
-            return b'{"recordId":"a","modelOutput":{"output":{"message":{"content":[{"text":"{\\"ok\\":true}"}]}}}}\n'
+            return b'{"recordId":"a","modelOutput":{"stopReason":"end_turn","output":{"message":{"content":[{"text":"{\\"ok\\":true}"}]}}}}\n'
     class S3:
         def list_objects_v2(self, **kwargs): return {"Contents": [{"Key": "job/output/part.jsonl.out"}]}
         def get_object(self, **kwargs): return {"Body": Body()}
@@ -58,5 +58,6 @@ def test_invoke_preserves_raw_and_stop_reason_on_parse_error(monkeypatch, tmp_pa
     out = tmp_path / "out.jsonl"
     runner.invoke(SimpleNamespace(todo=str(todo), out=str(out), model_id="m", max_tokens=8192, temperature=None, concurrency=1))
     result = json.loads(out.read_text())
+    assert result["error"] == "stop_reason=max_tokens"
     assert result["raw"] == '{"broken":'
     assert result["stop_reason"] == "max_tokens"
