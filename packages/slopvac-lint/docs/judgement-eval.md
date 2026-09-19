@@ -177,3 +177,6 @@ verdicts that disagree with the modal verdict; malformed or missing repeats are
 ABSTAIN. A rate strictly greater than 10% selects `majority-of-3` for that rule;
 exactly 10% remains `single-call` (the cz0.12 policy). The generated
 `noise-floor.json` and `noise-floor.md` contain unit and per-rule rates.
+The registration selects IDs from the wider run's `prompts.jsonl`, not from responses.
+Use `PYTHONPATH=src uv run scripts/judgement_noise_floor.py prepare` and then
+`PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse` with the paths above.
