@@ -85,7 +85,7 @@ def submit(args: argparse.Namespace) -> None:
     output_prefix = f"{args.job_name}/output/"
     payload = "".join(json.dumps({"recordId": r["call_id"], "modelInput": inference_body(r, args)}) + "\n" for r in rows)
     s3.put_object(Bucket=args.bucket, Key=input_key, Body=payload.encode())
-    cfg = {"max_tokens": args.max_tokens, "temperature": args.temperature}
+    cfg = {"max_tokens": args.max_tokens}
     kwargs = {
         "jobName": args.job_name,
         "roleArn": args.role_arn,
@@ -125,28 +125,35 @@ def invoke(args: argparse.Namespace) -> None:
     rows = read_jsonl(Path(args.todo))
     out = Path(args.out)
     boto3 = load_boto3()
-    client = boto3.client("bedrock-runtime")
+    try:
+        from botocore.config import Config
+        config = Config(read_timeout=600, connect_timeout=10, retries={"max_attempts": 3, "mode": "adaptive"})
+    except ImportError:
+        config = None
+    client = boto3.client("bedrock-runtime", **({"config": config} if config else {}))
     pending = [r for r in rows if r["call_id"] not in successful_ids([out])]
     results: list[dict[str, Any]] = []
     for row in pending:
         err = None
+        raw_text = ""
+        stop_reason = None
         for attempt in range(3):
             try:
                 kwargs = {"modelId": args.model_id, "messages": [{"role": "user", "content": [{"text": make_prompt(row)}]}], "inferenceConfig": {"maxTokens": args.max_tokens}}
                 kwargs["system"] = [{"text": row["prompt"]["system"]}]
-                if args.temperature is not None:
-                    kwargs["inferenceConfig"]["temperature"] = args.temperature
                 result = client.converse(**kwargs)
-                parsed = parse_json(response_text(result))
+                raw_text = response_text(result)
+                stop_reason = result.get("stopReason")
+                parsed = parse_json(raw_text)
                 results.append({"call_id": row["call_id"], "response": parsed})
                 err = None
                 break
-            except Exception as exc:  # provider and parse failures are resumable rows
+            except Exception as exc:
                 err = exc
                 if attempt < 2:
                     time.sleep((2**attempt) + random.random())
         if err is not None:
-            results.append({"call_id": row["call_id"], "error": str(err)[:300], "raw": ""})
+            results.append({"call_id": row["call_id"], "error": str(err)[:300], "raw": raw_text[:4000], "stop_reason": stop_reason})
         append_rows(out, results[-1:])
 
 
@@ -196,12 +203,13 @@ def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="command", required=True)
     t = sub.add_parser("todo"); t.add_argument("--prompts", required=True); t.add_argument("--responses", action="append", required=True); t.add_argument("--out", required=True); t.set_defaults(func=todo)
-    common = argparse.ArgumentParser(add_help=False); common.add_argument("--max-tokens", type=int, default=4096); common.add_argument("--temperature", type=float)
+    common = argparse.ArgumentParser(add_help=False); common.add_argument("--max-tokens", type=int, default=8192); common.add_argument("--temperature", type=float)
     s = sub.add_parser("submit", parents=[common]); s.add_argument("--todo", required=True); s.add_argument("--model-id", required=True); s.add_argument("--bucket", required=True); s.add_argument("--role-arn", required=True); s.add_argument("--job-name", required=True); s.add_argument("--out-dir", required=True); s.set_defaults(func=submit)
     c = sub.add_parser("collect"); c.add_argument("--job-dir", required=True); c.add_argument("--todo"); c.add_argument("--out", required=True); c.add_argument("--poll-seconds", type=int, default=30); c.set_defaults(func=collect)
     i = sub.add_parser("invoke", parents=[common]); i.add_argument("--todo", required=True); i.add_argument("--model-id", required=True); i.add_argument("--out", required=True); i.add_argument("--concurrency", type=int, default=4); i.set_defaults(func=invoke)
     return p
 
 
+if __name__ == "__main__":
     parsed = parser().parse_args()
     parsed.func(parsed)
