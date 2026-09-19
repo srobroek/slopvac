@@ -160,6 +160,51 @@ def test_unique_quote_salvage_is_opt_in_and_rejects_duplicates() -> None:
     assert duplicate_output["evidence"][0]["start"] == 1
     assert duplicate_output["evidence"][0]["end"] == 2
 
+def test_finish_defaults_to_unique_quote_and_records_none_mode(tmp_path: Path) -> None:
+    from slopvac.judgement.driver import finish, prepare
+
+    config = Path(__file__).resolve().parents[3] / "slopvac.toml"
+    document = tmp_path / "fixture.md"
+    document.write_text("A useful paragraph with enough words.", encoding="utf-8")
+
+    def run(mode: str | None, out: Path) -> dict:
+        prepare(config=config, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+        units = [json.loads(line) for line in (out / "units.jsonl").read_text(encoding="utf-8").splitlines() if line]
+        calls = [json.loads(line) for line in (out / "prompts.jsonl").read_text(encoding="utf-8").splitlines() if line]
+        first_unit_id = units[0]["unit_id"]
+        by_id = {unit["unit_id"]: unit for unit in units}
+        response_rows = []
+        for call in calls:
+            rows = []
+            for unit_id in call["unit_ids"]:
+                unit = by_id[unit_id]
+                confirm = unit_id == first_unit_id
+                rows.append({
+                    "unit_id": unit_id, "rule_id": unit["rule_id"], "kind": unit["kind"],
+                    "note": "Synthetic response.", "admissible": True,
+                    "evidence": ([{"quote": unit["text"], "start": 1, "end": 1, "role": "defect", "source": "unit", "source_ref": unit_id}] if confirm else []),
+                    "occurrences": None, "occurrences_truncated": False,
+                    "scores": {"fit": "unambiguous_match" if confirm else "absent", "harm": "misleads_or_blocks" if confirm else "none", "repair": "local_substitution" if confirm else "inapplicable", "warrant": "quote_plus_particular" if confirm else "none"},
+                    "preservation_reason": None, "abstain_reason": None,
+                    "rewrite": "A revised paragraph." if confirm else None,
+                    "rewrite_status": "proposed" if confirm else "not_applicable",
+                    "verdict": "confirm" if confirm else "reject",
+                })
+            response_rows.append(json.dumps({"call_id": call["call_id"], "response": {"results": rows}}))
+        response_path = out.parent / f"responses-{out.name}.jsonl"
+        response_path.write_text("\n".join(response_rows) + "\n", encoding="utf-8")
+        return finish(out=out, responses=response_path, **({"offset_salvage": mode} if mode is not None else {}))
+
+    default_report = run(None, tmp_path / "default")
+    none_report = run("none", tmp_path / "none")
+    assert default_report["offset_salvage"] == "unique-quote"
+    assert default_report["evidence_offset_mismatch"] == 0
+    assert default_report["documents"][0]["coverage"]["attempted"] >= 1
+    assert default_report["documents"][0]["confirmed"] == 1
+    assert none_report["offset_salvage"] == "none"
+    assert none_report["documents"][0]["confirmed"] == 0
+    assert none_report["evidence_gate_discards"] == 1
+
 
 def test_finish_counts_confirm_without_evidence_as_gate_discard(tmp_path: Path) -> None:
     from slopvac.judgement.driver import finish, prepare

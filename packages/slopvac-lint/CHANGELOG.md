@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Clarify that judgement outcomes are reporting-only and never affect deterministic gates or counts.
+* `judgement finish` now defaults to Q02 `unique-quote` offset salvage; pass `--offset-salvage none` for raw-offset behavior, and reports record the selected mode.
 
 ## [1.0.0](https://github.com/srobroek/slopvac/compare/slopvac--v0.1.0...slopvac--v1.0.0) (2026-08-18)
 

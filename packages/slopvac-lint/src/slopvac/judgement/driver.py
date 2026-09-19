@@ -1508,7 +1508,7 @@ def _adjudication_precision(path: Path | None) -> tuple[float | None, float | No
     return tp / denominator, (tp + borderline) / denominator
 
 
-def finish(*, out: Path, responses: Path, offset_salvage: str | None = None, adjudication: Path | None = None) -> dict[str, Any]:
+def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", adjudication: Path | None = None) -> dict[str, Any]:
     """Validate response JSONL, adjudicate records, and write reports."""
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     unit_items = _read_jsonl(out / "units.jsonl")
@@ -1700,6 +1700,7 @@ def finish(*, out: Path, responses: Path, offset_salvage: str | None = None, adj
     strict_precision, lenient_precision = _adjudication_precision(adjudication)
     report = {
         "version": 1,
+        "offset_salvage": offset_salvage,
         **({"strict_precision": strict_precision, "lenient_precision": lenient_precision} if adjudication is not None else {}),
         "documents": report_documents,
         "coverage": coverage_dict,

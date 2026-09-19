@@ -82,6 +82,8 @@ and nonempty `vale.styles` settings are rejected, including in per-file override
 
 The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic error/warning counts, including the `max_errors` gate.
 
+`slopvac judgement finish` uses Q02's `unique-quote` offset salvage by default; pass `--offset-salvage none` to preserve raw model offsets. The selected mode is recorded in `report.json` as `offset_salvage`.
+
 The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response.
 
 Run the three stages in one output directory:
