@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.8.0](https://github.com/srobroek/slopvac/compare/v2.7.0...v2.8.0) (2026-09-19)
+
+
+### Features
+
+* **judgement:** add noise-floor instrument ([18c5cd1](https://github.com/srobroek/slopvac/commit/18c5cd1e81981d14589478af9499704413a49956))
+* **judgement:** add noise-floor instrument ([fc8398d](https://github.com/srobroek/slopvac/commit/fc8398dd8768de5b04bc016c32c0b8ca5a739ac0))
+
+
+### Bug Fixes
+
+* **judgement:** validate complete response sets ([323fc04](https://github.com/srobroek/slopvac/commit/323fc0471d399791437ccc8357ff054baaf7221e))
+
+
+### Documentation
+
+* **judgement:** clarify noise-floor registration ([4f08562](https://github.com/srobroek/slopvac/commit/4f085620f55d4a160138cdf4dc7bd51ffea63399))
+
 ## [2.7.0](https://github.com/srobroek/slopvac/compare/v2.6.0...v2.7.0) (2026-09-19)
 
 
