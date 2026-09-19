@@ -182,7 +182,33 @@ def profile_defaults(profile: Profile) -> dict[str, CategorySettings]:
 # strongest single origin signal in the corpora (24x denser in model prose) and
 # cost 6 hits in the human corpus. Profile defaults, not authored settings, so a
 # project's own `[rules."..."]` entry still wins.
+
+# Inclusive-language rules that every profile ships OFF. They stay in the ruleset
+# -- discoverable through `explain`, the reference, and `[rules]` -- because the
+# advice is sound where a project wants it; they are off by default because they
+# fire on register rather than on a defect, and a gate that rewrites `he` to `the
+# reader` inside quoted prose or a cited API name costs more trust than it buys.
+# This is a PER-RULE default, not `tiers: excluded` and not a category `off`:
+# `Engine.is_active` short-circuits an excluded tier before it reads any config
+# layer, so an excluded rule cannot be turned back on, and switching the whole
+# category off would force a project that wants one of these to take all of them.
+# A `[rules."..."]` entry beats a profile default, so each one is opt-in alone.
+#
+# At `relaxed` the `ste-practices` CATEGORY is already off, and `is_active` checks
+# the category before the rule override. So enabling a STE rule there needs both
+# the category and the rule -- existing precedence, documented rather than changed.
+_OFF_BY_DEFAULT: dict[str, RuleSettings] = {
+    "prose-inclusive.ableist": RuleSettings(severity=Severity.OFF),
+    "prose-inclusive.device-assumption": RuleSettings(severity=Severity.OFF),
+    "prose-inclusive.exclusive": RuleSettings(severity=Severity.OFF),
+    "ste-practices.gendered-or-exclusionary-language": RuleSettings(
+        severity=Severity.OFF
+    ),
+    "ste-practices.unclear-pronoun": RuleSettings(severity=Severity.OFF),
+}
+
 _NORMAL_RULES: dict[str, RuleSettings] = {
+    **_OFF_BY_DEFAULT,
     "orwell.compound-preposition": RuleSettings(severity=Severity.WARNING),
     # A genuine correction ("The limit is 100. It is not configurable.") shares
     # the shape with the tell, so the reviewer settles it: warning, never error.
@@ -192,6 +218,7 @@ _NORMAL_RULES: dict[str, RuleSettings] = {
 }
 
 _STRICT_RULES: dict[str, RuleSettings] = {
+    **_OFF_BY_DEFAULT,
     "ai-tells-structure.definitional-negation-pair": RuleSettings(
         severity=Severity.WARNING
     ),
@@ -200,7 +227,7 @@ _STRICT_RULES: dict[str, RuleSettings] = {
 _PROFILE_RULES: dict[Profile, dict[str, RuleSettings]] = {
     Profile.STRICT: _STRICT_RULES,
     Profile.NORMAL: _NORMAL_RULES,
-    Profile.RELAXED: {},
+    Profile.RELAXED: dict(_OFF_BY_DEFAULT),
 }
 
 

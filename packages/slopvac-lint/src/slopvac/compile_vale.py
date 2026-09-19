@@ -55,7 +55,7 @@ from pathlib import Path
 import yaml
 
 from .config import Mode, ResolvedConfig, Severity
-from .model import Rule, RuleKind, Scope, TextType
+from .model import Rule, RuleKind, Scope, TextType, Tier
 from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
 from .vale_probe import ValeUnavailable, probe_payloads, vale_version
 
@@ -955,19 +955,34 @@ def _elect_vocabulary_owner(owners: list[Rule], result: CompileResult) -> list[R
 
 
 def compiled_levels(ruleset, resolved_config: ResolvedConfig) -> dict[str, str]:
-    """The Vale level per rule this config compiles: active rules that are not off.
+    """Return Vale levels for installed rules that can run at this profile.
 
-    This is the compile-affecting part of a resolved config. Two files whose
-    levels differ need two compiles, because a rule absent from the style tree
-    cannot be recovered by re-resolving its severity afterwards.
+    Profile-default ``off`` is an engine selection policy, not a reason to omit a
+    rule from the compiled style tree: an authored rule override can opt it in.
+    Authored ``off`` remains a true compile exclusion.
     """
     from .engine import Engine
 
-    engine = Engine(ruleset.rules, resolved_config)
-    active = {r.qualified_id for r in engine.rules}
+    authored_rules = {
+        name: setting
+        for name, setting in resolved_config.rules.items()
+        if f"rules.{name}" in resolved_config.provenance
+    }
+    compile_config = resolved_config.model_copy(update={"rules": authored_rules})
+    engine = Engine(ruleset.rules, compile_config)
     levels: dict[str, str] = {}
     for rule in ruleset.rules:
-        if rule.qualified_id not in active:
+        if rule.tier_for(resolved_config.profile.value) is Tier.EXCLUDED:
+            continue
+        category_setting = resolved_config.categories.get(rule.category)
+        if category_setting is not None and category_setting.severity is Severity.OFF:
+            continue
+        authored_off = (
+            resolved_config.rules.get(rule.qualified_id) is not None
+            and resolved_config.rules[rule.qualified_id].severity is Severity.OFF
+            and f"rules.{rule.qualified_id}" in resolved_config.provenance
+        )
+        if authored_off:
             continue
         severity = engine.severity_for(rule)
         if severity is Severity.OFF:

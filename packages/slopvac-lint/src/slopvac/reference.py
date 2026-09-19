@@ -28,7 +28,9 @@ from __future__ import annotations
 
 from collections import defaultdict
 
+from .config import Profile, Severity
 from .model import Rule, RuleKind
+from .profiles import profile_rule_defaults
 from .rules import RuleSet
 
 #: Every kind except JUDGEMENT. Derived rather than listed, so a new kind added to
@@ -90,6 +92,24 @@ def _tier_cell(rule: Rule) -> str:
     )
 
 
+def _off_by_default(rule: Rule) -> str | None:
+    """The profiles whose per-rule defaults ship this rule off, or None.
+
+    A SEPARATE fact from the tier row, because they answer different questions and
+    conflating them is how a reader concludes a rule is unreachable. The tier says
+    whether the profile admits the rule at all -- `excluded` is final, no config
+    layer undoes it. A profile default says the rule is installed and quiet, and a
+    `[rules."..."]` entry turns it on. Read from `profile_rule_defaults` rather than
+    restated here so the document cannot disagree with the table the linter loads.
+    """
+    off: list[str] = []
+    for profile in Profile:
+        settings = profile_rule_defaults(profile).get(rule.qualified_id)
+        if settings is not None and settings.severity is Severity.OFF:
+            off.append(profile.value)
+    return ", ".join(off) or None
+
+
 def _rule_section(rule: Rule) -> list[str]:
     lines = [f"#### `{rule.qualified_id}`", "", rule.name, ""]
 
@@ -99,6 +119,15 @@ def _rule_section(rule: Rule) -> list[str]:
         f"- **strict / normal / relaxed.** {_tier_cell(rule)}",
         f"- **Scope.** {rule.scope.value}",
     ]
+    off = _off_by_default(rule)
+    if off is not None:
+        facts.append(
+            f"- **Off by profile default.** {off} — the rule is installed and "
+            f"silent; a `[rules.\"{rule.qualified_id}\"]` entry with a severity "
+            f"turns on that rule and no other. Distinct from the tier row "
+            f"above: an `excluded` tier cannot be switched back on, a profile "
+            f"default can"
+        )
     if rule.text_type and rule.text_type.value != "any":
         facts.append(f"- **Applies to.** {rule.text_type.value} text")
     if rule.fix:
@@ -267,8 +296,19 @@ def render_reference(ruleset: RuleSet) -> str:
             + ".",
             "",
             "Each rule lists what it ships as, then its disposition at strict, "
-            "normal, and relaxed. `off` at a tier means the rule does not run there; "
-            "a severity means it runs at that severity.",
+            "normal, and relaxed. `excluded` at a tier means the rule does not run "
+            "there and no configuration switches it back on; `advisory` means it "
+            "runs but cannot fail the gate on its own; `enforced` means it runs at "
+            "the severity the profile resolves.",
+            "",
+            "A separate **Off by profile default** line names the profiles that "
+            "install a rule and leave it silent. That is not a tier: the rule is "
+            "reachable, and a `[rules.\"<id>\"]` entry naming a severity turns that "
+            "rule on without turning on any sibling rule. The entry is a top-level "
+            "setting, so it applies wherever the rule's profile and category admit "
+            "it rather than to one profile. A rule in a category the profile "
+            "switches off needs the category enabled too, because the category is "
+            "checked before the per-rule setting.",
             "",
         ]
     )

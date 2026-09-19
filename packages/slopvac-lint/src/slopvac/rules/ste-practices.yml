@@ -269,8 +269,8 @@ rules:
     text_type: any
     tiers:
       strict: advisory
-      normal: excluded
-      relaxed: excluded
+      normal: advisory
+      relaxed: advisory
     pattern: '\b(?:he|she|him|her|his|hers)\b|,\s+(?:they|them|it)\s+(?:can|will|may|might|must|becomes?|is|are)\b'
     ignore_case: true
     exceptions:
@@ -292,6 +292,10 @@ rules:
         clause that follows a comma and precedes a modal, which is the shape the
         specification's own ambiguity example takes. Broader pronoun detection produces
         unusable noise. Tested: both bad examples match; both good examples do not.
+        Advisory at every profile rather than excluded outside strict, and off by a per-rule
+        profile default instead: `Engine.is_active` drops an excluded tier before it reads a
+        config layer, so `excluded` would make the rule unreachable for a project that wants
+        it. Advisory plus the default keeps the quiet disposition and leaves the switch.
     fix: Replace the pronoun with the noun it refers to.
 
   - id: unclear-demonstrative-this
