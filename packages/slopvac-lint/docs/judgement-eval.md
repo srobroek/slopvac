@@ -6,6 +6,8 @@ names a provider and model revision. It also stores decoding settings, a seed,
 and a repeat count. Each host record stores the instrument, unit, repeat, request
 digest, and cache key. A changed request cannot reuse an old result.
 
+Instrument ids include the rendered rule questions and exemplars. This fix therefore changes ids and pack hashes for shipped packs; historical evaluation records retain their original ids and are not rewritten.
+
 ## Replay mode
 
 Run `python -m slopvac.judgement.eval run --replay fixture.jsonl` for a network-free
