@@ -322,6 +322,17 @@ the shipped result. Severity uses the existing `error = 1.0`, `warning = 0.5`, a
 
 Judgement deductions lower only the reported `judgement_adjusted_score`; they never alter deterministic density, category scores, `max_warnings`, the `min_score` gate, or deterministic error counts and the `max_errors` gate. A cluster result is reported separately as `REVISE`; it does not alter either score.
 
+### Evaluation-record measures
+
+The normalized record uses the schema's field names and explicit denominators:
+
+- `metrics.strict_precision` = `TP / (TP + FP + borderline)`; borderline is FP.
+- `metrics.lenient_precision` = `(TP + borderline) / (TP + FP + borderline)`; borderline is TP and `FP-PRESERVE-MISS` remains FP.
+- `metrics.abstention_rate` = `ABSTAIN / all_units`.
+- `metrics.evidence_validity` = `host_confirms_after_gate / model_confirms_before_gate`.
+
+`denominators.all_units` counts distinct `unit_id` values. `response_rows` and duplicate rows are diagnostic only. Failed, truncated, and no-response units have `not_run` status. They do not add to attempted coverage. Completed abstentions remain attempted adjudications.
+
 ## 9. Determinism
 
 The determinism tests repeat preparation with different Python hash seeds and locales.
