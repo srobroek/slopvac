@@ -356,8 +356,9 @@ def test_uncommented_starter_examples_load(tmp_path):
 def test_shipped_lexical_examples_fire_through_engine(ruleset):
     """The loader regex check is complemented by a batched native execution oracle."""
     from slopvac.analyze import parse
-    from slopvac.config import Config, resolve_for
+    from slopvac.config import Config, RuleSettings, Severity, resolve_for
     from slopvac.engine import Engine
+    from slopvac.profiles import Profile, profile_rule_defaults
 
     profiles = ("strict", "normal", "relaxed")
     failures: list[str] = []
@@ -369,7 +370,17 @@ def test_shipped_lexical_examples_fire_through_engine(ruleset):
         )
         if profile is None:
             continue
-        config = Config(profile=profile)
+        # A rule the profile ships off per rule is enforced by its tier and silent
+        # by default. Its examples still have to fire, so ask for it the way a
+        # project would; without this the oracle would skip exactly the rules whose
+        # defaults changed and report nothing.
+        default = profile_rule_defaults(Profile(profile)).get(rule.qualified_id)
+        opt_in = (
+            {rule.qualified_id: RuleSettings(severity=rule.severity)}
+            if default is not None and default.severity is Severity.OFF
+            else {}
+        )
+        config = Config(profile=profile, rules=opt_in)
         engine = Engine(ruleset.rules, resolve_for(config, Path("/repo/a.md")))
         for index, example in enumerate(rule.examples):
             bad = example.bad
