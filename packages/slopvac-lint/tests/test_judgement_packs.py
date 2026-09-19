@@ -104,3 +104,39 @@ def test_rendering_includes_paired_exemplars() -> None:
     )
     rendered = render_pack(pack, "Judge the unit.")
     assert "exemplar: The claim repeats. -> The claim advances." in rendered
+
+def test_shipped_absolute_assertion_pack_has_criteria() -> None:
+    ruleset = load_ruleset(verify=False)
+    rules = ruleset.judgement_rules()
+    packs = build_packs(rules)
+    pack = next(pack for pack in packs if any("absolute-assertion" in rule_id for rule_id in pack.rules))
+    rendered = render_pack(pack, "Judge the unit.")
+    assert any(line.startswith("- ") for line in rendered.splitlines())
+    assert any("absolute-assertion" in line for line in rendered.splitlines())
+
+
+def test_every_shipped_judgement_question_and_example_is_rendered() -> None:
+    ruleset = load_ruleset(verify=False)
+    rules = {rule.qualified_id: rule for rule in ruleset.judgement_rules()}
+    packs = build_packs(tuple(rules.values()))
+    for pack in packs:
+        rendered = render_pack(pack, "Judge the unit.")
+        for record in pack.rule_records:
+            rule = rules[record["id"]]
+            assert rule.judgement_question in rendered
+            for example in rule.examples:
+                bad = str(example.bad).strip()
+                assert bad in rendered
+                if example.good:
+                    assert str(example.good).strip() in rendered
+                elif example.note:
+                    assert str(example.note).strip() in rendered
+
+
+def test_criteria_words_are_not_removed_by_forbidden_filter() -> None:
+    pack = Pack("SPAN-cat-1", ("cat",), 1, "local", (), ("cat.rule",), ({
+        "id": "cat.rule",
+        "judgement_question": "Does the warning threshold carry severity weight?",
+    },))
+    rendered = render_pack(pack, "Judge the unit.")
+    assert "warning threshold carry severity weight" in rendered

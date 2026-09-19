@@ -90,12 +90,28 @@ def _plain(value: Any) -> Any:
     return value
 
 
-_RECORD_FIELDS = ("category", "dims", "evidence", "id", "judgement_ceiling", "protects", "scope_class", "warrant_min")
+_RECORD_FIELDS = ("category", "dims", "evidence", "examples", "id", "judgement_ceiling", "judgement_question", "protects", "scope_class", "warrant_min")
 _OPTIONAL_RECORD_FIELDS = ("adjudicates", "allowed_transitions", "host_predicates", "scope_class_derivation", "added_in", "status")
 
 
+def _plain_examples(value: Any) -> list[dict[str, Any]]:
+    """Keep only the model-visible example contract fields."""
+    examples: list[dict[str, Any]] = []
+    for item in _plain(value) or ():
+        if not isinstance(item, Mapping):
+            continue
+        example = {key: item[key] for key in ("bad", "good", "note") if item.get(key) is not None}
+        if example:
+            examples.append(example)
+    return examples
+
+
 def _merged_record(rid: str, rule: Any) -> dict[str, Any]:
-    """Render the contract record without dataclass defaults or dropped fields."""
+    """Render the contract record without dataclass defaults or dropped fields.
+
+    Questions and examples are model-visible, so pack_object includes them and a
+    change to either changes the pack and instrument ids.
+    """
     contract = _value(rule, "judgement", {})
     plain = _plain(contract)
     if not isinstance(plain, Mapping):
@@ -104,8 +120,20 @@ def _merged_record(rid: str, rule: Any) -> dict[str, Any]:
     category = _value(rule, "category", rid.rsplit(".", 1)[0])
     result["category"] = _plain(category)
     for key in _RECORD_FIELDS[1:]:
-        value = rid if key == "id" else plain.get(key, _value(rule, key))
-        if value is not None:
+        if key == "id":
+            value = rid
+        elif key == "examples":
+            raw = _value(rule, key)
+            if raw is None:
+                raw = plain.get(key)
+            value = _plain_examples(raw)
+        elif key == "judgement_question":
+            value = _value(rule, key)
+            if value is None:
+                value = plain.get(key)
+        else:
+            value = plain.get(key, _value(rule, key))
+        if value not in (None, (), [], {}):
             result[key] = _plain(value)
     for key in _OPTIONAL_RECORD_FIELDS:
         value = plain.get(key, _value(rule, key))
@@ -199,6 +227,7 @@ def judgement_cache_key(
     fields = ("instrument_id", "unit_id", "context_hash", "provider", "model_id_and_revision", "full_rendered_request_digest", "system_prompt", "decoding_config", "seed", "repeat_index", "evaluator_runner_revision")
     return hashlib.sha256(canonical_bytes({field: values[field] for field in fields})).hexdigest()
 
+
 def render_pack(pack: Pack, spine: str) -> str:
     """Render only model-visible rubric instructions and criteria."""
     records = pack.rule_records or tuple({"id": rid} for rid in pack.rules)
@@ -225,9 +254,10 @@ def render_pack(pack: Pack, spine: str) -> str:
                 else:
                     criteria.append(f"  exemplar: {bad}")
     forbidden = re.compile(r"\b(?:error|warning|suggestion|threshold|weight|severity)\b", re.I)
-    text = spine.rstrip() + "\n\nPACK " + pack.id + "\n" + "\n".join(criteria)
-    text += "\n\nProtected classes: " + ", ".join(pack.protects)
-    text += "\nOutput: return the documented judgement output schema; emit evidence before dimension values and verdict."
+    newline = chr(10)
+    text = forbidden.sub("", spine.rstrip()) + newline * 2 + "PACK " + pack.id + newline + newline.join(criteria)
+    text += newline * 2 + "Protected classes: " + ", ".join(pack.protects)
+    text += newline + "Output: return the documented judgement output schema; emit evidence before dimension values and verdict."
     for shot in pack.shots:
-        text += "\n\n" + shot["message"]
-    return forbidden.sub("", text)
+        text += newline * 2 + shot["message"]
+    return text
