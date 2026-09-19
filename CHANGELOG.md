@@ -482,3 +482,5 @@
 ## Changelog
 
 * gate lexical rules on the repaired sentence `text_type` classifier
+
+* keep `instruction-not-imperative` untyped because its bad examples are deliberately descriptive violations
