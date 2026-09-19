@@ -112,7 +112,7 @@ def submit(args: argparse.Namespace) -> None:
         "roleArn": args.role_arn,
         "modelId": args.model_id,
         "inputDataConfig": {
-            "s3InputConfiguration": {"s3Uri": f"s3://{args.bucket}/{input_key}"}
+            "s3InputDataConfig": {"s3Uri": f"s3://{args.bucket}/{input_key}"}
         },
         "outputDataConfig": {
             "s3OutputDataConfig": {"s3Uri": f"s3://{args.bucket}/{output_prefix}"}
@@ -124,12 +124,13 @@ def submit(args: argparse.Namespace) -> None:
         "model_id": args.model_id,
         "inference_config": cfg,
         "bucket": args.bucket,
+        "role_arn": args.role_arn,
         "input_key": input_key,
         "output_prefix": output_prefix,
         "submitted_at": datetime.now(UTC).isoformat(),
         "record_count": len(rows),
         "source_of_truth": "session model field",
-        "caveat": "earlier arm sampling parameters were harness defaults; temperature is explicit here",
+        "caveat": "earlier arm sampling parameters were harness defaults; this job uses maxTokens=32000",
     }
     (out_dir / "job.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(json.dumps(metadata, indent=2))
