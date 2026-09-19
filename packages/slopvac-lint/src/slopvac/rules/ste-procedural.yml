@@ -85,7 +85,7 @@ rules:
     severity: warning
     message: 'This step is not in the imperative ("{match}").'
     scope: sentence
-    text_type: procedural
+    text_type: any
     tiers:
       strict: enforced
       normal: enforced

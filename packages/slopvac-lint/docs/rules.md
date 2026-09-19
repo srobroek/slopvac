@@ -2037,7 +2037,6 @@ Write instructions in the imperative
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
-- **Applies to.** procedural text
 - **Fix.** Rewrite the step as a direct command to the reader.
 - **Suppressible with.** `quotation`, `code-span`, `note-block` — any other reason is reported rather than honoured
 - **Source.** ASD-STE100 issue 9, rule 5.3

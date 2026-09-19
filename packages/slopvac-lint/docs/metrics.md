@@ -5,6 +5,8 @@ procedural sentence at 20 words and an explanatory sentence at 25, then spends f
 rules (8.4 through 8.7) redefining what one word is. A checker that splits on whitespace
 counts more words than the specification does and fires on compliant text.
 
+The `text_type` field gates every rule layer, including lexical rules: a typed rule runs only on sentences classified with that type, while `any` remains the default.
+
 Worked example. Under this contract the sentence
 
 > Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
