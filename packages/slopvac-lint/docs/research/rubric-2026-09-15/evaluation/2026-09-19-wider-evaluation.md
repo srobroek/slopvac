@@ -77,6 +77,14 @@ The low-n caveat is **DECIDED 2026-09-19**: per-rule `majority-of-3` requires at
 - The runtime registration of the noise-floor subsample is a preregistration deviation (`noise-floor/subsample.json`; `noise-floor/noise-floor.md`).
 - The first **1,546** calls used the session model and may not be sampling-homogeneous with the explicit runner arm (`packages/slopvac-lint/docs/judgement-eval.md`, Standalone Bedrock evaluation runner).
 
+## Precision fixes
+
+Adjudication is recorded in `wider/analysis/absolute-assertion-adjudication.md`: **13** human-class confirms are classified as **9 FP, 3 TP, and 1 borderline**. The dominant FP pattern is bounded or attributed historical/editorial prose and local anaphoric quantifiers. The chosen lever is judgement guidance: preserve quoted/attributed claims, finite historical/editorial sets, local anaphora, and explicitly bounded recommendations; flag only unsupported universals in the author's unbounded voice.
+
+The authoritative pre-fix host counts are **13 human** and **19 stated-LLM** confirms (`wider/run/{human,llm}/findings.jsonl`, `rule_id=ai-tells-structure.absolute-assertion-remainder`, `outcome=CONFIRM`). The deterministic lint reruns are `wider/analysis/absolute-assertion-human-after.json` and `absolute-assertion-llm-after.json`; because this rule is a judgement remainder, the deterministic layer emits **0** direct findings in both classes. Guidance-only changes therefore require re-judgement for semantic before/after precision.
+
+Targeted reissue used 13 human and 19 LLM confirmed units (32 one-unit Bedrock calls; the existing prompt rows were narrowed to each unit and the new guidance text was substituted because `judgement prepare` cannot select arbitrary unit IDs). Human outcomes changed from **13 confirm → 0 confirm** (**9 reject, 4 preserve**); LLM outcomes changed from **19 confirm → 7 confirm** (**10 reject, 2 preserve**). The 12 human flips are the bounded/attributed precision wins; the 12 LLM flips are primarily product-specific or bounded claims, while 7 unsupported claims held. Precision rose at a measured recall cost: all **3 adjudicated TPs** and **12 of 19 LLM confirms** were lost under the new guidance.
+
 ## Next steps
 
 - Open precision beads for absolute-assertion, heading-echo, and false-agency candidate-suspect review; retain raw counts and adjudicate rather than treating model CONFIRM as FP.
