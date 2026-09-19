@@ -116,3 +116,32 @@ def test_invoke_preserves_raw_and_stop_reason_on_parse_error(monkeypatch, tmp_pa
     assert result["error"] == "stop_reason=max_tokens"
     assert result["raw"] == '{"broken":'
     assert result["stop_reason"] == "max_tokens"
+
+
+def test_invoke_writes_three_concurrent_rows(monkeypatch, tmp_path):
+    class Client:
+        def converse(self, **kwargs):
+            return {
+                "stopReason": "end_turn",
+                "output": {"message": {"content": [{"text": '{"ok": true}'}]}},
+            }
+
+    monkeypatch.setattr(
+        runner, "load_boto3", lambda: SimpleNamespace(client=lambda *a, **k: Client())
+    )
+    todo = tmp_path / "todo.jsonl"
+    todo.write_text("".join(json.dumps(row(str(i))) + "\n" for i in range(3)))
+    out = tmp_path / "out.jsonl"
+    runner.invoke(
+        SimpleNamespace(
+            todo=str(todo),
+            out=str(out),
+            model_id="m",
+            max_tokens=32000,
+            temperature=None,
+            concurrency=2,
+        )
+    )
+    lines = out.read_text().splitlines()
+    assert len(lines) == 3
+    assert {json.loads(line)["call_id"] for line in lines} == {"0", "1", "2"}
