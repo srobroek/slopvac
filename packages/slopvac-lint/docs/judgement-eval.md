@@ -77,3 +77,24 @@ The raw records and their normalization contract live in the [record schema](res
 | Heldout baseline adjudication | [heldout-baseline-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-baseline-adjudication.normalized.json) |
 | Heldout v2 | [heldout-v2.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2.normalized.json) |
 | Heldout v2 adjudication | [heldout-v2-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2-adjudication.normalized.json) |
+
+## Standalone Bedrock evaluation runner
+
+The repeatable runner uses the same prompt assembly and JSON parser as the original
+session shard template, while supporting resumable synchronous calls and Bedrock batch
+inference. Run it from the package directory with `uv run scripts/judgement_bedrock_batch.py`:
+
+```sh
+uv run scripts/judgement_bedrock_batch.py todo --prompts prompts.jsonl --responses responses.jsonl --out todo.jsonl
+uv run scripts/judgement_bedrock_batch.py invoke --todo todo.jsonl --model-id MODEL_ID --out responses.jsonl --concurrency 4
+uv run scripts/judgement_bedrock_batch.py submit --todo todo.jsonl --model-id MODEL_ID --bucket BUCKET --role-arn ROLE_ARN --job-name judgement-001 --out-dir bedrock-batch-001
+uv run scripts/judgement_bedrock_batch.py collect --job-dir bedrock-batch-001 --out responses.jsonl
+```
+
+Batch jobs require at least 100 records; smaller remainders automatically use `invoke`.
+The default inference configuration is `{maxTokens: 32000}`. A response is successful only
+when Bedrock reports `stop_reason=end_turn`; truncated responses are retained as error rows
+with their raw text and stop reason. The model id is required and recorded in `job.json`.
+The earlier 1,546 calls used the session default `global.anthropic.claude-fable-5-1`; this
+runner is explicit and therefore repeatable, but its sampling settings may not be homogeneous
+with that earlier arm.
