@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 from slopvac.judgement.packs import (
     Pack,
     build_packs,
     canonical_bytes,
+    instrument_id,
     judgement_cache_key,
     pack_id,
     render_pack,
@@ -140,3 +144,21 @@ def test_criteria_words_are_not_removed_by_forbidden_filter() -> None:
     },))
     rendered = render_pack(pack, "Judge the unit.")
     assert "warning threshold carry severity weight" in rendered
+
+
+def test_contract_builder_rejects_missing_judgement_question(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = Path(__file__).parents[1] / "docs/research/rubric-2026-09-15/measurements/build_contract.py"
+    text = source.read_text(encoding="utf-8")
+    helper = text[text.index("def _enrich_rule_records"):text.index("def rule_records")]
+    namespace: dict[str, object] = {}
+    exec(helper, namespace)
+    with pytest.raises(AssertionError, match="missing judgement questions"):
+        namespace["_enrich_rule_records"]([{"id": "cat.rule"}], {"cat.rule": SimpleNamespace(judgement_question=None, examples=[])})
+
+
+def test_question_changes_pack_and_instrument_hash() -> None:
+    one = Pack("SPAN-cat-1", ("cat",), 1, "local", (), ("cat.rule",), ({"id": "cat.rule", "judgement_question": "A?"},))
+    two = Pack("SPAN-cat-1", ("cat",), 1, "local", (), ("cat.rule",), ({"id": "cat.rule", "judgement_question": "B?"},))
+    revision = rubric_revision("spine")
+    assert pack_id(one) != pack_id(two)
+    assert instrument_id(revision, [pack_id(one)]) != instrument_id(revision, [pack_id(two)])
