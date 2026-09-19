@@ -145,3 +145,38 @@ the account approves a batch-capable model/profile.
 The prose gate in this section was run with the worktree CLI:
 `PYTHONPATH=src uv run slopvac docs/judgement-eval.md`. Released `uvx slopvac` 2.6.0
 rejects the judgement configuration key used by this repository.
+
+## Noise-floor instrument
+
+The noise-floor instrument repeats a registered 20% subsample three times with the
+same model, prompt bytes, decoding configuration, and response schema. This run
+registered the subsample at prepare time because no prior registration existed:
+`sha256(call_id)` interpreted as a big-endian integer, selected when `mod 5 == 0`,
+over the call IDs in the wider run's `prompts.jsonl`. The registration is retained in
+`noise-floor/subsample.json`; selecting it at runtime is a preregistration
+deviation and is reported in `noise-floor.md`.
+
+Prepare repeats and invoke with the frozen Bedrock arm:
+
+```sh
+PYTHONPATH=src uv run scripts/judgement_noise_floor.py prepare \
+  --prompts /path/to/wider/prompts.jsonl --responses /path/to/wider/responses.jsonl \
+  --subsample /path/to/noise-floor/subsample.json --out /path/to/noise-floor/prompts.jsonl
+AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1 \
+  uv run scripts/judgement_bedrock_batch.py invoke \
+  --todo /path/to/noise-floor/prompts.jsonl --out /path/to/noise-floor/responses.jsonl \
+  --model-id global.anthropic.claude-fable-5-1 --max-tokens 32000 --concurrency 8
+PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse \
+  --prompts /path/to/noise-floor/prompts.jsonl --responses /path/to/noise-floor/responses.jsonl \
+  --out-dir /path/to/noise-floor
+```
+
+Analysis uses the same response parsing, result-set validation, and model-output
+schema validation as `finish`. A unit flip rate is the fraction of its three
+verdicts that disagree with the modal verdict; malformed or missing repeats are
+ABSTAIN. A rate strictly greater than 10% selects `majority-of-3` for that rule;
+exactly 10% remains `single-call` (the cz0.12 policy). The generated
+`noise-floor.json` and `noise-floor.md` contain unit and per-rule rates.
+The registration selects IDs from the wider run's `prompts.jsonl`, not from responses.
+Use `PYTHONPATH=src uv run scripts/judgement_noise_floor.py prepare` and then
+`PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse` with the paths above.
