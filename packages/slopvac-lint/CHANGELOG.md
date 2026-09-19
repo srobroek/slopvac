@@ -4,6 +4,8 @@
 
 * Clarify that judgement outcomes are reporting-only and never affect deterministic gates or counts.
 
+* Guard noise-floor `majority-of-3` decisions with 30 complete units, record decision basis and repeat fingerprints, and align malformed-repeat documentation with incomplete-unit handling.
+
 ## [1.0.0](https://github.com/srobroek/slopvac/compare/slopvac--v0.1.0...slopvac--v1.0.0) (2026-08-18)
 
 

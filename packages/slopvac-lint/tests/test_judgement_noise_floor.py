@@ -172,3 +172,54 @@ def test_analyse_counts_only_complete_units_in_flip_rate(tmp_path: Path) -> None
     assert report["complete_units"] == 1
     assert report["incomplete_units"] == 0
     assert report["overall_flip_rate"] == 1 / 3
+
+
+def test_rule_decision_minimum_complete_units_boundary() -> None:
+    assert noise.rule_decision(0.11, 29, 30) == ("single-call", "insufficient-units")
+    assert noise.rule_decision(0.11, 30, 30) == ("majority-of-3", "measured")
+    assert noise.rule_decision(0.10, 30, 30) == ("single-call", "measured")
+
+
+def test_analyse_rejects_differing_repeat_schema_fingerprint(tmp_path: Path) -> None:
+    prompts = tmp_path / "prompts.jsonl"
+    responses = tmp_path / "responses.jsonl"
+    out_dir = tmp_path / "out"
+    rows = [
+        {
+            "call_id": f"c#r{repeat}",
+            "repeat_of": "c",
+            "repeat_index": repeat,
+            "unit_ids": ["u"],
+            "rule_ids": ["R"],
+            "kind": "SPAN_CANDIDATE",
+            "prompt": {"user": "same"},
+            "response_schema": {"type": "object", "repeat": repeat},
+        }
+        for repeat in (1, 2, 3)
+    ]
+    prompts.write_text(
+        "\n".join(json.dumps(row) for row in rows) + "\n", encoding="utf-8"
+    )
+    responses.write_text(
+        "\n".join(
+            json.dumps(
+                {
+                    "call_id": row["call_id"],
+                    "response": {"results": [_model_row("u", "R", "reject")]},
+                }
+            )
+            for row in rows
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    import pytest
+
+    with pytest.raises(ValueError, match="fingerprint mismatch across repeats"):
+        noise.analyse(
+            type(
+                "Args",
+                (),
+                {"prompts": prompts, "responses": responses, "out_dir": out_dir},
+            )()
+        )
