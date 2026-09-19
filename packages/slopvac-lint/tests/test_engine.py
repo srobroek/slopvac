@@ -199,22 +199,27 @@ def test_sentence_scope_matches_a_sentence_inside_a_block():
     assert [(f.line, f.column) for f in findings] == [(1, 17)]
 
 
-def test_lexical_rules_are_not_gated_on_the_sentence_classifier() -> None:
-    """A rule's `text_type` names the text it belongs to, not a per-sentence
-    filter. Gating on the sentence classifier silenced the rules that detect a
-    step FAILING to be procedural: `instruction-not-imperative` looks for "The
-    user must click Save", which no classifier calls imperative. The classifier
-    still selects the 20- against 25-word cap; it does not veto lexical rules."""
-    rule = _fixture_rule(
+def test_lexical_rules_are_gated_on_the_sentence_classifier() -> None:
+    procedural = _fixture_rule(
         scope=Scope.SENTENCE,
         pattern=r"\brun\b",
         text_type=TextType.PROCEDURAL,
     )
-    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    any_text = _fixture_rule(
+        rule_id="any-run",
+        scope=Scope.SENTENCE,
+        pattern=r"\brun\b",
+    )
+    engine = Engine([procedural, any_text], resolve_for(_config(), Path("/repo/a.md")))
     findings = engine.run(
         parse("a.md", "The system can run safely. Run the command now.\n")
     )
-    assert [finding.matched_text for finding in findings] == ["run", "Run"]
+    by_rule = {}
+    for finding in findings:
+        by_rule.setdefault(finding.rule_id.rsplit(".", 1)[-1], []).append(
+            finding.matched_text
+        )
+    assert by_rule == {"any-run": ["run", "Run"], "match": ["Run"]}
 
 
 def test_paragraph_scope_matches_across_a_soft_break():

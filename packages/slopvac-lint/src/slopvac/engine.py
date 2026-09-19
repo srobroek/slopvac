@@ -726,6 +726,18 @@ class Engine:
         for block, base_offset, text in self._lines_for_scope(rule, document):
             lowered = text.lower()
             for match in pattern.finditer(text):
+                if rule.text_type is not TextType.ANY:
+                    position = base_offset + match.start()
+                    sentence = next(
+                        (
+                            candidate
+                            for candidate in (block.sentences if block else ())
+                            if candidate.start <= position < candidate.end
+                        ),
+                        None,
+                    )
+                    if sentence is None or sentence.text_type is not rule.text_type:
+                        continue
                 matched = match.group(0)
                 if matched.lower() in allowed:
                     continue
