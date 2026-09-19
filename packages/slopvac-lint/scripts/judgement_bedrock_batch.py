@@ -205,7 +205,7 @@ def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="command", required=True)
     t = sub.add_parser("todo"); t.add_argument("--prompts", required=True); t.add_argument("--responses", action="append", required=True); t.add_argument("--out", required=True); t.set_defaults(func=todo)
-    common = argparse.ArgumentParser(add_help=False); common.add_argument("--max-tokens", type=int, default=8192); common.add_argument("--temperature", type=float)
+    common = argparse.ArgumentParser(add_help=False); common.add_argument("--max-tokens", type=int, default=32000); common.add_argument("--temperature", type=float)
     s = sub.add_parser("submit", parents=[common]); s.add_argument("--todo", required=True); s.add_argument("--model-id", required=True); s.add_argument("--bucket", required=True); s.add_argument("--role-arn", required=True); s.add_argument("--job-name", required=True); s.add_argument("--out-dir", required=True); s.set_defaults(func=submit)
     c = sub.add_parser("collect"); c.add_argument("--job-dir", required=True); c.add_argument("--todo"); c.add_argument("--out", required=True); c.add_argument("--poll-seconds", type=int, default=30); c.set_defaults(func=collect)
     i = sub.add_parser("invoke", parents=[common]); i.add_argument("--todo", required=True); i.add_argument("--model-id", required=True); i.add_argument("--out", required=True); i.add_argument("--concurrency", type=int, default=4); i.set_defaults(func=invoke)
