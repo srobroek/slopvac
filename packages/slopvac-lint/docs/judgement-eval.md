@@ -78,6 +78,8 @@ The raw records and their normalization contract live in the [record schema](res
 | Heldout v2 | [heldout-v2.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2.normalized.json) |
 | Heldout v2 adjudication | [heldout-v2-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2-adjudication.normalized.json) |
 
+The 2026-09-19 wider evaluation and noise-floor record is [2026-09-19-wider-evaluation.md](research/rubric-2026-09-15/evaluation/2026-09-19-wider-evaluation.md). It names each numeric source, preserves failed-row and denominator rules, and marks pending decisions explicitly.
+
 ## Standalone Bedrock evaluation runner
 
 The repeatable runner uses the same prompt assembly and JSON parser as the original
