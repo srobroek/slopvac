@@ -156,6 +156,9 @@ def append_rows(out: Path, rows: list[dict[str, Any]]) -> None:
 
 
 def invoke(args: argparse.Namespace) -> None:
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from threading import Lock
+
     rows = read_jsonl(Path(args.todo))
     out = Path(args.out)
     boto3 = load_boto3()
@@ -171,8 +174,9 @@ def invoke(args: argparse.Namespace) -> None:
         config = None
     client = boto3.client("bedrock-runtime", **({"config": config} if config else {}))
     pending = [r for r in rows if r["call_id"] not in successful_ids([out])]
-    results: list[dict[str, Any]] = []
-    for row in pending:
+    write_lock = Lock()
+
+    def run_one(row: dict[str, Any]) -> dict[str, Any]:
         err = None
         raw_text = ""
         stop_reason = None
@@ -184,31 +188,30 @@ def invoke(args: argparse.Namespace) -> None:
                         {"role": "user", "content": [{"text": make_prompt(row)}]}
                     ],
                     "inferenceConfig": {"maxTokens": args.max_tokens},
+                    "system": [{"text": row["prompt"]["system"]}],
                 }
-                kwargs["system"] = [{"text": row["prompt"]["system"]}]
                 result = client.converse(**kwargs)
                 raw_text = response_text(result)
                 stop_reason = result.get("stopReason")
                 if stop_reason != "end_turn":
                     raise ValueError(f"stop_reason={stop_reason}")
-                parsed = parse_json(raw_text)
-                results.append({"call_id": row["call_id"], "response": parsed})
-                err = None
-                break
+                return {"call_id": row["call_id"], "response": parse_json(raw_text)}
             except Exception as exc:
                 err = exc
                 if attempt < 2:
                     time.sleep((2**attempt) + random.random())
-        if err is not None:
-            results.append(
-                {
-                    "call_id": row["call_id"],
-                    "error": str(err)[:300],
-                    "raw": raw_text[:4000],
-                    "stop_reason": stop_reason,
-                }
-            )
-        append_rows(out, results[-1:])
+        return {
+            "call_id": row["call_id"],
+            "error": str(err)[:300],
+            "raw": raw_text[:4000],
+            "stop_reason": stop_reason,
+        }
+
+    with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
+        futures = [pool.submit(run_one, row) for row in pending]
+        for future in as_completed(futures):
+            with write_lock:
+                append_rows(out, [future.result()])
 
 
 def collect(args: argparse.Namespace) -> None:

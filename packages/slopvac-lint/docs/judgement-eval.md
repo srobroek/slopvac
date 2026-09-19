@@ -133,7 +133,9 @@ uv run scripts/judgement_bedrock_batch.py collect --job-dir bedrock-batch-001 --
 
 The runner treats only `end_turn` as success and preserves truncated output as an error.
 Observed synchronous calls take roughly 70–180 seconds per prompt; batch timing and cost
-depend on the selected model and account. In eu-west-1, the Fable inference profile is
-ACTIVE, but the account currently rejects it for batch inference with `Batch inference is
-not supported for the requested model`; use `invoke` until a batch-capable model/profile is
-approved.
+depend on the selected model and account. In eu-west-1, `global.anthropic.claude-fable-5-1`
+is ACTIVE, but CreateModelInvocationJob returns exactly `Batch inference is not supported for
+the requested model`. In us-east-1, `anthropic.claude-fable-5-1` is ACTIVE according to
+GetFoundationModel, and `us.anthropic.claude-fable-5-1` is an ACTIVE inference profile, but
+the ON_DEMAND foundation-model listing has no matching row. No us-east bucket or job was
+created; use `invoke` until a batch-capable model/profile is approved.
