@@ -172,15 +172,22 @@ AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1 \
   --model-id global.anthropic.claude-fable-5-1 --max-tokens 32000 --concurrency 8
 PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse \
   --prompts /path/to/noise-floor/prompts.jsonl --responses /path/to/noise-floor/responses.jsonl \
-  --out-dir /path/to/noise-floor
+  --out-dir /path/to/noise-floor --min-units 30
 ```
 
 Analysis uses the same response parsing, result-set validation, and model-output
 schema validation as `finish`. A unit flip rate is the fraction of its three
-verdicts that disagree with the modal verdict; malformed or missing repeats are
-ABSTAIN. A rate strictly greater than 10% selects `majority-of-3` for that rule;
-exactly 10% remains `single-call` (the cz0.12 policy). The generated
-`noise-floor.json` and `noise-floor.md` contain unit and per-rule rates.
+valid verdicts that disagree with the modal verdict; malformed or missing repeats
+are ABSTAIN for reporting purposes, but produce no valid verdict. The unit stays
+incomplete, and only complete units contribute to flip-rate denominators. A rule selects
+`majority-of-3` only when its flip rate is strictly greater than 10% and it has at
+least 30 complete units. Otherwise it selects `single-call`; `decision_basis` is
+`insufficient-units` when the rate exceeds 10% but the minimum is not met, and
+`measured` otherwise. Exactly 10% remains `single-call`. The instrument fingerprints
+the prompt, inference configuration/model ID, and response schema for each call
+group, records those fingerprints in `noise-floor.json`, and fails if repeats
+differ. The generated `noise-floor.json` and `noise-floor.md` contain unit and
+per-rule rates plus the decision basis.
 The registration selects IDs from the wider run's `prompts.jsonl`, not from responses.
 Use `PYTHONPATH=src uv run scripts/judgement_noise_floor.py prepare` and then
 `PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse` with the paths above.
