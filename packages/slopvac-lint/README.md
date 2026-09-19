@@ -80,7 +80,7 @@ and nonempty `vale.styles` settings are rejected, including in per-file override
 
 ## Judgement layer
 
-The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. A CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate, so reporting-only does not mean that every judgement outcome is non-gating.
+The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic error/warning counts, including the `max_errors` gate.
 
 The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response.
 

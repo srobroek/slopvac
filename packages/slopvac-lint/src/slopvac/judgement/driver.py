@@ -1236,12 +1236,6 @@ def _score_with_judgement(
     except Exception:
         resolved = resolve_for(Config(profile=Profile(str(deterministic.get("profile", "normal")))), Path(path))
     mechanical = [Finding.model_validate(item) for item in deterministic.get("findings", [])]
-    ceilings = {
-        rule_id: getattr(rule.judgement.judgement_ceiling, "value", rule.judgement.judgement_ceiling)
-        for rule_id, rule in rule_map.items()
-        if rule.judgement is not None
-    }
-    rules = {rule_id: rule for rule_id, rule in rule_map.items() if rule.judgement is not None}
     return score_document(
         path,
         mechanical,
@@ -1253,8 +1247,6 @@ def _score_with_judgement(
         deterministic.get("unchecked", []),
         judgement_findings=records,
         judgement_weights=weights,
-        judgement_rule_ceilings=ceilings,
-        judgement_rules=rules,
     )
 
 

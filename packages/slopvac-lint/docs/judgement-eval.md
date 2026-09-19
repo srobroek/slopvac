@@ -33,7 +33,7 @@ The recall gold set is `tests/fixtures/judgement/gold/gold-v1.jsonl`: 100 seeded
 
 ## CLI driver
 
-The CLI driver prepares and adjudicates a judgement run. It reports model confirms and rejects, and a CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate. See the [README judgement layer guide](../README.md#judgement-layer) for the user workflow.
+The CLI driver prepares and adjudicates a judgement run. It reports model confirms and rejects, but judgement outcomes never alter deterministic pass/fail, exit status, or deterministic error/warning counts, including the `max_errors` gate; they may lower the reported `judgement_adjusted_score`. See the [README judgement layer guide](../README.md#judgement-layer) for the user workflow.
 
 `prepare` runs the deterministic scan and writes model-ready artifacts. It never calls a provider. The caller reads each `prompts.jsonl` row, sends `prompt.system` and `prompt.user` to a provider, validates the provider response against `response_schema`, and appends a `responses.jsonl` row.
 
@@ -51,7 +51,7 @@ Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.syste
 
 The driver records malformed responses as failures instead of silently dropping units. The host then performs schema checks, evidence checks, adjudication, coverage, and aggregation.
 
-The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. A CONFIRM on a rule whose `judgement_ceiling` is `error` counts toward the `max_errors` gate. Other judgement outcomes can adjust the reported score without entering deterministic warning or error counts.
+The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic warning or error counts, including the `max_errors` gate.
 
 Measured precision on the two full runs so far
 (`docs/research/rubric-2026-09-15/evaluation/`): 9 of 37 confirms on the local
