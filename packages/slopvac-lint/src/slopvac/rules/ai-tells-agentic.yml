@@ -852,12 +852,13 @@ rules:
       normal: advisory
       relaxed: excluded
     judgement_question: >-
-      Within the stated domain, corpus, version, and exceptions, is the universal
-      contradicted by an observed or documented counterexample? Preserve quoted or
-      attributed claims, finite historical/editorial sets, local anaphoric quantifiers,
-      and recommendations with an explicit domain. If the sentence is an explicit
-      specification invariant and its domain is stated, PRESERVE it; flag only an
-      unsupported universal in the author's own unbounded voice.
+      Should the reviewer preserve quotations, attributed claims, and factual descriptions
+      tied to a named person, work, edition, document, product, or other explicit finite
+      set, local all/only/never with its stated antecedent, and bounded comparative
+      recommendations, while flagging unsupported authorial guarantees or categorical
+      evaluations (including "will tell you", "wherever ... has a problem", or "you are
+      wrong") and sweeping always/never/every/no X has ever claims unless attributed or
+      supported by quantified or passage evidence?
     judgement:
       scope_class: local
       dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
@@ -881,11 +882,13 @@ rules:
     provenance:
       source: "AI tells catalog — structure.md (\"Absolute assertion\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
-        Judgement remainder of ai-tells-structure.absolute-assertion-core. Decidable
-        by construction: the reviewer either produces a counterexample or confirms that
-        the author's universal has no stated boundary; preserve quoted, attributed, and
-        explicitly bounded claims.
-
+        Judgement remainder of ai-tells-structure.absolute-assertion-core. Preserve quotations,
+        attributed claims, and factual descriptions tied to a named person, work, edition,
+        document, product, or other explicit finite set; local all/only/never inherits its
+        stated antecedent; and preserve bounded comparative recommendations. Flag unsupported
+        authorial guarantees or categorical evaluations (including "will tell you", "wherever
+        ... has a problem", or "you are wrong") and sweeping always/never/every/no X has ever
+        claims unless attributed or supported by quantified or passage evidence.
   - id: negative-inventory-core
     name: Cut low-value negative inventory
     kind: pattern
