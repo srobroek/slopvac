@@ -1,5 +1,71 @@
 # Changelog
 
+## [2.7.0](https://github.com/srobroek/slopvac/compare/v2.6.0...v2.7.0) (2026-09-19)
+
+
+### Features
+
+* add Bedrock batch judgement runner ([1030c2b](https://github.com/srobroek/slopvac/commit/1030c2ba66f8942f35f53ad7bfa7ca5c05d2eabb))
+* document AWS batch setup ([274fa42](https://github.com/srobroek/slopvac/commit/274fa4233c1dd859be513cffd9d159bb2fdfa593))
+* document AWS Bedrock batch setup ([d93aeb3](https://github.com/srobroek/slopvac/commit/d93aeb377431c00b700fd5244a7eb13341725a1b))
+* **judgement:** gold-set recall, control false confirms, evidence-gate discards, opt-in unique-quote salvage ([a22c05a](https://github.com/srobroek/slopvac/commit/a22c05af112e8938d79ae2f0354c135ae12b21ca))
+* **judgement:** gold-set recall, control false confirms, evidence-gate discards, opt-in unique-quote salvage ([187e8d2](https://github.com/srobroek/slopvac/commit/187e8d2b36bf50eec31678b82eb5704764db6dc2))
+* **judgement:** normative preset covers plain imperative paragraphs ([26f8e2f](https://github.com/srobroek/slopvac/commit/26f8e2f32f96c3bfd2e5f9c276d1046125682c68))
+* **judgement:** normative preset covers plain imperative paragraphs ([bd300db](https://github.com/srobroek/slopvac/commit/bd300db774d3c3814ad9f0f318f8c0a2d31731bc))
+* **judgement:** standalone Bedrock batch runner for evaluation calls ([f7078fc](https://github.com/srobroek/slopvac/commit/f7078fca50c994e53bfaff1e518e64e038a0cf0a))
+* **lint:** reinstate --mode code-comments on the 2.6.0 comment route ([bd84c00](https://github.com/srobroek/slopvac/commit/bd84c0009f19a365aac3a44f8a00bbd7a8752c14))
+* **lint:** reinstate --mode code-comments on the 2.6.0 comment route ([a57c192](https://github.com/srobroek/slopvac/commit/a57c19212e55b5d00d9715f6df5d64e811964ff7))
+* **slopvac-lint:** stable span identity on the shipped projection ([25e7a30](https://github.com/srobroek/slopvac/commit/25e7a303dda8a1abd01ab8ebb70d96d71e4a9064))
+* **slopvac-lint:** stable span identity on the shipped projection ([81bff74](https://github.com/srobroek/slopvac/commit/81bff7496d81062cb3d6fc2870a8b7b8c0d013fe))
+* **slopvac:** make inclusive rules opt-in by profile ([1f2b312](https://github.com/srobroek/slopvac/commit/1f2b312752738e7638318c904e67573d8a76418c))
+* **slopvac:** make inclusive rules opt-in by profile ([74040c5](https://github.com/srobroek/slopvac/commit/74040c516baf6c985f1811da6651f4a4ada247f3))
+* use 32000 token Bedrock budget ([fba847a](https://github.com/srobroek/slopvac/commit/fba847af4f250b3b09cfb75d94971c3e4acf56e5))
+
+
+### Bug Fixes
+
+* collect native Anthropic batch output ([6351f25](https://github.com/srobroek/slopvac/commit/6351f2503bab727f70b77802805f404df0464fc5))
+* **judgement:** finish --adjudication counts each verdict once with an explicit label map ([a959991](https://github.com/srobroek/slopvac/commit/a959991a8b7e9836ab3b031a04eac94fc2306b66))
+* **judgement:** FP-FRAGMENT-UNIT row verdicts count as FP ([3e480aa](https://github.com/srobroek/slopvac/commit/3e480aa8377703fd72a452616297b47f75c0d192))
+* **judgement:** gate heading-echo on material redundancy ([f4f7546](https://github.com/srobroek/slopvac/commit/f4f7546c896480001bd0091f3bbc16590096bf2f))
+* **judgement:** gate heading-echo on material redundancy ([54799af](https://github.com/srobroek/slopvac/commit/54799af5198c5a86ad2bdbe86399e9ae25e0a7b8))
+* **judgement:** gold-set review round - shipped v1 schema, evidence-overlap recall, multi-unit spans, unit-only salvage ([5d01773](https://github.com/srobroek/slopvac/commit/5d017733a245ab5b3812d6e1872b902d20657821))
+* **judgement:** heading-echo predicate treats locator boilerplate as non-material and normalises derivational forms ([a6aeeeb](https://github.com/srobroek/slopvac/commit/a6aeeeb8e158d3af1ecb934b1a6d3874cd07b381))
+* **judgement:** heading-echo redundancy detects new content words and short restatements ([7e068b4](https://github.com/srobroek/slopvac/commit/7e068b45df478902a2cf421431b44fde5a25135f))
+* **judgement:** occurrence ordinal on every judgement unit ([0792132](https://github.com/srobroek/slopvac/commit/0792132f6569ebff52c52b3f765b0be85f4b422a))
+* **judgement:** ordinal from per-document construction order ([d9305ac](https://github.com/srobroek/slopvac/commit/d9305ac2681810c0f6df861ab6b5ba3c6839fc07))
+* **judgement:** plain-paragraph imperative detection uses the text_type classifier; list path unchanged ([a1de89f](https://github.com/srobroek/slopvac/commit/a1de89fe31ed2defc054aa63e2e35e71f7134168))
+* **judgement:** repair driver document and response handling ([7f5824a](https://github.com/srobroek/slopvac/commit/7f5824a82b888ca6b50e86d78a8974e1caef5a01))
+* **judgement:** repair driver document and response handling ([be6d764](https://github.com/srobroek/slopvac/commit/be6d764cb312e6d93b2069eda2e57184ad776894))
+* **lint:** classifier distinguishes noun-subject homographs and bare imperative Note ([6726932](https://github.com/srobroek/slopvac/commit/6726932b278c19169a1558f2fa75a0ad334079a0))
+* **lint:** code-comments review round - config mode precedence, informational skips ([c0f03db](https://github.com/srobroek/slopvac/commit/c0f03db84d4f8c63d84253ead10f6c845f953d4d))
+* **lint:** code-comments round 3 - unchecked RST-only targets exit 2, TOML out of prose collection ([cd8ec81](https://github.com/srobroek/slopvac/commit/cd8ec817f41620c5ba54090546aa8909b16504fa))
+* **lint:** omit empty notes from the JSON report ([fd62c23](https://github.com/srobroek/slopvac/commit/fd62c23fab3f5648810c9ae5bd351f51e42fc748))
+* **lint:** phrasal imperatives after safety markers classify PROCEDURAL ([9e8ae69](https://github.com/srobroek/slopvac/commit/9e8ae6918448e97c490304dac7eb7c256ded077e))
+* **lint:** safety-marker imperatives and negative imperatives classify PROCEDURAL ([58b861f](https://github.com/srobroek/slopvac/commit/58b861fa19d647e67ccc4e372be4e8a6efe86f1a))
+* **lint:** safety-marker imperatives and negative imperatives classify PROCEDURAL ([6494a54](https://github.com/srobroek/slopvac/commit/6494a5435bc44af5b067b7f6d2c1fac7ed955687))
+* make judgement gate reporting-only ([5c52a3f](https://github.com/srobroek/slopvac/commit/5c52a3fca92a35bc82bf2102a364e8544042d686))
+* make judgement gate reporting-only ([231b624](https://github.com/srobroek/slopvac/commit/231b624b00a2b92b2883f6750f2d755bd2daa476))
+* parallelize invoke calls and collect native output ([87f6760](https://github.com/srobroek/slopvac/commit/87f67605a53ae2c6599909750147f1b609e45a1f))
+* preserve Bedrock parse diagnostics ([aa03d0c](https://github.com/srobroek/slopvac/commit/aa03d0c7c22f04808aa93c1de22a7a203b05e441))
+* reject truncated Bedrock responses ([78362fa](https://github.com/srobroek/slopvac/commit/78362fad36e6f8764ca109eab5f50ea6872febef))
+* **slopvac-lint:** span identity review round - text-based ids, unbordered tables, HTML text nodes ([d3d1025](https://github.com/srobroek/slopvac/commit/d3d1025390d97fc43f0ca6c3ed3dc849d6e57a99))
+* **slopvac:** compile profile-default rules ([447ccc4](https://github.com/srobroek/slopvac/commit/447ccc46ba8410f1e19e41760a38ba3f9c9358fb))
+
+
+### Documentation
+
+* explain judgement driver workflow ([071eaa1](https://github.com/srobroek/slopvac/commit/071eaa15dea9499ce827970ef1e9e2a9e86c612d))
+* explain judgement driver workflow ([7bf93d0](https://github.com/srobroek/slopvac/commit/7bf93d0eb5d688154b8233538b75eff9a5a84ada))
+* fix AWS runner prose gate ([b64ed97](https://github.com/srobroek/slopvac/commit/b64ed974ce3009796c099551b015bfee6b984e10))
+* record deleted AWS bucket accurately ([b1f8d3c](https://github.com/srobroek/slopvac/commit/b1f8d3c77a5b7bc63184a0798b1db486858a3e06))
+* **slopvac-lint:** evaluation record schema, normalized records, --adjudication precision ([f82c776](https://github.com/srobroek/slopvac/commit/f82c77692d6ad5b46c483b55352268a8e43f515b))
+* **slopvac-lint:** evaluation record schema, normalized records, --adjudication precision ([a11a51e](https://github.com/srobroek/slopvac/commit/a11a51eb037b788f6b4b48403feaa988f0d24963))
+* **slopvac-lint:** judgement guide review fixes ([f81f81f](https://github.com/srobroek/slopvac/commit/f81f81f6a79e65f043ba90cacc552c415fe40d55))
+* **slopvac-lint:** record normalizer review round - single-count adjudications, explicit labels, pre-gate evidence denominator ([686de4e](https://github.com/srobroek/slopvac/commit/686de4e6aa83c09e8dd207510501ba775c34210f))
+* **slopvac:** skills README states 26 categories ([2966e93](https://github.com/srobroek/slopvac/commit/2966e93d91233b81d723e1332b39157c1af7bb59))
+* **slopvac:** skills README states 26 categories, matching the 2.6.0 inventory ([0b3ace8](https://github.com/srobroek/slopvac/commit/0b3ace821d0e8b07780e9ef654e23603bd58bd84))
+
 ## [2.6.0](https://github.com/srobroek/slopvac/compare/v2.5.0...v2.6.0) (2026-09-17)
 
 
