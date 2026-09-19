@@ -564,6 +564,48 @@ def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
     finish(out=out, responses=tmp_path / "responses.jsonl")
 
 
+def test_absolute_assertion_preserves_bounded_claims_and_flags_unbounded_one(tmp_path: Path) -> None:
+    document = tmp_path / "absolute-assertion.md"
+    document.write_text(
+        "The translator saw all the editions in the 1685-6 set.\n\n"
+        "> she never scratches.\n\n"
+        "Paraphrase testing will tell you what a reader means.\n\n"
+        "Every system always behaves correctly.",
+        encoding="utf-8",
+    )
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    prompts = [json.loads(line) for line in (out / "prompts.jsonl").read_text().splitlines() if line]
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    units_by_id = {unit["unit_id"]: unit for unit in units}
+    response_rows = []
+    for prompt in prompts:
+        rows = []
+        for unit_id in prompt["unit_ids"]:
+            unit = units_by_id[unit_id]
+            row = _result_row(unit)
+            if unit["rule_id"] == "ai-tells-structure.absolute-assertion-remainder":
+                if "Every system always behaves correctly" in unit["text"] or "Paraphrase testing will tell" in unit["text"]:
+                    row.update(
+                        {
+                            "evidence": [{"quote": unit["text"], "start": 0, "end": len(unit["text"]), "role": "defect", "source": "unit", "source_ref": unit["unit_id"]}],
+                            "occurrences": None,
+                            "scores": {"fit": "unambiguous_match", "harm": "misleads_or_blocks", "repair": "local_substitution", "warrant": "quote_plus_particular"},
+                            "verdict": "confirm",
+                        }
+                    )
+                else:
+                    row.update({"evidence": [], "occurrences": None, "scores": {"fit": "absent", "harm": "none", "repair": "inapplicable", "warrant": "none"}})
+            else:
+                row.update({"evidence": [], "occurrences": None, "scores": {"fit": "absent", "harm": "none", "repair": "inapplicable", "warrant": "none"}})
+            rows.append(row)
+        response_rows.append({"call_id": prompt["call_id"], "response": {"results": rows}})
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text("".join(json.dumps(row) + "\n" for row in response_rows), encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    assert report["documents"][0]["confirmed"] == 2
+
+
 def test_finish_precision_fields_require_adjudication_file(tmp_path: Path) -> None:
     document = tmp_path / "fixture.md"
     document.write_text("A useful paragraph.", encoding="utf-8")
