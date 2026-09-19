@@ -1,14 +1,14 @@
-# Wider judgement evaluation record — 2026-09-19
+# Wider judgement evaluation record -- 2026-09-19
 
 **Bead:** `slopvac-cz0.13`  
 **Scope:** wider held-out evaluation and three-repeat noise floor  
 **Record status:** complete for the measured host outcomes; blinded precision remains pending.
 
-This record preserves the provenance and denominator rules required by the evaluation-record hygiene contract. Every numeric claim names its source artefact and field below. Failed rows are not converted to abstentions and are excluded from verdict numerators and attempted-judgement denominators.
+This record preserves the provenance and denominator rules required by the evaluation-record hygiene contract. Every numeric claim names its source artefact and field below. Schema-valid abstentions remain attempted judgments. Failed rows remain in failed counts, while verdict numerators and attempted-judgement denominators use completed rows.
 
 ## Corpus and preregistration
 
-The frozen manifest is `wider/manifest.json`; its `class`, `genre`, `converted_word_count`, source, revision, and conversion fields are authoritative. The preregistration is `wider/preregistration.md`, sections **Corpus**, **Arms and repeats**, **Blinded adjudication**, and **Success criteria**. It defines a stratified corpus, **333,870** human-authored converted words and **133,900** stated-LLM converted words (`preregistration.md`, Corpus; the manifest is authoritative), a three-repeat 20% subsample (`preregistration.md`, Arms and repeats), four blinded labels (`preregistration.md`, Blinded adjudication), and the human threshold of **0.05 confirms per 1,000 words** plus the LLM lenient-precision target of **0.5** (`preregistration.md`, Success criteria).
+The frozen manifest is `wider/manifest.json`. Its `class`, `genre`, `converted_word_count`, source, revision, and conversion fields are authoritative. The preregistration is `wider/preregistration.md`, sections **Corpus**, **Arms and repeats**, **Blinded adjudication**, and **Success criteria**. It defines a stratified corpus with **333,870** human-authored converted words and **133,900** stated-LLM converted words (`preregistration.md`, Corpus; the manifest is authoritative). It also defines a three-repeat 20% subsample (`preregistration.md`, Arms and repeats), four blinded labels (`preregistration.md`, Blinded adjudication), a human threshold of **0.05 confirms per 1,000 words**, and an LLM lenient-precision target of **0.5** (`preregistration.md`, Success criteria).
 
 Two deviations are explicit. The noise-floor subsample was registered at runtime because no prior registration existed (`packages/slopvac-lint/docs/judgement-eval.md`, Noise-floor instrument; `noise-floor/subsample.json`). The LLM arm includes **148** second samples, accepted by the user; the retry set and its successful rows are recorded in `wider/analysis/q02-salvage/merge-log.json` (`join_key=call_id`, `bedrock-retry/responses.jsonl` successful retry rows). The human arm also includes **144** second-sample retry IDs, accepted by the user; **143** produced valid rows and one remained a provider JSON parse failure (`wider/run/human/failure-disposition.json`, `disposition`, `retried`).
 
@@ -20,7 +20,7 @@ The first **1,546** calls used the session model `global.anthropic.claude-fable-
 
 The final LLM report is `wider/run/llm/report.json`; its top-level `counts` fields are the source for aggregate accounting. It covers **2,265 calls**, with **148** call IDs retried (the second sample, accepted and flagged rather than excluded), **5** residual schema failures, and **306 confirmed**, **42,039 rejected**, **4,836 abstained**, and **100 failed units** (`report.json`, `counts` and coverage totals; retry count from `analysis/q02-salvage/merge-log.json`). The eight documents comprise **3 CLEAN** and **5 PARTIAL** statuses (`run/llm/report.json`, `documents[].coverage.status`). The **306** confirm total is also reconciled by `analysis/per-rule.md` (`50` confirms, **16.34%**, map to retried calls; retried rows are retained).
 
-The top-ten per-rule table below is copied from `wider/analysis/per-rule.md`, **Top 10 FP-suspect ranking**. These are stated-LLM confirm counts, not adjudicated precision and not human false-positive estimates; the human-class column is unavailable in this arm.
+The top-ten per-rule table below is copied from `wider/analysis/per-rule.md`, **Top 10 FP-suspect ranking**. It reports stated-LLM confirm counts. The human-class column is unavailable in this arm, and adjudicated precision requires the blinded labels described in the preregistration.
 
 | Rank | Rule | Model CONFIRM count | Human-class CONFIRM count |
 |---:|---|---:|---:|
@@ -66,7 +66,7 @@ The measured noise floor is `noise-floor/noise-floor.json` and its rendered summ
 
 Rules selected for `majority-of-3` are: `ai-tells-content-shape.elegant-variation` (**16.67%**, 2 units), `fabricated-citations-remainder` (**22.22%**, 3), `one-point-dilution` (**11.11%**, 3), `ai-tells-structure.invented-concept-label` (**22.22%**, 3), `listicle-in-a-trench-coat` (**22.22%**, 3), `tricolon-abuse-remainder` (**11.11%**, 3), `prose-discipline.competing-actor-terms` (**16.67%**, 2), and `hedged-into-uselessness` (**33.33%**, 2) (`noise-floor.json`, `rules[]`). All other rules in `noise-floor.json` remain `single-call` under the same rule.
 
-The low-n caveat is an **OPEN proposal**, not a decision: several majority-of-3 decisions are based on only **2–3 complete units** (`noise-floor.json`, `rules[].unit_count`), so cz0.12 must decide whether to add a low-n guard while preserving the measured >10% policy.
+The low-n caveat is an **OPEN proposal**. Several majority-of-3 decisions use only **2--3 complete units** (`noise-floor.json`, `rules[].unit_count`). cz0.12 must decide whether to add a low-n guard while preserving the measured >10% policy.
 
 ## Limitations
 
