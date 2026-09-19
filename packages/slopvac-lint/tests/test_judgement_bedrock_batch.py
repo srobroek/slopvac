@@ -47,3 +47,16 @@ def test_collect_maps_records(monkeypatch, tmp_path):
     runner.collect(SimpleNamespace(job_dir=str(d), out=str(out), todo=None, poll_seconds=0))
     assert json.loads(out.read_text())["call_id"] == "a"
     assert json.loads(out.read_text())["response"] == {"ok": True}
+
+
+def test_invoke_preserves_raw_and_stop_reason_on_parse_error(monkeypatch, tmp_path):
+    class Client:
+        def converse(self, **kwargs):
+            return {"stopReason": "max_tokens", "output": {"message": {"content": [{"text": '{"broken":'}]}}}
+    monkeypatch.setattr(runner, "load_boto3", lambda: SimpleNamespace(client=lambda *a, **k: Client()))
+    todo = tmp_path / "todo.jsonl"; todo.write_text(json.dumps(row()) + "\n")
+    out = tmp_path / "out.jsonl"
+    runner.invoke(SimpleNamespace(todo=str(todo), out=str(out), model_id="m", max_tokens=8192, temperature=None, concurrency=1))
+    result = json.loads(out.read_text())
+    assert result["raw"] == '{"broken":'
+    assert result["stop_reason"] == "max_tokens"
