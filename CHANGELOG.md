@@ -480,3 +480,5 @@
 * **write-docs:** modernize ai-tells for current model generations ([#546](https://github.com/srobroek/slopvac/issues/546)) ([32f67bb](https://github.com/srobroek/slopvac/commit/32f67bb58f5512257137dddd099ca0d02c0bd49e))
 
 ## Changelog
+
+* gate lexical rules on the repaired sentence `text_type` classifier
