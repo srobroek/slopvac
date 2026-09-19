@@ -51,7 +51,9 @@ Weight scales a category's contribution to the overall score. A weight of 0 make
 
 By kind: 107 pattern, 18 substitution, 17 tokens, 14 metric, 6 structure, 4 vocabulary.
 
-Each rule lists what it ships as, then its disposition at strict, normal, and relaxed. `off` at a tier means the rule does not run there; a severity means it runs at that severity.
+Each rule lists what it ships as, then its disposition at strict, normal, and relaxed. `excluded` at a tier means the rule does not run there and no configuration switches it back on; `advisory` means it runs but cannot fail the gate on its own; `enforced` means it runs at the severity the profile resolves.
+
+A separate **Off by profile default** line names the profiles that install a rule and leave it silent. That is not a tier: the rule is reachable, and a `[rules."<id>"]` entry naming a severity turns that rule on without turning on any sibling rule. The entry is a top-level setting, so it applies wherever the rule's profile and category admit it rather than to one profile. A rule in a category the profile switches off needs the category enabled too, because the category is checked before the per-rule setting.
 
 ### AI residue (`ai-residue`)
 
@@ -1480,6 +1482,7 @@ Replace a disability metaphor with the plainer word
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
+- **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."prose-inclusive.ableist"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Use the plainer word that was meant.
 - **Source.** Retired Vale style — prose-inclusive/Ableist.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inclusive/Ableist.yml>
 
@@ -1493,6 +1496,7 @@ Do not assume the reader's input device
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
+- **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."prose-inclusive.device-assumption"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Use the device-neutral verb.
 - **Source.** Retired Vale style — prose-inclusive/DeviceAssumption.yml — <https://www.w3.org/WAI/WCAG22/Understanding/>
 
@@ -1506,6 +1510,7 @@ Replace an exclusionary term with its settled form
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / advisory / advisory
 - **Scope.** prose
+- **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."prose-inclusive.exclusive"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Use the settled replacement.
 - **Source.** Retired Vale style — prose-inclusive/Exclusive.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inclusive/Exclusive.yml>
 
@@ -1897,6 +1902,7 @@ Use inclusive language
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
+- **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."ste-practices.gendered-or-exclusionary-language"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Replace the term with the inclusive alternative, unless it is an identifier.
 - **Suppressible with.** `quotation`, `code-span`, `api-name`, `identifier-fidelity` — any other reason is reported rather than honoured
 - **Source.** ASD-STE100 issue 9, rule GR-7
@@ -1993,13 +1999,14 @@ Replace an unclear pronoun with the noun
 
 - **Kind.** pattern — a regular expression
 - **Ships as.** suggestion
-- **strict / normal / relaxed.** advisory / excluded / excluded
+- **strict / normal / relaxed.** advisory / advisory / advisory
 - **Scope.** sentence
+- **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."ste-practices.unclear-pronoun"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Replace the pronoun with the noun it refers to.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
 - **Source.** ASD-STE100 issue 9, rule GR-3
 
-Two alternates. The gendered-pronoun branch is objective and also satisfies the inclusive-language recommendation, so those two entries share an implementation. The second branch is a heuristic and deliberately narrow: it fires only on a pronoun in a clause that follows a comma and precedes a modal, which is the shape the specification's own ambiguity example takes. Broader pronoun detection produces unusable noise. Tested: both bad examples match; both good examples do not.
+Two alternates. The gendered-pronoun branch is objective and also satisfies the inclusive-language recommendation, so those two entries share an implementation. The second branch is a heuristic and deliberately narrow: it fires only on a pronoun in a clause that follows a comma and precedes a modal, which is the shape the specification's own ambiguity example takes. Broader pronoun detection produces unusable noise. Tested: both bad examples match; both good examples do not. Advisory at every profile rather than excluded outside strict, and off by a per-rule profile default instead: `Engine.is_active` drops an excluded tier before it reads a config layer, so `excluded` would make the rule unreachable for a project that wants it. Advisory plus the default keeps the quiet disposition and leaves the switch.
 
 ### STE Procedural Writing (`ste-procedural`)
 

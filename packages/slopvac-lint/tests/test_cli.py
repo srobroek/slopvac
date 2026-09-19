@@ -526,6 +526,13 @@ def test_disable_flag_silences_a_rule(runner, tmp_path):
 
 def test_no_vale_skips_vale_owned_rules(runner, tmp_path):
     """`--no-vale` must not substitute native semantics for Vale-owned rules."""
+    _write(
+        tmp_path,
+        "slopvac.toml",
+        # Every profile ships this rule off, so without the opt-in the assertion
+        # below would hold whether `--no-vale` skipped it or ran it natively.
+        '[rules."prose-inclusive.exclusive"]\nseverity = "warning"\n',
+    )
     path = _write(
         tmp_path,
         "table.md",
