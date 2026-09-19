@@ -10,7 +10,7 @@ This record preserves the provenance and denominator rules required by the evalu
 
 The frozen manifest is `wider/manifest.json`; its `class`, `genre`, `converted_word_count`, source, revision, and conversion fields are authoritative. The preregistration is `wider/preregistration.md`, sections **Corpus**, **Arms and repeats**, **Blinded adjudication**, and **Success criteria**. It defines a stratified corpus, **333,870** human-authored converted words and **133,900** stated-LLM converted words (`preregistration.md`, Corpus; the manifest is authoritative), a three-repeat 20% subsample (`preregistration.md`, Arms and repeats), four blinded labels (`preregistration.md`, Blinded adjudication), and the human threshold of **0.05 confirms per 1,000 words** plus the LLM lenient-precision target of **0.5** (`preregistration.md`, Success criteria).
 
-Two deviations are explicit. The noise-floor subsample was registered at runtime because no prior registration existed (`packages/slopvac-lint/docs/judgement-eval.md`, Noise-floor instrument; `noise-floor/subsample.json`). The LLM arm includes **148** second samples, accepted by the user; the retry set and its successful rows are recorded in `wider/analysis/q02-salvage/merge-log.json` (`join_key=call_id`, `bedrock-retry/responses.jsonl` successful retry rows). The human retry was **not included**: `wider/run/human/failure-disposition.json` has `total: 144` and `retried: []`, with all 144 residual failures excluded under the stated rule.
+Two deviations are explicit. The noise-floor subsample was registered at runtime because no prior registration existed (`packages/slopvac-lint/docs/judgement-eval.md`, Noise-floor instrument; `noise-floor/subsample.json`). The LLM arm includes **148** second samples, accepted by the user; the retry set and its successful rows are recorded in `wider/analysis/q02-salvage/merge-log.json` (`join_key=call_id`, `bedrock-retry/responses.jsonl` successful retry rows). The human arm also includes **144** second-sample retry IDs, accepted by the user; **143** produced valid rows and one remained a provider JSON parse failure (`wider/run/human/failure-disposition.json`, `disposition`, `retried`).
 
 ## Runner and model provenance
 
@@ -37,24 +37,25 @@ The top-ten per-rule table below is copied from `wider/analysis/per-rule.md`, **
 
 ## Human-class arm and candidate FP suspects
 
-The human report is `wider/run/human/report.json`; the per-rule extraction is `wider/analysis/per-rule-human.md`. It covers **36 documents**, has **42 confirms**, and is **PARTIAL** (`per-rule-human.md`, Human per-document coverage). It has **144 failed calls** (`report.json`, `counts.failed_calls`; disposition cross-check in `run/human/failure-disposition.json`, `total`) and **4,363 abstentions** (`run/human/report.json`, document coverage totals). No retry was included: `failure-disposition.json` records `retried: []` and says all **144** remain residual failures.
+The human report is `wider/run/human/report.json`; the per-rule extraction is `wider/analysis/per-rule-human.md`. It covers **36 documents**, has **45 confirms**, and is **PARTIAL** overall (`per-rule-human.md`, refreshed Human per-document coverage; **29 CLEAN** and **7 PARTIAL** statuses from `run/human/report.json`, `documents[].coverage.status`). The retry completed after **144** queued IDs: **143** produced valid rows and one remained a provider JSON parse failure (`run/human/failure-disposition.json`, `disposition`, `retried`; refreshed `report.json`, `counts.failed_calls: 5`). The refreshed report has **4,433 abstentions** (`run/human/report.json`, coverage totals). Retried-call confirmations are **13 / 2,054 = 0.63%** (`run/human/report.json`, retry-marked rows and coverage totals).
 
-The following are **candidate FP suspects**, ranked by human model CONFIRM counts. They are not adjudicated FPs; they are not silently relabelled, and the denominator remains the attempted count shown in `wider/analysis/per-rule-human.md`.
+The following are **candidate FP suspects**, ranked by human model CONFIRM counts. They are not adjudicated FPs; they are not silently relabelled, and the denominator remains the attempted count shown in the refreshed `wider/analysis/per-rule-human.md`.
 
 | Rank | Rule | Model CONFIRM count | Attempted | Human confirm rate |
 |---:|---|---:|---:|---:|
-| 1 | `ai-tells-structure.absolute-assertion-remainder` | 13 | 2989 | 0.43% |
-| 2 | `ai-tells-register.corporate-analytic-filler-remainder` | 6 | 2977 | 0.20% |
-| 3 | `ai-tells-structure.cataphoric-lead-in-remainder` | 6 | 2989 | 0.20% |
-| 4 | `ai-tells-register.false-agency-remainder` | 4 | 2977 | 0.13% |
-| 5 | `ai-tells-structure.heading-echo` | 4 | 2964 | 0.13% |
-| 6 | `ai-tells-register.faux-candor-remainder` | 2 | 2977 | 0.07% |
-| 7 | `ai-tells-register.anthropomorphised-justification-remainder` | 2 | 2977 | 0.07% |
-| 8 | `ai-tells-structure.false-suspense-remainder` | 2 | 2964 | 0.07% |
-| 9 | `ai-tells-structure.false-range` | 1 | 2964 | 0.03% |
-| 10 | `ai-tells-structure.anaphora-abuse` | 1 | 2989 | 0.03% |
+| 1 | `ai-tells-structure.absolute-assertion-remainder` | 13 | 3447 | 0.38% |
+| 2 | `ai-tells-register.corporate-analytic-filler-remainder` | 6 | 3447 | 0.17% |
+| 3 | `ai-tells-structure.cataphoric-lead-in-remainder` | 7 | 3447 | 0.20% |
+| 4 | `ai-tells-register.false-agency-remainder` | 4 | 3447 | 0.12% |
+| 5 | `ai-tells-structure.false-suspense-remainder` | 3 | 3447 | 0.09% |
+| 6 | `ai-tells-register.anthropomorphised-justification-remainder` | 3 | 3447 | 0.09% |
+| 7 | `ai-tells-register.faux-candor-remainder` | 2 | 3447 | 0.06% |
+| 8 | `ai-tells-structure.analogy-stack-authority` | 1 | 3447 | 0.03% |
+| 9 | `ai-tells-structure.anaphora-abuse` | 1 | 3447 | 0.03% |
+| 10 | `ai-tells-structure.false-range` | 1 | 3447 | 0.03% |
 
-The preregistered human criterion is **not met**: **42** confirms / **333,870** manifest words = **0.1257974661 per 1,000 words**, above **0.05** (`wider/verdict.md`, Criterion 1; denominator from `wider/manifest.json`, `converted_word_count`). The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
+The preregistered human criterion is **not met**: **45** confirms / **333,870** manifest words = **0.1348 per 1,000 words**, above **0.05** (`wider/run/human/report.json`, refreshed `documents[].confirmed`; denominator from `wider/manifest.json`, `converted_word_count`). The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
+
 
 ## Q02 salvage comparison
 
@@ -71,8 +72,7 @@ The low-n caveat is an **OPEN proposal**, not a decision: several majority-of-3 
 ## Limitations
 
 - Host CONFIRM/REJECT/ABSTAIN outcomes are not blinded TP/borderline/FP/preservation-miss labels; no semantic precision is claimed (`wider/verdict.md`, Criterion 2).
-- Residual failures and uncalled prompts reduce coverage and are excluded from verdict numerators and attempted denominators (`wider/run/human/failure-disposition.json`, `exclusion_statement`; `wider/verdict.md`, Failure and abstention accounting).
-- The human arm remains partial with **144** residual failures and was not retried (`wider/run/human/failure-disposition.json`, `total`, `retried`).
+- The human arm remains partial with **5** residual failed calls after retry (**143** of **144** retry IDs produced valid rows; one provider JSON parse failure), and failed rows remain excluded (`wider/run/human/failure-disposition.json`, `disposition`, `total`, `retried`; `wider/run/human/report.json`, `counts.failed_calls`).
 - The runtime registration of the noise-floor subsample is a preregistration deviation (`noise-floor/subsample.json`; `noise-floor/noise-floor.md`).
 - The first **1,546** calls used the session model and may not be sampling-homogeneous with the explicit runner arm (`packages/slopvac-lint/docs/judgement-eval.md`, Standalone Bedrock evaluation runner).
 
