@@ -163,7 +163,7 @@ def test_judgement_penalty_is_reported_without_gating_clean_scores():
         assert result.judgement_adjusted_score == 85.0
 
 
-def test_only_error_ceiling_judgement_confirms_count_as_errors():
+def test_judgement_confirm_is_reporting_only_even_with_error_ceiling():
     record = finding("one", "safety.risk", 0, 5, severity="error")
     result = score_document(
         "doc.md",
@@ -174,10 +174,11 @@ def test_only_error_ceiling_judgement_confirms_count_as_errors():
         cfg(),
         {},
         judgement_findings=[record],
-        judgement_rule_ceilings={"safety.risk": "error"},
     )
-    assert not result.passed
-    assert "1 error(s), limit 0" in result.failure_reasons
+    assert result.passed
+    assert result.errors == 0
+    assert result.score == 100.0
+    assert result.judgement_adjusted_score < result.score
 
 
 def test_judgement_warning_does_not_enter_warning_gate():
@@ -193,7 +194,6 @@ def test_judgement_warning_does_not_enter_warning_gate():
         config,
         {},
         judgement_findings=[record],
-        judgement_rule_ceilings={"cat.rule": "warning"},
     )
     assert result.passed
     assert not any("warning(s)" in reason for reason in result.failure_reasons)
