@@ -483,6 +483,8 @@
 * **write-docs:** add ai-tells reference with progressive-disclosure pointers ([#545](https://github.com/srobroek/slopvac/issues/545)) ([5ac1718](https://github.com/srobroek/slopvac/commit/5ac1718107061b1fcf224da5a30e289f614c69fc))
 * **write-docs:** modernize ai-tells for current model generations ([#546](https://github.com/srobroek/slopvac/issues/546)) ([32f67bb](https://github.com/srobroek/slopvac/commit/32f67bb58f5512257137dddd099ca0d02c0bd49e))
 
+* fix judgement coverage and enforce complete evaluation-record measurements (slopvac-cz0.23)
+
 ## Changelog
 
 * gate lexical rules on the repaired sentence `text_type` classifier

@@ -26,8 +26,8 @@ def test_real_records_normalize_deterministically_and_declare_nulls(tmp_path: Pa
     for name in TARGETS:
         shutil.copy2(EVALUATION / name, records / name)
 
-    command = [sys.executable, str(SCRIPT), str(records)]
-    subprocess.run(command, check=True, cwd=ROOT, capture_output=True, text=True)
+    command = [sys.executable, str(SCRIPT), "--allow-partial", str(records)]
+    subprocess.run([sys.executable, str(SCRIPT), "--allow-partial", str(records)], check=True, cwd=ROOT)
     first = {path.name: path.read_bytes() for path in records.glob("*.normalized.json")}
     subprocess.run(command, check=True, cwd=ROOT, capture_output=True, text=True)
     second = {path.name: path.read_bytes() for path in records.glob("*.normalized.json")}
@@ -48,7 +48,7 @@ def test_normalized_measurements_use_authoritative_counters(tmp_path: Path) -> N
     records.mkdir()
     for name in TARGETS:
         shutil.copy2(EVALUATION / name, records / name)
-    subprocess.run([sys.executable, str(SCRIPT), str(records)], check=True, cwd=ROOT)
+    subprocess.run([sys.executable, str(SCRIPT), "--allow-partial", str(records)], check=True, cwd=ROOT)
 
     def load(name: str) -> dict:
         return json.loads((records / f"{name}.normalized.json").read_text(encoding="utf-8"))
@@ -69,3 +69,17 @@ def test_normalized_measurements_use_authoritative_counters(tmp_path: Path) -> N
         heldout = load(name)
         assert heldout["metrics"]["evidence_validity"] is None
         assert "metrics.evidence_validity" in heldout["not_derivable"]
+
+
+def test_incomplete_record_fails_default_validation(tmp_path: Path) -> None:
+    record = tmp_path / "incomplete.json"
+    record.write_text(json.dumps({"precision_strict": 0.5}), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(record)],
+        check=False,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "metrics.lenient_precision" in result.stderr

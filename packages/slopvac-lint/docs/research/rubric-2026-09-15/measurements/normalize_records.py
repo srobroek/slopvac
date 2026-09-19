@@ -143,9 +143,41 @@ def _model_confirms_before_gate(record: Any) -> int | float | None:
                 return candidate
     return None
 
+def _validate_required_fields(record: Any) -> None:
+    """Reject records that cannot satisfy the evaluation-record contract."""
+    missing: list[str] = []
+    if _first_number(record, "precision_strict") is None:
+        missing.append("metrics.strict_precision (source precision_strict)")
+    if _first_number(record, "precision_lenient", "precision_excluding_borderline") is None:
+        missing.append("metrics.lenient_precision (source precision_lenient or precision_excluding_borderline)")
+    host_outcomes = next(
+        (value.get("host_outcomes") for value in _walk(record)
+         if isinstance(value, dict) and isinstance(value.get("host_outcomes"), dict)),
+        None,
+    )
+    if not isinstance(host_outcomes, dict) or "ABSTAIN" not in host_outcomes:
+        missing.append("metrics.abstention_rate (source host_outcomes.ABSTAIN)")
+    if not any(isinstance(value, dict) and "abstention_reasons" in value for value in _walk(record)):
+        missing.append("abstention_reasons")
+    if _host_confirms(record) is None:
+        missing.append("evidence_validity.host_confirms_after_gate (source host_confirms)")
+    if _model_confirms_before_gate(record) is None:
+        missing.append("evidence_validity.model_confirms_before_gate (source model_raw_verdicts_before_host_gate.confirm)")
+    if not any(
+        isinstance(value, dict)
+        and isinstance(value.get("reconciliation"), dict)
+        and isinstance(value["reconciliation"].get("distinct_unit_ids"), (int, float))
+        for value in _walk(record)
+    ) and not any(isinstance(value, dict) and "unit_id" in value for value in _walk(record)):
+        missing.append("denominators.all_units.distinct_unit_ids")
+    if missing:
+        raise ValueError("record is missing required evaluation fields: " + "; ".join(missing))
 
-def normalize(path: Path) -> Path:
+
+def normalize(path: Path, *, allow_partial: bool = False) -> Path:
     raw = json.loads(path.read_text(encoding="utf-8"))
+    if not allow_partial:
+        _validate_required_fields(raw)
     outcomes = _counts(raw, "outcomes")
     outcomes.update({k: v for k, v in _counts(raw, "host_outcomes").items()})
     adjudication, adjudication_derivation, unknown_labels = _adjudication_counts(raw)
@@ -207,6 +239,11 @@ def normalize(path: Path) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("paths", nargs="*", type=Path)
+    parser.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="retain legacy null synthesis for incomplete records",
+    )
     args = parser.parse_args()
     if args.paths:
         paths = []
@@ -220,7 +257,7 @@ def main() -> None:
     else:
         paths = [Path(__file__).parent.parent / "evaluation" / name for name in sorted(TARGETS)]
     for path in paths:
-        print(normalize(path))
+        print(normalize(path, allow_partial=args.allow_partial))
 
 
 if __name__ == "__main__":
