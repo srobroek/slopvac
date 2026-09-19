@@ -49,6 +49,8 @@ Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.syste
 
 `prepare` writes `prompts.jsonl`, `units.jsonl`, `documents/*.json`, deterministic per-document reports, and `manifest.json` under `--out`. `finish` writes `findings.jsonl`, `report.json`, and `report.md`. `compare --apply-preview` writes checker-passed rewrites under `--out/preview/`.
 
+`finish` uses Q02's `unique-quote` offset salvage by default: a quoted unit span is relocated only when that quote occurs exactly once in the unit. Pass `--offset-salvage none` to preserve raw offsets and reproduce pre-Q02 behavior. The generated `report.json` records the selected mode in its top-level `offset_salvage` field.
+
 The driver records malformed responses as failures instead of silently dropping units. The host then performs schema checks, evidence checks, adjudication, coverage, and aggregation.
 
 The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic warning or error counts, including the `max_errors` gate.
