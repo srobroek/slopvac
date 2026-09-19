@@ -144,7 +144,7 @@ class CoverageBucket:
 
     @property
     def coverage(self) -> float:
-        return self.completed / self.eligible if self.eligible else 0.0
+        return self.attempted / self.eligible if self.eligible else 0.0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -555,6 +555,12 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
         )
         if finding is not None:
             status = _coverage_status(finding)
+        if truncated:
+            for current in target:
+                current.truncated += 1
+                current.not_run += 1
+            partial = True
+            continue
         if status in {"not_run", "not-run", "missing", ""}:
             for current in target:
                 current.not_run += 1
@@ -587,12 +593,6 @@ def coverage(findings: Iterable[FindingLike], eligible_units: Iterable[Any]) -> 
                     current.abstention_reasons[str(reason)] = (
                         current.abstention_reasons.get(str(reason), 0) + 1
                     )
-        if truncated:
-            for current in target:
-                current.truncated += 1
-                current.not_run += 1
-            partial = True
-
     for group in buckets.values():
         for current in group.values():
             current.status = "PARTIAL" if current.failed or current.truncated or current.not_run else "CLEAN"

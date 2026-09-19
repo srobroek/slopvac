@@ -252,12 +252,31 @@ def test_probe_occurrences_merge_to_one_unit_with_precedence_and_truncation():
     result = coverage(records, eligible)
     document = result.documents["doc.md"]
     assert document.eligible == 1
-    assert document.attempted == 1
-    assert document.confirmed == 1
+    assert document.attempted == 0
+    assert document.confirmed == 0
     assert document.abstained == 0
     assert document.truncated == 1
     assert document.not_run == 1
     assert result.status == "PARTIAL"
+def test_truncated_unit_is_not_attempted_or_counted_as_an_outcome():
+    eligible = [
+        {"unit_id": "confirmed", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.confirmed"},
+        {"unit_id": "truncated", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.truncated"},
+        {"unit_id": "failed", "path": "doc.md", "pack_id": "pack", "rule_id": "rule.failed"},
+    ]
+    records = [
+        finding("confirmed", "rule.confirmed", 0, 1, outcome="CONFIRM"),
+        replace(finding("truncated", "rule.truncated", 2, 3, outcome="CONFIRM"), occurrences_truncated=True),
+        finding("failed", "rule.failed", 4, 5, outcome="FAILED"),
+    ]
+    document = coverage(records, eligible).documents["doc.md"]
+    assert document.eligible == 3
+    assert document.attempted == 1
+    assert document.coverage == 1 / 3
+    assert document.confirmed == 1
+    assert document.failed == 1
+    assert document.truncated == 1
+    assert document.not_run == 1
 
 
 def test_coverage_keeps_distinct_unit_ids_distinct():
