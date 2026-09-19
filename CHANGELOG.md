@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* **judgement:** separate noise-floor measurement from CONFIRM variance policy and retain model, failure-class, and provenance metadata.
+
 ## [2.7.0](https://github.com/srobroek/slopvac/compare/v2.6.0...v2.7.0) (2026-09-19)
 
 

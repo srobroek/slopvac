@@ -62,13 +62,21 @@ The Q02 decision is **DECIDED (2026-09-19)** for `slopvac-cz0.19`: `unique-quote
 
 ## Noise floor
 
-The measured noise floor is `noise-floor/noise-floor.json` and its rendered summary `noise-floor/noise-floor.md`: **3** repeats, **1,416** complete units, **308** incomplete units, and overall flip rate **1.27%** (`noise-floor.json`, `repeat_count`, `complete_units`, `incomplete_units`, `overall_flip_rate`). The standing decision rule is strictly **> 10%** flip rate and at least **30 complete units** ⇒ `majority-of-3`; exactly **10%** remains `single-call` (`noise-floor.json`, `threshold`, `min_units`; `noise-floor.md`).
+The r2 measurement is `noise-floor/r2/noise-floor.json` with rendered summary
+`noise-floor/r2/noise-floor.md`: **3** repeats, **1,416** complete units, **308**
+incomplete units, and overall flip rate **1.27%**. Failure classes are reported
+separately: **60 provider_error** and **1,744 schema_invalid**. The report has no
+`missing_response`, `parse_error`, or `unknown_unit` failures. Only complete units
+contribute to flip denominators. The legacy rows were backfilled with
+`run-config.json`, sourced from `run-noise-floor supervisor script and hub process
+slopvac-noise-floor`, and that provenance is retained in `noise-floor.json`.
 
-The original eight low-n majority-of-3 rules now become `single-call` with `decision_basis: insufficient-units` under the 30-unit guard; the overall flip rate remains **1.27%** because the guard changes per-rule routing only.
-
-Rules selected for `majority-of-3` under the original measured policy were: `ai-tells-content-shape.elegant-variation` (**16.67%**, 2 units), `fabricated-citations-remainder` (**22.22%**, 3), `one-point-dilution` (**11.11%**, 3), `ai-tells-structure.invented-concept-label` (**22.22%**, 3), `listicle-in-a-trench-coat` (**22.22%**, 3), `tricolon-abuse-remainder` (**11.11%**, 3), `prose-discipline.competing-actor-terms` (**16.67%**, 2), and `hedged-into-uselessness` (**33.33%**, 2) (`noise-floor.json`, `rules[]`).
-
-The low-n caveat is **DECIDED 2026-09-19**: per-rule `majority-of-3` requires at least **30 complete units**; below that, the decision is `single-call` with `decision_basis: insufficient-units`, while the overall complete-unit flip rate is unchanged.
+The instrument is measurement-only: it reports per-rule flip rates, complete-unit
+counts, and failure classes. The separate `r2/variance-policy.json` and
+`variance-policy.md` run `decide --threshold 0.10 --min-units 30`; its explicit
+`applies_to` is **CONFIRM**. All low-n rules remain `single-call` with
+`decision_basis: insufficient-units`, matching the guarded run; no `finish` path
+applies majority today.
 
 ## Limitations
 

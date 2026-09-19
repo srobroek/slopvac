@@ -152,42 +152,52 @@ rejects the judgement configuration key used by this repository.
 
 ## Noise-floor instrument
 
-The noise-floor instrument repeats a registered 20% subsample three times with the
-same model, prompt bytes, decoding configuration, and response schema. This run
-registered the subsample at prepare time because no prior registration existed:
-`sha256(call_id)` interpreted as a big-endian integer, selected when `mod 5 == 0`,
-over the call IDs in the wider run's `prompts.jsonl`. The registration is retained in
-`noise-floor/subsample.json`; selecting it at runtime is a preregistration
-deviation and is reported in `noise-floor.md`.
-
-Prepare repeats and invoke with the frozen Bedrock arm:
-
-```sh
-PYTHONPATH=src uv run scripts/judgement_noise_floor.py prepare \
-  --prompts /path/to/wider/prompts.jsonl --responses /path/to/wider/responses.jsonl \
-  --subsample /path/to/noise-floor/subsample.json --out /path/to/noise-floor/prompts.jsonl
-AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1 \
-  uv run scripts/judgement_bedrock_batch.py invoke \
-  --todo /path/to/noise-floor/prompts.jsonl --out /path/to/noise-floor/responses.jsonl \
-  --model-id global.anthropic.claude-fable-5-1 --max-tokens 32000 --concurrency 8
-PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse \
-  --prompts /path/to/noise-floor/prompts.jsonl --responses /path/to/noise-floor/responses.jsonl \
-  --out-dir /path/to/noise-floor --min-units 30
-```
+The noise-floor instrument measures disagreement across a registered 20% subsample
+with exactly three repeats. `prepare` copies the runner's `--model-id` and
+`--max-tokens` into every repeat row as `model_id` and `inference_config`; analysis
+fingerprints those fields, prompt bytes, and the response schema and fails closed
+when they are absent or differ across repeats. For the 2026-09-19 run, legacy rows
+are analysed with `--run-config noise-floor/run-config.json`; its provenance is
+recorded in `noise-floor.json` as `run-noise-floor supervisor script and hub process
+slopvac-noise-floor`.
 
 Analysis uses the same response parsing, result-set validation, and model-output
-schema validation as `finish`. A unit flip rate is the fraction of its three
-valid verdicts that disagree with the modal verdict; malformed or missing repeats
-are ABSTAIN for reporting purposes, but produce no valid verdict. The unit stays
-incomplete, and only complete units contribute to flip-rate denominators. A rule selects
-`majority-of-3` only when its flip rate is strictly greater than 10% and it has at
-least 30 complete units. Otherwise it selects `single-call`; `decision_basis` is
-`insufficient-units` when the rate exceeds 10% but the minimum is not met, and
-`measured` otherwise. Exactly 10% remains `single-call`. The instrument fingerprints
-the prompt, inference configuration/model ID, and response schema for each call
-group, records those fingerprints in `noise-floor.json`, and fails if repeats
-differ. The generated `noise-floor.json` and `noise-floor.md` contain unit and
-per-rule rates plus the decision basis.
-The registration selects IDs from the wider run's `prompts.jsonl`, not from responses.
-Use `PYTHONPATH=src uv run scripts/judgement_noise_floor.py prepare` and then
-`PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse` with the paths above.
+schema validation as `finish`. Non-verdict repeats are classified separately as
+`missing_response`, `provider_error`, `parse_error`, `schema_invalid`, or
+`unknown_unit`, with counts overall and per rule. Only complete units contribute
+to flip-rate denominators. Failure classes for incomplete units remain visible.
+instrument reports measurements only: per-rule flip rate, complete units, and
+failure classes. It does not select an aggregation policy.
+
+Run the measurement and the separate policy decision:
+
+```sh
+PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse \
+  --prompts /path/to/noise-floor/prompts.jsonl \
+  --responses /path/to/noise-floor/responses.jsonl \
+  --run-config /path/to/noise-floor/run-config.json \
+  --out-dir /path/to/noise-floor/r2
+PYTHONPATH=src uv run scripts/judgement_noise_floor.py decide \
+  --noise-floor /path/to/noise-floor/r2/noise-floor.json \
+  --threshold 0.10 --min-units 30 \
+  --out /path/to/noise-floor/r2/variance-policy.json
+```
+
+`decide` computes the policy separately, with an explicit `applies_to: CONFIRM`
+field. A rule is eligible for majority-of-3 only when its measured flip rate is
+strictly greater than 10% and it has at least 30 complete units. Exactly 10%
+remains single-call; below the minimum is reported as `insufficient-units`.
+
+## Variance policy
+
+The proposed majority-of-3 policy applies to **CONFIRM outcomes only**. The
+winning quote is the quote from the majority CONFIRM repeats. It must pass the
+host evidence gate again before it counts. Prefer the quote that validates;
+if no candidate quote validates, the unit is not confirmed. The record retains
+the per-repeat verdict tuples, so disagreements and every non-CONFIRM outcome
+remain visible rather than being collapsed away.
+
+No shipped `finish` path applies majority today; this is a documentation-first
+policy. The noise-floor instrument reports measurements, while the separate
+`decide` command computes the policy decision and records its threshold and
+minimum-unit basis.
