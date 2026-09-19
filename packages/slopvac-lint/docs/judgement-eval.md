@@ -92,6 +92,9 @@ uv run scripts/judgement_bedrock_batch.py collect --job-dir bedrock-batch-001 --
 ```
 
 Batch jobs require at least 100 records; smaller remainders automatically use `invoke`.
-The model id is required and recorded in `job.json`. The earlier 1,546 calls used the
-session default `global.anthropic.claude-fable-5-1`; this runner is explicit and therefore
-repeatable, but its sampling settings may not be homogeneous with that earlier arm.
+The default inference configuration is `{maxTokens: 32000}`. A response is successful only
+when Bedrock reports `stop_reason=end_turn`; truncated responses are retained as error rows
+with their raw text and stop reason. The model id is required and recorded in `job.json`.
+The earlier 1,546 calls used the session default `global.anthropic.claude-fable-5-1`; this
+runner is explicit and therefore repeatable, but its sampling settings may not be homogeneous
+with that earlier arm.
