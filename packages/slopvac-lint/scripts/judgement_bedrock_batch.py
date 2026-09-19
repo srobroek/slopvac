@@ -233,7 +233,6 @@ def collect(args: argparse.Namespace) -> None:
     ]
     if not objects:
         raise RuntimeError("No .jsonl.out object found")
-    prompts = {r["call_id"]: r for r in read_jsonl(Path(args.todo))} if args.todo else {}
     mapped = []
     for key in objects:
         body = s3.get_object(Bucket=bucket, Key=key)["Body"].read().decode()
@@ -242,15 +241,24 @@ def collect(args: argparse.Namespace) -> None:
             cid = record.get("recordId") or record.get("callId")
             if not cid:
                 continue
+            value = ""
+            stop_reason = None
             try:
-                value = response_text(
-                    record.get("modelOutput", record.get("output", record))
-                )
-                stop_reason = (
-                    record.get("modelOutput", {}).get("stopReason")
-                    if isinstance(record.get("modelOutput"), dict)
-                    else record.get("stopReason")
-                )
+                model_output = record.get("modelOutput")
+                if isinstance(model_output, dict) and "content" in model_output:
+                    value = "".join(
+                        part.get("text", "")
+                        for part in model_output.get("content", [])
+                        if isinstance(part, dict)
+                    )
+                    stop_reason = model_output.get("stop_reason")
+                else:
+                    value = response_text(model_output or record.get("output", record))
+                    stop_reason = (
+                        model_output.get("stopReason")
+                        if isinstance(model_output, dict)
+                        else record.get("stopReason")
+                    )
                 if "error" in record:
                     raise ValueError(record["error"])
                 if stop_reason != "end_turn":
@@ -261,8 +269,8 @@ def collect(args: argparse.Namespace) -> None:
                     {
                         "call_id": cid,
                         "error": str(exc)[:300],
-                        "raw": value if "value" in locals() else "",
-                        "stop_reason": stop_reason if "stop_reason" in locals() else None,
+                        "raw": value,
+                        "stop_reason": stop_reason,
                     }
                 )
     append_rows(Path(args.out), mapped)
