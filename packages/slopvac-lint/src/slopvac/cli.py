@@ -908,12 +908,12 @@ def judgement_prepare(
     click.echo(f"prepared judgement run in {out_path}")
 
 
-@click.option("--offset-salvage", type=click.Choice(["unique-quote"]), default=None, help="Q02: salvage quoted offsets only when the quote occurs once in its unit.")
+@click.option("--offset-salvage", type=click.Choice(["unique-quote", "none"]), default="unique-quote", show_default=True, help="Q02: salvage quoted offsets only when the quote occurs once in its unit; use none to preserve raw offsets.")
 @click.option("--responses", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("--adjudication", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None, help="Optional adjudication JSON used for precision fields.")
 @judgement.command("finish")
 @click.option("--out", "out_path", required=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
-def judgement_finish(out_path: Path, responses: Path, adjudication: Path | None, offset_salvage: str | None) -> None:
+def judgement_finish(out_path: Path, responses: Path, adjudication: Path | None, offset_salvage: str) -> None:
     """Adjudicate RESPONSES and write the judgement report."""
     try:
         judgement_driver.finish(out=out_path, responses=responses, offset_salvage=offset_salvage, adjudication=adjudication)

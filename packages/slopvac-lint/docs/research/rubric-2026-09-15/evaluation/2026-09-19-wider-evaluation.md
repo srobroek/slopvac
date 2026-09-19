@@ -58,7 +58,7 @@ The preregistered human criterion is **not met**: **45** confirms / **333,870** 
 
 ## Q02 salvage comparison
 
-The opt-in decision remains **OPEN** for `slopvac-cz0.19`. `wider/analysis/q02-comparison.md` reports **1,294 → 4** evidence-offset mismatches, **307 → 482** confirms (**+175**), **42,041 → 42,080** rejected, **4,861 → 4,535** abstained, and **456 → 456** failed. Salvage changes evidence offsets and does not establish semantic precision (`q02-comparison.md`, Reading against Q02). No default adoption is recorded here.
+The Q02 decision is **DECIDED (2026-09-19)** for `slopvac-cz0.19`: `unique-quote` offset salvage is the default, while `--offset-salvage none` preserves raw offsets. The comparison reports **1,294 → 4** evidence-offset mismatches, **307 → 482** confirms (**+175**), **42,041 → 42,080** rejected, **4,861 → 4,535** abstained, and **456 → 456** failed. Salvage changes evidence offsets and does not establish semantic precision (`q02-comparison.md`, Reading against Q02).
 
 ## Noise floor
 
@@ -80,7 +80,6 @@ The low-n caveat is an **OPEN proposal**. Several majority-of-3 decisions use on
 - Open precision beads for absolute-assertion, heading-echo, and false-agency candidate-suspect review; retain raw counts and adjudicate rather than treating model CONFIRM as FP.
 - Run `cz0.30` for the next wider-evaluation increment.
 - Resolve the low-n guard proposal in `cz0.12`.
-- Decide whether to opt in to Q02 salvage in `cz0.19`.
 
 ## Source inventory
 
