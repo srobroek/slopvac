@@ -581,6 +581,58 @@ def test_prepare_uses_path_unique_document_store_files(tmp_path: Path) -> None:
         assert raw[unit["source_range"][0] : unit["source_range"][1]].decode("utf-8") == unit["text"]
     finish(out=out, responses=tmp_path / "responses.jsonl")
 
+def test_absolute_assertion_preserves_bounded_claims_and_flags_unbounded_ones(tmp_path: Path) -> None:
+    document = tmp_path / "absolute-assertion.md"
+    document.write_text(
+        "The universe, then, is God, of whom the popular gods are manifestations.\n\n"
+        "In his First Book he sets down to account all the debts due to his kinsfolk and teachers.\n\n"
+        "In the earliest impression all the editions follow one another.\n\n"
+        "That of 1685-6 was the only one which the translator lived to see.\n\n"
+        "all these interpolations on Cotton's part.\n\n"
+        "all such matter.\n\n"
+        "she never scratches, and she never attacks first.\n\n"
+        "One-on-one paraphrase testing sessions work best for short documents.\n\n"
+        "Paraphrase testing will tell you what a reader thinks a piece of writing means and will help you know if they're interpreting the message as you intended.\n\n"
+        "When you review your notes later, wherever participants misunderstood the message, the document has a problem that you should fix.\n\n"
+        "If you think it would be easy to just duplicate information you've written for print documents, you are wrong.\n\n"
+        "This always works for every workload.",
+        encoding="utf-8",
+    )
+    out = tmp_path / "run"
+    prepare(config=CONFIG, out=out, paths=(document,), packs="SPAN-ai-tells-structure-1")
+    prompts = [json.loads(line) for line in (out / "prompts.jsonl").read_text().splitlines() if line]
+    units = [json.loads(line) for line in (out / "units.jsonl").read_text().splitlines() if line]
+    units_by_id = {unit["unit_id"]: unit for unit in units}
+    must_confirm = {
+        "Paraphrase testing will tell you what a reader thinks a piece of writing means and will help you know if they're interpreting the message as you intended.",
+        "When you review your notes later, wherever participants misunderstood the message, the document has a problem that you should fix.",
+        "If you think it would be easy to just duplicate information you've written for print documents, you are wrong.",
+    }
+    response_rows = []
+    for prompt in prompts:
+        rows = []
+        for unit_id in prompt["unit_ids"]:
+            unit = units_by_id[unit_id]
+            row = _result_row(unit)
+            if unit["rule_id"] == "ai-tells-structure.absolute-assertion-remainder" and unit["text"] in must_confirm:
+                row.update(
+                    {
+                        "evidence": [{"quote": unit["text"], "start": 0, "end": len(unit["text"]), "role": "defect", "source": "unit", "source_ref": unit["unit_id"]}],
+                        "occurrences": None,
+                        "scores": {"fit": "unambiguous_match", "harm": "misleads_or_blocks", "repair": "local_substitution", "warrant": "quote_plus_particular"},
+                        "verdict": "confirm",
+                    }
+                )
+            else:
+                row.update({"evidence": [], "occurrences": None, "scores": {"fit": "absent", "harm": "none", "repair": "inapplicable", "warrant": "none"}})
+            rows.append(row)
+        response_rows.append({"call_id": prompt["call_id"], "response": {"results": rows}})
+    responses = tmp_path / "responses.jsonl"
+    responses.write_text("".join(json.dumps(row) + "\n" for row in response_rows), encoding="utf-8")
+    report = finish(out=out, responses=responses)
+    assert report["documents"][0]["confirmed"] == 3
+
+
 
 def test_absolute_assertion_preserves_bounded_claims_and_flags_unbounded_one(tmp_path: Path) -> None:
     document = tmp_path / "absolute-assertion.md"

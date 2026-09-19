@@ -56,6 +56,49 @@ The following are **candidate FP suspects**, ranked by human model CONFIRM count
 
 The preregistered human criterion is **not met**: **45** confirms / **333,870** manifest words = **0.1348 per 1,000 words**, above **0.05** (`wider/run/human/report.json`, refreshed `documents[].confirmed`; denominator from `wider/manifest.json`, `converted_word_count`). The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
 
+## Precision fixes
+
+### Absolute assertion (slopvac-cz0.31, round 2)
+
+The earlier 64 calls used instrument v1 with no criteria examples (two wording iterations over the same 32 narrowed single-unit prompts), so those results are retained only as historical context. The authoritative shipped-pack rerun used the real `load_ruleset` → `build_packs` → `render_pack` → `_prompt_for` path, with `global.anthropic.claude-fable-5-1`, `--max-tokens 32000`, and concurrency 8. Its 32 calls yielded **0/9** human false-positive confirms, **2/3** adjudicated true positives, an abstained borderline, and **9/19** stated-LLM confirms. The rendered system prompt contains the absolute-assertion question and exemplars (generated prompt JSONL line 1; assembly source `src/slopvac/judgement/packs.py:207-224`); this is the authoritative shipped-guidance measurement.
+
+| Unit | Adjudication | Instrument v1, no criteria | Shipped render-path rerun |
+|---|---|---|---|
+| `f6870b3751011de3` | FP | reject | preserve |
+| `dcf382514ba6efd3` | FP | reject | preserve |
+| `d02c5a73f3f38bd9` | FP | reject | preserve |
+| `e623ab4247e17d60` | FP | reject | preserve |
+| `310910e019f5bbc4` | FP | preserve | preserve |
+| `c771cf8a40ed85d9` | FP | reject | preserve |
+| `f40430eee411e97e` | FP | reject | preserve |
+| `561ba05f799ac84a` | FP | reject | preserve |
+| `de9b34687303a48a` | FP | reject | reject |
+| `0ce0297e9f8459bf` | TP | reject | reject |
+| `59bbe735c9ae7b74` | TP | preserve | confirm |
+| `2e1e45f820afefc2` | TP | preserve | confirm |
+| `9ab9c0ccc3029082` | borderline | reject | abstain |
+| `b9acf3d1fba5b2df` | LLM non-confirm | reject | abstain |
+| `bc12bbd9bb8c8c87` | LLM non-confirm | reject | reject |
+| `e1b1763a090d36ef` | LLM non-confirm | reject | reject |
+| `1931a0ee21697a38` | LLM non-confirm | reject | confirm |
+| `93563be607c9eea8` | LLM confirm | preserve | preserve |
+| `e7f4817cdd35383b` | LLM confirm | preserve | confirm |
+| `ef907bb2f8bc7008` | LLM confirm | confirm | confirm |
+| `733ae625941f52f4` | LLM non-confirm | reject | reject |
+| `3a63334b6c6e6aec` | LLM non-confirm | reject | reject |
+| `be11628c9d962b63` | LLM non-confirm | reject | reject |
+| `19b89f2a10d2da51` | LLM confirm | confirm | confirm |
+| `e5059caf3fec2ed9` | LLM confirm | confirm | confirm |
+| `81b47e9897d955d6` | LLM confirm | confirm | confirm |
+| `ac5044bb8e73dd69` | LLM confirm | confirm | confirm |
+| `a66a1c8e315014b2` | LLM non-confirm | reject | reject |
+| `581dd4cb0671cf33` | LLM confirm | confirm | confirm |
+| `95a084b645069251` | LLM non-confirm | reject | reject |
+| `53637a81d06d2df9` | LLM confirm | confirm | confirm |
+| `337ad7777c698819` | LLM non-confirm | reject | reject |
+
+The exact prompt rows and raw responses are retained under `/Users/sjors/tmp/slopvac-judgement-eval/wider/analysis/` during the run; the regression fixture adds the three TP quotes beside the bounded FP controls.
+
 ## Q02 salvage comparison
 
 The Q02 decision is **DECIDED (2026-09-19)** for `slopvac-cz0.19`: `unique-quote` offset salvage is the default, while `--offset-salvage none` preserves raw offsets. The comparison reports **1,294 → 4** evidence-offset mismatches, **307 → 482** confirms (**+175**), **42,041 → 42,080** rejected, **4,861 → 4,535** abstained, and **456 → 456** failed. Salvage changes evidence offsets and does not establish semantic precision (`q02-comparison.md`, Reading against Q02).
