@@ -98,3 +98,50 @@ with their raw text and stop reason. The model id is required and recorded in `j
 The earlier 1,546 calls used the session default `global.anthropic.claude-fable-5-1`; this
 runner is explicit and therefore repeatable, but its sampling settings may not be homogeneous
 with that earlier arm.
+
+## Running in AWS
+
+Use an Isengard Admin profile rather than the Claude Code role:
+
+```sh
+isengardcli add-profile sjors+ig-genai@amazon.com --role Admin --region eu-west-1 --profile sjors+ig-genai-Admin
+export AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1
+```
+
+Create a private bucket with Block Public Access and SSE-S3, then a role trusted by
+`bedrock.amazonaws.com` with `aws:SourceAccount` set to the account id. The minimal inline
+policy used by this runner is `s3:ListBucket` on the bucket and `s3:GetObject`/`s3:PutObject`
+on that bucket's object ARN. The exact trust document is:
+
+```json
+{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"bedrock.amazonaws.com"},"Action":"sts:AssumeRole","Condition":{"StringEquals":{"aws:SourceAccount":"ACCOUNT_ID"}}}]}
+```
+
+The exact inline policy is:
+
+```json
+{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::BUCKET"},{"Effect":"Allow","Action":["s3:GetObject","s3:PutObject"],"Resource":"arn:aws:s3:::BUCKET/*"}]}
+```
+
+Run `todo`, then submit and later collect:
+
+```sh
+uv run scripts/judgement_bedrock_batch.py todo --prompts prompts.jsonl --responses responses.jsonl --out todo.jsonl
+uv run scripts/judgement_bedrock_batch.py submit --todo todo.jsonl --model-id global.anthropic.claude-fable-5-1 --bucket BUCKET --role-arn ROLE_ARN --job-name bedrock-batch-001 --out-dir bedrock-batch-001 --max-tokens 32000
+uv run scripts/judgement_bedrock_batch.py collect --job-dir bedrock-batch-001 --out responses.jsonl
+```
+
+Runner success requires `end_turn`. Truncated output becomes an error.
+Synchronous request duration varies by model and account. Batch timing and cost also vary.
+In eu-west-1, `global.anthropic.claude-fable-5-1` is ACTIVE. CreateModelInvocationJob
+returns exactly `Batch inference is not supported for the requested model`.
+In us-east-1, `anthropic.claude-fable-5-1` is ACTIVE according to GetFoundationModel.
+The `us.anthropic.claude-fable-5-1` inference profile is also ACTIVE. The ON_DEMAND
+foundation-model listing has no matching row.
+A us-east-1 bucket (`slopvac-judgement-eval-536697262379-use1`) was created by mistake
+and deleted in the same step. It contained no objects and had no job. Use `invoke` until
+the account approves a batch-capable model/profile.
+
+The prose gate in this section was run with the worktree CLI:
+`PYTHONPATH=src uv run slopvac docs/judgement-eval.md`. Released `uvx slopvac` 2.6.0
+rejects the judgement configuration key used by this repository.
