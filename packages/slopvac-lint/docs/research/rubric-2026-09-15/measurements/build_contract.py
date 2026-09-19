@@ -182,6 +182,16 @@ PROBE_PACKS = [
 ]
 
 
+def _enrich_rule_records(records, live):
+    missing = sorted(record["id"] for record in records if not live.get(record["id"]) or not live[record["id"]].judgement_question)
+    assert not missing, f"missing judgement questions for static rule ids: {missing}"
+    for record in records:
+        rule = live[record["id"]]
+        record["judgement_question"] = rule.judgement_question
+        record["examples"] = [{key: getattr(example, key) for key in ("bad", "good", "note") if getattr(example, key) is not None} for example in rule.examples]
+    return records
+
+
 def rule_records():
     records = []
     for cat in sorted(RULES):
@@ -201,20 +211,9 @@ def rule_records():
                     "scope_class": scope_class,
                     "warrant_min": 2,
                 })
-    try:
-        from slopvac.rules import load_ruleset
-        live = {rule.qualified_id: rule for rule in load_ruleset(verify=False).judgement_rules()}
-    except Exception:
-        live = {}
-    for record in records:
-        rule = live.get(record["id"])
-        if rule is None:
-            continue
-        record["judgement_question"] = rule.judgement_question
-        record["examples"] = [{key: getattr(example, key) for key in ("bad", "good", "note") if getattr(example, key) is not None} for example in rule.examples]
-    return sorted(records, key=lambda r: r["id"])
-
-
+    from slopvac.rules import load_ruleset
+    live = {rule.qualified_id: rule for rule in load_ruleset(verify=False).judgement_rules()}
+    return sorted(_enrich_rule_records(records, live), key=lambda r: r["id"])
 def probe_packs():
     packs = []
     for i, p in enumerate(PROBE_PACKS, 1):
