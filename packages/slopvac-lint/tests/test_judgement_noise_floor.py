@@ -104,11 +104,13 @@ def test_analyse_partial_fixture_reports_complete_and_incomplete(tmp_path: Path)
             "response": {
                 "results": [
                     _model_row("u1", "R1", "reject"),
-                    _model_row("u2", "R2", "reject"),
+                    _model_row(
+                        "u2", "R2", "abstain" if row["repeat_index"] == 1 else "reject"
+                    ),
                 ]
             },
         }
-        for row in prompt_rows[:2]
+        for row in prompt_rows
     ]
     responses.write_text(
         "\n".join(json.dumps(row) for row in response_rows) + "\n", encoding="utf-8"
@@ -119,10 +121,11 @@ def test_analyse_partial_fixture_reports_complete_and_incomplete(tmp_path: Path)
         )()
     )
     report = json.loads((out_dir / "noise-floor.json").read_text(encoding="utf-8"))
-    assert report["complete_units"] == 0
-    assert report["incomplete_units"] == 2
-    assert report["overall_flip_rate"] == 0.0
-    assert report["rules"] == []
+    assert report["complete_units"] == 2
+    assert report["incomplete_units"] == 0
+    assert report["overall_flip_rate"] == 1 / 6
+    rates = {rule["rule_id"]: rule["flip_rate"] for rule in report["rules"]}
+    assert rates == {"R1": 0.0, "R2": 1 / 3}
 
 
 def test_analyse_counts_only_complete_units_in_flip_rate(tmp_path: Path) -> None:

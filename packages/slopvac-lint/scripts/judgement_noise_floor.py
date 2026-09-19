@@ -139,6 +139,11 @@ def analyse(args: argparse.Namespace) -> None:
     by_unit: dict[str, dict[str, Any]] = {}
     for row in prompts:
         original = str(row.get("repeat_of", row["call_id"]))
+        expected = [
+            {"unit_id": str(unit_id), "kind": row.get("kind")}
+            for unit_id in row.get("unit_ids", [])
+        ]
+        verdicts = valid_verdicts(responses.get(str(row["call_id"])), expected)
         for unit_id, rule_id in zip(
             row.get("unit_ids", []), row.get("rule_ids", []), strict=False
         ):
@@ -147,10 +152,7 @@ def analyse(args: argparse.Namespace) -> None:
                 unit_key, {"unit_id": unit_key, "rule_id": str(rule_id), "repeats": {}}
             )
             repeat = int(row.get("repeat_index", 1))
-            verdict = valid_verdicts(
-                responses.get(str(row["call_id"])),
-                [{"unit_id": unit_key, "kind": row.get("kind")}],
-            ).get(unit_key)
+            verdict = verdicts.get(unit_key)
             if verdict is not None:
                 item["repeats"][repeat] = verdict
             item["call_id"] = original
