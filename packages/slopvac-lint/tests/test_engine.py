@@ -416,9 +416,9 @@ def test_rule_off_removes_only_that_rule():
 # --- suppression contract ----------------------------------------------------
 
 
-def _run(text: str, profile=Profile.NORMAL):
+def _run(text: str, profile=Profile.NORMAL, **config_kwargs):
     ruleset = load_ruleset()
-    config = _config(profile=profile)
+    config = _config(profile=profile, **config_kwargs)
     resolved = resolve_for(config, Path("/repo/a.md"))
     engine = Engine(ruleset.rules, resolved)
     return engine.run(parse("a.md", text))
@@ -925,6 +925,13 @@ def test_lowercase_obligation_word_still_fires():
     )
 
 
+# Every profile ships this rule off, so the carve-out test has to ask for it.
+# Without the opt-in the negative assertion below passes for the wrong reason.
+_OPT_IN_EXCLUSIVE = {
+    "prose-inclusive.exclusive": RuleSettings(severity=Severity.WARNING)
+}
+
+
 def test_named_contract_is_not_a_relation_term():
     """ "Master Subscription Agreement" is an instrument's proper name.
 
@@ -933,11 +940,15 @@ def test_named_contract_is_not_a_relation_term():
     """
     exempt = _run(
         "This Notice forms part of the Master Subscription Agreement between the\n"
-        "Customer and the Vendor.\n"
+        "Customer and the Vendor.\n",
+        rules=_OPT_IN_EXCLUSIVE,
     )
     assert not [f for f in exempt if f.rule_id == "prose-inclusive.exclusive"]
 
-    relation = _run("Promote the replica to master when the node fails over.")
+    relation = _run(
+        "Promote the replica to master when the node fails over.",
+        rules=_OPT_IN_EXCLUSIVE,
+    )
     assert [f for f in relation if f.rule_id == "prose-inclusive.exclusive"], (
         "the relation sense of `master` stopped reporting; the carve-out is too wide"
     )
@@ -1548,3 +1559,88 @@ def test_code_fence_inside_html_is_not_prose():
 
     assert "seamless" not in document.prose_text()
     assert not engine.run(document)
+
+
+# --- inclusive-language rules ship installed and off --------------------------
+
+# The five rules the profiles switch off per rule. They stay in the ruleset so a
+# project that wants them can name one; they are off because they fire on register
+# rather than on a defect.
+OPT_IN_INCLUSIVE_RULES = (
+    "prose-inclusive.ableist",
+    "prose-inclusive.device-assumption",
+    "prose-inclusive.exclusive",
+    "ste-practices.gendered-or-exclusionary-language",
+    "ste-practices.unclear-pronoun",
+)
+
+
+@pytest.mark.parametrize("rule_id", OPT_IN_INCLUSIVE_RULES)
+@pytest.mark.parametrize("profile", list(Profile))
+def test_inclusive_rule_is_installed_but_inactive_by_default(rule_id, profile):
+    """Off is not gone. `explain` and the reference read the ruleset, so a rule the
+    profile silences must still be there to be found and named."""
+    ruleset = load_ruleset()
+    assert rule_id in {r.qualified_id for r in ruleset.rules}, "still discoverable"
+
+    engine = _engine(profile=profile)
+    assert rule_id not in {r.qualified_id for r in engine.rules}
+
+
+@pytest.mark.parametrize(
+    "rule_id",
+    ["prose-inclusive.ableist", "ste-practices.gendered-or-exclusionary-language"],
+)
+@pytest.mark.parametrize("profile", [Profile.STRICT, Profile.NORMAL])
+def test_naming_one_inclusive_rule_enables_only_that_rule(rule_id, profile):
+    """The reason this is a per-rule default rather than `tiers: excluded` or a
+    category `off`: each of the five is reachable alone."""
+    engine = _engine(
+        profile=profile, rules={rule_id: RuleSettings(severity=Severity.WARNING)}
+    )
+    active = {r.qualified_id for r in engine.rules}
+    assert rule_id in active
+
+    siblings = set(OPT_IN_INCLUSIVE_RULES) - {rule_id}
+    assert not active & siblings, "enabling one must not enable the other four"
+
+
+@pytest.mark.parametrize("profile", [Profile.STRICT, Profile.NORMAL])
+def test_unclear_pronoun_is_reachable_at_every_profile_it_is_off_at(profile):
+    """It used to be `excluded` outside strict, and `is_active` drops an excluded
+    tier before it reads any config layer -- so the opt-in could not reach it."""
+    engine = _engine(
+        profile=profile,
+        rules={
+            "ste-practices.unclear-pronoun": RuleSettings(severity=Severity.WARNING)
+        },
+    )
+    assert "ste-practices.unclear-pronoun" in {r.qualified_id for r in engine.rules}
+
+
+def test_relaxed_ste_opt_in_needs_the_category_too():
+    """Existing precedence, not a new rule: `is_active` checks the category before
+    the per-rule override, and relaxed already ships `ste-practices` off. So the
+    rule entry alone is not enough there, and that is the documented answer."""
+    rule_id = "ste-practices.gendered-or-exclusionary-language"
+    rules = {rule_id: RuleSettings(severity=Severity.WARNING)}
+
+    rule_only = _engine(profile=Profile.RELAXED, rules=rules)
+    assert rule_id not in {r.qualified_id for r in rule_only.rules}
+
+    both = _engine(
+        profile=Profile.RELAXED,
+        categories={"ste-practices": CategorySettings(severity=Severity.WARNING)},
+        rules=rules,
+    )
+    assert rule_id in {r.qualified_id for r in both.rules}
+
+
+def test_relaxed_prose_inclusive_opt_in_needs_only_the_rule():
+    """The contrast that makes the STE case above a category fact rather than a
+    property of the opt-in: relaxed keeps `prose-inclusive` on."""
+    engine = _engine(
+        profile=Profile.RELAXED,
+        rules={"prose-inclusive.ableist": RuleSettings(severity=Severity.WARNING)},
+    )
+    assert "prose-inclusive.ableist" in {r.qualified_id for r in engine.rules}
