@@ -10,6 +10,7 @@ from slopvac.analyze import parse
 from slopvac.judgement.driver import (
     _admission,
     _preview_document,
+    _prompt_for,
     _unit_from_block,
     _unit_from_sentence,
     compare,
@@ -22,6 +23,23 @@ from slopvac.projection import project
 
 ROOT = Path(__file__).resolve().parents[3]
 CONFIG = ROOT / "slopvac.toml"
+
+
+def test_prompt_system_contains_rule_question() -> None:
+    question = "Does this sample contain the named shape?"
+    pack = Pack("SPAN-cat-1", ("cat",), 1, "local", (), ("cat.rule",), ({
+        "id": "cat.rule",
+        "judgement_question": question,
+    },))
+    prompt = _prompt_for(pack, [{
+        "unit_id": "u1",
+        "passage_id": "p1",
+        "rule_id": "cat.rule",
+        "kind": "SENTENCE",
+        "text": "A sample.",
+        "doc_range": [0, 9],
+    }], "Judge the unit.", "instrument")
+    assert question in prompt["system"]
 
 
 def test_prepare_writes_units_and_bounded_json_prompts(tmp_path: Path) -> None:

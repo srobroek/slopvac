@@ -1564,8 +1564,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The loader reads it. The resolver caches it. The component then exits.",
+          "good": "The loader reads it, caches it, then exits."
+        }
+      ],
       "id": "ai-tells-content-shape.elegant-variation",
       "judgement_ceiling": "warning",
+      "judgement_question": "Does this document refer to one thing by two or more different names without saying they are the same thing?",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1587,8 +1594,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The linter is deterministic. The reviewer is not.",
+          "good": ""
+        }
+      ],
       "id": "ai-tells-content-shape.epigram-closer-remainder",
       "judgement_ceiling": "warning",
+      "judgement_question": "Does this closing line state a fact the paragraph or table above did not, or does it perform having concluded?",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1611,8 +1625,16 @@
           "referent"
         ]
       },
+      "examples": [
+        {
+          "bad": "Smith (2019) reports a 40% reduction, doi:10.1000/182.",
+          "good": "The npm RFC 0012 measured a 40% drop in resolution variance.",
+          "note": "The catalog's failure modes: DOIs that resolve to unrelated papers, invented ISBNs, dead URLs, and book cites with no page numbers."
+        }
+      ],
       "id": "ai-tells-content-shape.fabricated-citations-remainder",
       "judgement_ceiling": "warning",
+      "judgement_question": "For each reference in this document, did you fetch it yourself and confirm it says what the sentence claims?",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1634,8 +1656,23 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.",
+          "good": "The gate produces the same findings on every run."
+        },
+        {
+          "bad": "The cache is deterministic. In other words, it behaves predictably. Think of it as a stable map.",
+          "good": "The cache returns the same value for the same key until invalidation."
+        },
+        {
+          "bad": "Think of the cache as a stable map, a reliable lookup, and a predictable store.",
+          "good": "Version 2 changed the cache key; the migration note retains the old key so operators can update stored entries."
+        }
+      ],
       "id": "ai-tells-content-shape.one-point-dilution",
       "judgement_ceiling": "warning",
+      "judgement_question": "After the first statement, does the later passage add a current fact, constraint, reproduction step, decision, or time-bounded change? Flag a restatement that only recasts the same point in a fresh metaphor or primer and whose removal preserves the reader's task and current contract. Keep a second statement when its distinct purpose is required by a change note, decision, plan, specification, or historical record.",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1657,8 +1694,23 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "A paragraph of loosely related reasoning appended to a section that had already finished.",
+          "good": "The loader reads the lockfile, then falls back to the manifest."
+        },
+        {
+          "bad": "We tried three cache layouts before settling on this one.",
+          "good": "The cache key is the manifest path and content hash."
+        },
+        {
+          "bad": "The old cache key was chosen after trying several alternatives.",
+          "good": "This migration note records why the old cache key must be retained until version 2.4."
+        }
+      ],
       "id": "ai-tells-content-shape.over-writing-remainder",
       "judgement_ceiling": "warning",
+      "judgement_question": "If this paragraph were removed, would the reader lose a current behavior, constraint, reproduction step, or explicit change/decision purpose? Flag it when its reasoning is an implementation journey, cache-style operational archaeology, or a postscript whose removal preserves the reader's task and current contract. Keep rationale in a decision, plan, specification, change communication, or historical record when that is the document's purpose.",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1680,8 +1732,16 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "## Troubleshooting\n\nIf the loader fails, check the logs.",
+          "good": "",
+          "note": "A troubleshooting section for problems that do not exist."
+        }
+      ],
       "id": "ai-tells-content-shape.padded-symmetry",
       "judgement_ceiling": "warning",
+      "judgement_question": "Does any section exist to match a sibling's length, or does any FAQ/Tips/Troubleshooting section answer a question nobody asked?",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1703,8 +1763,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Moreover, the cache is warm. Furthermore, the lockfile is present.",
+          "good": "The cache is warm and the lockfile is present."
+        }
+      ],
       "id": "ai-tells-content-shape.textbook-connector-runs",
       "judgement_ceiling": "warning",
+      "judgement_question": "Do two consecutive sentences in this paragraph open on a textbook connector (moreover, furthermore, additionally, consequently)?",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1726,8 +1793,24 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "This keeps the logic in one place.",
+          "good": "The helper is shared by both parsers."
+        },
+        {
+          "bad": "We chose this cache layout after trying several alternatives.",
+          "good": "The cache key is the manifest path and content hash."
+        },
+        {
+          "bad": "The old key was chosen because it felt simpler.",
+          "good": "The migration record explains why version 2 retains the old key until all workers upgrade.",
+          "note": "A measured number that decided a threshold is one of the three legitimate cases, so this example is a judgement call, not a defect by construction."
+        }
+      ],
       "id": "ai-tells-content-shape.unasked-for-rationale",
       "judgement_ceiling": "warning",
+      "judgement_question": "If this rationale were removed, would the reader lose a constraint, invariant, gotcha, measured threshold, reproduction step, or explicit change/decision purpose? Flag a clause that only defends an implementation or narrates its journey when the behavior and current contract remain unchanged without it. Keep reasons in safety explanations, decisions, plans, specifications, change communications, and historical records when that is their purpose.",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1749,8 +1832,24 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The loader supports globs (coming soon).",
+          "good": "The loader accepts a literal path.",
+          "note": "Deleting the hedge alone converts an honest roadmap note into a false claim: the lint passes and the document now lies."
+        },
+        {
+          "bad": "The current loader supports globs.",
+          "good": "Release 2.4 adds glob support; version 2.3 accepts literal paths only."
+        },
+        {
+          "bad": "The loader supports globs today.",
+          "good": "The next version will add glob support; this is a proposed behavior."
+        }
+      ],
       "id": "ai-tells-content-shape.vaporware-description",
       "judgement_ceiling": "warning",
+      "judgement_question": "In a current consumer or internal artifact, does each present-tense behavior claim match code at HEAD? Flag a claim that presents planned, historical, or unavailable behavior as shipped; do not apply this test to a change communication, release note, historical record, decision, future plan, or specification whose purpose is to state that other time or intent.",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -1772,8 +1871,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "| Note |\n|---|\n| The loader reads the lockfile. |",
+          "good": "The loader reads the lockfile."
+        }
+      ],
       "id": "ai-tells-formatting.table-wrapping-one-sentence",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does each table in this document have at least two rows whose cells vary in the same dimension, or is it one sentence in a grid?",
       "protects": [
         "quoted_specimen"
       ],
@@ -1794,8 +1900,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The cache more than repays its complexity.",
+          "good": "The cache removes one network round trip per run."
+        }
+      ],
       "id": "ai-tells-register.anthropomorphised-justification-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this sentence assert a component's value by granting it merit rather than by naming a property a reader could check?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1818,8 +1931,23 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The nuance here is that caching is a tradeoff worth understanding.",
+          "good": "The cache serves a stale entry for up to 60 s after an upstream change."
+        },
+        {
+          "bad": "At a high level, this is an important architectural consideration.",
+          "good": "The resolver reads the lockfile before it contacts the registry."
+        },
+        {
+          "bad": "The key insight is that this topic matters.",
+          "good": "The safety analysis requires a second approval before deployment."
+        }
+      ],
       "id": "ai-tells-register.corporate-analytic-filler-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "If the analysis frame were removed, would the reader lose a fact, measurement, consequence, safety explanation, or required constraint? Flag it when the frame only declares importance, nuance, or a tradeoff and the surrounding prose carries no analysis the reader can use.",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1842,8 +1970,39 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The complaint becomes a fix.",
+          "good": "The team fixed it that week."
+        },
+        {
+          "bad": "A bet lives or dies in days.",
+          "good": "You learn within a week whether the bet paid."
+        },
+        {
+          "bad": "The parser rejects malformed JSON.",
+          "note": "preserve: technical actor performing a checkable operation"
+        },
+        {
+          "bad": "The cache evicts entries.",
+          "note": "preserve: component performing a checkable operation"
+        },
+        {
+          "bad": "MUST reject invalid input.",
+          "note": "preserve: normative specification line"
+        },
+        {
+          "bad": "Run the migration.",
+          "note": "preserve: imperative steering"
+        },
+        {
+          "bad": "The cache wants to protect you.",
+          "good": "The cache evicts entries."
+        }
+      ],
       "id": "ai-tells-register.false-agency-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Is the subject performing deliberate intent or choice, or is it a checkable technical actor under a specification? If it is a MUST/MUST NOT/DEFAULT line, imperative steering, quoted text, or a component causally operating, PRESERVE; flag only unowned intent, merit, or self-causation.",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1866,8 +2025,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "We're not perfect, and we're always learning.",
+          "good": "The 3.0 release shipped with a broken lockfile path for six days."
+        }
+      ],
       "id": "ai-tells-register.faux-candor-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this admission cost the author anything -- a named mistake, a measured failure, a refused feature -- or is it performed vulnerability with no exposure?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1890,8 +2056,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The design pays for itself.",
+          "good": "The design removes the second config file, so there is one place to look."
+        }
+      ],
       "id": "ai-tells-register.figurative-verb-verdict-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this sentence deliver a judgement through a metaphor while stating no observation that would let a reader disagree?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1914,8 +2087,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Lockfiles help reproducibility, though some argue they add friction.",
+          "good": "The lockfile pins every transitive dependency."
+        }
+      ],
       "id": "ai-tells-register.hedged-symmetry",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Is each counter-claim in this passage one somebody actually makes, or was it added so the passage reads even-handed?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1938,8 +2118,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The rewrite is remarkably clean.",
+          "good": "The rewrite deletes 400 lines and adds one function."
+        }
+      ],
       "id": "ai-tells-register.intensifier-tics-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Is the reaction this adverb announces supported anywhere in the passage by a measurement, an example, or a named consequence?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1962,8 +2149,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The threshold settles at 34 words.",
+          "good": "The maintainers set the threshold at 34 words after measuring 30 and 32."
+        }
+      ],
       "id": "ai-tells-register.organic-consequence-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Did a person choose the thing this sentence describes as arising on its own?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -1986,8 +2180,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "| Field | Value |\n|---|---|\n| Purpose | It loads things |",
+          "good": "The loader reads the lockfile."
+        }
+      ],
       "id": "ai-tells-register.over-formatting-reflex",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does each table, heading, and bold-colon bullet in this document carry data with real columns or items that are parallel AND independent, or would two sentences of prose say the same thing?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -2010,8 +2211,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Getting this right is critical.",
+          "good": "A wrong value here silently skips every file."
+        }
+      ],
       "id": "ai-tells-register.urgency-inflation-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this passage name what breaks if the reader ignores it, or only that the matter is urgent?",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",
@@ -2034,8 +2242,27 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Every Project Needs A Lockfile.",
+          "good": "A project with more than one direct dependency needs a lockfile."
+        },
+        {
+          "bad": "Every request to this endpoint requires authentication.",
+          "note": "preserve: bounded endpoint domain"
+        },
+        {
+          "bad": "MUST reject every invalid request.",
+          "note": "preserve: explicit specification invariant"
+        },
+        {
+          "bad": "Every system always behaves correctly.",
+          "note": "flag: unsupported universal; require an observed counterexample"
+        }
+      ],
       "id": "ai-tells-structure.absolute-assertion-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Within the stated domain, corpus, version, and exceptions, is the universal contradicted by an observed or documented counterexample? Preserve quoted or attributed claims, finite historical/editorial sets, local anaphoric quantifiers, and recommendations with an explicit domain. If the sentence is an explicit specification invariant and its domain is stated, PRESERVE it; flag only an unsupported universal in the author's own unbounded voice.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2059,8 +2286,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Apple didn't build Uber. Facebook didn't build Spotify.",
+          "good": "The plugin runs in the host process, so it cannot outlive the session."
+        }
+      ],
       "id": "ai-tells-structure.analogy-stack-authority",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this passage borrow authority by naming well-known companies or products that have no causal connection to the claim?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2085,8 +2319,15 @@
           "antecedent"
         ]
       },
+      "examples": [
+        {
+          "bad": "They assume a lockfile. They assume a network. They assume a token.",
+          "good": "They assume a lockfile, a network, and a token."
+        }
+      ],
       "id": "ai-tells-structure.anaphora-abuse",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Do three or more consecutive sentences open on the same subject-verb pair, with only the object changing?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2110,8 +2351,23 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG.",
+          "good": "Rebase onto the upstream to linearise the history."
+        },
+        {
+          "bad": "This guide defines HTTP, then assumes you can diagnose a TLS handshake.",
+          "good": "Diagnose the TLS handshake with `openssl s_client`."
+        },
+        {
+          "bad": "Whether you are a beginner or an expert, every part of this guide is for you.",
+          "good": "This release note gives the migration steps and then records the old behavior."
+        }
+      ],
       "id": "ai-tells-structure.audience-straddle-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does the document make one reader switch between a primer and expert operational detail without a single task that requires both? Flag the straddle when removing either half leaves the current task and contract intact. Keep definitions needed for the stated task, and keep audience changes that are explicit in a change communication, decision, plan, or specification.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2135,8 +2391,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "A handful of considerations apply here.",
+          "good": "Two limits apply:"
+        }
+      ],
       "id": "ai-tells-structure.cataphoric-lead-in-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does announcing the count change what the reader does, or does the list immediately below already show its own length?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2161,8 +2424,27 @@
           "contrast"
         ]
       },
+      "examples": [
+        {
+          "bad": "Where other gates check words, this one reads the shape of the argument.",
+          "good": "The gate scores paragraph symmetry and passive density."
+        },
+        {
+          "bad": "It's less about speed and more about determinism.",
+          "good": "The gate is deterministic."
+        },
+        {
+          "bad": "The parser reads JSON, not YAML.",
+          "note": "preserve: factual correction naming the actual boundary"
+        },
+        {
+          "bad": "Choose SHA-256, not MD5.",
+          "note": "preserve: instruction naming a real alternative"
+        }
+      ],
       "id": "ai-tells-structure.contrastive-inversion-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this contrast either negate an alternative nobody proposed or add no information? Factual corrections and instructions that name a real alternative are not defects; preserve them. Flag only when removing the contrast preserves the same actionable meaning.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2186,8 +2468,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "from beef to chicken",
+          "good": "beef, chicken, and pork"
+        },
+        {
+          "bad": "from startups to enterprises",
+          "good": "teams of 3 to 3,000 engineers"
+        }
+      ],
       "id": "ai-tells-structure.false-range",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Do the two endpoints of this \"from X to Y\" construction sit on a real scale, or are they two unordered members of a set?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2211,8 +2504,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "What follows is the part that changes how you read the rest of this page.",
+          "good": "The gate exits 1 when the score falls below 80."
+        }
+      ],
       "id": "ai-tells-structure.false-suspense-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this transition announce that something important follows without stating any part of it?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2237,6 +2537,20 @@
           "antecedent"
         ]
       },
+      "examples": [
+        {
+          "bad": "## Install the plugin\n\nThis section covers installing the plugin.",
+          "good": "## Install the plugin\n\nRun apm install slopvac."
+        },
+        {
+          "bad": "## Authentication\n\nAuthentication covers access control.",
+          "good": "## Authentication\n\nEvery request sends a bearer token."
+        },
+        {
+          "bad": "Deployment\n\nDeployment is the act of releasing software.",
+          "good": "Deployment\n\nThe pipeline signs the image before publishing it."
+        }
+      ],
       "host_predicates": [
         {
           "definition": "the host reads the antecedent heading and the defect sentence from the evidence and admits the finding only when the sentence is one line with a finite verb or terminal punctuation, shares a normalised content word with the heading, and adds no material token or span (figure, code, path, flag, file, link, normative word) or novel content lemma beyond stopwords; a failing clause converts the outcome to REJECT, and a missing or blank heading is ABSTAIN(heading_echo_no_antecedent)",
@@ -2245,6 +2559,7 @@
       ],
       "id": "ai-tells-structure.heading-echo",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Given the heading alone, does the first sentence repeat its proposition with no new operation, constraint, path, metric, or scope? Same topic is not enough to flag.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2268,8 +2583,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Rate limits are a real concern here.",
+          "good": "The client retries twice, then returns 429 to the caller."
+        }
+      ],
       "id": "ai-tells-structure.hollow-acknowledgment",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this passage name a risk, limitation, or problem and then give the reader no action, no measurement, and no pointer to where it is handled?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2293,8 +2615,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "This is the supervision paradox.",
+          "good": "A reviewer who approves faster than they read approves more defects."
+        }
+      ],
       "id": "ai-tells-structure.invented-concept-label",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this document name a concept in title-case or quoted form (\"the supervision paradox\", \"workload creep\") without defining it and without citing a source that uses the term?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2318,8 +2647,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The first wall is latency. The second wall is memory. The third wall is cost.",
+          "good": "Three limits apply:\n\n- latency\n- memory\n- cost"
+        }
+      ],
       "id": "ai-tells-structure.listicle-in-a-trench-coat",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Do consecutive paragraphs enumerate positions in a sequence (\"The first X is ... The second X is ...\") without any of them depending on the one before?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2343,8 +2679,23 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Before getting to the flags, some background on why the loader exists.",
+          "good": "The loader reads the lockfile, then falls back to the manifest."
+        },
+        {
+          "bad": "This section walks through how we arrived at the cache layout.",
+          "good": "The cache key is the manifest path and content hash."
+        },
+        {
+          "bad": "We will explore the implementation journey in a later section.",
+          "good": "This release note explains why the loader now rejects duplicate keys."
+        }
+      ],
       "id": "ai-tells-structure.meta-narration-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "If this sentence were removed, would the reader lose a current fact, required constraint, reproducible action, or explicit change/decision purpose? Flag it when it only announces the document's route, sequence, or implementation journey. Keep navigation that names a prerequisite, safety boundary, release delta, historical record, decision, plan, or specification purpose.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2368,8 +2719,27 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The tooling is not pinned, and visual checks are outside scope.",
+          "good": "CI rejects an unpinned formatter; visual checks are not run by this command."
+        },
+        {
+          "bad": "Several checks were excluded and recorded elsewhere.",
+          "good": "The audit log records the excluded checks and their reasons."
+        },
+        {
+          "bad": "The cache was warm, then cold, then warmed again during the investigation.",
+          "good": "The cache is invalidated when the manifest changes."
+        },
+        {
+          "bad": "Not included: other things.",
+          "good": "This release does not include browser checks; run `make browser-smoke` before release."
+        }
+      ],
       "id": "ai-tells-structure.negative-inventory-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "If this negative statement were removed, would the reader lose a reproducible result, safety or compliance constraint, debugging boundary, audit fact, or a current action? Flag it when it merely inventories what was not pinned, run, included, or recorded, including cache-style operational archaeology. Keep an explicit boundary when it changes the current contract or records a change, release, historical result, plan, or specification scope.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2393,8 +2763,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Fast. Deterministic. Auditable.",
+          "good": "The gate is deterministic and writes an audit line per finding."
+        }
+      ],
       "id": "ai-tells-structure.staccato-negative-parallel-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Do the consecutive fragments in this passage each add a fact, or does the run exist to build rhythm toward the last one?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2419,8 +2796,16 @@
           "antecedent"
         ]
       },
+      "examples": [
+        {
+          "bad": "The gate has three parts, described above: the loader, the checkers, and the scorer.",
+          "good": "",
+          "note": "The document ends on the scorer section."
+        }
+      ],
       "id": "ai-tells-structure.summary-closer-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does the final section state anything the sections above did not, or does it re-list them?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2444,8 +2829,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The scheduler is the traffic warden of the cluster.",
+          "good": "The scheduler assigns each pod to the node with the most free memory."
+        }
+      ],
       "id": "ai-tells-structure.think-of-it-as-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Is the mechanism stated anywhere in this passage, or does the analogy stand in place of it?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2469,8 +2861,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "- **Speed:** it is fast.\n- **Safety:** it is safe.\n- **Scale:** it scales.",
+          "good": "The gate reads 488 files in 0.4 s and refuses an unresolvable style."
+        }
+      ],
       "id": "ai-tells-structure.tricolon-abuse-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Do the parallel items -- three identical-shape bullets, or two tricolons in consecutive sentences -- each state a fact the others do not?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2495,8 +2894,15 @@
           "referent"
         ]
       },
+      "examples": [
+        {
+          "bad": "The literature is clear on this.",
+          "good": "RFC 7231 section 6.5.1 defines the status code."
+        }
+      ],
       "id": "ai-tells-structure.vague-attribution-remainder",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Could a reader locate the source behind this claim from what the sentence gives them?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
@@ -2520,8 +2926,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The system handles a variety of edge cases to ensure reliable operation.",
+          "good": "The parser rejects unterminated strings and nested depth over 64."
+        }
+      ],
       "id": "orwell.concrete-floor",
       "judgement_ceiling": "warning",
+      "judgement_question": "Does this paragraph name at least one number, identifier, path, command, or dated event? If the writer possesses a more specific term than the one used, did they use it?",
       "protects": [
         "authoritative_domain_term",
         "normative_obligation"
@@ -2544,6 +2957,27 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Most requests are cached.",
+          "good": "94% of requests are cached.",
+          "note": "The document reports the hit rate two paragraphs later, so the figure was available."
+        },
+        {
+          "bad": "The parser handles many formats.",
+          "good": "The parser handles XISF, FITS, and TIFF.",
+          "note": "A list the document could have written out."
+        },
+        {
+          "bad": "Some tests need a live database.",
+          "good": "The four integration tests need a live database."
+        },
+        {
+          "bad": "Most requests complete in 15 ms.",
+          "good": "Most requests complete in 15 ms.",
+          "note": "CORRECT AS WRITTEN, and the reason this is judgement rather than a token list. The figure is present; `most` quantifies the distribution honestly, because not all of them do."
+        }
+      ],
       "host_predicates": [
         {
           "definition": "the figure must be quoted as role=referent from the unit, context, or a repository source; without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM",
@@ -2552,6 +2986,7 @@
       ],
       "id": "prose-discipline.bare-quantifier-with-figure-available",
       "judgement_ceiling": "warning",
+      "judgement_question": "Find every bare quantifier: most, some, many, few, often, usually, frequently, generally, typically, several times, much, little. For each, ask one question -- does the writer have the number? A quantifier over something the document itself counts elsewhere, over a list it contains, or over a measurement it reports is a withheld figure and must be replaced. A quantifier over a genuinely unbounded or unmeasured set is correct and stays. - genuinely-unmeasured - quotation - unbounded-set - idiom - defined-elsewhere",
       "protects": [
         "authoritative_domain_term",
         "normative_obligation",
@@ -2575,8 +3010,20 @@
           "contrast"
         ]
       },
+      "examples": [
+        {
+          "bad": "The user submits a job. The customer receives a token. The client then polls for the result.",
+          "good": "The user submits a job, receives a token, and polls for the result.",
+          "note": "Three terms, one actor. The fix is one term, not three synonyms."
+        },
+        {
+          "bad": "The caller opens a connection. The consumer must close it.",
+          "good": "The caller opens the connection and must close it."
+        }
+      ],
       "id": "prose-discipline.competing-actor-terms",
       "judgement_ceiling": "warning",
+      "judgement_question": "List every term this document uses for a person or system that acts: user, customer, client, consumer, caller, requester, tenant, account, operator, admin, developer, integrator, subscriber, end user. For each pair, do they name the same subject? If yes, that is rotation and one term must win. If no, does the document define the difference at first use? - defined-distinction - quotation - api-name - glossary-entry",
       "protects": [
         "authoritative_domain_term",
         "normative_obligation",
@@ -2599,8 +3046,25 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The cache may improve response time in some workloads, though results can vary and it might increase memory use depending on configuration.",
+          "good": "The cache cuts median response time by 40% on repeated prompts. It holds entries in memory: budget 200 MB per 10,000 entries.",
+          "note": "Hedged in both directions, so the two halves cancel and the reader learns nothing they can act on."
+        },
+        {
+          "bad": "You should probably consider using the strict profile for reference material, although the normal profile may also be suitable in many cases.",
+          "good": "Use the strict profile for reference material."
+        },
+        {
+          "bad": "This could potentially help reduce some of the noise in certain cases.",
+          "good": "This removes the 12 findings that fired on code comments.",
+          "note": "A hedge on a hedge on a quantifier. Three layers, no claim."
+        }
+      ],
       "id": "prose-discipline.hedged-into-uselessness",
       "judgement_ceiling": "warning",
+      "judgement_question": "List the load-bearing claims: the sentences a reader would act on. For each, is it hedged? Then ask three things. First, could the reader act on the document as written, or does every path out of it end in \"it depends\"? Second, is any claim hedged in BOTH directions, so that the hedge and its counter-hedge cancel (\"this may improve latency, though it might also increase it\")? Third, is any hedge itself hedged (\"this could potentially help in some cases\")? A document where the majority of load-bearing claims carry a hedge is a document that says nothing, whatever each sentence looks like on its own. - genuine-uncertainty - quotation - legal-force - safety-critical - measured-variance",
       "protects": [
         "authoritative_domain_term",
         "normative_obligation",
@@ -2623,8 +3087,20 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Built for teams who care about quality, our approach gives you confidence at every step of the pipeline.",
+          "good": "The gate blocks a merge when coverage drops below 80%.",
+          "note": "No banned adjective appears in the first version. The defect is the claim shape: nothing in it can be checked."
+        },
+        {
+          "bad": "Designed from the ground up for the modern developer workflow.",
+          "good": "Runs as a pre-commit hook and a GitHub Action."
+        }
+      ],
       "id": "prose-discipline.marketing-register",
       "judgement_ceiling": "warning",
+      "judgement_question": "For each evaluative claim in this passage, is there a number, a benchmark, a named limit, a version, or a citation within the same sentence or the next one? And would the claim's opposite be recognized as a disagreement about fact rather than a difference of opinion? A claim that fails both is marketing. - quantified - quotation - defined-term-of-art - landing-page",
       "protects": [
         "authoritative_domain_term",
         "normative_obligation",
@@ -2647,8 +3123,25 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The parser reads the manifest and the resolver walks the dependency graph.",
+          "good": "The parser reads the manifest. The resolver then walks the dependency graph.",
+          "note": "Two clauses, two subjects, two ideas. Each stands alone."
+        },
+        {
+          "bad": "Because the cache is keyed by content the migration must run first, and the index rebuild depends on it, so plan for downtime.",
+          "good": "The cache is keyed by content, so the migration must run first. The index rebuild depends on the migration. Plan for downtime."
+        },
+        {
+          "bad": "We deleted the retry path, which nobody used, and simplified the client.",
+          "good": "Nobody used the retry path, so we deleted it. That simplified the client.",
+          "note": "The metric counts two boundaries here and would pass at threshold 3. A reader still holds three things."
+        }
+      ],
       "id": "prose-discipline.overloaded-sentence",
       "judgement_ceiling": "warning",
+      "judgement_question": "Read the sentence once and stop. How many separate things must the reader now remember? If more than one, could each stand as its own sentence without repeating a noun phrase to make sense? If yes, it is overloaded. A list of parallel actions sharing one subject and one verb is ONE idea, however long; two clauses joined by \"and\" that could each stand alone are two. - quotation - code-span - vertical-list - legal-force - parallel-list",
       "protects": [
         "authoritative_domain_term",
         "normative_obligation",
@@ -2673,6 +3166,7 @@
           "referent"
         ]
       },
+      "examples": [],
       "host_predicates": [
         {
           "definition": "the changed hunk is supplied as role=referent repository evidence (path@blob_sha); without it the outcome is ABSTAIN(needs_repository_fact), never CONFIRM",
@@ -2681,6 +3175,7 @@
       ],
       "id": "prose-scope.code-change-prose-scope",
       "judgement_ceiling": "error",
+      "judgement_question": "For every changed comment or documentation passage, does the code diff show that it directly explains or specifies the changed code? If not, did the user explicitly request that prose edit? Treat unrelated same-file comments and documentation elsewhere as defects, while correcting a stale comment that describes changed behavior.",
       "protects": [],
       "scope_class": "probe",
       "status": "provisional",
@@ -2700,8 +3195,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The reconciler compares desired state from the lease store against observed state from the informer cache and writes the delta to the work queue that the shard leader drains.",
+          "good": "The reconciler reads the desired state from the lease store. It reads the observed state from the informer cache. It writes the difference between the two to the work queue. The shard leader drains that queue."
+        }
+      ],
       "id": "ste-descriptive.information-not-gradual",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does each sentence introduce at most one new idea, and does every term appear after the sentence that introduced it? If a reader must already know a later term to parse an earlier sentence, reorder. - quotation",
       "protects": [
         "accessibility_consistency",
         "controlled_language_clarity"
@@ -2723,8 +3225,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The reconciler drains the work queue. The component then writes the outcome to the job list.",
+          "good": "The reconciler drains the work queue. The reconciler then writes the outcome to the work queue."
+        }
+      ],
       "id": "ste-descriptive.missing-key-word-structure",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does each sentence pick up a key word or key phrase from the sentence before it, and is that key word written the same way each time? - quotation",
       "protects": [
         "accessibility_consistency",
         "controlled_language_clarity"
@@ -2746,8 +3255,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The gateway terminates TLS and forwards each request to a worker. The billing exporter writes a daily CSV to the audit bucket.",
+          "good": "The gateway terminates TLS and forwards each request to a worker.\nThe billing exporter writes a daily CSV to the audit bucket."
+        }
+      ],
       "id": "ste-descriptive.paragraph-has-multiple-topics",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Could this paragraph be split at any sentence boundary without either half needing the other? If yes, it carries more than one topic. - quotation",
       "protects": [
         "accessibility_consistency",
         "controlled_language_clarity"
@@ -2769,8 +3285,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Set the retry limit to five. The gateway terminates TLS. Each worker reads one queue.",
+          "good": "The gateway handles inbound traffic. It terminates TLS and rewrites the Host header. It then forwards each request to a worker."
+        }
+      ],
       "id": "ste-descriptive.paragraph-without-related-information",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does the first sentence of this paragraph tell the reader what the paragraph is about, and does every later sentence add to that topic? - quotation",
       "protects": [
         "accessibility_consistency",
         "controlled_language_clarity"
@@ -2792,6 +3315,12 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Restart the regional inbound request admission controller after each config change.",
+          "good": "Restart the regional inbound request admission controller (called the admission controller in this runbook) after each config change."
+        }
+      ],
       "host_predicates": [
         {
           "definition": "the model names the expected short form as a particular; the host verifies by exact search that it occurs nowhere in the document; a hit converts the outcome to REJECT",
@@ -2800,6 +3329,7 @@
       ],
       "id": "ste-nouns.long-domain-term-without-short-form",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "This domain term is longer than three words and cannot be shortened, because the project owns the name. Is it written in full at first use, and is either a short form declared or the words joined with hyphens as one unit? - code-span - identifier-fidelity",
       "protects": [
         "authoritative_domain_term"
       ],
@@ -2820,8 +3350,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Restart the worker with the drained queue.",
+          "good": "When the queue is drained, restart the worker."
+        },
+        {
+          "bad": "Deploy the service with the new sidecar.",
+          "good": "Deploy the service that includes the new sidecar."
+        }
+      ],
       "id": "ste-practices.ambiguous-preposition-with",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does \"with\" mean an association, a shared action, or an instrument? If a reader could pick more than one, name the instrument in a separate clause or state the condition first. - quotation - code-span",
       "protects": [
         "authoritative_domain_term"
       ],
@@ -2842,8 +3383,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "When the load goes down, the autoscaler removes a replica.",
+          "good": "When the load decreases, the autoscaler removes a replica."
+        }
+      ],
       "id": "ste-practices.word-sense-incorrect",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "For each vocabulary word in this sentence, does the sentence use the single sense the vocabulary entry records, rather than another common sense of the same spelling? - quotation - code-span",
       "protects": [
         "authoritative_domain_term"
       ],
@@ -2864,8 +3412,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The retry budget is contingent on the tenant tier.",
+          "good": "The tenant tier sets the retry budget."
+        },
+        {
+          "bad": "Increase the pool size so that it accommodates the peak load.",
+          "good": "Increase the pool size until it is large enough for the peak load."
+        }
+      ],
       "id": "ste-practices.word-swap-insufficient",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "After you substitute the replacement word, is the sentence still grammatical, still meaningful, and still carrying your original meaning? If any of the three fails, or the word has no replacement at all, restructure the sentence instead. - quotation",
       "protects": [
         "authoritative_domain_term"
       ],
@@ -2886,8 +3445,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Rotate the signing key (we found that most teams forget this until an audit, which is why the runbook exists).",
+          "good": "Rotate the signing key. Most teams do this only after an audit finds the old key."
+        }
+      ],
       "id": "ste-punctuation.parentheses-misuse",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this parenthetical give a cross-reference, an item identifier, a step number, an abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it carries a second idea, promote it to its own sentence. - code-span - quotation",
       "protects": [
         "source_locked_legal_text"
       ],
@@ -2926,8 +3492,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "CAUTION: This command deletes every snapshot and cannot be undone.",
+          "good": "WARNING: This command deletes every snapshot. You cannot recover the data."
+        },
+        {
+          "bad": "This command deletes every snapshot and cannot be undone.",
+          "good": "WARNING: This command deletes every snapshot. You cannot recover the data."
+        }
+      ],
       "id": "ste-safety.risk-level-word-missing-or-wrong",
       "judgement_ceiling": "error",
+      "judgement_question": "Does this block describe a risk of harm to a person, or only a risk of damage to data, systems, or equipment? Harm to a person takes the higher marker; damage alone takes the lower one; when both apply, use the higher marker. - quotation",
       "protects": [
         "normative_obligation",
         "source_locked_legal_text"
@@ -2950,8 +3527,15 @@
           "antecedent"
         ]
       },
+      "examples": [
+        {
+          "bad": "The runner rejects the manifest. The image tag is missing.",
+          "good": "The runner rejects the manifest, because the image tag is missing."
+        }
+      ],
       "id": "ste-sentences.missing-connector-between-related-sentences",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does the second sentence add a result, a contrast, or a next step to the first? If yes, does a connecting word or phrase make that relation explicit? - quotation",
       "protects": [
         "controlled_language_clarity"
       ],
@@ -2972,8 +3556,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "To rotate the signing key, first revoke the old key in the console, then generate a replacement and update every service that reads it, and finally delete the old secret.",
+          "good": "Rotate the signing key as follows: 1. Revoke the old key in the console. 2. Generate a replacement key. 3. Update every service that reads the key. 4. Delete the old secret."
+        }
+      ],
       "id": "ste-sentences.sentence-not-short-or-clear",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this sentence give exactly one instruction (in a procedure) or carry exactly one topic (in description)? If it carries more, split it. - quotation",
       "protects": [
         "controlled_language_clarity"
       ],
@@ -2994,8 +3585,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Restart the worker, making sure the queue is empty first.",
+          "good": "Make sure that the queue is empty. Then restart the worker."
+        },
+        {
+          "bad": "You can reduce cost by caching the response.",
+          "good": "To reduce cost, cache the response."
+        }
+      ],
       "id": "ste-verbs.gerund-outside-noun-use",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Is this -ing word a noun (the name of a thing or a process), or a modifier inside a domain noun? If it carries the action of the clause, rewrite it. - quotation - code-span - registered-domain-term",
       "protects": [
         "normative_obligation"
       ],
@@ -3016,8 +3618,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The corrupted index had been rebuilt by the maintenance job.",
+          "good": "The maintenance job rebuilds the corrupted index."
+        },
+        {
+          "bad": "Delete each file that has been marked stale.",
+          "good": "Delete each stale file."
+        }
+      ],
       "id": "ste-verbs.past-participle-not-adjectival",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does this past participle sit before a noun, or after a form of \"be\", \"become\", or \"stay\", describing a condition? If it sits after another auxiliary, it is part of a verb construction and is not permitted. - quotation - code-span",
       "protects": [
         "normative_obligation"
       ],
@@ -3038,8 +3651,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The doohickey drains the queue every minute.",
+          "good": "The reaper job drains the queue every minute."
+        }
+      ],
       "id": "ste-words.domain-noun-category-membership",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "For each noun in this sentence that is not in the controlled vocabulary, does it name a specified concept inside one of the declared domain-noun categories for this project? - code-span - identifier-fidelity",
       "protects": [
         "authoritative_domain_term",
         "controlled_language_clarity"
@@ -3062,8 +3682,15 @@
           "referent"
         ]
       },
+      "examples": [
+        {
+          "bad": "The job runner picks up the next work item.",
+          "good": "The worker picks up the next task."
+        }
+      ],
       "id": "ste-words.domain-noun-not-organization-approved",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does the project glossary, API reference, or schema already name this thing? If yes, does the document use that exact name? - quotation",
       "protects": [
         "authoritative_domain_term",
         "controlled_language_clarity"
@@ -3085,8 +3712,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Restart the primary regional inbound request admission controller service.",
+          "good": "Restart the admission controller."
+        },
+        {
+          "bad": "Set the distributed idempotency deduplication cache retention window.",
+          "good": "Set the deduplication cache retention."
+        }
+      ],
       "id": "ste-words.domain-noun-too-long-or-unclear",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "When you had to invent this term, is it three words or fewer, and would a reader outside your team understand it without a definition?",
       "protects": [
         "authoritative_domain_term",
         "controlled_language_clarity"
@@ -3108,8 +3746,19 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The parser ingests the manifest and hydrates the config object.",
+          "good": "The parser reads the manifest and fills the config object."
+        },
+        {
+          "bad": "If you observe a checksum mismatch, delete the artifact.",
+          "good": "If you find a checksum mismatch, delete the artifact."
+        }
+      ],
       "id": "ste-words.domain-verb-category-membership",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Could this sentence be written with vocabulary verbs alone? If yes, the domain verb is not permitted. If no, does the verb belong to a declared domain-verb category and carry its category meaning in this sentence? - code-span - api-name",
       "protects": [
         "authoritative_domain_term",
         "controlled_language_clarity"
@@ -3131,8 +3780,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "The orchestrator obviates manual reconciliation.",
+          "good": "The orchestrator removes the need for manual reconciliation."
+        }
+      ],
       "id": "ste-words.unapproved-word-not-a-domain-noun",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain noun? If it is neither, it must be replaced. - code-span - identifier-fidelity - quotation",
       "protects": [
         "authoritative_domain_term",
         "controlled_language_clarity"
@@ -3154,8 +3810,15 @@
           "defect"
         ]
       },
+      "examples": [
+        {
+          "bad": "Follow the security policy when you rotate the signing key.",
+          "good": "Obey the security policy when you rotate the signing key."
+        }
+      ],
       "id": "ste-words.word-used-outside-permitted-sense",
       "judgement_ceiling": "suggestion",
+      "judgement_question": "Does every controlled word in this sentence carry the single meaning recorded in the vocabulary entry, rather than another dictionary meaning of the same spelling? - quotation",
       "protects": [
         "authoritative_domain_term",
         "controlled_language_clarity"
