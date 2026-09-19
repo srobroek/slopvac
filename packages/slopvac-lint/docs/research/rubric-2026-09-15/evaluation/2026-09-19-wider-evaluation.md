@@ -62,11 +62,13 @@ The Q02 decision is **DECIDED (2026-09-19)** for `slopvac-cz0.19`: `unique-quote
 
 ## Noise floor
 
-The measured noise floor is `noise-floor/noise-floor.json` and its rendered summary `noise-floor/noise-floor.md`: **3** repeats, **1,416** complete units, **308** incomplete units, and overall flip rate **1.27%** (`noise-floor.json`, `repeat_count`, `complete_units`, `incomplete_units`, `overall_flip_rate`). The standing decision rule is strictly **> 10%** flip rate ⇒ `majority-of-3`; exactly **10%** remains `single-call` (`noise-floor.json`, `threshold`; `noise-floor.md`).
+The measured noise floor is `noise-floor/noise-floor.json` and its rendered summary `noise-floor/noise-floor.md`: **3** repeats, **1,416** complete units, **308** incomplete units, and overall flip rate **1.27%** (`noise-floor.json`, `repeat_count`, `complete_units`, `incomplete_units`, `overall_flip_rate`). The standing decision rule is strictly **> 10%** flip rate and at least **30 complete units** ⇒ `majority-of-3`; exactly **10%** remains `single-call` (`noise-floor.json`, `threshold`, `min_units`; `noise-floor.md`).
 
-Rules selected for `majority-of-3` are: `ai-tells-content-shape.elegant-variation` (**16.67%**, 2 units), `fabricated-citations-remainder` (**22.22%**, 3), `one-point-dilution` (**11.11%**, 3), `ai-tells-structure.invented-concept-label` (**22.22%**, 3), `listicle-in-a-trench-coat` (**22.22%**, 3), `tricolon-abuse-remainder` (**11.11%**, 3), `prose-discipline.competing-actor-terms` (**16.67%**, 2), and `hedged-into-uselessness` (**33.33%**, 2) (`noise-floor.json`, `rules[]`). All other rules in `noise-floor.json` remain `single-call` under the same rule.
+The original eight low-n majority-of-3 rules now become `single-call` with `decision_basis: insufficient-units` under the 30-unit guard; the overall flip rate remains **1.27%** because the guard changes per-rule routing only.
 
-The low-n caveat is an **OPEN proposal**. Several majority-of-3 decisions use only **2--3 complete units** (`noise-floor.json`, `rules[].unit_count`). cz0.12 must decide whether to add a low-n guard while preserving the measured >10% policy.
+Rules selected for `majority-of-3` under the original measured policy were: `ai-tells-content-shape.elegant-variation` (**16.67%**, 2 units), `fabricated-citations-remainder` (**22.22%**, 3), `one-point-dilution` (**11.11%**, 3), `ai-tells-structure.invented-concept-label` (**22.22%**, 3), `listicle-in-a-trench-coat` (**22.22%**, 3), `tricolon-abuse-remainder` (**11.11%**, 3), `prose-discipline.competing-actor-terms` (**16.67%**, 2), and `hedged-into-uselessness` (**33.33%**, 2) (`noise-floor.json`, `rules[]`).
+
+The low-n caveat is **DECIDED 2026-09-19**: per-rule `majority-of-3` requires at least **30 complete units**; below that, the decision is `single-call` with `decision_basis: insufficient-units`, while the overall complete-unit flip rate is unchanged.
 
 ## Limitations
 
