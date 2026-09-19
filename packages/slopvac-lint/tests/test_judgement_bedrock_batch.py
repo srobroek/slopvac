@@ -51,10 +51,10 @@ def test_parse_json_fenced_unfenced_and_garbage():
     assert runner.parse_json('prefix prose {"x": 1} trailing') == {"x": 1}
 
 
-def test_collect_maps_records(monkeypatch, tmp_path):
+def test_collect_maps_native_anthropic_record(monkeypatch, tmp_path):
     class Body:
         def read(self):
-            return b'{"recordId":"a","modelOutput":{"stopReason":"end_turn","output":{"message":{"content":[{"text":"{\\"ok\\":true}"}]}}}}\n'
+            return b'{"recordId":"a","modelOutput":{"type":"message","content":[{"type":"text","text":"{\\"ok\\":true}"}],"stop_reason":"end_turn","usage":{"output_tokens":3}}}\n'
 
     class S3:
         def list_objects_v2(self, **kwargs):
@@ -83,8 +83,9 @@ def test_collect_maps_records(monkeypatch, tmp_path):
     runner.collect(
         SimpleNamespace(job_dir=str(d), out=str(out), todo=None, poll_seconds=0)
     )
-    assert json.loads(out.read_text())["call_id"] == "a"
-    assert json.loads(out.read_text())["response"] == {"ok": True}
+    result = json.loads(out.read_text())
+    assert result["call_id"] == "a"
+    assert result["response"] == {"ok": True}
 
 
 def test_invoke_preserves_raw_and_stop_reason_on_parse_error(monkeypatch, tmp_path):
@@ -115,3 +116,32 @@ def test_invoke_preserves_raw_and_stop_reason_on_parse_error(monkeypatch, tmp_pa
     assert result["error"] == "stop_reason=max_tokens"
     assert result["raw"] == '{"broken":'
     assert result["stop_reason"] == "max_tokens"
+
+
+def test_invoke_writes_three_concurrent_rows(monkeypatch, tmp_path):
+    class Client:
+        def converse(self, **kwargs):
+            return {
+                "stopReason": "end_turn",
+                "output": {"message": {"content": [{"text": '{"ok": true}'}]}},
+            }
+
+    monkeypatch.setattr(
+        runner, "load_boto3", lambda: SimpleNamespace(client=lambda *a, **k: Client())
+    )
+    todo = tmp_path / "todo.jsonl"
+    todo.write_text("".join(json.dumps(row(str(i))) + "\n" for i in range(3)))
+    out = tmp_path / "out.jsonl"
+    runner.invoke(
+        SimpleNamespace(
+            todo=str(todo),
+            out=str(out),
+            model_id="m",
+            max_tokens=32000,
+            temperature=None,
+            concurrency=2,
+        )
+    )
+    lines = out.read_text().splitlines()
+    assert len(lines) == 3
+    assert {json.loads(line)["call_id"] for line in lines} == {"0", "1", "2"}
