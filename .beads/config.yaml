@@ -68,3 +68,5 @@
 # sync.remote: "git+ssh://git@github.com/srobroek/slopvac"
 export:
     auto: true
+sync:
+    remote: "git+https://github.com/srobroek/slopvac.git"
