@@ -138,5 +138,10 @@ returns exactly `Batch inference is not supported for the requested model`.
 In us-east-1, `anthropic.claude-fable-5-1` is ACTIVE according to GetFoundationModel.
 The `us.anthropic.claude-fable-5-1` inference profile is also ACTIVE. The ON_DEMAND
 foundation-model listing has no matching row.
-No us-east bucket or job exists. Use `invoke` until the account approves a batch-capable
-model/profile.
+A us-east-1 bucket (`slopvac-judgement-eval-536697262379-use1`) was created by mistake
+and deleted in the same step. It contained no objects and had no job. Use `invoke` until
+the account approves a batch-capable model/profile.
+
+The prose gate in this section was run with the worktree CLI:
+`PYTHONPATH=src uv run slopvac docs/judgement-eval.md`. Released `uvx slopvac` 2.6.0
+rejects the judgement configuration key used by this repository.
