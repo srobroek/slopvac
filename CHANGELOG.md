@@ -4,6 +4,44 @@
 
 * **judgement:** separate noise-floor measurement from CONFIRM variance policy and retain model, failure-class, and provenance metadata.
 
+## [2.8.0](https://github.com/srobroek/slopvac/compare/v2.7.0...v2.8.0) (2026-09-20)
+
+
+### Features
+
+* **judgement:** add noise-floor instrument ([18c5cd1](https://github.com/srobroek/slopvac/commit/18c5cd1e81981d14589478af9499704413a49956))
+* **judgement:** add noise-floor instrument ([fc8398d](https://github.com/srobroek/slopvac/commit/fc8398dd8768de5b04bc016c32c0b8ca5a739ac0))
+* **judgement:** default to unique quote salvage ([cdeff1f](https://github.com/srobroek/slopvac/commit/cdeff1fa1b7ad91a1f0762bed34b12354dd362f3))
+* **judgement:** default to unique quote salvage ([315a43c](https://github.com/srobroek/slopvac/commit/315a43cb35a01eea2955e469f967973ef96be37b))
+* **judgement:** guard noise-floor decisions ([6e5a926](https://github.com/srobroek/slopvac/commit/6e5a92686ae59d2e1c3864cb709c7d952f6010e2))
+* **judgement:** guard noise-floor decisions ([d583c89](https://github.com/srobroek/slopvac/commit/d583c890612dbb8f428eb19a61b01062c85faef8))
+
+
+### Bug Fixes
+
+* gate lexical rules by text type ([0cd4f29](https://github.com/srobroek/slopvac/commit/0cd4f295c139b812b09d2fdaa4d67b006f272d47))
+* gate lexical rules by text type ([b2f607c](https://github.com/srobroek/slopvac/commit/b2f607c72ba3bbc872067600b3c60fb4167a0c39))
+* improve absolute assertion precision ([9e2ddbb](https://github.com/srobroek/slopvac/commit/9e2ddbb5891bafb92672de515248f87890a4a99a))
+* improve absolute assertion precision ([7a9feb0](https://github.com/srobroek/slopvac/commit/7a9feb004435c596d73f6ff5e43186ea4d3c7358))
+* **judgement:** render rule questions and examples in judgement prompts ([0493862](https://github.com/srobroek/slopvac/commit/049386264442984bdb27ac88e404b5b5fe6bfa34))
+* **judgement:** render rule questions and examples in judgement prompts ([3cfab5e](https://github.com/srobroek/slopvac/commit/3cfab5ef09ddecbf86d549c32d202ba92b9baec7))
+* **judgement:** split noise-floor measurement and policy ([01cb1b1](https://github.com/srobroek/slopvac/commit/01cb1b193bc0befe6ea72568e856586fbde6c4cb))
+* **judgement:** split noise-floor measurement and policy ([509b704](https://github.com/srobroek/slopvac/commit/509b704e92b0e2cb3c1b6eadaa976581bd6d9a84))
+* **judgement:** validate complete response sets ([323fc04](https://github.com/srobroek/slopvac/commit/323fc0471d399791437ccc8357ff054baaf7221e))
+* keep non-imperative rule untyped ([ac5f267](https://github.com/srobroek/slopvac/commit/ac5f26733e862f0854aef46dd2566fe27d4ea2a3))
+* refine absolute assertion judgement ([b5c7fac](https://github.com/srobroek/slopvac/commit/b5c7fac80b8e4b9ac52f6d10a7333cf73ec22644))
+* refine absolute assertion judgement guidance ([e3a7372](https://github.com/srobroek/slopvac/commit/e3a73723e971a039679de82c9ee4d63f5f7ff425))
+
+
+### Documentation
+
+* fix evaluation record markdown ([c8b023e](https://github.com/srobroek/slopvac/commit/c8b023ea050f2f8411097bca53d19d7e7875158e))
+* **judgement:** clarify noise-floor registration ([4f08562](https://github.com/srobroek/slopvac/commit/4f085620f55d4a160138cdf4dc7bd51ffea63399))
+* record 2026-09-19 wider judgement evaluation ([d4858b9](https://github.com/srobroek/slopvac/commit/d4858b96d52332ba2274c9201b17ca4253de8819))
+* record wider judgement evaluation ([1a50c91](https://github.com/srobroek/slopvac/commit/1a50c919e351d40183e6c99bf8af315b36267c57))
+* refine evaluation record prose ([92afdeb](https://github.com/srobroek/slopvac/commit/92afdebdc14f46fdc92ce7a7b0a92790fe4c20b4))
+* update evaluation record after human retry ([a74f5c2](https://github.com/srobroek/slopvac/commit/a74f5c29ddb12ac58e319d0cea9b6dce75a3ed1c))
+
 ## [2.7.0](https://github.com/srobroek/slopvac/compare/v2.6.0...v2.7.0) (2026-09-19)
 
 
