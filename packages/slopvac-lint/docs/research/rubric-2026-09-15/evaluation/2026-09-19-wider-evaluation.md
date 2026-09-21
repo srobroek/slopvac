@@ -161,6 +161,33 @@ The complete per-unit before/after record is:
 
 The recall guard ships only one-point-dilution: every FP control was rejected and its TP was confirmed. Absolute-assertion is measured but not shipped because only 3/8 adjudicated TPs remained confirmed. Corporate-analytic-filler is measured but not shipped because one of two human FPs remained confirmed and the LLM controls were inconclusive. The elegant-variation and competing-actor-terms changes are **deferred** pending adjudicator consistency; no ship claim is made for them.
 
+### Corporate analytic filler v2 adjudication (2026-09-21; measured, not shipped)
+
+The regenerated prompt used the current rule render. The first rendered question was: “Is the quoted frame removable because the whole sentence or passage contains only a generic label of importance, complexity, concern, or tradeoff and no specific fact, measurement, consequence, safety explanation, required constraint, bounded qualification, attribution, finite list, or actionable criterion?” The first proof made 60 Bedrock calls (40 LLM FP-majority units, 18 LLM TP-majority units, and 2 human FP controls). Every unit had `before=CONFIRM`.
+
+| Unit | Majority | Before | After |
+|---|---|---|---|
+| caf-proof-000–006 | FP | CONFIRM | confirm, confirm, confirm, confirm, confirm, confirm, confirm |
+| caf-proof-007–012 | FP | CONFIRM | reject, reject, confirm, reject, reject, reject |
+| caf-proof-013–018 | FP | CONFIRM | confirm, reject, reject, reject, reject, reject |
+| caf-proof-019–024 | FP | CONFIRM | confirm, reject, reject, reject, reject, reject |
+| caf-proof-025–030 | FP | CONFIRM | confirm, reject, confirm, reject, confirm, confirm |
+| caf-proof-031–036 | FP | CONFIRM | reject, reject, reject, reject, reject, reject |
+| caf-proof-037–039 | FP | CONFIRM | reject, reject, confirm |
+| caf-proof-040–045 | TP | CONFIRM | confirm, confirm, confirm, confirm, reject, reject |
+| caf-proof-046–051 | TP | CONFIRM | confirm, confirm, confirm, confirm, confirm, confirm |
+| caf-proof-052–057 | TP | CONFIRM | confirm, confirm, confirm, reject, abstain, confirm |
+| caf-proof-058–059 (human) | FP | CONFIRM | reject, reject |
+
+The allowed second iteration used 48 calls (28 FP, 18 TP, and 2 human controls). Its tightened rendered question was: “Confirm only when the frame is removable and the whole sentence or passage contains no concrete proposition beyond a generic label of importance, complexity, concern, or tradeoff. Reject when the remainder states any specific fact, measurement, consequence, safety explanation, required constraint, bounded qualification, attribution, finite list, actionable criterion, named relationship, or domain-specific distinction; those details are analysis even when the opening frame is generic.”
+
+| Unit | Majority | Before | After |
+|---|---|---|---|
+| iteration-2-fp-000–027 | FP | CONFIRM | per-unit responses recorded in the run artifact; aggregate 13 confirms, 15 rejects |
+| iteration-2-tp-000–017 | TP | CONFIRM | per-unit responses recorded in the run artifact; aggregate 6 confirms, 12 rejects |
+| iteration-2-human-000–001 | FP | CONFIRM | reject, reject |
+
+The guard verdict was FP **16/40 → 13/28**, TP retained **13/18 → 6/18**, and human FP confirms **0/2** in the accepted adjudication accounting. Neither run satisfies the recall guard after two attempts. The rule's tell and the LLM-arm FP pattern overlap too much for a prompt-only fix; the next lever is a deterministic scope/threshold change or rule retirement, which is a user decision. The rule edit and precision fixtures were reverted. The evidence is therefore measured, not shipped.
 ## Q02 salvage comparison
 
 The Q02 decision is **DECIDED (2026-09-19)** for `slopvac-cz0.19`: `unique-quote` offset salvage is the default, while `--offset-salvage none` preserves raw offsets. The comparison reports **1,294 → 4** evidence-offset mismatches, **307 → 482** confirms (**+175**), **42,041 → 42,080** rejected, **4,861 → 4,535** abstained, and **456 → 456** failed. Salvage changes evidence offsets and does not establish semantic precision (`q02-comparison.md`, Reading against Q02).
