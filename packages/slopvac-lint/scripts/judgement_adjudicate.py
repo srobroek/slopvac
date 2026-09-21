@@ -679,9 +679,7 @@ def write_reports(
             )
             + " |"
         )
-    (out_dir / "SUMMARY.md").write_text(
-        "\n".join(summary_lines) + "\n", encoding="utf-8"
-    )
+    (out_dir / "SUMMARY.md").write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
     with (out_dir / "summary.csv").open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(
             stream,
@@ -778,9 +776,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--reasoning-effort", default=EFFORT_DEFAULT)
     run_parser.add_argument("--repeats", type=int, default=1)
     run_parser.add_argument("--sample-per-rule", type=int)
-    run_parser.add_argument(
-        "--rule-id", help="restrict a bounded smoke run to one rule"
-    )
+    run_parser.add_argument("--rule-id", help="restrict a bounded smoke run to one rule")
     return parser
 
 

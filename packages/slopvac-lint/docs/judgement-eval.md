@@ -230,23 +230,21 @@ uv run scripts/judgement_adjudicate.py report \
 
 Each rule table reports the false-positive (FP) share of adjudicated confirms,
 `FP / (TP + FP + borderline)`, and FP incidence per attempted unit,
-`FP / attempted`, where `attempted` comes from `report.json`. Parse errors are
-excluded from the first denominator and remain visible as their own count.
+`FP / attempted`, where `attempted` comes from `report.json`. The first denominator omits parse errors; the report still lists each parse error.
 The old confirm-rate proxy treated every human confirm as equivalent evidence;
 adjudication separates true positives, false positives, borderline calls, and
 unavailable judgements before reporting precision.
 
-Use at least three independent repeats for a human-class arm when measuring
-precision. Pass `--repeats 3`; the command writes `consistency.json` and
-`CONSISTENCY.md` with each unit's verdict tuple, per-unit flip flag, per-rule
-flip rate, and majority verdict. The majority verdict drives the per-rule
-precision tables. Regenerate the consistency report without model access:
+Use at least three independent repeats for a human-class arm when measuring precision. Pass `--repeats 3`; the command writes `consistency.json` and `CONSISTENCY.md` with each unit's verdict tuple, per-unit flip flag, per-rule flip rate, and majority verdict. Regenerate the consistency report without model access:
 
 ```sh
 uv run scripts/judgement_adjudicate.py consistency \
   --run-dir .slopvac-judgement --corpus-root /path/to/corpus \
   --out .slopvac-adjudication --class human
 ```
+
+The consistency measurement at `/Users/sjors/tmp/slopvac-judgement-eval/v2/adjudication/consistency/CONSISTENCY.md` contains 60 human confirms × 3 repeats (Sol high), 60 calls, 6 flipped units, and a per-unit flip rate of 0.100. Majority for `elegant-variation` was TP 10 / FP 1. Agreement with the earlier attempt-2 single-pass labels was 4/11 on that rule. Therefore adjudication MUST use repeats >= 3 with a majority verdict; single-pass labels are prompt-sensitive.
+
 
 ## Spine-shape measurement
 
@@ -259,8 +257,4 @@ Record the old annotation-key rate, the new rate, the instrument id, and the
 new schema-failure rate. Ship the spine change only when the new rate does not
 increase schema failures; a reduction of less than half is still reported.
 
-The 2026-09-21 sample contained 374 annotation-key responses among 2,707
-v2 LLM responses (13.816%). The selected 50 annotated and 50 clean prompts
-produced zero annotation-key responses after the spine change. Seven responses
-failed the exact result-object shape check (7%: four annotated-source prompts
-and three clean-source prompts), so the change did not increase schema failures.
+The 2026-09-21 annotation measurement at `/Users/sjors/tmp/slopvac-annotation-measure/` found a v2 baseline annotation-key rate of 374/2,707 responses (13.8%). With the new spine statement, the rate was 0/100 (50 previously annotated plus 50 clean prompts). Exact-shape failures were 7/100 (extra or missing keys), so the tolerance normaliser from PR #137 remains required.
