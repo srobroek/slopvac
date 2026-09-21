@@ -48,7 +48,7 @@ rules:
           The caller opens the connection and must close it.
     provenance:
       source: ASD-STE100
-      ste_ref: '9:1.11'
+      ste_ref: "9:1.11"
       note: >-
         The specification requires one name for one thing. Software prose breaks
         this most often across actor nouns, because each one reads as a
@@ -58,10 +58,11 @@ rules:
         them.
     judgement:
       scope_class: probe
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 2, roles: [defect, contrast]}
+      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
+      evidence: { min_arity: 2, roles: [defect, contrast] }
       warrant_min: 2
-      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      protects:
+        [authoritative_domain_term, normative_obligation, quoted_specimen]
       judgement_ceiling: warning
     fix: >-
       Choose the narrowest accurate term, replace every other, and define the
@@ -105,7 +106,7 @@ rules:
         good: The hook validates the payload.
     provenance:
       source: ASD-STE100
-      ste_ref: '9:3.7'
+      ste_ref: "9:3.7"
       orwell_ref: cut-what-cuts
       note: >-
         Both sources name this. Orwell's operators-or-verbal-false-limbs
@@ -152,7 +153,7 @@ rules:
           those separately.
     provenance:
       source: ASD-STE100
-      ste_ref: '9:4.1'
+      ste_ref: "9:4.1"
       note: >-
         Counts coordinating conjunctions, semicolons, dashes used as clause
         joins, and non-restrictive "which" clauses, rather than words. A
@@ -252,7 +253,7 @@ rules:
         good: This section explains the retry logic.
     provenance:
       source: ASD-STE100
-      ste_ref: '9:3.5'
+      ste_ref: "9:3.5"
       note: >-
         A closed list, not a general -up/-out pattern. `set up`, `log in`,
         `check out`, `roll back`, and `shut down` are the correct names of real
@@ -306,10 +307,11 @@ rules:
         that is the commoner failure in generated prose.
     judgement:
       scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
+      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
+      evidence: { min_arity: 1, roles: [defect] }
       warrant_min: 2
-      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      protects:
+        [authoritative_domain_term, normative_obligation, quoted_specimen]
       judgement_ceiling: warning
     fix: >-
       Replace each unmeasurable claim with the fact that motivated it, or delete
@@ -431,7 +433,7 @@ rules:
           A reader still holds three things.
     provenance:
       source: ASD-STE100
-      ste_ref: '9:4.1'
+      ste_ref: "9:4.1"
       note: >-
         Paired with prose-discipline.run-on, which counts clause boundaries. The
         count is a candidate finder: it cannot tell a parallel list sharing one
@@ -439,10 +441,11 @@ rules:
         boundary count. This half carries the decision.
     judgement:
       scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
+      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
+      evidence: { min_arity: 1, roles: [defect] }
       warrant_min: 2
-      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      protects:
+        [authoritative_domain_term, normative_obligation, quoted_specimen]
       judgement_ceiling: warning
     fix: >-
       Split at the boundary where the reader starts holding a second thing, and
@@ -510,10 +513,11 @@ rules:
         list is what a suppression must cite.
     judgement:
       scope_class: probe
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
+      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
+      evidence: { min_arity: 1, roles: [defect] }
       warrant_min: 2
-      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      protects:
+        [authoritative_domain_term, normative_obligation, quoted_specimen]
       judgement_ceiling: warning
     fix: >-
       For each hedged claim, either state it plainly with the evidence, or delete
@@ -658,10 +662,11 @@ rules:
         prose-inflation.vague-quantifier.
     judgement:
       scope_class: probe
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
+      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
+      evidence: { min_arity: 1, roles: [defect] }
       warrant_min: 2
-      protects: [authoritative_domain_term, normative_obligation, quoted_specimen]
+      protects:
+        [authoritative_domain_term, normative_obligation, quoted_specimen]
       judgement_ceiling: warning
       host_predicates:
         - id: figure_available
