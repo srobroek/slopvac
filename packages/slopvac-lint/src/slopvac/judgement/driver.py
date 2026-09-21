@@ -9,11 +9,11 @@ rewrite preview.
 from __future__ import annotations
 
 import base64
-from bisect import bisect_left, bisect_right
 import difflib
 import hashlib
 import json
 import re
+from bisect import bisect_left, bisect_right
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import asdict
