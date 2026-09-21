@@ -528,3 +528,5 @@
 * gate lexical rules on the repaired sentence `text_type` classifier
 
 * keep `instruction-not-imperative` untyped because its bad examples are deliberately descriptive violations
+
+* document the official v2 judgement evaluation, tolerant finish, shared-population comparison, and adjudicated precision metrics (slopvac-cz0.36)
