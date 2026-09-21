@@ -1,3 +1,5 @@
+Host-side validation strips benign model annotation keys into per-result model_annotations and records annotation_stripped_calls in reports.
+
 # Judgement evaluation
 
 The evaluator measures model decisions against the rubric contract. An instrument
@@ -31,7 +33,7 @@ The shipped `src/slopvac/judgement/dependence_table.json` has status
 builds components from span overlap only and logs that limitation. B3 remains
 open until a held-out labelled set derives and validates the dependence pairs.
 
-The recall gold set is `tests/fixtures/judgement/gold/gold-v1.jsonl`: 100 seeded defects and 100 matched controls spanning every shipped judgement family. A seeded row is a hit when the model's evidence quote overlaps that row's `defect_span`; a confirm on a control is a false positive. Recall is therefore `hits / 100`, while controls measure false positives separately.
+The recall gold set is `tests/fixtures/judgement/gold/gold-v1.jsonl`: 100 seeded defects and 100 matched controls spanning every shipped judgement family. A seeded row is a hit when the model's evidence quote overlaps that row's `defect_span`; controls measure mechanical control behavior separately. Human-prose confirms are screening signals, not false-positive labels, because style rules legitimately fire on human prose. Headline precision requires blinded adjudication.
 
 ## CLI driver
 
@@ -57,10 +59,7 @@ The driver records malformed responses as failures instead of silently dropping 
 
 The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic warning or error counts, including the `max_errors` gate.
 
-Measured precision on the two full runs so far
-(`docs/research/rubric-2026-09-15/evaluation/`): 9 of 37 confirms on the local
-corpus and 5 of 95 on the sibling repositories were real defects. `FP-PRESERVE-MISS`
-is counted as a false positive; diagnostic fragment-unit labels are not added to FP.
+Measured precision is reported only from blinded adjudication. Report true positives divided by adjudicated confirms and false-positive incidence divided by attempted human units. Human confirm rate remains a screening signal, not a precision proxy. The earlier local and sibling counts are instrument v1 (no criteria) and are historical context, not comparable v2 headline precision.
 to normative lines (MUST, NOT, DEFAULT), to factual "X, not Y" contrasts, and to
 plain section titles. When you act on a report, discard a confirm whose rewrite
 changes what the sentence claims, targets a specification or steering line, or

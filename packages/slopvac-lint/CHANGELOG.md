@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Tolerate benign judgement model annotation fields host-side and report annotation-stripped calls.
 
 * Clarify that judgement outcomes are reporting-only and never affect deterministic gates or counts.
 * `judgement finish` now defaults to Q02 `unique-quote` offset salvage; pass `--offset-salvage none` for raw-offset behavior, and reports record the selected mode.

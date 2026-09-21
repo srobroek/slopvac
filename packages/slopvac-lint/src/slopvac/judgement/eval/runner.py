@@ -17,6 +17,7 @@ from ..aggregate import coverage
 from ..packs import (
     judgement_cache_key as judgement_cache_key,  # re-export: the single implementation lives in packs
 )
+from ..schema import normalize_result_set
 
 TOKEN_FIELDS = {
     "promptTokens": "prompt_tokens", "completionTokens": "completion_tokens",
@@ -115,6 +116,7 @@ def usage(messages: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, str]:
 
 
 def validate_result_set(units: list[dict[str, Any]], rows: Any) -> str | None:
+    normalize_result_set(rows)
     expected = [str(u["unit_id"]) for u in units]
     expected_kinds = {str(u["unit_id"]): u.get("kind") for u in units}
     missing = object()
