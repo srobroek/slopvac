@@ -47,9 +47,10 @@ __all__ = [
     "check_rewrite",
     "instrument_id",
     "judgement_cache_key",
+    "normalize_result_set",
     "pack_id",
     "pack_object",
     "render_pack",
     "rubric_revision",
-    "normalize_result_set",
+    "validate_model_output",
 ]
