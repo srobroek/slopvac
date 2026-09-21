@@ -202,3 +202,58 @@ No shipped `finish` path applies majority today; this is a documentation-first
 policy. The noise-floor instrument reports measurements, while the separate
 `decide` command computes the policy decision and records its threshold and
 minimum-unit basis.
+
+## Adjudication
+
+Run adjudication after every `finish` for a human-class arm. It sends each
+human `CONFIRM` to an independent Sol model family and never changes the finish
+report. The batches contain at most three units.
+
+```sh
+AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1 \
+  uv run scripts/judgement_adjudicate.py run \
+  --run-dir .slopvac-judgement \
+  --corpus-root /path/to/corpus \
+  --model-id global.openai.gpt-5.6-sol --reasoning-effort high \
+  --out .slopvac-adjudication --class human
+```
+
+The command writes raw request and response records under `calls/`, one
+Markdown table per rule, `SUMMARY.md`, `summary.csv`, and `summary.json`.
+`report` regenerates those tables from saved calls without model access:
+
+```sh
+uv run scripts/judgement_adjudicate.py report \
+  --run-dir .slopvac-judgement --corpus-root /path/to/corpus \
+  --out .slopvac-adjudication --class human
+```
+
+Each rule table reports the false-positive (FP) share of adjudicated confirms,
+`FP / (TP + FP + borderline)`, and FP incidence per attempted unit,
+`FP / attempted`, where `attempted` comes from `report.json`. The first denominator omits parse errors; the report still lists each parse error individually.
+The old confirm-rate proxy treated every human confirm as equivalent evidence;
+adjudication separates true positives, false positives, borderline calls, and
+unavailable judgements before reporting precision.
+
+Use at least three independent repeats for a human-class arm when measuring precision. Pass `--repeats 3`; the command writes `consistency.json` and `CONSISTENCY.md` with each unit's verdict tuple, per-unit flip flag, per-rule flip rate, and majority verdict. Regenerate the consistency report without model access:
+
+```sh
+uv run scripts/judgement_adjudicate.py consistency \
+  --run-dir .slopvac-judgement --corpus-root /path/to/corpus \
+  --out .slopvac-adjudication --class human
+```
+
+The consistency measurement at `/Users/sjors/tmp/slopvac-judgement-eval/v2/adjudication/consistency/CONSISTENCY.md` contains 60 human confirms × 3 repeats (Sol high), 60 calls, 6 flipped units, and a per-unit flip rate of 0.100. Majority for `elegant-variation` was TP 10 / FP 1. Agreement with the earlier attempt-2 single-pass labels was 4/11 on that rule. Therefore adjudication MUST use repeats >= 3 with a majority verdict; single-pass labels are prompt-sensitive.
+
+## Spine-shape measurement
+
+The judgement spine states the exact result-object keys and directs explanatory
+text to `note`. The statement changes the rubric revision and therefore the
+instrument id. To measure it, select 50 v2 LLM responses containing an
+annotation key and 50 clean responses, rebuild both samples through
+`judgement prepare`, and invoke the Claude measurement arm once per prompt.
+Record the old annotation-key rate, the new rate, the instrument id, and the
+new schema-failure rate. Ship the spine change only when the new rate does not
+increase schema failures; a reduction of less than half is still reported.
+
+The 2026-09-21 annotation measurement at `/Users/sjors/tmp/slopvac-annotation-measure/` found a v2 baseline annotation-key rate of 374/2,707 responses (13.8%). With the new spine statement, the rate was 0/100 (50 previously annotated plus 50 clean prompts). Exact-shape failures were 7/100 (extra or missing keys), so the tolerance normaliser from PR #137 remains required.
