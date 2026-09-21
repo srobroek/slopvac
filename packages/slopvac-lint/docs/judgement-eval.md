@@ -230,7 +230,7 @@ uv run scripts/judgement_adjudicate.py report \
 
 Each rule table reports the false-positive (FP) share of adjudicated confirms,
 `FP / (TP + FP + borderline)`, and FP incidence per attempted unit,
-`FP / attempted`, where `attempted` comes from `report.json`. The first denominator omits parse errors; the report still lists each parse error.
+`FP / attempted`, where `attempted` comes from `report.json`. The first denominator omits parse errors; the report still lists each parse error individually.
 The old confirm-rate proxy treated every human confirm as equivalent evidence;
 adjudication separates true positives, false positives, borderline calls, and
 unavailable judgements before reporting precision.
