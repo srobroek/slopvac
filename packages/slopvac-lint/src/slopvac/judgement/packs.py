@@ -197,8 +197,15 @@ def canonical_bytes(obj: Any) -> bytes:
     return encode(obj).encode("utf-8")
 
 
+_PACK_ID_CACHE: dict[int, tuple[Pack, str]] = {}
+
 def pack_id(pack: Pack) -> str:
-    return hashlib.sha256(canonical_bytes(pack_object(pack))).hexdigest()
+    cached = _PACK_ID_CACHE.get(id(pack))
+    if cached is not None and cached[0] is pack:
+        return cached[1]
+    value = hashlib.sha256(canonical_bytes(pack_object(pack))).hexdigest()
+    _PACK_ID_CACHE[id(pack)] = (pack, value)
+    return value
 
 
 def rubric_revision(spine_text: str) -> str:
