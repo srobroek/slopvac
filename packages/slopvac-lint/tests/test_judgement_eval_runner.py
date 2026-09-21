@@ -1,4 +1,5 @@
 from slopvac.judgement.eval.runner import aggregate, validate_result_set
+from slopvac.judgement.schema import validate_model_output
 
 
 def test_probe_row_requires_nested_occurrences_list() -> None:
@@ -26,3 +27,13 @@ def test_eval_aggregate_routes_to_judgement_coverage():
     report = aggregate(records, eligible_units=units)
     assert report["documents"]["doc.md"]["eligible"] == 1
     assert report["documents"]["doc.md"]["confirmed"] == 1
+
+
+def test_result_set_preserves_benign_annotations():
+    rows = [{"unit_id": "span", "occurrences": None, "passage_id_note": "already checked"}]
+    assert validate_result_set([{"unit_id": "span", "kind": "SPAN_CANDIDATE"}], rows) is None
+    assert rows[0]["model_annotations"] == {"passage_id_note": "already checked"}
+
+
+def test_unknown_result_key_still_fails_schema():
+    assert validate_model_output({"verdicts": []})

@@ -12,7 +12,7 @@ from typing import Any
 
 from slopvac.judgement.driver import _response_payload
 from slopvac.judgement.eval.runner import validate_result_set
-from slopvac.judgement.schema import validate_model_output
+from slopvac.judgement.schema import normalize_result_set, validate_model_output
 
 THRESHOLD = 0.10
 DEFAULT_MIN_UNITS = 30
@@ -132,40 +132,42 @@ def prepare(args: argparse.Namespace) -> None:
 
 def _classify_response(
     response: dict[str, Any] | None, expected: list[dict[str, Any]]
-) -> tuple[dict[str, str], dict[str, str]]:
+) -> tuple[dict[str, str], dict[str, str], int]:
     expected_ids = {str(row["unit_id"]) for row in expected}
     if not response:
-        return {}, {unit: "missing_response" for unit in expected_ids}
+        return {}, {unit: "missing_response" for unit in expected_ids}, 0
     if response.get("error") is not None or response.get("error_type") is not None:
-        return {}, {unit: "provider_error" for unit in expected_ids}
+        return {}, {unit: "provider_error" for unit in expected_ids}, 0
     if "response" not in response:
-        return {}, {unit: "missing_response" for unit in expected_ids}
+        return {}, {unit: "missing_response" for unit in expected_ids}, 0
     try:
         payload = _response_payload(response["response"])
     except (TypeError, ValueError, json.JSONDecodeError):
-        return {}, {unit: "parse_error" for unit in expected_ids}
+        return {}, {unit: "parse_error" for unit in expected_ids}, 0
     rows = (
         payload.get("results")
         if isinstance(payload, dict) and "results" in payload
         else ([payload] if len(expected) == 1 else None)
     )
     if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
-        return {}, {unit: "parse_error" for unit in expected_ids}
+        return {}, {unit: "parse_error" for unit in expected_ids}, 0
     returned_ids = {str(row.get("unit_id")) for row in rows}
     unknown = returned_ids - expected_ids
     if unknown:
-        return {}, {unit: "unknown_unit" for unit in expected_ids}
+        return {}, {unit: "unknown_unit" for unit in expected_ids}, 0
+    normalize_result_set(rows)
+    annotation_count = sum(bool(row.get("model_annotations")) for row in rows)
     if validate_result_set(expected, rows) is not None:
-        return {}, {unit: "schema_invalid" for unit in expected_ids}
+        return {}, {unit: "schema_invalid" for unit in expected_ids}, annotation_count
     if any(validate_model_output(row) for row in rows):
-        return {}, {unit: "schema_invalid" for unit in expected_ids}
+        return {}, {unit: "schema_invalid" for unit in expected_ids}, annotation_count
     verdicts = {
         str(row["unit_id"]): str(row.get("verdict", "abstain")).upper()
         if str(row.get("verdict", "abstain")).upper() in {"CONFIRM", "REJECT"}
         else "ABSTAIN"
         for row in rows
     }
-    return verdicts, {unit: "" for unit in expected_ids if unit not in verdicts}
+    return verdicts, {unit: "" for unit in expected_ids if unit not in verdicts}, annotation_count
 
 
 def flip_rate(values: list[str]) -> float:
@@ -187,6 +189,7 @@ def analyse(args: argparse.Namespace) -> None:
     config_sources: set[str] = set()
     by_unit: dict[str, dict[str, Any]] = {}
     failure_counts: Counter[str] = Counter()
+    annotation_stripped_calls = 0
     for row in prompts:
         if sidecar:
             row.setdefault("model_id", sidecar["model_id"])
@@ -204,7 +207,8 @@ def analyse(args: argparse.Namespace) -> None:
             {"unit_id": str(unit_id), "kind": row.get("kind")}
             for unit_id in row.get("unit_ids", [])
         ]
-        verdicts, statuses = _classify_response(response, expected)
+        verdicts, statuses, annotation_count = _classify_response(response, expected)
+        annotation_stripped_calls += bool(annotation_count)
         for _unit_id, status in statuses.items():
             if status:
                 failure_counts[status] += 1
@@ -284,6 +288,7 @@ def analyse(args: argparse.Namespace) -> None:
         "overall_flip_rate": overall,
         "config_provenance": sorted(config_sources),
         "failure_classes": dict(failure_counts),
+        "annotation_stripped_calls": annotation_stripped_calls,
         "fingerprints": fingerprints,
         "rules": rules,
         "units": units,
