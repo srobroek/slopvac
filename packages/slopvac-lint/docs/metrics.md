@@ -328,10 +328,10 @@ Judgement deductions lower only the reported `judgement_adjusted_score`; they ne
 
 The normalized record uses the schema's field names and explicit denominators:
 
-- `metrics.strict_precision` = `TP / (TP + FP + borderline)`; borderline is FP.
-- `metrics.lenient_precision` = `(TP + borderline) / (TP + FP + borderline)`; borderline is TP and `FP-PRESERVE-MISS` remains FP.
-- `metrics.abstention_rate` = `ABSTAIN / all_units`.
-- `metrics.evidence_validity` = `host_confirms_after_gate / model_confirms_before_gate`.
+ - `metrics.adjudicated_precision` = `TP / (TP + FP + borderline)`; report this headline precision with both denominators: true positives divided by adjudicated confirms, and false-positive incidence divided by attempted human units.
+ - `metrics.confirm_rate` = `human_confirms / attempted_human_units`; this is a screening signal only, not a false-positive or precision proxy, because style rules legitimately fire on human prose.
+ - `metrics.abstention_rate` = `ABSTAIN / all_units`.
+ - `metrics.evidence_validity` = `host_confirms_after_gate / model_confirms_before_gate`.
 
 `denominators.all_units` counts distinct `unit_id` values. `response_rows` and duplicate rows are diagnostic only. Failed, truncated, and no-response units have `not_run` status. They do not add to attempted coverage. Completed abstentions remain attempted adjudications.
 
