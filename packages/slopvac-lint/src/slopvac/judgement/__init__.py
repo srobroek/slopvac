@@ -13,7 +13,7 @@ from .packs import (
     render_pack,
     rubric_revision,
 )
-from .schema import validate_model_output
+from .schema import normalize_result_set, validate_model_output
 from .types import (
     DimMask,
     EvidenceRole,
@@ -51,5 +51,5 @@ __all__ = [
     "pack_object",
     "render_pack",
     "rubric_revision",
-    "validate_model_output",
+    "normalize_result_set",
 ]

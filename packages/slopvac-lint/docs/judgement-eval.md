@@ -1,3 +1,5 @@
+Host-side validation strips benign model annotation keys into per-result model_annotations and records annotation_stripped_calls in reports.
+
 # Judgement evaluation
 
 The evaluator measures model decisions against the rubric contract. An instrument
