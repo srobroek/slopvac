@@ -1528,6 +1528,7 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
     evidence_offset_mismatch = 0
     model_confirms = 0
     evidence_gate_discards = 0
+    annotation_stripped_calls = 0
     unit_objects = {unit_id: _unit_from_dict(item, documents) for unit_id, item in units.items()}
 
     for item in unit_items:
@@ -1575,6 +1576,8 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
         elif rows is None:
             missing_ids = [str(unit_id) for unit_id in call.get("unit_ids", ())]
         validation_error = validate_result_set(target_units, rows)
+        if isinstance(rows, list):
+            annotation_stripped_calls += any(isinstance(row, dict) and row.get("model_annotations") for row in rows)
         missing_payload = rows is None or (validation_error is not None and validation_error.startswith("missing unit_id:"))
         if validation_error is not None and missing_ids and missing_payload:
             for unit_id in missing_ids:
@@ -1712,7 +1715,7 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
         "gold_unattached": list(gold_config.get("unattached", [])) if isinstance(gold_config, dict) else [],
         "evidence_gate_discards": evidence_gate_discards,
         "evidence_offset_mismatch": evidence_offset_mismatch,
-        "counts": {"findings": len(finding_items), "failed_calls": len(failed), "evidence_offset_mismatch": evidence_offset_mismatch},
+        "counts": {"findings": len(finding_items), "failed_calls": len(failed), "evidence_offset_mismatch": evidence_offset_mismatch, "annotation_stripped_calls": annotation_stripped_calls},
     }
     (out / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "report.md").write_text(_markdown_report(report_documents, units, finding_items, evidence_offset_mismatch), encoding="utf-8")
