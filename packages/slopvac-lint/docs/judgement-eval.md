@@ -245,7 +245,6 @@ uv run scripts/judgement_adjudicate.py consistency \
 
 The consistency measurement at `/Users/sjors/tmp/slopvac-judgement-eval/v2/adjudication/consistency/CONSISTENCY.md` contains 60 human confirms × 3 repeats (Sol high), 60 calls, 6 flipped units, and a per-unit flip rate of 0.100. Majority for `elegant-variation` was TP 10 / FP 1. Agreement with the earlier attempt-2 single-pass labels was 4/11 on that rule. Therefore adjudication MUST use repeats >= 3 with a majority verdict; single-pass labels are prompt-sensitive.
 
-
 ## Spine-shape measurement
 
 The judgement spine states the exact result-object keys and directs explanatory
