@@ -39,7 +39,7 @@ The top-ten per-rule table below is copied from `wider/analysis/per-rule.md`, **
 
 The human report is `wider/run/human/report.json`; the per-rule extraction is `wider/analysis/per-rule-human.md`. It covers **36 documents**, has **45 confirms**, and is **PARTIAL** overall (`per-rule-human.md`, refreshed Human per-document coverage; **29 CLEAN** and **7 PARTIAL** statuses from `run/human/report.json`, `documents[].coverage.status`). The retry completed after **144** queued IDs: **143** produced valid rows and one remained a provider JSON parse failure (`run/human/failure-disposition.json`, `disposition`, `retried`; refreshed `report.json`, `counts.failed_calls: 5`). The refreshed report has **4,433 abstentions** (`run/human/report.json`, coverage totals). Retried-call confirmations are **13 / 2,054 = 0.63%** (`run/human/report.json`, retry-marked rows and coverage totals).
 
-The following are **candidate FP suspects**, ranked by human model CONFIRM counts. They are not adjudicated FPs; they are not silently relabelled, and the denominator remains the attempted count shown in the refreshed `wider/analysis/per-rule-human.md`.
+The following are **screening candidates**, ranked by human model CONFIRM counts. A human CONFIRM is not an adjudicated false positive: style rules legitimately fire on human prose. Adjudicated precision is the headline measure; human confirm rate is a screening signal only. The denominator remains the attempted count shown in the refreshed `wider/analysis/per-rule-human.md`.
 
 | Rank | Rule | Model CONFIRM count | Attempted | Human confirm rate |
 |---:|---|---:|---:|---:|
@@ -54,7 +54,7 @@ The following are **candidate FP suspects**, ranked by human model CONFIRM count
 | 9 | `ai-tells-structure.anaphora-abuse` | 1 | 3447 | 0.03% |
 | 10 | `ai-tells-structure.false-range` | 1 | 3447 | 0.03% |
 
-The preregistered human criterion is **not met**: **45** confirms / **333,870** manifest words = **0.1348 per 1,000 words**, above **0.05** (`wider/run/human/report.json`, refreshed `documents[].confirmed`; denominator from `wider/manifest.json`, `converted_word_count`). The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
+The preregistered human confirm-rate criterion is a screening signal, not a precision estimate, because style rules legitimately fire on human prose. The blinded adjudication is the headline measure: report precision both as true positives divided by adjudicated confirms and as false-positive incidence divided by attempted human units. The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
 
 ## Precision fixes
 
@@ -120,6 +120,39 @@ counts, and failure classes. The separate `r2/variance-policy.json` and
 `applies_to` is **CONFIRM**. All low-n rules remain `single-call` with
 `decision_basis: insufficient-units`, matching the guarded run; no `finish` path
 applies majority today.
+
+## 2026-09-21 v2 (instrument 6e84cf35: rule criteria rendered)
+
+The v2 instrument rendered each rule's criteria and evidence roles in the system prompt. The official tolerant results are `v2/llm/final/report.json` and `v2/human/final/report.json`; the strict reports remain `v2/llm/report.json` and `v2/human/report.json`. Tolerance strips model annotations while preserving the verdict; the final reports record `counts.annotation_stripped_calls`.
+
+### Population and accounting
+
+Both manifests contain 47,856 units (`v2/README.md`, population reconciliation). v1 admitted 44,700 and v2 admitted 43,848; the shared comparison therefore uses 43,848 units. The remaining 852 units are host-preserved in v2 with `admission_reason=normative_obligation` and are reported separately (`v2/README.md`, population reconciliation). This gate comes from PR #94 and is not a consequence of criteria rendering.
+
+### Arm results
+
+| Arm | Strict report | Final tolerant report | Final annotation-stripped calls |
+|---|---|---|---:|
+| LLM | `v2/llm/report.json`, `counts` | `v2/llm/final/report.json`, `counts` | 65 |
+| Human | `v2/human/report.json`, `counts` | `v2/human/final/report.json`, `counts` | 18 |
+
+The strict and final reports use the same response rows; only the final report is the official tolerant result. Per-rule counts are in `v2/analysis/v2-final-per-rule-x-class.md`.
+
+### v1 to v2
+
+`v2/analysis/v1-v2-shared-43848.md` reports CONFIRM, REJECT, ABSTAIN, and FAILED outcomes overall and per rule, restricted to the 43,848 shared eligible units. It excludes the 852 host-preserved units, which are listed separately above.
+
+### Noise floor
+
+The strict noise-floor rate is **0.79%** (`v2/noise-floor/noise-floor.json`, `overall_flip_rate`); the tolerant final rate is recorded in `v2/noise-floor/final/noise-floor.json`, `overall_flip_rate`. All rules remain `single-call` with insufficient units for a majority decision (`v2/noise-floor/final/variance-policy.json`, `decision_basis`). Annotation stripping is recorded as `annotation_stripped_calls` in the final noise-floor artifact. Incompleteness is due to provider/schema/unknown-unit failures, not missing model calls (`failure_classes`).
+
+### Adjudication
+
+The blinded adjudication contains 60 human confirms: 37 true positives, 21 false positives, and 2 borderline (`v2/adjudication/SUMMARY.md`, summary totals). Adjudicated precision is 65% of adjudicated confirms, and false-positive incidence is 0.06% of attempted human units (`v2/adjudication/summary.csv`, `v2/adjudication/SUMMARY.md`). The five FP rules are absolute assertion, corporate analytic filler, false agency, cataphoric lead-in, and false suspense. Their bounded-guidance, genre-convention, and code-or-list patterns are detailed in the per-rule adjudication files. The five clean rules are elegant variation, one-point dilution, competing actor terms, anthropomorphised justification, and bare quantifier with figure available (`v2/adjudication/*.md`).
+
+### Deviations, limitations, and next steps
+
+The v1 figures are marked **instrument v1 (no criteria)**. The second-sample retry rows remain included and flagged rather than excluded (`v2/README.md`, preparation and retry notes). The external preregistration was not edited; the metric interpretation deviation is recorded here. Human confirms are a screening signal because style rules legitimately fire on human prose, not a false-positive label. Use adjudicated precision with both denominators as the headline metric, complete the per-rule adjudication intervals, and repeat the shared-population comparison after the next instrument change.
 
 ## Limitations
 
