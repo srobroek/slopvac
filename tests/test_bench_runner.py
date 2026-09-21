@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -450,7 +451,16 @@ def test_invoke_sends_the_prompt_on_stdin_and_no_message_argument(fake_omp: Path
         and argument != "-p"
         and not record["argv"][index - 1].startswith("--")
     ]
-    assert rows == [{"case_id": cases[0]["id"], "verdict": "reject", "quote": cases[0]["text"], "reason": "formulaic construction"}]
+    assert rows[0]["prompt_sha256"] == hashlib.sha256(prompt.encode()).hexdigest()
+    assert rows == [
+        {
+            "case_id": cases[0]["id"],
+            "verdict": "reject",
+            "quote": cases[0]["text"],
+            "reason": "formulaic construction",
+            "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+        }
+    ]
     assert stats["total_tokens"] == 2164
     assert stats["cost_usd"] == pytest.approx(0.0004635)
     assert stats["request_count"] == 1
@@ -589,13 +599,43 @@ def test_scored_run_keeps_the_committed_arm_order(
 
     assert code == 0
     assert order == [
-        "arm_gpt_oss_120b_quality_score",
+        "arm_claude_sonnet_quality_score",
         "arm_gpt_5_6_luna_quality_score",
         "arm_claude_haiku_quality_score",
         "arm_gpt_5_6_sol_quality_score",
     ]
     assert metrics["case_count"] == "34"
     assert metrics["repeats"] == "2"
+
+def test_entry_point_rejects_offline_benchmark_arguments() -> None:
+    proc = subprocess.run(
+        ["/bin/sh", "autoresearch.sh", "--smoke", "--smoke-arm", "nope"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "PATH": "/usr/bin:/bin", "PYTHON": sys.executable},
+    )
+
+    assert proc.returncode == 1
+    assert proc.stderr == (
+        "autoresearch: offline benchmark does not accept arguments: "
+        "--smoke --smoke-arm nope\n"
+    )
+
+def test_one_unit_provenance_distinguishes_batch_template_from_sent_prompt(
+    fake_omp: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    run_dir = tmp_path / "run"
+    code, metrics = run_main(["--one-unit", "--arm", "gpt-5.6-luna", "--repeats", "1"], run_dir, capsys)
+
+    assert code == 0
+    assert "prompt_sha256" not in metrics
+    assert "batch_prompt_sha256" in metrics
+    request = json.loads(
+        (run_dir / "arm_gpt_5_6_luna_repeat_1_case_34" / "request.json").read_text(encoding="utf-8")
+    )
+    assert metrics["batch_prompt_sha256"] != request["prompt_sha256"]
 
 
 def test_unmeasured_run_exits_nonzero_and_scores_no_cases(
@@ -612,15 +652,3 @@ def test_unmeasured_run_exits_nonzero_and_scores_no_cases(
     assert "arm_gpt_5_6_luna_repeat_1_quality_score" not in metrics
 
 
-def test_entry_point_forwards_smoke_arm_selection() -> None:
-    proc = subprocess.run(
-        ["/bin/sh", "autoresearch.sh", "--smoke", "--smoke-arm", "nope"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-        env={**os.environ, "PATH": "/usr/bin:/bin", "PYTHON": sys.executable},
-    )
-
-    assert proc.returncode == 2
-    assert "unknown smoke arm 'nope'" in proc.stderr

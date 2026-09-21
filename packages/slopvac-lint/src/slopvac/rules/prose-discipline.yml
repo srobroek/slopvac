@@ -22,7 +22,7 @@ rules:
       - ste-words.inconsistent-term-for-same-thing
     judgement_contract:
       admission: >-
-        The unit uses two or more terms for the same actor; the occurrences needed to compare them are within the unit.
+        The unit uses two or more terms for the same actor. The occurrences needed to compare them are within the unit.
       protects: >-
         Exception: retain terms explicitly defined as different subjects at first use.
       dims: [FIT, WARRANT, HARM]

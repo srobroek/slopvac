@@ -641,7 +641,8 @@ def invoke(
         return None, stats, f"schema_invalid: {problem}"
     if outer.get("run_nonce") != nonce:
         return None, stats, "transmission_error: answer does not echo the request nonce"
-    return outer["results"], stats, ""
+    prompt_sha256 = hashlib.sha256(prompt.encode()).hexdigest()
+    return [dict(row, prompt_sha256=prompt_sha256) for row in outer["results"]], stats, ""
 
 
 def score(cases: list[dict], results: list[dict]) -> dict[str, Any]:
@@ -776,7 +777,7 @@ def main(argv: list[str] | None = None) -> int:
     metric("one_unit", args.one_unit)
     metric("case_count", len(eligible))
     metric("holdout_count", sum(bool(case.get("holdout")) for case in cases))
-    metric("prompt_sha256", hashlib.sha256(prompt.encode()).hexdigest())
+    metric("batch_prompt_sha256", hashlib.sha256(prompt.encode()).hexdigest())
     metric("system_prompt_sha256", hashlib.sha256(DECLARED_SYSTEM_PROMPT.encode()).hexdigest())
     metric("repeats", repeats)
 

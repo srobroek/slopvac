@@ -32,10 +32,9 @@ rules:
       - ai-tells-structure.definitional-negation-pair
     judgement_contract:
       admission: >-
-        The paragraph holds a negated-half contrast a seed matched, or one of the ambiguous bare-clause and
-        subjectless-imperative forms the seed leaves clean, and both halves are within the unit.
+        A seed matched a contrast in the paragraph. Alternatively, the paragraph contains a bare clause or subjectless imperative that the seeds leave clean. Both halves appear in the unit.
       protects: >-
-        Exception: retain a negated half that states a real boundary, a safety constraint, or a documented invariant.
+        Exception: retain a half that uses negation to document a boundary, constraint, or invariant.
 
       dims: [FIT, WARRANT, REPAIR]
       evidence_arity: 2
@@ -2858,7 +2857,7 @@ rules:
 id: ai-tells-agentic
 title: AI tells -- agentic slogan formulae
 description: >-
-  Recurring agent-generated heading patterns that make a universal claim stand in for a section title.
+  Recurring agent-generated headings that substitute a universal claim for a section title.
   The rule matches the syntactic shape, so replacing its vocabulary does not avoid it.
 weight: 1.5
 recommended_for: [consumer, internal, change-comms]
@@ -2891,25 +2890,14 @@ rules:
         good: Request routing
     provenance:
       source: packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
-      note: >-
-        Three shape conditions carry this rule, and each one alone is what keeps a
-        real invariant out of it. The predicate must sit IMMEDIATELY against the bare
-        subject noun, so a scoped invariant is not a match ("Every request TO THIS
-        ENDPOINT requires authentication", "Every file IN THIS DIRECTORY contains a
-        header"). The complement must be at least two words, so a terse invariant with
-        a one-word object is not a match ("Every request requires authentication").
-        And the match runs to the end of the block through word characters only, so
-        any terminal punctuation excludes it -- a heading carries none, a body
-        sentence does. Together they select the title-shaped universal claim and leave
-        the class invariant, which preserves uses of “every” that state a scoped invariant.
-        `scope: paragraph`, not `heading`: the native engine's paragraph scope covers
-        every rendered block INCLUDING headings, list items, and quotes, whereas
-        heading scope compiles to a Vale `heading` payload and Vale then owns the
-        rule, leaving it unchecked under `--no-vale`. See
-        compile_vale.PARAGRAPH_SCOPE_REASON.
-        The comma-joined pair form is prose-scope.formulaic-subject-verb-slogan; the
-        judgement remainder for a slogan carrying no fixed frame is
-        ai-tells-content-shape.epigram-closer-remainder.
+      note: |-
+        Three conditions exclude invariants:
+
+        - The predicate follows a bare subject noun. Adding a preposition to the subject stops the match.
+        - The complement contains at least two words. This excludes terse requirements.
+        - The match reaches the end of the block through word characters only. A period or other terminal mark excludes a body sentence.
+
+        Paragraph scope covers headings, list items, and quotes in the native engine. Heading scope would pass ownership to Vale and go unchecked under `--no-vale`. See `compile_vale.PARAGRAPH_SCOPE_REASON`. The comma-joined form belongs to `prose-scope.formulaic-subject-verb-slogan`. Slogans without a fixed frame belong to `ai-tells-content-shape.epigram-closer-remainder`.
   - id: contrastive-inversion-frames
     name: Cut the strawman half of a contrastive frame
     kind: pattern

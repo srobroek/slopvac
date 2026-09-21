@@ -55,7 +55,7 @@ rules:
       - ste-nouns.multiword-noun-too-long
     judgement_contract:
       admission: >-
-        The document contains the long domain term a seed matched at its first use and at a later use; both occurrences are within the unit.
+        The document contains the long domain term a seed matched at its first use and at a later use. Both occurrences are within the unit.
       protects: >-
         Exception: retain a spelling fixed by an identifier, API name, or standard.
       dims: [FIT, WARRANT]
