@@ -1668,11 +1668,16 @@
         {
           "bad": "Think of the cache as a stable map, a reliable lookup, and a predictable store.",
           "good": "Version 2 changed the cache key; the migration note retains the old key so operators can update stored entries."
+        },
+        {
+          "bad": "Think of the cache as a stable map. When it is stale, refresh it before reading the result.",
+          "good": "When the cache is stale, refresh it before reading the result.",
+          "note": "preserve: bounded, scoped recommendation or condition in the author's voice"
         }
       ],
       "id": "ai-tells-content-shape.one-point-dilution",
       "judgement_ceiling": "warning",
-      "judgement_question": "After the first statement, does the later passage add a current fact, constraint, reproduction step, decision, or time-bounded change? Flag a restatement that only recasts the same point in a fresh metaphor or primer and whose removal preserves the reader's task and current contract. Keep a second statement when its distinct purpose is required by a change note, decision, plan, specification, or historical record.",
+      "judgement_question": "Should the reviewer flag a later passage only when it recasts the same point without adding a current fact, constraint, reproduction step, decision, time-bounded change, required change-note, decision, plan, specification, or historical purpose, or a bounded, scoped recommendation or condition in the author's voice when it names a concrete action, antecedent, comparison, timing, or rationale?",
       "protects": [
         "normative_obligation",
         "quoted_specimen"
@@ -2262,7 +2267,7 @@
       ],
       "id": "ai-tells-structure.absolute-assertion-remainder",
       "judgement_ceiling": "suggestion",
-      "judgement_question": "Within the stated domain, corpus, version, and exceptions, is the universal contradicted by an observed or documented counterexample? If the sentence is an explicit specification invariant and its domain is stated, PRESERVE it.",
+      "judgement_question": "Should the reviewer preserve quotations, attributed claims, and factual descriptions tied to a named person, work, edition, document, product, or other explicit finite set, local all/only/never with its stated antecedent, and bounded comparative recommendations, while flagging unsupported authorial guarantees or categorical evaluations (including \"will tell you\", \"wherever ... has a problem\", or \"you are wrong\") and sweeping always/never/every/no X has ever claims unless attributed or supported by quantified or passage evidence?",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
