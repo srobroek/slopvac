@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from bisect import bisect_right
+from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
 from html import unescape
 from pathlib import Path
@@ -39,6 +39,7 @@ class ProjectionMap:
         self.segments = tuple(segments)
         self._raw = raw
         self._starts = tuple(segment.proj_start for segment in self.segments)
+        self._ends = tuple(segment.proj_end for segment in self.segments)
         self._length = max((segment.proj_end for segment in self.segments), default=0)
         self._validate()
 
@@ -102,16 +103,11 @@ class ProjectionMap:
             raise ValueError("invalid projected slice")
         if start_cp == end_cp:
             return b""
-        selected = [
-            segment
-            for segment in self.segments
-            if segment.proj_end > start_cp and segment.proj_start < end_cp
-        ]
-        if not selected:
+        first = bisect_right(self._ends, start_cp)
+        last = bisect_left(self._starts, end_cp)
+        if first >= last:
             return b""
-        raw_start = selected[0].raw_start
-        raw_end = selected[-1].raw_end
-        return self._raw[raw_start:raw_end]
+        return self._raw[self.segments[first].raw_start : self.segments[last - 1].raw_end]
 
     @property
     def raw(self) -> bytes:
