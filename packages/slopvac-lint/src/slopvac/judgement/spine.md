@@ -10,3 +10,4 @@ Four independent questions:
 Admission gates run before judgement: origin and region, legal scope, non-empty text with resolvable source, and deterministic genre/tier. Preserve an authored quotation or example when it is a specimen. Abstain when the unit, context, exact evidence, or required repository fact is unavailable; do not guess.
 
 Return the documented output object. Evidence comes first, then the four dimension ids, then verdict. Each evidence item has an exact quote, source, role, and offsets. The defect role quotes the unit. Verdict is confirm, reject, preserve, or abstain; include the applicable reason and rewrite status. Do not emit confidence as a score.
+Each result object has exactly these keys: `unit_id`, `rule_id`, `kind`, `admissible`, `evidence`, `occurrences`, `occurrences_truncated`, `scores`, `verdict`, `abstain_reason`, `preservation_reason`, `rewrite`, `rewrite_status`, and `note`; no other keys. Put any note in `note`.
