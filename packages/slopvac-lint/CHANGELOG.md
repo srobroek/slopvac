@@ -11,6 +11,7 @@
 * Fix judgement prompts so rule questions and exemplars are included in model-visible criteria; instrument ids and pack hashes now change when those fields change.
 
 * Refine absolute-assertion judgement guidance to preserve attributed and bounded factual claims while flagging unsupported authorial guarantees and sweeping absolutes; add regression fixtures for three adjudicated true positives.
+* Refine `ai-tells-content-shape.one-point-dilution` judgement guidance to preserve bounded recommendations and conditions; add adjudication regression fixtures for the shipped recall-guard case.
 
 ## [1.0.0](https://github.com/srobroek/slopvac/compare/slopvac--v0.1.0...slopvac--v1.0.0) (2026-08-18)
 

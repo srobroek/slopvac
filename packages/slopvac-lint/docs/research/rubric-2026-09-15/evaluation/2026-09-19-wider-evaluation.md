@@ -98,6 +98,68 @@ The earlier 64 calls used instrument v1 with no criteria examples (two wording i
 | `337ad7777c698819` | LLM non-confirm | reject | reject |
 
 The exact prompt rows and raw responses are retained under `/Users/sjors/tmp/slopvac-judgement-eval/wider/analysis/` during the run; the regression fixture adds the three TP quotes beside the bounded FP controls.
+### v2 adjudication rerun: bounded-guidance fixes (2026-09-21)
+
+The three bounded-guidance changes were rerun through the shipped path (`load_ruleset` → `build_packs` → `render_pack` → `driver._prompt_for`) rather than a hand-written prompt. The Bedrock command was `judgement_bedrock_batch.py invoke` with `AWS_PROFILE=sjors+ig-genai-Admin`, `AWS_DEFAULT_REGION=eu-west-1`, model `global.anthropic.claude-fable-5-1`, `--max-tokens 32000`, and concurrency **8**. The corrected run completed **33 calls**: absolute assertion **18**, one-point dilution **8**, and corporate analytic filler **7**. “Before” below is the blinded adjudicator class from `v2/adjudication`; “after” is the v2 model verdict. `confirm` means the model still judged the unit in scope; `reject` means it did not; `abstain` means it withheld a verdict.
+
+| Rule | Calls | Before FP units | After FP verdicts | Before TP units | After TP verdicts | Decision |
+|---|---:|---:|---|---:|---|---|
+| `ai-tells-structure.absolute-assertion-remainder` | 18 | 5 | 0 confirm (5 abstain) | 8 | 3 confirm, 4 abstain, 1 reject | **measured, not shipped**: recall guard fails (3/8 TP confirm) |
+| `ai-tells-content-shape.one-point-dilution` | 8 | 4 | 0 confirm (4 reject) | 1 | 1 confirm | **ship**: recall guard passes |
+| `ai-tells-register.corporate-analytic-filler-remainder` | 7 | 5 FP plus 1 separate borderline control | 3 confirm, 1 abstain (FP-only: 2 confirm, 1 abstain) | 1 | 1 confirm | **measured, not shipped**: inconclusive residual confirms |
+
+The complete per-unit before/after record is:
+
+#### `ai-tells-structure.absolute-assertion-remainder`
+
+| Unit | Before | After | Disposition |
+|---|---|---|---|
+| `human:defd126579a0` | TP | abstain | recall loss |
+| `human:5180bc49a5fb` | TP | reject | recall loss |
+| `human:af462e22e3da` | TP | confirm | retained |
+| `human:a0d7cec12db3` | TP | abstain | recall loss |
+| `human:e2fe89d8caa7` | FP | abstain | fixed |
+| `human:54d641fb9a31` | FP | abstain | fixed |
+| `human:be9f6ab16457` | FP | abstain | fixed |
+| `human:83f352843d9c` | TP | abstain | recall loss |
+| `human:5ef39537909f` | TP | confirm | retained |
+| `human:25c3a8b245d6` | FP | abstain | fixed |
+| `human:5600907c8479` | TP | abstain | recall loss |
+| `human:e22e0b56c835` | TP | confirm | retained |
+| `human:6098cb174ffe` | FP | abstain | fixed |
+| `llm:060abd9f3311` | TP | abstain | recall loss |
+| `llm:0c49781d15d7` | TP | abstain | recall loss |
+| `llm:1020e8f35190` | FP | confirm | residual confirm |
+| `llm:103d78ed6b90` | FP | reject | fixed |
+| `llm:13adfc00a76e` | TP | confirm | retained |
+
+#### `ai-tells-content-shape.one-point-dilution`
+
+| Unit | Before | After | Disposition |
+|---|---|---|---|
+| `human:bdd483d1b54a` | FP | reject | fixed |
+| `human:cb9fa3d9302e` | TP | confirm | retained |
+| `human:5c4814642f89` | FP | reject | fixed |
+| `human:fb59af1558a4` | FP | reject | fixed |
+| `human:1a8eaf8921b6` | FP | reject | fixed |
+| `llm:104fb25f0583` | FP | reject | fixed |
+| `llm:ad6f1a6d30c4` | FP | reject | fixed |
+| `llm:b56d86dac207` | TP | reject | recall loss |
+
+#### `ai-tells-register.corporate-analytic-filler-remainder`
+
+| Unit | Before | After | Disposition |
+|---|---|---|---|
+| `human:e601bb6704c4` | FP | abstain | fixed |
+| `human:2df5c1866dc4` | FP | confirm | residual confirm |
+| `llm:00abad7087e9` | FP | confirm | residual confirm |
+| `llm:01670a2a8c76` | borderline | confirm | borderline |
+| `llm:0567e91201bd` | FP | confirm | residual confirm |
+| `llm:090ed9d9bfad` | TP | confirm | retained |
+| `llm:0ac253411cd6` | FP | abstain | fixed |
+
+The recall guard ships only one-point-dilution: every FP control was rejected and its TP was confirmed. Absolute-assertion is measured but not shipped because only 3/8 adjudicated TPs remained confirmed. Corporate-analytic-filler is measured but not shipped because one of two human FPs remained confirmed and the LLM controls were inconclusive. The elegant-variation and competing-actor-terms changes are **deferred** pending adjudicator consistency; no ship claim is made for them.
+
 
 ## Q02 salvage comparison
 
