@@ -9,6 +9,7 @@ rewrite preview.
 from __future__ import annotations
 
 import base64
+from bisect import bisect_left, bisect_right
 import difflib
 import hashlib
 import json
@@ -466,27 +467,46 @@ def _document_range_for_local(
     start: int,
     end: int,
 ) -> tuple[int, int]:
-    selected = [
-        segment
-        for segment in local_projection.segments
-        if segment.proj_end > start and segment.proj_start < end
-    ]
-    if not selected:
+    local_cache = getattr(document, "_judgement_local_segments", None)
+    local_key = id(local_projection)
+    if local_cache is None:
+        local_cache = {}
+        document._judgement_local_segments = local_cache  # type: ignore[attr-defined]
+    arrays = local_cache.get(local_key)
+    if arrays is None:
+        segments = local_projection.segments
+        arrays = (
+            segments,
+            tuple(segment.proj_start for segment in segments),
+            tuple(segment.proj_end for segment in segments),
+        )
+        local_cache[local_key] = arrays
+    segments, starts, ends = arrays
+    first = bisect_right(ends, start)
+    last = bisect_left(starts, end)
+    if first >= last:
         return (0, 0)
-    raw_start = min(segment.raw_start for segment in selected)
-    raw_end = max(segment.raw_end for segment in selected)
-    document_segments = [
-        segment
-        for segment in document.projection.segments
-        if segment.raw_end > raw_start and segment.raw_start < raw_end
-    ]
-    if not document_segments:
-        before = [segment for segment in document.projection.segments if segment.raw_end <= raw_start and segment.raw_end > 0]
-        after = [segment for segment in document.projection.segments if segment.raw_start >= raw_end and segment.raw_end > segment.raw_start]
-        if before and after:
-            return (max(before, key=lambda segment: segment.proj_end).proj_end, min(after, key=lambda segment: segment.proj_start).proj_start)
+    raw_start = min(segment.raw_start for segment in segments[first:last])
+    raw_end = max(segment.raw_end for segment in segments[first:last])
+    doc_segments = document.projection.segments
+    doc_cache = getattr(document, "_judgement_document_segments", None)
+    if doc_cache is None:
+        doc_cache = (
+            doc_segments,
+            tuple(segment.raw_start for segment in doc_segments),
+            tuple(segment.raw_end for segment in doc_segments),
+        )
+        document._judgement_document_segments = doc_cache  # type: ignore[attr-defined]
+    doc_segments, raw_starts, raw_ends = doc_cache
+    first = bisect_right(raw_ends, raw_start)
+    last = bisect_left(raw_starts, raw_end)
+    if first >= last:
+        before = bisect_right(raw_ends, raw_start) - 1
+        after = bisect_left(raw_starts, raw_end)
+        if before >= 0 and after < len(doc_segments):
+            return (doc_segments[before].proj_end, doc_segments[after].proj_start)
         return (0, 0)
-    return (document_segments[0].proj_start, document_segments[-1].proj_end)
+    return (doc_segments[first].proj_start, doc_segments[last - 1].proj_end)
 
 
 def _raw_unit_projection(
