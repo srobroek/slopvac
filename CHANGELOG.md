@@ -3,6 +3,7 @@
 ## Unreleased
 
 * **judgement:** separate noise-floor measurement from CONFIRM variance policy and retain model, failure-class, and provenance metadata.
+* **judgement:** add the Sol adjudication CLI with repeated-majority consistency reports and document the exact spine result shape and measured annotation and adjudication rates.
 
 ## [2.8.0](https://github.com/srobroek/slopvac/compare/v2.7.0...v2.8.0) (2026-09-20)
 

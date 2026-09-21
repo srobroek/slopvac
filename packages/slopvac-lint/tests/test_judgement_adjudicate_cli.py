@@ -41,9 +41,7 @@ def test_prompt_includes_question_and_examples() -> None:
 
 
 def test_parse_json_response_accepts_fenced_and_surrounded_text() -> None:
-    value = adjudicate.parse_json_response(
-        'prefix ```json\n{"results": []}\n``` suffix'
-    )
+    value = adjudicate.parse_json_response('prefix ```json\n{"results": []}\n``` suffix')
     assert value == {"results": []}
 
 

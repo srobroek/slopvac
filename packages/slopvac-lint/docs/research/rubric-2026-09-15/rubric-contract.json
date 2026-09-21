@@ -2267,7 +2267,7 @@
       ],
       "id": "ai-tells-structure.absolute-assertion-remainder",
       "judgement_ceiling": "suggestion",
-      "judgement_question": "Should the reviewer preserve quotations, attributed claims, and factual descriptions tied to a named person, work, edition, document, product, or other explicit finite set, local all/only/never with its stated antecedent, and bounded comparative recommendations, while flagging unsupported authorial guarantees or categorical evaluations (including \"will tell you\", \"wherever ... has a problem\", or \"you are wrong\") and sweeping always/never/every/no X has ever claims unless attributed or supported by quantified or passage evidence?",
+      "judgement_question": "Within the stated domain, corpus, version, and exceptions, is the universal contradicted by an observed or documented counterexample? If the sentence is an explicit specification invariant and its domain is stated, PRESERVE it.",
       "protects": [
         "accessibility_consistency",
         "factual_polarity_or_contrast",
