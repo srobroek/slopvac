@@ -98,6 +98,7 @@ The earlier 64 calls used instrument v1 with no criteria examples (two wording i
 | `337ad7777c698819` | LLM non-confirm | reject | reject |
 
 The exact prompt rows and raw responses are retained under `/Users/sjors/tmp/slopvac-judgement-eval/wider/analysis/` during the run; the regression fixture adds the three TP quotes beside the bounded FP controls.
+
 ### v2 adjudication rerun: bounded-guidance fixes (2026-09-21)
 
 The three bounded-guidance changes were rerun through the shipped path (`load_ruleset` → `build_packs` → `render_pack` → `driver._prompt_for`) rather than a hand-written prompt. The Bedrock command was `judgement_bedrock_batch.py invoke` with `AWS_PROFILE=sjors+ig-genai-Admin`, `AWS_DEFAULT_REGION=eu-west-1`, model `global.anthropic.claude-fable-5-1`, `--max-tokens 32000`, and concurrency **8**. The corrected run completed **33 calls**: absolute assertion **18**, one-point dilution **8**, and corporate analytic filler **7**. “Before” below is the blinded adjudicator class from `v2/adjudication`; “after” is the v2 model verdict. `confirm` means the model still judged the unit in scope; `reject` means it did not; `abstain` means it withheld a verdict.
@@ -159,7 +160,6 @@ The complete per-unit before/after record is:
 | `llm:0ac253411cd6` | FP | abstain | fixed |
 
 The recall guard ships only one-point-dilution: every FP control was rejected and its TP was confirmed. Absolute-assertion is measured but not shipped because only 3/8 adjudicated TPs remained confirmed. Corporate-analytic-filler is measured but not shipped because one of two human FPs remained confirmed and the LLM controls were inconclusive. The elegant-variation and competing-actor-terms changes are **deferred** pending adjudicator consistency; no ship claim is made for them.
-
 
 ## Q02 salvage comparison
 
