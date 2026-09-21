@@ -5,6 +5,44 @@
 * **judgement:** separate noise-floor measurement from CONFIRM variance policy and retain model, failure-class, and provenance metadata.
 * **judgement:** add the Sol adjudication CLI with repeated-majority consistency reports and document the exact spine result shape and measured annotation and adjudication rates.
 
+## [2.9.0](https://github.com/srobroek/slopvac/compare/v2.8.0...v2.9.0) (2026-09-21)
+
+
+### Features
+
+* **judgement:** add repeated Sol adjudication CLI ([d3977d7](https://github.com/srobroek/slopvac/commit/d3977d7dc101da5d9cb66ac35469cf04fba53c61))
+* **judgement:** add repeated Sol adjudication CLI ([eac5974](https://github.com/srobroek/slopvac/commit/eac59749cc746e58a5e2ea545290c21bc48b5915))
+* **judgement:** add standing Sol adjudication ([efab5ee](https://github.com/srobroek/slopvac/commit/efab5ee7379dff2df954425f6ba844dca9f238ff))
+
+
+### Bug Fixes
+
+* **judgement:** satisfy typo and markdown lint ([4630b87](https://github.com/srobroek/slopvac/commit/4630b8750441832bb3b07150c1e3eaeca95da174))
+* **judgement:** sort exported symbols ([61fa100](https://github.com/srobroek/slopvac/commit/61fa100107383da6907282ee399c037d3e2e7d5b))
+* **judgement:** tolerate benign model annotations ([38ab199](https://github.com/srobroek/slopvac/commit/38ab199d91e72a3121236d91515ceca883e178c1))
+* **judgement:** tolerate model annotations ([de1d1a4](https://github.com/srobroek/slopvac/commit/de1d1a4ac2e6f104321b155e96bcf99826d21993))
+
+
+### Performance
+
+* cache judgement prepare projections ([ed6ca3f](https://github.com/srobroek/slopvac/commit/ed6ca3f151eebe8c2ea5e0524318ab014f68e926))
+* index document projection ranges ([54acfc9](https://github.com/srobroek/slopvac/commit/54acfc93375062034f2d02210be4359ca8bc7e1d))
+* **judgement:** changelog and import order for prepare caching ([c708945](https://github.com/srobroek/slopvac/commit/c7089451149e0a7b466be0b0ffe012c8ce4dc96b))
+* **judgement:** make prepare linear in document size ([ecc4e31](https://github.com/srobroek/slopvac/commit/ecc4e31fa58ed7ac64d21fedc875783e8eea0543))
+
+
+### Documentation
+
+* finish v2 judgement evaluation ([4cd6977](https://github.com/srobroek/slopvac/commit/4cd6977fb62e5acee26ee47bdbfd941d218e517b))
+* finish v2 judgement evaluation ([d4cf613](https://github.com/srobroek/slopvac/commit/d4cf61337ceff1af44ff850765bc67b99158391e))
+* fix metrics list indentation ([a3b23bc](https://github.com/srobroek/slopvac/commit/a3b23bc863dcdda69a11c5314765ea86feeae3c0))
+* **judgement:** fix prose lint wording ([eda4d25](https://github.com/srobroek/slopvac/commit/eda4d259123e75696bf7416f3516b78353254e5e))
+* record corporate analytic filler adjudication ([243bfae](https://github.com/srobroek/slopvac/commit/243bfae776e60af3d277f68c9daba43324479301))
+* record corporate analytic filler adjudication ([a3aabf3](https://github.com/srobroek/slopvac/commit/a3aabf3021ac3731bc409f11fdf1816b501254fa))
+* record human-ext arm ([117f9c9](https://github.com/srobroek/slopvac/commit/117f9c95460357bb10588fcf1693315368915a22))
+* record human-ext judgement arm ([e2a9536](https://github.com/srobroek/slopvac/commit/e2a9536a912301d952d31441c8167aaf76ceea99))
+* spell out corporate analytic filler evidence ([8f920f4](https://github.com/srobroek/slopvac/commit/8f920f497e3f4f6f87e5241b08d4e343e52da43d))
+
 ## [2.8.0](https://github.com/srobroek/slopvac/compare/v2.7.0...v2.8.0) (2026-09-20)
 
 
