@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Record the 2026-09-22 human-ext adjudication arm: 49 confirms, majority TP 38 / FP 10 / borderline 1, with per-genre false-positive incidence and whitelist assessment.
 - Tolerate benign judgement model annotation fields host-side and report annotation-stripped calls.
 
 * Clarify that judgement outcomes are reporting-only and never affect deterministic gates or counts.
