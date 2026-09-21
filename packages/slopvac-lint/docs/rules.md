@@ -2548,7 +2548,7 @@ Say it once and stop
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** document
 - **Fix.** Delete each restatement after the first unless it carries a distinct required fact or purpose.
-- **Question.** After the first statement, does the later passage add a current fact, constraint, reproduction step, decision, or time-bounded change? Flag a restatement that only recasts the same point in a fresh metaphor or primer and whose removal preserves the reader's task and current contract. Keep a second statement when its distinct purpose is required by a change note, decision, plan, specification, or historical record.
+- **Question.** Should the reviewer flag a later passage only when it recasts the same point without adding a current fact, constraint, reproduction step, decision, time-bounded change, required change-note, decision, plan, specification, or historical purpose, or a bounded, scoped recommendation or condition in the author's voice when it names a concrete action, antecedent, comparison, timing, or rationale?
 - **Source.** AI tells catalog — content-shape.md ("One-point dilution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 
 Judgement-only: detecting it requires recognising two passages as the same argument in different words. Overlaps ai-tells-structure.think-of-it-as-core, whose frames are one common vehicle for a restatement.
