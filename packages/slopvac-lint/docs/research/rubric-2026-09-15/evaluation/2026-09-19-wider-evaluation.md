@@ -1,7 +1,7 @@
 # Wider judgement evaluation record -- 2026-09-19
 
-**Bead:** `slopvac-cz0.13`  
-**Scope:** wider held-out evaluation and three-repeat noise floor  
+**Bead:** `slopvac-cz0.13`
+**Scope:** wider held-out evaluation and three-repeat noise floor
 **Record status:** complete for the measured host outcomes; blinded precision remains pending.
 
 This record preserves the provenance and denominator rules required by the evaluation-record hygiene contract. Every numeric claim names its source artefact and field below. Schema-valid abstentions remain attempted judgments. Failed rows remain in failed counts, while verdict numerators and attempted-judgement denominators use completed rows.
@@ -39,7 +39,7 @@ The top-ten per-rule table below is copied from `wider/analysis/per-rule.md`, **
 
 The human report is `wider/run/human/report.json`; the per-rule extraction is `wider/analysis/per-rule-human.md`. It covers **36 documents**, has **45 confirms**, and is **PARTIAL** overall (`per-rule-human.md`, refreshed Human per-document coverage; **29 CLEAN** and **7 PARTIAL** statuses from `run/human/report.json`, `documents[].coverage.status`). The retry completed after **144** queued IDs: **143** produced valid rows and one remained a provider JSON parse failure (`run/human/failure-disposition.json`, `disposition`, `retried`; refreshed `report.json`, `counts.failed_calls: 5`). The refreshed report has **4,433 abstentions** (`run/human/report.json`, coverage totals). Retried-call confirmations are **13 / 2,054 = 0.63%** (`run/human/report.json`, retry-marked rows and coverage totals).
 
-The following are **screening candidates**, ranked by human model CONFIRM counts. A human CONFIRM is not an adjudicated false positive: style rules legitimately fire on human prose. Adjudicated precision is the headline measure; human confirm rate is a screening signal only. The denominator remains the attempted count shown in the refreshed `wider/analysis/per-rule-human.md`.
+The following are **screening candidates**, ranked by human model CONFIRM counts. A human CONFIRM is not an adjudicated false positive: style rules can fire on human prose. Adjudicated precision is the headline measure; human confirm rate is a screening signal only. The denominator remains the attempted count shown in the refreshed `wider/analysis/per-rule-human.md`.
 
 | Rank | Rule | Model CONFIRM count | Attempted | Human confirm rate |
 |---:|---|---:|---:|---:|
@@ -54,7 +54,7 @@ The following are **screening candidates**, ranked by human model CONFIRM counts
 | 9 | `ai-tells-structure.anaphora-abuse` | 1 | 3447 | 0.03% |
 | 10 | `ai-tells-structure.false-range` | 1 | 3447 | 0.03% |
 
-The preregistered human confirm-rate criterion is a screening signal, not a precision estimate, because style rules legitimately fire on human prose. The blinded adjudication is the headline measure: report precision both as true positives divided by adjudicated confirms and as false-positive incidence divided by attempted human units. The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
+The preregistered human confirm-rate criterion screens candidate rules. It does not estimate precision. Style rules can fire on human prose. The blinded adjudication is the headline measure: report precision both as true positives divided by adjudicated confirms and as false-positive incidence divided by attempted human units. The LLM lenient-precision criterion is **PENDING / NOT MEASURABLE** because the two independent blinded label sets and third-adjudicator resolution are not complete (`wider/verdict.md`, Criterion 2).
 
 ## Precision fixes
 
@@ -159,7 +159,7 @@ The complete per-unit before/after record is:
 | `llm:090ed9d9bfad` | TP | confirm | retained |
 | `llm:0ac253411cd6` | FP | abstain | fixed |
 
-The recall guard ships only one-point-dilution: every FP control was rejected and its TP was confirmed. Absolute-assertion is measured but not shipped because only 3/8 adjudicated TPs remained confirmed. Corporate-analytic-filler is measured but not shipped because one of two human FPs remained confirmed and the LLM controls were inconclusive. The elegant-variation and competing-actor-terms changes are **deferred** pending adjudicator consistency; no ship claim is made for them.
+The recall guard ships only one-point-dilution: every FP control was rejected and its TP was confirmed. Absolute-assertion is measured but not shipped because only 3/8 adjudicated TPs remained confirmed. Corporate-analytic-filler is measured but not shipped because one of two human FPs remained confirmed and the LLM controls were inconclusive. The variation and competing-actor-terms changes are **deferred** pending adjudicator consistency; no ship claim is made for them.
 
 ### Corporate analytic filler v2 adjudication (2026-09-21; measured, not shipped)
 
@@ -167,27 +167,27 @@ The regenerated prompt used the current rule render. The first rendered question
 
 | Unit | Majority | Before | After |
 |---|---|---|---|
-| corporate-analytic-filler-proof-000–006 | FP | CONFIRM | confirm, confirm, confirm, confirm, confirm, confirm, confirm |
-| corporate-analytic-filler-proof-007–012 | FP | CONFIRM | reject, reject, confirm, reject, reject, reject |
-| corporate-analytic-filler-proof-013–018 | FP | CONFIRM | confirm, reject, reject, reject, reject, reject |
-| corporate-analytic-filler-proof-019–024 | FP | CONFIRM | confirm, reject, reject, reject, reject, reject |
-| corporate-analytic-filler-proof-025–030 | FP | CONFIRM | confirm, reject, confirm, reject, confirm, confirm |
-| corporate-analytic-filler-proof-031–036 | FP | CONFIRM | reject, reject, reject, reject, reject, reject |
-| corporate-analytic-filler-proof-037–039 | FP | CONFIRM | reject, reject, confirm |
-| corporate-analytic-filler-proof-040–045 | TP | CONFIRM | confirm, confirm, confirm, confirm, reject, reject |
-| corporate-analytic-filler-proof-046–051 | TP | CONFIRM | confirm, confirm, confirm, confirm, confirm, confirm |
-| corporate-analytic-filler-proof-052–057 | TP | CONFIRM | confirm, confirm, confirm, reject, abstain, confirm |
-| corporate-analytic-filler-proof-058–059 (human) | FP | CONFIRM | reject, reject |
+| corporate-analytic-filler-proof-000--006 | FP | CONFIRM | confirm, confirm, confirm, confirm, confirm, confirm, confirm |
+| corporate-analytic-filler-proof-007--012 | FP | CONFIRM | reject, reject, confirm, reject, reject, reject |
+| corporate-analytic-filler-proof-013--018 | FP | CONFIRM | confirm, reject, reject, reject, reject, reject |
+| corporate-analytic-filler-proof-019--024 | FP | CONFIRM | confirm, reject, reject, reject, reject, reject |
+| corporate-analytic-filler-proof-025--030 | FP | CONFIRM | confirm, reject, confirm, reject, confirm, confirm |
+| corporate-analytic-filler-proof-031--036 | FP | CONFIRM | reject, reject, reject, reject, reject, reject |
+| corporate-analytic-filler-proof-037--039 | FP | CONFIRM | reject, reject, confirm |
+| corporate-analytic-filler-proof-040--045 | TP | CONFIRM | confirm, confirm, confirm, confirm, reject, reject |
+| corporate-analytic-filler-proof-046--051 | TP | CONFIRM | confirm, confirm, confirm, confirm, confirm, confirm |
+| corporate-analytic-filler-proof-052--057 | TP | CONFIRM | confirm, confirm, confirm, reject, abstain, confirm |
+| corporate-analytic-filler-proof-058--059 (human) | FP | CONFIRM | reject, reject |
 
 The allowed second iteration used 48 calls (28 FP, 18 TP, and 2 human controls). Its tightened rendered question was: “Confirm only when the frame is removable and the whole sentence or passage contains no concrete proposition beyond a generic label of importance, complexity, concern, or tradeoff. Reject when the remainder states any specific fact, measurement, consequence, safety explanation, required constraint, bounded qualification, attribution, finite list, actionable criterion, named relationship, or domain-specific distinction; those details are analysis even when the opening frame is generic.”
 
 | Unit | Majority | Before | After |
 |---|---|---|---|
-| iteration-2-corporate-analytic-filler-fp-000–027 | FP | CONFIRM | per-unit responses recorded in the run artifact; aggregate 13 confirms, 15 rejects |
-| iteration-2-corporate-analytic-filler-tp-000–017 | TP | CONFIRM | per-unit responses recorded in the run artifact; aggregate 6 confirms, 12 rejects |
-| iteration-2-corporate-analytic-filler-human-000–001 | FP | CONFIRM | reject, reject |
+| iteration-2-corporate-analytic-filler-fp-000--027 | FP | CONFIRM | per-unit responses recorded in the run artifact; aggregate 13 confirms, 15 rejects |
+| iteration-2-corporate-analytic-filler-tp-000--017 | TP | CONFIRM | per-unit responses recorded in the run artifact; aggregate 6 confirms, 12 rejects |
+| iteration-2-corporate-analytic-filler-human-000--001 | FP | CONFIRM | reject, reject |
 
-The guard verdict was FP **16/40 → 13/28**, TP retained **13/18 → 6/18**, and human FP confirms **0/2** in the accepted adjudication accounting. Neither run satisfies the recall guard after two attempts. The rule's tell and the LLM-arm FP pattern overlap too much for a prompt-only fix; the next lever is a deterministic scope/threshold change or rule retirement, which is a user decision. The rule edit and precision fixtures were reverted. The evidence is therefore measured, not shipped.
+The guard verdict was FP **16/40 → 13/28**, TP retained **13/18 → 6/18**, and human FP confirms **0/2** in the accepted adjudication accounting. The two attempts do not satisfy the recall guard. The rule's tell and the LLM-arm FP pattern overlap too much for a prompt-only fix. The next lever is a deterministic scope or threshold change, or rule retirement, which is a user decision. The rule edit and precision fixtures were reverted. This result is measured. It is not shipped.
 
 ## Q02 salvage comparison
 
@@ -238,11 +238,23 @@ The strict noise-floor rate is **0.79%** (`v2/noise-floor/noise-floor.json`, `ov
 
 ### Adjudication
 
-The blinded adjudication contains 60 human confirms: 37 true positives, 21 false positives, and 2 borderline (`v2/adjudication/SUMMARY.md`, summary totals). Adjudicated precision is 65% of adjudicated confirms, and false-positive incidence is 0.06% of attempted human units (`v2/adjudication/summary.csv`, `v2/adjudication/SUMMARY.md`). The five FP rules are absolute assertion, corporate analytic filler, false agency, cataphoric lead-in, and false suspense. Their bounded-guidance, genre-convention, and code-or-list patterns are detailed in the per-rule adjudication files. The five clean rules are elegant variation, one-point dilution, competing actor terms, anthropomorphised justification, and bare quantifier with figure available (`v2/adjudication/*.md`).
+The blinded adjudication contains 60 human confirms: 37 true positives, 21 false positives, and 2 borderline (`v2/adjudication/SUMMARY.md`, summary totals). Adjudicated precision is 65% of adjudicated confirms, and false-positive incidence is 0.06% of attempted human units (`v2/adjudication/summary.csv`, `v2/adjudication/SUMMARY.md`). The five FP rules are absolute assertion, corporate analytic filler, false agency, cataphoric lead-in, and false suspense. Their bounded-guidance, genre-convention, and code-or-list patterns are detailed in the per-rule adjudication files. The five clean rules are varied naming, one-point dilution, competing actor terms, anthropomorphised justification, and bare quantifier with figure available (`v2/adjudication/*.md`).
+
+## 2026-09-22 human-ext arm (corpus extension)
+
+The extension evaluates twelve additional pre-2022 human documents registered after v2. It is a preregistration amendment, not a replacement for the encyclopaedic v2 arm. Instrument `72e14436…` ran from main at `243bfae776`; its spine-shape statement and one-point-dilution question differ from v2 instrument `6e84cf35`. The frozen corpus and amendment are `/Users/sjors/tmp/slopvac-judgement-eval/wider-ext/manifest.json` and `PREREG-AMENDMENT.md`; the manifest contains four plain-language guidance, four procedural how-to, and four editorial explainer documents.
+
+The final human run is `/Users/sjors/tmp/slopvac-judgement-eval/human-ext/run/report.json`: 36,896 attempted units, 49 confirms, 34,761 rejects, 1,167 abstentions, five failed calls, and minimum coverage 0.985. Adjudication used `global.openai.gpt-5.6-sol`, high reasoning, and three repeats per confirm: 147 calls, all valid JSON (`parse_error = 0`). Raw calls and generated summaries are under `/Users/sjors/tmp/slopvac-judgement-eval/human-ext/adjudication/`. A TLS-validation outage failed 923/1,436 first-pass host calls; recovery retries completed them. The first launch worktree was pruned and relaunched from scratch-main-baseline at the same main commit. The run retains 51 retried call IDs as second samples in `run/merge-log.json`; these are provenance, not extra confirms.
+
+This arm was registered after v2, an explicit preregistration deviation. Majority totals are **38 TP, 10 FP, and 1 borderline** across 49 confirms: TP share 38/49 = 77.6% (38/48 = 79.2% excluding the borderline), FP share 10/49 = 20.4%, and FP incidence 10/36,896 = 0.0271%. Repeat consistency was 4 flips/49 = 8.2% (`human-ext/adjudication/CONSISTENCY.md`).
+
+The per-rule × genre table and genre totals are recorded in `human-ext/analysis/per-rule-x-genre.md` and `human-ext/analysis/per-genre.md`; the v2 comparison is `human-ext/analysis/v2-human-vs-human-ext.md`. Genre attempted denominators are 2,088 plain-language, 11,836 procedural, and 14,112 editorial units. Genre FP incidence is 1/2,088 = 0.0479%, 8/11,836 = 0.0676%, and 1/14,112 = 0.00709%, respectively. The two proposed whitelist candidates do not both remain at zero FP: anthropomorphised justification is 5 TP/1 borderline/0 FP, while cataphoric lead-in is 6 TP/1 FP.
+
+Limitations are small four-document-per-genre cells, low per-rule n, independent-model rather than human-gold labels, and a changed instrument. Keep the judgement layer advisory and run a preregistered, instrument-matched follow-up before any whitelist gate.
 
 ### Deviations, limitations, and next steps
 
-The v1 figures are marked **instrument v1 (no criteria)**. The second-sample retry rows remain included and flagged rather than excluded (`v2/README.md`, preparation and retry notes). The external preregistration was not edited; the metric interpretation deviation is recorded here. Human confirms are a screening signal because style rules legitimately fire on human prose, not a false-positive label. Use adjudicated precision with both denominators as the headline metric, complete the per-rule adjudication intervals, and repeat the shared-population comparison after the next instrument change.
+The v1 figures are marked **instrument v1 (no criteria)**. The second-sample retry rows remain included and flagged rather than excluded (`v2/README.md`, preparation and retry notes). The external preregistration was not edited; the metric interpretation deviation is recorded here. Human confirms are a screening signal because style rules can fire on human prose, not a false-positive label. Use adjudicated precision with both denominators as the headline metric, complete the per-rule adjudication intervals, and repeat the shared-population comparison after the next instrument change.
 
 ## Limitations
 
