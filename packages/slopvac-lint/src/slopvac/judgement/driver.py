@@ -495,6 +495,9 @@ def _raw_unit_projection(
     source_projection: ProjectionMap | None = None,
 ) -> tuple[str, ProjectionMap]:
     """Return source text and a map whose coordinates match that source text."""
+    cache = getattr(document, "_judgement_projection_cache", None)
+    if cache is not None and doc_range in cache:
+        return cache[doc_range]
     full = source_projection or getattr(document, "_judgement_projection", None) or document.projection
     raw_bytes = document.raw.encode("utf-8")
     if full is None:
@@ -520,12 +523,19 @@ def _raw_unit_projection(
         Segment(index, index + 1, raw_start + offsets[index], raw_start + offsets[index + 1])
         for index in range(len(raw_text))
     )
-    return raw_text, ProjectionMap(segments, raw_bytes)
+    result = (raw_text, ProjectionMap(segments, raw_bytes))
+    if cache is not None:
+        cache[doc_range] = result
+    return result
 
 
 def _neighbor_context(document: Document, block: Any) -> str:
     """Return adjacent raw source blocks, never the entire document."""
-    index = document.blocks.index(block)
+    cache = getattr(document, "_judgement_neighbor_cache", None)
+    key = id(block)
+    if cache is not None and key in cache:
+        return cache[key]
+    index = getattr(document, "_judgement_block_indices", {}).get(key, document.blocks.index(block))
     neighbors: list[str] = []
     for candidate in document.blocks[max(0, index - 1) : index + 2]:
         if candidate is block or not candidate.text:
@@ -534,7 +544,10 @@ def _neighbor_context(document: Document, block: Any) -> str:
             continue
         text, _ = _raw_unit_projection(document, candidate.doc_range)
         neighbors.append(text)
-    return "\n\n".join(neighbors)
+    result = "\n\n".join(neighbors)
+    if cache is not None:
+        cache[key] = result
+    return result
 
 
 def _unit_from_sentence(
@@ -942,6 +955,9 @@ def prepare(
         document = parse(str(path), raw)
         judgement_text, judgement_projection = project(raw)
         document._judgement_projection = judgement_projection  # type: ignore[attr-defined]
+        document._judgement_projection_cache = {}  # type: ignore[attr-defined]
+        document._judgement_neighbor_cache = {}  # type: ignore[attr-defined]
+        document._judgement_block_indices = {id(block): index for index, block in enumerate(document.blocks)}  # type: ignore[attr-defined]
         document_ref = _safe_name(path, root)
         document_data[document_ref] = {
             "path": str(path),
