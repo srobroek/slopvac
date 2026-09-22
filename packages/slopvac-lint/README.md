@@ -84,7 +84,7 @@ The judgement layer reports model confirms and rejects rather than rewriting sou
 
 `slopvac judgement finish` uses Q02's `unique-quote` offset salvage by default; pass `--offset-salvage none` to preserve raw model offsets. The selected mode is recorded in `report.json` as `offset_salvage`.
 
-The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response.
+The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response. For an agent harness, `brief <file> --out <dir> --packs fired` writes the same artifacts plus `brief.md` and `brief.json`, and `validate --run <dir>` checks one response before it is appended. The design, the baselining, and the measured precision are in the [repository README](../../README.md#the-judgement-layer).
 
 Run the three stages in one output directory:
 
