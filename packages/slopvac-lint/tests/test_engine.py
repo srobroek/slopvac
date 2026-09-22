@@ -77,7 +77,11 @@ def _fixture_rule(
         # The specification's own worked example: "13" and "16" each count once,
         # giving 10 rather than the 11 a whitespace split reports.
         ("Do steps 13 thru 16 a minimum of three times.", 10, "numbers count as one"),
-        ("The spar box has twenty-one ribs.", 6, "a spelled compound number is one word"),
+        (
+            "The spar box has twenty-one ribs.",
+            6,
+            "a spelled compound number is one word",
+        ),
         # The + unit collapses: temperature/in/the/room/is/[10 degC] = 7 with "The".
         ("The temperature in the room is 10 degC.", 7, "number plus unit is one word"),
         ("Set the timeout to 30 s.", 5, "number plus unit, abbreviated"),
@@ -172,7 +176,9 @@ def test_clause_boundaries(text, expected, why):
 
 
 def test_code_fences_are_not_prose():
-    document = parse("t.md", "Text here.\n\n```\nrobust seamless powerful\n```\n\nMore.")
+    document = parse(
+        "t.md", "Text here.\n\n```\nrobust seamless powerful\n```\n\nMore."
+    )
     assert "robust" not in document.prose_text()
 
 
@@ -220,6 +226,42 @@ def test_lexical_rules_are_gated_on_the_sentence_classifier() -> None:
             finding.matched_text
         )
     assert by_rule == {"any-run": ["run", "Run"], "match": ["Run"]}
+
+
+def test_document_scope_lexical_rules_resolve_their_sentence_text_type() -> None:
+    """Typed document matches use sentence classification after flattening."""
+    procedural = _fixture_rule(
+        rule_id="doc-procedural",
+        scope=Scope.DOCUMENT,
+        pattern=r"\bmigration\b",
+        text_type=TextType.PROCEDURAL,
+    )
+    descriptive = _fixture_rule(
+        rule_id="doc-descriptive",
+        scope=Scope.DOCUMENT,
+        pattern=r"\bmanifest\b",
+        text_type=TextType.DESCRIPTIVE,
+    )
+    mismatched = _fixture_rule(
+        rule_id="doc-mismatch",
+        scope=Scope.DOCUMENT,
+        pattern=r"\bmanifest\b",
+        text_type=TextType.PROCEDURAL,
+    )
+    engine = Engine(
+        [procedural, descriptive, mismatched],
+        resolve_for(_config(), Path("/repo/a.md")),
+    )
+    findings = engine.run(
+        parse(
+            "a.md",
+            "The parser reads the manifest at startup.\n\nRun the migration now.\n",
+        )
+    )
+    assert [(f.rule_id.rsplit(".", 1)[-1], f.line, f.column) for f in findings] == [
+        ("doc-descriptive", 1, 22),
+        ("doc-procedural", 3, 9),
+    ]
 
 
 def test_paragraph_scope_matches_across_a_soft_break():
@@ -528,7 +570,9 @@ def test_empty_exception_list_accepts_no_reason():
 
 
 def test_unknown_rule_in_suppression_is_reported():
-    findings = _run("<!-- slopvac-allow: rule=nope.nothing reason=quotation -->\nBody.\n")
+    findings = _run(
+        "<!-- slopvac-allow: rule=nope.nothing reason=quotation -->\nBody.\n"
+    )
     assert [f for f in findings if f.rule_id == "meta.invalid-suppression"]
 
 
@@ -550,7 +594,9 @@ def test_html_input_has_words_and_line_numbers():
     assert document.words >= 7
     ruleset = load_ruleset()
     engine = Engine(ruleset.rules, resolve_for(_config(), Path("/repo/t.html")))
-    hits = [f for f in engine.run(document) if f.rule_id == "prose-inflation.intensifier"]
+    hits = [
+        f for f in engine.run(document) if f.rule_id == "prose-inflation.intensifier"
+    ]
     assert [f.line for f in hits] == [3]
 
 
@@ -712,7 +758,9 @@ def test_failure_reasons_are_named():
 
 def test_min_score_gate():
     findings = _run("It is the tip of the iceberg.")
-    result = _score(findings, 100, thresholds=Thresholds(max_errors=None, min_score=99.9))
+    result = _score(
+        findings, 100, thresholds=Thresholds(max_errors=None, min_score=99.9)
+    )
     assert not result.passed
     assert any("score" in reason for reason in result.failure_reasons)
 
@@ -778,7 +826,9 @@ def test_zero_weight_category_leaves_the_category_average_alone():
     it contributes to neither side of the document score or density gates.
     """
     findings = _run("It is the tip of the iceberg.")
-    unweighted = _score(findings, 200, categories={"orwell": CategorySettings(weight=0)})
+    unweighted = _score(
+        findings, 200, categories={"orwell": CategorySettings(weight=0)}
+    )
     assert unweighted.score == 100.0
 
     # The category itself is still reported, so a reader sees what was excluded.
@@ -1016,7 +1066,6 @@ def test_case_sensitive_prose_rules_can_report_all_caps_matches():
         ("prose-craft.acronym-periods", "A.P.I."),
         ("prose-craft.articles", "a HTML"),
     } <= hits
-
 
 
 def test_todo_status_language_has_exclusive_owner():
@@ -1287,7 +1336,8 @@ def test_no_metric_rule_is_left_unimplemented():
 def test_a_noun_stack_over_three_words_is_reported():
     engine = _engine(profile=Profile.STRICT)
     document = parse(
-        "a.md", "The container orchestration platform migration strategy needs review.\n"
+        "a.md",
+        "The container orchestration platform migration strategy needs review.\n",
     )
     ids = [f.rule_id for f in engine.run(document)]
     assert "ste-nouns.multiword-noun-too-long" in ids
@@ -1476,7 +1526,9 @@ def test_bold_spray_and_dash_density_report_their_measurement():
         "ai-tells-formatting.em-dash-density",
     }
     for rule_id, message in messages.items():
-        assert re.search(r"\d+\.\d\d", message), f"{rule_id} states no figure: {message}"
+        assert re.search(r"\d+\.\d\d", message), (
+            f"{rule_id} states no figure: {message}"
+        )
 
 
 def test_a_density_metric_is_not_compiled_to_vale_as_well():
@@ -1507,7 +1559,9 @@ def test_every_shipped_metric_is_measurable():
 def test_a_clause_boundary_ends_a_noun_stack():
     """`because` was missing from STACK_BREAKER and produced a 4-word stack on this
     project's own README. A subordinator is exactly where a noun phrase ends."""
-    assert longest_noun_stack("Specificity ranking loses because no ordering exists") <= 3
+    assert (
+        longest_noun_stack("Specificity ranking loses because no ordering exists") <= 3
+    )
     assert longest_noun_stack("The gate reports although the score passes") <= 3
 
 
@@ -1521,7 +1575,9 @@ def test_a_verb_ending_in_s_does_not_extend_a_noun_stack():
 def test_the_stack_rule_still_reports_a_real_stack():
     """The companion to every false-positive fix above. Each round widened
     STACK_BREAKER, and a list wide enough to silence everything silences this too."""
-    assert longest_noun_stack("container orchestration platform migration strategy") == 5
+    assert (
+        longest_noun_stack("container orchestration platform migration strategy") == 5
+    )
 
 
 def test_html_div_prose_is_linted_at_its_source_line():
