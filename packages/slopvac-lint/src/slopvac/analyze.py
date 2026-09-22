@@ -65,19 +65,21 @@ HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 # CommonMark closes a code span with a backtick run exactly as long as its
 # opener. Equal-length runs may contain shorter runs, so a single-backtick
 # expression leaks valid ``code ` — here`` spans into markup metrics.
-INLINE_CODE = re.compile(
-    r"(?<!`)(?P<ticks>`+)(?P<body>.*?)(?<!`)(?P=ticks)(?!`)", re.S
-)
+INLINE_CODE = re.compile(r"(?<!`)(?P<ticks>`+)(?P<body>.*?)(?<!`)(?P=ticks)(?!`)", re.S)
 
 
 # Not prose: machinery, and code, which the markdown side already leaves alone as
 # fences. The block is recorded as CODE so its lines count as code, not text.
-_SKIP_HTML_TAGS = frozenset({"script", "style", "noscript", "head", "template", "pre", "code", "kbd", "samp"})
+_SKIP_HTML_TAGS = frozenset(
+    {"script", "style", "noscript", "head", "template", "pre", "code", "kbd", "samp"}
+)
 
 # `**x**` and `__x__`, non-greedy and single-line. A bold span does not straddle a
 # blank line, and the greedy form fused every span on a line into one match, which
 # undercounted exactly the documents the density rule is aimed at.
-BOLD_SPAN = re.compile(r"(?<!\*)\*\*(?!\s)[^*\n]+?(?<!\s)\*\*(?!\*)|__(?!\s)[^_\n]+?(?<!\s)__")
+BOLD_SPAN = re.compile(
+    r"(?<!\*)\*\*(?!\s)[^*\n]+?(?<!\s)\*\*(?!\*)|__(?!\s)[^_\n]+?(?<!\s)__"
+)
 
 # The em dash and the double hyphen that stands in for it. The en dash is excluded:
 # in a numeric range it is correct typography, and the rule is about the aside.
@@ -149,19 +151,86 @@ STEP_NUMBER = re.compile(
 # --- Sentence segmentation ---------------------------------------------------
 
 NON_TERMINAL = {
-    "e.g", "i.e", "etc", "vs", "cf", "al", "approx", "no", "fig", "eq", "ref",
-    "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "inc", "ltd", "co",
-    "vol", "ch", "sec", "min", "max", "avg", "std", "resp",
+    "e.g",
+    "i.e",
+    "etc",
+    "vs",
+    "cf",
+    "al",
+    "approx",
+    "no",
+    "fig",
+    "eq",
+    "ref",
+    "mr",
+    "mrs",
+    "ms",
+    "dr",
+    "prof",
+    "sr",
+    "jr",
+    "st",
+    "inc",
+    "ltd",
+    "co",
+    "vol",
+    "ch",
+    "sec",
+    "min",
+    "max",
+    "avg",
+    "std",
+    "resp",
 }
 
 # A dotted initialism splits before a closed-class opener; a proper-noun
 # continuation stays joined (the accepted error class).
-INITIALISM_SENTENCE_OPENERS = tuple(sorted({
-    "After", "Also", "And", "An", "At", "Before", "But", "By", "For", "From",
-    "He", "However", "I", "If", "In", "Its", "It", "Next", "Now", "On", "Once",
-    "Our", "She", "So", "That", "The", "Their", "These", "They", "This", "Those",
-    "Then", "To", "Unless", "We", "When", "While", "With", "You", "Your",
-}))
+INITIALISM_SENTENCE_OPENERS = tuple(
+    sorted(
+        {
+            "After",
+            "Also",
+            "And",
+            "An",
+            "At",
+            "Before",
+            "But",
+            "By",
+            "For",
+            "From",
+            "He",
+            "However",
+            "I",
+            "If",
+            "In",
+            "Its",
+            "It",
+            "Next",
+            "Now",
+            "On",
+            "Once",
+            "Our",
+            "She",
+            "So",
+            "That",
+            "The",
+            "Their",
+            "These",
+            "They",
+            "This",
+            "Those",
+            "Then",
+            "To",
+            "Unless",
+            "We",
+            "When",
+            "While",
+            "With",
+            "You",
+            "Your",
+        }
+    )
+)
 
 IMPERATIVE_VERBS = frozenset(
     "add apply attach backup build call check choose clear clone close confirm "
@@ -172,54 +241,64 @@ IMPERATIVE_VERBS = frozenset(
     "promote pull push put read record release reload remove rename replace report "
     "reset restart retry revoke roll run save select send set show skip split start "
     "stop store tag take test type unmount update upgrade use verify wait write "
-    "rotate schedule stage downgrade execute inspect hold leave remember consider"
-    .split()
+    "rotate schedule stage downgrade execute inspect hold leave remember consider".split()
 )
 # Finite forms are deliberately lexical: this classifier has no parser or POS tagger.
 # The closed stem set keeps plural nouns such as ``scripts`` out of the verb test.
-FINITE_VERB_STEMS = frozenset(
-    "add are be fail have is live run take exist was were".split()
-) | IMPERATIVE_VERBS
-FINITE_VERB_FORMS = frozenset("is are was were has have live lives fail fails run runs take takes exist exists".split())
+FINITE_VERB_STEMS = (
+    frozenset("add are be fail have is live run take exist was were".split())
+    | IMPERATIVE_VERBS
+)
+FINITE_VERB_FORMS = frozenset(
+    "is are was were has have live lives fail fails run runs take takes exist exists".split()
+)
 _NON_NOUN_SECOND_TOKENS = frozenset(
     "a an the this that these those it its they them we you he she i me my our your "
     "in on at by for from to with of as into onto over under through before after "
     "and or but nor so yet very quite often always never more most less all any "
-    "each every either neither some no several many few one two three first second"
-    .split()
+    "each every either neither some no several many few one two three first second".split()
 )
+_IMPERATIVE_VERB_ALTERNATION = "|".join(
+    sorted(IMPERATIVE_VERBS, key=lambda verb: (-len(verb), verb))
+)
+# Keep classifier boundaries explicit: ``regex``'s ``\b`` is Unicode-aware by
+# default, but spelling the word class makes that contract independent of
+# engine flags and locale settings.
+_UNICODE_WORD_END = r"(?![\p{L}\p{Nd}_])"
+
 IMPERATIVE_MARKERS = re.compile(
-    rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
+    rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
     re.I,
 )
 PHRASAL_IMPERATIVE = re.compile(
     rf"^(?:please\s+)?(?:"
-    rf"(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\s+"
+    rf"(?:{_IMPERATIVE_VERB_ALTERNATION})\s+"
     r"(?:up|down|off|on|out|in|over|back|away)|"
     r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
     r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
-    r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))\b",
+    r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))"
+    rf"{_UNICODE_WORD_END}",
     re.I,
 )
 NEGATIVE_IMPERATIVE = re.compile(
-    r"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+\b",
+    rf"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+{_UNICODE_WORD_END}",
     re.I,
 )
 TO_VERB = re.compile(
-    rf"^to\s+(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
+    rf"^to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
     re.I,
 )
 REMEMBER_TO = re.compile(
-    rf"^(?:remember|make\s+sure)\s+to\s+(?:{'|'.join(sorted(IMPERATIVE_VERBS, key=len, reverse=True))})\b",
+    rf"^(?:remember|make\s+sure)\s+to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
     re.I,
 )
 SAFETY_MARKER = re.compile(
-    r"^\s*(?:>\s*)?(?:\*{0,2})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT)\b"
+    rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT){_UNICODE_WORD_END}"
     r"(?:\*{0,2})?\s*[:.!]?",
     re.I,
 )
 NOTE_MARKER = re.compile(
-    r"^\s*(?:>\s*)?(?:\*{0,2})?(?:NOTE(?:\*{0,2})?\s*:\s*|(?:TIP|HINT|INFO)\b"
+    rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?:NOTE(?:\*{{0,2}})?\s*:\s*|(?:TIP|HINT|INFO){_UNICODE_WORD_END}"
     r"(?:\*{0,2})?\s*[:.!]?)",
     re.I,
 )
@@ -282,6 +361,7 @@ class Sentence:
     @property
     def span_id(self) -> str:
         return self.id
+
 
 @dataclass
 class Unit:
@@ -425,7 +505,11 @@ class Document:
         for block in self.blocks:
             if block.kind in {BlockKind.CODE, BlockKind.FRONT_MATTER}:
                 skip.update(range(block.lines[0], block.lines[1] + 1))
-        kept = [line for number, line in enumerate(self.raw_lines, start=1) if number not in skip]
+        kept = [
+            line
+            for number, line in enumerate(self.raw_lines, start=1)
+            if number not in skip
+        ]
         return INLINE_CODE.sub(" ", "\n".join(kept))
 
 
@@ -453,7 +537,6 @@ def _unit_for_block(
 
 
 unit_from_block = _unit_for_block
-
 
 
 _ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]+);?")
@@ -494,7 +577,9 @@ def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionM
             while cursor < end_cp and raw[cursor] in "\r\n":
                 cursor += 1
             segments.append(
-                Segment(position, position + 1, offsets[raw_start_cp], offsets[raw_start_cp])
+                Segment(
+                    position, position + 1, offsets[raw_start_cp], offsets[raw_start_cp]
+                )
             )
             continue
         found = raw.find(char, cursor, end_cp)
@@ -516,7 +601,10 @@ def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionM
         )
     return ProjectionMap(tuple(segments), raw.encode("utf-8"))
 
-def _block_projected_base(document_projection: ProjectionMap, block_projection: ProjectionMap) -> int:
+
+def _block_projected_base(
+    document_projection: ProjectionMap, block_projection: ProjectionMap
+) -> int:
     """Return the block start in the document-wide projected coordinate space."""
     if not block_projection.segments:
         return 0
@@ -537,8 +625,9 @@ def _block_projected_base(document_projection: ProjectionMap, block_projection: 
     return document_projection.projected_length
 
 
-
-def _block_projected_base(document_projection: ProjectionMap, block_projection: ProjectionMap) -> int:
+def _block_projected_base(
+    document_projection: ProjectionMap, block_projection: ProjectionMap
+) -> int:
     """Return the block start in the document-wide projected coordinate space."""
     if not block_projection.segments:
         return 0
@@ -590,7 +679,9 @@ def _finalize_document(document: Document) -> Document:
         }
         last = block.lines[1]
         if block.kind is BlockKind.TABLE:
-            while last < len(document.raw_lines) and _is_table_row(document.raw_lines[last]):
+            while last < len(document.raw_lines) and _is_table_row(
+                document.raw_lines[last]
+            ):
                 last += 1
             last = max(block.lines[0], last)
         if block.projection is None:
@@ -741,7 +832,9 @@ def _ste_tokens(text: str) -> tuple[str, ...]:
             flush()
             tokens.append(SENTINEL)
             continue
-        if is_word(char) and (not unicodedata.category(char).startswith("M") or current):
+        if is_word(char) and (
+            not unicodedata.category(char).startswith("M") or current
+        ):
             current.append(char)
             continue
         if char in TOKEN_JOINER:
@@ -799,7 +892,11 @@ def classify_text_type(text: str) -> TextType:
     # Imperative-list verbs can be noun/verb homographs. A finite verb after
     # the opener exposes a descriptive subject clause (``Deploy scripts live``).
     # This is intentionally lexical rather than a POS parse.
-    if len(tokens) >= 2 and tokens[0].casefold() in IMPERATIVE_VERBS and _is_finite_verb(tokens[1]):
+    if (
+        len(tokens) >= 2
+        and tokens[0].casefold() in IMPERATIVE_VERBS
+        and _is_finite_verb(tokens[1])
+    ):
         return TextType.DESCRIPTIVE
     if (
         len(tokens) >= 3
@@ -809,7 +906,13 @@ def classify_text_type(text: str) -> TextType:
         and _is_finite_verb(tokens[2])
     ):
         return TextType.DESCRIPTIVE
-    if IMPERATIVE_MARKERS.match(body) or NEGATIVE_IMPERATIVE.match(body) or TO_VERB.match(body) or REMEMBER_TO.match(body) or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I):
+    if (
+        IMPERATIVE_MARKERS.match(body)
+        or NEGATIVE_IMPERATIVE.match(body)
+        or TO_VERB.match(body)
+        or REMEMBER_TO.match(body)
+        or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I)
+    ):
         return TextType.PROCEDURAL
     return TextType.DESCRIPTIVE
 
@@ -827,7 +930,12 @@ def _inside(index: int, ranges: list[tuple[int, int]]) -> bool:
 
 def _is_non_terminal_period(text: str, index: int) -> bool:
     """Return whether a period is lexical punctuation, not a sentence end."""
-    if index > 0 and index + 1 < len(text) and text[index - 1].isdigit() and text[index + 1].isdigit():
+    if (
+        index > 0
+        and index + 1 < len(text)
+        and text[index - 1].isdigit()
+        and text[index + 1].isdigit()
+    ):
         return True
     prefix = text[: index + 1]
     for abbreviation in NON_TERMINAL:
@@ -836,9 +944,12 @@ def _is_non_terminal_period(text: str, index: int) -> bool:
     if index + 1 < len(text) and text[index + 1].isalpha():
         return True
     line_prefix = prefix.rsplit("\n", 1)[-1].strip()
-    if re.fullmatch(r"(?:\(?[A-Za-z0-9ivxIVX]+\)?|Step\s+\d+(?:\.\d+)*)\.", line_prefix, re.I):
+    if re.fullmatch(
+        r"(?:\(?[A-Za-z0-9ivxIVX]+\)?|Step\s+\d+(?:\.\d+)*)\.", line_prefix, re.I
+    ):
         return True
     return False
+
 
 def _dotted_initialism_at(text: str, index: int) -> bool:
     """Recognize the final period in a dotted initialism such as ``U.S.``."""
@@ -851,7 +962,9 @@ def _is_initialism_sentence_opener(text: str) -> bool:
     return bool(match and match.group(1) in INITIALISM_SENTENCE_OPENERS)
 
 
-def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> int | None:
+def _terminal_cut(
+    text: str, index: int, protected: list[tuple[int, int]]
+) -> int | None:
     """Return the end offset for a valid terminal mark, or ``None``.
 
     A dotted initialism is kept with a following continuation word. Its period
@@ -872,7 +985,11 @@ def _terminal_cut(text: str, index: int, protected: list[tuple[int, int]]) -> in
     if text[index] == "." and _dotted_initialism_at(text, index):
         gap = re.match(r"\s*", text[index + 1 :]).group(0)
         remainder = text[index + 1 + len(gap) :]
-        if remainder and len(gap) < 2 and (gap != " " or not _is_initialism_sentence_opener(remainder)):
+        if (
+            remainder
+            and len(gap) < 2
+            and (gap != " " or not _is_initialism_sentence_opener(remainder))
+        ):
             return None
     end = protected_end or index + 1
     while end < len(text) and text[end] in "\"'”’)]":
@@ -1023,7 +1140,12 @@ class _HtmlTextExtractor(HTMLParser):
     def _callback_position(self) -> tuple[int, int]:
         line, column = self.getpos()
         line_index = line - 1
-        local_start = self._content_line_starts[min(line_index, len(self._content_line_starts) - 1)] + column
+        local_start = (
+            self._content_line_starts[
+                min(line_index, len(self._content_line_starts) - 1)
+            ]
+            + column
+        )
         return line_index, self._raw_offset_cp + local_start
 
     def _append(self, line_index: int, char: str, raw_start: int, raw_end: int) -> None:
@@ -1103,7 +1225,9 @@ def _html_line_projection(
             offsets[raw_start],
             offsets[raw_end],
         )
-        for index, (raw_start, raw_end) in enumerate(extractor.text_spans[line_index][start:end])
+        for index, (raw_start, raw_end) in enumerate(
+            extractor.text_spans[line_index][start:end]
+        )
     )
     return clean, ProjectionMap(segments, raw.encode("utf-8"))
 
@@ -1188,10 +1312,10 @@ def _project_html_block(
         )
         text_offset += len(clean)
 
-    text = "".join(piece if index == 0 else " " + piece for index, piece in enumerate(pieces))
-    paragraph_lines = (
-        (visible_lines[0], visible_lines[-1]) if visible_lines else None
+    text = "".join(
+        piece if index == 0 else " " + piece for index, piece in enumerate(pieces)
     )
+    paragraph_lines = (visible_lines[0], visible_lines[-1]) if visible_lines else None
     code_blocks: list[tuple[int, int]] = []
     if fence_lines:
         start = previous = min(fence_lines)
@@ -1208,6 +1332,8 @@ def _project_html_block(
         code_blocks,
         ProjectionMap(tuple(projection_segments), raw.encode("utf-8")),
     )
+
+
 def _parse_html(path: str, raw: str) -> Document:
     """Project an HTML file onto line-aligned prose so native rules can run.
 
@@ -1246,13 +1372,15 @@ def _parse_html(path: str, raw: str) -> Document:
         block.sentences = split_sentences(text, number)
         blocks.append(block)
 
-    return _finalize_document(Document(
-        path=path,
-        raw=raw,
-        raw_lines=raw_lines,
-        prose_lines=prose_lines,
-        blocks=blocks,
-    ))
+    return _finalize_document(
+        Document(
+            path=path,
+            raw=raw,
+            raw_lines=raw_lines,
+            prose_lines=prose_lines,
+            blocks=blocks,
+        )
+    )
 
 
 def parse(path: str, raw: str) -> Document:
@@ -1302,6 +1430,7 @@ def parse(path: str, raw: str) -> Document:
     table_cells: list[str] | None = None
     table_start = 0
     kind_stack: list[BlockKind] = []
+
     def record(
         kind: BlockKind,
         first: int,
@@ -1329,8 +1458,8 @@ def parse(path: str, raw: str) -> Document:
         if token.type == "html_block" and token.map is not None:
             first = token.map[0] + 1 + offset
             last = token.map[1] + offset
-            text, line_starts, paragraph_lines, code_blocks, html_projection = _project_html_block(
-                token.content, first, last, prose_lines, raw
+            text, line_starts, paragraph_lines, code_blocks, html_projection = (
+                _project_html_block(token.content, first, last, prose_lines, raw)
             )
             if paragraph_lines is not None:
                 record(
@@ -1342,7 +1471,9 @@ def parse(path: str, raw: str) -> Document:
                     projection=html_projection,
                 )
             for code_first, code_last in code_blocks:
-                blocks.append(Block(kind=BlockKind.CODE, lines=(code_first, code_last), text=""))
+                blocks.append(
+                    Block(kind=BlockKind.CODE, lines=(code_first, code_last), text="")
+                )
             continue
 
         if token.type == "table_open" and token.map is not None:
@@ -1373,7 +1504,9 @@ def parse(path: str, raw: str) -> Document:
             kind_stack.pop()
             continue
 
-        if (token.type == "fence" or token.type == "code_block") and token.map is not None:
+        if (
+            token.type == "fence" or token.type == "code_block"
+        ) and token.map is not None:
             first = token.map[0] + 1 + offset
             last = token.map[1] + offset
             blocks.append(Block(kind=BlockKind.CODE, lines=(first, last), text=""))
@@ -1429,7 +1562,9 @@ def parse(path: str, raw: str) -> Document:
             if clean:
                 if normalized:
                     normalized.append(" ")
-                line_starts.append((sum(len(part) for part in normalized), first + index))
+                line_starts.append(
+                    (sum(len(part) for part in normalized), first + index)
+                )
                 normalized.append(clean)
             if 0 < first + index <= len(prose_lines):
                 prose_lines[first + index - 1] = clean
@@ -1460,15 +1595,16 @@ def parse(path: str, raw: str) -> Document:
     )
     prose_lines = joined.split("\n")
 
-    return _finalize_document(Document(
-        path=path,
-        raw=raw,
-        raw_lines=raw_lines,
-        prose_lines=prose_lines,
-        blocks=blocks,
-        front_matter=front_matter,
-    ))
-
+    return _finalize_document(
+        Document(
+            path=path,
+            raw=raw,
+            raw_lines=raw_lines,
+            prose_lines=prose_lines,
+            blocks=blocks,
+            front_matter=front_matter,
+        )
+    )
 
 
 # --- Document-level metrics --------------------------------------------------
@@ -1532,48 +1668,231 @@ COORDINATING_CONJUNCTION = re.compile(r",?\s+\b(?:and|or)\b\s+", re.I)
 # is not a five-word stack, it is two short ones.
 STACK_BREAKER = frozenset(
     {
-        "a", "an", "the", "of", "in", "on", "at", "to", "for", "from", "by",
-        "with", "without", "into", "onto", "over", "under", "between", "through",
-        "including", "and", "or", "but", "nor", "as", "than", "that", "which", "who", "whom",
-        "is", "are", "was", "were", "be", "been", "being", "has", "have", "had",
-        "not", "no", "if", "when", "while", "after", "before", "during",
+        "a",
+        "an",
+        "the",
+        "of",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "from",
+        "by",
+        "with",
+        "without",
+        "into",
+        "onto",
+        "over",
+        "under",
+        "between",
+        "through",
+        "including",
+        "and",
+        "or",
+        "but",
+        "nor",
+        "as",
+        "than",
+        "that",
+        "which",
+        "who",
+        "whom",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "has",
+        "have",
+        "had",
+        "not",
+        "no",
+        "if",
+        "when",
+        "while",
+        "after",
+        "before",
+        "during",
         # Subordinators. A clause boundary is exactly where a noun stack ends.
         # `because` was missing and produced `Specificity ranking loses because`
         # as a 4-word stack on this project's own README.
-        "because", "since", "although", "though", "unless", "until", "whether",
-        "whereas", "once", "where", "why", "how",
+        "because",
+        "since",
+        "although",
+        "though",
+        "unless",
+        "until",
+        "whether",
+        "whereas",
+        "once",
+        "where",
+        "why",
+        "how",
         # Determiners and pronouns. A possessive opens a noun phrase rather than
         # continuing a stack, so `keeps its shipped severity` is not a 4-word stack.
-        "its", "their", "his", "her", "our", "your", "my", "this", "these", "those", "it", "they", "them", "we", "us", "you", "he", "she",
-        "each", "every", "any", "some", "all", "both", "either", "neither",
-        "what", "whose", "there", "here", "then", "so", "such", "same", "other",
-        "one", "two", "three", "four", "five",
+        "its",
+        "their",
+        "his",
+        "her",
+        "our",
+        "your",
+        "my",
+        "this",
+        "these",
+        "those",
+        "it",
+        "they",
+        "them",
+        "we",
+        "us",
+        "you",
+        "he",
+        "she",
+        "each",
+        "every",
+        "any",
+        "some",
+        "all",
+        "both",
+        "either",
+        "neither",
+        "what",
+        "whose",
+        "there",
+        "here",
+        "then",
+        "so",
+        "such",
+        "same",
+        "other",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
         # Common verbs a suffix test cannot separate from nouns. `-er` and `-ing`
         # are in NOUN_SUFFIX, so without these `keeps ... reach` style runs counted.
-        "keeps", "keep", "sets", "set", "gets", "get", "makes", "make", "does",
-        "do", "reads", "read", "reach", "reaches", "gives", "give", "takes",
-        "take", "uses", "use", "runs", "run", "names", "name", "says", "say",
-        "counts", "count", "holds", "hold", "needs", "need", "puts", "put",
-        "means", "mean", "resolve", "resolves", "clear", "clears", "switches",
-        "switch", "subtracts", "subtract", "tracks", "track", "carry", "carries",
-        "report", "reports", "lint", "linting", "asked", "ask", "folding",
+        "keeps",
+        "keep",
+        "sets",
+        "set",
+        "gets",
+        "get",
+        "makes",
+        "make",
+        "does",
+        "do",
+        "reads",
+        "read",
+        "reach",
+        "reaches",
+        "gives",
+        "give",
+        "takes",
+        "take",
+        "uses",
+        "use",
+        "runs",
+        "run",
+        "names",
+        "name",
+        "says",
+        "say",
+        "counts",
+        "count",
+        "holds",
+        "hold",
+        "needs",
+        "need",
+        "puts",
+        "put",
+        "means",
+        "mean",
+        "resolve",
+        "resolves",
+        "clear",
+        "clears",
+        "switches",
+        "switch",
+        "subtracts",
+        "subtract",
+        "tracks",
+        "track",
+        "carry",
+        "carries",
+        "report",
+        "reports",
+        "lint",
+        "linting",
+        "asked",
+        "ask",
+        "folding",
         "overlapping",
         # `shows` and `loses` end in `-s` like a plural noun and carry no noun
         # suffix, so nothing else separates them: `blanket suppression shows up`
         # counted 4 and `Specificity ranking loses` counted 3.
-        "shows", "show", "loses", "lose", "adds", "add", "drops", "drop",
-        "applies", "apply", "wins", "win", "owns", "own", "picks", "pick",
-        "stays", "stay", "sits", "sit",
+        "shows",
+        "show",
+        "loses",
+        "lose",
+        "adds",
+        "add",
+        "drops",
+        "drop",
+        "applies",
+        "apply",
+        "wins",
+        "win",
+        "owns",
+        "own",
+        "picks",
+        "pick",
+        "stays",
+        "stay",
+        "sits",
+        "sit",
         # Found while fixing the participle-head false positive: each of these ends
         # a clause the same way, carries no noun suffix, and nothing else separated
         # it. `A failing document opens expanded` counted 4.
-        "opens", "open", "starts", "start", "appears", "appear", "exits", "exit",
-        "fires", "fire", "loads", "load", "lands", "land", "passes", "pass",
-        "fails", "fail", "ends", "end", "begins", "begin", "returns", "return",
+        "opens",
+        "open",
+        "starts",
+        "start",
+        "appears",
+        "appear",
+        "exits",
+        "exit",
+        "fires",
+        "fire",
+        "loads",
+        "load",
+        "lands",
+        "land",
+        "passes",
+        "pass",
+        "fails",
+        "fail",
+        "ends",
+        "end",
+        "begins",
+        "begin",
+        "returns",
+        "return",
         # Modals. A modal always introduces a verb, so it cannot sit inside a noun
         # stack: `the gates the whole document must clear` is not a 4-word stack.
-        "must", "can", "will", "would", "should", "shall", "may", "might",
-        "could", "cannot",
+        "must",
+        "can",
+        "will",
+        "would",
+        "should",
+        "shall",
+        "may",
+        "might",
+        "could",
+        "cannot",
     }
 )
 
@@ -1609,8 +1928,21 @@ PARTICIPLE = re.compile(r"^[A-Za-z]{5,}ed$")
 # out of a real stack. Kept short on purpose: the pattern needs five letters, so
 # `bed`, `red`, and `led` never reach it.
 PARTICIPLE_NOUNS = frozenset(
-    {"speed", "breed", "creed", "steed", "tweed", "thread", "spread", "bread",
-     "ahead", "embed", "shred", "sacred", "hundred"}
+    {
+        "speed",
+        "breed",
+        "creed",
+        "steed",
+        "tweed",
+        "thread",
+        "spread",
+        "bread",
+        "ahead",
+        "embed",
+        "shred",
+        "sacred",
+        "hundred",
+    }
 )
 
 
@@ -1684,9 +2016,14 @@ def longest_noun_stack(text: str) -> int:
         ):
             longest = close(longest)
             run = []
-            if broken and token and STACK_WORD.match(token) and (
-                token.lower() not in STACK_BREAKER
-                and not token.lower().endswith("ly")
+            if (
+                broken
+                and token
+                and STACK_WORD.match(token)
+                and (
+                    token.lower() not in STACK_BREAKER
+                    and not token.lower().endswith("ly")
+                )
             ):
                 # The separator ended the previous run, but this token still opens
                 # the next one. Dropping it here lost the first word of every stack
