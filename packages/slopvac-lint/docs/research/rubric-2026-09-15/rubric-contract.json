@@ -89,7 +89,7 @@
     {
       "id": "ai-tells-register",
       "judgement_ceiling": "suggestion",
-      "local_rules": 9,
+      "local_rules": 8,
       "probe_rules": 1,
       "protects": [
         "controlled_language_clarity",
@@ -452,9 +452,9 @@
         ],
         "rules": [
           "ai-tells-register.anthropomorphised-justification-remainder",
-          "ai-tells-register.corporate-analytic-filler-remainder",
           "ai-tells-register.false-agency-remainder",
-          "ai-tells-register.faux-candor-remainder"
+          "ai-tells-register.faux-candor-remainder",
+          "ai-tells-register.figurative-verb-verdict-remainder"
         ],
         "scope_class": "local",
         "units_max": 5
@@ -471,26 +471,9 @@
           "source_locked_legal_text"
         ],
         "rules": [
-          "ai-tells-register.figurative-verb-verdict-remainder",
           "ai-tells-register.hedged-symmetry",
           "ai-tells-register.intensifier-tics-remainder",
-          "ai-tells-register.organic-consequence-remainder"
-        ],
-        "scope_class": "local",
-        "units_max": 5
-      },
-      {
-        "categories": [
-          "ai-tells-register"
-        ],
-        "chunk": 3,
-        "id": "SPAN-ai-tells-register-3",
-        "protects": [
-          "controlled_language_clarity",
-          "normative_obligation",
-          "source_locked_legal_text"
-        ],
-        "rules": [
+          "ai-tells-register.organic-consequence-remainder",
           "ai-tells-register.urgency-inflation-remainder"
         ],
         "scope_class": "local",
@@ -1914,45 +1897,6 @@
       "id": "ai-tells-register.anthropomorphised-justification-remainder",
       "judgement_ceiling": "suggestion",
       "judgement_question": "Does this sentence assert a component's value by granting it merit rather than by naming a property a reader could check?",
-      "protects": [
-        "controlled_language_clarity",
-        "normative_obligation",
-        "source_locked_legal_text"
-      ],
-      "scope_class": "local",
-      "warrant_min": 2
-    },
-    {
-      "category": "ai-tells-register",
-      "dims": {
-        "fit": "ask",
-        "harm": "ask",
-        "repair": "ask",
-        "warrant": "ask"
-      },
-      "evidence": {
-        "min_arity": 1,
-        "roles": [
-          "defect"
-        ]
-      },
-      "examples": [
-        {
-          "bad": "The nuance here is that caching is a tradeoff worth understanding.",
-          "good": "The cache serves a stale entry for up to 60 s after an upstream change."
-        },
-        {
-          "bad": "At a high level, this is an important architectural consideration.",
-          "good": "The resolver reads the lockfile before it contacts the registry."
-        },
-        {
-          "bad": "The key insight is that this topic matters.",
-          "good": "The safety analysis requires a second approval before deployment."
-        }
-      ],
-      "id": "ai-tells-register.corporate-analytic-filler-remainder",
-      "judgement_ceiling": "suggestion",
-      "judgement_question": "If the analysis frame were removed, would the reader lose a fact, measurement, consequence, safety explanation, or required constraint? Flag it when the frame only declares importance, nuance, or a tradeoff and the surrounding prose carries no analysis the reader can use.",
       "protects": [
         "controlled_language_clarity",
         "normative_obligation",

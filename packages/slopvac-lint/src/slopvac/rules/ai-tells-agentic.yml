@@ -1456,44 +1456,9 @@ rules:
         https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
         records that upstream ai-tells.OverusedVocabulary was disabled partly for
         flagging `granular`, which has an ordinary technical use.
-        Judgement remainder in
-        ai-tells-register.corporate-analytic-filler-remainder. Overlaps upstream
-        ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked, ai-tells.FillerPhrases,
-        and ai-tells.LabelAndExplain, all of which stay enabled.
-
-  - id: corporate-analytic-filler-remainder
-    name: Judge whether an analysis frame contains analysis
-    kind: judgement
-    severity: suggestion
-    message: 'analytic filler: analysis-flavored packaging around no analysis'
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      If the analysis frame were removed, would the reader lose a fact, measurement,
-      consequence, safety explanation, or required constraint? Flag it when the
-      frame only declares importance, nuance, or a tradeoff and the surrounding
-      prose carries no analysis the reader can use.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [controlled_language_clarity, normative_obligation, source_locked_legal_text]
-      judgement_ceiling: suggestion
-    fix: Delete the frame, or replace it with the fact, consequence, or constraint it was framing.
-    examples:
-      - bad: The nuance here is that caching is a tradeoff worth understanding.
-        good: The cache serves a stale entry for up to 60 s after an upstream change.
-      - bad: At a high level, this is an important architectural consideration.
-        good: The resolver reads the lockfile before it contacts the registry.
-      - good: The safety analysis requires a second approval before deployment.
-        bad: The key insight is that this topic matters.
-    provenance:
-      source: "AI tells catalog — register.md (\"Corporate-analytic filler\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
-      note: Judgement remainder of ai-tells-register.corporate-analytic-filler-core.
+        The remainder was retired 2026-09-22 after adjudication showed 16 percent
+        precision. Overlaps upstream ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked,
+        ai-tells.FillerPhrases, and ai-tells.LabelAndExplain, all of which stay enabled.
 
   - id: over-formatting-reflex
     name: Format only when the data has columns
