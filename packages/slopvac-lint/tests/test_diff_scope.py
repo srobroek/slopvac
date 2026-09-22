@@ -277,6 +277,34 @@ def test_bottom_up_replacements_keep_untouched_lines_stable(tmp_path: Path) -> N
     assert path.read_text(encoding="utf-8") == "good one\nuntouched\nclean two\n"
 
 
+
+def test_fix_preserves_case_for_real_substitution_findings(tmp_path: Path) -> None:
+    path = tmp_path / "doc.md"
+    path.write_text("Additionally, x\nA Comprehensive Guide\n", encoding="utf-8")
+    score = type(
+        "Score",
+        (),
+        {
+            "path": str(path),
+            "findings": [
+                _finding(path=str(path), matched_text="Additionally", replacement="also", rule_id="prose-craft.wordiness"),
+                _finding(path=str(path), line=2, column=3, matched_text="Comprehensive", replacement="complete", rule_id="ste-practices.false-friend-term"),
+            ],
+        },
+    )()
+    assert apply_replacements([score], {}) == 2
+    assert path.read_text(encoding="utf-8") == "Also, x\nA Complete Guide\n"
+
+
+def test_fix_skips_multi_alternative_replacement_but_reports_finding(tmp_path: Path) -> None:
+    path = tmp_path / "doc.md"
+    path.write_text("Use the click target.\n", encoding="utf-8")
+    finding = _finding(path=str(path), matched_text="click", replacement=None, rule_id="prose-inclusive.ableist")
+    score = type("Score", (), {"path": str(path), "findings": [finding]})()
+    assert apply_replacements([score], {}) == 0
+    assert score.findings == [finding]
+    assert path.read_text(encoding="utf-8") == "Use the click target.\n"
+
 def _git(cwd: Path, *args: str) -> str:
     result = subprocess.run(
         ["git", *args], cwd=cwd, check=True, text=True, capture_output=True

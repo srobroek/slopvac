@@ -434,7 +434,12 @@ def apply_replacements(
                 for other_start, other_end, _ in edits
             ):
                 continue
-            edits.append((start, end, finding.replacement or ""))
+            replacement = finding.replacement or ""
+            if finding.matched_text.isupper():
+                replacement = replacement.upper()
+            elif finding.matched_text and finding.matched_text[0].isupper():
+                replacement = replacement[:1].upper() + replacement[1:]
+            edits.append((start, end, replacement))
         for start, end, replacement in sorted(edits, reverse=True):
             text = text[:start] + replacement + text[end:]
         if edits:

@@ -378,6 +378,11 @@ def match_substitution(substitutions: dict[str, str], matched: str) -> str | Non
     return None
 
 
+def is_single_replacement(replacement: str | None) -> bool:
+    """Return whether a substitution names one safe automatic replacement."""
+    return bool(replacement) and "," not in replacement and "|" not in replacement
+
+
 class Engine:
     """Runs one ruleset against one document."""
 
@@ -791,12 +796,13 @@ class Engine:
                 if self._suppressed(rule, line, suppressions, disabled):
                     continue
 
-                replacement = None
+                candidate = None
                 if rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
-                    replacement = match_substitution(rule.substitutions, matched)
+                    candidate = match_substitution(rule.substitutions, matched)
+                replacement = candidate if is_single_replacement(candidate) else None
 
                 message = format_message(
-                    rule.message, match=matched, replacement=replacement or ""
+                    rule.message, match=matched, replacement=candidate or ""
                 )
                 results.append(
                     Finding(
