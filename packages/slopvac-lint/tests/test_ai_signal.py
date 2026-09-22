@@ -10,7 +10,7 @@ from slopvac.config import Config, Profile, Severity, resolve_for
 from slopvac.engine import Engine
 from slopvac.judgement.driver import _markdown_report
 from slopvac.model import Finding, Provenance, Rule, RuleKind, Tier
-from slopvac.report import LintReport, RunSummary, summarize
+from slopvac.report import LintReport, summarize
 from slopvac.rules import RuleLoadError, load_ruleset
 from slopvac.score import score_document
 

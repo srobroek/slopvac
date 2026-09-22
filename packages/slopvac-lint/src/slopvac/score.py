@@ -31,8 +31,8 @@ the defaults below are the shipped calibration.
 
 from __future__ import annotations
 
-from typing import Literal
 from collections.abc import Mapping
+from typing import Literal
 
 from .config import ResolvedConfig, Severity
 from .judgement.aggregate import judgement_penalty, judgement_penalty_uncapped
