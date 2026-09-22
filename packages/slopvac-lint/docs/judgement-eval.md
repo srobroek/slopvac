@@ -155,12 +155,12 @@ rejects the judgement configuration key used by this repository.
 
 The noise-floor instrument measures disagreement across a registered 20% subsample
 with exactly three repeats. `prepare` copies the runner's `--model-id` and
-`--max-tokens` into every repeat row as `model_id` and `inference_config`; analysis
-fingerprints those fields, prompt bytes, and the response schema and fails closed
-when they are absent or differ across repeats. For the 2026-09-19 run, legacy rows
-are analysed with `--run-config noise-floor/run-config.json`; its provenance is
-recorded in `noise-floor.json` as `run-noise-floor supervisor script and hub process
-slopvac-noise-floor`.
+`--max-tokens` into every repeat row as `model_id` and `inference_config`;
+analysis fingerprints those fields plus `prompt_bytes_sha256` when prepared rows
+provide it, and a canonical hash of `response_schema` when that field is present.
+Legacy rows without the byte digest/schema use the legacy prompt/config fields;
+model and inference configuration remain required and mismatches across repeats
+fail closed.
 
 Analysis uses the same response parsing, result-set validation, and model-output
 schema validation as `finish`. Non-verdict repeats are classified separately as

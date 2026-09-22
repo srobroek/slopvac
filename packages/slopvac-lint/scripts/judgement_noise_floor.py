@@ -27,7 +27,7 @@ FAILURE_CLASSES = (
 
 
 def _fingerprint(row: dict[str, Any], response: dict[str, Any] | None) -> str:
-    """Hash prompt and required model/inference/schema metadata."""
+    """Hash the model instrument, including prompt bytes and response schema."""
     response = response or {}
     missing = [
         key
@@ -38,9 +38,24 @@ def _fingerprint(row: dict[str, Any], response: dict[str, Any] | None) -> str:
         raise ValueError(f"missing required fingerprint fields: {', '.join(missing)}")
     payload = {
         key: row[key] if key in row else response[key]
-        for key in ("prompt", "response_schema", "inference_config", "model_id")
+        for key in (
+            "prompt",
+            "prompt_bytes_sha256",
+            "response_schema",
+            "inference_config",
+            "model_id",
+        )
         if key in row or key in response
     }
+    if "response_schema" in payload:
+        payload["response_schema_sha256"] = hashlib.sha256(
+            json.dumps(
+                payload.pop("response_schema"),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest()
     serialized = json.dumps(
         payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     )
@@ -98,7 +113,9 @@ def prepare(args: argparse.Namespace) -> None:
     source = [row for row in prompts if str(row.get("call_id")) in selected]
     missing = selected - {str(row.get("call_id")) for row in source}
     if missing:
-        raise ValueError(f"subsample call_ids absent from prompts: {sorted(missing)[:3]}")
+        raise ValueError(
+            f"subsample call_ids absent from prompts: {sorted(missing)[:3]}"
+        )
     repeated: list[dict[str, Any]] = []
     for row in source:
         original = str(row["call_id"])
@@ -167,7 +184,11 @@ def _classify_response(
         else "ABSTAIN"
         for row in rows
     }
-    return verdicts, {unit: "" for unit in expected_ids if unit not in verdicts}, annotation_count
+    return (
+        verdicts,
+        {unit: "" for unit in expected_ids if unit not in verdicts},
+        annotation_count,
+    )
 
 
 def flip_rate(values: list[str]) -> float:
@@ -188,7 +209,7 @@ def analyse(args: argparse.Namespace) -> None:
     fingerprints: dict[str, str] = {}
     config_sources: set[str] = set()
     by_unit: dict[str, dict[str, Any]] = {}
-    failure_counts: Counter[str] = Counter()
+    failure_unit_repeats: Counter[str] = Counter()
     annotation_stripped_calls = 0
     for row in prompts:
         if sidecar:
@@ -209,9 +230,9 @@ def analyse(args: argparse.Namespace) -> None:
         ]
         verdicts, statuses, annotation_count = _classify_response(response, expected)
         annotation_stripped_calls += bool(annotation_count)
-        for _unit_id, status in statuses.items():
+        for status in statuses.values():
             if status:
-                failure_counts[status] += 1
+                failure_unit_repeats[status] += 1
         for unit_id, rule_id in zip(
             row.get("unit_ids", []), row.get("rule_ids", []), strict=False
         ):
@@ -233,7 +254,10 @@ def analyse(args: argparse.Namespace) -> None:
             item["call_id"] = original
     units: list[dict[str, Any]] = []
     by_rule: dict[str, list[float]] = defaultdict(list)
-    rule_failures: dict[str, Counter[str]] = defaultdict(Counter)
+    rule_failure_repeats: dict[str, Counter[str]] = defaultdict(Counter)
+    rule_incomplete_units: dict[str, dict[str, set[str]]] = defaultdict(
+        lambda: defaultdict(set)
+    )
     for item in by_unit.values():
         valid = [
             item["repeats"][repeat] for repeat in REPEATS if repeat in item["repeats"]
@@ -253,41 +277,51 @@ def analyse(args: argparse.Namespace) -> None:
             by_rule[item["rule_id"]].append(rate)
         else:
             for failure in item["failures"].values():
-                rule_failures[item["rule_id"]][failure] += 1
+                rule_failure_repeats[item["rule_id"]][failure] += 1
+                rule_incomplete_units[item["rule_id"]][failure].add(item["unit_id"])
         units.append(unit)
-    rules = [
-        {
+
+    def rule_payload(rule_id: str, rates: list[float]) -> dict[str, Any]:
+        repeats = dict(rule_failure_repeats[rule_id])
+        incomplete = {
+            failure: len(unit_ids)
+            for failure, unit_ids in rule_incomplete_units[rule_id].items()
+        }
+        return {
             "rule_id": rule_id,
             "complete_units": len(rates),
-            "flip_rate": sum(rates) / len(rates),
-            "failure_classes": dict(rule_failures[rule_id]),
+            "flip_rate": sum(rates) / len(rates) if rates else 0.0,
+            "failure_classes": repeats,
+            "failure_unit_repeats": repeats,
+            "incomplete_units": incomplete,
         }
-        for rule_id, rates in sorted(by_rule.items())
-    ]
-    for rule_id in sorted(rule_failures):
+
+    rules = [rule_payload(rule_id, rates) for rule_id, rates in sorted(by_rule.items())]
+    for rule_id in sorted(rule_failure_repeats):
         if rule_id not in {rule["rule_id"] for rule in rules}:
-            rules.append(
-                {
-                    "rule_id": rule_id,
-                    "complete_units": 0,
-                    "flip_rate": 0.0,
-                    "failure_classes": dict(rule_failures[rule_id]),
-                }
-            )
+            rules.append(rule_payload(rule_id, []))
     complete_units = sum(unit["complete"] for unit in units)
+    incomplete_unit_count = len(units) - complete_units
+    incomplete_units: Counter[str] = Counter()
+    for item in by_unit.values():
+        incomplete_units.update(set(item["failures"].values()))
     overall = (
         sum(unit["flip_rate"] for unit in units if unit["complete"]) / complete_units
         if complete_units
         else 0.0
     )
     payload = {
-        "repeat_count": 3,
+        "repeat_count": len(REPEATS),
         "unit_count": len(units),
         "complete_units": complete_units,
-        "incomplete_units": len(units) - complete_units,
+        "incomplete_unit_count": incomplete_unit_count,
+        "failure_unit_repeat_denominator": len(units) * len(REPEATS),
+        "incomplete_unit_denominator": len(units),
+        "incomplete_units": dict(incomplete_units),
         "overall_flip_rate": overall,
         "config_provenance": sorted(config_sources),
-        "failure_classes": dict(failure_counts),
+        "failure_classes": dict(failure_unit_repeats),
+        "failure_unit_repeats": dict(failure_unit_repeats),
         "annotation_stripped_calls": annotation_stripped_calls,
         "fingerprints": fingerprints,
         "rules": rules,
@@ -300,27 +334,33 @@ def analyse(args: argparse.Namespace) -> None:
     lines = [
         "# Noise floor",
         "",
-        "- Repeats: 3",
+        f"- Repeats: {len(REPEATS)}",
         f"- Complete units: {complete_units}",
-        f"- Incomplete units: {len(units) - complete_units}",
+        f"- Incomplete units: {incomplete_unit_count}",
         f"- Overall flip rate: {overall:.2%}",
         f"- Config provenance: {', '.join(sorted(config_sources)) or 'prompt rows'}",
         "",
         "## Failure classes",
         "",
-        "| Class | Count |",
-        "| --- | ---: |",
+        f"Failure unit repeats denominator: {len(units) * len(REPEATS)} expected unit repeats.",
+        f"Incomplete units denominator: {len(units)} units.",
+        "",
+        "| Class | Failure unit repeats | Incomplete units |",
+        "| --- | ---: | ---: |",
     ]
-    lines.extend(f"| {key} | {failure_counts.get(key, 0)} |" for key in FAILURE_CLASSES)
+    lines.extend(
+        f"| {key} | {failure_unit_repeats.get(key, 0)} | {incomplete_units.get(key, 0)} |"
+        for key in FAILURE_CLASSES
+    )
     lines += [
         "",
         "## Per rule",
         "",
-        "| Rule | Complete units | Flip rate | Failure classes |",
-        "| --- | ---: | ---: | --- |",
+        "| Rule | Complete units | Flip rate | Failure unit repeats | Incomplete units |",
+        "| --- | ---: | ---: | --- | --- |",
     ]
     lines.extend(
-        f"| {rule['rule_id']} | {rule['complete_units']} | {rule['flip_rate']:.2%} | {json.dumps(rule['failure_classes'], sort_keys=True)} |"
+        f"| {rule['rule_id']} | {rule['complete_units']} | {rule['flip_rate']:.2%} | {json.dumps(rule['failure_unit_repeats'], sort_keys=True)} | {json.dumps(rule['incomplete_units'], sort_keys=True)} |"
         for rule in rules
     )
     (args.out_dir / "noise-floor.md").write_text(
@@ -362,7 +402,9 @@ def decide(args: argparse.Namespace) -> None:
         "rules": rules,
     }
     out = args.out or args.noise_floor.with_name("variance-policy.json")
-    out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     md = out.with_suffix(".md")
     lines = [
         "# Variance policy",
