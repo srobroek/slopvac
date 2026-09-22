@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.9.1](https://github.com/srobroek/slopvac/compare/v2.9.0...v2.9.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **judgement:** report noise-floor failure denominators and fingerprint the full instrument ([#148](https://github.com/srobroek/slopvac/issues/148)) ([a9b60a8](https://github.com/srobroek/slopvac/commit/a9b60a8992c4e9f4cff6b53a92b1b5e55d625311))
+* **lint:** apply the text_type gate to document-scope lexical matches ([#149](https://github.com/srobroek/slopvac/issues/149)) ([7b2b448](https://github.com/srobroek/slopvac/commit/7b2b448d0aa68dd18449696eac82ff39aa18c31d))
+* **lint:** pin text_type classifier Unicode and locale determinism ([#147](https://github.com/srobroek/slopvac/issues/147)) ([05f5a0b](https://github.com/srobroek/slopvac/commit/05f5a0bf3ddda14a94f13b84ad8f6911ef8927eb))
+
 ## [2.9.0](https://github.com/srobroek/slopvac/compare/v2.8.0...v2.9.0) (2026-09-21)
 
 
