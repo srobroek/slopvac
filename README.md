@@ -230,8 +230,8 @@ clustered register tells.
 
 ## The judgement layer
 
-A rule either has a checker or it does not. "Explains one point three ways
-over" or "asserts without bound what the author cannot know" has no regex. Dropping such
+A rule either has a checker or it does not. "Explains one point in three ways"
+or "asserts without bound what the author cannot know" has no regex. Dropping such
 rules would redefine the standard as whatever a pattern can reach. Handing them
 to a model without structure gives you an opinion you cannot audit. In the
 judgement layer the model answers narrow questions on small units, and the host
@@ -265,8 +265,9 @@ Both apply the same checks:
   is relocated to its offsets (`unique-quote` salvage); a quote that does not
   occur fails the unit. Salvage changed 1,294 offset mismatches to 4 on the
   evaluation corpus and added 175 confirms without changing semantic precision.
-- Failed, truncated, and not-run units are counted as abstentions and reduce
-  reported coverage. A document is `PARTIAL` when any unit is missing.
+- Failed, truncated, and not-run units stay in their own states. They reduce
+  reported coverage and are never counted as abstentions; only an explicit model
+  abstention is. A document is `PARTIAL` when any unit is missing.
 - Confirms and rejects are aggregated per rule and per document.
   `judgement_adjusted_score` may drop; deterministic pass/fail, exit status,
   and the `max_errors` gate are not touched.
@@ -337,8 +338,8 @@ What the evaluation changed:
 - `absolute-assertion-remainder` was the largest false-positive source on human
   documents (9 FP of 13 confirms). Its guidance now preserves quoted, attributed,
   time-bounded, and locally anaphoric claims. Re-judging the same units:
-  human confirms 13 → 0, LLM confirms 19 → 7, all three adjudicated true
-  positives kept.
+  human confirms 13 → 0, LLM confirms 19 → 7. The price was recall: all three
+  adjudicated true positives were lost under the new guidance.
 - `corporate-analytic-filler-remainder` (148 LLM confirms, top of the ranking)
   confirmed on plain analytic prose in the human arm. PR #151 retired it.
 - `one-point-dilution` and the content-shape questions gained bounded guidance
