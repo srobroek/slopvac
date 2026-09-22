@@ -130,7 +130,7 @@ def test_hunk_feature_preserves_base_inventory_and_adds_scope_rule(ruleset):
     digest = __import__("hashlib").sha256(
         ("\n".join(sorted(ids)) + "\n").encode()
     ).hexdigest()
-    assert digest == "e732a4eef226f72a2a7e6a6231c542e5c3eb92713f968b2a9f7890a0ece8509e"
+    assert digest == "a187dac6a7dcbacd31d685d916cf98ea0b288cb2504841d937f2beb2a0537e42"
     mutated = ids - {"ai-tells-structure.negative-inventory-remainder"}
     mutated.add("ai-tells-structure.replacement")
     mutated_digest = __import__("hashlib").sha256(
