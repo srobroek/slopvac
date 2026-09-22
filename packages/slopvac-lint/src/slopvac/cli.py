@@ -937,3 +937,130 @@ def judgement_compare(out_path: Path, doc: Path | None, apply_preview: bool) -> 
 
 if __name__ == "__main__":
     main()
+@judgement.command("validate")
+@click.option(
+    "--run",
+    "run_path",
+    required=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    help="Directory written by prepare or brief.",
+)
+@click.option(
+    "--call-id",
+    default=None,
+    help="Call id the response answers; inferred from unit ids when omitted.",
+)
+@click.option(
+    "--file",
+    "file_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="Response JSON; stdin when omitted.",
+)
+@click.option(
+    "--hook",
+    is_flag=True,
+    help="Hook mode: print a repair instruction to stderr when invalid.",
+)
+def judgement_validate(
+    run_path: Path, call_id: str | None, file_path: Path | None, hook: bool
+) -> None:
+    """Validate one model response the way `finish` will.
+
+    Accepts a bare response object, a `{call_id, response}` row, or a Claude Code
+    SubagentStop payload. Exit 0 when valid, 2 when invalid, 1 on usage errors.
+    """
+    from .judgement import harness
+
+    try:
+        source = (
+            file_path.read_text(encoding="utf-8")
+            if file_path is not None
+            else sys.stdin.read()
+        )
+        outer = json.loads(source)
+    except (OSError, json.JSONDecodeError) as exc:
+        click.echo(
+            json.dumps(
+                {"ok": False, "call_id": call_id, "errors": [f"response_json: {exc}"]}
+            )
+        )
+        raise click.exceptions.Exit(1) from exc
+    payload, found_call_id, stop_hook_active, errors = harness.unwrap_response(outer)
+    call_id = call_id or found_call_id
+    if not errors:
+        call_id, errors = harness.validate_call(
+            out=run_path, payload=payload, call_id=call_id
+        )
+    ok = not errors
+    click.echo(
+        json.dumps({"ok": ok, "call_id": call_id, "errors": errors}, ensure_ascii=False)
+    )
+    if stop_hook_active:
+        if not ok:
+            click.echo(
+                "warning: stop_hook_active is set; reporting the errors without blocking again.",
+                err=True,
+            )
+        raise click.exceptions.Exit(0)
+    if not ok and hook:
+        click.echo(
+            "Your judgement response was rejected by slopvac judgement validate. Return the JSON object only, "
+            "matching the response schema exactly, and fix these errors: "
+            + "; ".join(errors),
+            err=True,
+        )
+    raise click.exceptions.Exit(0 if ok else 2)
+
+
+@judgement.command("brief")
+@click.option(
+    "--out", "out_path", required=True, type=click.Path(file_okay=False, path_type=Path)
+)
+@click.option(
+    "--packs",
+    default="fired",
+    show_default=True,
+    help="fired, all, or comma-separated pack ids.",
+)
+@click.option(
+    "--profile", type=click.Choice([profile.value for profile in Profile]), default=None
+)
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    default=None,
+    help="Config file. Default: nearest slopvac.toml, else the starter defaults.",
+)
+@click.option("--max-calls", type=click.IntRange(min=0), default=300, show_default=True)
+@click.argument(
+    "paths", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path)
+)
+def judgement_brief(
+    out_path: Path,
+    packs: str,
+    profile: str | None,
+    config_path: Path | None,
+    max_calls: int,
+    paths: tuple[Path, ...],
+) -> None:
+    """Prepare PATHS and write brief.md, one agent-readable bundle of every call."""
+    from .judgement import harness
+
+    try:
+        result = harness.brief(
+            paths=paths,
+            out=out_path,
+            packs=packs,
+            profile=profile,
+            max_calls=max_calls,
+            config=config_path,
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    if result["warning"]:
+        click.echo(f"warning: {result['warning']}", err=True)
+    click.echo(
+        f"{len(result['calls'])} call(s) across {len(result['packs'])} pack(s); wrote {result['path']}"
+    )
