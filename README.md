@@ -26,7 +26,7 @@ they make different promises.
 The deterministic gate is what pre-commit and CI run. It is offline and answers
 one question: are the named patterns present, and at what density.
 
-The judgement layer covers the rules no pattern can express: dilution, false
+The judgement layer covers the rules that have no checker: dilution, false
 range, faux candor, structural symmetry. It never produces a lint finding and
 never changes pass or fail. The CLI does not call a provider. It writes prompts
 with a JSON schema, and validates and aggregates what comes back. `review-docs`
@@ -331,10 +331,12 @@ generates for the configured locale. The generated reference is
 | `ste-verbs` | 5 | 2 |
 | `ste-words` | 9 | 6 |
 
-Three sources feed the ruleset. `ai-tells-*` and `ai-residue` come from a
-catalog of observed AI register. `ste-*` restates ASD-STE100 Simplified Technical
-English as testable rules. `orwell` restates Orwell's six rules as objective
-tests. `prose-*` and `docs-discipline` are craft and documentation-genre rules.
+Three sources feed the ruleset. `ai-tells-*` and `ai-residue` derive from
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop); each rule's
+`provenance` field names its source entry. `ste-*` restates ASD-STE100
+Simplified Technical English as testable rules. `orwell` restates Orwell's six
+rules as objective tests. `prose-*` and `docs-discipline` are craft and
+documentation-genre rules.
 
 Every rule also carries an `ai_signal`: `strong` when the human-corpus
 measurement below shows it fires on stated-LLM prose and not on human prose,
