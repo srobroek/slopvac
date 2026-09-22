@@ -29,6 +29,8 @@ rules:
     examples:
       - bad: The worker drains the queue; the exporter writes the report.
         good: The worker drains the queue. The exporter writes the report.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:8.1'
@@ -64,6 +66,8 @@ rules:
         good: The replica serves read-only traffic during the migration.
       - bad: Use the command line client for the first run.
         good: Use the command-line client for the first run.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:8.2'
@@ -101,6 +105,8 @@ rules:
     examples:
       - bad: Use the read-only-replica-failover path during the migration.
         good: Use the failover path for the read-only replica during the migration.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:8.2'
@@ -137,6 +143,8 @@ rules:
           is why the runbook exists).
         good: >-
           Rotate the signing key. Most teams do this only after an audit finds the old key.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:8.3'
@@ -177,6 +185,8 @@ rules:
           Before you promote the release candidate to production, make sure that each of the
           following six preconditions holds true without exception:
         good: 'Check these preconditions before you promote the release candidate:'
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:8.4'

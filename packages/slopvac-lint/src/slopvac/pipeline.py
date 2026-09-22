@@ -64,9 +64,9 @@ from .vale_probe import rst_converter
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
 LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
-SOURCE_LINTABLE = tuple(f"*{suffix}" for suffix in SOURCE_LANGUAGE_BY_EXTENSION) + tuple(
-    SOURCE_FILENAMES
-)
+SOURCE_LINTABLE = tuple(
+    f"*{suffix}" for suffix in SOURCE_LANGUAGE_BY_EXTENSION
+) + tuple(SOURCE_FILENAMES)
 COMMENTABLE = (*SOURCE_LINTABLE, "*.toml", "mise.toml")
 
 
@@ -128,8 +128,6 @@ class RunContext:
     collection_unchecked: list[str] = field(default_factory=list)
 
 
-
-
 def _relative_to_config(path: Path, config: Config) -> str:
     root = config.root or Path.cwd()
     try:
@@ -147,7 +145,6 @@ def _expand_paths(
     comments: bool | None = False,
     skipped: dict[Path, str] | None = None,
 ) -> list[Path]:
-
     """Expand targets with the document/source selection used by the CLI."""
     found: list[Path] = []
     if comments is None:
@@ -170,21 +167,24 @@ def _expand_paths(
                     candidate = Path(directory) / name
                     if candidate.is_symlink():
                         continue
-                    if not comments and candidate.name.lower() in {"slopvac.toml", ".slopvac.toml"}:
+                    if not comments and candidate.name.lower() in {
+                        "slopvac.toml",
+                        ".slopvac.toml",
+                    }:
                         continue
                     if any(
-                        fnmatch.fnmatch(name.lower(), pattern.lower()) for pattern in patterns
+                        fnmatch.fnmatch(name.lower(), pattern.lower())
+                        for pattern in patterns
                     ):
                         found.append(candidate)
                     elif comments is not False and not any(
-                        fnmatch.fnmatch(name.lower(), pattern.lower()) for pattern in prose_patterns
+                        fnmatch.fnmatch(name.lower(), pattern.lower())
+                        for pattern in prose_patterns
                     ):
                         try:
                             canonical_source_language(candidate)
                         except ValueError as exc:
-                            message = (
-                                f"unsupported source language skipped: {candidate} ({exc})"
-                            )
+                            message = f"unsupported source language skipped: {candidate} ({exc})"
                             if skipped is not None:
                                 skipped[candidate] = message
                             if notes is not None:
@@ -217,11 +217,12 @@ def _expand_paths(
                         raise click.ClickException(str(exc)) from None
                 found.append(match)
 
-
     kept = [
         path
         for path in found
-        if any(fnmatch.fnmatch(path.name.lower(), pattern.lower()) for pattern in patterns)
+        if any(
+            fnmatch.fnmatch(path.name.lower(), pattern.lower()) for pattern in patterns
+        )
     ]
     skipped_rst = [path for path in kept if path.suffix.lower() == ".rst"]
     if skipped_rst and rst_converter() is None:
@@ -501,7 +502,9 @@ def validate_names(config: Config, ruleset: RuleSet) -> list[str]:
             # A bare rule name is the likeliest mistake, so name the qualified form
             # rather than only rejecting it.
             if "." not in name:
-                candidates = sorted(r for r in known_rules if r.split(".", 1)[1] == name)
+                candidates = sorted(
+                    r for r in known_rules if r.split(".", 1)[1] == name
+                )
                 hint = (
                     f" A rule id is qualified: try `{candidates[0]}`."
                     if candidates
@@ -567,7 +570,6 @@ def report_text(
         for note in score.unchecked:
             console.print(f"[yellow]UNCHECKED[/] {score.path}: {note}")
 
-
     summary = summarize(scores)
     console.print()
     table = Table(title="slopvac", title_justify="left", header_style="bold")
@@ -591,6 +593,26 @@ def report_text(
         )
     if table.row_count:
         console.print(table)
+    console.print()
+    axis = Table(title="AI register", title_justify="left", header_style="bold")
+    axis.add_column("axis")
+    axis.add_column("findings", justify="right")
+    axis.add_column("errors", justify="right")
+    axis.add_column("warnings", justify="right")
+    axis.add_column("/100w", justify="right")
+    for name, value in (
+        ("strong", summary.ai_register["strong"]),
+        ("weak", summary.ai_register["weak"]),
+        ("Prose quality", summary.prose),
+    ):
+        axis.add_row(
+            name,
+            str(value.findings),
+            str(value.errors),
+            str(value.warnings),
+            f"{value.per_100_words:.2f}",
+        )
+    console.print(axis)
 
     verdict = "[green]PASS[/]" if summary.passed else "[red]FAIL[/]"
     console.print(
@@ -618,7 +640,6 @@ def emit_report(
     verbose: bool,
     notes: list[str] | None = None,
 ) -> None:
-
     """Render the run in one format and deliver it to stdout, a file, or a browser.
 
     `--out` alone means an HTML report; `--out` with an explicit `--format` writes
@@ -662,7 +683,9 @@ def emit_report(
     else:
         if output_format == "json":
             rendered = LintReport(
-                version=__version__, summary=summarize(scores), documents=scores,
+                version=__version__,
+                summary=summarize(scores),
+                documents=scores,
                 notes=notes or [],
             ).emit()
         elif output_format == "github":
@@ -836,7 +859,8 @@ def load_run_context(
         if auto_mode:
             patterns = COMMENTABLE if config.mode is Mode.CODE_COMMENTS else LINTABLE
             if not any(
-                fnmatch.fnmatch(path.name.lower(), pattern.lower()) for pattern in patterns
+                fnmatch.fnmatch(path.name.lower(), pattern.lower())
+                for pattern in patterns
             ):
                 continue
         if config.is_excluded(_relative_to_config(path, config)):
@@ -876,7 +900,9 @@ def load_run_context(
 
     # The generated spelling rule is part of the ruleset, so keep one ruleset
     # per final locale. All other rules are loaded once and deep-copied locally.
-    rulesets_by_locale: dict[tuple[str, tuple[str, ...]], tuple[RuleSet, str | None]] = {}
+    rulesets_by_locale: dict[
+        tuple[str, tuple[str, ...]], tuple[RuleSet, str | None]
+    ] = {}
     locale_notes: dict[Path, str] = {}
     name_errors: list[str] = []
 
@@ -893,7 +919,9 @@ def load_run_context(
         local, _ = ruleset_for(config.locale.default, config.locale.allow)
         name_errors.extend(validate_names(config, local))
     if name_errors:
-        raise PipelineError([f"[red]config error[/] {message}" for message in name_errors])
+        raise PipelineError(
+            [f"[red]config error[/] {message}" for message in name_errors]
+        )
 
     rulesets: dict[Path, RuleSet] = {}
     for path in paths:
@@ -939,7 +967,9 @@ def group_inputs(
         resolved = resolve_for(config, path)
         blocklist_path = resolve_blocklist_path(resolved.vocabulary, config.root)
         vocabularies[path] = (
-            load_blocklist(blocklist_path) if blocklist_path is not None else Vocabulary()
+            load_blocklist(blocklist_path)
+            if blocklist_path is not None
+            else Vocabulary()
         )
         levels = compiled_levels(ruleset, resolved)
         # Locale changes the generated spelling rule's pattern, so it is a
@@ -1005,7 +1035,14 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
             run_notes.extend(unchecked_for_skipped(compiled, vale_skipped=False))
             severities, categories = vale_levels(compiled, ruleset, config, sample)
             vale_result = run_compiled_vale(
-                group, compiled, severities, categories, binary=vale_settings.binary
+                group,
+                compiled,
+                severities,
+                categories,
+                binary=vale_settings.binary,
+                ai_signals={
+                    rule.qualified_id: rule.ai_signal for rule in ruleset.rules
+                },
             )
 
         # When Vale ran, it owns its rules and the native engine must not repeat

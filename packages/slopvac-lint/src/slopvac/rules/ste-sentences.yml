@@ -32,6 +32,8 @@ rules:
           Rotate the signing key as follows: 1. Revoke the old key in the console.
           2. Generate a replacement key. 3. Update every service that reads the key.
           4. Delete the old secret.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.1'
@@ -73,6 +75,8 @@ rules:
         good: If the proxy is configured, it rewrites the Host header.
       - bad: It's the worker that drains the queue.
         good: The worker drains the queue.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.2'
@@ -116,6 +120,8 @@ rules:
           - The resource limits
           - The liveness probe
           - The service account
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.3'
@@ -150,6 +156,8 @@ rules:
           The manifest sets these values:
           - The image tag
           - The replica count
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.3'
@@ -186,6 +194,8 @@ rules:
           - The image tag
           - The replica count
           - The resource limits.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.3'
@@ -217,6 +227,8 @@ rules:
     examples:
       - bad: The runner rejects the manifest. The image tag is missing.
         good: The runner rejects the manifest, because the image tag is missing.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.4'
@@ -259,6 +271,8 @@ rules:
         good: Restart the worker after you edit the config.
       - bad: Delete branch when the merge completes.
         good: Delete the branch when the merge completes.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.5'

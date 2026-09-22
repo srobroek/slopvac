@@ -41,6 +41,8 @@ rules:
     fix: >-
       Revert unrelated prose changes; retain directly related stale-comment
       corrections and explicitly requested prose edits.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Slopvac review contract
       url: https://github.com/srobroek/slopvac
@@ -64,6 +66,8 @@ rules:
     examples:
       - bad: The loader uses a lockfile rather than a resolver because resolution is slow.
         good: The loader reads the lockfile.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-scope/RejectedAlternative.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/RejectedAlternative.yml
@@ -96,6 +100,8 @@ rules:
     examples:
       - bad: The in-process walk beats the subprocess by 104x, taking 0.4 ms.
         good: The loader walks the parent chain in process.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-scope/ImplementationLeak.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/ImplementationLeak.yml
@@ -133,6 +139,8 @@ rules:
     examples:
       - bad: No configuration required -- it just works.
         good: The linter reads `.slopvac.toml` when one is present.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-scope/UnrequestedReassurance.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/UnrequestedReassurance.yml
@@ -164,6 +172,8 @@ rules:
         good: The gate matches tokens; the catalog lists voice tells.
       - bad: The scripts are its tools, not yours.
         good: The skill invokes the scripts.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-scope/Epigram.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/Epigram.yml
@@ -205,6 +215,8 @@ rules:
           The rewrite is an object-level factual contrast, which is the shape this
           rule must never claim. The loader proves the non-match: the second half
           of a real contrast is a bare object, not a second determiner-led clause.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
       note: >-

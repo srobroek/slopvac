@@ -25,6 +25,8 @@ rules:
     examples:
       - bad: The A.P.I. returns JSON.
         good: The API returns JSON.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/AcronymPeriods.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/AcronymPeriods.yml
@@ -52,6 +54,8 @@ rules:
         good: Pass a path, a glob, or both.
       - bad: Runs bi-weekly.
         good: Runs every two weeks.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Ambiguity.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Ambiguity.yml
@@ -121,6 +125,8 @@ rules:
         good: an HTML file
       - bad: an URL
         good: a URL
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Articles.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Articles.yml
@@ -149,6 +155,8 @@ rules:
         good: npm install
       - bad: ❯ git status
         good: '> git status is what a quoted line looks like, not a prompt'
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/CommandPrompt.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/CommandPrompt.yml
@@ -180,6 +188,8 @@ rules:
     examples:
       - bad: <<<<<<< HEAD
         good: The loader reads the lockfile.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/ConflictMarkers.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/ConflictMarkers.yml
@@ -207,6 +217,8 @@ rules:
         good: The `--strict` flag controls this.
       - bad: It is important to note that the loader retries.
         good: The loader retries twice.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/DeadOpener.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/DeadOpener.yml
@@ -251,6 +263,8 @@ rules:
     examples:
       - bad: See the table below.
         good: See the Rule tiers table.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/DirectionalRef.yml
       url: https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics
@@ -283,6 +297,8 @@ rules:
     examples:
       - bad: We read one config file.
         good: slopvac reads one config file.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/FirstPersonPlural.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/FirstPersonPlural.yml
@@ -311,6 +327,8 @@ rules:
     examples:
       - bad: The loader will retry twice.
         good: The loader retries twice.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/FutureTense.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/FutureTense.yml
@@ -372,6 +390,8 @@ rules:
     examples:
       - bad: Installing the plugin
         good: Install the plugin
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/GerundHeading.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/GerundHeading.yml
@@ -418,6 +438,8 @@ rules:
     examples:
       - bad: a newly-added flag
         good: a newly added flag
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Hyphens.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Hyphens.yml
@@ -454,6 +476,8 @@ rules:
     examples:
       - bad: 'Pass a glob, e.g. `*.md`.'
         good: 'Pass a glob, for example `*.md`.'
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Latinisms.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Latinisms.yml
@@ -480,6 +504,8 @@ rules:
     examples:
       - bad: See [here](https://example.com/install).
         good: See the [install guide](https://example.com/install).
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/LinkText.yml
       url: https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context
@@ -510,6 +536,8 @@ rules:
     examples:
       - bad: the API interface
         good: the API
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Misnomer.yml
       url: https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-craft/Misnomer.yml
@@ -539,6 +567,8 @@ rules:
     examples:
       - bad: You cannot deploy without a token.
         good: Deploying requires a token.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/NegativeRequirement.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/NegativeRequirement.yml
@@ -564,6 +594,8 @@ rules:
     examples:
       - bad: Select the file(s).
         good: Select the files.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/OptionalPlural.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/OptionalPlural.yml
@@ -589,6 +621,8 @@ rules:
     examples:
       - bad: Firstly, install the plugin.
         good: Install the plugin.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Ordinals.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Ordinals.yml
@@ -617,6 +651,8 @@ rules:
         good: Run the migration first.
       - bad: Kindly run the migration first.
         good: Repos with release-please never hand-edit CHANGELOG.md.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Politeness.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Politeness.yml
@@ -646,6 +682,8 @@ rules:
         good: merge
       - bad: the reason why
         good: the reason
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Redundancy.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Redundancy.yml
@@ -672,6 +710,8 @@ rules:
     examples:
       - bad: The flag was added recently.
         good: The flag was added in v3.1.0.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/RelativeDate.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/RelativeDate.yml
@@ -700,6 +740,8 @@ rules:
     examples:
       - bad: This section explains the loader.
         good: The loader resolves every path in the manifest.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/SelfReference.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/SelfReference.yml
@@ -730,6 +772,8 @@ rules:
     threshold: 34
     comparison: gt
     fix: Split the sentence, or turn the enumeration into a list.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/SentenceLength.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/SentenceLength.yml
@@ -759,6 +803,8 @@ rules:
     examples:
       - bad: The loader retries.Twice.
         good: The loader retries. Twice.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Spacing.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Spacing.yml
@@ -787,6 +833,8 @@ rules:
     examples:
       - bad: This is why it fails.
         good: This lookahead is why it fails.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/UnclearAntecedent.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/UnclearAntecedent.yml
@@ -820,6 +868,8 @@ rules:
     examples:
       - bad: Python 3.2 and higher
         good: Python 3.2 and later
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Versions.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Versions.yml
@@ -959,6 +1009,8 @@ rules:
         good: to validate
       - bad: utilize the loader
         good: use the loader
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Wordiness.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Wordiness.yml
@@ -999,6 +1051,8 @@ rules:
         note: >-
           "the API's rate limit" is a correct possessive and must NOT fire. The
           pattern alone cannot tell the two apart.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/PluralAbbreviation.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/PluralAbbreviation.yml

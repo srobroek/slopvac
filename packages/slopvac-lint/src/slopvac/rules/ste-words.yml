@@ -46,6 +46,8 @@ rules:
       # project refuses are its own.
       - bad: The operator will utilize the retry budget to quickly drain the queue.
         good: The operator uses the retry budget to drain the queue in under a minute.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.1'
@@ -100,6 +102,8 @@ rules:
         good: The client uses exponential backoff before the third retry.
       - bad: Ensure that the migration completed before you restart the worker.
         good: Make sure that the migration completed before you restart the worker.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.1'
@@ -146,6 +150,8 @@ rules:
         good: The worker must retry the request before it reports a failure.
       - bad: Callers shall close the handle.
         good: Callers must close the handle.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.1'
@@ -179,6 +185,8 @@ rules:
     examples:
       - bad: Test the endpoint with an expired token.
         good: Do a test of the endpoint with an expired token.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.2'
@@ -208,6 +216,8 @@ rules:
     examples:
       - bad: Follow the security policy when you rotate the signing key.
         good: Obey the security policy when you rotate the signing key.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.3'
@@ -243,6 +253,8 @@ rules:
     examples:
       - bad: The queue is the deletablest of the three resources.
         good: You can delete the queue more easily than the other two resources.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.4'
@@ -273,6 +285,8 @@ rules:
     examples:
       - bad: The doohickey drains the queue every minute.
         good: The reaper job drains the queue every minute.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.5'
@@ -310,6 +324,8 @@ rules:
     examples:
       - bad: The orchestrator obviates manual reconciliation.
         good: The orchestrator removes the need for manual reconciliation.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.6'
@@ -364,6 +380,8 @@ rules:
         good: The runner sent the coverage report to the reviewers by email.
       - bad: We architected the retry path around a token bucket.
         good: We designed the retry path around a token bucket.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.7'
@@ -393,6 +411,8 @@ rules:
     examples:
       - bad: The job runner picks up the next work item.
         good: The worker picks up the next task.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.8'
@@ -428,6 +448,8 @@ rules:
         good: Restart the admission controller.
       - bad: Set the distributed idempotency deduplication cache retention window.
         good: Set the deduplication cache retention.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.9'
@@ -485,6 +507,8 @@ rules:
         good: The retry loop fails when the token expires during a request.
       - bad: Nuke the cache directory and start again.
         good: Delete the cache directory and start again.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.10'
@@ -512,6 +536,8 @@ rules:
     examples:
       - bad: The worker reads the task queue. Later, the job runner drains the work list.
         good: The worker reads the task queue. Later, the worker drains the task queue.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.11'
@@ -545,6 +571,8 @@ rules:
         good: The parser reads the manifest and fills the config object.
       - bad: If you observe a checksum mismatch, delete the artifact.
         good: If you find a checksum mismatch, delete the artifact.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.12'
@@ -588,6 +616,8 @@ rules:
         good: The deployment failed because the image tag was missing.
       - bad: Start a rerun of the failed job.
         good: Run the failed job again.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:1.13'

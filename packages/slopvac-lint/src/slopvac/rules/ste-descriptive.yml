@@ -33,6 +33,8 @@ rules:
           The reconciler reads the desired state from the lease store. It reads the observed
           state from the informer cache. It writes the difference between the two to the work
           queue. The shard leader drains that queue.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:6.1'
@@ -73,6 +75,8 @@ rules:
         good: >-
           The reconciler drains the work queue. The reconciler then writes the outcome to the
           work queue.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:6.2'
@@ -116,6 +120,8 @@ rules:
           The gateway terminates TLS and rewrites the Host header. It adds a request
           identifier for tracing. It then forwards the request to the service that the routing
           table names for the path prefix.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:6.3'
@@ -149,6 +155,8 @@ rules:
         good: >-
           The gateway handles inbound traffic. It terminates TLS and rewrites the Host
           header. It then forwards each request to a worker.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:6.4'
@@ -189,6 +197,8 @@ rules:
           The gateway terminates TLS and forwards each request to a worker.
 
           The billing exporter writes a daily CSV to the audit bucket.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:6.5'
@@ -234,6 +244,8 @@ rules:
 
           The gateway reads the routing table and selects a worker. It forwards the request
           and records the latency.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:6.6'

@@ -28,6 +28,8 @@ rules:
         good: The flag accepts a literal path.
       - bad: Support for MDX is not yet implemented.
         good: The parser reads Markdown.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — docs-discipline/StatusLanguage.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/StatusLanguage.yml
@@ -57,6 +59,8 @@ rules:
     examples:
       - bad: The loader was previously named the resolver.
         good: The loader resolves paths.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — docs-discipline/HistoryNarration.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/HistoryNarration.yml
@@ -83,6 +87,8 @@ rules:
     examples:
       - bad: The threshold is set per the spec in specs/004.
         good: The threshold is 34 words.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — docs-discipline/InternalRefs.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/InternalRefs.yml
