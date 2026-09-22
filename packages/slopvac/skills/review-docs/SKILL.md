@@ -1,8 +1,13 @@
 ---
 name: review-docs
 description: Review prose for slop and genre defects. Triggers on review this README, deslop this, does this read like AI.
+hooks:
+  SubagentStop:
+    - matcher: "slopvac-judge"
+      hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/skills/review-docs/hooks/validate-judge.sh"
 ---
-
 # Review Docs
 
 TRIGGER
@@ -50,20 +55,26 @@ MUST Keep each genre exception in its designated genre. Change communications ma
 2. Run `slopvac lint <file>... --profile <profile> --format json`. Read `summary.score`, `summary.per_100_words`, `documents[].findings`, and `documents[].unchecked`. Exit 2 is incomplete: act on native findings and report every unchecked entry.
 3. Triage each ERROR and WARNING using `slopvac explain <rule_id>` and the rule's closed exception list. Fix defects, annotate named exceptions, and report false positives without suppressing them.
 4. Read the document adversarially before selecting judgement passages. For every sentence, list item, table row, and paragraph ask: "What reader action or current-contract understanding changes?" Revise when the answer is none. Name the weakest remaining claim. Check headings alone as an outline of current behavior, record every section whose heading promises content that its body withholds, and record the longest paragraph.
-5. Load and execute the shipped nondeterministic judgement metadata after recording those passages:
+5. Run an opt-in judgement pass only when the user asks for a judgement pass or deep review; the default review stops at step 4 and the verdict. For the in-context pass, run `slopvac rules --judgement --format json` after recording the passages.
 
-   ```sh
-   slopvac rules --judgement --format json
-   ```
-
-   Keep entries whose category's `recommended_for` in `.categories` names the `genre` from step 1. Run the selected questions in this order, stopping at one answer per rule per passage:
-
-   + Run `scope: document` questions once over the whole document.
-   + Run `scope: paragraph`, `scope: sentence`, and `scope: prose` questions only on selected passages. Select the paragraph, list item, or table row containing a gate finding from step 2, plus the longest paragraph and every section with a heading-gap finding recorded in step 4. Ask only questions from categories that fired in each passage.
-   + Skip a `-remainder` question when its mechanical core already fired on the same passage; the remainder covers only shapes the pattern could not name.
-   + Stop after 40 passage questions; at that cap the verdict is `REVISE` on the gate alone.
+   Keep entries whose category's `recommended_for` in `.categories` names the `genre` from step 1. Run selected questions in this order, stopping at one answer per rule per passage:
+   + Run `scope: document` questions once over the whole document. Run `scope: paragraph`, `scope: sentence`, and `scope: prose` questions only on selected passages. Select the paragraph, list item, or table row containing a gate finding from step 2, plus the longest paragraph and every section with a heading-gap finding recorded in step 4. Ask only questions from categories that fired in each passage.
+   + Skip a `-remainder` question when its mechanical core already fired on the same passage; the remainder covers only shapes the pattern could not name. Stop after 40 passage questions; at that cap the verdict is `REVISE` on the gate alone.
 
    For every selected entry, use its qualified `rule_id` (`category.rule`) with `slopvac explain <rule_id>` for the question, fix, and worked examples. Answer with a quote from the text. Report only failed questions. This metadata-driven selection applies all rules recommended for ordinary `consumer` documentation without copying rule questions into this skill.
+
+   For a structured judgement pass when the user wants rewrites or machine-readable confirms, run `slopvac judgement brief <file> --out .slopvac-judgement --packs fired`. For each call in `brief.json`, dispatch a judge using the shared system text, that call's user payload, and `Respond with the JSON object only`. Write `{call_id, response}` rows to `responses.jsonl`.
+
+   Harness dispatch:
+   - OMP: use a task with `outputSchema` set to the response schema in strict mode; re-dispatch on `schema_violation`.
+   - Claude Code: use a `slopvac-judge` subagent and the `SubagentStop` hook; retry exit-2 validation failures, stop after 8 blocks, and honor `stop_hook_active`.
+   - Codex: prompt-only JSON, then validate every response.
+
+   Validate each row (skip this on OMP when strict schema already passed) with `slopvac judgement validate --run .slopvac-judgement --call-id …`.
+
+   Apply and compare the structured judgement with `slopvac judgement finish --out .slopvac-judgement` and `slopvac judgement compare --out .slopvac-judgement --apply-preview`.
+
+   Add a `Judgement:` line to the verdict confirming by rule, rewrites accepted, and coverage.
 6. Verify every claim against code at HEAD. Every consumer example MUST be runnable and have a matching test under `examples/`; check every command, path, flag, and version.
 7. When reviewing a code change, inspect every changed comment or documentation passage against the code diff. Mark unrelated prose edits as a `defect`, including same-file comments and documentation elsewhere. Keep a stale comment that directly describes changed behavior in scope for correction. An explicitly requested prose edit is in scope even when it is unrelated to the code.
 
@@ -76,6 +87,7 @@ VERDICT: PASS | REVISE
 Gate:     score <n>/100 - <n> errors, <n> warnings, <n>/100w  (exit <code>)
 Register: <one line -- what the prose reads as, with the tell that shows it>
 Claims:   <verified | the specific claim that does not hold>
+Judgement: <confirmed by rule, rewrites accepted, coverage>
 Action: <the single highest-value change, or "none">
 False positives: <none | rule · matched text · sentence>
 ```
