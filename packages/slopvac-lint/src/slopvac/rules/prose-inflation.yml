@@ -24,6 +24,8 @@ rules:
     examples:
       - bad: A robust, comprehensive linter.
         good: A linter with 61 rules across 9 categories.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/SlopLexicon.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/SlopLexicon.yml
@@ -51,6 +53,8 @@ rules:
     examples:
       - bad: We will circle back on the low-hanging fruit.
         good: The maintainers will return to the two open bugs.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/BusinessJargon.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/BusinessJargon.yml
@@ -80,6 +84,8 @@ rules:
     examples:
       - bad: The tradeoffs are significant.
         good: The lockfile adds 40 KB and removes one network round trip.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/VagueDeclarative.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/VagueDeclarative.yml
@@ -105,6 +111,8 @@ rules:
     examples:
       - bad: Not only fast but also safe.
         good: The parser validates every field.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/AdditiveHedge.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/AdditiveHedge.yml
@@ -131,6 +139,8 @@ rules:
     examples:
       - bad: This can help to potentially reduce noise.
         good: This drops 40 findings on the same corpus.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/HedgeStack.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/HedgeStack.yml
@@ -159,6 +169,8 @@ rules:
     examples:
       - bad: The loader is very fast.
         good: The loader reads 488 files in 0.4 s.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/Intensifier.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Intensifier.yml
@@ -188,6 +200,8 @@ rules:
     examples:
       - bad: A very unique approach.
         good: A unique approach.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/Uncomparables.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Uncomparables.yml
@@ -218,6 +232,8 @@ rules:
     examples:
       - bad: Several files failed.
         good: Three files failed.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/VagueQuantifier.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/VagueQuantifier.yml
@@ -255,6 +271,8 @@ rules:
         good: The gate validates each field.
       - bad: The loader provides support for globs.
         good: The loader supports globs.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/NominalizedVerb.yml
       url: https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-inflation/NominalizedVerb.yml
@@ -285,6 +303,8 @@ rules:
     examples:
       - bad: This document describes the loader.
         good: The loader resolves every path in the manifest.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/DocumentPreamble.yml
       url: https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-inflation/DocumentPreamble.yml
@@ -315,6 +335,8 @@ rules:
     examples:
       - bad: Further benchmarking is needed.
         good: The loader reads 488 files in 0.4 s on the reference machine.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/Apologizing.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Apologizing.yml
@@ -345,6 +367,8 @@ rules:
     examples:
       - bad: Obviously, the flag is easy to use.
         good: The flag takes one argument, a glob.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inflation/BorderlineHype.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/BorderlineHype.yml

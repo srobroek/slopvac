@@ -29,6 +29,8 @@ rules:
         good: 'WARNING: This command deletes every snapshot. You cannot recover the data.'
       - bad: 'This command deletes every snapshot and cannot be undone.'
         good: 'WARNING: This command deletes every snapshot. You cannot recover the data.'
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:7.1'
@@ -82,6 +84,8 @@ rules:
         good: 'WARNING: Do not use the force flag on a production database. The force flag deletes every row.'
       - bad: 'CAUTION: The cache can serve stale reads for one hour after you change the config.'
         good: 'CAUTION: Wait one hour after you change the config. The cache serves stale reads until then.'
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:7.2'
@@ -111,6 +115,8 @@ rules:
     examples:
       - bad: 'WARNING: Do not use the force flag on a production database.'
         good: 'WARNING: Do not use the force flag on a production database. The force flag deletes every row and you cannot recover the data.'
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:7.3'

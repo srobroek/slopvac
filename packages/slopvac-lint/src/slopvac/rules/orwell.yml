@@ -38,6 +38,8 @@ rules:
         good: The release adds nested-input parsing.
       - bad: Error handling is the elephant in the room.
         good: Errors from the retry path are unhandled.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: stale-figure
@@ -58,6 +60,8 @@ rules:
     examples:
       - bad: The result is not unexpected.
         good: The result is expected.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: cut-what-cuts
@@ -87,6 +91,8 @@ rules:
     examples:
       - bad: The cache is cleared prior to each run.
         good: The cache is cleared before each run.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: cut-what-cuts
@@ -127,6 +133,8 @@ rules:
         good: The parser survives 10^6 malformed inputs; coverage is 94%.
       - bad: A seamless, powerful upgrade path.
         good: The upgrade runs the converter once and keeps the old file as a backup.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: empty-evaluative-word
@@ -156,6 +164,8 @@ rules:
     examples:
       - bad: The system handles a variety of edge cases to ensure reliable operation.
         good: The parser rejects unterminated strings and nested depth over 64.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: concrete-floor

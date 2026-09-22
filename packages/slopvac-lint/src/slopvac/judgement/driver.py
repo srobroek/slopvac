@@ -1202,11 +1202,16 @@ def prepare(
     return manifest
 
 
-def _records_json(records: Iterable[FindingRecord]) -> list[dict[str, Any]]:
+def _records_json(
+    records: Iterable[FindingRecord], rule_map: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
     result = []
     for record in records:
         item = asdict(record)
         item["evidence"] = [asdict(span) for span in record.evidence]
+        if rule_map is not None:
+            rule = rule_map.get(record.rule_id)
+            item["ai_signal"] = getattr(rule, "ai_signal", "none")
         result.append(item)
     return result
 
@@ -1302,6 +1307,10 @@ def _markdown_report(
         lines.extend([f"## {path}", "", "| measure | deterministic | judgement |", "| --- | ---: | ---: |"])
         lines.append(f"| score | {doc.get('deterministic_score', 0):.1f} | {doc.get('adjusted_score', 0):.1f} |")
         lines.append(f"| findings | {doc.get('deterministic_findings', 0)} | {doc.get('confirmed', 0)} confirms |")
+        confirms = doc.get("ai_register_confirms", {"strong": 0, "weak": 0})
+        lines.append(
+            f"| AI register confirms | strong={confirms.get('strong', 0)} | weak={confirms.get('weak', 0)} |"
+        )
         lines.append("")
         for finding in by_doc.get(path, []):
             if finding.get("outcome") != "CONFIRM":
@@ -1681,7 +1690,7 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
             records.extend(result_records)
 
     _write_jsonl(out / "failed.jsonl", failed)
-    finding_items = _records_json(records)
+    finding_items = _records_json(records, rule_map)
     _write_jsonl(out / "findings.jsonl", finding_items)
     eligible = [
         {
@@ -1714,6 +1723,12 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
         gate = cluster_gate(doc_components, doc_records, config)
         outcomes = Counter(record.outcome for record in doc_records)
         severities = Counter(record.severity for record in doc_records if record.severity)
+        ai_register_confirms = Counter(
+            getattr(rule_map.get(record.rule_id), "ai_signal", "none")
+            for record in doc_records
+            if record.outcome == "CONFIRM"
+            and getattr(rule_map.get(record.rule_id), "ai_signal", "none") in {"strong", "weak"}
+        )
         report_documents.append(
             {
                 "path": path,
@@ -1723,6 +1738,10 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
                 "judgement_findings": dict(outcomes),
                 "judgement_severity": dict(severities),
                 "confirmed": outcomes.get("CONFIRM", 0),
+                "ai_register_confirms": {
+                    "strong": ai_register_confirms.get("strong", 0),
+                    "weak": ai_register_confirms.get("weak", 0),
+                },
                 "adjusted_score": score.judgement_adjusted_score,
                 "judgement_penalty": score.judgement_penalty,
                 "passed": score.passed,
@@ -1742,6 +1761,10 @@ def finish(*, out: Path, responses: Path, offset_salvage: str = "unique-quote", 
         "offset_salvage": offset_salvage,
         **({"strict_precision": strict_precision, "lenient_precision": lenient_precision} if adjudication is not None else {}),
         "documents": report_documents,
+        "ai_register_confirms": {
+            "strong": sum(doc["ai_register_confirms"]["strong"] for doc in report_documents),
+            "weak": sum(doc["ai_register_confirms"]["weak"] for doc in report_documents),
+        },
         "coverage": coverage_dict,
         "preserve_rates": preserve_rates(records),
         "failed": failed,

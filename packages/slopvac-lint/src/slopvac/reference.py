@@ -87,9 +87,7 @@ def _tier_cell(rule: Rule) -> str:
     `Tier.ENFORCED` and the Python repr ends up in a published document.
     """
     tiers = rule.tiers or {}
-    return " / ".join(
-        getattr(tiers.get(tier), "value", "—") for tier in _TIER_ORDER
-    )
+    return " / ".join(getattr(tiers.get(tier), "value", "—") for tier in _TIER_ORDER)
 
 
 def _off_by_default(rule: Rule) -> str | None:
@@ -123,7 +121,7 @@ def _rule_section(rule: Rule) -> list[str]:
     if off is not None:
         facts.append(
             f"- **Off by profile default.** {off} — the rule is installed and "
-            f"silent; a `[rules.\"{rule.qualified_id}\"]` entry with a severity "
+            f'silent; a `[rules."{rule.qualified_id}"]` entry with a severity '
             f"turns on that rule and no other. Distinct from the tier row "
             f"above: an `excluded` tier cannot be switched back on, a profile "
             f"default can"
@@ -141,6 +139,9 @@ def _rule_section(rule: Rule) -> list[str]:
     if rule.kind is RuleKind.JUDGEMENT and rule.judgement_question:
         facts.append(f"- **Question.** {rule.judgement_question}")
     facts.append(f"- **Source.** {_provenance_line(rule)}")
+    facts.append(
+        f"- **AI register signal.** `{rule.ai_signal}` ({rule.ai_signal_source})"
+    )
     lines.extend(facts)
 
     if rule.provenance.note:
@@ -224,9 +225,7 @@ def _summary_table(ruleset: RuleSet, rules: list[Rule]) -> list[str]:
             f"| {len(jud_by_category.get(category_id, []))} "
             f"| {weight} | {genres} |"
         )
-    lines.append(
-        f"| **Total** | **{len(deterministic)}** | **{len(judgement)}** | | |"
-    )
+    lines.append(f"| **Total** | **{len(deterministic)}** | **{len(judgement)}** | | |")
     return lines
 
 
@@ -246,7 +245,10 @@ def render_reference(ruleset: RuleSet) -> str:
     """
     deterministic, judgement = _partition(ruleset.rules)
     kind_counts = sorted(
-        ((k, sum(1 for r in deterministic if r.kind is k)) for k in DETERMINISTIC_KINDS),
+        (
+            (k, sum(1 for r in deterministic if r.kind is k))
+            for k in DETERMINISTIC_KINDS
+        ),
         key=lambda pair: -pair[1],
     )
 
@@ -259,8 +261,7 @@ def render_reference(ruleset: RuleSet) -> str:
         f"slopvac ships **{len(ruleset.rules)} rules** across "
         f"**{len(ruleset.categories)} categories**.",
         "",
-        "The split below is the one that matters when you plan work against this "
-        "list:",
+        "The split below is the one that matters when you plan work against this list:",
         "",
         f"- **{len(deterministic)} checked rules** are executed by a checker — Vale "
         "or the native engine. They produce findings, they gate a build, and two "
@@ -303,7 +304,7 @@ def render_reference(ruleset: RuleSet) -> str:
             "",
             "A separate **Off by profile default** line names the profiles that "
             "install a rule and leave it silent. That is not a tier: the rule is "
-            "reachable, and a `[rules.\"<id>\"]` entry naming a severity turns that "
+            'reachable, and a `[rules."<id>"]` entry naming a severity turns that '
             "rule on without turning on any sibling rule. The entry is a top-level "
             "setting, so it applies wherever the rule's profile and category admit "
             "it rather than to one profile. A rule in a category the profile "

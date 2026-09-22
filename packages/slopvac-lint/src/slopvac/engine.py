@@ -814,8 +814,9 @@ class Engine:
                         category=rule.category,
                         severity=severity,
                         message=message,
-                        matched_text=matched,
                         replacement=replacement,
+                        matched_text=matched,
+                        ai_signal=rule.ai_signal,
                         ste_ref=rule.provenance.ste_ref,
                         orwell_ref=rule.provenance.orwell_ref,
                     )
@@ -972,6 +973,7 @@ class Engine:
             rule_id=rule.qualified_id,
             category=rule.category,
             severity=severity,
+            ai_signal=rule.ai_signal,
             message=message,
             ste_ref=rule.provenance.ste_ref,
             orwell_ref=rule.provenance.orwell_ref,

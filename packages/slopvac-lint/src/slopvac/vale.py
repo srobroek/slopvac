@@ -62,6 +62,8 @@ def run_compiled_vale(
     severities: dict[str, Severity],
     categories: dict[str, str],
     binary: str = "vale",
+    *,
+    ai_signals: dict[str, str] | None = None,
 ) -> ValeResult:
     """Lint `paths` with the compiled styles.
 
@@ -85,7 +87,9 @@ def run_compiled_vale(
     version = vale_version(binary)
     if version is None or version < MIN_VALE_VERSION:
         floor = ".".join(str(n) for n in MIN_VALE_VERSION)
-        found = ".".join(str(n) for n in version) if version else "an unreadable version"
+        found = (
+            ".".join(str(n) for n in version) if version else "an unreadable version"
+        )
         result.unchecked.append(
             f"`{binary}` reports {found}; the compiled styles need Vale {floor} or "
             f"later, so the {len(compiled.vale_rules)} rules compiled for it did NOT "
@@ -141,7 +145,9 @@ def run_compiled_vale(
         )
         return result
     except OSError as exc:
-        result.unchecked.append(f"Vale could not be run ({exc}); its rules did NOT run.")
+        result.unchecked.append(
+            f"Vale could not be run ({exc}); its rules did NOT run."
+        )
         return result
 
     # E201 means a rule file was rejected, and Vale then lints nothing at all.
@@ -246,10 +252,11 @@ def run_compiled_vale(
             result.by_path.setdefault(path, []).append(
                 Finding(
                     path=path,
+                    rule_id=owner,
                     line=line,
                     column=span[0],
                     end_column=end_column,
-                    rule_id=owner,
+                    ai_signal=(ai_signals or {}).get(owner, "none"),
                     category=category,
                     severity=severity,
                     message=alert["Message"].strip(),

@@ -26,6 +26,8 @@ rules:
     examples:
       - bad: The runner had been retrying the request for ten minutes.
         good: The runner retried the request for ten minutes.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.1'
@@ -63,6 +65,8 @@ rules:
         good: The scheduler drains the queue while the node restarts.
       - bad: By the next release, the flag will have been removed.
         good: The next release removes the flag.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.2'
@@ -102,6 +106,8 @@ rules:
         good: The maintenance job rebuilds the corrupted index.
       - bad: Delete each file that has been marked stale.
         good: Delete each stale file.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.3'
@@ -146,6 +152,8 @@ rules:
         good: You can clear the cache with one command.
       - good: The cache can be cleared with one command.
         bad: The cache must have been cleared before the run.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.4'
@@ -185,6 +193,8 @@ rules:
         good: Make sure that the queue is empty. Then restart the worker.
       - bad: You can reduce cost by caching the response.
         good: To reduce cost, cache the response.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.5'
@@ -271,6 +281,8 @@ rules:
         good: Set the retry limit in the client config.
       - good: The option is often useful when the index is open.
         bad: The option is often ignored when the index is open.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.6'
@@ -320,6 +332,8 @@ rules:
         good: Verify the checksum after the download.
       - bad: The gate provides protection against a bad merge.
         good: The gate prevents a bad merge.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:3.7'

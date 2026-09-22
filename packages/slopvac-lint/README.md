@@ -367,6 +367,10 @@ The report leads with what did **not** run, before the score, and flags each
 affected document in the table. A score from an engine that failed to start is an
 upper bound, and a reader who misses that has been misled by their own report.
 
+### Report axes
+
+Reports show prose findings separately from AI-register findings. Strong and weak signals have their own counts. These counts do not affect scoring or gates.
+
 Below that: the verdict, then the documents worst first, then the categories that
 fired, then the findings, grouped per document. Anything that failed starts open.
 

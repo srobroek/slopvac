@@ -26,6 +26,8 @@ rules:
         good: The loader retries twice.
       - bad: 'As a large language model, I cannot browse the internet.'
         good: The documentation describes the supported behaviour.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: vale-styles/ai-residue/ChatLeakage.yml
       url: https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md

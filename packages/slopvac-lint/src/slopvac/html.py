@@ -186,7 +186,7 @@ def render_html(
 
     out.append('<section class="panel"><h2>Documents</h2><table>')
     out.append(
-        '<tr><th>path</th><th class=num>score</th><th class=num>findings</th>'
+        "<tr><th>path</th><th class=num>score</th><th class=num>findings</th>"
         "<th class=num>/100w</th></tr>"
     )
     # Worst first: a reader fixing a repository starts at the bottom of the score.
@@ -208,7 +208,9 @@ def render_html(
     scored = [c for c in summary.categories if c.findings]
     if scored:
         worst = max(c.findings for c in scored) or 1
-        out.append("<table><tr><th>category</th><th class=num>findings</th><th></th></tr>")
+        out.append(
+            "<table><tr><th>category</th><th class=num>findings</th><th></th></tr>"
+        )
         for cat in sorted(scored, key=lambda c: -c.findings):
             out.append(
                 f"<tr><td><code>{_e(cat.category)}</code></td>"
@@ -219,6 +221,21 @@ def render_html(
     else:
         out.append('<p class="clean">No category produced a finding.</p>')
     out.append("</section></div>")
+    out.append('<section class="panel"><h2>AI register</h2><table>')
+    out.append(
+        "<tr><th>axis</th><th class=num>findings</th><th class=num>errors</th><th class=num>warnings</th><th class=num>/100w</th></tr>"
+    )
+    for label, value in (
+        ("strong", summary.ai_register["strong"]),
+        ("weak", summary.ai_register["weak"]),
+        ("Prose quality", summary.prose),
+    ):
+        out.append(
+            f"<tr><td>{_e(label)}</td><td class=num>{value.findings}</td>"
+            f"<td class=num>{value.errors}</td><td class=num>{value.warnings}</td>"
+            f"<td class=num>{value.per_100_words:.2f}</td></tr>"
+        )
+    out.append("</table></section>")
 
     # --- the findings themselves -------------------------------------------
     out.append('<section class="panel"><h2>Findings</h2>')
@@ -249,7 +266,7 @@ def render_html(
             sev = finding.severity.value
             sev_css = {"error": "bad", "warning": "warn"}.get(sev, "")
             fix = (
-                f' &rarr; <code>{_e(finding.replacement)}</code>'
+                f" &rarr; <code>{_e(finding.replacement)}</code>"
                 if finding.replacement
                 else ""
             )
