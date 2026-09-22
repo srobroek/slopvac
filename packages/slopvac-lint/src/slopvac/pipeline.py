@@ -48,7 +48,12 @@ from .config import (
     resolve_for,
 )
 from .diff_scope import DiffScope, filter_findings
-from .engine import Engine, drop_quoted_illustrations, match_substitution
+from .engine import (
+    Engine,
+    drop_quoted_illustrations,
+    is_single_replacement,
+    match_substitution,
+)
 from .html import render_html
 from .model import DocumentScore, Finding
 from .report import LintReport, build_sarif, summarize
@@ -381,7 +386,8 @@ def lint_one(
                 continue
             replacement = finding.replacement
             if rule.kind.value == "substitution" and rule.substitutions:
-                replacement = match_substitution(rule.substitutions, finding.matched_text)
+                candidate = match_substitution(rule.substitutions, finding.matched_text)
+                replacement = candidate if is_single_replacement(candidate) else None
             merged.append(
                 finding.model_copy(
                     update={
