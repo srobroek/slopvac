@@ -40,6 +40,7 @@ Orwell's own sixth rule has in an automated pipeline.
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import regex as re
@@ -591,7 +592,8 @@ class Engine:
         return sorted(
             rule.qualified_id
             for rule in self.rules
-            if rule.kind is RuleKind.METRIC and (rule.metric or "") not in NATIVE_METRICS
+            if rule.kind is RuleKind.METRIC
+            and (rule.metric or "") not in NATIVE_METRICS
         )
 
     def drop_suppressed(
@@ -632,9 +634,13 @@ class Engine:
 
         for rule in self.rules:
             if rule.kind in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION):
-                findings.extend(self._run_lexical(rule, document, suppressions, disabled))
+                findings.extend(
+                    self._run_lexical(rule, document, suppressions, disabled)
+                )
             elif rule.kind is RuleKind.METRIC:
-                findings.extend(self._run_metric(rule, document, suppressions, disabled))
+                findings.extend(
+                    self._run_metric(rule, document, suppressions, disabled)
+                )
             elif rule.kind is RuleKind.STRUCTURE:
                 findings.extend(
                     self._run_structure(rule, document, suppressions, disabled)
@@ -642,6 +648,7 @@ class Engine:
 
         findings.sort(key=lambda f: (f.line, f.column, f.rule_id))
         return findings
+
     def _lines_for_scope(
         self, rule: Rule, document: Document
     ) -> list[tuple[Block | None, int, str]]:
@@ -668,6 +675,7 @@ class Engine:
         if rule.scope is Scope.DOCUMENT:
             parts: list[str] = []
             starts: list[tuple[int, int]] = []
+            sentences = []
             offset = 0
             for block in blocks:
                 if not block.text:
@@ -677,6 +685,21 @@ class Engine:
                     offset += 1
                 for local, line in block.line_starts or [(0, block.lines[0])]:
                     starts.append((offset + local, line))
+                cursor = 0
+                for sentence in block.sentences:
+                    local = block.text.find(sentence.text, cursor)
+                    if local < 0:
+                        local = block.text.find(sentence.text)
+                    if local < 0:
+                        continue
+                    sentences.append(
+                        replace(
+                            sentence,
+                            start=offset + local,
+                            end=offset + local + len(sentence.text),
+                        )
+                    )
+                    cursor = local + len(sentence.text)
                 parts.append(block.text)
                 offset += len(block.text)
             if not parts:
@@ -686,6 +709,7 @@ class Engine:
                 kind=BlockKind.PARAGRAPH,
                 lines=(starts[0][1], starts[-1][1]),
                 text=text,
+                sentences=sentences,
                 line_starts=starts,
             )
             return [(synthetic, 0, text)]
@@ -741,9 +765,6 @@ class Engine:
                 matched = match.group(0)
                 if matched.lower() in allowed:
                     continue
-                # A longer allowlist phrase only exempts this occurrence when the
-                # phrase span contains the match span. A nearby second occurrence
-                # must not silence the first one.
                 if any(
                     occurrence.start() <= match.start()
                     and occurrence.end() >= match.end()
@@ -764,10 +785,6 @@ class Engine:
                     end_column = column + len(matched)
                 else:
                     line, column = block.position(base_offset + match.start())
-                    # A match that wraps to the next source line is reported on the
-                    # line it starts on, and `Finding` carries no end line, so the
-                    # range stops at the end of that line rather than naming a
-                    # column the line does not have.
                     end_line, end_column = block.position(base_offset + match.end())
                     if end_line != line:
                         end_column = len(document.raw_lines[line - 1]) + 1
@@ -908,7 +925,9 @@ class Engine:
                 # not contribute one sentence per bullet here -- list items are
                 # their own blocks, so they never reach this count.
                 if exceeds(len(block.sentences), threshold):
-                    report(block.lines[0], str(len(block.sentences)), str(int(threshold)))
+                    report(
+                        block.lines[0], str(len(block.sentences)), str(int(threshold))
+                    )
 
         elif metric == "multiword_noun_words":
             per_sentence(longest_noun_stack)
@@ -971,7 +990,9 @@ class Engine:
                 if block.kind is not BlockKind.HEADING:
                     continue
                 if previous and block.level > previous + 1:
-                    if not self._suppressed(rule, block.lines[0], suppressions, disabled):
+                    if not self._suppressed(
+                        rule, block.lines[0], suppressions, disabled
+                    ):
                         results.append(
                             self._metric_finding(
                                 rule,
