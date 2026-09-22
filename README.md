@@ -338,11 +338,13 @@ Simplified Technical English as testable rules. `orwell` restates Orwell's six
 rules as objective tests. `prose-*` and `docs-discipline` are craft and
 documentation-genre rules.
 
-Every rule also carries an `ai_signal`: `strong` when the human-corpus
-measurement below shows it fires on stated-LLM prose and not on human prose,
-`weak` when the catalog claims it but the measurement is inconclusive, `none`
-for craft rules. Reports roll findings up on two axes, `prose` and
-`ai_register`, so you can see whether a document's problem is register or
+Every rule also carries two fields. `ai_signal` is the strength: `strong` (10
+rules), `weak` (78), or `none` (143). `ai_signal_source` is where that strength
+comes from: `measured` when the human-corpus comparison below produced it (18
+rules; one example is 13 confirms on stated-LLM units against 0 on human units),
+`catalog` when it is the tells catalog's claim without a corpus measurement,
+`unmeasured` when nothing supports a signal. Reports roll findings up on two axes, `prose`
+and `ai_register`, so you can see whether a document's problem is register or
 craft. Neither axis changes scoring or gates.
 
 ### Scoring
@@ -566,10 +568,11 @@ uv run --project packages/slopvac-lint --with pytest pytest packages/slopvac-lin
 ```
 
 The repository also ships agent configuration: the plugin manifests and the two
-skills under `packages/slopvac/`. CI lints those files with
-[agnix](https://github.com/agent-sh/agnix) 0.52.2 (`.agnix.toml`), a linter for
-agent-facing Markdown and plugin manifests. To run the same check on staged
-files before each commit:
+skills under `packages/slopvac/`. CI validates those files with
+[agnix](https://github.com/agent-sh/agnix) 0.52.2 (`.agnix.toml`), a validator
+for agent instruction and configuration files (`SKILL.md`, plugin manifests,
+hooks). It checks structure and references, not prose; slopvac does that. To run
+the same check on staged files before each commit:
 
 ```sh
 cargo install --locked agnix-cli --version 0.52.2
