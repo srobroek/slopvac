@@ -87,6 +87,48 @@ def test_flip_rate_counts_modal_disagreement() -> None:
     assert noise.flip_rate(["CONFIRM", "REJECT", "ABSTAIN"]) == 2 / 3
 
 
+def test_fingerprint_changes_when_prompt_bytes_differ() -> None:
+    row = {
+        "model_id": "model",
+        "inference_config": {"maxTokens": 10},
+        "prompt_bytes_sha256": "a" * 64,
+        "response_schema": {"type": "object"},
+    }
+    changed = {**row, "prompt_bytes_sha256": "b" * 64}
+    assert noise._fingerprint(row, None) != noise._fingerprint(changed, None)
+
+
+def test_failure_unit_repeats_differ_from_incomplete_units(tmp_path: Path) -> None:
+    prompts, responses, out = _fixture(
+        tmp_path,
+        [
+            {"call_id": "c#r1", "error": "throttled"},
+            {"call_id": "c#r2", "error": "throttled"},
+            {
+                "call_id": "c#r3",
+                "response": {"results": [_model_row("u", "R", "reject")]},
+            },
+        ],
+    )
+    noise.analyse(
+        type(
+            "Args",
+            (),
+            {
+                "prompts": prompts,
+                "responses": responses,
+                "out_dir": out,
+                "run_config": None,
+            },
+        )()
+    )
+    report = json.loads((out / "noise-floor.json").read_text(encoding="utf-8"))
+    assert report["failure_unit_repeats"]["provider_error"] == 2
+    assert report["incomplete_units"]["provider_error"] == 1
+    assert report["failure_unit_repeat_denominator"] == 3
+    assert report["incomplete_unit_denominator"] == 1
+
+
 def test_prepare_persists_model_and_inference_config(tmp_path: Path) -> None:
     prompts, _, _ = _fixture(tmp_path)
     registration, out = tmp_path / "subsample.json", tmp_path / "repeat-prompts.jsonl"
@@ -157,7 +199,13 @@ def test_analyse_excludes_incomplete_units_and_counts_failures(tmp_path: Path) -
     assert report["complete_units"] == 0
     assert report["failure_classes"]["provider_error"] == 1
     assert report["failure_classes"]["unknown_unit"] == 1
+    assert report["failure_unit_repeats"] == report["failure_classes"]
+    assert report["incomplete_units"] == {"provider_error": 1, "unknown_unit": 1}
     assert report["rules"][0]["failure_classes"] == {
+        "provider_error": 1,
+        "unknown_unit": 1,
+    }
+    assert report["rules"][0]["incomplete_units"] == {
         "provider_error": 1,
         "unknown_unit": 1,
     }
