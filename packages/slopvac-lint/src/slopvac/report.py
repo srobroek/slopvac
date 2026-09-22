@@ -35,7 +35,15 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from .config import Severity
-from .model import CategoryScore, DocumentScore, Finding, Rule, RuleKind
+from .model import (
+    AiRegisterConfirms,
+    AiRegisterSummary,
+    CategoryScore,
+    DocumentScore,
+    Finding,
+    Rule,
+    RuleKind,
+)
 
 # ---------------------------------------------------------------------------
 # `--format json`
@@ -79,6 +87,14 @@ class RunSummary(BaseModel):
     judgement_penalty: float = Field(default=0.0, ge=0)
     judgement_penalty_uncapped: float = Field(default=0.0, ge=0)
     judgement_adjusted_score: float = Field(default=100.0, ge=0, le=100)
+    ai_register: dict[Literal["strong", "weak"], AiRegisterSummary] = Field(
+        default_factory=lambda: {
+            "strong": AiRegisterSummary(),
+            "weak": AiRegisterSummary(),
+        }
+    )
+    prose: AiRegisterSummary = Field(default_factory=AiRegisterSummary)
+    ai_register_confirms: AiRegisterConfirms = Field(default_factory=AiRegisterConfirms)
     judgement_cluster_gate: Literal["REVISE"] | None = None
 
 
@@ -357,7 +373,9 @@ def build_sarif(
                     locations=[
                         SarifLocation(
                             physicalLocation=SarifPhysicalLocation(
-                                artifactLocation=SarifArtifactLocation(uri=finding.path),
+                                artifactLocation=SarifArtifactLocation(
+                                    uri=finding.path
+                                ),
                                 region=SarifRegion(
                                     startLine=finding.line,
                                     startColumn=finding.column,
@@ -386,6 +404,23 @@ def build_sarif(
                 results=results,
             )
         ]
+    )
+
+
+def _axis_summary(
+    scores: list[DocumentScore], signal: Literal["strong", "weak", "none"]
+) -> AiRegisterSummary:
+    values = [
+        score.ai_register[signal] if signal != "none" else score.prose
+        for score in scores
+    ]
+    findings = sum(value.findings for value in values)
+    words = sum(score.words for score in scores)
+    return AiRegisterSummary(
+        findings=findings,
+        errors=sum(value.errors for value in values),
+        warnings=sum(value.warnings for value in values),
+        per_100_words=round(findings / words * 100, 3) if words else 0.0,
     )
 
 
@@ -438,6 +473,12 @@ def summarize(scores: list[DocumentScore]) -> RunSummary:
         )
         for name, entries in sorted(buckets.items())
     ]
+    register = {signal: _axis_summary(scores, signal) for signal in ("strong", "weak")}
+    prose = _axis_summary(scores, "none")
+    confirms = AiRegisterConfirms(
+        strong=sum(score.ai_register_confirms.strong for score in scores),
+        weak=sum(score.ai_register_confirms.weak for score in scores),
+    )
     return RunSummary(
         documents=len(scores),
         words=words,
@@ -453,8 +494,13 @@ def summarize(scores: list[DocumentScore]) -> RunSummary:
         ),
         judgement_adjusted_score=round(adjusted, 1),
         judgement_cluster_gate=(
-            "REVISE" if any(score.judgement_cluster_gate == "REVISE" for score in scores) else None
+            "REVISE"
+            if any(score.judgement_cluster_gate == "REVISE" for score in scores)
+            else None
         ),
         passed=all(score.passed for score in scores),
         categories=categories,
+        ai_register=register,
+        prose=prose,
+        ai_register_confirms=confirms,
     )

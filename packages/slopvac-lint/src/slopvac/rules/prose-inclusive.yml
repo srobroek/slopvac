@@ -51,6 +51,8 @@ rules:
         good: The audit found a gap in the coverage.
       - bad: The complaint fell on deaf ears.
         good: Nobody answered the complaint.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inclusive/Ableist.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inclusive/Ableist.yml
@@ -90,6 +92,8 @@ rules:
         good: Select Save.
       - bad: Hover over the badge.
         good: Point to the badge.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inclusive/DeviceAssumption.yml
       url: https://www.w3.org/WAI/WCAG22/Understanding/
@@ -156,6 +160,8 @@ rules:
         note: >-
           "master branch", "master boot record", and the named contract forms
           ("Master Subscription Agreement") are exempt by lookahead.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-inclusive/Exclusive.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inclusive/Exclusive.yml

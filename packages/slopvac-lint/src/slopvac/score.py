@@ -31,11 +31,18 @@ the defaults below are the shipped calibration.
 
 from __future__ import annotations
 
+from typing import Literal
 from collections.abc import Mapping
 
 from .config import ResolvedConfig, Severity
 from .judgement.aggregate import judgement_penalty, judgement_penalty_uncapped
-from .model import CategoryScore, DocumentScore, Finding
+from .model import (
+    AiRegisterConfirms,
+    AiRegisterSummary,
+    CategoryScore,
+    DocumentScore,
+    Finding,
+)
 
 # Severity is the multiplier used by both category and document gates.
 SEVERITY_WEIGHT = {
@@ -49,6 +56,28 @@ SEVERITY_WEIGHT = {
 # error message reads as 5.0 per 100 words and would fail every budget. The
 # document is still scored on absolute counts.
 MIN_WORDS_FOR_DENSITY = 60
+
+
+def _ai_summary(findings: list[Finding], words: int, signal: str) -> AiRegisterSummary:
+    selected = [finding for finding in findings if finding.ai_signal == signal]
+    measurable = words >= MIN_WORDS_FOR_DENSITY and words > 0
+    density = len(selected) / words * 100 if measurable else 0.0
+    return AiRegisterSummary(
+        findings=len(selected),
+        errors=sum(f.severity is Severity.ERROR for f in selected),
+        warnings=sum(f.severity is Severity.WARNING for f in selected),
+        per_100_words=round(density, 3),
+    )
+
+
+def _ai_register(
+    findings: list[Finding], words: int
+) -> tuple[dict[Literal["strong", "weak"], AiRegisterSummary], AiRegisterSummary]:
+    return (
+        {signal: _ai_summary(findings, words, signal) for signal in ("strong", "weak")},
+        _ai_summary(findings, words, "none"),
+    )
+
 
 # The rule whose findings `Thresholds.max_unicode_dashes` counts.
 UNICODE_DASH_RULE = "prose-format.no-unicode-dash"
@@ -221,6 +250,7 @@ def _blocking_density(
         * 100
     )
 
+
 def _failure_reasons(
     findings: list[Finding],
     category_scores: list[CategoryScore],
@@ -280,6 +310,7 @@ def _failure_reasons(
     )
     return reasons
 
+
 def _deterministic_report(
     findings: list[Finding],
     words: int,
@@ -294,7 +325,9 @@ def _deterministic_report(
         for name, items in sorted(by_category.items())
     ]
     category_scores = [entry for entry, _ in entries]
-    active_categories = {entry.category for entry, weight in entries if weight > 0} or None
+    active_categories = {
+        entry.category for entry, weight in entries if weight > 0
+    } or None
     overall = min(
         _weighted_category_score(entries),
         _whole_document_score(
@@ -305,10 +338,6 @@ def _deterministic_report(
         ),
     )
     return category_scores, overall, active_categories
-
-
-
-
 
 
 def _judgement_report(
@@ -368,6 +397,7 @@ def score_document(
     per_100 = (
         len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0
     )
+    ai_register, prose = _ai_register(findings, words)
     judgement_unchecked = judgement_unchecked or []
     return DocumentScore(
         path=path,
@@ -388,6 +418,9 @@ def score_document(
         judgement_adjusted_score=round(adjusted, 1),
         judgement_cluster_gate=judgement_gate,
         judgement_unchecked=judgement_unchecked,
+        ai_register=ai_register,
+        prose=prose,
+        ai_register_confirms=AiRegisterConfirms(),
         passed=not reasons,
         failure_reasons=reasons,
         unchecked=unchecked,

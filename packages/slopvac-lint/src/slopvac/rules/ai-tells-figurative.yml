@@ -41,6 +41,8 @@ rules:
         good: The loader parses the file, then validates it.
       - bad: Twelve tickets sit unresolved.
         good: Twelve tickets are open.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeSits.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeSits.yml
@@ -69,6 +71,8 @@ rules:
         good: The two teams disagree about who owns retries.
       - bad: This runs counter to the retry policy.
         good: This contradicts the retry policy.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeRuns.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRuns.yml
@@ -95,6 +99,8 @@ rules:
         good: The cache hits 71% against a 90% target.
       - bad: Retries fall within the scope of this document.
         good: This document covers retries.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeFalls.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeFalls.yml
@@ -121,6 +127,8 @@ rules:
         good: The design follows the 2024 incident review.
       - bad: This draws a distinction between retries and backoff.
         good: A retry repeats the call; backoff sets the delay between retries.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeDraws.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeDraws.yml
@@ -145,6 +153,8 @@ rules:
     examples:
       - bad: The benchmark casts doubt on the caching claim.
         good: The benchmark shows no cache hits, so the caching claim is unverified.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeCasts.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeCasts.yml
@@ -168,6 +178,8 @@ rules:
         good: The migration guide gives a command for each of the four steps.
       - bad: The bug strikes at the core of the retry design.
         good: The bug makes every retry reuse the expired token.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeStrikes.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeStrikes.yml
@@ -193,6 +205,8 @@ rules:
     examples:
       - bad: Caching the manifest is an easy win.
         good: Caching the manifest removes 300 ms from every cold start.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeWins.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeWins.yml
@@ -217,6 +231,8 @@ rules:
     examples:
       - bad: The schema lends itself to incremental validation.
         good: The schema validates one field at a time.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeLends.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLends.yml
@@ -238,6 +254,8 @@ rules:
     examples:
       - bad: Correctness rides on whether the clock is monotonic.
         good: Correctness requires a monotonic clock.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeRides.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRides.yml
@@ -262,6 +280,8 @@ rules:
     examples:
       - bad: The parser fails loudly on a bad header.
         good: The parser exits 2 and writes the offending line to stderr.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeLoud.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLoud.yml
@@ -286,6 +306,8 @@ rules:
     examples:
       - bad: The argument resonates with maintainers.
         good: Three maintainers said the argument matched their experience.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — ResonateOveruse.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ResonateOveruse.yml
@@ -312,6 +334,8 @@ rules:
         good: Batching the writes cuts the transaction count from 400 to 4.
       - bad: What really matters is the retry budget.
         good: The retry budget decides whether the job finishes inside the window.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — ColloquialAssessments.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ColloquialAssessments.yml
@@ -347,6 +371,8 @@ rules:
         good: Four astronomy tools depend on the library.
       - bad: The rewrite left a lasting impact on latency.
         good: The rewrite cut p99 latency from 800 ms to 120 ms.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — PromotionalPuffery.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/PromotionalPuffery.yml
@@ -376,6 +402,8 @@ rules:
         good: The cache holds 8 TB no competitor can re-derive without our sensor feed.
       - bad: Adoption creates a growth flywheel.
         good: Each new user contributes a review, which raises search ranking.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — StrategyBuzzwords.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/StrategyBuzzwords.yml
@@ -404,6 +432,8 @@ rules:
         good: A dependency graph with 340 edges.
       - bad: This is a pivotal release.
         good: This release removes the last Python 3.9 dependency.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — AIAdjectiveNounPairs.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/AIAdjectiveNounPairs.yml
@@ -451,6 +481,8 @@ rules:
         good: The migration starts on 3 March.
       - bad: The team spearheads the rewrite.
         good: The team leads the rewrite.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — OverusedVocabularyVerbs.yml
       url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/OverusedVocabularyVerbs.yml

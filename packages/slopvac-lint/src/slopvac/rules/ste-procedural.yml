@@ -32,6 +32,8 @@ rules:
         good: >-
           Set the retry limit to five and the backoff to two seconds in the client config.
           Restart every worker in the pool. Then run the smoke test.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:5.1'
@@ -65,6 +67,8 @@ rules:
         good: Delete the stale branch. Then push the new tag.
       - bad: Edit the manifest and restart the worker.
         good: Edit the manifest. Restart the worker.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:5.2'
@@ -104,6 +108,8 @@ rules:
         good: Clear the cache before the import.
       - bad: The token should be revoked after the audit.
         good: Revoke the token after the audit.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:5.3'
@@ -139,6 +145,8 @@ rules:
         good: If the queue depth is above one thousand, restart the worker.
       - bad: Clear the cache when the import completes.
         good: When the import completes, clear the cache.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:5.4'
@@ -176,6 +184,8 @@ rules:
         good: >-
           Do not run two imports at the same time. NOTE: Two imports write to the same
           table.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:5.5'

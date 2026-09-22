@@ -46,6 +46,9 @@ rules:
           The caller opens a connection. The consumer must close it.
         good: >-
           The caller opens the connection and must close it.
+    ai_signal: none
+    ai_signal_source: measured
+    # Measurement: 2/9 vs 7/37 units on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: ASD-STE100
       ste_ref: "9:1.11"
@@ -104,6 +107,8 @@ rules:
         good: Investigate the failing shard.
       - bad: The hook provides validation of the payload.
         good: The hook validates the payload.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: "9:3.7"
@@ -151,6 +156,8 @@ rules:
           The parser reads the file and normalizes the paths. It emits the
           report and skips any entry that fails validation. The caller handles
           those separately.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: "9:4.1"
@@ -251,6 +258,8 @@ rules:
         good: We asked the maintainers.
       - bad: This section unpacks the retry logic.
         good: This section explains the retry logic.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: "9:3.5"
@@ -297,6 +306,8 @@ rules:
           claim shape: nothing in it can be checked.
       - bad: Designed from the ground up for the modern developer workflow.
         good: Runs as a pre-commit hook and a GitHub Action.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: empty-evaluative-word
@@ -374,6 +385,8 @@ rules:
     examples:
       - bad: A turnkey, future-proof deployment story.
         good: Deploys with one command; supported on Kubernetes 1.28 and later.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: prose-inflation
       note: >-
@@ -431,6 +444,8 @@ rules:
         note: >-
           The metric counts two boundaries here and would pass at threshold 3.
           A reader still holds three things.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: "9:4.1"
@@ -500,6 +515,9 @@ rules:
       - bad: This could potentially help reduce some of the noise in certain cases.
         good: This removes the 12 findings that fired on code comments.
         note: A hedge on a hedge on a quantifier. Three layers, no claim.
+    ai_signal: none
+    ai_signal_source: measured
+    # Measurement: 0 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: Orwell 1946
       orwell_ref: cut-what-cuts
@@ -556,6 +574,8 @@ rules:
           entries.
       - bad: Batching can reduce cost, but it may equally add latency.
         good: Batching cuts cost by 30% and adds 15 ms of latency.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: cut-what-cuts
@@ -592,6 +612,8 @@ rules:
         good: This removes the 12 findings that fired on code comments.
       - bad: The flag may help avoid certain failures.
         good: The flag skips the retry path, so a 429 fails immediately.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Orwell 1946
       orwell_ref: cut-what-cuts
@@ -649,6 +671,9 @@ rules:
           CORRECT AS WRITTEN, and the reason this is judgement rather than a
           token list. The figure is present; `most` quantifies the distribution
           honestly, because not all of them do.
+    ai_signal: none
+    ai_signal_source: measured
+    # Measurement: 5/11 vs 5/79 units on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: Wikipedia MOS:WEASEL
       note: >-

@@ -45,6 +45,8 @@ rules:
         good: The parser reads JSON.
       - bad: The client supports HTTP; it does not support FTP.
         good: The client supports HTTP.
+    ai_signal: strong
+    ai_signal_source: measured
     provenance:
       source: 'AI tells catalog — structure.md ("Contrastive inversion") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -82,6 +84,9 @@ rules:
       - bad: "Choose SHA-256, not MD5."
         good: null
         note: "preserve: instruction naming a real alternative"
+    ai_signal: strong
+    ai_signal_source: measured
+    # Measurement: 13 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -137,6 +142,8 @@ rules:
         bad: The limit is a ceiling. It is not a target to aim for.
       - good: The lock is a lease. It is not a mutex.
         bad: Security is not a checkbox. It is a process.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
@@ -179,6 +186,8 @@ rules:
     examples:
       - bad: Not a bug. Not a feature. A design flaw.
         good: The loader drops the last row, which is a design flaw.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Staccato negative parallel") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://tropes.fyi/
@@ -218,6 +227,8 @@ rules:
     examples:
       - bad: Fast. Deterministic. Auditable.
         good: The gate is deterministic and writes an audit line per finding.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Staccato negative parallel", "One-sentence emphasis paragraph") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://tropes.fyi/
@@ -250,6 +261,8 @@ rules:
           https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
           for ai-tells.VerbTricolon (149 hits). The last item may
           be hyphenated or multiword so a rhetorical "battle-tested" still fires.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Rule of three / tricolon abuse") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -292,6 +305,8 @@ rules:
     examples:
       - bad: "- **Speed:** it is fast.\n- **Safety:** it is safe.\n- **Scale:** it scales."
         good: The gate reads 488 files in 0.4 s and refuses an unresolvable style.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Rule of three / tricolon abuse", "Bold-lead-in bullet symmetry") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://rlhfbook.com/c/18-style
@@ -327,6 +342,8 @@ rules:
     examples:
       - bad: "Here's the thing: the loader reads the lockfile."
         good: The loader reads the lockfile.
+    ai_signal: weak
+    ai_signal_source: measured
     provenance:
       source: 'AI tells catalog — structure.md ("False-suspense transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://tropes.fyi/
@@ -368,6 +385,9 @@ rules:
     examples:
       - bad: What follows is the part that changes how you read the rest of this page.
         good: The gate exits 1 when the score falls below 80.
+    ai_signal: weak
+    ai_signal_source: measured
+    # Measurement: 5 vs 3 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — structure.md ("False-suspense transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://tropes.fyi/
@@ -391,6 +411,8 @@ rules:
     examples:
       - bad: The result? Devastating.
         good: The migration dropped two rows.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Fragment-question pivot") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://tropes.fyi/
@@ -415,6 +437,8 @@ rules:
     examples:
       - bad: So why does this matter?
         good: A false status claim ships a document that lies.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Rhetorical-question transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -451,6 +475,8 @@ rules:
     examples:
       - bad: In this guide, we'll explore the loader.
         good: The loader resolves every path in the manifest.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Meta-narration") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -500,6 +526,8 @@ rules:
       - good: This release note explains why the loader now rejects duplicate keys.
         bad: We will explore the implementation journey in a later section.
 
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Meta-narration") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -543,6 +571,8 @@ rules:
         good: "## Authentication\n\nEvery request sends a bearer token."
       - bad: "Deployment\n\nDeployment is the act of releasing software."
         good: "Deployment\n\nThe pipeline signs the image before publishing it."
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Heading echo") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -588,6 +618,8 @@ rules:
         good: The gate reads one config file.
       - bad: Happy migrating!
         good: Restart the worker after the config is written.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Summary closer") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -632,6 +664,8 @@ rules:
       - bad: "The gate has three parts, described above: the loader, the checkers, and the scorer."
         good: ""
         note: The document ends on the scorer section.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Summary closer", "Outline conclusion") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -671,6 +705,8 @@ rules:
     examples:
       - bad: The first wall is latency. The second wall is memory. The third wall is cost.
         good: "Three limits apply:\n\n- latency\n- memory\n- cost"
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Listicle in a trench coat") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -709,6 +745,9 @@ rules:
     examples:
       - bad: They assume a lockfile. They assume a network. They assume a token.
         good: They assume a lockfile, a network, and a token.
+    ai_signal: strong
+    ai_signal_source: measured
+    # Measurement: 8 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — structure.md ("Anaphora abuse") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -746,6 +785,8 @@ rules:
     examples:
       - bad: Apple didn't build Uber. Facebook didn't build Spotify.
         good: The plugin runs in the host process, so it cannot outlive the session.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Analogy-stack authority") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://www.oliviacal.com/post/ai-writing-tells
@@ -784,6 +825,8 @@ rules:
     examples:
       - bad: This is the supervision paradox.
         good: A reviewer who approves faster than they read approves more defects.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Invented concept label") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -807,6 +850,8 @@ rules:
     examples:
       - bad: "Three pillars support this: speed, safety, and cost."
         good: "The gate is fast, refuses an unresolvable style, and runs in CI."
+    ai_signal: strong
+    ai_signal_source: measured
     provenance:
       source: 'AI tells catalog — structure.md ("Cataphoric numbered lead-in") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -848,6 +893,9 @@ rules:
     examples:
       - bad: A handful of considerations apply here.
         good: "Two limits apply:"
+    ai_signal: strong
+    ai_signal_source: measured
+    # Measurement: 128 vs 6 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — structure.md ("Cataphoric numbered lead-in") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-structure.cataphoric-lead-in-core.
@@ -882,6 +930,8 @@ rules:
     examples:
       - bad: Rate limits are a real concern here.
         good: The client retries twice, then returns 429 to the caller.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Hollow acknowledgment") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -908,6 +958,8 @@ rules:
         good: One way to fix this is to re-run the sync when the cache is stale.
       - bad: Every Project Needs A Lockfile.
         good: A project with more than one direct dependency needs a lockfile.
+    ai_signal: strong
+    ai_signal_source: measured
     provenance:
       source: "AI tells catalog — structure.md (\"Absolute assertion\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -957,6 +1009,9 @@ rules:
       - bad: Every system always behaves correctly.
         good: null
         note: "flag: unsupported universal; require an observed counterexample"
+    ai_signal: strong
+    ai_signal_source: measured
+    # Measurement: 69 vs 13 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: "AI tells catalog — structure.md (\"Absolute assertion\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
@@ -992,6 +1047,8 @@ rules:
         good: The parser test suite covers TOML comments; browser behavior is not run here.
       - bad: Config is recorded elsewhere.
         good: The deployment manifest records the region and is the source of truth.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Negative/exclusion inventory") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1039,6 +1096,8 @@ rules:
         good: The cache is invalidated when the manifest changes.
       - good: This release does not include browser checks; run `make browser-smoke` before release.
         bad: "Not included: other things."
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Negative/exclusion inventory") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1061,6 +1120,8 @@ rules:
     examples:
       - bad: Think of it like a highway system for data.
         good: The bus fans one message out to every registered handler.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Think-of-it-as reflex") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://medium.com/@tdoherty_96508/a-field-guide-to-terrible-ai-writing-6a83ddb6a141
@@ -1099,6 +1160,8 @@ rules:
     examples:
       - bad: The scheduler is the traffic warden of the cluster.
         good: The scheduler assigns each pod to the node with the most free memory.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Think-of-it-as reflex") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-structure.think-of-it-as-core.
@@ -1135,6 +1198,9 @@ rules:
         good: beef, chicken, and pork
       - bad: from startups to enterprises
         good: teams of 3 to 3,000 engineers
+    ai_signal: strong
+    ai_signal_source: measured
+    # Measurement: 3 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — structure.md ("False range") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1159,6 +1225,8 @@ rules:
     examples:
       - bad: Experts agree that lockfiles reduce drift.
         good: The npm RFC 0012 measured a 40% drop in resolution variance with a lockfile.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Vague attribution") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -1200,6 +1268,8 @@ rules:
     examples:
       - bad: The literature is clear on this.
         good: RFC 7231 section 6.5.1 defines the status code.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Vague attribution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1223,6 +1293,8 @@ rules:
     examples:
       - bad: Whether you're a beginner or a seasoned pro, this guide has something for you.
         good: This guide assumes you have run `apm install` once.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Audience straddle") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1269,6 +1341,8 @@ rules:
         good: Diagnose the TLS handshake with `openssl s_client`.
       - good: This release note gives the migration steps and then records the old behavior.
         bad: Whether you are a beginner or an expert, every part of this guide is for you.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Audience straddle") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-structure.audience-straddle-core.
@@ -1306,6 +1380,8 @@ rules:
     examples:
       - bad: "Let's be real: the gate is slow on a cold cache."
         good: The gate takes 12 s on a cold cache.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Faux-candor pivot") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://tropes.fyi/
@@ -1345,6 +1421,8 @@ rules:
     examples:
       - bad: We're not perfect, and we're always learning.
         good: The 3.0 release shipped with a broken lockfile path for six days.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Faux-candor pivot") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1377,6 +1455,8 @@ rules:
     examples:
       - bad: The API is genuinely well designed.
         good: The API has four endpoints and one auth mode.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Intensifier tics") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://github.com/conorbronsdon/avoid-ai-writing
@@ -1417,6 +1497,8 @@ rules:
     examples:
       - bad: The rewrite is remarkably clean.
         good: The rewrite deletes 400 lines and adds one function.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Intensifier tics") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-register.intensifier-tics-core.
@@ -1448,6 +1530,8 @@ rules:
     examples:
       - bad: "It's worth noting that, at its core, the loader is a cache."
         good: The loader caches resolved paths.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: "AI tells catalog — register.md (\"Corporate-analytic filler\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
       note: >-
@@ -1490,6 +1574,8 @@ rules:
     examples:
       - bad: "| Field | Value |\n|---|---|\n| Purpose | It loads things |"
         good: The loader reads the lockfile.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Over-formatting reflex") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://rlhfbook.com/c/18-style
@@ -1516,6 +1602,8 @@ rules:
     threshold: 12
     comparison: lt
     fix: Let one point take three paragraphs and the next one clause.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Uniform paragraph mass") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://gptzero.me/news/perplexity-and-burstiness-what-is-it/
@@ -1558,6 +1646,8 @@ rules:
     examples:
       - bad: Lockfiles help reproducibility, though some argue they add friction.
         good: The lockfile pins every transitive dependency.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Hedged symmetry") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://rlhfbook.com/c/18-style
@@ -1594,6 +1684,8 @@ rules:
     examples:
       - bad: Great question! The loader reads the lockfile.
         good: The loader reads the lockfile.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Sycophantic meta-residue") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1630,6 +1722,8 @@ rules:
     examples:
       - bad: The abstraction earns its keep.
         good: The abstraction removes three near-duplicate functions.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Figurative-verb verdict") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1670,6 +1764,8 @@ rules:
     examples:
       - bad: The design pays for itself.
         good: The design removes the second config file, so there is one place to look.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Figurative-verb verdict") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1702,6 +1798,8 @@ rules:
     examples:
       - bad: The importance of the lockfile cannot be overstated.
         good: Without the lockfile, a transitive minor bump breaks the build.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Urgency inflation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1739,6 +1837,8 @@ rules:
     examples:
       - bad: Getting this right is critical.
         good: A wrong value here silently skips every file.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Urgency inflation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-register.urgency-inflation-core.
@@ -1767,6 +1867,8 @@ rules:
     examples:
       - bad: The single-config design falls out naturally.
         good: The maintainers chose one config file so there is one place to look.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Organic-consequence framing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1804,6 +1906,8 @@ rules:
     examples:
       - bad: The threshold settles at 34 words.
         good: The maintainers set the threshold at 34 words after measuring 30 and 32.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — register.md ("Organic-consequence framing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-register.organic-consequence-core.
@@ -1855,6 +1959,9 @@ rules:
         note: "preserve: imperative steering"
       - bad: The cache wants to protect you.
         good: The cache evicts entries.
+    ai_signal: weak
+    ai_signal_source: measured
+    # Measurement: 4 vs 1 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — register.md ("False agency") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1893,6 +2000,8 @@ rules:
     examples:
       - bad: The lookbehind is load-bearing.
         good: Removing the lookbehind adds five false positives per README.
+    ai_signal: strong
+    ai_signal_source: measured
     provenance:
       source: 'AI tells catalog — register.md ("Anthropomorphised justification") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -1932,6 +2041,9 @@ rules:
     examples:
       - bad: The cache more than repays its complexity.
         good: The cache removes one network round trip per run.
+    ai_signal: strong
+    ai_signal_source: measured
+    # Measurement: 61 vs 8 confirmations on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — register.md ("Anthropomorphised justification") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
@@ -1959,6 +2071,8 @@ rules:
     threshold: 6
     comparison: gt
     fix: Convert each dash that is not marking a real aside into a comma, a colon, or two sentences.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Em-dash density", "Hyphen-swap") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://techcrunch.com/2025/11/14/openai-says-its-fixed-chatgpts-em-dash-problem/
@@ -1991,6 +2105,8 @@ rules:
     examples:
       - bad: "the loader’s cache"
         good: the loader's cache
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Curly quotes/apostrophes") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2027,6 +2143,8 @@ rules:
         bad: Quick Start Guide
       - good: Using the `--json` flag
         bad: Using The JSON Flag
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Title Case In Every Heading") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2055,6 +2173,8 @@ rules:
     threshold: 20
     comparison: gt
     fix: Keep bold on the first definitional use of a term and delete the rest.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Bold spray") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2079,6 +2199,8 @@ rules:
     threshold: 4
     comparison: gte
     fix: Rewrite as prose, or as a table when there are real columns.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Inline-header list") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2100,6 +2222,8 @@ rules:
       normal: enforced
       relaxed: enforced
     fix: Use the next level down, and delete any horizontal rule immediately before a heading.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Skipped heading levels; horizontal rules before headings") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2135,6 +2259,8 @@ rules:
     examples:
       - bad: "| Note |\n|---|\n| The loader reads the lockfile. |"
         good: The loader reads the lockfile.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Tables wrapping what is actually one sentence of prose") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2158,6 +2284,8 @@ rules:
     examples:
       - bad: The loader *is* the cache.
         good: The loader caches every resolved path.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Italicised copula for manufactured profundity") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2193,6 +2321,8 @@ rules:
     examples:
       - bad: As mentioned above, the loader caches.
         good: The loader caches every resolved path.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Cross-reference signposting") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2220,6 +2350,8 @@ rules:
         good: "- Install the plugin"
       - good: "\U0001F680 Install the plugin"
         bad: "* \U0001F4E6 Install the plugin"
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — formatting.md ("Emoji as list markers or in headings") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2258,6 +2390,8 @@ rules:
     examples:
       - bad: https://example.com/docs?utm_source=chatgpt.com
         good: https://example.com/docs
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Fabricated or damaged citations") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -2296,6 +2430,8 @@ rules:
         note: >-
           The catalog's failure modes: DOIs that resolve to unrelated papers,
           invented ISBNs, dead URLs, and book cites with no page numbers.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Fabricated or damaged citations") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
@@ -2326,6 +2462,8 @@ rules:
         good: Markdown, MDX, and reStructuredText
       - bad: 500+ integrations
         good: Python 3.8+ and 3.9+ are supported
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Fake specificity") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2376,6 +2514,8 @@ rules:
         bad: The current loader supports globs.
       - good: The next version will add glob support; this is a proposed behavior.
         bad: The loader supports globs today.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Vaporware description") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2403,6 +2543,8 @@ rules:
     threshold: 0.5
     comparison: gt
     fix: Keep adjectives that change what the reader does; cut decoration.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Adjective-per-noun spray") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2437,6 +2579,9 @@ rules:
     examples:
       - bad: The loader reads it. The resolver caches it. The component then exits.
         good: The loader reads it, caches it, then exits.
+    ai_signal: weak
+    ai_signal_source: measured
+    # Measurement: 7/11 vs 11/40 units on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — content-shape.md ("Elegant variation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2475,6 +2620,9 @@ rules:
       - bad: Think of the cache as a stable map. When it is stale, refresh it before reading the result.
         good: When the cache is stale, refresh it before reading the result.
         note: "preserve: bounded, scoped recommendation or condition in the author's voice"
+    ai_signal: none
+    ai_signal_source: measured
+    # Measurement: 3/21 vs 6/35 units on ~3.9k LLM vs ~3.4k human units.
     provenance:
       source: 'AI tells catalog — content-shape.md ("One-point dilution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2508,6 +2656,8 @@ rules:
       - bad: "## Troubleshooting\n\nIf the loader fails, check the logs."
         good: ""
         note: A troubleshooting section for problems that do not exist.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Padded symmetry") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2533,6 +2683,8 @@ rules:
     examples:
       - bad: The gate reads one config file, ensuring reliability.
         good: The gate reads one config file. A second file is ignored.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Superficial -ing analysis") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2575,6 +2727,8 @@ rules:
         good: The crate has a typed header struct.
       - good: Supported features are listed below.
         bad: The CLI offers a dry-run mode.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Durable vocabulary habits") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2613,6 +2767,8 @@ rules:
     examples:
       - bad: Moreover, the cache is warm. Furthermore, the lockfile is present.
         good: The cache is warm and the lockfile is present.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Durable vocabulary habits") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2658,6 +2814,8 @@ rules:
         good: The cache key is the manifest path and content hash.
       - bad: The old cache key was chosen after trying several alternatives.
         good: This migration note records why the old cache key must be retained until version 2.4.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Over-writing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2704,6 +2862,8 @@ rules:
         note: >-
           A measured number that decided a threshold is one of the three legitimate
           cases, so this example is a judgement call, not a defect by construction.
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Unasked-for rationale") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2738,6 +2898,8 @@ rules:
     examples:
       - bad: The linter is deterministic. The reviewer is not.
         good: ""
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — content-shape.md ("Epigram closer") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
       note: >-
@@ -2781,6 +2943,8 @@ rules:
         good: Every change requires a changelog entry.
       - bad: Every Request Finds Its Way
         good: Request routing
+    ai_signal: weak
+    ai_signal_source: catalog
     provenance:
       source: packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
       note: >-

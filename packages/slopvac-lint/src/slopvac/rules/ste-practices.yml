@@ -29,6 +29,8 @@ rules:
         good: The tenant tier sets the retry budget.
       - bad: Increase the pool size so that it accommodates the peak load.
         good: Increase the pool size until it is large enough for the peak load.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:9.1'
@@ -66,6 +68,8 @@ rules:
     examples:
       - bad: When the load goes down, the autoscaler removes a replica.
         good: When the load decreases, the autoscaler removes a replica.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:9.2'
@@ -133,6 +137,8 @@ rules:
         good: Configure the client before you start the worker pool.
       - bad: If the import breaks down, roll back the migration.
         good: If the import fails, revert the migration.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:9.3'
@@ -170,6 +176,8 @@ rules:
           Step 3. Apply the migration with the CLI.
 
           Step 9. Apply the migration with the CLI.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:9.4'
@@ -209,6 +217,8 @@ rules:
         good: Make sure that the migration completed before you restart the worker.
       - bad: The dashboard shows the queue is empty.
         good: The dashboard shows that the queue is empty.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-1'
@@ -244,6 +254,8 @@ rules:
         good: When the queue is drained, restart the worker.
       - bad: Deploy the service with the new sidecar.
         good: Deploy the service that includes the new sidecar.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-2'
@@ -282,6 +294,8 @@ rules:
         good: If you attach the policy to the role, the policy can become invalid.
       - bad: The reviewer approves the change after he reads the diff.
         good: The reviewer approves the change after reading the diff.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-3'
@@ -322,6 +336,8 @@ rules:
           cause a deadlock.
       - bad: Do not delete the lease file (this breaks the leader election).
         good: Do not delete the lease file. Without the lease file, leader election fails.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-4'
@@ -379,6 +395,8 @@ rules:
         good: The retry handles a possible timeout.
       - bad: Set the actual version in the manifest.
         good: Set the current version in the manifest.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-5'
@@ -426,6 +444,8 @@ rules:
           partial downloads.
       - bad: Set the retry limit, timeout, backoff, etc. in the client config.
         good: Set the retry limit, the timeout, and the backoff in the client config.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-6'
@@ -472,6 +492,8 @@ rules:
     examples:
       - bad: Add the service account to the whitelist before he runs the job.
         good: Add the service account to the allowlist before the operator runs the job.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-7'
@@ -507,6 +529,8 @@ rules:
     examples:
       - bad: Check the workers' pools' retry limits.
         good: Check the retry limit for each pool of workers.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:GR-8'

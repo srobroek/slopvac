@@ -151,6 +151,8 @@ absent, nothing more"]
 `slopvac rules` lists them. The generated reference is
 [`packages/slopvac-lint/docs/rules.md`](packages/slopvac-lint/docs/rules.md).
 
+Reports keep `prose` for deterministic findings. They add `ai_register` for strong and weak AI signals. Judgment confirms use the same split. Gating and scoring stay unchanged.
+
 | Category | Checked | Judgement |
 | --- | --: | --: |
 | `ai-residue` | 1 | 0 |

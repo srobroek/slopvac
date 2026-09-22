@@ -27,6 +27,8 @@ rules:
         good: The `--category` flag filters by category.
       - bad: The data tells us the market rewards speed.
         good: Open rates fell from 31% to 22% over three weeks.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-agency/FalseAgency.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-agency/FalseAgency.yml
@@ -62,6 +64,8 @@ rules:
         good: The maintainers made the loader retry.
       - bad: Mistakes were made in the migration.
         good: The migration script dropped two rows.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-agency/AgentlessPassive.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-agency/AgentlessPassive.yml
@@ -91,6 +95,8 @@ rules:
         good: The parser validates against the schema.
       - bad: The app understands your workflow.
         good: The app records each step you run.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-agency/Anthropomorphism.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-agency/Anthropomorphism.yml
@@ -119,6 +125,8 @@ rules:
     examples:
       - bad: Look, developers tend to skip the lockfile.
         good: You skip the lockfile when you run `install` without `--frozen`.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-agency/NarratorDistance.yml
       url: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-agency/NarratorDistance.yml
@@ -147,6 +155,8 @@ rules:
     examples:
       - bad: It is recommended that you rotate keys.
         good: Rotate keys every 90 days.
+    ai_signal: none
+    ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-agency/UnattributedRecommendation.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-agency/UnattributedRecommendation.yml
