@@ -93,8 +93,8 @@ def test_shipped_rules_load_and_contract_records_match() -> None:
     by_id = {record["id"]: record for record in records}
     rules = ruleset.judgement_rules()
     # Companion inventory digest in tests/test_ruleset.py guards the exact shipped IDs.
-    assert len(ruleset.rules) == 232
-    assert len(rules) == 66
+    assert len(ruleset.rules) == 231
+    assert len(rules) == 65
     assert {rule.qualified_id for rule in rules} == set(by_id)
     for rule in rules:
         assert _loaded_contract(rule) == _contract_record(by_id[rule.qualified_id])

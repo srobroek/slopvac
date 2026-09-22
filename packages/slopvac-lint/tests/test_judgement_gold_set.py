@@ -19,7 +19,7 @@ def test_gold_set_schema_counts_and_spans():
     rows = _rows()
     seeded = [row for row in rows if not row.get("control", False)]
     controls = [row for row in rows if row.get("control", False)]
-    assert len(seeded) == 100
+    assert len(seeded) == 98
     assert len(controls) == 100
     for row in seeded:
         assert set(row) == {"rule_id", "text", "defect_span", "rationale"}

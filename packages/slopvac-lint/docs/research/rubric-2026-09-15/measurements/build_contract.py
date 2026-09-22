@@ -101,7 +101,7 @@ RULES = {
         "protects": ["quoted_specimen"], "local": [], "probe": ["table-wrapping-one-sentence"], "arity2": {}},
     "ai-tells-register": {"weight": 1.5, "recommended_for": ["consumer", "internal", "change-comms"], "ceiling": "suggestion",
         "protects": ["controlled_language_clarity", "normative_obligation", "source_locked_legal_text"],
-        "local": ["anthropomorphised-justification-remainder", "corporate-analytic-filler-remainder", "false-agency-remainder", "faux-candor-remainder", "figurative-verb-verdict-remainder", "hedged-symmetry", "intensifier-tics-remainder", "organic-consequence-remainder", "urgency-inflation-remainder"],
+        "local": ["anthropomorphised-justification-remainder", "false-agency-remainder", "faux-candor-remainder", "figurative-verb-verdict-remainder", "hedged-symmetry", "intensifier-tics-remainder", "organic-consequence-remainder", "urgency-inflation-remainder"],
         "probe": ["over-formatting-reflex"], "arity2": {}},
     "ai-tells-structure": {"weight": 1.5, "recommended_for": ["consumer", "internal", "change-comms"], "ceiling": "suggestion",
         "protects": ["accessibility_consistency", "factual_polarity_or_contrast", "normative_obligation", "quoted_specimen"],
@@ -491,7 +491,7 @@ check_unique(contract["rule_records"], "rule records")
 check_unique(contract["composition"]["span_packs"], "span packs")
 check_unique(contract["composition"]["probe_packs"], "probe packs")
 check_unique(contract["unresolved_evaluation_questions"], "questions")
-assert len(contract["rule_records"]) == 66, len(contract["rule_records"])
+assert len(contract["rule_records"]) == 65, len(contract["rule_records"])
 probe_rules = [r for p in contract["composition"]["probe_packs"] for r in p["rules"]]
 assert sorted(probe_rules) == sorted(r["id"] for r in contract["rule_records"] if r["scope_class"] == "probe"), "probe packs != probe rules"
 assert all(len(p["rules"]) <= PROBE_CRITERIA_MAX for p in contract["composition"]["probe_packs"])
