@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pytest
 
-
 FIXTURES = (
     ("Run the migration before you deploy.", "procedural"),
     ("The parser reads the manifest at startup.", "descriptive"),
