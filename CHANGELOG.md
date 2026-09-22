@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.10.0](https://github.com/srobroek/slopvac/compare/v2.9.1...v2.10.0) (2026-09-22)
+
+
+### Features
+
+* **judgement:** add validate and brief subcommands ([#156](https://github.com/srobroek/slopvac/issues/156)) ([f79dad3](https://github.com/srobroek/slopvac/commit/f79dad3571f32cab9578737a72965a9638dbc0a7))
+* **report:** add ai_signal axis with prose and AI-register roll-ups ([#154](https://github.com/srobroek/slopvac/issues/154)) ([03f5738](https://github.com/srobroek/slopvac/commit/03f5738444485f859a3502799be27f513cb6c000))
+* **review-docs:** add opt-in judgement workflow ([#155](https://github.com/srobroek/slopvac/issues/155)) ([a0b8c90](https://github.com/srobroek/slopvac/commit/a0b8c908a51aac5a305b9378d09661cd5b5b1131))
+
+
+### Bug Fixes
+
+* **lint:** preserve match case and skip multi-alternative replacements in --fix ([#153](https://github.com/srobroek/slopvac/issues/153)) ([3a2cba2](https://github.com/srobroek/slopvac/commit/3a2cba2b53cf57283796c086fa8f7fbfd23f4e9d))
+* **rules:** retire corporate-analytic-filler-remainder ([#151](https://github.com/srobroek/slopvac/issues/151)) ([60f9381](https://github.com/srobroek/slopvac/commit/60f9381ba3a84e25487797caf4025990f77e4ca3))
+
+
+### Documentation
+
+* **readme:** describe the two layers up front and write up the judgement layer ([#157](https://github.com/srobroek/slopvac/issues/157)) ([3c11f49](https://github.com/srobroek/slopvac/commit/3c11f49d1240ba8609e0f125448c7193647699df))
+* **readme:** restructure into how it works, usage, methodology, and the science ([#159](https://github.com/srobroek/slopvac/issues/159)) ([9f81aea](https://github.com/srobroek/slopvac/commit/9f81aea07e2f685cfe8a041f5ddc5500302ae51a))
+* **readme:** separate ai_signal strength from ai_signal_source; describe agnix precisely ([#160](https://github.com/srobroek/slopvac/issues/160)) ([343c6ae](https://github.com/srobroek/slopvac/commit/343c6ae30870522bbb73c2ab7db2c7fdf3f07ae1))
+
 ## [2.9.1](https://github.com/srobroek/slopvac/compare/v2.9.0...v2.9.1) (2026-09-22)
 
 
