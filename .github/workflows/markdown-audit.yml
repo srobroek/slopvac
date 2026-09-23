@@ -1,0 +1,169 @@
+name: Markdown audit
+on:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: markdown-audit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  inventory-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - name: Install Vale
+        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
+      - name: Add Vale to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Audit tracked Markdown
+        run: |
+          set -euo pipefail
+          uv run --project packages/slopvac-lint python - <<'PY'
+          import collections
+          import json
+          import os
+          import re
+          import subprocess
+          import tempfile
+          import tomllib
+          from pathlib import Path
+          from urllib.parse import unquote, urlsplit
+          from markdown_it import MarkdownIt
+
+          root = Path.cwd()
+          out = Path(tempfile.mkdtemp(prefix="markdown-audit-"))
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          files = sorted(p for p in tracked if Path(p).suffix.lower() in {".md", ".markdown", ".mdx"})
+          print("AUDIT_COMMIT", subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(), flush=True)
+          print("TRACKED_MARKDOWN", len(files), flush=True)
+          print("EXTENSIONS", dict(collections.Counter(Path(p).suffix.lower() for p in files)), flush=True)
+          subprocess.run(["vale", "--version"], check=True)
+          for path in files:
+              Path(path).resolve().relative_to(root)
+
+          def command(name, args):
+              result = subprocess.run(args, capture_output=True, text=True, timeout=1200)
+              (out / (name + ".stdout")).write_text(result.stdout)
+              (out / (name + ".stderr")).write_text(result.stderr)
+              print("COMMAND", name, "EXIT", result.returncode, flush=True)
+              if result.returncode not in (0, 1):
+                  print(result.stdout[-4000:], result.stderr[-4000:], flush=True)
+              return result
+
+          source = Path("slopvac.toml").read_text()
+          original = tomllib.loads(source)
+          audit_source, replaced = re.subn(r"(?ms)^exclude\s*=\s*\[.*?^\]", "exclude = []", source, count=1)
+          expected = dict(original, exclude=[])
+          assert replaced == 1 and tomllib.loads(audit_source) == expected
+          audit_config = root / ".slopvac-markdown-audit.toml"
+          audit_config.write_text(audit_source)
+          reports = {}
+          exits = {}
+          try:
+              for name, config in (("configured", "slopvac.toml"), ("all-files", str(audit_config))):
+                  target = out / (name + ".json")
+                  result = command(name, ["slopvac", "lint", "--config", config, "--format", "json", "--out", str(target), *files])
+                  exits[name] = result.returncode
+                  if not target.exists():
+                      raise RuntimeError(name + " did not produce a report: " + result.stdout[-2000:] + result.stderr[-2000:])
+                  reports[name] = json.loads(target.read_text())
+                  summary = reports[name]["summary"]
+                  print("SUMMARY", name, json.dumps({k: summary[k] for k in ("documents", "words", "findings", "errors", "warnings", "suggestions", "passed")}), flush=True)
+          finally:
+              audit_config.unlink(missing_ok=True)
+
+          def relative(document):
+              return str(Path(document["path"]).resolve().relative_to(root))
+
+          configured = {relative(d): d for d in reports["configured"]["documents"]}
+          scanned = {relative(d): d for d in reports["all-files"]["documents"]}
+          excluded = sorted(set(files) - set(configured))
+          missing = sorted(set(files) - set(scanned))
+          unchecked = {p: d["unchecked"] for p, d in scanned.items() if d.get("unchecked")}
+          print("CONFIGURED_EXCLUSIONS", json.dumps(excluded), flush=True)
+          print("MISSING_FROM_FULL_AUDIT", json.dumps(missing), flush=True)
+          print("UNCHECKED", json.dumps(unchecked), flush=True)
+          for path in files:
+              document = scanned.get(path, {})
+              findings = document.get("findings", [])
+              counts = dict(collections.Counter(f["severity"] for f in findings))
+              print("FILE", json.dumps({"path": path, "normally_excluded": path in excluded, "passed": document.get("passed"), "findings": counts}), flush=True)
+              if path in configured and not configured[path].get("passed", False):
+                  print("CONFIGURED_FAILURE", json.dumps({"path": path, "details": configured[path]}), flush=True)
+
+          reference = command("reference", ["slopvac", "reference", "--check", "--write", "packages/slopvac-lint/docs/rules.md"])
+          print("REFERENCE_RESULT", reference.stdout[:12000], flush=True)
+          routing = command("routing", ["slopvac", "compile", "--format", "json", "--config", "slopvac.toml"])
+          if routing.returncode == 0:
+              route = json.loads(routing.stdout)
+              print("ENGINE_ROUTING", json.dumps({"vale_version": route.get("vale_version"), "vale": len(route["vale"]), "native": len(route["native"]), "judgement": len(route["judgement"]), "disabled": len(route["disabled"])}), flush=True)
+
+          parser = MarkdownIt("commonmark").enable("table")
+          anchors = {}
+          links = []
+          stale = []
+          pattern = re.compile(r"three rulesets|ste-vocabulary|judgement finish[^\n]*$", re.I)
+          for path in files:
+              text = Path(path).read_text(encoding="utf-8")
+              tokens = parser.parse(text)
+              seen = collections.Counter()
+              ids = set(re.findall(r'\b(?:id|name)=[\"\']([^\"\']+)', text))
+              for index, token in enumerate(tokens):
+                  if token.type == "heading_open":
+                      heading = tokens[index + 1]
+                      plain = "".join(c.content for c in heading.children or [] if c.type in {"text", "code_inline"})
+                      slug = re.sub(r"[^\w\- ]", "", plain.lower()).replace(" ", "-")
+                      n = seen[slug]
+                      seen[slug] += 1
+                      ids.add(slug + ("-" + str(n) if n else ""))
+                  for child in token.children or []:
+                      if child.type in {"link_open", "image"}:
+                          href = child.attrGet("href") or child.attrGet("src")
+                          if href:
+                              links.append((path, href))
+              anchors[str(Path(path).resolve())] = ids
+              for number, line in enumerate(text.splitlines(), 1):
+                  if pattern.search(line) and path in configured:
+                      stale.append({"path": path, "line": number, "text": line})
+          broken = []
+          local_links = 0
+          external_links = 0
+          for path, href in links:
+              url = urlsplit(href)
+              if url.scheme or url.netloc or url.path.startswith("/"):
+                  external_links += 1
+                  continue
+              local_links += 1
+              target = (Path(path).parent / unquote(url.path)).resolve() if url.path else Path(path).resolve()
+              reason = None
+              if not target.exists():
+                  reason = "missing target"
+              elif url.fragment and str(target) in anchors and unquote(url.fragment) not in anchors[str(target)]:
+                  reason = "missing heading or anchor"
+              if reason:
+                  broken.append({"path": path, "link": href, "reason": reason})
+          print("LOCAL_LINK_AUDIT", json.dumps({"checked": local_links, "external_not_checked": external_links, "broken": broken}), flush=True)
+          print("REVIEW_CANDIDATES", json.dumps(stale), flush=True)
+          summary = "\n".join((
+              "# Markdown audit",
+              "",
+              f"Tracked Markdown: {len(files)}. Configured coverage: {len(configured)}. Full diagnostic coverage: {len(scanned)}.",
+              f"Configured exit: {exits['configured']}. Full diagnostic exit: {exits['all-files']}.",
+              f"Missing documents: {len(missing)}. Documents with unchecked rules: {len(unchecked)}.",
+              f"Generated reference check: {reference.returncode}. Local link candidates: {len(broken)}.",
+              "",
+              "The diagnostic includes quoted specimens, test fixtures, research records and vendored prose. Findings in those files are not a request to rewrite evidence.",
+              "The audit checks deterministic coverage and Markdown links; it does not claim a model judgement pass or external URL validation.",
+          ))
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary)
+          if missing or unchecked or any(code not in (0, 1) for code in exits.values()) or reference.returncode != 0 or routing.returncode != 0:
+              raise SystemExit("Audit incomplete or generated reference out of date; inspect the log.")
+          PY
