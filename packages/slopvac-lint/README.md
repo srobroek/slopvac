@@ -8,8 +8,8 @@ The packaged YAML contains 231 rules across 26 categories: 166 checked rules and
 65 contextual rules marked `kind: judgement`. The CLI reports deterministic
 findings and scores. Optional model review produces separate advisory results.
 
-See the [project overview](../../README.md) for agent installation and CI
-integration.
+See the [project overview](../../README.md) for quick start and CI integration,
+and [agent setup](docs/agents.md) for harness instructions.
 
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
@@ -134,6 +134,35 @@ Categories also carry `recommended_for` genres for agent review. Reference
 material maps to `strict`, informal text to `relaxed`, and consumer, internal,
 and change-communication documents to `normal`. Genre recommendations do not
 replace file configuration.
+
+## Project and agent setup
+
+```sh
+slopvac init --harness claude
+slopvac setup claude --check
+slopvac prime lint
+slopvac prime judgement
+```
+
+`init` creates missing configuration and installs short, CLI-based project
+steering. Its default target is `AGENTS.md`; `--harness` selects Claude Code,
+Codex, OMP, Kiro, or generic instructions. Repeat the option for several clients.
+Existing configuration and unrelated instruction text remain unchanged.
+
+Use `--skip-agents` for configuration alone. `--force` replaces the configuration
+only. `--path PATH` places configuration and steering under that file's parent.
+`--dry-run` previews which files would change without writing them.
+
+`setup HARNESS` installs or refreshes steering without changing configuration.
+Its `--check` option returns 1 when the managed section is absent or outdated.
+`--remove` deletes only that section. `--root PATH` selects another project.
+`setup --list` lists supported harnesses, and `onboard` prints the section for
+manual installation.
+
+`prime [all|overview|lint|judgement]` prints guidance without executing a review.
+It supports `--format json` and `--genre` for catalog category recommendations.
+Use `rules` and `explain` for the rule definitions. See the
+[agent setup guide](docs/agents.md) for loading rules and safe updates.
 
 ## Configuration
 

@@ -10,15 +10,15 @@
 [Quick start](#quick-start) · [CLI reference](packages/slopvac-lint/README.md) ·
 [Rules](packages/slopvac-lint/docs/rules.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
-[Agent setup](#agent-skills) · [CI](#ci-integration) ·
+[Agent setup](#agent-setup) · [CI](#ci-integration) ·
 [Evaluation](packages/slopvac-lint/docs/judgement-eval.md)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
 technical-writing constraints.
 
-Use the CLI locally or in CI. The `write-docs` and `review-docs` agent skills
-add review of claims and structure, with optional model-based checks.
+Use the CLI locally or in CI. `slopvac init` adds project instructions for
+your agent, with detailed lint and contextual-review guidance available on demand.
 
 ## Quick start
 
@@ -125,57 +125,35 @@ change the deterministic result. See the
 [complete workflow](packages/slopvac-lint/README.md#judgement-layer) for response
 validation, coverage, and rewrite previews.
 
-## Agent skills
+## Agent setup
 
-`write-docs` applies the document's genre rules and hands the text to
-`review-docs`. The review checks the prose against the code and removes material
-that the intended reader does not need. Contextual model review runs on request.
+Choose the harness that reads your project:
 
-### Oh My Pi
+| Harness | Command |
+| --- | --- |
+| Claude Code | `slopvac init --harness claude` |
+| Codex | `slopvac init --harness codex` |
+| Oh My Pi | `slopvac init --harness omp` |
+| Kiro | `slopvac init --harness kiro` |
+| Other `AGENTS.md` clients | `slopvac init` |
 
-```sh
-omp plugin marketplace add srobroek/slopvac
-omp plugin install slopvac@slopvac --scope user
-```
+Setup preserves existing configuration and unrelated instructions. Use
+`--skip-agents` for configuration alone, or `slopvac setup HARNESS` to refresh
+steering without changing configuration. After setup, start a new agent session.
 
-Use `--scope project` for a project installation. Start a new session after
-installing. To use a local checkout:
-
-```sh
-omp plugin link ./slopvac/packages/slopvac
-```
-
-### Claude Code
-
-Run these commands in Claude Code:
-
-```text
-/plugin marketplace add srobroek/slopvac
-/plugin install slopvac@slopvac
-```
-
-### Codex
+The agent reads the short steering section and obtains details through the CLI:
 
 ```sh
-codex plugin marketplace add srobroek/slopvac
-codex plugin add slopvac@slopvac
+slopvac prime
+slopvac prime lint
+slopvac prime judgement
+slopvac explain prose-craft.relative-date
 ```
 
-### Kiro and manual installation
-
-Copy the skills into the harness's skills directory. For Kiro:
-
-```sh
-git clone https://github.com/srobroek/slopvac /tmp/slopvac
-mkdir -p .kiro/skills
-cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
-```
-
-The corresponding project directories are `.claude/skills` for Claude Code and
-`.codex/skills` for Codex.
-
-After installing, ask the agent to write or review a document. To include
-contextual checks, ask it to review the document for AI tells as well.
+No skill or marketplace installation is required. The
+[agent setup guide](packages/slopvac-lint/docs/agents.md) covers file destinations,
+checks, removal, and custom harness settings. `slopvac onboard` prints the steering
+for another client without writing files.
 
 ## CI integration
 

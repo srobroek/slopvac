@@ -98,19 +98,6 @@ severity = "suggestion"
 # Skill references describe ADRs, specs, and PR bodies because they teach agents to write
 # them. `docs-discipline` and `prose-scope` are consumer-doc rules, advisory here.
 [[overrides]]
-files = ["packages/slopvac/skills/**"]
-
-[overrides.categories.docs-discipline]
-severity = "suggestion"
-
-[overrides.categories.prose-scope]
-severity = "suggestion"
-
-# --- The score floor ----------------------------------------------------------
-# A README is mostly headings, tables, and short paragraphs, which is the shape the score
-# penalises: the floor is a density measure and these files are dense by design. Errors still
-# gate them, and every category above still reports.
-[[overrides]]
 files = ["**/README.md"]
 
 [overrides.thresholds]

@@ -1,138 +1,62 @@
-"""The starter config `slopvac init` writes.
-
-Written as a template rather than generated from the model so the comments carry
-the reasoning. A config a reader cannot understand gets deleted wholesale the
-first time it produces an unwanted finding.
-"""
+"""The project configuration written by ``slopvac init``."""
 
 STARTER_CONFIG = """\
-# slopvac prose gate. Yours to edit; commit it.
-#
-# Resolution order, each layer patching the one above it PER FIELD:
-#   1. the built-in profile below
-#   2. the [categories] and [rules] tables in this file
-#   3. every [[overrides]] block whose `files` glob matches, in order
-#
-# An override that sets only `severity` keeps the profile's threshold. Unlike a
-# Vale rule line, a setting here belongs to the block it is written in, so
-# appending to the end of this file cannot silently re-target it.
-#
-# Inspect what actually applies:  slopvac lint --explain-config <file>
-# Understand one rule:            slopvac explain <category>.<rule>
-# List everything:                slopvac rules --profile {profile}
-
-# strict  = technical documentation: reference, specs, API docs, runbooks
-# normal  = general writing at a high bar: README, guides, ADRs
-# relaxed = loose writing: notes, comments, drafts
+# Inspect a file's settings: slopvac lint --explain-config README.md
+# Inspect a rule: slopvac explain <category>.<rule>
+# Agent workflow: slopvac prime
+# Matching path overrides apply in order, one field at a time.
 profile = "{profile}"
 
-# Never linted. Every top-level key must sit ABOVE the first [table] header: a
-# TOML table captures every key that follows it until the next header, so an
-# `exclude` line written lower down lands inside [thresholds] or [vale] and fails
-# to load. This is the one TOML trap worth knowing.
+# These paths do not participate in ordinary directory scans.
+# Keep top-level settings above the first TOML table header.
 exclude = [
   "**/node_modules/**",
   "**/apm_modules/**",
   "**/.venv/**",
   "**/dist/**",
   "**/build/**",
-  # release-please generates this from commit subjects; its prose is not authored.
   "**/CHANGELOG.md",
 ]
 
 [thresholds]
-# Density budgets, not counts, so a long document earns proportionally more
-# findings. Documents under 60 words are scored on absolute counts instead:
-# one finding in a 20-word error message is 5.0 per 100 words and would fail
-# every budget.
 max_errors = 0
+# max_warnings = 10
 # max_total_per_100_words = 3.0
 # min_score = 70
 
-# --- Spelling ----------------------------------------------------------------
-# The spelling check is generated from this setting, so one variant table serves
-# every direction and en-US -> en-GB cannot disagree with en-GB -> en-US.
-#
-# ASD-STE100 asks for American spelling, which is why en-US is the default rather
-# than a rule a British English project cannot turn off. `und` disables the
-# spelling check and leaves the rest of its category running.
 [locale]
-default = "en-US"        # en-US | en-GB | und
-# Words this project spells its own way whatever the locale. CSS and web platform
-# identifiers are already protected, so this is for your own API surface.
+default = "en-US"        # en-US | en-GB | und (no spelling check)
 # allow = ["Colour", "OrganisationId"]
 
-# A locale can be set per path, which is what a translated docs tree needs.
-# [[overrides]]
-# files = ["docs/en-gb/**/*.md"]
-# [overrides.locale]
-# default = "en-GB"
-
-# --- Word blocklist ----------------------------------------------------------
-# OFF until you point at a file. No word list ships with this package, and the
-# word-choice rules check nothing while this is unset.
-#
-# Each entry names a word, the part of speech it is refused as, and a reason. The
-# part of speech is the point: `deploy` is a good verb and a bad noun, so "the
-# deploy failed" is flagged and "deploy the worker" is not. The file is refused if
-# any entry has no `reason`, because nobody can review a refusal that gives none.
-#
-# A word absent from the file is fine BY DEFINITION. There is no "only these words
-# are allowed" setting: this package shipped an ASD-STE100 list enforced that way,
-# and on ordinary software prose it reported 828 words whose only fault was having
-# no entry. Copy examples/blocklist.toml and cut what you disagree with.
-#
+# Optional project word blocklist, relative to this configuration file.
+# Entries need word, pos, and reason. TOML, YAML, and JSON are supported.
+# Without a blocklist, other word-choice and spelling rules still run.
 # [vocabulary]
-# path = "docs/blocklist.toml"     # relative to THIS file; .yml and .json load too
+# path = "docs/blocklist.toml"
 
-# --- Categories --------------------------------------------------------------
-# Set a category's severity for every rule in it. This is set semantics: it can
-# promote suggestions as well as demote errors. Use `severity = "off"` to turn
-# the category off.
-#
-# [categories.prose-scope]
-# severity = "warning"       # worth seeing, not worth blocking
-#
-# [categories.ai-tells-formatting]
-# max_per_100_words = 2.0    # this project uses tables heavily
+# A category setting applies to its rules; a per-rule setting is narrower.
+# [categories.prose-promotion]
+# severity = "warning"
+# [rules."prose-craft.relative-date"]
+# severity = "error"
 
-# --- Single rules ------------------------------------------------------------
-# Give every override a reason. The next reader needs to know whether it holds.
-#
-# [rules."prose-format.no-unicode-dash"]
-# severity = "off"           # house style uses real em dashes
-
-# --- Path overrides ----------------------------------------------------------
-# gitignore-style globs. First match does not win: every matching block applies
-# in file order, so put the general case first and the specific case after.
-
-# Reference material and runbooks earn the strict tier.
+# Each matching override changes only the fields it supplies.
 # [[overrides]]
 # files = ["docs/reference/**/*.md", "runbooks/**/*.md"]
 # profile = "strict"
 
-# A decision record exists to hold a decision and the measurement behind it, so
-# the rules that ban that content elsewhere invert here.
+# Consumer-document history rules do not apply to decision records.
 # [[overrides]]
 # files = ["specs/**/*.md", "docs/adr/**/*.md", "**/CONTRIBUTING.md"]
-# profile = "normal"
 # [overrides.categories.prose-scope]
 # severity = "off"
 # [overrides.categories.docs-discipline]
 # severity = "off"
 
-# Generated and vendored trees are not authored prose.
-# [[overrides]]
-# files = ["**/generated/**", "vendor/**"]
-# [overrides.categories.ai-residue]
-# severity = "off"
-
-# --- Vale sub-gate -----------------------------------------------------------
-# Vale runs the upstream tbhb/vale-ai-tells package, which we do not fork. Our
-# own rules run natively, so nothing is checked twice. When `vale` is absent the
-# run reports those rules as UNCHECKED rather than passing them silently.
+# Vale executes most deterministic rules compiled from Slopvac's catalog.
+# Install Vale 3.15 or later and put it on PATH for a complete check.
+# Missing Vale leaves selected Vale-backed rules UNCHECKED and returns exit 2.
 [vale]
 enabled = true
 # binary = "vale"
-# config = ".vale.ini"
 """

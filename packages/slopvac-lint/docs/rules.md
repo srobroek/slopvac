@@ -91,7 +91,7 @@ Replace a universal slogan with a title
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** paragraph
 - **Fix.** Name the section with a noun phrase, or scope the claim and state it as a sentence.
-- **Source.** packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
+- **Source.** Slopvac documentation review workflow — <https://github.com/srobroek/slopvac/blob/a2f444abb12218f6d88a483d303008e31cebdf3e/packages/slopvac/skills/review-docs/SKILL.md>
 - **AI register signal.** `weak` (catalog)
 
 Three shape conditions carry this rule, and each one alone is what keeps a real invariant out of it. The predicate must sit IMMEDIATELY against the bare subject noun, so a scoped invariant is not a match ("Every request TO THIS ENDPOINT requires authentication", "Every file IN THIS DIRECTORY contains a header"). The complement must be at least two words, so a terse invariant with a one-word object is not a match ("Every request requires authentication"). And the match runs to the end of the block through word characters only, so any terminal punctuation excludes it -- a heading carries none, a body sentence does. Together they select the title-shaped universal claim and leave the class invariant, which is the one construction "every" is genuinely for. `scope: paragraph`, not `heading`: the native engine's paragraph scope covers every rendered block INCLUDING headings, list items, and quotes, whereas heading scope compiles to a Vale `heading` payload and Vale then owns the rule, leaving it unchecked under `--no-vale`. See compile_vale.PARAGRAPH_SCOPE_REASON. The comma-joined pair form is prose-scope.formulaic-subject-verb-slogan; the judgement remainder for a slogan carrying no fixed frame is ai-tells-content-shape.epigram-closer-remainder.
@@ -1894,7 +1894,7 @@ Replace a paired subject-verb slogan with a title
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** paragraph
 - **Fix.** Name the section with a noun phrase, or state the one fact the two clauses gesture at.
-- **Source.** packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
+- **Source.** Slopvac documentation review workflow — <https://github.com/srobroek/slopvac/blob/a2f444abb12218f6d88a483d303008e31cebdf3e/packages/slopvac/skills/review-docs/SKILL.md>
 - **AI register signal.** `none` (unmeasured)
 
 The comma-joined sibling of prose-scope.epigram. Epigram matches the parallel pair written as two SENTENCES and uses the full stops to tell it apart from an ordinary two-clause sentence; this rule matches the same pair written as a TITLE, and the absence of terminal punctuation does that same work here. Both halves must be determiner-led with a finite-looking predicate, which is what keeps the rule off a factual contrast ("The parser reads JSON, not YAML.") and off a contrastive inversion whose second subject is a pronoun ("The Harness Measures, It Does Not Judge") -- that shape belongs to ai-tells-structure.contrastive-inversion-frames. The predicate alternation ends in `[a-z][\w-]*(?<!s)s` rather than `\w+s`, so a plural noun spelled with a double s ("The Address Class, The Access Class") cannot pose as a verb. `scope: paragraph`, not `heading`: the native engine's paragraph scope covers every rendered block INCLUDING headings, list items, and quotes, so the rule reaches a bolded pseudo-heading too. Heading scope would instead compile to a Vale `heading` payload, and Vale then owns the rule -- which means `--no-vale` leaves it unchecked. See compile_vale.PARAGRAPH_SCOPE_REASON.
@@ -3684,7 +3684,7 @@ Keep code-change prose scoped
 - **Source.** Slopvac review contract — <https://github.com/srobroek/slopvac>
 - **AI register signal.** `none` (unmeasured)
 
-This judgement rule requires the code diff and user request. The native engine never emits findings for judgement rules; review-docs supplies that context to the reviewer.
+This judgement rule requires the code diff and user request. The native engine never emits findings for judgement rules; the reviewing harness supplies that context to the reviewer.
 
 ### STE Descriptive Writing (`ste-descriptive`)
 

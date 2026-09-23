@@ -18,8 +18,7 @@ name: Publish slopvac
 # publishing.
 #
 # TRIGGER. Runs on the repository's release tag. Everything here versions in
-# lockstep behind one `vX.Y.Z`, so the tag that publishes the linter is the same
-# tag that releases the native plugins. Also runnable by hand for a re-run after
+# lockstep behind one `vX.Y.Z`. Also runnable by hand for a re-run after
 # a partial failure, and a dry run proves the build before the tag exists.
 
 on:
@@ -117,6 +116,10 @@ jobs:
       uv venv /tmp/smoke
       VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
       /tmp/smoke/bin/slopvac --version
+      /tmp/smoke/bin/slopvac prime --format json > /tmp/agent-guide.json
+      python3 -c 'import json; assert json.load(open("/tmp/agent-guide.json"))["guidance"]'
+      /tmp/smoke/bin/slopvac init --path /tmp/agent-project/slopvac.toml --harness claude
+      /tmp/smoke/bin/slopvac setup claude --root /tmp/agent-project --check
       /tmp/smoke/bin/slopvac rules --format json > /tmp/rules.json
       python3 - <<'PY'
       import json, sys

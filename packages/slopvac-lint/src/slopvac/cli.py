@@ -25,6 +25,7 @@ from rich.console import Console
 from rich.table import Table
 
 from . import __version__
+from .agent_cli import init_config, onboard, prime, setup
 from .compile_vale import compile_ruleset
 from .config import (
     Config,
@@ -101,7 +102,7 @@ class _DefaultGroup(click.Group):
 @click.version_option(__version__, prog_name="slopvac")
 @click.pass_context
 def main(context: click.Context) -> None:
-    """Lint prose for AI slop, Simplified Technical English, and Orwell rules.
+    """Lint prose and source comments with configurable writing rules.
 
     `slopvac FILE...` lints. `slopvac rules` lists the rules.
     """
@@ -591,29 +592,10 @@ def explain(
         console.print(f"  {rule.provenance.note}")
 
 
-@main.command("init")
-@click.option(
-    "--profile", type=click.Choice([p.value for p in Profile]), default="normal"
-)
-@click.option("--force", is_flag=True, help="Overwrite an existing config.")
-@click.option(
-    "--path",
-    type=click.Path(path_type=Path),
-    default=Path("slopvac.toml"),
-    show_default=True,
-)
-def init_config(profile: str, force: bool, path: Path) -> None:
-    """Write a starter slopvac.toml."""
-    console = _console(False)
-    if path.exists() and not force:
-        console.print(f"[yellow]{path} exists[/]; pass --force to overwrite.")
-        raise SystemExit(EXIT_OK)
-
-    from .templates import STARTER_CONFIG
-
-    path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
-    console.print(f"wrote {path}")
-    console.print("lint with: slopvac 'docs/**/*.md'")
+main.add_command(init_config)
+main.add_command(setup)
+main.add_command(onboard)
+main.add_command(prime)
 
 
 @main.command("compile")

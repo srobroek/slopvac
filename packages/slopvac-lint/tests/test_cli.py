@@ -651,7 +651,7 @@ def test_explain_json_carries_what_a_triage_needs(runner):
     assert set(payload["tiers"]) == {"strict", "normal", "relaxed"}
 
 
-def test_init_writes_a_config_and_refuses_to_clobber(runner, tmp_path):
+def test_init_writes_a_config_and_preserves_existing_settings(runner, tmp_path):
     target = tmp_path / "slopvac.toml"
     first = runner.invoke(main, ["init", "--path", str(target)])
     assert first.exit_code == EXIT_OK
@@ -661,7 +661,9 @@ def test_init_writes_a_config_and_refuses_to_clobber(runner, tmp_path):
     assert "profile" in body
 
     second = runner.invoke(main, ["init", "--path", str(target)])
-    assert "exists" in second.output.lower()
+    assert second.exit_code == EXIT_OK
+    assert "unchanged" in second.output.lower()
+    assert target.read_text() == body
 
 
 def test_starter_config_is_valid(runner, tmp_path):

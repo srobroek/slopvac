@@ -1,6 +1,4 @@
-# agnix 0.52.2 configuration for the OMP slopvac package source tree.
-# Keep native Claude/Codex/plugin and skill checks active. Exclude generated,
-# fixture, and legacy trees that are not shipped agent configuration.
+# Agent-configuration validation. Exclude generated and fixture trees.
 severity = "Warning"
 exclude = [
   "node_modules/**",
@@ -20,4 +18,4 @@ disabled_rules = []
 disabled_validators = []
 
 [files]
-include_as_generic = ["packages/slopvac/skills/**/references/**/*.md"]
+include_as_generic = []

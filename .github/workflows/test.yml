@@ -61,22 +61,16 @@ jobs:
       - name: Validate hook JSON
         run: |
           set -euo pipefail
-          # Discover manifests instead of maintaining a path list. A hardcoded list drifts when
-          # the repository gains or removes a plugin or hook manifest.
-          #
-          # Every tracked plugin, marketplace, and hook manifest is covered without editing this
-          # step.
-          #
-          files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
-            '*hooks.json' | sort -u)"
+          # Repository hooks remain independent of CLI steering installation.
+          files="$(git ls-files '*hooks.json' | sort -u)"
           test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
           for f in $files; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
             echo "ok $f"
           done
 
-      - name: Validate plugin package contract
-        run: python3 -m unittest discover -s tests -p 'test_plugin_package.py'
+      - name: Validate CLI distribution and steering contracts
+        run: python3 -m pytest tests -q
 
   # The linter is a published package with its own dependencies, so it is tested
   # in its own job against the Python versions its metadata claims to support. A
@@ -161,7 +155,11 @@ jobs:
           slopvac rules --judgement --format json > /tmp/judgement.json
           python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
           slopvac explain orwell.stale-figure > /dev/null
-          slopvac init --path /tmp/slopvac.toml
+          slopvac prime lint > /tmp/slopvac-lint-guide.md
+          slopvac prime judgement --format json > /tmp/slopvac-judgement-guide.json
+          python3 -c 'import json; assert json.load(open("/tmp/slopvac-judgement-guide.json"))["guidance"]'
+          slopvac init --path /tmp/slopvac.toml --harness generic
+          slopvac setup generic --root /tmp --check
           slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 
   # The only required status check for this workflow. Branch protection names this

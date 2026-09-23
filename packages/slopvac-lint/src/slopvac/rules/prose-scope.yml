@@ -48,7 +48,7 @@ rules:
       url: https://github.com/srobroek/slopvac
       note: >-
         This judgement rule requires the code diff and user request. The native
-        engine never emits findings for judgement rules; review-docs supplies
+        engine never emits findings for judgement rules; the reviewing harness supplies
         that context to the reviewer.
   - id: rejected-alternative
     name: Move the decision to an ADR, spec, or commit
@@ -218,7 +218,8 @@ rules:
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
-      source: packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
+      source: Slopvac documentation review workflow
+      url: https://github.com/srobroek/slopvac/blob/a2f444abb12218f6d88a483d303008e31cebdf3e/packages/slopvac/skills/review-docs/SKILL.md
       note: >-
         The comma-joined sibling of prose-scope.epigram. Epigram matches the parallel
         pair written as two SENTENCES and uses the full stops to tell it apart from an
