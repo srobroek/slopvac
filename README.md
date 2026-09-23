@@ -15,7 +15,9 @@ add review of claims and structure, with optional model-based checks.
 
 ## Quick start
 
-Install [Vale](https://vale.sh) 3.15 or later and put it on `PATH`. Then run:
+[Vale](https://vale.sh) is optional, but **highly recommended**. It executes most
+of slopvac's deterministic rules. For full coverage, install Vale 3.15 or later
+and put it on `PATH`.
 
 ```sh
 uvx slopvac README.md
