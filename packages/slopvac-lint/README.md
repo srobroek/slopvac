@@ -434,9 +434,10 @@ slopvac judgement compare --out .slopvac-review
 slopvac judgement compare --out .slopvac-review --apply-preview
 ```
 
-The host checks the response schema and unit ownership, then validates evidence
-quotes against the text. `unique-quote` offset salvage relocates an exact quote
-that occurs once in its unit. `finish --offset-salvage none` disables that repair.
+The host validates each response against its schema and checks unit ownership.
+Evidence quotes must match the unit text. `unique-quote` offset salvage relocates
+an exact quote that occurs once in its unit. `finish --offset-salvage none`
+disables that repair.
 
 Failed, truncated, and not-run units reduce coverage. They retain their own
 states, separate from model abstentions. Check coverage before interpreting a
@@ -495,9 +496,9 @@ slopvac cache --prune
 slopvac cache --all
 ```
 
-`--prune` keeps the 16 most recently used trees. `--all` removes every cached
-tree. Lint runs also prune to 16 trees. Set `SLOPVAC_CACHE_DIR` to choose a
-location, or use the default under `XDG_CACHE_HOME`.
+`--prune` orders trees by last use and keeps the first 16. `--all` removes every
+cached tree. Lint runs also prune to 16 trees. Set `SLOPVAC_CACHE_DIR` to choose
+a location, or use the default under `XDG_CACHE_HOME`.
 
 To inspect the compiled styles directly:
 
