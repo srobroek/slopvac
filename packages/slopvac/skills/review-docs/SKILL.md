@@ -70,9 +70,9 @@ MUST Keep each genre exception in its designated genre. Change communications ma
    - Claude Code: use a `slopvac-judge` subagent and the `SubagentStop` hook; retry exit-2 validation failures, stop after 8 blocks, and honor `stop_hook_active`.
    - Codex: prompt-only JSON, then validate every response.
 
-   Validate each row (skip this on OMP when strict schema already passed) with `slopvac judgement validate --run .slopvac-judgement --call-id …`.
+   Validate each row with `slopvac judgement validate --run .slopvac-judgement --call-id …`. OMP's schema validation does not check unit ownership or evidence locations; run the host validation there too.
 
-   Apply and compare the structured judgement with `slopvac judgement finish --out .slopvac-judgement` and `slopvac judgement compare --out .slopvac-judgement --apply-preview`.
+   Aggregate the responses with `slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl`. Then run `slopvac judgement compare --out .slopvac-judgement --apply-preview`.
 
    Add a `Judgement:` line to the verdict confirming by rule, rewrites accepted, and coverage.
 6. Verify every claim against code at HEAD. Every consumer example MUST be runnable and have a matching test under `examples/`; check every command, path, flag, and version.
