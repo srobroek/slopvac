@@ -92,10 +92,13 @@ the model calls.
 slopvac judgement brief README.md --out .slopvac-review --packs fired
 ```
 
-This writes a review brief and structured prompts. It does not contact a
-provider. `--packs fired` selects categories with deterministic findings, so it
-can omit contextual defects in other categories. Use `--packs all` for broader
-review.
+This writes a review brief and structured prompts without contacting a provider.
+`--packs fired` selects categories with deterministic findings. If none qualify,
+`brief` keeps all packs and prints a warning. When some categories qualify,
+others receive no contextual review. Use `--packs all` for broader review.
+
+Review the printed call count before sending prompts to a provider. `brief`
+does not enforce the call-budget refusal available through `judgement prepare`.
 
 Model results are advisory. They can lower `judgement_adjusted_score` but do not
 change the deterministic result. See the

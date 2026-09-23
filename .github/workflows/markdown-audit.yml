@@ -46,8 +46,14 @@ jobs:
           print("TRACKED_MARKDOWN", len(files), flush=True)
           print("EXTENSIONS", dict(collections.Counter(Path(p).suffix.lower() for p in files)), flush=True)
           subprocess.run(["vale", "--version"], check=True)
+          canonical = {}
           for path in files:
-              Path(path).resolve().relative_to(root)
+              resolved = Path(path).resolve(strict=True)
+              canonical[path] = str(resolved.relative_to(root))
+          aliases = {p: target for p, target in canonical.items() if p != target}
+          expected_paths = set(canonical.values())
+          print("SYMLINK_ALIASES", json.dumps(aliases), flush=True)
+          print("DISTINCT_DOCUMENTS", len(expected_paths), flush=True)
 
           def command(name, args):
               result = subprocess.run(args, capture_output=True, text=True, timeout=1200)
@@ -67,16 +73,19 @@ jobs:
           audit_config.write_text(audit_source)
           reports = {}
           exits = {}
+          fields = ("documents", "words", "findings", "errors", "warnings", "suggestions", "passed")
           try:
               for name, config in (("configured", "slopvac.toml"), ("all-files", str(audit_config))):
                   target = out / (name + ".json")
-                  result = command(name, ["slopvac", "lint", "--config", config, "--format", "json", "--out", str(target), *files])
+                  args = ["slopvac", "lint", "--config", config, "--format", "json", "--out", str(target)]
+                  result = command(name, [*args, *files])
                   exits[name] = result.returncode
                   if not target.exists():
-                      raise RuntimeError(name + " did not produce a report: " + result.stdout[-2000:] + result.stderr[-2000:])
+                      detail = result.stdout[-2000:] + result.stderr[-2000:]
+                      raise RuntimeError(name + " did not produce a report: " + detail)
                   reports[name] = json.loads(target.read_text())
-                  summary = reports[name]["summary"]
-                  print("SUMMARY", name, json.dumps({k: summary[k] for k in ("documents", "words", "findings", "errors", "warnings", "suggestions", "passed")}), flush=True)
+                  summary = {k: reports[name]["summary"][k] for k in fields}
+                  print("SUMMARY", name, json.dumps(summary), flush=True)
           finally:
               audit_config.unlink(missing_ok=True)
 
@@ -85,26 +94,37 @@ jobs:
 
           configured = {relative(d): d for d in reports["configured"]["documents"]}
           scanned = {relative(d): d for d in reports["all-files"]["documents"]}
-          excluded = sorted(set(files) - set(configured))
-          missing = sorted(set(files) - set(scanned))
+          excluded = sorted(expected_paths - set(configured))
+          missing = sorted(expected_paths - set(scanned))
+          unexpected = sorted(set(scanned) - expected_paths)
           unchecked = {p: d["unchecked"] for p, d in scanned.items() if d.get("unchecked")}
           print("CONFIGURED_EXCLUSIONS", json.dumps(excluded), flush=True)
           print("MISSING_FROM_FULL_AUDIT", json.dumps(missing), flush=True)
+          print("UNEXPECTED_DOCUMENTS", json.dumps(unexpected), flush=True)
           print("UNCHECKED", json.dumps(unchecked), flush=True)
           for path in files:
-              document = scanned.get(path, {})
+              target = canonical[path]
+              document = scanned.get(target, {})
               findings = document.get("findings", [])
               counts = dict(collections.Counter(f["severity"] for f in findings))
-              print("FILE", json.dumps({"path": path, "normally_excluded": path in excluded, "passed": document.get("passed"), "findings": counts}), flush=True)
-              if path in configured and not configured[path].get("passed", False):
-                  print("CONFIGURED_FAILURE", json.dumps({"path": path, "details": configured[path]}), flush=True)
+              entry = {
+                  "path": path, "canonical_path": target, "normally_excluded": target in excluded,
+                  "passed": document.get("passed"), "findings": counts,
+              }
+              print("FILE", json.dumps(entry), flush=True)
+          for path, document in configured.items():
+              if not document.get("passed", False):
+                  print("CONFIGURED_FAILURE", json.dumps({"path": path, "details": document}), flush=True)
 
-          reference = command("reference", ["slopvac", "reference", "--check", "--write", "packages/slopvac-lint/docs/rules.md"])
+          reference = command("reference", [
+              "slopvac", "reference", "--check", "--write", "packages/slopvac-lint/docs/rules.md",
+          ])
           print("REFERENCE_RESULT", reference.stdout[:12000], flush=True)
           routing = command("routing", ["slopvac", "compile", "--format", "json", "--config", "slopvac.toml"])
           if routing.returncode == 0:
               route = json.loads(routing.stdout)
-              print("ENGINE_ROUTING", json.dumps({"vale_version": route.get("vale_version"), "vale": len(route["vale"]), "native": len(route["native"]), "judgement": len(route["judgement"]), "disabled": len(route["disabled"])}), flush=True)
+              counts = {k: len(route[k]) for k in ("vale", "native", "judgement", "disabled")}
+              print("ENGINE_ROUTING", json.dumps({"vale_version": route.get("vale_version"), **counts}), flush=True)
 
           parser = MarkdownIt("commonmark").enable("table")
           anchors = {}
@@ -131,7 +151,7 @@ jobs:
                               links.append((path, href))
               anchors[str(Path(path).resolve())] = ids
               for number, line in enumerate(text.splitlines(), 1):
-                  if pattern.search(line) and path in configured:
+                  if pattern.search(line) and canonical[path] in configured:
                       stale.append({"path": path, "line": number, "text": line})
           broken = []
           local_links = 0
@@ -150,20 +170,27 @@ jobs:
                   reason = "missing heading or anchor"
               if reason:
                   broken.append({"path": path, "link": href, "reason": reason})
-          print("LOCAL_LINK_AUDIT", json.dumps({"checked": local_links, "external_not_checked": external_links, "broken": broken}), flush=True)
+          link_report = {"checked": local_links, "external_not_checked": external_links, "broken": broken}
+          print("LOCAL_LINK_AUDIT", json.dumps(link_report), flush=True)
           print("REVIEW_CANDIDATES", json.dumps(stale), flush=True)
           summary = "\n".join((
               "# Markdown audit",
               "",
-              f"Tracked Markdown: {len(files)}. Configured coverage: {len(configured)}. Full diagnostic coverage: {len(scanned)}.",
+              f"Tracked paths: {len(files)}. Distinct documents: {len(expected_paths)}. Aliases: {len(aliases)}.",
+              f"Configured coverage: {len(configured)}. Full diagnostic coverage: {len(scanned)}.",
               f"Configured exit: {exits['configured']}. Full diagnostic exit: {exits['all-files']}.",
               f"Missing documents: {len(missing)}. Documents with unchecked rules: {len(unchecked)}.",
               f"Generated reference check: {reference.returncode}. Local link candidates: {len(broken)}.",
               "",
-              "The diagnostic includes quoted specimens, test fixtures, research records and vendored prose. Findings in those files are not a request to rewrite evidence.",
-              "The audit checks deterministic coverage and Markdown links; it does not claim a model judgement pass or external URL validation.",
+              "Diagnostic coverage includes quoted specimens, test fixtures, research records and vendored prose.",
+              "Findings remain in the report. Job success confirms coverage, not clean prose.",
+              "Model judgement and external URL validation are outside this audit.",
           ))
           Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary)
-          if missing or unchecked or any(code not in (0, 1) for code in exits.values()) or reference.returncode != 0 or routing.returncode != 0:
+          incomplete = (
+              missing or unexpected or unchecked or any(code not in (0, 1) for code in exits.values())
+              or reference.returncode != 0 or routing.returncode != 0
+          )
+          if incomplete:
               raise SystemExit("Audit incomplete or generated reference out of date; inspect the log.")
           PY

@@ -70,7 +70,7 @@ MUST Keep each genre exception in its designated genre. Change communications ma
    - Claude Code: use a `slopvac-judge` subagent and the `SubagentStop` hook; retry exit-2 validation failures, stop after 8 blocks, and honor `stop_hook_active`.
    - Codex: prompt-only JSON, then validate every response.
 
-   Validate each row with `slopvac judgement validate --run .slopvac-judgement --call-id …`. OMP's schema validation does not check unit ownership or evidence locations; run the host validation there too.
+   Validate each response file with `slopvac judgement validate --run .slopvac-judgement --call-id … --file response.json`. Run this in every harness: schema validation alone does not check unit ownership or result order. `finish` checks evidence quotes against the unit text.
 
    Aggregate the responses with `slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl`. Then run `slopvac judgement compare --out .slopvac-judgement --apply-preview`.
 

@@ -380,12 +380,13 @@ slopvac judgement brief README.md --out .slopvac-review --packs fired
 ```
 
 `brief` writes `brief.md` and `brief.json` alongside the structured run files.
-It discovers the configuration, or uses starter defaults when none is present.
+It searches for configuration from the current working directory and uses
+starter defaults if none is present. Use `--config` to choose a file explicitly.
 
 `--packs fired` selects packs whose category produced a deterministic finding.
-A category without such a finding receives no contextual review through that
-selection. Use `--packs all` to include all packs, or provide comma-separated
-pack IDs.
+If no pack qualifies, `brief` keeps all packs and prints a warning. When some
+packs qualify, other categories receive no contextual review. Use `--packs all`
+to include all packs, or provide comma-separated pack IDs.
 
 For a provider client that consumes JSONL directly:
 
@@ -401,7 +402,12 @@ slopvac judgement prepare README.md \
 `prepare` needs `--config`. It writes deterministic reports before checking the
 call budget. Above `--max-calls`, it refuses to write prompts, units, or a
 manifest. To approve a larger run, raise the limit or rerun `prepare` with
-`--yes`. `brief` accepts a higher `--max-calls` value but has no `--yes` option.
+`--yes`.
+
+`brief` writes its run without this call-budget refusal, including when its
+`--max-calls` value is lower than the proposed count. Inspect the printed count
+before your harness sends prompts to a provider. Use `prepare` for a
+budget-enforced preparation step.
 
 ### Call the model and validate responses
 
