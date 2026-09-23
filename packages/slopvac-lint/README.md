@@ -709,18 +709,28 @@ No word list ships, and the word check stays inert until you write one. See
 
 ## Sources
 
-The Simplified Technical English rules are an independent restatement, cited by
-rule number. ASD-STE100 is copyright
-[ASD](https://www.asd-ste100.org) and is an EU registered trademark; this package
-reproduces none of its rule text, definitions, or examples.
+The unified ruleset has several provenance families. The `ai-tells-*` and
+`ai-residue` categories derive from
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop), with source
+metadata retained per rule. The `ste-*` categories independently restate
+ASD-STE100 Simplified Technical English principles as testable rules.
+The `orwell` category restates Orwell's six rules as objective checks.
+The `prose-*` and `docs-discipline` categories are project-authored prose,
+craft, scope, and documentation-discipline rules.
 
-This package ships and reads no dictionary content. An earlier version carried the
-Issue 9 word list. That version is gone, and the word check now reads a blocklist
-you write.
+ASD-STE100 is copyright [ASD](https://www.asd-ste100.org) and is an EU registered
+trademark; this package reproduces none of its rule text, definitions, or
+examples.
 
-The AI-slop rules take their calibration from a corpus of software documentation. The
-lexical ones perish: a memorized word list tracks one model generation, which is
-why the structural and register rules carry more weight.
+This package ships and reads no dictionary content. An earlier version carried
+the Issue 9 word list. That version is gone, and the word check now reads a
+blocklist you write.
+
+AI-signal strength is separate from provenance. Measured signals come from the
+human-versus-stated-LLM corpus comparison; catalog signals retain the source
+catalog's claim; unmeasured rules make no AI-origin claim. Structural and
+register evidence is therefore not treated as interchangeable with a memorized
+lexical tell.
 
 ## License
 
