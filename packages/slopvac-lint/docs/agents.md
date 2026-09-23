@@ -29,7 +29,7 @@ section. Start a new agent session after setup and ask the agent to run
 
 `init` creates `slopvac.toml` if it is absent and installs a short, marked section
 in the selected instruction file. Existing configuration remains unchanged.
-`--force` replaces the configuration, not unrelated agent instructions.
+`--force` replaces the configuration and preserves unrelated agent instructions.
 `--skip-agents` creates configuration without steering.
 
 ```sh
@@ -120,5 +120,5 @@ and [Kiro steering](https://kiro.dev/docs/steering/).
 Uninstall the Slopvac plugin through the harness that installed it, or remove
 only the manually copied `write-docs` and `review-docs` directories. Then run
 `slopvac init --harness HARNESS` or `slopvac setup HARNESS` for each project.
-Setup does not uninstall plugins or delete user-owned skills. Unrelated plugins
+Setup leaves plugins installed and does not delete user-owned skills. Unrelated plugins
 and project instructions should remain in place.
