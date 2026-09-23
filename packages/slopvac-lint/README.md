@@ -31,16 +31,19 @@ uvx slopvac README.md
 pipx install slopvac
 ```
 
-Install [Vale](https://vale.sh) 3.15 or later and put it on `PATH` for the full
-deterministic check. `slopvac` generates the Vale configuration and styles.
+[Vale](https://vale.sh) is optional, but **highly recommended**. It executes most
+of slopvac's deterministic rules. For full coverage, install Vale 3.15 or later
+and put it on `PATH`. `slopvac` generates the Vale configuration and styles.
 
 | Engine | Checks |
 | --- | --- |
-| Native | Patterns, metrics, and comparisons between text blocks |
-| Vale | Compiled patterns, part-of-speech checks, and document metrics |
+| Vale | Most deterministic rules, including compiled patterns and part-of-speech checks |
+| Native | Additional patterns and metrics, including comparisons between text blocks |
 
-Missing Vale, or `--no-vale`, leaves selected Vale-backed checks `UNCHECKED` and
-returns exit 2. Native findings remain in the report.
+Without Vale, only the native checks run. Missing Vale, or `--no-vale`, leaves
+selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
+remain in the report, but this is an incomplete check. The separate
+[judgement layer](#judgement-layer) uses a model supplied by your harness.
 
 ## Lint documents
 
