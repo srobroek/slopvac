@@ -1,48 +1,74 @@
 # slopvac
 
+[![Tests](https://github.com/srobroek/slopvac/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
+[![Code and prose checks](https://github.com/srobroek/slopvac/actions/workflows/lint.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/lint.yml)
+[![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
+[![PyPI version](https://img.shields.io/pypi/v/slopvac)](https://pypi.org/project/slopvac/)
+
+---
+
+[Quick start](#quick-start) · [CLI reference](packages/slopvac-lint/README.md) ·
+[Rules](packages/slopvac-lint/docs/rules.md) ·
+[Configuration](packages/slopvac-lint/README.md#configuration) ·
+[Agent setup](#agent-skills) · [CI](#ci-integration) ·
+[Evaluation](packages/slopvac-lint/docs/judgement-eval.md)
+
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
 technical-writing constraints.
 
-Use the CLI in your editor or CI. The `write-docs` and `review-docs` agent skills
+Use the CLI locally or in CI. The `write-docs` and `review-docs` agent skills
 add review of claims and structure, with optional model-based checks.
-
-**[CLI reference](packages/slopvac-lint/README.md)**:
-[configuration](packages/slopvac-lint/README.md#configuration),
-[profiles](packages/slopvac-lint/README.md#profiles),
-[scoring](packages/slopvac-lint/README.md#scoring), and
-[contextual review](packages/slopvac-lint/README.md#judgement-layer).
 
 ## Quick start
 
-[Vale](https://vale.sh) is optional, but **highly recommended**. It executes most
-of slopvac's deterministic rules. For full coverage, install Vale 3.15 or later
-and put it on `PATH`.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
+Python 3.11 or later. [Vale](https://vale.sh) is optional, but **highly
+recommended**: it executes most deterministic rules. Install Vale 3.15 or later
+and put it on `PATH` for full deterministic coverage.
+
+With Homebrew, install Vale and check the installed version:
+
+```sh
+brew install vale
+vale --version
+```
+
+Other platforms can use the installers linked from the [Vale site](https://vale.sh).
+
+From your project's root directory:
+
+```sh
+uv tool install slopvac
+slopvac init
+slopvac README.md
+```
+
+`init` creates `slopvac.toml` with the `normal` profile and leaves an existing
+file unchanged. Replace `README.md` with the file or directory you need to check.
+A passing run exits 0; findings above a threshold exit 1. An incomplete check
+exits 2, including when selected Vale-backed checks cannot run.
+
+For a one-off check without installing slopvac persistently:
 
 ```sh
 uvx slopvac README.md
 ```
 
-For a persistent installation:
+### Use the results
 
 ```sh
-uv tool install slopvac
-slopvac README.md docs/
-```
-
-The Python package needs Python 3.11 or later. `pipx install slopvac` is another
-installation option.
-
-```sh
-slopvac --profile strict docs/
-slopvac --format json docs/ | jq .summary
+slopvac --format json --out slopvac-report.json README.md
 slopvac --open README.md
 slopvac --fix README.md
 ```
 
 `--fix` edits source files using deterministic replacements. Review the diff
-before keeping those edits. See [linting and fixes](packages/slopvac-lint/README.md#lint-documents)
-for diff-scoped runs and replacement limits.
+before keeping those edits. The **[CLI reference](packages/slopvac-lint/README.md)**
+covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
+[profiles](packages/slopvac-lint/README.md#profiles),
+[scoring](packages/slopvac-lint/README.md#scoring), and
+[contextual review](packages/slopvac-lint/README.md#judgement-layer).
 
 ## What it checks
 
@@ -72,14 +98,8 @@ The native engine and Vale report findings with source locations. The report
 includes density per 100 words and a 0-100 score. Profiles and project settings
 control which findings fail a run.
 
-| Exit code | Result |
-| --- | --- |
-| `0` | Selected deterministic checks completed within the configured thresholds |
-| `1` | A threshold failed |
-| `2` | Invalid configuration or an incomplete check |
-
-Missing Vale, or `--no-vale`, leaves Vale-backed checks unchecked and produces
-exit 2 when those checks are selected. Native findings remain available.
+Missing Vale, or `--no-vale`, leaves selected Vale-backed checks unchecked.
+Native findings remain available, but the run returns exit 2.
 
 ### The judgement layer
 
@@ -175,6 +195,8 @@ unchecked and returns exit 2.
 
 ### GitHub Actions
 
+Add these steps to a workflow job:
+
 ```yaml
 - uses: actions/checkout@v7
 - uses: srobroek/slopvac@v2.10.0
@@ -189,7 +211,6 @@ changed-file selection. See [action.yml](action.yml) for its inputs and outputs.
 ## Configure a project
 
 ```sh
-slopvac init
 slopvac lint --explain-config README.md
 ```
 
