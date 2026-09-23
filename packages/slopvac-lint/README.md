@@ -1,15 +1,24 @@
 # slopvac
 
-Score prose against three rulesets: AI-slop patterns, Simplified Technical
-English, and Orwell's rules restated as objective tests.
+Lint prose with one unified ruleset covering AI-register and AI-tell patterns,
+general prose craft, documentation discipline, Simplified Technical English
+principles, Orwell-derived clarity checks, and related writing constraints.
 
-Reports a finding density per 100 words and a 0-100 score, per category and
-overall, with warn and error levels you set per category.
+The current ruleset contains **231 rules across 26 categories**. Of those, **166
+are checked rules** with deterministic implementations and **65 are judgement
+rules** for questions that require contextual review. The split is by execution
+kind, not by separate rulesets: every rule carries the same category, severity,
+profile, genre, provenance, and reporting metadata.
+
+The deterministic gate reports finding density per 100 words and a 0-100 score,
+per category and overall. The judgement layer reports model confirms, rejects,
+preserves, and abstentions separately and never changes deterministic pass/fail.
 
 ```sh
 uvx slopvac README.md
 uvx slopvac --profile strict docs/
 uvx slopvac --format json docs/ | jq .summary
+uvx slopvac rules --judgement
 ```
 
 ## Install
@@ -20,22 +29,24 @@ uvx slopvac --help          # or run it without installing
 pipx install slopvac
 ```
 
-[Vale](https://vale.sh) 3.15 or later executes most of the ruleset and belongs on
-your PATH. `slopvac` compiles its own YAML rules into a Vale style directory
-and generates the `.vale.ini` it passes to Vale.
+[Vale](https://vale.sh) 3.15 or later is an optional deterministic sub-gate and
+belongs on your `PATH` when you want the full checked-rule run. `slopvac`
+compiles the Vale-compatible part of its YAML rules into a style directory and
+generates the `.vale.ini` it passes to Vale.
 
-| Engine | Covers |
-| --- | --- |
-| Vale | pattern matching, word counts, part-of-speech checks, document ratios |
-| built-in | patterns Vale rejects, metrics with no Vale form, block-shape comparisons |
-| reviewer | questions listed by `slopvac rules --judgement` |
+| Layer | Covers | Gates |
+| --- | --- | --- |
+| built-in deterministic engine | native patterns, metrics, block-shape checks, configuration and scoring | yes |
+| Vale sub-gate | Vale-compatible lexical, word-count, part-of-speech, and ratio checks | yes |
+| judgement layer | contextual questions listed by `slopvac rules --judgement` | no |
 
-Without the binary the run still scores the built-in rules and reports the rest
-as `UNCHECKED`, so a partial check never reads as a pass. `--no-vale` reports the
-same way.
+Without Vale, the run still scores native findings and reports Vale-backed checks
+as `UNCHECKED`; a partial check never reads as a pass. `--no-vale` behaves the
+same way and exits 2 because the deterministic gate is incomplete.
 
-`slopvac compile --format json` prints the current split, and
-[`docs/rules.md`](docs/rules.md) lists every rule.
+`slopvac compile --format json` shows how checked rules are routed, and
+[`docs/rules.md`](docs/rules.md) lists the complete checked and judgement
+ruleset.
 
 Inspect the routing, or run Vale by hand against the generated config:
 
@@ -80,42 +91,84 @@ and nonempty `vale.styles` settings are rejected, including in per-file override
 
 ## Judgement layer
 
-The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic error/warning counts, including the `max_errors` gate.
+The 65 judgement rules cover shapes that a deterministic checker cannot decide
+reliably, such as one-point dilution, false range, faux candor, and structural
+symmetry. They live beside checked rules in the same YAML ruleset and never
+produce lint findings.
 
-`slopvac judgement finish` uses Q02's `unique-quote` offset salvage by default; pass `--offset-salvage none` to preserve raw model offsets. The selected mode is recorded in `report.json` as `offset_salvage`.
+The CLI does not call a model provider. It owns the deterministic parts of the
+workflow: unit selection, admission gates, prompt construction, JSON schema,
+response validation, evidence-location checks, coverage accounting, aggregation,
+and comparison. Your harness supplies the model call.
 
-The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response. For an agent harness, `brief <file> --out <dir> --packs fired` writes the same artifacts plus `brief.md` and `brief.json`, and `validate --run <dir>` checks one response before it is appended. The design, the baselining, and the measured precision are in the [repository README](../../README.md#the-judgement-layer).
+| Command | Purpose |
+| --- | --- |
+| `judgement prepare` | run the deterministic scan and write structured prompts and run artifacts |
+| `judgement brief` | prepare an agent-readable `brief.md`/`brief.json`; `--packs fired` limits work to categories that fired deterministically |
+| `judgement validate` | validate one model response before a harness appends it; exits 2 on an invalid response |
+| `judgement finish` | validate and aggregate the completed run into judgement reports |
+| `judgement compare` | compare deterministic findings with judgement confirms and optionally build checker-passed rewrite previews |
 
-Run the three stages in one output directory:
+A typical provider-driven run uses one output directory:
 
 ```sh
-uv run --project packages/slopvac-lint slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 --yes packages/slopvac-lint/README.md
-# Send each prompts.jsonl row to your provider, then append responses.jsonl.
-uv run --project packages/slopvac-lint slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
-uv run --project packages/slopvac-lint slopvac judgement compare --out .slopvac-judgement
+uv run --project packages/slopvac-lint slopvac judgement prepare \
+  --config slopvac.toml \
+  --out .slopvac-judgement \
+  --packs all \
+  --max-calls 300 \
+  --yes \
+  packages/slopvac-lint/README.md
+
+# Send each prompts.jsonl row to your provider and append responses.jsonl.
+
+uv run --project packages/slopvac-lint slopvac judgement finish \
+  --out .slopvac-judgement \
+  --responses .slopvac-judgement/responses.jsonl
+
+uv run --project packages/slopvac-lint slopvac judgement compare \
+  --out .slopvac-judgement
 ```
 
-`--packs` accepts `all` or a comma-separated pack list. `prepare` creates `--out`, runs lint, and writes deterministic reports before it checks the call count. If the count exceeds `--max-calls` (300 by default), it refuses before writing prompts, units, or the manifest; the earlier output remains. Pass `--yes` after reviewing the printed counts to continue.
+For an agent harness, use the narrower path:
 
-Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`, and `cache_keys`. The JSON string in `prompt.user` contains `passages` and `pairs`; `pairs` is not a top-level row field. Each `responses.jsonl` row contains `call_id` and `response`.
-
-```python
-import json
-from pathlib import Path
-
-def call_model(system: str, user: str, schema: dict) -> object:
-    """Call your provider and return its JSON response."""
-    raise NotImplementedError
-
-run = Path(".slopvac-judgement")
-with (run / "prompts.jsonl").open() as prompts, (run / "responses.jsonl").open("w") as responses:
-    for line in prompts:
-        row = json.loads(line)
-        result = call_model(row["prompt"]["system"], row["prompt"]["user"], row["response_schema"])
-        responses.write(json.dumps({"call_id": row["call_id"], "response": result}) + "\n")
+```sh
+slopvac judgement brief README.md --out .slopvac-judgement --packs fired
+# Run one judge per call, then validate each response before appending it.
+slopvac judgement validate --run .slopvac-judgement < response.json
+slopvac judgement finish --out .slopvac-judgement \
+  --responses .slopvac-judgement/responses.jsonl
+slopvac judgement compare --out .slopvac-judgement
 ```
 
-`prepare` writes `prompts.jsonl`, `units.jsonl`, `documents/*.json`, deterministic reports under `deterministic/`, and `manifest.json`. `finish` writes `findings.jsonl`, `report.json`, and `report.md`; `compare --apply-preview` writes checker-passed rewrites under `preview/`.
+`--packs` accepts `all`, `fired` where supported, or explicit pack
+selection. `prepare` writes deterministic reports before enforcing
+`--max-calls` (300 by default); if the proposed run exceeds the budget it
+refuses before writing prompts, units, or the manifest. `--yes` confirms the
+displayed call count.
+
+Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`,
+`prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`,
+and `cache_keys`. The JSON string in `prompt.user` contains the passages and
+the (unit, rule) pairs to decide. Each `responses.jsonl` row contains
+`call_id` and `response`.
+
+`validate` and `finish` enforce the same host-side checks: response schema,
+unit ownership, and evidence quotes that occur in the unit text. `finish` uses
+`unique-quote` offset salvage by default, relocating a quote when it occurs
+exactly once; `--offset-salvage none` preserves raw model offsets. Failed,
+truncated, and not-run units remain separate states and reduce coverage rather
+than becoming abstentions.
+
+Judgement outcomes may lower `judgement_adjusted_score`, but they never alter
+deterministic pass/fail, exit status, or deterministic error/warning counts,
+including `max_errors`. `compare --apply-preview` writes only rewrites that
+pass the deterministic checker under `preview/`.
+
+The prompt contract, baselining, noise-floor measurements, human-corpus arm, and
+current precision measurements are documented in the
+[repository README](../../README.md#the-judgement-layer) and
+[`docs/judgement-eval.md`](docs/judgement-eval.md).
 
 ## Profiles
 
@@ -212,10 +265,10 @@ profile = "normal"
 
 [thresholds]
 max_errors = 0
-ste-words = "off"
+max_warnings = 10
 
 [categories]
-ste-vocabulary = "off"
+ste-words = "off"
 
 [rules]
 "prose-format.no-unicode-dash" = "off"    # house style uses real em dashes
@@ -355,8 +408,13 @@ slopvac docs/                            # a terminal report
 slopvac --format json docs/ | jq .        # every finding, every score
 slopvac --format github docs/            # Action annotations on the diff
 slopvac --format sarif docs/ > out.sarif  # code scanning
+slopvac --fix README.md                  # apply safe single-alternative rewrites
 slopvac --open docs/                     # an HTML report, in your browser
 ```
+
+`--fix` applies only deterministic rewrites with one unambiguous replacement.
+It preserves the matched text's case and skips findings whose rule offers
+multiple alternatives rather than guessing which rewrite the author intended.
 
 `--open` writes a self-contained page and opens it. `--out report.html` names the
 file instead of a temporary one, and implies HTML; `--format json --out report.json`
@@ -369,7 +427,11 @@ upper bound, and a reader who misses that has been misled by their own report.
 
 ### Report axes
 
-Reports show prose findings separately from AI-register findings. Strong and weak signals have their own counts. These counts do not affect scoring or gates.
+Reports separate ordinary prose findings from AI-register findings. They also
+roll up AI-signal strength independently: `strong`, `weak`, or `none`.
+`ai_signal_source` records whether that strength is `measured` against the
+corpus, inherited from the source catalog, or unmeasured. Signal strength and
+signal source are distinct metadata; neither changes scoring or gates.
 
 Below that: the verdict, then the documents worst first, then the categories that
 fired, then the findings, grouped per document. Anything that failed starts open.
@@ -488,8 +550,24 @@ broken gate with the number that broke it.
 
 ## Rules
 
-Rules are data. Each lives in a YAML file under `rules/<category>.yml`, so adding
-a lexical, substitution, or threshold rule needs no code.
+Rules are data. The shipped ruleset currently has **231 rules in 26 categories**:
+**166 checked** and **65 judgement**. The categories are intentionally broader
+than the project's original three source families.
+
+| Family | Categories include |
+| --- | --- |
+| AI register and residue | `ai-residue`, `ai-tells-agentic`, `ai-tells-content-shape`, `ai-tells-figurative`, `ai-tells-formatting`, `ai-tells-register`, `ai-tells-structure` |
+| Prose quality | `prose-agency`, `prose-craft`, `prose-discipline`, `prose-format`, `prose-inclusive`, `prose-inflation`, `prose-promotion`, `prose-scope` |
+| Documentation discipline | `docs-discipline` |
+| Simplified Technical English | `ste-descriptive`, `ste-nouns`, `ste-practices`, `ste-procedural`, `ste-punctuation`, `ste-safety`, `ste-sentences`, `ste-verbs`, `ste-words` |
+| Orwell-derived checks | `orwell` |
+
+The source family is provenance, not the runtime architecture. All categories
+share the same rule schema, profile and genre machinery, reporting model, and
+checked-versus-judgement split.
+
+Each rule lives in YAML under the packaged `rules/` directory, so adding many
+lexical, substitution, threshold, or judgement rules needs no engine change.
 
 ```sh
 slopvac rules --profile strict
