@@ -48,7 +48,6 @@ selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
 remain in the report, but this is an incomplete check. The separate
 [judgement layer](#judgement-layer) uses a model supplied by your harness.
 
-
 ## Agent steering
 
 `slopvac init` writes project configuration and, unless `--skip-agents` is
@@ -71,14 +70,13 @@ slopvac setup kiro
 ```
 
 Codex uses a non-empty `AGENTS.override.md` when one already exists, otherwise
-`AGENTS.md`. Claude Code uses `CLAUDE.md`, Oh My Pi uses `.omp/AGENTS.md`, and
-Kiro uses `.kiro/steering/slopvac.md`; a new Kiro steering file is marked
-`inclusion: always`. The generic `agents` target also manages `AGENTS.md`.
+`AGENTS.md`. Claude Code uses `CLAUDE.md`, and Oh My Pi uses `.omp/AGENTS.md`.
+Kiro uses `.kiro/steering/slopvac.md`; new files include `inclusion: always`.
+The generic `agents` target also manages `AGENTS.md`.
 
 `slopvac setup <harness> --check` reports whether the managed block is current
 without modifying files. `--remove` removes only the managed block. Use
 `slopvac setup --list` for the supported targets and paths.
-
 
 ## Lint documents
 
