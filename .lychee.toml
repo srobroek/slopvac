@@ -15,13 +15,4 @@ exclude = [
   # Medium serves 403 to any non-browser client, so the check reports a live
   # article as dead. `docs/rules.md` cites one as a rule source.
   "medium\\.com",
-  # The same 403-to-non-browser behaviour from two publishers and the SEC, cited as
-  # primary sources by docs/research/rubric-2026-09-15/rubric-review.md.
-  "journals\\.sagepub\\.com",
-  "doi\\.org/10\\.1111/",
-  "www\\.sec\\.gov/pdf/handbook\\.pdf",
-  # These cited source pages return 403 to lychee's non-browser HTTP client.
-  "support\\.acrolinx\\.com/hc/en-us/articles/10210995244178",
-  "www\\.iso\\.org/standard/79077\\.html",
-  "www\\.iso\\.org/sites/directives/current/part2/index\\.xhtml",
 ]
