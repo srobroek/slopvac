@@ -69,6 +69,12 @@ jobs:
           slopvac init
           cmp AGENTS.md /tmp/agents-first.md
           slopvac setup agents --check
+          slopvac setup --list > /tmp/setup-list.txt
+          grep -q '^agents' /tmp/setup-list.txt
+          grep -q '^codex' /tmp/setup-list.txt
+          grep -q '^claude' /tmp/setup-list.txt
+          grep -q '^omp' /tmp/setup-list.txt
+          grep -q '^kiro' /tmp/setup-list.txt
           slopvac prime > /tmp/prime.md
           slopvac prime lint > /tmp/prime-lint.md
           slopvac prime judgement > /tmp/prime-judgement.md
@@ -103,6 +109,135 @@ jobs:
           set -e
           test "$lint_status" -ne 2
           python3 -c 'import json; json.load(open("/tmp/probe.json"))'
+
+          slopvac reference > /tmp/reference.md
+          grep -q '231 rules' /tmp/reference.md
+
+          rm -rf /tmp/compiled-vale
+          slopvac compile \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --outdir /tmp/compiled-vale \
+            --format json \
+            > /tmp/compile.json
+          python3 - <<'PY'
+          import json
+          compiled = json.load(open('/tmp/compile.json'))
+          assert len(compiled['vale']) > 100
+          assert compiled['native']
+          assert len(compiled['judgement']) == 65
+          assert compiled['vale_version'] == '3.15.2'
+          PY
+          test -s /tmp/compiled-vale/.vale.ini
+
+          slopvac cache > /tmp/cache.txt
+          grep -q 'tree(s)' /tmp/cache.txt
+
+          slopvac lint /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format sarif \
+            > /tmp/probe.sarif
+          python3 - <<'PY'
+          import json
+          sarif = json.load(open('/tmp/probe.sarif'))
+          assert sarif['version'] == '2.1.0'
+          assert sarif['runs']
+          PY
+
+          slopvac lint /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format html \
+            --out /tmp/probe.html
+          grep -q '<html' /tmp/probe.html
+
+          printf 'The cache runs in order to reduce reads.\n' > /tmp/fix.md
+          slopvac lint /tmp/fix.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --fix \
+            > /tmp/fix-output.txt
+          grep -q '^The cache runs to reduce reads\.
+            '# Notes' \
+            '' \
+            "In today's fast-paced digital landscape, observability isn't just a nice-to-have." \
+            "It's a game-changer that empowers teams to leverage synergies." \
+            '' \
+            'In conclusion, embracing observability is a strategic imperative.' \
+            > /tmp/judge.md
+          rm -rf /tmp/judge-run
+          slopvac judgement brief /tmp/judge.md --out /tmp/judge-run --packs fired
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          out = Path('/tmp/judge-run')
+          prompts = [json.loads(line) for line in (out/'prompts.jsonl').read_text().splitlines() if line]
+          unit_rows = (
+              json.loads(line)
+              for line in (out / 'units.jsonl').read_text().splitlines()
+              if line
+          )
+          units = {row['unit_id']: row for row in unit_rows}
+          call = prompts[0]
+          rows = []
+          for uid in call['unit_ids']:
+              unit = units[uid]
+              if call['kind'] == 'PASSAGE_PROBE':
+                  row = {
+                      'unit_id': uid, 'rule_id': unit['rule_id'], 'kind': call['kind'],
+                      'admissible': True, 'note': 'No occurrence.', 'rewrite_status': 'not_applicable',
+                      'occurrences_truncated': False, 'scores': None, 'verdict': 'reject',
+                      'abstain_reason': None, 'preservation_reason': None, 'rewrite': None,
+                      'evidence': None, 'occurrences': [],
+                  }
+              else:
+                  row = {
+                      'unit_id': uid, 'rule_id': unit['rule_id'], 'kind': call['kind'],
+                      'admissible': True, 'note': 'No defect in this unit', 'rewrite_status': 'not_applicable',
+                      'occurrences_truncated': False,
+                      'scores': {'fit':'absent','harm':'none','repair':'inapplicable','warrant':'quote_only'},
+                      'verdict': 'reject', 'abstain_reason': None, 'preservation_reason': None,
+                      'rewrite': None, 'evidence': [], 'occurrences': None,
+                  }
+              rows.append(row)
+          payload = {'results': rows}
+          Path('/tmp/response.json').write_text(json.dumps(payload))
+          response_row = {'call_id': call['call_id'], 'response': payload}
+          Path('/tmp/judge-run/responses.jsonl').write_text(
+              json.dumps(response_row) + '\n'
+          )
+          Path('/tmp/call-id').write_text(call['call_id'])
+          PY
+          slopvac judgement validate \
+            --run /tmp/judge-run \
+            --call-id "$(cat /tmp/call-id)" \
+            --file /tmp/response.json \
+            > /tmp/validate.json
+          python3 -c 'import json; assert json.load(open("/tmp/validate.json"))["ok"]'
+          slopvac judgement finish --out /tmp/judge-run --responses /tmp/judge-run/responses.jsonl
+          slopvac judgement compare --out /tmp/judge-run > /tmp/compare.txt
+          test -s /tmp/judge-run/report.json
+          test -s /tmp/compare.txt
+ /tmp/fix.md
+
+          printf '%s\n' \
+            '# A robust seamless world-class system.' \
+            'print("robust seamless world-class")' \
+            > /tmp/comment.py
+          set +e
+          slopvac lint /tmp/comment.py \
+            --mode code-comments \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format json \
+            > /tmp/comment.json
+          comment_status=$?
+          set -e
+          test "$comment_status" -ne 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/comment.json'))
+          findings = report['documents'][0]['findings']
+          assert findings
+          assert {finding['line'] for finding in findings} == {1}
+          PY
 
           printf '%s\n' \
             '# Notes' \
