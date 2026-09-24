@@ -2661,10 +2661,12 @@ Repeat the noun
 
 A repetition-penalty artifact of the decoder. Judgement-only: deciding it requires knowing that two nouns denote the same referent, which is the coreference problem. The catalog file carries a `write-docs:allow E2` suppression on this bullet.
 
+<!-- slopvac-disable -->
   > **Not this.** The loader reads it. The resolver caches it. The component then exits.
   >
   > **This.** The loader reads it, caches it, then exits.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.epigram-closer-remainder`
 
@@ -2681,10 +2683,12 @@ Judge whether a closing line adds a fact
 
 Judgement remainder of prose-scope.epigram, which mechanises two shapes -- a parallel pair and a negated maxim -- at warning, because the same shape occasionally states a real contrast. That warning level IS the judgement gap, and this rule names it. A reward-model favourite: it survives editing because it reads quotable.
 
+<!-- slopvac-disable -->
   > **Not this.** The linter is deterministic. The reviewer is not.
   >
   > **This.** *(delete it)*
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.fabricated-citations-remainder`
 
@@ -2701,12 +2705,14 @@ Verify every reference you did not fetch yourself
 
 Judgement remainder of ai-tells-content-shape.fabricated-citations-core, and enforced at every tier: a fabricated citation is a factual defect in any register. Decidable, not taste -- the reviewer either fetched it or did not. Related to ai-tells-structure.vague-attribution-remainder, which asks whether a source is NAMED; this asks whether a named source is REAL.
 
+<!-- slopvac-disable -->
   > **Not this.** Smith (2019) reports a 40% reduction, doi:10.1000/182.
   >
   > **This.** The npm RFC 0012 measured a 40% drop in resolution variance.
   >
   > The catalog's failure modes: DOIs that resolve to unrelated papers, invented ISBNs, dead URLs, and book cites with no page numbers.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.one-point-dilution`
 
@@ -2723,6 +2729,7 @@ Say it once and stop
 
 Judgement-only: detecting it requires recognising two passages as the same argument in different words. Overlaps ai-tells-structure.think-of-it-as-core, whose frames are one common vehicle for a restatement.
 
+<!-- slopvac-disable -->
   > **Not this.** Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
   >
   > **This.** The gate produces the same findings on every run.
@@ -2731,6 +2738,7 @@ Judgement-only: detecting it requires recognising two passages as the same argum
   >
   > **This.** The cache returns the same value for the same key until invalidation.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.over-writing-remainder`
 
@@ -2747,6 +2755,7 @@ Judge whether the reader acts differently for having read it
 
 Judgement remainder of the prose-scope category. The catalog names three shapes: a rejected alternative defended in place (prose-scope.rejected-alternative), an implementation cost the reader cannot act on (prose-scope.implementation-leak), and a paragraph of loosely related reasoning appended to a finished section -- the third has NO pattern and is what this rule carries. Excluded at relaxed for the same genre reason the prose-scope rules are: an ADR or a spec exists to hold this content.
 
+<!-- slopvac-disable -->
   > **Not this.** A paragraph of loosely related reasoning appended to a section that had already finished.
   >
   > **This.** The loader reads the lockfile, then falls back to the manifest.
@@ -2755,6 +2764,7 @@ Judgement remainder of the prose-scope category. The catalog names three shapes:
   >
   > **This.** The cache key is the manifest path and content hash.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.padded-symmetry`
 
@@ -2771,6 +2781,7 @@ Let a section be two sentences
 
 Judgement-only. Related to the immutable historical record's "Asymmetric structure" at https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md, whose positive form is proposed as a document metric, `section-length-dispersion`. That metric is the mechanizable proxy; this rule is the decidable question.
 
+<!-- slopvac-disable -->
   > **Not this.** ## Troubleshooting
 
 If the loader fails, check the logs.
@@ -2779,6 +2790,7 @@ If the loader fails, check the logs.
   >
   > A troubleshooting section for problems that do not exist.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.textbook-connector-runs`
 
@@ -2795,10 +2807,12 @@ Do not open consecutive sentences on a textbook connector
 
 Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the catalog's claim is about consecutive OPENINGS, which is an adjacency property, not a token match. The immutable historical record at https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md records that upstream ai-tells.FormalTransitions was DISABLED for flagging these same connectives as bare tokens ("these are ordinary English connectives and this corpus uses them correctly"), so the adjacency form is deliberately the only one carried and prose-craft.wordiness maps `additionally` to `also` as a substitution without a position claim.
 
+<!-- slopvac-disable -->
   > **Not this.** Moreover, the cache is warm. Furthermore, the lockfile is present.
   >
   > **This.** The cache is warm and the lockfile is present.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.unasked-for-rationale`
 
@@ -2815,6 +2829,7 @@ Delete the clause and keep the behavior
 
 JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not pattern-match it." Distinct from prose-scope.rejected-alternative, which needs a NAMED alternative to anchor on; this one names no alternative, so no pattern reaches it. The three legitimacy tests are carried inside judgement_question because all three are context the reader has and a regex does not. Excluded at relaxed on the same genre grounds as prose-scope.
 
+<!-- slopvac-disable -->
   > **Not this.** This keeps the logic in one place.
   >
   > **This.** The helper is shared by both parsers.
@@ -2823,6 +2838,7 @@ JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not pattern-ma
   >
   > **This.** The cache key is the manifest path and content hash.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.vaporware-description`
 
@@ -2839,6 +2855,7 @@ Cut the claim, not the qualifier
 
 JUDGEMENT-ONLY BY DESIGN, and enforced at every tier. The catalog is explicit that the mechanical rule is a TRAP: docs-discipline.status-language bans the hedge ("coming soon", "not yet implemented", "planned"), and a writer who deletes only the hedge to pass the gate ships a document that lies. The tell is not the honesty -- it is the MIXTURE, a page that reads as shipped and hedges in the margins. So this rule deliberately does NOT carry a pattern: it exists to make the status-language finding decidable, and any engine that fires them independently reproduces the trap. The `fix` field carries the catalog's ordered procedure verbatim in substance.
 
+<!-- slopvac-disable -->
   > **Not this.** The loader supports globs (coming soon).
   >
   > **This.** The loader accepts a literal path.
@@ -2856,6 +2873,8 @@ Markup and punctuation tells. These decay slowly, but em-dash suppression shippe
 
 Weight **1.0**. Recommended for `consumer`, `internal`, `change-comms`.
 
+<!-- slopvac-enable -->
+
 #### `ai-tells-formatting.table-wrapping-one-sentence`
 
 Unwrap a table that holds one sentence
@@ -2871,6 +2890,7 @@ Unwrap a table that holds one sentence
 
 Judgement, because a one-row table is legitimate as a header-only reference stub and the test is whether the cells vary in a shared dimension. Inverse of prose-format.prose-block, which flags prose that should have been a table.
 
+<!-- slopvac-disable -->
   > **Not this.** | Note |
 |---|
 | The loader reads the lockfile. |
@@ -2883,6 +2903,8 @@ Judgement, because a one-row table is legitimate as a header-only reference stub
 The chat-assistant voice that survived lexical patching. Each entry is a voice, not a word: synonym-swapping does not remove it. Per-model fingerprints inside this register drift fast, so treat model attributions as snapshots.
 
 Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.anthropomorphised-justification-remainder`
 
@@ -2899,10 +2921,12 @@ Judge whether a component is granted intent
 
 Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
 
+<!-- slopvac-disable -->
   > **Not this.** The cache more than repays its complexity.
   >
   > **This.** The cache removes one network round trip per run.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.false-agency-remainder`
 
@@ -2919,6 +2943,7 @@ Judge whether an abstraction occupies the subject slot
 
 Judgement remainder of prose-agency.false-agency, which mechanises the seven named subject-verb bands. This rule carries the open case, because the catalog's own definition -- "an abstraction promoted to actor" -- is productive: any abstract noun can occupy the subject slot, so no closed list finishes the job. The catalog distinguishes it from the two entries around it: those grant a component desert ("earns its keep", ai-tells-register.anthropomorphised-justification-core) or self-causation ("falls out naturally", ai-tells-register.organic-consequence-core).
 
+<!-- slopvac-disable -->
   > **Not this.** The complaint becomes a fix.
   >
   > **This.** The team fixed it that week.
@@ -2927,6 +2952,7 @@ Judgement remainder of prose-agency.false-agency, which mechanises the seven nam
   >
   > **This.** You learn within a week whether the bet paid.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.faux-candor-remainder`
 
@@ -2943,10 +2969,12 @@ Judge whether an admission carries risk
 
 Judgement remainder of ai-tells-register.faux-candor-core. The counter-signal catalog names the positive form: "a concrete anecdote or a mistake admitted with its cost".
 
+<!-- slopvac-disable -->
   > **Not this.** We're not perfect, and we're always learning.
   >
   > **This.** The 3.0 release shipped with a broken lockfile path for six days.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.figurative-verb-verdict-remainder`
 
@@ -2963,10 +2991,12 @@ Judge whether a metaphor carries a verdict with no evidence
 
 Judgement remainder of ai-tells-register.figurative-verb-verdict-core, and the durable form: the catalog warns the specific verbs drift per model generation while the construction does not.
 
+<!-- slopvac-disable -->
   > **Not this.** The design pays for itself.
   >
   > **This.** The design removes the second config file, so there is one place to look.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.hedged-symmetry`
 
@@ -2983,10 +3013,12 @@ Take the position the evidence supports
 
 Upstream ai-tells.FalseBalance attempts the phrase forms and stays enabled. The judgement is whether the counter-claim has a holder, which needs domain knowledge. Related to but distinct from prose-inflation.hedge-stack, which counts hedges on ONE claim; this counts claims balanced against each other. Note the catalog file carries a `write-docs:allow E2` suppression on this bullet, because describing the tell requires the word it bans.
 
+<!-- slopvac-disable -->
   > **Not this.** Lockfiles help reproducibility, though some argue they add friction.
   >
   > **This.** The lockfile pins every transitive dependency.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.intensifier-tics-remainder`
 
@@ -3003,10 +3035,12 @@ Judge whether emotion is announced or earned
 
 Judgement remainder of ai-tells-register.intensifier-tics-core.
 
+<!-- slopvac-disable -->
   > **Not this.** The rewrite is remarkably clean.
   >
   > **This.** The rewrite deletes 400 lines and adds one function.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.organic-consequence-remainder`
 
@@ -3023,10 +3057,12 @@ Judge whether a design is presented as self-caused
 
 Judgement remainder of ai-tells-register.organic-consequence-core.
 
+<!-- slopvac-disable -->
   > **Not this.** The threshold settles at 34 words.
   >
   > **This.** The maintainers set the threshold at 34 words after measuring 30 and 32.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.over-formatting-reflex`
 
@@ -3043,12 +3079,14 @@ Format only when the data has columns
 
 A direct reward-model artifact, with per-model formatting fingerprints measured in https://arxiv.org/abs/2502.12150. Judgement-only at document scope: a table is correct or not depending on whether the data has columns, which is exactly the thing a pattern cannot see. The mechanizable slice of this entry is ai-tells-formatting.inline-header-list, which counts the bullet SHAPE. prose-format.prose-block is the inverse metric -- prose that should have been a table.
 
+<!-- slopvac-disable -->
   > **Not this.** | Field | Value |
 |---|---|
 | Purpose | It loads things |
   >
   > **This.** The loader reads the lockfile.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.urgency-inflation-remainder`
 
@@ -3065,6 +3103,7 @@ Judge whether stakes name a consequence
 
 Judgement remainder of ai-tells-register.urgency-inflation-core.
 
+<!-- slopvac-disable -->
   > **Not this.** Getting this right is critical.
   >
   > **This.** A wrong value here silently skips every file.
@@ -3075,6 +3114,8 @@ Judgement remainder of ai-tells-register.urgency-inflation-core.
 Structure tells endure across model generations because preference training produces them: raters reward length, markdown, bulleted symmetry, and confident even-handedness, so every generation reconverges on the same shapes even as the vocabulary changes. Weight these above any word list.
 
 Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.absolute-assertion-remainder`
 
@@ -3091,6 +3132,7 @@ Judge whether an absolute claim survives one counterexample
 
 Judgement remainder of ai-tells-structure.absolute-assertion-core. Preserve quotations, attributed claims, and factual descriptions tied to a named person, work, edition, document, product, or other explicit finite set; local all/only/never inherits its stated antecedent; and preserve bounded comparative recommendations. Flag unsupported authorial guarantees or categorical evaluations (including "will tell you", "wherever ... has a problem", or "you are wrong") and sweeping always/never/every/no X has ever claims unless attributed or supported by quantified or passage evidence.
 
+<!-- slopvac-disable -->
   > **Not this.** Every Project Needs A Lockfile.
   >
   > **This.** A project with more than one direct dependency needs a lockfile.
@@ -3101,6 +3143,7 @@ Judgement remainder of ai-tells-structure.absolute-assertion-core. Preserve quot
   >
   > preserve: bounded endpoint domain
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.analogy-stack-authority`
 
@@ -3117,10 +3160,12 @@ Keep one apt comparison, or none
 
 Deciding it needs domain knowledge about whether the comparison shares a mechanism, which is exactly what a pattern cannot hold.
 
+<!-- slopvac-disable -->
   > **Not this.** Apple didn't build Uber. Facebook didn't build Spotify.
   >
   > **This.** The plugin runs in the host process, so it cannot outlive the session.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.anaphora-abuse`
 
@@ -3137,10 +3182,12 @@ Say it once and merge the objects
 
 Upstream ai-tells.StackedAnaphora attempts the mechanical form and stays enabled; this judgement rule carries the case where the repeated opener is paraphrased rather than identical, which no regex reaches.
 
+<!-- slopvac-disable -->
   > **Not this.** They assume a lockfile. They assume a network. They assume a token.
   >
   > **This.** They assume a lockfile, a network, and a token.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.audience-straddle-remainder`
 
@@ -3157,6 +3204,7 @@ Judge whether the document holds one audience
 
 Judgement remainder of ai-tells-structure.audience-straddle-core.
 
+<!-- slopvac-disable -->
   > **Not this.** A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG.
   >
   > **This.** Rebase onto the upstream to linearise the history.
@@ -3165,6 +3213,7 @@ Judgement remainder of ai-tells-structure.audience-straddle-core.
   >
   > **This.** Diagnose the TLS handshake with `openssl s_client`.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.cataphoric-lead-in-remainder`
 
@@ -3181,10 +3230,12 @@ Judge whether a forecast tells the reader anything
 
 Judgement remainder of ai-tells-structure.cataphoric-lead-in-core.
 
+<!-- slopvac-disable -->
   > **Not this.** A handful of considerations apply here.
   >
   > **This.** Two limits apply:
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.contrastive-inversion-remainder`
 
@@ -3200,6 +3251,7 @@ Judge whether a contrast names a real alternative
 
 Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The remainder needs a reader who knows whether the alternative exists, which no pattern can supply. Also absorbs the catalog's "Strawman antithesis" row, whose "While other gates struggle, X ..." shape is the same defect.
 
+<!-- slopvac-disable -->
   > **Not this.** Where other gates check words, this one reads the shape of the argument.
   >
   > **This.** The gate scores paragraph symmetry and passive density.
@@ -3208,6 +3260,7 @@ Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The rema
   >
   > **This.** The gate is deterministic.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.false-range`
 
@@ -3224,6 +3277,7 @@ List the actual items or name the real dimension
 
 A pattern for "from X to Y" would fire on every legitimate range, so this is judgement-only: the test is whether the endpoints are ordered, which needs the reader to know the domain.
 
+<!-- slopvac-disable -->
   > **Not this.** from beef to chicken
   >
   > **This.** beef, chicken, and pork
@@ -3232,6 +3286,7 @@ A pattern for "from X to Y" would fire on every legitimate range, so this is jud
   >
   > **This.** teams of 3 to 3,000 engineers
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.false-suspense-remainder`
 
@@ -3248,10 +3303,12 @@ Judge whether a transition withholds the point
 
 Judgement remainder of ai-tells-structure.false-suspense-frames. The token list decays per model generation; this question does not.
 
+<!-- slopvac-disable -->
   > **Not this.** What follows is the part that changes how you read the rest of this page.
   >
   > **This.** The gate exits 1 when the score falls below 80.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.heading-echo`
 
@@ -3268,6 +3325,7 @@ Start with the first new fact after a heading
 
 Judgement, not pattern: deciding it requires comparing the sentence's content against the heading's, and paraphrase defeats any string test. prose-craft.self-reference catches the subset that names the section explicitly ("This section explains"), and prose-inflation.document-preamble catches the document-level form.
 
+<!-- slopvac-disable -->
   > **Not this.** ## Install the plugin
 
 This section covers installing the plugin.
@@ -3284,6 +3342,7 @@ Authentication covers access control.
 
 Every request sends a bearer token.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.hollow-acknowledgment`
 
@@ -3300,10 +3359,12 @@ Solve it, or cut the paragraph that raises it
 
 prose-inflation.apologizing mechanises the subset that DEFERS explicitly ("further research is needed"); this rule covers all diagnosis with no treatment, which carries no marker phrase. Upstream ai-tells.HollowAcknowledgment attempts the phrase forms and stays enabled.
 
+<!-- slopvac-disable -->
   > **Not this.** Rate limits are a real concern here.
   >
   > **This.** The client retries twice, then returns 429 to the caller.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.invented-concept-label`
 
@@ -3320,10 +3381,12 @@ Coin nothing
 
 Distinguishing a coinage from established domain vocabulary requires knowing the field, so it cannot be a token list -- the list would have to enumerate every legitimate term instead.
 
+<!-- slopvac-disable -->
   > **Not this.** This is the supervision paradox.
   >
   > **This.** A reviewer who approves faster than they read approves more defects.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.listicle-in-a-trench-coat`
 
@@ -3340,6 +3403,7 @@ Make it a real list or real prose
 
 No pattern reaches it: the defect is that prose form carries list content, which needs the reader to test whether each paragraph depends on the last. Upstream ai-tells.SequencingMarkers and ai-tells.ListIntroductions catch the marker phrases, not the shape.
 
+<!-- slopvac-disable -->
   > **Not this.** The first wall is latency. The second wall is memory. The third wall is cost.
   >
   > **This.** Three limits apply:
@@ -3348,6 +3412,7 @@ No pattern reaches it: the defect is that prose form carries list content, which
 - memory
 - cost
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.meta-narration-remainder`
 
@@ -3364,6 +3429,7 @@ Judge whether a sentence spends itself on navigation
 
 Judgement remainder of ai-tells-structure.meta-narration-frames and of prose-inflation.document-preamble.
 
+<!-- slopvac-disable -->
   > **Not this.** Before getting to the flags, some background on why the loader exists.
   >
   > **This.** The loader reads the lockfile, then falls back to the manifest.
@@ -3372,6 +3438,7 @@ Judgement remainder of ai-tells-structure.meta-narration-frames and of prose-inf
   >
   > **This.** The cache key is the manifest path and content hash.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.negative-inventory-remainder`
 
@@ -3388,6 +3455,7 @@ Judge whether a negative constraint is actionable
 
 Judgement remainder of ai-tells-structure.negative-inventory-core. The negative form is legitimate when it changes reader action or records an enforced safety, compliance, debugging, reproducibility, or audit boundary.
 
+<!-- slopvac-disable -->
   > **Not this.** The tooling is not pinned, and visual checks are outside scope.
   >
   > **This.** CI rejects an unpinned formatter; visual checks are not run by this command.
@@ -3396,6 +3464,7 @@ Judgement remainder of ai-tells-structure.negative-inventory-core. The negative 
   >
   > **This.** The audit log records the excluded checks and their reasons.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.staccato-negative-parallel-remainder`
 
@@ -3412,10 +3481,12 @@ Judge whether a fragment run carries content
 
 Judgement remainder of ai-tells-structure.staccato-negative-parallel-frames. Also covers register.md's "Punchy-fragment cadence" bullet at the paragraph level.
 
+<!-- slopvac-disable -->
   > **Not this.** Fast. Deterministic. Auditable.
   >
   > **This.** The gate is deterministic and writes an audit line per finding.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.summary-closer-remainder`
 
@@ -3432,12 +3503,14 @@ Judge whether a closing section adds a fact
 
 Judgement remainder of ai-tells-structure.summary-closer-frames. Also absorbs the catalog's "Outline conclusion" row ("Challenges and Future Outlook", "Despite these challenges ... remains"), whose heading forms are covered upstream by ai-tells.DespiteChallenges and ai-tells.WrapUpHeadings.
 
+<!-- slopvac-disable -->
   > **Not this.** The gate has three parts, described above: the loader, the checkers, and the scorer.
   >
   > **This.** *(delete it)*
   >
   > The document ends on the scorer section.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.think-of-it-as-remainder`
 
@@ -3454,10 +3527,12 @@ Judge whether an analogy replaces the mechanism
 
 Judgement remainder of ai-tells-structure.think-of-it-as-core.
 
+<!-- slopvac-disable -->
   > **Not this.** The scheduler is the traffic warden of the cluster.
   >
   > **This.** The scheduler assigns each pod to the node with the most free memory.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.tricolon-abuse-remainder`
 
@@ -3474,12 +3549,14 @@ Judge whether parallel bullets carry distinct substance
 
 Judgement remainder of ai-tells-structure.tricolon-abuse-core. Absorbs the catalog's "Bold-lead-in bullet symmetry" row: `**Speed:** one sentence` x 6 with near-zero content. The bullet SHAPE is mechanizable and lives in ai-tells-formatting.inline-header-list; the "near-zero content" test is this rule.
 
+<!-- slopvac-disable -->
   > **Not this.** - **Speed:** it is fast.
 - **Safety:** it is safe.
 - **Scale:** it scales.
   >
   > **This.** The gate reads 488 files in 0.4 s and refuses an unresolvable style.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.vague-attribution-remainder`
 
@@ -3496,6 +3573,7 @@ Judge whether a cited source is checkable
 
 Judgement remainder of ai-tells-structure.vague-attribution-core. Also the checkability half of content-shape's fabricated-citation entry -- see ai-tells-content-shape.fabricated-citations-remainder.
 
+<!-- slopvac-disable -->
   > **Not this.** The literature is clear on this.
   >
   > **This.** RFC 7231 section 6.5.1 defines the status code.
@@ -3506,6 +3584,8 @@ Judgement remainder of ai-tells-structure.vague-attribution-core. Also the check
 Objective restatements of the six rules from "Politics and the English Language" (1946), plus extensions the essay warrants.
 
 Weight **1.5**. Recommended for `consumer`, `internal`, `informal`.
+
+<!-- slopvac-enable -->
 
 #### `orwell.concrete-floor`
 
@@ -3522,6 +3602,7 @@ Name a checkable particular
 
 EXTENSION, and the load-bearing one. All six of Orwell's rules PASS his own worst-case specimen ("success or failure in competitive activities exhibits no tendency to be commensurate with innate capacity"), which is the gap this rule closes.
 
+<!-- slopvac-disable -->
   > **Not this.** The system handles a variety of edge cases to ensure reliable operation.
   >
   > **This.** The parser rejects unterminated strings and nested depth over 64.
@@ -3532,6 +3613,8 @@ EXTENSION, and the load-bearing one. All six of Orwell's rules PASS his own wors
 Referential consistency, sentence load, and constructions that hide the verb or the claim.
 
 Weight **1.5**. Recommended for `consumer`, `reference`, `internal`.
+
+<!-- slopvac-enable -->
 
 #### `prose-discipline.bare-quantifier-with-figure-available`
 
@@ -3548,6 +3631,7 @@ Give the bare quantifier its number
 
 Deliberately NOT a lexical rule. Wikipedia lists these tokens, and its own condition is "when quantifiable measures could be provided", which no pattern decides: "most requests complete in 15 ms" is correct and "most users prefer it" is not, and the two are identical in shape. A token rule here would fire on correct prose in every document, which is how a rule gets disabled. The multi-word forms that carry the evasion in their shape -- "a number of", "in most cases" -- ARE mechanized, in prose-inflation.vague-quantifier.
 
+<!-- slopvac-disable -->
   > **Not this.** Most requests are cached.
   >
   > **This.** 94% of requests are cached.
@@ -3560,6 +3644,7 @@ Deliberately NOT a lexical rule. Wikipedia lists these tokens, and its own condi
   >
   > A list the document could have written out.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.competing-actor-terms`
 
@@ -3576,6 +3661,7 @@ Pick one term for one subject
 
 The specification requires one name for one thing. Software prose breaks this most often across actor nouns, because each one reads as a legitimate synonym in isolation. Kept as judgement because co-occurrence alone does not prove rotation: a document may legitimately distinguish a user from the client library that acts for them.
 
+<!-- slopvac-disable -->
   > **Not this.** The user submits a job. The customer receives a token. The client then polls for the result.
   >
   > **This.** The user submits a job, receives a token, and polls for the result.
@@ -3586,6 +3672,7 @@ The specification requires one name for one thing. Software prose breaks this mo
   >
   > **This.** The caller opens the connection and must close it.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.hedged-into-uselessness`
 
@@ -3602,6 +3689,7 @@ The document must assert something
 
 Document-scoped on purpose. Every sentence here can pass prose-inflation.hedge-stack, which fires only on a stack inside one sentence. The defect is the ratio across the document: a single honest hedge is correct, and hedging every claim is a refusal to write the doc. A hedge is permitted where the uncertainty is real and named -- a measured variance, a documented platform difference -- and the exception list is what a suppression must cite.
 
+<!-- slopvac-disable -->
   > **Not this.** The cache may improve response time in some workloads, though results can vary and it might increase memory use depending on configuration.
   >
   > **This.** The cache cuts median response time by 40% on repeated prompts. It holds entries in memory: budget 200 MB per 10,000 entries.
@@ -3612,6 +3700,7 @@ Document-scoped on purpose. Every sentence here can pass prose-inflation.hedge-s
   >
   > **This.** Use the strict profile for reference material.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.marketing-register`
 
@@ -3628,6 +3717,7 @@ Describe, do not sell
 
 Paired with orwell.unsupported-evaluative, which owns the token list. This half exists because the token list is perishable and incomplete: a passage can carry the marketing register with no listed word in it, and that is the commoner failure in generated prose.
 
+<!-- slopvac-disable -->
   > **Not this.** Built for teams who care about quality, our approach gives you confidence at every step of the pipeline.
   >
   > **This.** The gate blocks a merge when coverage drops below 80%.
@@ -3638,6 +3728,7 @@ Paired with orwell.unsupported-evaluative, which owns the token list. This half 
   >
   > **This.** Runs as a pre-commit hook and a GitHub Action.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.overloaded-sentence`
 
@@ -3654,6 +3745,7 @@ One sentence, one idea
 
 Paired with prose-discipline.run-on, which counts clause boundaries. The count is a candidate finder: it cannot tell a parallel list sharing one subject from two unrelated clauses, and both shapes appear at the same boundary count. This half carries the decision.
 
+<!-- slopvac-disable -->
   > **Not this.** The parser reads the manifest and the resolver walks the dependency graph.
   >
   > **This.** The parser reads the manifest. The resolver then walks the dependency graph.
@@ -3670,6 +3762,8 @@ Paired with prose-discipline.run-on, which counts clause boundaries. The count i
 Over-writing: real content in the wrong document. A rejected alternative defended in place, an implementation cost the reader cannot act on, a reassurance answering a worry nobody raised, a closing flourish.
 
 Weight **1.0**. Recommended for `consumer`, `change-comms`.
+
+<!-- slopvac-enable -->
 
 #### `prose-scope.code-change-prose-scope`
 
@@ -3708,10 +3802,12 @@ Give information gradually
 
 Forward-reference detection is partly mechanizable (first-use position of each glossary term), but the one-idea-per-sentence half is not, and a checker that fires on term order alone would misjudge every summary paragraph. Judgement, with the sentence-length rule carrying most of the practical benefit.
 
+<!-- slopvac-disable -->
   > **Not this.** The reconciler compares desired state from the lease store against observed state from the informer cache and writes the delta to the work queue that the shard leader drains.
   >
   > **This.** The reconciler reads the desired state from the lease store. It reads the observed state from the informer cache. It writes the difference between the two to the work queue. The shard leader drains that queue.
 
+<!-- slopvac-enable -->
 
 #### `ste-descriptive.missing-key-word-structure`
 
@@ -3729,10 +3825,12 @@ Use key words to structure the text
 
 The consistency half overlaps ste-words/inconsistent-term-for-same-thing, which is the mechanizable part given a synonym-group list. What is unique here is the positive requirement to carry a key word forward, which no checker can measure.
 
+<!-- slopvac-disable -->
   > **Not this.** The reconciler drains the work queue. The component then writes the outcome to the job list.
   >
   > **This.** The reconciler drains the work queue. The reconciler then writes the outcome to the work queue.
 
+<!-- slopvac-enable -->
 
 #### `ste-descriptive.paragraph-has-multiple-topics`
 
@@ -3750,11 +3848,13 @@ Keep one topic per paragraph
 
 The split test above is our decidable restatement of "one topic", and it is a reviewer question rather than a finding because measuring topical cohesion needs a model, not a rule. Kept enforced at strict and normal so the reviewer is prompted.
 
+<!-- slopvac-disable -->
   > **Not this.** The gateway terminates TLS and forwards each request to a worker. The billing exporter writes a daily CSV to the audit bucket.
   >
   > **This.** The gateway terminates TLS and forwards each request to a worker.
 The billing exporter writes a daily CSV to the audit bucket.
 
+<!-- slopvac-enable -->
 
 #### `ste-descriptive.paragraph-without-related-information`
 
@@ -3772,6 +3872,7 @@ Group related information in a paragraph
 
 Advisory at both upper tiers because the failure it names (a paragraph with no topic sentence) is a drafting problem a reviewer catches faster than a checker, and no threshold makes it decidable.
 
+<!-- slopvac-disable -->
   > **Not this.** Set the retry limit to five. The gateway terminates TLS. Each worker reads one queue.
   >
   > **This.** The gateway handles inbound traffic. It terminates TLS and rewrites the Host header. It then forwards each request to a worker.
@@ -3782,6 +3883,8 @@ Advisory at both upper tiers because the failure it names (a paragraph with no t
 Caps the length of noun stacks and requires a short form for longer domain terms.
 
 Weight **1.0**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-nouns.long-domain-term-without-short-form`
 
@@ -3798,6 +3901,7 @@ Give a short form for a long domain term
 
 Judgement because the checker cannot know whether a long term is an immovable project name or careless stacking. The related hyphen constraint (no more than three words joined as one unit) is mechanized in ste-punctuation/hyphen-group-too-long.
 
+<!-- slopvac-disable -->
   > **Not this.** Restart the regional inbound request admission controller after each config change.
   >
   > **This.** Restart the regional inbound request admission controller (called the admission controller in this runbook) after each config change.
@@ -3808,6 +3912,8 @@ Judgement because the checker cannot know whether a long term is an immovable pr
 Covers rewriting when substitution fails, correct word sense, phrasal verbs, consistency, and the eight general recommendations.
 
 Weight **0.8**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-practices.ambiguous-preposition-with`
 
@@ -3824,6 +3930,7 @@ Keep the instrument sense clear
 
 A recommendation, and not mechanizable: the ambiguity is in the reading, not in the surface form, and "with" is far too common to flag. Advisory at both upper tiers so it surfaces in review without generating findings.
 
+<!-- slopvac-disable -->
   > **Not this.** Restart the worker with the drained queue.
   >
   > **This.** When the queue is drained, restart the worker.
@@ -3832,6 +3939,7 @@ A recommendation, and not mechanizable: the ambiguity is in the reading, not in 
   >
   > **This.** Deploy the service that includes the new sidecar.
 
+<!-- slopvac-enable -->
 
 #### `ste-practices.word-sense-incorrect`
 
@@ -3848,10 +3956,12 @@ Use each word in its correct sense
 
 Near-duplicate of the word-sense rule in the words chapter; the specification states it twice from different angles (vocabulary definition versus writing practice) and we keep both entries so every rule number is traceable. A runtime should report only one. Needs the sense gloss in the vocabulary dataset, which is the largest remaining extraction job.
 
+<!-- slopvac-disable -->
   > **Not this.** When the load goes down, the autoscaler removes a replica.
   >
   > **This.** When the load decreases, the autoscaler removes a replica.
 
+<!-- slopvac-enable -->
 
 #### `ste-practices.word-swap-insufficient`
 
@@ -3868,6 +3978,7 @@ Rewrite the sentence when a word swap fails
 
 This rule is the escape hatch for the whole substitution mechanism, and it is why a substitution rule must never auto-apply without review. Two entries in the specification's own recurring-error table have no lexical replacement at all and can only be flagged. Kept as a judgement so the reviewer owns the rewrite decision.
 
+<!-- slopvac-disable -->
   > **Not this.** The retry budget is contingent on the tenant tier.
   >
   > **This.** The tenant tier sets the retry budget.
@@ -3882,6 +3993,8 @@ This rule is the escape hatch for the whole substitution mechanism, and it is wh
 Bans the semicolon, constrains hyphens and parentheses, and defines what counts as one word.
 
 Weight **1.0**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-punctuation.parentheses-misuse`
 
@@ -3898,6 +4011,7 @@ Use parentheses only for the listed purposes
 
 Judgement rather than a pattern, and deliberately so: the specification gives seven permitted purposes and no counter-example, so there is nothing to anchor a regex on. A length-based proxy (flag any parenthetical over N words) would fire on legitimate explanations. Advisory at both upper tiers for the same reason.
 
+<!-- slopvac-disable -->
   > **Not this.** Rotate the signing key (we found that most teams forget this until an audit, which is why the runbook exists).
   >
   > **This.** Rotate the signing key. Most teams do this only after an audit finds the old key.
@@ -3908,6 +4022,8 @@ Judgement rather than a pattern, and deliberately so: the specification gives se
 Governs how a document marks a risk, orders the command, and explains the consequence.
 
 Weight **1.5**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-safety.risk-level-word-missing-or-wrong`
 
@@ -3925,6 +4041,7 @@ Mark the risk level with the right word
 
 Two halves. Whether a marker is present is mechanizable (a destructive-command detector can require one) but classifying the severity requires knowing the real consequence, so the rule stays judgement. In software documentation the higher marker maps to unrecoverable data loss or a security exposure and the lower one to a recoverable failure; that mapping is our adaptation, since the specification's own split is injury against equipment damage. Enforced at every tier, and the category weight is raised, because a missing warning is the highest-cost defect in a runbook.
 
+<!-- slopvac-disable -->
   > **Not this.** CAUTION: This command deletes every snapshot and cannot be undone.
   >
   > **This.** WARNING: This command deletes every snapshot. You cannot recover the data.
@@ -3939,6 +4056,8 @@ Two halves. Whether a marker is present is mechanizable (a destructive-command d
 Governs sentence structure, omitted words, vertical lists, connectors, and determiners.
 
 Weight **1.0**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-sentences.missing-connector-between-related-sentences`
 
@@ -3956,10 +4075,12 @@ Connect related sentences
 
 Not mechanizable in either direction: a checker cannot detect a missing logical relation, and an "add more connectors" heuristic degrades prose. Kept as a reviewer question so the reviewer has one source of truth rather than inventing the rule.
 
+<!-- slopvac-disable -->
   > **Not this.** The runner rejects the manifest. The image tag is missing.
   >
   > **This.** The runner rejects the manifest, because the image tag is missing.
 
+<!-- slopvac-enable -->
 
 #### `ste-sentences.sentence-not-short-or-clear`
 
@@ -3976,6 +4097,7 @@ Write short and clear sentences
 
 This rule carries no number of its own; the word counts live in the procedural and descriptive chapters and are mechanized there as sentence-too-long-procedural and sentence-too-long-descriptive. What is left here is the one-topic test, which is judgement. Enforced at normal tier as a reviewer question, not as a finding.
 
+<!-- slopvac-disable -->
   > **Not this.** To rotate the signing key, first revoke the old key in the console, then generate a replacement and update every service that reads it, and finally delete the old secret.
   >
   > **This.** Rotate the signing key as follows: 1. Revoke the old key in the console. 2. Generate a replacement key. 3. Update every service that reads the key. 4. Delete the old secret.
@@ -3986,6 +4108,8 @@ This rule carries no number of its own; the word counts live in the procedural a
 Restricts verb tense and form to simple constructions and requires the active voice.
 
 Weight **1.0**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-verbs.gerund-outside-noun-use`
 
@@ -4002,6 +4126,7 @@ Use an -ing form only as a noun or a noun modifier
 
 The progressive-tense half is caught by complex-tense. What is left is participial clauses and gerund objects, which need a parse to separate from legitimate noun uses such as "the logging config" or "load balancing". Judgement rather than a regex for exactly that reason: a bare "-ing" pattern would fire on every legal compound term in software documentation.
 
+<!-- slopvac-disable -->
   > **Not this.** Restart the worker, making sure the queue is empty first.
   >
   > **This.** Make sure that the queue is empty. Then restart the worker.
@@ -4010,6 +4135,7 @@ The progressive-tense half is caught by complex-tense. What is left is participi
   >
   > **This.** To reduce cost, cache the response.
 
+<!-- slopvac-enable -->
 
 #### `ste-verbs.past-participle-not-adjectival`
 
@@ -4026,6 +4152,7 @@ Use a past participle only as an adjective
 
 The mechanizable half of this rule is already covered by complex-tense and passive-voice; what remains is the position test, which needs a parse rather than a regex. Note the specification permits some participle-shaped words as adjectives in their own right even when the matching verb is not permitted, so a naive "no participles" check would be wrong.
 
+<!-- slopvac-disable -->
   > **Not this.** The corrupted index had been rebuilt by the maintenance job.
   >
   > **This.** The maintenance job rebuilds the corrupted index.
@@ -4040,6 +4167,8 @@ The mechanizable half of this rule is already covered by complex-tense and passi
 Restricts which words a document may use, in which part of speech, and in which spelling.
 
 Weight **1.0**. Recommended for `reference`.
+
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-noun-category-membership`
 
@@ -4056,10 +4185,12 @@ Confirm the domain noun belongs to a declared category
 
 The specification states its own category example lists are not exhaustive, so absence from a list proves nothing. Membership is therefore a judgement, and the category set itself is project configuration (see domain-categories.md).
 
+<!-- slopvac-disable -->
   > **Not this.** The doohickey drains the queue every minute.
   >
   > **This.** The reaper job drains the queue every minute.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-noun-not-organization-approved`
 
@@ -4076,10 +4207,12 @@ Use the domain term your project already uses
 
 The authority is the project's own glossary, so this cannot be a shipped word list. Partially mechanizable once a glossary file exists, as an unknown-synonym check.
 
+<!-- slopvac-disable -->
   > **Not this.** The job runner picks up the next work item.
   >
   > **This.** The worker picks up the next task.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-noun-too-long-or-unclear`
 
@@ -4096,6 +4229,7 @@ Choose a short and clear domain term
 
 The three-word length half of this rule is mechanized by ste-nouns/multiword-noun-too-long; the "easy to understand" half is not mechanizable, so this entry carries only the judgement.
 
+<!-- slopvac-disable -->
   > **Not this.** Restart the primary regional inbound request admission controller service.
   >
   > **This.** Restart the admission controller.
@@ -4104,6 +4238,7 @@ The three-word length half of this rule is mechanized by ste-nouns/multiword-nou
   >
   > **This.** Set the deduplication cache retention.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-verb-category-membership`
 
@@ -4120,6 +4255,7 @@ Confirm the domain verb belongs to a declared category
 
 Two reasons this cannot be a word list. First, the specification puts vocabulary verbs ahead of domain verbs, which requires knowing whether a paraphrase exists. Second, the same verb is legal or illegal by sense: the specification's own example has one verb permitted in a machine-subject sentence and refused in a reader-subject sentence. Our second example above reproduces that shape with our own wording.
 
+<!-- slopvac-disable -->
   > **Not this.** The parser ingests the manifest and hydrates the config object.
   >
   > **This.** The parser reads the manifest and fills the config object.
@@ -4128,6 +4264,7 @@ Two reasons this cannot be a word list. First, the specification puts vocabulary
   >
   > **This.** If you find a checksum mismatch, delete the artifact.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.unapproved-word-not-a-domain-noun`
 
@@ -4144,10 +4281,12 @@ Allow an out-of-vocabulary word only as a domain noun
 
 This is the escape hatch that makes word-outside-controlled-vocabulary usable. The two rules run as a pair: the vocabulary rule finds the candidate, this question decides whether the candidate is legitimate domain vocabulary.
 
+<!-- slopvac-disable -->
   > **Not this.** The orchestrator obviates manual reconciliation.
   >
   > **This.** The orchestrator removes the need for manual reconciliation.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.word-used-outside-permitted-sense`
 
@@ -4164,6 +4303,10 @@ Use the word only in its permitted sense
 
 Sense, not spelling. No regex distinguishes "follow" meaning "come after" from "follow" meaning "comply with", so this stays a reviewer question rather than a fabricated pattern.
 
+<!-- slopvac-disable -->
   > **Not this.** Follow the security policy when you rotate the signing key.
   >
   > **This.** Obey the security policy when you rotate the signing key.
+
+<!-- slopvac-enable -->
+
