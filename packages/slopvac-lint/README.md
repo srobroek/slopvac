@@ -83,7 +83,7 @@ again after applying replacements. Review the resulting diff for meaning.
 
 Prose directory targets select `.md`, `.mdx`, `.markdown`, `.txt`, `.rst`,
 and `.html` files. An explicitly named TOML file is accepted and checks its
-comments. Code-comment directory scans also discover TOML files.
+comments. In comment mode, directory scans also include TOML files.
 
 RST processing needs Docutils's `rst2html` or `rst2html.py` command on `PATH`.
 Install it with `pip install docutils`. A selected RST target without the
@@ -440,7 +440,7 @@ It checks the response shape, call membership, result set, result order, and
 model-output schema. Evidence quote locations are checked by `finish`. Validation
 returns 0 for valid responses, 2 for validation failures, and 1 for unreadable or
 malformed JSON. The [evaluation guide](docs/judgement-eval.md) describes the same
-contract in more detail.
+contract in more detail. A response can pass this validation and still fail an evidence-location check during `finish`. Schema validity does not imply accepted evidence.
 
 ### Finish and compare
 
