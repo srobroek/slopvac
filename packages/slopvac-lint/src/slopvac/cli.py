@@ -1,7 +1,7 @@
 """Command line interface.
 
 EXIT CODES are the contract every caller depends on -- pre-commit, the GitHub
-Action, the skill, and CI:
+Action, agent steering, and CI:
 
     0  clean, or findings below every configured threshold
     1  a threshold failed (the run worked; the prose did not)
