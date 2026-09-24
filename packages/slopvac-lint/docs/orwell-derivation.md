@@ -1,13 +1,19 @@
 # Orwell's Six Rules as an Objective Ruleset
 
+> **Status:** historical derivation and provenance record. It preserves the
+> reasoning that led to the shipped Orwell rules. The current executable
+> contract is the generated [rule reference](rules.md); references below to
+> earlier Vale/agent-review architecture describe the derivation stage, not the
+> current runtime split between Vale, native checks, and contextual judgement.
+
 Source texts read in full:
 
 - George Orwell, "Politics and the English Language", *Horizon*, April 1946 -- <https://www.orwell.ru/library/essays/politics/english/e_polit/>
 - Duke Graduate School Scientific Writing Resource, "Orwell's 6 Rules" -- <https://sites.duke.edu/scientificwriting/orwells-6-rules/> (rule text only; the page carries no gloss)
 
-Scope: a Vale regex ruleset plus an agentic reviewer that judges AI-generated
-prose. Blocks marked **EXTENSION** go beyond Orwell; each names its warrant in
-the essay.
+Derivation scope: a Vale regex ruleset plus an agentic reviewer that judged
+AI-generated prose. Blocks marked **EXTENSION** go beyond Orwell; each names its
+warrant in the essay.
 
 ---
 
