@@ -1,90 +1,80 @@
-# Warning triage
+# Finding triage
 
-A warning marks a candidate. The linter reports the shape it matched;
-whether that shape is a defect in THIS sentence is often a judgement, and making
-that judgement is cheap when the sentence is already in hand.
+A deterministic finding says that a rule matched. Severity controls reporting and
+gating; it is not a confidence score. Read the matched passage before changing
+meaning, including for an error-level finding.
 
-So a warning carries what a reviewer needs to settle it, and the skill settles
-warnings rather than re-reading the whole document. An error still means fix it.
+## Triage a deterministic finding
 
-## The two failures triage avoids
-
-Making every rule an error corrupts correct prose. An error makes an agent rewrite
-the passage, and a false one lands silently in the document. A silent rewrite is worse than a
-missed finding, which is why the hedging and weasel-word rules ship as warnings.
-
-Making every review agentic burns a model pass over text that has nothing wrong
-with it. Scanning a clean 4,000-word guide to confirm it is clean is the common
-case and the expensive one.
-
-Triage resolves both: the pattern narrows the document to a handful of spans, and
-judgement runs only on those spans.
-
-## What a warning carries
-
-`--format json` gives each finding the fields a triage decision needs:
+JSON output gives the information needed to inspect one match:
 
 | Field | Use |
 | --- | --- |
-| `rule_id` | which check, so its question and exceptions can be looked up |
-| `line`, `column`, `end_column` | the span, so only that sentence is read |
-| `matched_text` | what fired, so a decision does not need the source |
-| `replacement` | the fix, where the rule knows it |
-| `severity` | `error` is not triaged; `warning` and `suggestion` are |
+| `rule_id` | Look up the rule contract |
+| `line`, `column`, `end_column` | Locate the match |
+| `matched_text` | See what triggered the rule |
+| `replacement` | Use the deterministic replacement when one exists |
+| `severity` | Understand the configured gate consequence |
 
-`slopvac explain <rule_id>` adds the decision question, the closed exception
-list, and worked examples.
+Use `slopvac explain <rule_id>` for the rule's rationale, examples, fix, and
+closed exception list.
 
-## The triage question
+Classify the match as one of these cases:
 
-Every triageable rule answers one question, and the answer is one of three
-verdicts:
+- **Defect:** change the prose without changing the underlying fact.
+- **Named exception:** keep the prose and use a suppression reason listed by the
+  rule.
+- **False positive:** keep the prose, do not invent a suppression reason, and
+  report the rule and matched text so the rule can be improved.
 
-| Verdict | Means | Action |
-| --- | --- | --- |
-| `defect` | the shape is a real defect here | apply the fix |
-| `exception` | an exception on the rule's list applies | annotate with that reason |
-| `false-positive` | neither: the rule matched correct prose | report it, change nothing |
+A high-severity false positive is still a false positive. If a project
+deliberately wants different policy, change its configuration rather than
+rewriting correct prose to satisfy a pattern.
 
-The third verdict is the valuable one. A `false-positive` is evidence about the
-RULE rather than the document, and a rule that collects them is a rule to tighten
-or demote. Without a verdict for it, a reviewer either edits correct prose or
-silently ignores the finding, and neither leaves a trace.
+## Suppress only documented exceptions
 
-## What triage must not do
+A suppression must use a reason returned by `slopvac explain`:
 
-MUST NOT Suppress a finding it judged `false-positive`. A suppression annotation
-claims a named exception applies, and "the rule is wrong" is not an exception. The
-finding stays; the rule gets fixed.
+```markdown
+<!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
+```
 
-MUST NOT Invent an exception. A reason must appear in that rule's own
-`exceptions` list, or the annotation is reported as
-`meta.invalid-suppression` rather than honoured.
+An unknown reason is reported as `meta.invalid-suppression`. Use
+`slopvac-disable` regions for material that is intentionally specimen text, such
+as examples whose purpose is to demonstrate a bad pattern. Do not use a
+suppression to hide an unexplained false positive.
 
-MUST NOT Triage an error. An error is a rule the project has decided is
-never a false positive. Demote it in config if that is wrong.
+## Contextual judgement is separate
 
-## Cost
+The 65 `kind: judgement` rules do not produce deterministic lint findings.
+Use the judgement workflow when contextual review is required:
 
-Triage reads the matched span and its sentence, not the document. On the eval
-corpus the unguided baseline produced 12.70 to 23.77 findings per 100 words, so a
-300-word document yields 40-70 findings, of which the warnings are the triage set.
-A clean document yields nothing and costs nothing, which is the point: the
-expensive pass runs in proportion to what the cheap pass found.
+```sh
+slopvac judgement brief README.md --out .slopvac-review --packs fired
+```
 
-The document-scope judgement rules are separate and always run, because a ratio
-across the whole document is exactly what a per-span pattern cannot see. About 20
-rules take that shape.
+`--packs fired` selects judgement packs whose categories also produced a
+deterministic finding. If no category qualifies, `brief` falls back to all packs
+and prints a warning. Use `--packs all` when the review must not depend on
+deterministic findings.
 
-## Record a false positive
+The harness or provider performs the model calls. Validate each response before
+recording it, then finish and compare the run:
 
-A `false-positive` verdict is only useful if it survives the session. The verdict
-report names the rule, the matched text, and the sentence, which is what a rule
-change needs. Three such reports on one rule from different documents are the
-signal to tighten the pattern or drop the token.
+```sh
+slopvac judgement validate --run .slopvac-review --file response.json
+slopvac judgement finish --out .slopvac-review \
+  --responses .slopvac-review/responses.jsonl
+slopvac judgement compare --out .slopvac-review
+```
 
-The rules already carry two precedents for recording a miss rather than tuning it
-away. `KNOWN_MISSES` holds the true positives given up to remove false ones.
-`ACCEPTED_SOFT_HITS` holds the false positives kept deliberately because the prompt
-is worth the noise. Both live in `tests/test_vale_rules.py` with the reason for
-each.
+`validate` checks the response shape and the expected result set. `finish`
+performs the host evidence checks and coverage accounting. Model outcomes remain
+separate from deterministic pass/fail.
+
+## Review claims separately
+
+Neither deterministic lint nor model judgement proves that a factual statement
+is correct. For documentation, verify commands, paths, defaults, versions, and
+behavior against the implementation or another authoritative source before
+publishing the text.
