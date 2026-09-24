@@ -37,8 +37,10 @@ jobs:
               "ste-nouns.multiword-noun-too-long",
               "ai-tells-content-shape.adjective-per-noun-spray",
           }
-          for finding in data.get("findings", []):
-              if finding.get("rule_id") in wanted:
-                  print(json.dumps(finding, sort_keys=True))
+          for document in data.get("documents", []):
+              print("document", document.get("path"), "paragraphs", document.get("paragraphs"), "words", document.get("words"))
+              for finding in document.get("findings", []):
+                  if finding.get("rule_id") in wanted:
+                      print(json.dumps(finding, sort_keys=True))
           PY
           echo "slopvac_exit ${rc}"
