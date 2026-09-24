@@ -24,23 +24,30 @@ jobs:
       - name: Show calibration findings
         shell: bash
         run: |
-          set +e
-          slopvac --profile strict --no-vale --format json packages/slopvac-lint/README.md > /tmp/readme.json
-          rc=$?
-          set -e
           python - <<'PY'
-          import json
           from pathlib import Path
-          data = json.loads(Path("/tmp/readme.json").read_text())
+          from slopvac.analyze import parse
+          from slopvac.config import Config, Profile, resolve_for
+          from slopvac.engine import Engine
+          from slopvac.metrics import paragraph_words_stdev
+          from slopvac.rules import load_ruleset
+
+          readme = Path("packages/slopvac-lint/README.md")
+          document = parse(str(readme), readme.read_text(encoding="utf-8"))
+          config = Config(profile=Profile.STRICT)
+          object.__setattr__(config, "root", Path("/repo"))
+          engine = Engine(
+              load_ruleset().rules,
+              resolve_for(config, Path("/repo/a.md")),
+          )
           wanted = {
               "ai-tells-register.uniform-paragraph-mass",
               "ste-nouns.multiword-noun-too-long",
               "ai-tells-content-shape.adjective-per-noun-spray",
           }
-          for document in data.get("documents", []):
-              print("document", document.get("path"), "paragraphs", document.get("paragraphs"), "words", document.get("words"))
-              for finding in document.get("findings", []):
-                  if finding.get("rule_id") in wanted:
-                      print(json.dumps(finding, sort_keys=True))
+          print("paragraphs", len(document.paragraphs), "words", sum(s.word_count for s in document.sentences))
+          print("paragraph_words_stdev", paragraph_words_stdev(document))
+          for finding in engine.run(document):
+              if finding.rule_id in wanted:
+                  print(finding.model_dump_json())
           PY
-          echo "slopvac_exit ${rc}"
