@@ -134,25 +134,6 @@ A passing deterministic run and a clean judgement report still do not establish
 factual correctness. Documentation claims require verification against code or
 another authoritative source.
 
-## Normalized evaluation records
-
-The normalization schema is
-[`research/rubric-2026-09-15/evaluation/RECORD-SCHEMA.md`](research/rubric-2026-09-15/evaluation/RECORD-SCHEMA.md).
-Committed normalized records include:
-
-- [local corpus](research/rubric-2026-09-15/evaluation/local-corpus-run.normalized.json)
-- [sibling full run](research/rubric-2026-09-15/evaluation/sibling-full-run.normalized.json)
-- [sibling adjudication](research/rubric-2026-09-15/evaluation/sibling-full-run-adjudication.normalized.json)
-- [held-out baseline](research/rubric-2026-09-15/evaluation/heldout-baseline.normalized.json)
-- [held-out baseline adjudication](research/rubric-2026-09-15/evaluation/heldout-baseline-adjudication.normalized.json)
-- [held-out v2](research/rubric-2026-09-15/evaluation/heldout-v2.normalized.json)
-- [held-out v2 adjudication](research/rubric-2026-09-15/evaluation/heldout-v2-adjudication.normalized.json)
-
-The dated wider evaluation record is
-[`2026-09-19-wider-evaluation.md`](research/rubric-2026-09-15/evaluation/2026-09-19-wider-evaluation.md).
-Historical records retain the instrument and denominators used when they were
-created; they are not rewritten to look like results from the current contract.
-
 ## Bedrock runner
 
 The helper commands in this section and the measurement sections below assume
