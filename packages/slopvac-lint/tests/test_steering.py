@@ -8,6 +8,7 @@ from slopvac.steering import (
     END,
     STEERING_BLOCK,
     harness_path,
+    managed_block_state,
     remove_managed_block,
     update_managed_block,
 )
@@ -40,9 +41,25 @@ def test_managed_block_can_be_removed_without_touching_surrounding_text(tmp_path
 
 def test_harness_mapping():
     root = Path("/repo")
+    assert harness_path(root, "agents") == root / "AGENTS.md"
+    assert harness_path(root, "codex") == root / "AGENTS.md"
     assert harness_path(root, "claude") == root / "CLAUDE.md"
-    for harness in ("agents", "codex", "omp", "kiro"):
-        assert harness_path(root, harness) == root / "AGENTS.md"
+    assert harness_path(root, "omp") == root / ".omp" / "AGENTS.md"
+    assert harness_path(root, "kiro") == root / ".kiro" / "steering" / "slopvac.md"
+
+
+def test_managed_block_state_tracks_missing_current_stale_and_malformed(tmp_path):
+    path = tmp_path / "AGENTS.md"
+    assert managed_block_state(path) == "missing"
+
+    update_managed_block(path)
+    assert managed_block_state(path) == "current"
+
+    path.write_text(path.read_text(encoding="utf-8").replace("slopvac prime", "slopvac old-prime"), encoding="utf-8")
+    assert managed_block_state(path) == "stale"
+
+    path.write_text(BEGIN + "\nmissing end\n", encoding="utf-8")
+    assert managed_block_state(path) == "malformed"
 
 
 def test_init_writes_config_and_agent_steering():
@@ -98,3 +115,46 @@ def test_onboard_prints_prime_guidance():
     assert result.exit_code == 0
     assert "Slopvac lint guidance" in result.output
     assert "Slopvac judgement guidance" in result.output
+
+
+def test_setup_uses_native_omp_and_kiro_paths():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        omp = runner.invoke(main, ["setup", "omp"])
+        assert omp.exit_code == 0, omp.output
+        assert Path(".omp/AGENTS.md").is_file()
+
+        kiro = runner.invoke(main, ["setup", "kiro"])
+        assert kiro.exit_code == 0, kiro.output
+        assert Path(".kiro/steering/slopvac.md").is_file()
+
+
+def test_setup_check_reports_current_missing_stale_and_does_not_mutate():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        missing = runner.invoke(main, ["setup", "codex", "--check"])
+        assert missing.exit_code == 1
+        assert "missing AGENTS.md" in missing.output
+        assert not Path("AGENTS.md").exists()
+
+        installed = runner.invoke(main, ["setup", "codex"])
+        assert installed.exit_code == 0, installed.output
+        before = Path("AGENTS.md").read_text(encoding="utf-8")
+
+        current = runner.invoke(main, ["setup", "codex", "--check"])
+        assert current.exit_code == 0
+        assert "current AGENTS.md" in current.output
+        assert Path("AGENTS.md").read_text(encoding="utf-8") == before
+
+        Path("AGENTS.md").write_text(before.replace("slopvac prime", "slopvac old-prime"), encoding="utf-8")
+        stale = runner.invoke(main, ["setup", "codex", "--check"])
+        assert stale.exit_code == 1
+        assert "stale AGENTS.md" in stale.output
+
+
+def test_setup_check_rejects_remove_combination():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(main, ["setup", "codex", "--check", "--remove"])
+        assert result.exit_code == 2
+        assert "--check and --remove cannot be used together" in result.output
