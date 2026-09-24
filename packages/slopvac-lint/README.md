@@ -124,7 +124,11 @@ also apply, including in `relaxed`. All profiles default to
 | --- | --- |
 | `enforced` | Uses its effective severity and can fail a gate |
 | `advisory` | Reports at suggestion level under profile defaults |
-| `off` | Does not run under profile defaults |
+| `excluded` | Does not run in that profile; configuration cannot re-enable it |
+
+A tier is separate from configured severity. `severity = "off"` disables an
+otherwise admitted category or rule. A project setting can override a
+profile-default `off`, but it cannot override an `excluded` tier.
 
 An explicit category or rule setting can override the profile's treatment.
 Inspect the effective rules with `slopvac rules --profile strict` or use
@@ -245,8 +249,8 @@ replacement = "deployment"
 reason = "Use the noun deployment for the result of deploying."
 ```
 
-Vale's tagger distinguishes the noun in "the deploy failed" from the verb in
-"deploy the worker". Every entry needs a `reason`. `replacement` is optional.
+Vale's `sequence` tagger applies the blocklist entry only when its part-of-speech
+tag matches. Every entry needs a `reason`. `replacement` is optional.
 Invalid or unreadable blocklists are configuration errors.
 
 [`examples/blocklist.toml`](examples/blocklist.toml) provides a starter. YAML
@@ -428,9 +432,11 @@ wrapper. Supply `--call-id` to identify the call explicitly, or let validation
 infer it. Omitting `--file` reads standard input.
 
 For ordinary response files, validation prints `ok`, `call_id`, and `errors`.
-It returns 0 for valid responses, 2 for validation failures, and 1 for unreadable
-or malformed JSON. The [evaluation guide](docs/judgement-eval.md) also describes
-Claude Code hook payloads and retry handling.
+It checks the response shape, call membership, result set, result order, and
+model-output schema. Evidence quote locations are checked by `finish`. Validation
+returns 0 for valid responses, 2 for validation failures, and 1 for unreadable or
+malformed JSON. The [evaluation guide](docs/judgement-eval.md) describes the same
+contract in more detail.
 
 ### Finish and compare
 
