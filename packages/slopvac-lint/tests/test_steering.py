@@ -236,3 +236,35 @@ def test_removed_agent_packaging_has_no_live_paths_or_install_commands():
         text = path.read_text(encoding="utf-8")
         for needle in obsolete:
             assert needle not in text, f"{needle!r} remains in {path.relative_to(root)}"
+
+
+def test_init_places_agents_file_next_to_explicit_config(tmp_path):
+    runner = CliRunner()
+    config = tmp_path / "project" / "slopvac.toml"
+    result = runner.invoke(main, ["init", "--path", str(config)])
+    assert result.exit_code == 0, result.output
+    assert config.is_file()
+    assert (config.parent / "AGENTS.md").is_file()
+    assert not (tmp_path / "AGENTS.md").exists()
+
+
+def test_setup_list_respects_root(tmp_path):
+    runner = CliRunner()
+    result = runner.invoke(main, ["setup", "--list", "--root", str(tmp_path)])
+    assert result.exit_code == 0, result.output
+    assert str(tmp_path / "AGENTS.md") in result.output
+    assert str(tmp_path / ".omp" / "AGENTS.md") in result.output
+
+
+def test_reversed_managed_markers_are_malformed(tmp_path):
+    path = tmp_path / "AGENTS.md"
+    path.write_text(END + "\ntext\n" + BEGIN + "\n", encoding="utf-8")
+    assert managed_block_state(path) == "malformed"
+
+    for operation in (update_managed_block, remove_managed_block):
+        try:
+            operation(path)
+        except ValueError as exc:
+            assert "malformed" in str(exc)
+        else:
+            raise AssertionError("reversed managed markers must be rejected")
