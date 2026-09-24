@@ -112,8 +112,8 @@ one word.
 ### Phase 8: Collapse hyphenated groups to one token (rule 8.7)
 
 A hyphen-joined group counts as one word however many segments it has. `read-only`,
-`in-flight entertainment system` (2 words: the hyphenated group plus two bare words -- the
-group is one), `main-gear-door retraction-winch handle` (3 words).
+`in-flight entertainment system` (3 words: the hyphenated group plus two bare words),
+`main-gear-door retraction-winch handle` (3 words).
 
 This creates a real incentive: hyphenating a compound shortens the counted sentence. The
 specification permits it, and caps the group at three words in rule 8.2, which is why
@@ -268,10 +268,10 @@ This ordering depends on two properties:
 - A note takes the **descriptive** cap of 25 even though it sits inside a procedure. Rule 5.5
   states this directly.
 
-Imperative detection (steps 3 and 4) needs a verb list plus a no-subject test. Use the
-vocabulary's verb base forms as the lexicon. Where the mood is ambiguous, prefer
-`descriptive`: the wider cap produces a miss rather than a false positive, and a false positive
-gets the rule disabled.
+Imperative detection (steps 3 and 4) uses the closed `IMPERATIVE_VERBS` lexical
+set in `analyze.py` plus a no-subject test. It does not use a parser or POS
+tagger. Where the mood is ambiguous, prefer `descriptive`: the wider cap produces
+a miss rather than a false positive.
 
 The default at step 5 means a README classifies as descriptive throughout, which is correct;
 its imperative install steps classify as procedural individually at step 3 or 4.
