@@ -18,15 +18,16 @@
 [Quick start](#quick-start) · [CLI reference](packages/slopvac-lint/README.md) ·
 [Rules](packages/slopvac-lint/docs/rules.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
-[Agent setup](#agent-skills) · [CI](#ci-integration) ·
+[Agent setup](#agent-setup) · [CI](#ci-integration) ·
 [Evaluation](packages/slopvac-lint/docs/judgement-eval.md)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
 technical-writing constraints.
 
-Use the CLI locally or in CI. The `write-docs` and `review-docs` agent skills
-add review of claims and structure, with optional model-based checks.
+Use the CLI locally, in CI, or from an agent harness. Project-local steering
+points agents back to the installed CLI so lint and judgement instructions stay
+versioned with the tool.
 
 ## Quick start
 
@@ -52,8 +53,10 @@ slopvac init
 slopvac README.md
 ```
 
-`init` creates `slopvac.toml` with the `normal` profile and leaves an existing
-file unchanged. Replace `README.md` with the file or directory you need to check.
+`init` creates `slopvac.toml` with the `normal` profile and adds a managed
+Slopvac block to `AGENTS.md`. It preserves existing configuration and surrounding
+agent instructions. Use `slopvac init --skip-agents` for configuration only.
+Replace `README.md` with the file or directory you need to check.
 A passing run exits 0; findings above a threshold exit 1. An incomplete check
 exits 2, including when selected Vale-backed checks cannot run.
 
@@ -133,57 +136,50 @@ change the deterministic result. See the
 [complete workflow](packages/slopvac-lint/README.md#judgement-layer) for response
 validation, coverage, and rewrite previews.
 
-## Agent skills
+## Agent setup
 
-`write-docs` applies the document's genre rules and hands the text to
-`review-docs`. The review checks the prose against the code and removes material
-that the intended reader does not need. Contextual model review runs on request.
+Slopvac uses project-local steering instead of harness marketplaces or copied
+skills. The managed block tells an agent to ask the installed CLI for the current
+workflow rather than embedding rule text that can drift.
 
-### Oh My Pi
-
-```sh
-omp plugin marketplace add srobroek/slopvac
-omp plugin install slopvac@slopvac --scope user
-```
-
-Use `--scope project` for a project installation. Start a new session after
-installing. To use a local checkout:
+`slopvac init` configures the generic `AGENTS.md` path used by Codex, Oh My Pi,
+Kiro, and other harnesses that consume that file. For Claude Code, add the
+corresponding `CLAUDE.md` block:
 
 ```sh
-omp plugin link ./slopvac/packages/slopvac
+slopvac setup claude
 ```
 
-### Claude Code
-
-Run these commands in Claude Code:
-
-```text
-/plugin marketplace add srobroek/slopvac
-/plugin install slopvac@slopvac
-```
-
-### Codex
+Inspect all supported targets:
 
 ```sh
-codex plugin marketplace add srobroek/slopvac
-codex plugin add slopvac@slopvac
+slopvac setup --list
 ```
 
-### Kiro and manual installation
-
-Copy the skills into the harness's skills directory. For Kiro:
+Explicit aliases are available when setup is scripted:
 
 ```sh
-git clone https://github.com/srobroek/slopvac /tmp/slopvac
-mkdir -p .kiro/skills
-cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
+slopvac setup agents
+slopvac setup codex
+slopvac setup omp
+slopvac setup kiro
 ```
 
-The corresponding project directories are `.claude/skills` for Claude Code and
-`.codex/skills` for Codex.
+Setup changes only the content between Slopvac's managed markers and preserves
+the rest of the file. Remove that block with `slopvac setup <harness> --remove`.
 
-After installing, ask the agent to write or review a document. To include
-contextual checks, ask it to review the document for AI tells as well.
+Agents get detailed guidance on demand:
+
+```sh
+slopvac prime
+slopvac prime lint
+slopvac prime judgement
+```
+
+`prime` covers the deterministic gate, exit-code semantics, Vale coverage,
+rule explanation, named exceptions, claim verification, and the complete
+judgement handoff. `slopvac onboard` prints the same full guidance for an
+initial agent session.
 
 ## CI integration
 
