@@ -610,7 +610,7 @@ def explain(
 def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> None:
     """Initialize project configuration and agent steering."""
     console = _console(False)
-    from .steering import update_managed_block
+    from .steering import harness_path, update_managed_block
     from .templates import STARTER_CONFIG
 
     if path.exists() and not force:
@@ -621,8 +621,8 @@ def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> Non
         console.print(f"wrote {path}")
 
     if not skip_agents:
-        agents_path = path.parent / "AGENTS.md"
         try:
+            agents_path = harness_path(path.parent, "agents")
             changed = update_managed_block(agents_path)
         except ValueError as exc:
             raise click.ClickException(str(exc)) from exc
@@ -689,8 +689,11 @@ def setup_agent(
 
     console = _console(False)
     if list_harnesses:
-        for name in harnesses():
-            console.print(f"{name:8} {harness_path(root, name)}")
+        try:
+            for name in harnesses():
+                console.print(f"{name:8} {harness_path(root, name)}")
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
         raise SystemExit(EXIT_OK)
 
     if harness is None:
@@ -700,7 +703,10 @@ def setup_agent(
             f"unknown harness {harness!r}; choose from: {', '.join(harnesses())}"
         )
 
-    target = harness_path(root, harness)
+    try:
+        target = harness_path(root, harness)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
     if check:
         if remove:
             raise click.UsageError("--check and --remove cannot be used together.")
@@ -716,7 +722,14 @@ def setup_agent(
         changed = (
             remove_managed_block(target)
             if remove
-            else update_managed_block(target)
+            else update_managed_block(
+                target,
+                preamble=(
+                    "---\ninclusion: always\n---"
+                    if harness == "kiro" and not target.exists()
+                    else ""
+                ),
+            )
         )
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
