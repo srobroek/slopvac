@@ -136,7 +136,8 @@ def test_setup_check_reports_current_missing_stale_and_does_not_mutate():
     with runner.isolated_filesystem():
         missing = runner.invoke(main, ["setup", "codex", "--check"])
         assert missing.exit_code == 1
-        assert "missing AGENTS.md" in missing.output
+        assert "missing " in missing.output
+        assert missing.output.rstrip().endswith("AGENTS.md")
         assert not Path("AGENTS.md").exists()
 
         installed = runner.invoke(main, ["setup", "codex"])
@@ -268,3 +269,88 @@ def test_reversed_managed_markers_are_malformed(tmp_path):
             assert "malformed" in str(exc)
         else:
             raise AssertionError("reversed managed markers must be rejected")
+
+def test_codex_prefers_existing_nonempty_override():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        Path("AGENTS.override.md").write_text("# Local override\n", encoding="utf-8")
+
+        installed = runner.invoke(main, ["setup", "codex"])
+        assert installed.exit_code == 0, installed.output
+        assert not Path("AGENTS.md").exists()
+        text = Path("AGENTS.override.md").read_text(encoding="utf-8")
+        assert "# Local override" in text
+        assert BEGIN in text
+
+        checked = runner.invoke(main, ["setup", "codex", "--check"])
+        assert checked.exit_code == 0, checked.output
+
+        removed = runner.invoke(main, ["setup", "codex", "--remove"])
+        assert removed.exit_code == 0, removed.output
+        assert Path("AGENTS.override.md").read_text(encoding="utf-8") == "# Local override\n"
+
+
+def test_kiro_new_file_is_explicitly_always_included():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        installed = runner.invoke(main, ["setup", "kiro"])
+        assert installed.exit_code == 0, installed.output
+        text = Path(".kiro/steering/slopvac.md").read_text(encoding="utf-8")
+        assert text.startswith("---\ninclusion: always\n---\n\n")
+        assert BEGIN in text
+
+        removed = runner.invoke(main, ["setup", "kiro", "--remove"])
+        assert removed.exit_code == 0, removed.output
+        assert (
+            Path(".kiro/steering/slopvac.md").read_text(encoding="utf-8")
+            == "---\ninclusion: always\n---\n"
+        )
+
+
+def test_setup_preserves_crlf_in_existing_instruction_file():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        Path("AGENTS.md").write_bytes(b"# Local\r\n")
+        result = runner.invoke(main, ["setup", "agents"])
+        assert result.exit_code == 0, result.output
+        data = Path("AGENTS.md").read_bytes()
+        assert b"\r\n" in data
+        assert b"\n" not in data.replace(b"\r\n", b"")
+
+
+def test_fenced_marker_examples_do_not_conflict_with_managed_block():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        Path("AGENTS.md").write_text(
+            "# Example\n\n```md\n"
+            + BEGIN
+            + "\nexample\n"
+            + END
+            + "\n```\n",
+            encoding="utf-8",
+        )
+        installed = runner.invoke(main, ["setup", "agents"])
+        assert installed.exit_code == 0, installed.output
+        assert managed_block_state(Path("AGENTS.md")) == "current"
+
+        removed = runner.invoke(main, ["setup", "agents", "--remove"])
+        assert removed.exit_code == 0, removed.output
+        text = Path("AGENTS.md").read_text(encoding="utf-8")
+        assert "```md" in text
+        assert "example" in text
+        assert text.count(BEGIN) == 1
+        assert text.count(END) == 1
+
+
+def test_setup_refuses_instruction_symlink_outside_project(tmp_path):
+    root = tmp_path / "project"
+    root.mkdir()
+    outside = tmp_path / "outside.md"
+    outside.write_text("# Outside\n", encoding="utf-8")
+    (root / "AGENTS.md").symlink_to(outside)
+
+    runner = CliRunner()
+    result = runner.invoke(main, ["setup", "agents", "--root", str(root)])
+    assert result.exit_code == 1
+    assert "unsafe steering target" in result.output
+    assert outside.read_text(encoding="utf-8") == "# Outside\n"
