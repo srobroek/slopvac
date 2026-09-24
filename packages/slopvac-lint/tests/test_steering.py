@@ -158,3 +158,36 @@ def test_setup_check_rejects_remove_combination():
         result = runner.invoke(main, ["setup", "codex", "--check", "--remove"])
         assert result.exit_code == 2
         assert "--check and --remove cannot be used together" in result.output
+
+
+def test_removed_agent_packaging_has_no_live_paths_or_install_commands():
+    root = Path(__file__).resolve().parents[3]
+    for relative in (
+        ".claude-plugin",
+        ".codex-plugin",
+        ".omp-plugin",
+        "packages/slopvac",
+    ):
+        assert not (root / relative).exists(), relative
+
+    live_docs = (
+        root / "README.md",
+        root / "packages/slopvac-lint/README.md",
+        root / "AGENTS.md",
+        root / "release-please-config.json",
+        root / ".github/workflows/test.yml",
+        root / ".github/workflows/lint.yml",
+    )
+    obsolete = (
+        "omp plugin marketplace add srobroek/slopvac",
+        "/plugin marketplace add srobroek/slopvac",
+        "codex plugin marketplace add srobroek/slopvac",
+        "slopvac@slopvac",
+        "write-docs",
+        "review-docs",
+        "packages/slopvac/",
+    )
+    for path in live_docs:
+        text = path.read_text(encoding="utf-8")
+        for needle in obsolete:
+            assert needle not in text, f"{needle!r} remains in {path.relative_to(root)}"
