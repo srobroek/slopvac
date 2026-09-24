@@ -59,8 +59,7 @@ can differ by Vale version and language.
 ## Documentation association
 
 A documentation comment should be associated with its declaration when the
-grammar exposes that relationship. The lint input contains the documentation
-text, not declaration source code.
+grammar exposes that relationship. The lint input contains only the extracted documentation text.
 
 Python support requires declaration-position docstrings rather than every
 triple-quoted string. Languages with explicit documentation markers can admit a
@@ -123,8 +122,7 @@ Implementation is complete only when tests prove:
 - documentation and ordinary comments with identical prose are separated;
 - Python declaration docstrings are separated from arbitrary strings;
 - strings containing comment markers remain outside the lint input;
-- fenced examples inside documentation comments remain excluded from prose
-  findings;
+- prose findings operate on documentation prose outside fenced examples;
 - reported locations map back to the original source;
 - malformed or unsupported source fails closed;
 - every advertised language passes the extraction fixtures on the supported Vale
