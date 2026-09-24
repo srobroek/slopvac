@@ -101,7 +101,7 @@ class _DefaultGroup(click.Group):
 @click.version_option(__version__, prog_name="slopvac")
 @click.pass_context
 def main(context: click.Context) -> None:
-    """Lint prose for AI slop, Simplified Technical English, and Orwell rules.
+    """Lint prose and source comments with the unified slopvac ruleset.
 
     `slopvac FILE...` lints. `slopvac rules` lists the rules.
     """
