@@ -69,6 +69,38 @@ jobs:
           slopvac init
           cmp AGENTS.md /tmp/agents-first.md
           slopvac setup agents --check
+
+          rm -rf /tmp/harness-missing
+          mkdir -p /tmp/harness-missing
+          set +e
+          slopvac setup agents --root /tmp/harness-missing --check \
+            > /tmp/setup-missing.txt
+          setup_missing_status=$?
+          set -e
+          test "$setup_missing_status" -eq 1
+          grep -q '^missing ' /tmp/setup-missing.txt
+
+          printf '%s\n' \
+            '<!-- slopvac:end -->' \
+            'broken' \
+            '<!-- slopvac:begin -->' \
+            > /tmp/harness-missing/AGENTS.md
+          set +e
+          slopvac setup agents --root /tmp/harness-missing --check \
+            > /tmp/setup-malformed.txt
+          setup_malformed_status=$?
+          set -e
+          test "$setup_malformed_status" -eq 2
+          grep -q '^malformed ' /tmp/setup-malformed.txt
+
+          set +e
+          slopvac setup unknown --root /tmp/harness-missing \
+            > /tmp/setup-unknown.txt 2>&1
+          setup_unknown_status=$?
+          set -e
+          test "$setup_unknown_status" -eq 2
+          grep -q 'unknown harness' /tmp/setup-unknown.txt
+
           slopvac setup --list > /tmp/setup-list.txt
           grep -q '^agents' /tmp/setup-list.txt
           grep -q '^codex' /tmp/setup-list.txt
@@ -109,6 +141,22 @@ jobs:
           set -e
           test "$lint_status" -ne 2
           python3 -c 'import json; json.load(open("/tmp/probe.json"))'
+
+          set +e
+          slopvac /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --no-vale \
+            --format json \
+            > /tmp/probe-no-vale.json
+          no_vale_status=$?
+          set -e
+          test "$no_vale_status" -eq 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/probe-no-vale.json'))
+          assert report['documents'][0]['unchecked']
+          PY
+
 
           slopvac reference > /tmp/reference.md
           grep -q '231 rules' /tmp/reference.md
@@ -162,8 +210,21 @@ jobs:
             '' \
             'In conclusion, embracing observability is a strategic imperative.' \
             > /tmp/judge.md
-          rm -rf /tmp/judge-run
+          rm -rf /tmp/judge-run /tmp/judge-budget
+          set +e
+          slopvac judgement prepare /tmp/judge.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --out /tmp/judge-budget \
+            --packs all \
+            --max-calls 0 \
+            > /tmp/judge-budget.txt 2>&1
+          budget_status=$?
+          set -e
+          test "$budget_status" -eq 1
+          grep -q 'max-calls' /tmp/judge-budget.txt
+
           slopvac judgement brief /tmp/judge.md --out /tmp/judge-run --packs fired
+
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -212,6 +273,29 @@ jobs:
             --file /tmp/response.json \
             > /tmp/validate.json
           python3 -c 'import json; assert json.load(open("/tmp/validate.json"))["ok"]'
+
+          python3 - <<'PY'
+          import json
+          payload = json.load(open('/tmp/response.json'))
+          payload['results'][0]['verdict'] = 'maybe'
+          open('/tmp/invalid-response.json', 'w').write(json.dumps(payload))
+          PY
+          set +e
+          slopvac judgement validate \
+            --run /tmp/judge-run \
+            --call-id "$(cat /tmp/call-id)" \
+            --file /tmp/invalid-response.json \
+            > /tmp/invalid-validate.json
+          invalid_validate_status=$?
+          set -e
+          test "$invalid_validate_status" -eq 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/invalid-validate.json'))
+          assert report['ok'] is False
+          assert report['errors']
+          PY
+
           slopvac judgement finish --out /tmp/judge-run --responses /tmp/judge-run/responses.jsonl
           slopvac judgement compare --out /tmp/judge-run > /tmp/compare.txt
           test -s /tmp/judge-run/report.json
