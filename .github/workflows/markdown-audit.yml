@@ -1,0 +1,229 @@
+name: Markdown audit
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: markdown-audit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  inventory-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+      - name: Install Vale
+        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
+      - name: Add Vale to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Audit tracked Markdown
+        run: |
+          set -euo pipefail
+          uv run --project packages/slopvac-lint python - <<'PY'
+          import collections
+          import json
+          import os
+          import re
+          import subprocess
+          import tempfile
+          import tomllib
+          from pathlib import Path
+          from urllib.parse import unquote, urlsplit
+          from markdown_it import MarkdownIt
+
+          root = Path.cwd()
+          out = Path(tempfile.mkdtemp(prefix="markdown-audit-"))
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).decode().split("\0")
+          files = sorted(p for p in tracked if Path(p).suffix.lower() in {".md", ".markdown", ".mdx"})
+
+          def document_class(path):
+              if path.startswith(".github/action-fixtures/") or "/tests/fixtures/" in path:
+                  return "fixture"
+              if path.endswith("CHANGELOG.md") or "/docs/research/" in path:
+                  return "historical"
+              if path.endswith("/docs/orwell-derivation.md"):
+                  return "historical"
+              if path.endswith("/docs/rules.md"):
+                  return "generated"
+              if path.startswith(".beads/") or path.startswith(".agents/skills/beads/"):
+                  return "managed"
+              return "authored"
+
+          class_counts = dict(collections.Counter(document_class(path) for path in files))
+          authored_files = [path for path in files if document_class(path) == "authored"]
+          print("DOCUMENT_CLASSES", json.dumps(class_counts), flush=True)
+          print("AUDIT_COMMIT", subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip(), flush=True)
+          print("TRACKED_MARKDOWN", len(files), flush=True)
+          print("EXTENSIONS", dict(collections.Counter(Path(p).suffix.lower() for p in files)), flush=True)
+          subprocess.run(["vale", "--version"], check=True)
+          canonical = {}
+          for path in files:
+              resolved = Path(path).resolve(strict=True)
+              canonical[path] = str(resolved.relative_to(root))
+          aliases = {p: target for p, target in canonical.items() if p != target}
+          expected_paths = set(canonical.values())
+          print("SYMLINK_ALIASES", json.dumps(aliases), flush=True)
+          print("DISTINCT_DOCUMENTS", len(expected_paths), flush=True)
+
+          def command(name, args):
+              result = subprocess.run(args, capture_output=True, text=True, timeout=1200)
+              (out / (name + ".stdout")).write_text(result.stdout)
+              (out / (name + ".stderr")).write_text(result.stderr)
+              print("COMMAND", name, "EXIT", result.returncode, flush=True)
+              if result.returncode not in (0, 1):
+                  print(result.stdout[-4000:], result.stderr[-4000:], flush=True)
+              return result
+
+          source = Path("slopvac.toml").read_text()
+          original = tomllib.loads(source)
+          audit_source, replaced = re.subn(r"(?ms)^exclude\s*=\s*\[.*?^\]", "exclude = []", source, count=1)
+          expected = dict(original, exclude=[])
+          assert replaced == 1 and tomllib.loads(audit_source) == expected
+          audit_config = root / ".slopvac-markdown-audit.toml"
+          audit_config.write_text(audit_source)
+          reports = {}
+          exits = {}
+          fields = ("documents", "words", "findings", "errors", "warnings", "suggestions", "passed")
+          try:
+              scans = (
+                  ("configured", "slopvac.toml", files),
+                  ("all-files", str(audit_config), files),
+                  ("authored", str(audit_config), authored_files),
+              )
+              for name, config, selected_files in scans:
+                  target = out / (name + ".json")
+                  args = ["slopvac", "lint", "--config", config, "--format", "json", "--out", str(target)]
+                  result = command(name, [*args, *selected_files])
+                  exits[name] = result.returncode
+                  if not target.exists():
+                      detail = result.stdout[-2000:] + result.stderr[-2000:]
+                      raise RuntimeError(name + " did not produce a report: " + detail)
+                  reports[name] = json.loads(target.read_text())
+                  summary = {k: reports[name]["summary"][k] for k in fields}
+                  print("SUMMARY", name, json.dumps(summary), flush=True)
+          finally:
+              audit_config.unlink(missing_ok=True)
+
+          def relative(document):
+              return str(Path(document["path"]).resolve().relative_to(root))
+
+          configured = {relative(d): d for d in reports["configured"]["documents"]}
+          scanned = {relative(d): d for d in reports["all-files"]["documents"]}
+          authored = {relative(d): d for d in reports["authored"]["documents"]}
+          excluded = sorted(expected_paths - set(configured))
+          missing = sorted(expected_paths - set(scanned))
+          unexpected = sorted(set(scanned) - expected_paths)
+          unchecked = {p: d["unchecked"] for p, d in scanned.items() if d.get("unchecked")}
+          print("CONFIGURED_EXCLUSIONS", json.dumps(excluded), flush=True)
+          print("MISSING_FROM_FULL_AUDIT", json.dumps(missing), flush=True)
+          print("UNEXPECTED_DOCUMENTS", json.dumps(unexpected), flush=True)
+          print("UNCHECKED", json.dumps(unchecked), flush=True)
+          for path in files:
+              target = canonical[path]
+              document = scanned.get(target, {})
+              findings = document.get("findings", [])
+              counts = dict(collections.Counter(f["severity"] for f in findings))
+              entry = {
+                  "path": path, "canonical_path": target, "class": document_class(path),
+                  "normally_excluded": target in excluded, "passed": document.get("passed"),
+                  "findings": counts,
+              }
+              print("FILE", json.dumps(entry), flush=True)
+          for path, document in configured.items():
+              if not document.get("passed", False):
+                  print("CONFIGURED_FAILURE", json.dumps({"path": path, "details": document}), flush=True)
+
+          reference = command("reference", [
+              "slopvac", "reference", "--check", "--write", "packages/slopvac-lint/docs/rules.md",
+          ])
+          print("REFERENCE_RESULT", reference.stdout[:12000], flush=True)
+          routing = command("routing", ["slopvac", "compile", "--format", "json", "--config", "slopvac.toml"])
+          if routing.returncode == 0:
+              route = json.loads(routing.stdout)
+              counts = {k: len(route[k]) for k in ("vale", "native", "judgement", "disabled")}
+              print("ENGINE_ROUTING", json.dumps({"vale_version": route.get("vale_version"), **counts}), flush=True)
+
+          parser = MarkdownIt("commonmark").enable("table")
+          anchors = {}
+          intentional_example_directives = 0
+          links = []
+          stale = []
+          pattern = re.compile(r"three rulesets|ste-vocabulary|judgement finish[^\n]*$", re.I)
+          for path in files:
+              text = Path(path).read_text(encoding="utf-8")
+              intentional_example_directives += text.count("<!-- slopvac-disable -->")
+              tokens = parser.parse(text)
+              seen = collections.Counter()
+              ids = set(re.findall(r'\b(?:id|name)=[\"\']([^\"\']+)', text))
+              for index, token in enumerate(tokens):
+                  if token.type == "heading_open":
+                      heading = tokens[index + 1]
+                      plain = "".join(c.content for c in heading.children or [] if c.type in {"text", "code_inline"})
+                      slug = re.sub(r"[^\w\- ]", "", plain.lower()).replace(" ", "-")
+                      n = seen[slug]
+                      seen[slug] += 1
+                      ids.add(slug + ("-" + str(n) if n else ""))
+                  for child in token.children or []:
+                      if child.type in {"link_open", "image"}:
+                          href = child.attrGet("href") or child.attrGet("src")
+                          if href:
+                              links.append((path, href))
+              anchors[str(Path(path).resolve())] = ids
+              for number, line in enumerate(text.splitlines(), 1):
+                  if pattern.search(line) and canonical[path] in configured:
+                      stale.append({"path": path, "line": number, "text": line})
+          broken = []
+          local_links = 0
+          external_links = 0
+          for path, href in links:
+              url = urlsplit(href)
+              if url.scheme or url.netloc or url.path.startswith("/"):
+                  external_links += 1
+                  continue
+              local_links += 1
+              target = (Path(path).parent / unquote(url.path)).resolve() if url.path else Path(path).resolve()
+              reason = None
+              if not target.exists():
+                  reason = "missing target"
+              elif url.fragment and str(target) in anchors and unquote(url.fragment) not in anchors[str(target)]:
+                  reason = "missing heading or anchor"
+              if reason:
+                  broken.append({"path": path, "link": href, "reason": reason})
+          link_report = {"checked": local_links, "external_not_checked": external_links, "broken": broken}
+          print("LOCAL_LINK_AUDIT", json.dumps(link_report), flush=True)
+          print("INTENTIONAL_EXAMPLE_DIRECTIVES", intentional_example_directives, flush=True)
+          print("REVIEW_CANDIDATES", json.dumps(stale), flush=True)
+          summary = "\n".join((
+              "# Markdown audit",
+              "",
+              f"Tracked paths: {len(files)}. Distinct documents: {len(expected_paths)}. Aliases: {len(aliases)}.",
+              f"Classes: {json.dumps(class_counts, sort_keys=True)}.",
+              f"Configured coverage: {len(configured)}. Full diagnostic coverage: {len(scanned)}.",
+              f"Authored-document coverage: {len(authored)}. Authored exit: {exits['authored']}.",
+              f"Configured exit: {exits['configured']}. Full diagnostic exit: {exits['all-files']}.",
+              f"Missing documents: {len(missing)}. Documents with unchecked rules: {len(unchecked)}.",
+              f"Generated reference check: {reference.returncode}. Local link candidates: {len(broken)}.",
+              "",
+              "The unrestricted diagnostic still scans fixtures, generated references, historical records, and managed prose.",
+              "The authored-document gate excludes those classes. Inline intentional examples use slopvac disable directives or fenced code, so they do not count as authored prose defects.",
+              "Model judgement and external URL validation are outside this audit.",
+          ))
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary)
+          incomplete = (
+              missing or unexpected or unchecked
+              or any(code not in (0, 1) for name, code in exits.items() if name != "authored")
+              or exits["authored"] != 0
+              or reference.returncode != 0 or routing.returncode != 0
+          )
+          if incomplete:
+              raise SystemExit("Audit incomplete or generated reference out of date; inspect the log.")
+          PY

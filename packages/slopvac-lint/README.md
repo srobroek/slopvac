@@ -1,649 +1,560 @@
-# slopvac
+# slopvac CLI reference
 
-Score prose against three rulesets: AI-slop patterns, Simplified Technical
-English, and Orwell's rules restated as objective tests.
+`slopvac` lints prose and comments in source files. It checks for AI writing patterns, documentation discipline, technical writing,
+and general prose. The
+rules include constraints derived from Simplified Technical English and Orwell.
 
-Reports a finding density per 100 words and a 0-100 score, per category and
-overall, with warn and error levels you set per category.
+The packaged YAML contains 231 rules across 26 categories: 166 checked rules and
+65 contextual rules marked `kind: judgement`. The CLI reports deterministic
+findings and scores. Optional model review produces separate advisory results.
 
-```sh
-uvx slopvac README.md
-uvx slopvac --profile strict docs/
-uvx slopvac --format json docs/ | jq .summary
-```
+See the [project overview](../../README.md) for agent installation and CI
+integration.
+
+[Lint documents](#lint-documents) · [Profiles](#profiles) ·
+[Configuration](#configuration) · [Scoring](#scoring) ·
+[Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
+[Contextual review](#judgement-layer) · [Rule coverage](#rules)
 
 ## Install
 
+The package needs Python 3.11 or later. Choose a persistent installation or run
+it through `uvx`:
+
 ```sh
-uv tool install slopvac     # persistent, no per-call resolution
-uvx slopvac --help          # or run it without installing
+uv tool install slopvac
+slopvac --help
+
+# Run without a persistent installation.
+uvx slopvac README.md
+
+# Alternative installer.
 pipx install slopvac
 ```
 
-[Vale](https://vale.sh) 3.15 or later executes most of the ruleset and belongs on
-your PATH. `slopvac` compiles its own YAML rules into a Vale style directory
-and generates the `.vale.ini` it passes to Vale.
+[Vale](https://vale.sh) is optional.
 
-| Engine | Covers |
+For full deterministic coverage, install Vale 3.15 or later and put it on
+`PATH`. We **highly recommend** doing so because Vale executes most deterministic
+rules. `slopvac` generates the Vale configuration and styles.
+
+| Engine | Checks |
 | --- | --- |
-| Vale | pattern matching, word counts, part-of-speech checks, document ratios |
-| built-in | patterns Vale rejects, metrics with no Vale form, block-shape comparisons |
-| reviewer | questions listed by `slopvac rules --judgement` |
+| Vale | Most deterministic rules, including compiled patterns and part-of-speech checks |
+| Native | Additional patterns and metrics, including comparisons between text blocks |
 
-Without the binary the run still scores the built-in rules and reports the rest
-as `UNCHECKED`, so a partial check never reads as a pass. `--no-vale` reports the
-same way.
+Without Vale, only the native checks run. Missing Vale, or `--no-vale`, leaves
+selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
+remain in the report, but this is an incomplete check. The separate
+[judgement layer](#judgement-layer) uses a model supplied by your harness.
 
-`slopvac compile --format json` prints the current split, and
-[`docs/rules.md`](docs/rules.md) lists every rule.
-
-Inspect the routing, or run Vale by hand against the generated config:
+## Lint documents
 
 ```sh
-slopvac compile --outdir build/vale
-vale --config=build/vale/.vale.ini docs/
+slopvac README.md docs/
+slopvac --profile strict docs/
+slopvac --category prose-craft README.md
+slopvac --disable prose-craft.relative-date README.md
+slopvac --format json docs/ | jq .summary
 ```
+
+`slopvac <paths>` and `slopvac lint <paths>` invoke the same command. Repeat
+`--category` to select categories or `--disable` to disable named categories
+or rules.
+
+### Changed lines and fixes
+
+```sh
+slopvac --diff-base main README.md docs/
+slopvac --diff-working-tree README.md docs/
+slopvac --fix README.md
+```
+
+`--diff-base REV` limits findings to added lines in the committed `REV...HEAD`
+diff. `--diff-working-tree` uses the index and working tree relative to `HEAD`.
+
+`--fix` edits source files using deterministic replacements with a single
+alternative. It preserves match case and skips replacements that offer multiple
+choices. In a diff-scoped run, it leaves unchanged lines alone. The CLI lints
+again after applying replacements. Review the resulting diff for meaning.
 
 ## Supported file types
 
-Directory targets collect `.md`, `.mdx`, `.markdown`, `.txt`, `.rst`, `.html`, and `.toml` files.
-The tool excludes `slopvac.toml` and `.slopvac.toml` from directory targets.
-`.rst` files are collected when the Docutils `rst2html` (or `rst2html.py`)
-command is on `PATH`; install it with `pip install docutils`. Without that
-converter, selected RST targets are reported as unchecked and the run exits 2.
+Prose directory targets select `.md`, `.mdx`, `.markdown`, `.txt`, `.rst`,
+and `.html` files. An explicitly named TOML file is accepted and checks its
+comments. Code-comment directory scans also discover TOML files.
+
+RST processing needs Docutils's `rst2html` or `rst2html.py` command on `PATH`.
+Install it with `pip install docutils`. A selected RST target without the
+converter reports an incomplete check and exits 2.
 
 ## Comment mode
-
-Lint prose by default. Use `--mode code-comments` for a global source-comment
-run:
 
 ```sh
 slopvac lint --mode code-comments src/
 ```
 
-The legacy `--comments` flag is an alias for `--mode code-comments`.
-The mode selects supported source extensions in a directory, or validates an
-explicit source file. Vale runs comment-safe lexical rules against ordinary line
-and block comment scopes (`text.comment.line.<extension>` and
-`text.comment.block.<extension>`). Documentation comments are included when the
-language exposes them through those ordinary scopes. Strings and source code are
-not linted.
+Comment mode selects supported source extensions and runs comment-safe lexical
+rules through Vale. It checks ordinary line and block comments, including
+documentation comments that the language exposes through those scopes. Source
+code and strings are outside those checks. `--comments` is an alias for this
+mode.
 
-Comment mode accepts mixed supported extensions, preserves source paths and
-finding locations, and skips configured exclusions. An unsupported file in a
-directory produces a non-failing skip note. An explicitly named unsupported
-source file is an error. `--mode` is global and cannot be set by an
-`[[overrides]]` block. The default `prose` mode, including TOML comment
-projection, is unchanged.
-Code-comments mode uses the packaged Vale config and styles; custom `vale.config`
-and nonempty `vale.styles` settings are rejected, including in per-file overrides.
+Reports retain source paths and finding locations. Directory scans skip
+unsupported source types with a non-failing note. An explicitly named
+unsupported file is an error. Configured exclusions still apply.
 
-## Judgement layer
-
-The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic error/warning counts, including the `max_errors` gate.
-
-`slopvac judgement finish` uses Q02's `unique-quote` offset salvage by default; pass `--offset-salvage none` to preserve raw model offsets. The selected mode is recorded in `report.json` as `offset_salvage`.
-
-The CLI does not call a model provider. `prepare` runs the deterministic scan, writes prompts, and stops; your caller sends each prompt to the provider and writes the returned response. For an agent harness, `brief <file> --out <dir> --packs fired` writes the same artifacts plus `brief.md` and `brief.json`, and `validate --run <dir>` checks one response before it is appended. The design, the baselining, and the measured precision are in the [repository README](../../README.md#the-judgement-layer).
-
-Run the three stages in one output directory:
-
-```sh
-uv run --project packages/slopvac-lint slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 --yes packages/slopvac-lint/README.md
-# Send each prompts.jsonl row to your provider, then append responses.jsonl.
-uv run --project packages/slopvac-lint slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
-uv run --project packages/slopvac-lint slopvac judgement compare --out .slopvac-judgement
-```
-
-`--packs` accepts `all` or a comma-separated pack list. `prepare` creates `--out`, runs lint, and writes deterministic reports before it checks the call count. If the count exceeds `--max-calls` (300 by default), it refuses before writing prompts, units, or the manifest; the earlier output remains. Pass `--yes` after reviewing the printed counts to continue.
-
-Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`, and `cache_keys`. The JSON string in `prompt.user` contains `passages` and `pairs`; `pairs` is not a top-level row field. Each `responses.jsonl` row contains `call_id` and `response`.
-
-```python
-import json
-from pathlib import Path
-
-def call_model(system: str, user: str, schema: dict) -> object:
-    """Call your provider and return its JSON response."""
-    raise NotImplementedError
-
-run = Path(".slopvac-judgement")
-with (run / "prompts.jsonl").open() as prompts, (run / "responses.jsonl").open("w") as responses:
-    for line in prompts:
-        row = json.loads(line)
-        result = call_model(row["prompt"]["system"], row["prompt"]["user"], row["response_schema"])
-        responses.write(json.dumps({"call_id": row["call_id"], "response": result}) + "\n")
-```
-
-`prepare` writes `prompts.jsonl`, `units.jsonl`, `documents/*.json`, deterministic reports under `deterministic/`, and `manifest.json`. `finish` writes `findings.jsonl`, `report.json`, and `report.md`; `compare --apply-preview` writes checker-passed rewrites under `preview/`.
+`--mode` applies to the whole invocation and cannot appear in `[[overrides]]`.
+Comment mode uses the packaged Vale configuration. It rejects a custom
+`vale.config` or nonempty `vale.styles`, including per-file settings.
 
 ## Profiles
 
-A profile is the strictness dial. It sets which rules run, how loud each one is,
-and what gates the document must clear.
+`normal` is the default. Profiles set rule tiers, severities, and density
+budgets. Individual rules can have different treatment within a profile.
 
-| Profile | For | Sentence cap | Word blocklist |
-| --- | --- | --- | --- |
-| `strict` | reference, specs, API docs, runbooks | 20 procedural / 25 descriptive | used when `vocabulary.path` is set |
-| `normal` | README, guides, decision records | 25 advisory | used when `vocabulary.path` is set |
-| `relaxed` | notes, comments, drafts | advisory | unused |
-
-The word-choice rules stay inert until `[vocabulary] path` names a file
-(`config.py`). No profile turns them on by itself.
-
-`normal` is the default. `strict` on an existing repository produces a wall of
-findings, which teaches people to ignore the tool.
-
-### What strictness changes
-
-Each rule declares a *tier* per profile, and the tier decides how the rule
-reports:
-
-| Tier | Effect |
-| --- | --- |
-| `enforced` | keeps its shipped severity, so it can reach `error` |
-| `advisory` | caps at `suggestion`, so it lowers the score but never fails a run |
-| `off` | does not run |
-
-Beyond the tiers, a profile sets the gates the whole document must clear:
-
-| Profile | Total density budget | Max errors | `min_score` | Unicode dashes |
+| Profile | Use | Total density budget | Max errors | Minimum score |
 | --- | --- | --- | --- | --- |
-| `strict` | 1.5 / 100 words | 0 | 85 | 0 |
-| `normal` | 3.0 / 100 words | 0 | 70 | 0 |
-| `relaxed` | 8.0 / 100 words | unlimited | none | 0 |
+| `strict` | Reference material and procedures | 1.5 / 100 words | 0 | 85 |
+| `normal` | READMEs and guides | 3.0 / 100 words | 0 | 70 |
+| `relaxed` | Informal text | 8.0 / 100 words | Unlimited | None |
 
-At `relaxed` the run reports the score for information and gates nothing except
-the dash count. `max_unicode_dashes` counts every em or en dash the source
-carries (the `prose-format.no-unicode-dash` findings, at any severity), because
-the character is the strongest origin signal the corpus measurements found: 24x
-denser in model prose than in pre-2022 human prose. It fails the run even where a
-project raises `max_errors` or dials the rule down; a project that must keep its
-dashes raises `max_unicode_dashes` in `slopvac.toml`.
+The density budgets count errors at 1.0 and warnings at 0.5. Category budgets
+also apply, including in `relaxed`. All profiles default to
+`max_unicode_dashes = 0`. See [scoring](#scoring) for the gates.
 
-Two rules invert the tier ordering on purpose. Passive voice is advisory at
-`strict` and enforced at `normal`, because the agentless passive is correct in a
-specification and wrong in a guide.
-
-A profile never overrides its own tiers. Naming a category in `slopvac.toml` and
-asking for `error` beats the advisory cap, because a human wrote it. The value
-the profile itself supplied does not, which is what stops a profile from
-contradicting its own tiers.
-
-### Genres
-
-Categories declare the genres they suit, in a `recommended_for` field that
-[`docs/rules.md`](docs/rules.md) tabulates. The vocabulary is the one the
-`write-docs` skill classifies a document into, so a reviewer selects categories by
-equality:
-
-| Genre | Surface |
+| Rule tier | Effect |
 | --- | --- |
-| `consumer` | README, docs/, guides, anything a user of the artifact reads |
-| `change-comms` | commit messages, PR bodies, hand-written release notes |
-| `internal` | specifications, decision records, CONTRIBUTING, contributor docs |
-| `reference` | reference material, API docs, runbooks, procedures, safety text |
-| `informal` | issue comments, discussion replies, blog posts, drafts |
+| `enforced` | Uses its effective severity and can fail a gate |
+| `advisory` | Reports at suggestion level under profile defaults |
+| `excluded` | Does not run in that profile; configuration cannot re-enable it |
 
-Genre and profile are separate. The genre says what the document is, and the
-profile says how hard to press. `genre_recommendation()` maps one to the other so
-that a caller recommends rather than asks: `reference` is `strict`, `informal` is
-`relaxed`, and the other three are `normal`.
+A tier is separate from configured severity. `severity = "off"` disables an
+otherwise admitted category or rule. A project setting can override a
+profile-default `off`, but it cannot override an `excluded` tier.
 
-The `review-docs` skill reads both fields. It picks the profile from the genre,
-and loads the judgement rules of the categories whose `recommended_for` names
-that genre.
+For rules admitted by their tier, explicit category and rule settings can
+override profile-default severity. An `excluded` tier remains final. Inspect
+effective rules with `slopvac rules --profile strict` or use
+`--explain-config` to inspect a file's settings.
+
+Categories also carry `recommended_for` genres for agent review. Reference
+material maps to `strict`, informal text to `relaxed`, and consumer, internal,
+and change-communication documents to `normal`. Genre recommendations do not
+replace file configuration.
 
 ## Configuration
 
-`slopvac init` writes a `slopvac.toml`. Three layers patch each other per
-field:
+```sh
+slopvac init
+slopvac lint --explain-config README.md
+```
 
-1. the profile
-2. the `[categories]` and `[rules]` tables
-3. every `[[overrides]]` block whose glob matches, in file order
-
-For a lint run, `slopvac` discovers the nearest `slopvac.toml` for each input file,
-so mixed targets and directory trees may use different profiles and thresholds;
-`--config PATH` explicitly applies one config to every target.
+The CLI discovers configuration separately for each target by searching its
+parent directories. It accepts `slopvac.toml`, `.slopvac.toml`, or a
+`[tool.slopvac]` table in `pyproject.toml`. `--config PATH` applies an explicit
+configuration to all targets.
 
 ```toml
 profile = "normal"
+exclude = ["vendor/**", "generated/**"]
 
 [thresholds]
 max_errors = 0
-ste-words = "off"
+max_warnings = 10
 
 [categories]
-ste-vocabulary = "off"
+prose-promotion = "warning"
 
 [rules]
-"prose-format.no-unicode-dash" = "off"    # house style uses real em dashes
+"prose-craft.relative-date" = "error"
+
+[locale]
+default = "en-US"
 
 [[overrides]]
 files = ["docs/reference/**/*.md", "runbooks/**/*.md"]
 profile = "strict"
 ```
 
-Severity is the only per-rule setting, so a bare string stands in for the table
-form: `"prose-format.no-unicode-dash" = "off"` and `[rules."prose-format.no-unicode-dash"]`
-with `severity = "off"` are the same thing. The same shorthand works for a
-category.
+| Setting | Controls |
+| --- | --- |
+| `profile` | Default rule treatment and thresholds |
+| `exclude` | Gitignore-style file exclusions |
+| `[thresholds]` | Error and warning limits, density, minimum score, and Unicode dash count |
+| `[categories]` | Severity, minimum severity, density budget, and score weight |
+| `[rules]` | Severity for an individual rule |
+| `[[overrides]]` | Path-specific configuration patches |
+| `[locale]` | Spelling target and allowed spellings |
+| `[vocabulary]` | Path to a project word blocklist |
+| `[vale]` | Vale enablement, binary, configuration, and styles |
 
-Severity is a **set at every layer, not a cap**. A category's `severity` promotes
-as well as demotes, and so does a rule's, so `severity = "error"` on a category
-does turn its suggestions into gate failures. Narrowest wins: a rule override
-beats its category, which beats the profile's disposition, which beats the
-severity the rule ships with.
+### Precedence
 
-A category can also set a **floor** without setting every rule to one level:
-`[categories.orwell]` with `minimum_severity = "warning"` lifts every rule in
-the category that would report below warning up to it. Rules already at error are
-left alone, and a rule override still wins, so one rule can opt out of the floor.
-
-A misspelled rule id or category name raises an **error**, including inside an
-`[[overrides]]` block. `slopvac` refuses to lint and gives the closest real name.
-This prevents a disabled rule from leaving the gate failing.
-
-### How overlapping globs resolve
-
-Every matching `[[overrides]]` block applies, in **file order**, and the last
-block to set a field owns that field. It is not strictest-wins and not
-most-specific-wins:
+Configuration starts with the profile, applies top-level settings, then applies
+every matching `[[overrides]]` block in file order. Later blocks replace only
+the fields they set. Other fields retain their values.
 
 ```toml
 [[overrides]]
-files = ["x.md"]
+files = ["docs/**"]
 profile = "strict"
 
 [[overrides]]
-files = ["x.*"]      # broader, but LATER, so this one wins for x.md
+files = ["docs/notes/**"]
 profile = "relaxed"
 ```
 
-Two alternatives lost. Specificity ranking loses because no ordering on globs a
-reader can predict exists: `docs/**` against `**/*.md` is differently specific,
-not more or less, so any winner a rule picks there is a rule you memorise.
-Strictest-wins loses because under it nothing relaxes, and a vendored subtree or a
-generated `docs/api/` then has no way down, which is the main reason overrides
-exist.
+A file under `docs/notes/` uses `relaxed` in this example. The last matching
+block to set `profile` determines the value. Duplicate override scopes are
+configuration errors.
 
-`slopvac` refuses two blocks with the *same* scope, since that reads as two
-independent decisions and resolves as one. Overlap between different globs is
-legitimate and stays legal.
+`--explain-config` shows the resolved settings and the blocks that supplied
+them. Unknown category names or rule IDs cause an error, including inside
+overrides.
 
-`slopvac lint --explain-config <file>` prints what applies **and which block set
-each setting**:
+### Severity and weight
 
-```
-x.md
-  profile: relaxed
-  overrides: x.md, x.*
-  set by:
-    profile: overrides[1] (x.*)
-    rules.prose-format.no-unicode-dash: overrides[0] (x.md)
-```
+Severity settings can promote or demote findings. A per-rule setting takes
+precedence over the category. The string shorthand
+`"prose-craft.relative-date" = "error"` is equivalent to a rule table with
+`severity = "error"`.
 
-The report lists only the settings some layer actually touched. The untouched
-profile defaults would bury them.
+A category's `minimum_severity` raises findings below that level while retaining
+higher severities. Per-rule overrides still take precedence.
+
+A category with `weight = 0` reports its findings without contributing to the
+score or ordinary gates. The Unicode dash gate counts its named findings
+independently of category weight.
+
+### Spelling
+
+`[locale] default` accepts `en-US`, `en-GB`, or `und`. Use `und` to disable
+spelling checks. The `allow` array lists spellings the project accepts regardless
+of locale.
 
 ## Word blocklist
 
-Off by default. Nothing checks your words until you name a file:
+Project word restrictions need a blocklist:
 
 ```toml
 [vocabulary]
-path = "docs/blocklist.toml"     # relative to this config file
+path = "docs/blocklist.toml"
 ```
 
-Each entry names a word, the part of speech to refuse it as, and why:
+The path is relative to the configuration file. A blocklist entry identifies a
+word and its part of speech:
 
 ```toml
 [[entries]]
 word = "deploy"
 pos = "noun"
 replacement = "deployment"
-reason = "The verb is fine. The noun form is a verb used as a noun."
-
-[[entries]]
-word = "simple"
-pos = "adjective"
-reason = "Judges the reader's experience rather than the work."
+reason = "Use the noun deployment for the result of deploying."
 ```
 
-`examples/blocklist.toml` is a working starter. `.yml` and `.json` load too.
+Vale's `sequence` tagger applies the blocklist entry only when its part-of-speech
+tag matches. Every entry needs a `reason`. `replacement` is optional.
+Invalid or unreadable blocklists are configuration errors.
 
-**The part of speech is the point.** `deploy` is a good verb and a bad noun, and
-one entry per sense records the difference: `slopvac` reports "the deploy failed"
-and passes "deploy the worker". Vale's tagger decides which is which.
-
-**`reason` is required.** `slopvac` refuses a file without one, because nobody but
-the author can review or remove an undocumented refusal. `replacement` is optional:
-omit it when the fix depends on the sentence, because a reader applies a suggestion
-without thinking.
-
-A word absent from the file is fine by definition. Nothing expresses "only these
-words are allowed". An earlier release shipped an ASD-STE100 word list enforced
-that way; on ordinary software prose it produced 828 findings for words that had
-no entry, half of everything it reported. A blocklist you wrote is the only word
-list that knows your domain.
+Use [`examples/blocklist.toml`](examples/blocklist.toml) as a starter. TOML,
+YAML, and JSON formats work. If `vocabulary.path` is unset, the project blocklist
+is inactive. Other spelling and word rules use their configured settings.
 
 ## Suppress a finding
 
-A suppression must name an exception from the rule's own list:
+Use a reason from the rule's exception list:
 
 ```markdown
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-`slopvac explain orwell.stale-figure` lists the valid reasons. When an annotation
-names a reason off that list, `slopvac` reports it rather than honors it, and
-tracks the suppression rate as a metric. A comment that starts with `slopvac-allow`
-but does not fit the grammar is reported as `meta.invalid-suppression`.
+`slopvac explain orwell.stale-figure` lists the accepted reasons. An unknown
+reason or malformed directive produces `meta.invalid-suppression`.
 
-An annotation covers the block that follows it: a wrapped paragraph, a list item,
-or a table, whichever line inside it carries the finding. So does
-`<!-- slopvac-disable-next-line -->`, which suppresses every rule in that block;
-`<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` bracket a region. A
-directive quoted in a code span or a fenced block, like the ones on this page, is
-documentation and changes nothing.
+The annotation covers the following block, such as a paragraph, list entry, or
+table. `<!-- slopvac-disable-next-line -->` suppresses all rules in that block.
+Use `<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` around a region.
+Directives quoted in inline code or fenced blocks do not suppress findings.
 
 ## Output formats
 
 ```sh
-slopvac docs/                            # a terminal report
-slopvac --format json docs/ | jq .        # every finding, every score
-slopvac --format github docs/            # Action annotations on the diff
-slopvac --format sarif docs/ > out.sarif  # code scanning
-slopvac --open docs/                     # an HTML report, in your browser
+slopvac docs/
+slopvac --format json docs/ | jq .
+slopvac --format github docs/
+slopvac --format sarif docs/ > out.sarif
+slopvac --open docs/
+slopvac --out report.html docs/
+slopvac --format json --out report.json docs/
 ```
 
-`--open` writes a self-contained page and opens it. `--out report.html` names the
-file instead of a temporary one, and implies HTML; `--format json --out report.json`
-writes that format to the file instead. The page needs no network and
-no assets, so it survives being attached to a CI run or mailed to a reviewer.
+The default output is a terminal report. JSON includes findings, document
+scores, and a summary. `github` produces workflow annotations. SARIF supports
+code-scanning integrations.
 
-The report leads with what did **not** run, before the score, and flags each
-affected document in the table. A score from an engine that failed to start is an
-upper bound, and a reader who misses that has been misled by their own report.
+`--open` writes a self-contained HTML report and opens it in a browser.
+`--out` chooses the destination and implies HTML unless `--format` selects
+another format. The HTML report needs no external assets.
+
+Inspect `documents[].unchecked` in JSON results. An incomplete check can include
+scores and useful findings, but it cannot report a pass.
 
 ### Report axes
 
-Reports show prose findings separately from AI-register findings. Strong and weak signals have their own counts. These counts do not affect scoring or gates.
+Reports group findings under prose quality and AI register. AI-register counts
+separate `strong` and `weak` signals. Rules with `ai_signal: none` contribute
+to the prose-quality group.
 
-Below that: the verdict, then the documents worst first, then the categories that
-fired, then the findings, grouped per document. Anything that failed starts open.
-
-## The compiled-rule cache
-
-`slopvac` compiles its YAML rules into a Vale style directory once and reuses it.
-The cache key is a hash of the rules, the resolved config, the severities, and
-your blocklist, so **nothing is ever served stale**: any edit mints a new key.
-
-```sh
-slopvac cache            # where it is, how many trees, how much disk
-slopvac cache --prune    # keep the 16 most recently used
-slopvac cache --all      # delete every tree
-```
-
-A lint prunes on its own and keeps the 16 trees used last. A cache hit
-counts as use, so a tree that a project keeps hitting survives at any age.
-Pruning is only ever about disk: it cannot cause a wrong result. Set
-`SLOPVAC_CACHE_DIR` to move it; it defaults under `XDG_CACHE_HOME`.
-
-## Exit codes
-
-| Code | Means |
-| --- | --- |
-| 0 | every selected rule ran and every threshold passed |
-| 1 | a threshold failed |
-| 2 | incomplete check or invalid configuration |
-
-Exit 2 means that the check is incomplete or could not start. Partial findings remain
-available, but neither the document nor the summary reports a pass.
+`ai_signal_source` records the evidence behind a signal: `measured`, `catalog`,
+or `unmeasured`. These labels do not change scores or gates and do not estimate
+the probability that a document has an AI author.
 
 ## Scoring
 
-Two numbers, because they answer different questions and neither replaces the other.
-
-| Number | Counts | Answers |
-| --- | --- | --- |
-| `per_100_words` | every finding | how dense is this document |
-| `score` | 0-100 | what a badge shows and `min_score` gates |
-
-The density budget (`max_total_per_100_words`) counts severity-weighted errors
-and warnings: errors count 1.0 and warnings 0.5. **A suggestion may lower a
-score but must not fail a run**.
-
-### Density: the n-per-100-words figure
-
-A raw count cannot compare a 40-word error message against a 4,000-word guide.
-One finding is 2.5 per 100 words in the first and 0.025 in the second.
-For documents of 60 words or more, this measurement is the density:
-
-```
-density = findings / words * 100
-```
-
-Below 60 words, density means nothing, so the scorer uses absolute counts for
-blocking findings. An error costs 20 points and a warning costs 10. Suggestions
-use a separate bounded penalty: 2.5 points each, up to 15 points total, and
-cannot fail a run on their own.
-
-### Per-category score
-
-Every category gets its own density and its own 0-100 score against its own
-budget. Weighted density drives it, so severity matters:
-
-| Severity | Weight |
+| Field | Meaning |
 | --- | --- |
-| `error` | 4.0 |
-| `warning` | 2.0 |
-| `suggestion` | 1.0 |
-| `off` | 0.0 |
+| `per_100_words` | Raw finding count per 100 words, including suggestions |
+| `gating_per_100_words` | Error count plus half the warning count, per 100 words |
+| `score` | 0-100 score after a bounded suggestion penalty |
 
-An error weighs 4 suggestions, so a document with one error is not out-voted by
-cosmetic findings.
+For documents of at least 60 words:
 
-The curve has two halves and no sudden drop:
-
-```
-at or below budget:  100 down to 70, linearly
-above budget:        70 down to 0, reaching 0 at 4x budget
+```text
+raw density = findings / words * 100
+gating density = (errors + 0.5 * warnings) / words * 100
+suggestion penalty = min(15, 2.5 * suggestions / words * 100)
 ```
 
-A document exactly at budget scores 70, which makes "just inside" visibly
-different from "clean". Above budget the score decays linearly rather than
-instantly, so slightly over reads differently from far over.
+For a category with a positive density budget, its base score decreases linearly
+from 100 to 70 at the budget. It reaches zero at four times that budget.
+The scorer then subtracts the suggestion penalty, with a floor of zero.
 
-The scorer subtracts suggestions afterwards, as a **bounded** penalty rather than
-folding them into the density: at most 15 points, reaching that maximum at a
-suggestion density of 6.0 per 100 words. Unbounded, they consumed the whole scale. Measured
-on one document, suggestions were 76 of 152 findings and an advisory rule the
-profile explicitly does not stand behind failed the run anyway.
+A zero budget gives a base score of 100 at zero gating density and zero above
+it. Without a category budget, each unit of gating density costs 10 points.
 
-A category with `weight = 0` is informational. It reports its findings and
-contributes to neither side of the mean below.
+The document score is the lower of the weighted category mean and the score
+computed over all scoring categories together. Categories with zero weight do
+not contribute to either calculation.
 
-### Document score
-
-The document score is the **lower** of two figures:
-
-1. the weight-weighted mean of the per-category scores
-2. the same calculation run over the whole document's findings at once
-
-Both directions matter. The mean alone is too kind: 23 categories that found
-nothing score 100 each and drown the two that found errors, so a document with
-five errors read as 92.7. While the rest are clean, the whole-document figure
-alone loses the signal that one category sits far over its budget. Taking the
-lower of the two keeps both.
+Below 60 words, the scorer uses absolute counts: 20 points per error and 10 per
+warning. Each suggestion costs 2.5 points, capped at 15. Density fields are zero
+for these short documents.
 
 ### What fails a run
 
-A run fails when any gate breaks: the error count exceeds `max_errors`, the
-gating density exceeds `max_total_per_100_words`, the score falls below
-`min_score`, the source carries more Unicode dashes than `max_unicode_dashes`, or
-any single category exceeds its own `max_per_100_words`. The report names each
-broken gate with the number that broke it.
+| Gate | Fails when |
+| --- | --- |
+| `max_errors` | The counted errors exceed the limit |
+| `max_warnings` | The counted warnings exceed the limit |
+| `max_total_per_100_words` | Gating density exceeds the document budget |
+| Category `max_per_100_words` | Gating density exceeds that category's budget |
+| `min_score` | The score is below the floor and a scoring category has an error or warning |
+| `max_unicode_dashes` | Findings for `prose-format.no-unicode-dash` exceed the limit |
+
+Suggestions alone do not trigger the ordinary score or density gates. The
+Unicode dash limit counts its named findings at any severity. Turning off or
+suppressing that rule removes those findings from the count.
+
+Incomplete checks take exit 2. Otherwise, a failed gate takes exit 1 and a
+passing run takes exit 0.
+
+### Word counting
+
+Sentence-length checks use STE counting conventions. Numbers with units,
+abbreviations, quoted spans, and hyphenated terms each count as one word.
+Parenthesized text counts as one word in its surrounding sentence. Step and
+paragraph numbers do not count.
+
+See [metrics](docs/metrics.md) for counting and text-type classification details.
+
+## Judgement layer
+
+Contextual rules cover questions such as whether a passage repeats one point
+or makes a claim without enough support. The model returns `confirm`, `reject`,
+`preserve`, or `abstain` for each requested decision.
+
+The CLI does not call a provider. Your harness sends the prepared prompts and
+records the responses. These results remain separate from deterministic lint
+findings and do not change deterministic pass/fail.
+
+### Prepare a review
+
+For an agent harness:
+
+```sh
+slopvac judgement brief README.md --out .slopvac-review --packs fired
+```
+
+`brief` writes `brief.md` and `brief.json` alongside the structured run files.
+It searches for configuration from the current working directory and uses
+starter defaults if none is present. Use `--config` to choose a file explicitly.
+
+`--packs fired` selects packs whose category produced a deterministic finding.
+If no pack qualifies, `brief` keeps all packs and prints a warning. When some
+packs qualify, other categories receive no contextual review. Use `--packs all`
+to include all packs, or provide comma-separated pack IDs.
+
+For a provider client that consumes JSONL directly:
+
+```sh
+slopvac init
+slopvac judgement prepare README.md \
+  --config slopvac.toml \
+  --out .slopvac-review \
+  --packs all \
+  --max-calls 300
+```
+
+`prepare` needs `--config`. It writes deterministic reports before checking the
+call budget. Above `--max-calls`, it refuses to write prompts, units, or a
+manifest. To approve a larger run, raise the limit or rerun `prepare` with
+`--yes`.
+
+`brief` writes its run without this call-budget refusal, including when its
+`--max-calls` value is lower than the proposed count. Inspect the printed count
+before your harness sends prompts to a provider. Use `prepare` for a
+budget-enforced preparation step.
+
+### Call the model and validate responses
+
+Each `prompts.jsonl` row supplies a `call_id` and a `response_schema`. Send
+`prompt.system` and `prompt.user` to your model. The user prompt is JSON. It
+contains passages and the unit-rule pairs to review.
+
+For each completed call, write one row to `responses.jsonl`. Preserve the
+original `call_id` and put the parsed model output under `response`. Validate the
+response before adding it:
+
+```sh
+slopvac judgement validate --run .slopvac-review --file response.json
+```
+
+`response.json` can contain a bare model response or a `call_id`/`response`
+wrapper. Supply `--call-id` to identify the call explicitly, or let validation
+infer it. Omitting `--file` reads standard input.
+
+For ordinary response files, validation prints `ok`, `call_id`, and `errors`.
+It checks the response shape, call membership, result set, result order, and
+model-output schema. Evidence quote locations are checked by `finish`. Validation
+returns 0 for valid responses, 2 for validation failures, and 1 for unreadable or
+malformed JSON. The [evaluation guide](docs/judgement-eval.md) describes the same
+contract in more detail.
+
+### Finish and compare
+
+After your harness writes `.slopvac-review/responses.jsonl`:
+
+```sh
+slopvac judgement finish --out .slopvac-review \
+  --responses .slopvac-review/responses.jsonl
+slopvac judgement compare --out .slopvac-review
+slopvac judgement compare --out .slopvac-review --apply-preview
+```
+
+The host validates each response against its schema and checks unit ownership.
+Evidence quotes must match the unit text. `unique-quote` offset salvage relocates
+an exact quote that occurs once in its unit. `finish --offset-salvage none`
+disables that repair.
+
+Failed, truncated, and not-run units reduce coverage. They retain their own
+states, separate from model abstentions. Check coverage before interpreting a
+report with no confirms.
+
+| Stage | Files |
+| --- | --- |
+| `prepare` | `prompts.jsonl`, `units.jsonl`, `documents/`, `deterministic/`, and `manifest.json` |
+| `brief` | Preparation files plus `brief.md` and `brief.json` |
+| `finish` | `findings.jsonl`, `report.json`, and `report.md` |
+| `compare --apply-preview` | Accepted rewrite previews under `preview/` |
+
+Model confirms can lower `judgement_adjusted_score`. They do not change the
+lint exit status or deterministic error and warning counts. Rewrite previews
+leave source files untouched. The fact-preservation checker examines each
+proposed rewrite before retention. It rejects unauthorized additions, removals,
+or changes to protected values and referents.
+
+See [judgement evaluation](docs/judgement-eval.md) for the prompt contract and
+coverage definitions. Model review can produce false positives or miss defects.
 
 ## Rules
 
-Rules are data. Each lives in a YAML file under `rules/<category>.yml`, so adding
-a lexical, substitution, or threshold rule needs no code.
+In the [generated rule reference](docs/rules.md), you can find all 26 categories
+and profile tiers for 231 rules. Contextual rules also include their review
+questions and examples.
+
+| Family | Categories |
+| --- | --- |
+| AI register and residue | `ai-residue` and `ai-tells-*`: agentic, content shape, figurative, formatting, register, and structure |
+| General prose | `prose-*`: agency, craft, discipline, format, inclusive language, inflation, promotion, and scope |
+| Documentation discipline | `docs-discipline` |
+| Simplified Technical English | `ste-*`: descriptive, nouns, practices, procedural, punctuation, safety, sentences, verbs, and words |
+| Orwell-derived checks | `orwell` |
 
 ```sh
 slopvac rules --profile strict
-slopvac rules --judgement          # what a linter cannot check
+slopvac rules --judgement --format json
 slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
 
-`slopvac` validates every rule at load: it compiles each regex, and requires each
-example's `bad` text to match while its `good` text must not. A rule whose pattern
-stopped firing passes every document, which is indistinguishable from clean prose.
+`--rules-dir` adds project rules over the packaged YAML and is repeatable.
+The `my-rules` directory must exist and contain valid rule files. The loader
+validates regexes and their positive and negative examples.
 
-Rules marked `kind: judgement` never produce a finding. They carry the checks no
-pattern reaches, as decidable questions, so an agentic reviewer reads one source
-of truth instead of a parallel prose catalog.
+`slopvac rules` also includes the spelling rule generated for the configured
+locale. The YAML rule count excludes that generated rule.
 
-[`docs/rules.md`](docs/rules.md) is the full reference, generated from the same
-ruleset the linter loads and split into checked and judgement rules. CI
-regenerates it and fails on a diff, so it cannot drift from the code.
+## The compiled-rule cache
 
-## Philosophy
+Compiled Vale styles are cached between runs. Use these commands to inspect
+or reclaim the cache:
 
-Four positions, and each one rules something out. They are worth stating because
-the obvious alternative is what most prose linters do.
+```sh
+slopvac cache
+slopvac cache --prune
+slopvac cache --all
+```
 
-### Density, not zero tolerance
+`--prune` removes older compiled trees; `--all` clears the cache. Set
+`SLOPVAC_CACHE_DIR` to choose a location, or use the default under
+`XDG_CACHE_HOME`.
 
-Nearly every prose linter reports a count. A count makes a long document worse
-than a short one for writing at the same quality, so the incentive it creates is
-to write less rather than to write better. A threshold set against a count either
-passes a 3,000-word document with forty problems or fails a 200-word one with
-three.
+To inspect the compiled styles directly:
 
-Scoring uses two inputs:
+```sh
+slopvac compile --outdir build/vale
+slopvac compile --format json
+vale --config=build/vale/.vale.ini docs/
+```
 
-- severity-weighted errors and warnings per 100 words
-- the profile budget for that density
+The routing report separates Vale, native, disabled, and contextual entries.
+Running Vale directly checks only the compiled Vale subset.
 
-The budget converts density into a score.
-Long documents earn proportionally more findings.
-Documents under 60 words use absolute counts.
-For example, one finding in a 20-word error message equals 5.0 per 100 words.
-Density scoring would fail every budget in that case.
+## Exit codes
 
-### Rules that fire deterministically, separated from rules that do not
+These codes describe deterministic lint runs:
 
-A rule either has a checker or it does not, and the two make different promises.
-Pretending otherwise produces the two failures this tool exists to prevent: a
-reader who believes a judgement rule gates their build, and an agent that treats a
-mechanical rule as a matter of opinion.
+| Code | Result |
+| --- | --- |
+| `0` | Selected checks completed within configured thresholds |
+| `1` | At least one threshold failed |
+| `2` | An incomplete check or invalid configuration |
 
-So the same ruleset carries `kind: judgement` rules, and they **never produce a
-finding**. They ship for two reasons. A reviewing agent needs one source of truth
-rather than a second, drifting prose catalog. And a rule no tool can automate is not
-thereby less true. Deleting it would quietly redefine the standard as
-"whatever a regex can reach", which is how a style guide becomes a list of
-typography preferences.
-
-### Silence is a finding
-
-The failure a linter is worst at reporting is its own. A rule that stopped
-matching, an absent Vale binary, a metric with no implementation: each produces a
-document with no findings, which is indistinguishable from clean prose.
-
-So:
-
-- **Exit 2 is not exit 0.** A bad config, an unloadable ruleset, or a missing tool
-  exits 2, and every caller treats that as "nothing was checked" rather than as a
-  pass.
-- **Skipped rules are reported as `UNCHECKED`**, per run. Without the Vale binary
-  the built-in rules still score and the rest are named as not run.
-- **The loader validates each rule at load.** Each regex compiles, and each example's
-  `bad` text must match while its `good` text must not. A rule that stopped firing
-  therefore fails the build instead of passing every document.
-- **A misspelled rule id is an error**, not a silent no-op: the failure it
-  otherwise produces is "I disabled it and the gate still fails".
-- **A configured blocklist that cannot be loaded is an error.** The project asked
-  for that gate by name; linting on with an empty wordlist would report every
-  document clean.
-
-### A finding must be actionable, and a refusal must be reviewable
-
-A finding a reader cannot act on trains them to disable the rule. So each one
-carries the replacement or the operation, `slopvac explain <rule>` gives the
-reason behind the rule's wording, and every rule cites a source.
-
-The same standard applies to the word blocklist, and it is why **no word list
-ships**. An earlier version treated ASD-STE100's 859 approved words as the
-permitted set. Measured on an 8-document corpus:
-
-- that one rule produced 51% of all findings
-- it drove every document to a score of 0.0, including documents with zero errors
-- 1,275 of its 1,282 refusals carried neither a reason nor a replacement
-
-Absence from a deliberately incomplete dictionary is not disapproval. The
-**blocklist** is empty until you write one. Its loader requires a reason for each
-entry. Only its author can argue with, or later remove, an entry that gives no
-reason.
-
-Suppression follows from the same position: `<!-- slopvac-allow: rule=<id>
-reason=<name> -->` requires a reason from the rule's own closed list. `slopvac` reports
-any other reason rather than honors it, so a blanket suppression shows up in a
-diff.
-
-### The limits of a clean run
-
-A clean run means the checked patterns are absent, and nothing more. It is not a
-review. The linter does not read for truth: a sentence can pass every rule and
-name a function that does not exist, describe a flag that never shipped, or
-contradict the paragraph above it.
-
-The lexical rules also perish. A memorized word list tracks one model generation,
-which is why the structural and register categories carry more weight than the
-token ones.
-
-## Word counting
-
-Sentence-length limits use ASD-STE100's own definition of a word (rules 8.4
-through 8.7), not a whitespace split:
-
-- a number counts as one word, with its unit if it has one
-- an abbreviation counts as one word
-- a quoted span counts as one word
-- parenthesized text counts as one word
-- a hyphenated word counts as one word
-- numbers identifying a step or paragraph are not counted
-
-`Do steps 13 thru 16 a minimum of three times.` is 10 words.
-
-## Limits
-
-A clean run means the checked patterns are absent, and nothing more. The linter
-does not read for truth. A sentence can pass every rule and name a function that
-does not exist, describe a flag that never shipped, or contradict the paragraph
-above it.
-
-No word list ships, and the word check stays inert until you write one. See
-[Word blocklist](#word-blocklist).
+A passing score does not verify factual correctness or establish authorship.
+Model-review commands report their own processing and validation errors.
 
 ## Sources
 
-The Simplified Technical English rules are an independent restatement, cited by
-rule number. ASD-STE100 is copyright
-[ASD](https://www.asd-ste100.org) and is an EU registered trademark; this package
-reproduces none of its rule text, definitions, or examples.
+Each rule's provenance identifies its source. The rules include material derived
+from [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop), independent
+restatements of STE principles, and Orwell-derived checks. Prose and
+documentation categories have their own per-rule references.
 
-This package ships and reads no dictionary content. An earlier version carried the
-Issue 9 word list. That version is gone, and the word check now reads a blocklist
-you write.
-
-The AI-slop rules take their calibration from a corpus of software documentation. The
-lexical ones perish: a memorized word list tracks one model generation, which is
-why the structural and register rules carry more weight.
+ASD-STE100 is copyright [ASD](https://www.asd-ste100.org) and an EU registered
+trademark. This package reproduces none of its rule text, definitions, or
+examples. Project word restrictions use the [blocklist](#word-blocklist).
 
 ## License
 
-Apache-2.0.
+Apache-2.0. The stop-slop source material is MIT-licensed.
