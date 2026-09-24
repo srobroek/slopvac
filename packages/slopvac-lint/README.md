@@ -14,7 +14,8 @@ integration.
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
-[Contextual review](#judgement-layer) · [Rule coverage](#rules)
+[Domain terms](docs/domain-categories.md) · [Contextual review](#judgement-layer) ·
+[Rule coverage](#rules)
 
 ## Install
 
