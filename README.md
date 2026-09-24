@@ -23,6 +23,7 @@
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
 [Judgement evaluation](packages/slopvac-lint/docs/judgement-eval.md) ·
 [STE principles](packages/slopvac-lint/docs/ste-principles.md) ·
+[Domain terms](packages/slopvac-lint/docs/domain-categories.md) ·
 [Vale behavior](packages/slopvac-lint/docs/vale-traps.md) ·
 [Agent setup](#agent-skills) · [CI](#ci-integration)
 
