@@ -52,7 +52,7 @@ jobs:
           rules = json.load(open('/tmp/rules.json'))
           judgement = json.load(open('/tmp/judgement-rules.json'))
           assert len(rules['rules']) == 231, len(rules['rules'])
-          assert len(rules['categories']) == 30, len(rules['categories'])
+          assert len(rules['categories']) == 26, len(rules['categories'])
           assert len(judgement['rules']) == 65, len(judgement['rules'])
           PY
           slopvac explain orwell.stale-figure --format json > /tmp/explain.json
