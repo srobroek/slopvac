@@ -70,9 +70,10 @@ slopvac setup omp
 slopvac setup kiro
 ```
 
-Codex uses `AGENTS.md`, Claude Code uses `CLAUDE.md`, Oh My Pi uses
-`.omp/AGENTS.md`, and Kiro uses `.kiro/steering/slopvac.md`. The generic
-`agents` target also manages `AGENTS.md`.
+Codex uses a non-empty `AGENTS.override.md` when one already exists, otherwise
+`AGENTS.md`. Claude Code uses `CLAUDE.md`, Oh My Pi uses `.omp/AGENTS.md`, and
+Kiro uses `.kiro/steering/slopvac.md`; a new Kiro steering file is marked
+`inclusion: always`. The generic `agents` target also manages `AGENTS.md`.
 
 `slopvac setup <harness> --check` reports whether the managed block is current
 without modifying files. `--remove` removes only the managed block. Use
