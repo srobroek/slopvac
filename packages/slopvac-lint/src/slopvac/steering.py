@@ -15,8 +15,8 @@ END = "<!-- slopvac:end -->"
 _HARNESS_PATHS = {
     "agents": "AGENTS.md",
     "codex": "AGENTS.md",
-    "omp": "AGENTS.md",
-    "kiro": "AGENTS.md",
+    "omp": ".omp/AGENTS.md",
+    "kiro": ".kiro/steering/slopvac.md",
     "claude": "CLAUDE.md",
 }
 
@@ -92,6 +92,24 @@ def harness_path(root: Path, harness: str) -> Path:
 
 def harnesses() -> tuple[str, ...]:
     return tuple(_HARNESS_PATHS)
+
+
+def managed_block_state(path: Path, block: str = STEERING_BLOCK) -> str:
+    """Return missing, current, stale, or malformed for one managed block."""
+    if not path.exists():
+        return "missing"
+    original = path.read_text(encoding="utf-8")
+    has_begin = BEGIN in original
+    has_end = END in original
+    if has_begin != has_end:
+        return "malformed"
+    if not has_begin:
+        return "missing"
+    start = original.index(BEGIN)
+    end = original.index(END, start) + len(END)
+    installed = original[start:end].strip()
+    expected = block.strip()
+    return "current" if installed == expected else "stale"
 
 
 def update_managed_block(path: Path, block: str = STEERING_BLOCK) -> bool:
