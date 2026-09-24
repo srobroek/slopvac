@@ -6,13 +6,6 @@ max_retries = 2
 accept = [200, 429]
 accept_timeouts = true
 
-# Verbatim adversarial-review reports stored as evidence under the research record; their
-# citations are not edited (dead ones are marked unsupported inside the files), so they are
-# not link-checked. The two authored files beside them are checked.
-exclude_path = [
-  "packages/slopvac-lint/docs/research/rubric-2026-09-15/challenges",
-]
-
 exclude = [
   # lychee cannot verify an in-page anchor on a rendered GitHub file.
   "github\\.com.*#[a-z]",
