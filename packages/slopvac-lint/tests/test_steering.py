@@ -189,6 +189,7 @@ def test_retired_integration_names_do_not_survive_in_live_sources():
         "write-docs",
         "review-docs",
         "docs/research/",
+        "research/rubric-",
         "orwell-derivation",
     )
     suffixes = {".md", ".py", ".toml", ".yaml", ".yml", ".json", ".sh"}
