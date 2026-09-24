@@ -6,7 +6,7 @@ meaning, including for an error-level finding.
 
 ## Triage a deterministic finding
 
-JSON output gives the information needed to inspect one match:
+JSON output includes the fields needed to inspect one match:
 
 | Field | Use |
 | --- | --- |
@@ -41,7 +41,7 @@ A suppression must use a reason returned by `slopvac explain`:
 
 An unknown reason is reported as `meta.invalid-suppression`. Use
 `slopvac-disable` regions for material that is intentionally specimen text, such
-as examples whose purpose is to demonstrate a bad pattern. Do not use a
+as examples whose purpose is to show a bad pattern. Do not use a
 suppression to hide an unexplained false positive.
 
 ## Contextual judgement is separate
