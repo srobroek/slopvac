@@ -602,18 +602,108 @@ def explain(
     default=Path("slopvac.toml"),
     show_default=True,
 )
-def init_config(profile: str, force: bool, path: Path) -> None:
-    """Write a starter slopvac.toml."""
+@click.option(
+    "--skip-agents",
+    is_flag=True,
+    help="Write configuration only; do not add the managed AGENTS.md block.",
+)
+def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> None:
+    """Initialize project configuration and agent steering."""
     console = _console(False)
-    if path.exists() and not force:
-        console.print(f"[yellow]{path} exists[/]; pass --force to overwrite.")
-        raise SystemExit(EXIT_OK)
-
+    from .steering import update_managed_block
     from .templates import STARTER_CONFIG
 
-    path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
-    console.print(f"wrote {path}")
-    console.print("lint with: slopvac 'docs/**/*.md'")
+    if path.exists() and not force:
+        console.print(f"[yellow]{path} exists[/]; keeping it.")
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
+        console.print(f"wrote {path}")
+
+    if not skip_agents:
+        agents_path = Path("AGENTS.md")
+        try:
+            changed = update_managed_block(agents_path)
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        console.print(
+            f"{'updated' if changed else 'kept'} {agents_path} "
+            "with slopvac steering"
+        )
+
+    console.print("next: slopvac prime")
+
+
+@main.command("prime")
+@click.argument(
+    "topic",
+    required=False,
+    default="all",
+    type=click.Choice(["all", "lint", "judgement"]),
+)
+def prime(topic: str) -> None:
+    """Print current agent guidance for lint and judgement work."""
+    from .steering import prime_text
+
+    click.echo(prime_text(topic))
+
+
+@main.command("onboard")
+def onboard() -> None:
+    """Print the full agent guidance used for onboarding."""
+    from .steering import prime_text
+
+    click.echo(prime_text("all"))
+
+
+@main.command("setup")
+@click.argument("harness", required=False)
+@click.option("--list", "list_harnesses", is_flag=True, help="List supported harnesses.")
+@click.option("--remove", is_flag=True, help="Remove the managed slopvac block.")
+@click.option(
+    "--root",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("."),
+    show_default=True,
+)
+def setup_agent(
+    harness: str | None, list_harnesses: bool, remove: bool, root: Path
+) -> None:
+    """Install or remove project-local steering for a harness."""
+    from .steering import (
+        harness_path,
+        harnesses,
+        remove_managed_block,
+        update_managed_block,
+    )
+
+    console = _console(False)
+    if list_harnesses:
+        for name in harnesses():
+            console.print(f"{name:8} {harness_path(Path('.'), name)}")
+        raise SystemExit(EXIT_OK)
+
+    if harness is None:
+        raise click.UsageError("HARNESS is required unless --list is used.")
+    if harness not in harnesses():
+        raise click.UsageError(
+            f"unknown harness {harness!r}; choose from: {', '.join(harnesses())}"
+        )
+
+    target = harness_path(root, harness)
+    try:
+        changed = (
+            remove_managed_block(target)
+            if remove
+            else update_managed_block(target)
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    action = "removed from" if remove else "updated"
+    if not changed:
+        action = "unchanged"
+    console.print(f"{action} {target}")
 
 
 @main.command("compile")
