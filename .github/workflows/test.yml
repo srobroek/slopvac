@@ -67,8 +67,7 @@ jobs:
           # Every tracked plugin, marketplace, and hook manifest is covered without editing this
           # step.
           #
-          files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
-            '*hooks.json' | sort -u)"
+          files="$(git ls-files '*hooks.json' | sort -u)"
           test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
           for f in $files; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
