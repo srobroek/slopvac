@@ -102,14 +102,14 @@ jobs:
           test "$lint_status" -ne 2
           python3 -c 'import json; json.load(open("/tmp/probe.json"))'
 
-          cat > /tmp/judge.md <<'DOC'
-# Notes
-
-In today's fast-paced digital landscape, observability isn't just a nice-to-have.
-It's a game-changer that empowers teams to leverage synergies.
-
-In conclusion, embracing observability is a strategic imperative.
-DOC
+          printf '%s\n' \
+            '# Notes' \
+            '' \
+            "In today's fast-paced digital landscape, observability isn't just a nice-to-have." \
+            "It's a game-changer that empowers teams to leverage synergies." \
+            '' \
+            'In conclusion, embracing observability is a strategic imperative.' \
+            > /tmp/judge.md
           rm -rf /tmp/judge-run
           slopvac judgement brief /tmp/judge.md --out /tmp/judge-run --packs fired
           python3 - <<'PY'
