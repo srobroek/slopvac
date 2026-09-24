@@ -188,12 +188,13 @@ def test_retired_integration_names_do_not_survive_in_live_sources():
         ".omp-plugin",
         "write-docs",
         "review-docs",
+        "docs/research/",
+        "orwell-derivation",
     )
     suffixes = {".md", ".py", ".toml", ".yaml", ".yml", ".json", ".sh"}
-    historical = (
+    excluded_records = (
         root / "CHANGELOG.md",
         root / "packages/slopvac-lint/CHANGELOG.md",
-        root / "packages/slopvac-lint/docs/research",
         root / ".beads",
         root / ".agents/skills/beads",
     )
@@ -201,7 +202,7 @@ def test_retired_integration_names_do_not_survive_in_live_sources():
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix not in suffixes or path.resolve() == own_file:
             continue
-        if any(path == base or base in path.parents for base in historical):
+        if any(path == base or base in path.parents for base in excluded_records):
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for needle in needles:
@@ -214,6 +215,8 @@ def test_removed_agent_packaging_has_no_live_paths_or_install_commands():
         ".codex-plugin",
         ".omp-plugin",
         "packages/slopvac",
+        "packages/slopvac-lint/docs/research",
+        "packages/slopvac-lint/docs/orwell-derivation.md",
     ):
         assert not (root / relative).exists(), relative
 
