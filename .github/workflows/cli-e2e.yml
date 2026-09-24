@@ -41,12 +41,13 @@ jobs:
           /tmp/slopvac-e2e-venv/bin/python -m pip install --quiet /tmp/slopvac-dist/*.whl
           /tmp/slopvac-e2e-venv/bin/slopvac --version
 
-      - name: Exercise installed CLI end to end
+      - name: Exercise installed CLI happy and red paths
         shell: bash
         run: |
           set -euo pipefail
           export PATH="/tmp/slopvac-e2e-venv/bin:$HOME/.local/bin:$PATH"
 
+          # Catalogue and explain use the installed wheel, not the source tree.
           slopvac rules --format json > /tmp/rules.json
           slopvac rules --judgement --format json > /tmp/judgement-rules.json
           python3 - <<'PY'
@@ -58,7 +59,9 @@ jobs:
           assert len(judgement['rules']) == 65, len(judgement['rules'])
           PY
           slopvac explain orwell.stale-figure --format json > /tmp/explain.json
+          python3 -c 'import json; assert json.load(open("/tmp/explain.json"))["id"]'
 
+          # Init is idempotent and writes generic steering next to the config.
           rm -rf /tmp/slopvac-project
           mkdir -p /tmp/slopvac-project
           cd /tmp/slopvac-project
@@ -70,6 +73,7 @@ jobs:
           cmp AGENTS.md /tmp/agents-first.md
           slopvac setup agents --check
 
+          # Red paths: missing, malformed, and unsupported steering targets.
           rm -rf /tmp/harness-missing
           mkdir -p /tmp/harness-missing
           set +e
@@ -101,6 +105,7 @@ jobs:
           test "$setup_unknown_status" -eq 2
           grep -q 'unknown harness' /tmp/setup-unknown.txt
 
+          # Public setup and guidance surfaces.
           slopvac setup --list > /tmp/setup-list.txt
           grep -q '^agents' /tmp/setup-list.txt
           grep -q '^codex' /tmp/setup-list.txt
@@ -114,6 +119,7 @@ jobs:
           grep -q 'slopvac judgement brief' /tmp/prime-judgement.md
           grep -q 'slopvac setup --list' /tmp/onboard.md
 
+          # Harness-specific install/check paths.
           for harness in agents claude omp kiro; do
             root="/tmp/harness-$harness"
             rm -rf "$root"
@@ -134,9 +140,17 @@ jobs:
           slopvac setup codex --root /tmp/harness-codex --remove
           test "$(cat /tmp/harness-codex/AGENTS.override.md)" = '# Existing override'
 
-          printf 'Each entry stays cached for 60 seconds.\n\nRun the migration.\n' > /tmp/probe.md
+          # Vale-backed lint succeeds; explicitly disabling Vale is incomplete.
+          printf '%s\n' \
+            'The cache keeps each entry for 60 seconds.' \
+            '' \
+            'Run the migration.' \
+            > /tmp/probe.md
           set +e
-          slopvac /tmp/probe.md --config /tmp/slopvac-project/slopvac.toml --format json > /tmp/probe.json
+          slopvac /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format json \
+            > /tmp/probe.json
           lint_status=$?
           set -e
           test "$lint_status" -ne 2
@@ -157,10 +171,9 @@ jobs:
           assert report['documents'][0]['unchecked']
           PY
 
-
+          # Reference, compiled routing, and cache are usable from the wheel.
           slopvac reference > /tmp/reference.md
           grep -q '231 rules' /tmp/reference.md
-
           rm -rf /tmp/compiled-vale
           slopvac compile \
             --config /tmp/slopvac-project/slopvac.toml \
@@ -176,14 +189,18 @@ jobs:
           assert compiled['vale_version'] == '3.15.2'
           PY
           test -s /tmp/compiled-vale/.vale.ini
-
           slopvac cache > /tmp/cache.txt
           grep -q 'tree(s)' /tmp/cache.txt
 
+          # Machine-readable and HTML reporting.
+          set +e
           slopvac lint /tmp/probe.md \
             --config /tmp/slopvac-project/slopvac.toml \
             --format sarif \
             > /tmp/probe.sarif
+          sarif_status=$?
+          set -e
+          test "$sarif_status" -ne 2
           python3 - <<'PY'
           import json
           sarif = json.load(open('/tmp/probe.sarif'))
@@ -191,26 +208,60 @@ jobs:
           assert sarif['runs']
           PY
 
+          set +e
           slopvac lint /tmp/probe.md \
             --config /tmp/slopvac-project/slopvac.toml \
             --format html \
             --out /tmp/probe.html
+          html_status=$?
+          set -e
+          test "$html_status" -ne 2
           grep -q '<html' /tmp/probe.html
 
-          printf 'The cache runs in order to reduce reads.\n' > /tmp/fix.md
+          # --fix changes an unambiguous deterministic substitution.
+          printf 'The job runs in order to finish.\n' > /tmp/fix.md
+          set +e
           slopvac lint /tmp/fix.md \
             --config /tmp/slopvac-project/slopvac.toml \
             --fix \
             > /tmp/fix-output.txt
-          grep -q '^The cache runs to reduce reads\.
+          fix_status=$?
+          set -e
+          test "$fix_status" -ne 2
+          grep -q '^The job runs to finish\.$' /tmp/fix.md
+
+          # Comment mode checks the comment and ignores the string literal.
+          printf '%s\n' \
+            '# A robust seamless world-class system.' \
+            'print("robust seamless world-class")' \
+            > /tmp/comment.py
+          set +e
+          slopvac lint /tmp/comment.py \
+            --mode code-comments \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format json \
+            > /tmp/comment.json
+          comment_status=$?
+          set -e
+          test "$comment_status" -ne 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/comment.json'))
+          findings = report['documents'][0]['findings']
+          assert findings
+          assert {finding['line'] for finding in findings} == {1}
+          PY
+
+          # Judgement preparation has a budget refusal red path.
+          printf '%s\n' \
             '# Notes' \
             '' \
-            "In today's fast-paced digital landscape, observability isn't just a nice-to-have." \
-            "It's a game-changer that empowers teams to leverage synergies." \
+            "In today's fast-paced digital landscape, observability is a game-changer." \
+            'It empowers teams to leverage synergies.' \
             '' \
             'In conclusion, embracing observability is a strategic imperative.' \
             > /tmp/judge.md
-          rm -rf /tmp/judge-run /tmp/judge-budget
+          rm -rf /tmp/judge-budget /tmp/judge-run
           set +e
           slopvac judgement prepare /tmp/judge.md \
             --config /tmp/slopvac-project/slopvac.toml \
@@ -221,52 +272,79 @@ jobs:
           budget_status=$?
           set -e
           test "$budget_status" -eq 1
-          grep -q 'max-calls' /tmp/judge-budget.txt
+          grep -q 'call limit exceeded' /tmp/judge-budget.txt
 
+          # Full judgement lifecycle: brief, validate, reject bad schema, finish, compare.
           slopvac judgement brief /tmp/judge.md --out /tmp/judge-run --packs fired
-
           python3 - <<'PY'
           import json
           from pathlib import Path
 
           out = Path('/tmp/judge-run')
-          prompts = [json.loads(line) for line in (out/'prompts.jsonl').read_text().splitlines() if line]
-          unit_rows = (
+          prompts = [
               json.loads(line)
-              for line in (out / 'units.jsonl').read_text().splitlines()
+              for line in (out / 'prompts.jsonl').read_text().splitlines()
               if line
-          )
-          units = {row['unit_id']: row for row in unit_rows}
+          ]
+          units = {
+              row['unit_id']: row
+              for row in (
+                  json.loads(line)
+                  for line in (out / 'units.jsonl').read_text().splitlines()
+                  if line
+              )
+          }
           call = prompts[0]
           rows = []
           for uid in call['unit_ids']:
               unit = units[uid]
               if call['kind'] == 'PASSAGE_PROBE':
                   row = {
-                      'unit_id': uid, 'rule_id': unit['rule_id'], 'kind': call['kind'],
-                      'admissible': True, 'note': 'No occurrence.', 'rewrite_status': 'not_applicable',
-                      'occurrences_truncated': False, 'scores': None, 'verdict': 'reject',
-                      'abstain_reason': None, 'preservation_reason': None, 'rewrite': None,
-                      'evidence': None, 'occurrences': [],
+                      'unit_id': uid,
+                      'rule_id': unit['rule_id'],
+                      'kind': call['kind'],
+                      'admissible': True,
+                      'note': 'No occurrence.',
+                      'rewrite_status': 'not_applicable',
+                      'occurrences_truncated': False,
+                      'scores': None,
+                      'verdict': 'reject',
+                      'abstain_reason': None,
+                      'preservation_reason': None,
+                      'rewrite': None,
+                      'evidence': None,
+                      'occurrences': [],
                   }
               else:
                   row = {
-                      'unit_id': uid, 'rule_id': unit['rule_id'], 'kind': call['kind'],
-                      'admissible': True, 'note': 'No defect in this unit', 'rewrite_status': 'not_applicable',
+                      'unit_id': uid,
+                      'rule_id': unit['rule_id'],
+                      'kind': call['kind'],
+                      'admissible': True,
+                      'note': 'No defect in this unit',
+                      'rewrite_status': 'not_applicable',
                       'occurrences_truncated': False,
-                      'scores': {'fit':'absent','harm':'none','repair':'inapplicable','warrant':'quote_only'},
-                      'verdict': 'reject', 'abstain_reason': None, 'preservation_reason': None,
-                      'rewrite': None, 'evidence': [], 'occurrences': None,
+                      'scores': {
+                          'fit': 'absent',
+                          'harm': 'none',
+                          'repair': 'inapplicable',
+                          'warrant': 'quote_only',
+                      },
+                      'verdict': 'reject',
+                      'abstain_reason': None,
+                      'preservation_reason': None,
+                      'rewrite': None,
+                      'evidence': [],
+                      'occurrences': None,
                   }
               rows.append(row)
           payload = {'results': rows}
           Path('/tmp/response.json').write_text(json.dumps(payload))
           response_row = {'call_id': call['call_id'], 'response': payload}
-          Path('/tmp/judge-run/responses.jsonl').write_text(
-              json.dumps(response_row) + '\n'
-          )
+          (out / 'responses.jsonl').write_text(json.dumps(response_row) + '\n')
           Path('/tmp/call-id').write_text(call['call_id'])
           PY
+
           slopvac judgement validate \
             --run /tmp/judge-run \
             --call-id "$(cat /tmp/call-id)" \
@@ -296,92 +374,9 @@ jobs:
           assert report['errors']
           PY
 
-          slopvac judgement finish --out /tmp/judge-run --responses /tmp/judge-run/responses.jsonl
-          slopvac judgement compare --out /tmp/judge-run > /tmp/compare.txt
-          test -s /tmp/judge-run/report.json
-          test -s /tmp/compare.txt
- /tmp/fix.md
-
-          printf '%s\n' \
-            '# A robust seamless world-class system.' \
-            'print("robust seamless world-class")' \
-            > /tmp/comment.py
-          set +e
-          slopvac lint /tmp/comment.py \
-            --mode code-comments \
-            --config /tmp/slopvac-project/slopvac.toml \
-            --format json \
-            > /tmp/comment.json
-          comment_status=$?
-          set -e
-          test "$comment_status" -ne 2
-          python3 - <<'PY'
-          import json
-          report = json.load(open('/tmp/comment.json'))
-          findings = report['documents'][0]['findings']
-          assert findings
-          assert {finding['line'] for finding in findings} == {1}
-          PY
-
-          printf '%s\n' \
-            '# Notes' \
-            '' \
-            "In today's fast-paced digital landscape, observability isn't just a nice-to-have." \
-            "It's a game-changer that empowers teams to leverage synergies." \
-            '' \
-            'In conclusion, embracing observability is a strategic imperative.' \
-            > /tmp/judge.md
-          rm -rf /tmp/judge-run
-          slopvac judgement brief /tmp/judge.md --out /tmp/judge-run --packs fired
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          out = Path('/tmp/judge-run')
-          prompts = [json.loads(line) for line in (out/'prompts.jsonl').read_text().splitlines() if line]
-          unit_rows = (
-              json.loads(line)
-              for line in (out / 'units.jsonl').read_text().splitlines()
-              if line
-          )
-          units = {row['unit_id']: row for row in unit_rows}
-          call = prompts[0]
-          rows = []
-          for uid in call['unit_ids']:
-              unit = units[uid]
-              if call['kind'] == 'PASSAGE_PROBE':
-                  row = {
-                      'unit_id': uid, 'rule_id': unit['rule_id'], 'kind': call['kind'],
-                      'admissible': True, 'note': 'No occurrence.', 'rewrite_status': 'not_applicable',
-                      'occurrences_truncated': False, 'scores': None, 'verdict': 'reject',
-                      'abstain_reason': None, 'preservation_reason': None, 'rewrite': None,
-                      'evidence': None, 'occurrences': [],
-                  }
-              else:
-                  row = {
-                      'unit_id': uid, 'rule_id': unit['rule_id'], 'kind': call['kind'],
-                      'admissible': True, 'note': 'No defect in this unit', 'rewrite_status': 'not_applicable',
-                      'occurrences_truncated': False,
-                      'scores': {'fit':'absent','harm':'none','repair':'inapplicable','warrant':'quote_only'},
-                      'verdict': 'reject', 'abstain_reason': None, 'preservation_reason': None,
-                      'rewrite': None, 'evidence': [], 'occurrences': None,
-                  }
-              rows.append(row)
-          payload = {'results': rows}
-          Path('/tmp/response.json').write_text(json.dumps(payload))
-          response_row = {'call_id': call['call_id'], 'response': payload}
-          Path('/tmp/judge-run/responses.jsonl').write_text(
-              json.dumps(response_row) + '\n'
-          )
-          Path('/tmp/call-id').write_text(call['call_id'])
-          PY
-          slopvac judgement validate \
-            --run /tmp/judge-run \
-            --call-id "$(cat /tmp/call-id)" \
-            --file /tmp/response.json \
-            > /tmp/validate.json
-          python3 -c 'import json; assert json.load(open("/tmp/validate.json"))["ok"]'
-          slopvac judgement finish --out /tmp/judge-run --responses /tmp/judge-run/responses.jsonl
+          slopvac judgement finish \
+            --out /tmp/judge-run \
+            --responses /tmp/judge-run/responses.jsonl
           slopvac judgement compare --out /tmp/judge-run > /tmp/compare.txt
           test -s /tmp/judge-run/report.json
           test -s /tmp/compare.txt
