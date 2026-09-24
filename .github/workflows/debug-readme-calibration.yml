@@ -1,0 +1,44 @@
+name: Temporary README calibration diagnostic
+
+on:
+  pull_request:
+    paths:
+      - "packages/slopvac-lint/README.md"
+      - ".github/workflows/debug-readme-calibration.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install package
+        run: python -m pip install --quiet -e "./packages/slopvac-lint"
+      - name: Show calibration findings
+        shell: bash
+        run: |
+          set +e
+          slopvac --profile strict --no-vale --format json packages/slopvac-lint/README.md > /tmp/readme.json
+          rc=$?
+          set -e
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("/tmp/readme.json").read_text())
+          wanted = {
+              "ai-tells-register.uniform-paragraph-mass",
+              "ste-nouns.multiword-noun-too-long",
+              "ai-tells-content-shape.adjective-per-noun-spray",
+          }
+          for finding in data.get("findings", []):
+              if finding.get("rule_id") in wanted:
+                  print(json.dumps(finding, sort_keys=True))
+          PY
+          echo "slopvac_exit ${rc}"
