@@ -140,7 +140,7 @@ def _section(text: str) -> tuple[int, int] | None:
         return None
     if len(found) != 2 or [entry[0] for entry in found] != [BEGIN, END]:
         raise SteeringError(
-            "ambiguous slopvac markers; repair the begin/end pair first"
+            "malformed or ambiguous slopvac markers; repair the begin/end pair first"
         )
     return found[0][1], found[1][2]
 
