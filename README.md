@@ -139,34 +139,27 @@ validation, coverage, and rewrite previews.
 ## Agent setup
 
 Slopvac uses project-local steering instead of harness marketplaces or copied
-skills. The managed block tells an agent to ask the installed CLI for the current
-workflow rather than embedding rule text that can drift.
+skills. The managed block tells the agent to ask the installed CLI for the
+current lint and judgement workflow instead of duplicating rule policy.
 
-`slopvac init` configures the generic `AGENTS.md` path used by Codex, Oh My Pi,
-Kiro, and other harnesses that consume that file. For Claude Code, add the
-corresponding `CLAUDE.md` block:
+`slopvac init` adds the generic `AGENTS.md` block by default. Use
+`--skip-agents` when only configuration should be created.
 
-```sh
-slopvac setup claude
-```
+For harness-specific setup:
 
-Inspect all supported targets:
+| Harness | Command | Managed file |
+| --- | --- | --- |
+| Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` |
+| Codex | `slopvac setup codex` | `AGENTS.md` |
+| Claude Code | `slopvac setup claude` | `CLAUDE.md` |
+| Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` |
+| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` |
 
-```sh
-slopvac setup --list
-```
-
-Explicit aliases are available when setup is scripted:
-
-```sh
-slopvac setup agents
-slopvac setup codex
-slopvac setup omp
-slopvac setup kiro
-```
-
-Setup changes only the content between Slopvac's managed markers and preserves
-the rest of the file. Remove that block with `slopvac setup <harness> --remove`.
+`setup` preserves content outside Slopvac's managed markers. Use
+`slopvac setup <harness> --check` to report `current`, `missing`, `stale`,
+or `malformed` without changing the file. Remove only the managed block with
+`slopvac setup <harness> --remove`. Run `slopvac setup --list` to inspect
+supported targets.
 
 Agents get detailed guidance on demand:
 
@@ -176,10 +169,10 @@ slopvac prime lint
 slopvac prime judgement
 ```
 
-`prime` covers the deterministic gate, exit-code semantics, Vale coverage,
-rule explanation, named exceptions, claim verification, and the complete
-judgement handoff. `slopvac onboard` prints the same full guidance for an
-initial agent session.
+`prime` covers deterministic linting, exit-code semantics, Vale coverage, rule
+explanation, named exceptions, factual-claim verification, and the judgement
+handoff. `slopvac onboard` prints the same full guidance for an initial agent
+session.
 
 ## CI integration
 
