@@ -1,8 +1,8 @@
 # Judgement evaluation
 
 The judgement evaluator measures the 65 contextual rules separately from the
-deterministic lint gate. The CLI prepares prompts and validates model output; it
-does not choose or call a provider.
+deterministic lint gate. The CLI prepares prompts and validates model output.
+Your harness selects and calls the provider.
 
 A reproducible evaluation arm records the provider, model revision, decoding
 settings, request identity, and repeat number. Reusing a cached response requires
