@@ -1,7 +1,7 @@
 """Command line interface.
 
 EXIT CODES are the contract every caller depends on -- pre-commit, the GitHub
-Action, the skill, and CI:
+Action, agent steering, and CI:
 
     0  clean, or findings below every configured threshold
     1  a threshold failed (the run worked; the prose did not)
@@ -101,7 +101,7 @@ class _DefaultGroup(click.Group):
 @click.version_option(__version__, prog_name="slopvac")
 @click.pass_context
 def main(context: click.Context) -> None:
-    """Lint prose and source comments with the unified Slopvac ruleset.
+    """Lint prose and source comments with the unified slopvac ruleset.
 
     `slopvac FILE...` lints. `slopvac rules` lists the rules.
     """
@@ -537,7 +537,7 @@ def explain(
         console.print(f"[red]unknown rule[/]: {rule_id}")
         raise SystemExit(EXIT_ERROR) from None
 
-    # The review skill reads the exception list to choose a suppression reason, and
+    # Agents and tooling read the exception list to choose a suppression reason, and
     # scraping it out of Rich-rendered text is what this avoids. `suppression` is
     # rendered here rather than left to the caller, because a reason that is not on
     # the closed list is reported as meta.invalid-suppression rather than honoured.
@@ -602,18 +602,129 @@ def explain(
     default=Path("slopvac.toml"),
     show_default=True,
 )
-def init_config(profile: str, force: bool, path: Path) -> None:
-    """Write a starter slopvac.toml."""
+@click.option(
+    "--skip-agents",
+    is_flag=True,
+    help="Write configuration only; do not add the managed AGENTS.md block.",
+)
+def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> None:
+    """Initialize project configuration and agent steering."""
     console = _console(False)
-    if path.exists() and not force:
-        console.print(f"[yellow]{path} exists[/]; pass --force to overwrite.")
-        raise SystemExit(EXIT_OK)
-
+    from .steering import update_managed_block
     from .templates import STARTER_CONFIG
 
-    path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
-    console.print(f"wrote {path}")
-    console.print("lint with: slopvac 'docs/**/*.md'")
+    if path.exists() and not force:
+        console.print(f"[yellow]{path} exists[/]; keeping it.")
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
+        console.print(f"wrote {path}")
+
+    if not skip_agents:
+        agents_path = Path("AGENTS.md")
+        try:
+            changed = update_managed_block(agents_path)
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        console.print(
+            f"{'updated' if changed else 'kept'} {agents_path} "
+            "with slopvac steering"
+        )
+
+    console.print("next: slopvac prime")
+
+
+@main.command("prime")
+@click.argument(
+    "topic",
+    required=False,
+    default="all",
+    type=click.Choice(["all", "lint", "judgement"]),
+)
+def prime(topic: str) -> None:
+    """Print current agent guidance for lint and judgement work."""
+    from .steering import prime_text
+
+    click.echo(prime_text(topic))
+
+
+@main.command("onboard")
+def onboard() -> None:
+    """Print concise setup guidance that points agents to prime."""
+    from .steering import ONBOARD_TEXT
+
+    click.echo(ONBOARD_TEXT)
+
+
+@main.command("setup")
+@click.argument("harness", required=False)
+@click.option("--list", "list_harnesses", is_flag=True, help="List supported harnesses.")
+@click.option("--remove", is_flag=True, help="Remove the managed slopvac block.")
+@click.option(
+    "--check",
+    is_flag=True,
+    help="Report whether the managed block is current without changing files.",
+)
+@click.option(
+    "--root",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("."),
+    show_default=True,
+)
+def setup_agent(
+    harness: str | None,
+    list_harnesses: bool,
+    remove: bool,
+    check: bool,
+    root: Path,
+) -> None:
+    """Install or remove project-local steering for a harness."""
+    from .steering import (
+        harness_path,
+        harnesses,
+        managed_block_state,
+        remove_managed_block,
+        update_managed_block,
+    )
+
+    console = _console(False)
+    if list_harnesses:
+        for name in harnesses():
+            console.print(f"{name:8} {harness_path(Path('.'), name)}")
+        raise SystemExit(EXIT_OK)
+
+    if harness is None:
+        raise click.UsageError("HARNESS is required unless --list is used.")
+    if harness not in harnesses():
+        raise click.UsageError(
+            f"unknown harness {harness!r}; choose from: {', '.join(harnesses())}"
+        )
+
+    target = harness_path(root, harness)
+    if check:
+        if remove:
+            raise click.UsageError("--check and --remove cannot be used together.")
+        state = managed_block_state(target)
+        console.print(f"{state} {target}")
+        if state == "current":
+            raise SystemExit(EXIT_OK)
+        if state == "malformed":
+            raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_FINDINGS)
+
+    try:
+        changed = (
+            remove_managed_block(target)
+            if remove
+            else update_managed_block(target)
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    action = "removed from" if remove else "updated"
+    if not changed:
+        action = "unchanged"
+    console.print(f"{action} {target}")
 
 
 @main.command("compile")

@@ -8,8 +8,7 @@ The packaged YAML contains 231 rules across 26 categories: 166 checked rules and
 65 contextual rules marked `kind: judgement`. The CLI reports deterministic
 findings and scores. Optional model review produces separate advisory results.
 
-See the [project overview](../../README.md) for agent installation and CI
-integration.
+See the [project overview](../../README.md) for agent setup and CI integration.
 
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
@@ -48,6 +47,37 @@ Without Vale, only the native checks run. Missing Vale, or `--no-vale`, leaves
 selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
 remain in the report, but this is an incomplete check. The separate
 [judgement layer](#judgement-layer) uses a model supplied by your harness.
+
+
+## Agent steering
+
+`slopvac init` writes project configuration and, unless `--skip-agents` is
+used, maintains a small Slopvac block in `AGENTS.md`. Detailed instructions stay
+in the installed CLI:
+
+```sh
+slopvac prime
+slopvac prime lint
+slopvac prime judgement
+```
+
+Use a harness-specific steering target when needed:
+
+```sh
+slopvac setup codex
+slopvac setup claude
+slopvac setup omp
+slopvac setup kiro
+```
+
+Codex uses `AGENTS.md`, Claude Code uses `CLAUDE.md`, Oh My Pi uses
+`.omp/AGENTS.md`, and Kiro uses `.kiro/steering/slopvac.md`. The generic
+`agents` target also manages `AGENTS.md`.
+
+`slopvac setup <harness> --check` reports whether the managed block is current
+without modifying files. `--remove` removes only the managed block. Use
+`slopvac setup --list` for the supported targets and paths.
+
 
 ## Lint documents
 

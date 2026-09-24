@@ -1,5 +1,10 @@
 # slopvac
 
-This repository ships the `slopvac` CLI and its agent skills. The CLI checks prose against configured rules in `slopvac.toml`; `write-docs` and `review-docs` use that contract for authoring and review.
+This repository ships the `slopvac` CLI. Run `slopvac prime` before writing or
+reviewing prose; it prints the current lint and judgement guidance from the
+installed version.
 
-Run the relevant package tests with `pytest`; use `uvx slopvac <files...>` for the prose gate. A document is ready only when the CLI clears its thresholds and the review finds no clustered register tells.
+Run the relevant package tests with `pytest`. Use
+`uvx --from ./packages/slopvac-lint slopvac <files...>` for the repository
+prose gate. Treat lint exit 2 as incomplete, and verify documentation claims
+against the code rather than inferring correctness from a prose score.

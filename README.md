@@ -25,14 +25,14 @@
 [STE principles](packages/slopvac-lint/docs/ste-principles.md) ·
 [Domain terms](packages/slopvac-lint/docs/domain-categories.md) ·
 [Vale behavior](packages/slopvac-lint/docs/vale-traps.md) ·
-[Agent setup](#agent-skills) · [CI](#ci-integration)
+[Agent setup](#agent-setup) · [CI](#ci-integration)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
 technical-writing constraints.
 
-Use the CLI locally or in CI. The `write-docs` and `review-docs` agent skills
-add review of claims and structure, with optional model-based checks.
+Use the CLI locally or in CI. Coding agents can use project-local steering that
+points the harness back to the installed CLI for current lint and judgement guidance.
 
 ## Quick start
 
@@ -139,57 +139,43 @@ change the deterministic result. See the
 [complete workflow](packages/slopvac-lint/README.md#judgement-layer) for response
 validation, coverage, and rewrite previews.
 
-## Agent skills
+## Agent setup
 
-`write-docs` applies the document's genre rules and hands the text to
-`review-docs`. The review checks the prose against the code and removes material
-that the intended reader does not need. Contextual model review runs on request.
+Slopvac uses project-local steering instead of harness marketplaces or copied
+skills. The managed block tells the agent to ask the installed CLI for the
+current lint and judgement workflow instead of duplicating rule policy.
 
-### Oh My Pi
+`slopvac init` adds the generic `AGENTS.md` block by default. Use
+`--skip-agents` when only configuration should be created.
 
-```sh
-omp plugin marketplace add srobroek/slopvac
-omp plugin install slopvac@slopvac --scope user
-```
+For harness-specific setup:
 
-Use `--scope project` for a project installation. Start a new session after
-installing. To use a local checkout:
+| Harness | Command | Managed file |
+| --- | --- | --- |
+| Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` |
+| Codex | `slopvac setup codex` | `AGENTS.md` |
+| Claude Code | `slopvac setup claude` | `CLAUDE.md` |
+| Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` |
+| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` |
 
-```sh
-omp plugin link ./slopvac/packages/slopvac
-```
+`setup` preserves content outside Slopvac's managed markers. Use
+`slopvac setup <harness> --check` to report `current`, `missing`, `stale`,
+or `malformed` without changing the file. Remove only the managed block with
+`slopvac setup <harness> --remove`. Run `slopvac setup --list` to inspect
+supported targets.
 
-### Claude Code
-
-Run these commands in Claude Code:
-
-```text
-/plugin marketplace add srobroek/slopvac
-/plugin install slopvac@slopvac
-```
-
-### Codex
+Agents get detailed guidance on demand:
 
 ```sh
-codex plugin marketplace add srobroek/slopvac
-codex plugin add slopvac@slopvac
+slopvac prime
+slopvac prime lint
+slopvac prime judgement
 ```
 
-### Kiro and manual installation
-
-Copy the skills into the harness's skills directory. For Kiro:
-
-```sh
-git clone https://github.com/srobroek/slopvac /tmp/slopvac
-mkdir -p .kiro/skills
-cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
-```
-
-The corresponding project directories are `.claude/skills` for Claude Code and
-`.codex/skills` for Codex.
-
-After installing, ask the agent to write or review a document. To include
-contextual checks, ask it to review the document for AI tells as well.
+`prime` covers deterministic linting, exit-code semantics, Vale coverage, rule
+explanation, named exceptions, factual-claim verification, and the judgement
+handoff. `slopvac onboard` prints a short setup handoff that points the agent to
+`prime` for the detailed workflow.
 
 ## CI integration
 

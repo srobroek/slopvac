@@ -241,7 +241,7 @@ def profile_rule_defaults(profile: Profile) -> dict[str, RuleSettings]:
 def genre_recommendation(genre: str) -> Profile:
     """Map a document genre to the profile that suits it.
 
-    The genre vocabulary is the write-docs skill's: `consumer`, `internal`,
+    The rule catalogue uses these genres: `consumer`, `internal`,
     `change-comms`, `reference`, `informal`. Reference material (API docs,
     runbooks, procedures, safety text) wants strict; informal prose (issue
     comments, discussion replies, blog posts) wants relaxed; the rest normal.
