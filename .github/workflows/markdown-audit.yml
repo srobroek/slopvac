@@ -213,8 +213,11 @@ jobs:
               f"Missing documents: {len(missing)}. Documents with unchecked rules: {len(unchecked)}.",
               f"Generated reference check: {reference.returncode}. Local link candidates: {len(broken)}.",
               "",
-              "The unrestricted diagnostic still scans fixtures, generated references, historical records, and managed prose.",
-              "The authored-document gate excludes those classes. Inline intentional examples use slopvac disable directives or fenced code, so they do not count as authored prose defects.",
+              "The unrestricted diagnostic still scans fixtures, generated references, "
+              "historical records, and managed prose.",
+              "The authored-document gate excludes those classes. Inline intentional "
+              "examples use slopvac disable directives or fenced code, so they do not "
+              "count as authored prose defects.",
               "Model judgement and external URL validation are outside this audit.",
           ))
           Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary)
