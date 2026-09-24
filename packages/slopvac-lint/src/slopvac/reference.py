@@ -152,7 +152,7 @@ def _rule_section(rule: Rule) -> list[str]:
     # and 150 of them triples the document; a judgement rule's example is the only
     # thing that makes it applicable at all, because there is no pattern to read.
     if rule.kind is RuleKind.JUDGEMENT and rule.examples:
-        lines.append("")
+        lines.extend(["", "<!-- slopvac-disable -->"])
         for example in rule.examples[:2]:
             lines.append(f"  > **Not this.** {example.bad}")
             lines.append("  >")
@@ -168,6 +168,7 @@ def _rule_section(rule: Rule) -> list[str]:
                 lines.append("  >")
                 lines.append(f"  > {example.note}")
             lines.append("")
+        lines.append("<!-- slopvac-enable -->")
     lines.append("")
     return lines
 
