@@ -146,7 +146,8 @@ def test_setup_check_reports_current_missing_stale_and_does_not_mutate():
 
         current = runner.invoke(main, ["setup", "codex", "--check"])
         assert current.exit_code == 0
-        assert "current AGENTS.md" in current.output
+        assert "current " in current.output
+        assert current.output.rstrip().endswith("AGENTS.md")
         assert Path("AGENTS.md").read_text(encoding="utf-8") == before
 
         Path("AGENTS.md").write_text(before.replace("slopvac prime", "slopvac old-prime"), encoding="utf-8")
