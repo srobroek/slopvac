@@ -661,18 +661,28 @@ def onboard() -> None:
 @click.option("--list", "list_harnesses", is_flag=True, help="List supported harnesses.")
 @click.option("--remove", is_flag=True, help="Remove the managed slopvac block.")
 @click.option(
+    "--check",
+    is_flag=True,
+    help="Report whether the managed block is current without changing files.",
+)
+@click.option(
     "--root",
     type=click.Path(file_okay=False, path_type=Path),
     default=Path("."),
     show_default=True,
 )
 def setup_agent(
-    harness: str | None, list_harnesses: bool, remove: bool, root: Path
+    harness: str | None,
+    list_harnesses: bool,
+    remove: bool,
+    check: bool,
+    root: Path,
 ) -> None:
     """Install or remove project-local steering for a harness."""
     from .steering import (
         harness_path,
         harnesses,
+        managed_block_state,
         remove_managed_block,
         update_managed_block,
     )
@@ -691,6 +701,17 @@ def setup_agent(
         )
 
     target = harness_path(root, harness)
+    if check:
+        if remove:
+            raise click.UsageError("--check and --remove cannot be used together.")
+        state = managed_block_state(target)
+        console.print(f"{state} {target}")
+        if state == "current":
+            raise SystemExit(EXIT_OK)
+        if state == "malformed":
+            raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_FINDINGS)
+
     try:
         changed = (
             remove_managed_block(target)
