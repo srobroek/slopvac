@@ -31,11 +31,6 @@ config:
   # install snippets in the table of contents.
   MD036: false
 
-  # Consecutive blockquotes separated by a blank line are two SEPARATE quotations.
-  # `docs/orwell-derivation.md` quotes Orwell in sequence, and joining them would
-  # attribute one continuous passage that does not exist.
-  MD028: false
-
 globs:
   - "**/*.md"
   - "!**/node_modules/**"
@@ -47,6 +42,3 @@ globs:
   # setup, so the finding would come back on a branch nobody touched.
   - "!.agents/**"
   - "!.beads/**"
-  # Verbatim adversarial-review reports stored as evidence under the rubric research record;
-  # their structure is the agents' output and is not edited.
-  - "!packages/slopvac-lint/docs/research/*/challenges/**"
