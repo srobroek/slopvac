@@ -153,10 +153,10 @@ For harness-specific setup:
 | Harness | Command | Managed file |
 | --- | --- | --- |
 | Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` |
-| Codex | `slopvac setup codex` | `AGENTS.md` |
+| Codex | `slopvac setup codex` | non-empty `AGENTS.override.md`, otherwise `AGENTS.md` |
 | Claude Code | `slopvac setup claude` | `CLAUDE.md` |
 | Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` |
-| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` |
+| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) |
 
 `setup` preserves content outside Slopvac's managed markers. Use
 `slopvac setup <harness> --check` to report `current`, `missing`, `stale`,
