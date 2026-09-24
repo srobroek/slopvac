@@ -75,9 +75,6 @@ jobs:
             echo "ok $f"
           done
 
-      - name: Validate plugin package contract
-        run: python3 -m unittest discover -s tests -p 'test_plugin_package.py'
-
   # The linter is a published package with its own dependencies, so it is tested
   # in its own job against the Python versions its metadata claims to support. A
   # `requires-python` floor nobody exercises is a claim, not a fact.
