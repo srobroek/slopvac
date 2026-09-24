@@ -120,7 +120,10 @@ def managed_block_state(path: Path, block: str = STEERING_BLOCK) -> str:
     if begin_count == 0:
         return "missing"
     start = original.index(BEGIN)
-    end = original.index(END, start) + len(END)
+    raw_end = original.find(END, start + len(BEGIN))
+    if raw_end < 0:
+        return "malformed"
+    end = raw_end + len(END)
     installed = original[start:end].strip()
     expected = block.strip()
     return "current" if installed == expected else "stale"
@@ -138,7 +141,10 @@ def update_managed_block(path: Path, block: str = STEERING_BLOCK) -> bool:
     block = block.rstrip() + "\n"
     if begin_count:
         start = original.index(BEGIN)
-        end = original.index(END, start) + len(END)
+        raw_end = original.find(END, start + len(BEGIN))
+        if raw_end < 0:
+            raise ValueError(f"{path} contains malformed slopvac managed markers")
+        end = raw_end + len(END)
         updated = original[:start] + block.rstrip("\n") + original[end:]
     else:
         prefix = original.rstrip()
@@ -165,7 +171,10 @@ def remove_managed_block(path: Path) -> bool:
         raise ValueError(f"{path} contains malformed slopvac managed markers")
 
     start = original.index(BEGIN)
-    end = original.index(END, start) + len(END)
+    raw_end = original.find(END, start + len(BEGIN))
+    if raw_end < 0:
+        raise ValueError(f"{path} contains malformed slopvac managed markers")
+    end = raw_end + len(END)
     before = original[:start].rstrip()
     after = original[end:].lstrip()
     if before and after:
