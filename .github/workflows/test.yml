@@ -158,7 +158,7 @@ jobs:
           slopvac rules --judgement --format json > /tmp/judgement.json
           python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
           slopvac explain orwell.stale-figure > /dev/null
-          slopvac init --path /tmp/slopvac.toml
+          slopvac init --path /tmp/slopvac.toml --skip-agents
           slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 
   # The only required status check for this workflow. Branch protection names this
