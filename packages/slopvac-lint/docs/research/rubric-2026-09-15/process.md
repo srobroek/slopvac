@@ -1,6 +1,12 @@
 # Rubric research record, 2026-09-15
 
-Genre: internal research record. This file records how the review was run and what it produced. Consumer documentation for the judgement layer is written when the layer exists.
+> **Status:** frozen historical research tied to the source commits and artifacts
+> named below. Counts, paths, branch names, and implementation gaps describe the
+> 2026-09-15 study and are not current runtime documentation. The current
+> judgement contract is documented in [../../judgement-eval.md](../../judgement-eval.md).
+
+Genre: internal research record. This file records how the review was run and
+what it produced.
 
 ## What is in this directory
 
