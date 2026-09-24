@@ -621,7 +621,7 @@ def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> Non
         console.print(f"wrote {path}")
 
     if not skip_agents:
-        agents_path = Path("AGENTS.md")
+        agents_path = path.parent / "AGENTS.md"
         try:
             changed = update_managed_block(agents_path)
         except ValueError as exc:
@@ -690,7 +690,7 @@ def setup_agent(
     console = _console(False)
     if list_harnesses:
         for name in harnesses():
-            console.print(f"{name:8} {harness_path(Path('.'), name)}")
+            console.print(f"{name:8} {harness_path(root, name)}")
         raise SystemExit(EXIT_OK)
 
     if harness is None:
