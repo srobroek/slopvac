@@ -7,7 +7,12 @@ the rule catalogue or drift with the implementation.
 
 from __future__ import annotations
 
+import os
+import re
+import tempfile
 from pathlib import Path
+
+from markdown_it import MarkdownIt
 
 BEGIN = "<!-- slopvac:begin -->"
 END = "<!-- slopvac:end -->"
@@ -95,13 +100,91 @@ not-run units before interpreting a report with no confirms.
 """
 
 
-def harness_path(root: Path, harness: str) -> Path:
-    """Return the steering file for a supported harness."""
+class SteeringError(ValueError):
+    """Unsafe target or ambiguous managed steering."""
+
+
+def _safe_target(root: Path, relative: str) -> Path:
+    """Resolve a harness target and refuse aliases that escape the project."""
+    project = root.resolve()
     try:
-        name = _HARNESS_PATHS[harness]
+        target = (project / relative).resolve()
+        parts = target.relative_to(project).parts
+    except (OSError, RuntimeError, ValueError) as exc:
+        raise SteeringError(f"unsafe steering target: {relative}") from exc
+    if ".git" in parts or target.suffix.lower() != ".md":
+        raise SteeringError(
+            f"steering target must be a project Markdown file: {target}"
+        )
+    if target.exists() and not target.is_file():
+        raise SteeringError(f"not a regular file: {target}")
+    return target
+
+
+def _section(text: str) -> tuple[int, int] | None:
+    """Locate managed markers while ignoring copies shown in fenced code."""
+    fenced: set[int] = set()
+    for token in MarkdownIt().parse(text):
+        if token.type in {"fence", "code_block"} and token.map:
+            fenced.update(range(*token.map))
+    found: list[tuple[str, int, int]] = []
+    offset = 0
+    for number, line in enumerate(text.splitlines(keepends=True)):
+        if number not in fenced:
+            value = line.strip().lstrip("\ufeff")
+            if value in {BEGIN, END}:
+                start = offset + (1 if line.startswith("\ufeff") else 0)
+                found.append((value, start, offset + len(line)))
+        offset += len(line)
+    if not found:
+        return None
+    if len(found) != 2 or [entry[0] for entry in found] != [BEGIN, END]:
+        raise SteeringError(
+            "ambiguous slopvac markers; repair the begin/end pair first"
+        )
+    return found[0][1], found[1][2]
+
+
+def _newline(text: str) -> str:
+    match = re.search(r"\r\n|\n|\r", text)
+    return match.group() if match else "\n"
+
+
+def _native_newlines(value: str, newline: str) -> str:
+    return value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", newline)
+
+
+def _atomic_write(path: Path, before: bytes | None, after: bytes) -> bool:
+    """Replace one steering file atomically after checking it did not move."""
+    if before == after:
+        return False
+    actual = path.read_bytes() if path.exists() else None
+    if actual != before:
+        raise SteeringError(f"file changed during setup; retry: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    mode = path.stat().st_mode & 0o777 if before is not None else 0o644
+    fd, name = tempfile.mkstemp(prefix=".slopvac-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(after)
+        os.chmod(name, mode)
+        os.replace(name, path)
+    finally:
+        Path(name).unlink(missing_ok=True)
+    return True
+
+
+def harness_path(root: Path, harness: str) -> Path:
+    """Return the effective steering file for a supported harness."""
+    try:
+        relative = _HARNESS_PATHS[harness]
     except KeyError as exc:
         raise ValueError(f"unknown harness: {harness}") from exc
-    return root / name
+    if harness == "codex":
+        override = _safe_target(root, "AGENTS.override.md")
+        if override.exists() and override.read_bytes().strip():
+            return override
+    return _safe_target(root, relative)
 
 
 def harnesses() -> tuple[str, ...]:
@@ -112,79 +195,71 @@ def managed_block_state(path: Path, block: str = STEERING_BLOCK) -> str:
     """Return missing, current, stale, or malformed for one managed block."""
     if not path.exists():
         return "missing"
-    original = path.read_text(encoding="utf-8")
-    begin_count = original.count(BEGIN)
-    end_count = original.count(END)
-    if begin_count != end_count or begin_count > 1:
+    try:
+        text = path.read_bytes().decode("utf-8")
+        section = _section(text)
+    except (UnicodeDecodeError, SteeringError):
         return "malformed"
-    if begin_count == 0:
+    if section is None:
         return "missing"
-    start = original.index(BEGIN)
-    raw_end = original.find(END, start + len(BEGIN))
-    if raw_end < 0:
-        return "malformed"
-    end = raw_end + len(END)
-    installed = original[start:end].strip()
+    start, end = section
+    installed = text[start:end].strip()
     expected = block.strip()
-    return "current" if installed == expected else "stale"
+    normalized = installed.replace("\r\n", "\n").replace("\r", "\n")
+    return "current" if normalized == expected else "stale"
 
 
-def update_managed_block(path: Path, block: str = STEERING_BLOCK) -> bool:
+def update_managed_block(
+    path: Path,
+    block: str = STEERING_BLOCK,
+    *,
+    preamble: str = "",
+) -> bool:
     """Insert or replace the managed block without touching surrounding text."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    original = path.read_text(encoding="utf-8") if path.exists() else ""
-    begin_count = original.count(BEGIN)
-    end_count = original.count(END)
-    if begin_count != end_count or begin_count > 1:
-        raise ValueError(f"{path} contains malformed slopvac managed markers")
+    before = path.read_bytes() if path.exists() else None
+    try:
+        text = (before or b"").decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise SteeringError(f"steering must be UTF-8: {path}") from exc
+    section = _section(text)
+    newline = _newline(text)
+    native_block = _native_newlines(block.rstrip("\r\n"), newline) + newline
 
-    block = block.rstrip() + "\n"
-    if begin_count:
-        start = original.index(BEGIN)
-        raw_end = original.find(END, start + len(BEGIN))
-        if raw_end < 0:
-            raise ValueError(f"{path} contains malformed slopvac managed markers")
-        end = raw_end + len(END)
-        updated = original[:start] + block.rstrip("\n") + original[end:]
+    if section is not None:
+        start, end = section
+        updated = text[:start] + native_block + text[end:]
     else:
-        prefix = original.rstrip()
-        updated = (prefix + "\n\n" if prefix else "") + block
+        prefix = text.rstrip("\r\n")
+        if not prefix and preamble:
+            prefix = _native_newlines(preamble.rstrip("\r\n"), newline)
+        updated = (prefix + newline * 2 if prefix else "") + native_block
 
-    if not updated.endswith("\n"):
-        updated += "\n"
-    if updated == original:
-        return False
-    path.write_text(updated, encoding="utf-8")
-    return True
+    return _atomic_write(path, before, updated.encode("utf-8"))
 
 
 def remove_managed_block(path: Path) -> bool:
-    """Remove only the slopvac block and preserve the rest of the file."""
+    """Remove only the slopvac block and preserve the surrounding instructions."""
     if not path.exists():
         return False
-    original = path.read_text(encoding="utf-8")
-    begin_count = original.count(BEGIN)
-    end_count = original.count(END)
-    if begin_count == 0 and end_count == 0:
+    before = path.read_bytes()
+    try:
+        text = before.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise SteeringError(f"steering must be UTF-8: {path}") from exc
+    section = _section(text)
+    if section is None:
         return False
-    if begin_count != end_count or begin_count > 1:
-        raise ValueError(f"{path} contains malformed slopvac managed markers")
-
-    start = original.index(BEGIN)
-    raw_end = original.find(END, start + len(BEGIN))
-    if raw_end < 0:
-        raise ValueError(f"{path} contains malformed slopvac managed markers")
-    end = raw_end + len(END)
-    before = original[:start].rstrip()
-    after = original[end:].lstrip()
-    if before and after:
-        updated = before + "\n\n" + after
+    start, end = section
+    newline = _newline(text)
+    left = text[:start].rstrip("\r\n")
+    right = text[end:].lstrip("\r\n")
+    if left and right:
+        updated = left + newline * 2 + right
+    elif left:
+        updated = left + newline
     else:
-        updated = before or after
-    if updated and not updated.endswith("\n"):
-        updated += "\n"
-    path.write_text(updated, encoding="utf-8")
-    return True
+        updated = right
+    return _atomic_write(path, before, updated.encode("utf-8"))
 
 
 ONBOARD_TEXT = """\
