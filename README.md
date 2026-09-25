@@ -198,7 +198,7 @@ It does not establish factual correctness or make an overall judgement about
 writing quality beyond the configured rules. AI-signal labels describe rule
 evidence without changing the gate.
 
-# Roadmap 
+## Roadmap
 
 ## Agentic judgement
 
