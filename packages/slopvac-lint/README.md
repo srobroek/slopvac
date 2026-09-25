@@ -472,7 +472,7 @@ provider when candidate volume is high. It is a recall-first prefilter, never
 the final judge, and filtered candidates must remain visible in coverage
 measurement. This work lives on the separate `feat/judgement-rewrite` branch;
 it is not part of the current CLI or deterministic exit status. See the
-[project overview](../../README.md#in-development-agentic-judgement)
+[project overview](../../README.md#agentic-judgement)
 and [issue #162](https://github.com/srobroek/slopvac/issues/162).
 
 ## Sources

@@ -1,0 +1,145 @@
+# Central path classification for CI.
+#
+# dorny/paths-filter consumes this file in the orchestrator. The final gate then
+# verifies that every suite either ran or was skipped exactly as classified.
+#
+# Reusable workflow changes deliberately fan out to every class. The orchestrator
+# also has a bootstrap force-all rule outside this file for changes to this file
+# or to the orchestrator itself.
+
+code:
+  - '.github/workflows/**'
+  - '.github/action-fixtures/**'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'packages/slopvac-lint/src/**'
+  - 'packages/slopvac-lint/tests/**'
+  - 'packages/slopvac-lint/vale/styles-verified/**'
+  - 'tests/**'
+  - 'scripts/**/*.py'
+
+package:
+  - '.github/workflows/**'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'packages/slopvac-lint/src/**'
+  - 'packages/slopvac-lint/tests/**'
+  - 'packages/slopvac-lint/vale/styles-verified/**'
+  - 'scripts/install_vale.py'
+
+action:
+  - '.github/workflows/**'
+  - '.github/action-fixtures/**'
+  - 'action.yml'
+  - 'slopvac.toml'
+  - 'scripts/action_entry.py'
+  - 'scripts/install_vale.py'
+  - 'packages/slopvac-lint/src/**'
+
+# The linter supports these prose extensions. Keep this list aligned with
+# slopvac.pipeline.LINTABLE so repository prose cannot bypass its own gate.
+docs:
+  - '.github/workflows/**'
+  - '.lychee.toml'
+  - '.markdownlint-cli2.yaml'
+  - '**/*.md'
+  - '**/*.mdx'
+  - '**/*.markdown'
+  - '**/*.txt'
+  - '**/*.rst'
+  - '**/*.html'
+  - 'slopvac.toml'
+  - 'packages/slopvac-lint/src/slopvac/rules/**'
+
+# Inputs to workflow/action/hook contract checks.
+ci:
+  - '.github/workflows/**'
+  - '.github/actionlint.yaml'
+  - '.agnix.toml'
+  - '_typos.toml'
+  - '.yamllint.yml'
+  - '.pre-commit-config.yaml'
+  - 'action.yml'
+  - '.githooks/pre-commit'
+  - 'scripts/check-agnix-staged.py'
+  - 'scripts/install-agnix-hooks.py'
+  - 'scripts/test-agnix-hook.py'
+
+config:
+  - '.github/workflows/**'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - '.lychee.toml'
+  - '.markdownlint-cli2.yaml'
+  - '**/*.toml'
+
+shell:
+  - '.github/workflows/**'
+  - '**/*.sh'
+
+precommit:
+  - '.github/workflows/**'
+  - '.pre-commit-config.yaml'
+
+complexity:
+  - '.github/workflows/**'
+  - 'packages/slopvac-lint/src/slopvac/cli.py'
+  - 'packages/slopvac-lint/src/slopvac/score.py'
+
+# Broad switch for the reusable lint workflow. Individual lint jobs use the more
+# specific classifications above.
+lint:
+  - '.github/workflows/**'
+  - '.github/actionlint.yaml'
+  - '.github/action-fixtures/**'
+  - '.agnix.toml'
+  - '_typos.toml'
+  - '.githooks/pre-commit'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - '.lychee.toml'
+  - '.markdownlint-cli2.yaml'
+  - 'action.yml'
+  - 'slopvac.toml'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/**'
+  - 'tests/**'
+  - 'scripts/**'
+  - '**/*.md'
+  - '**/*.mdx'
+  - '**/*.markdown'
+  - '**/*.txt'
+  - '**/*.rst'
+  - '**/*.html'
+  - '**/*.toml'
+  - '**/*.sh'
+
+dependencies:
+  - '.github/workflows/**'
+  - 'pyproject.toml'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'uv.lock'
+
+# Full filesystem vulnerability/misconfiguration scans are reserved for changes
+# that can affect executable code, packaging, dependencies, or CI configuration.
+filesystem:
+  - '.github/workflows/**'
+  - '.github/action-fixtures/**'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - 'action.yml'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'packages/slopvac-lint/src/**'
+  - 'packages/slopvac-lint/tests/**'
+  - 'tests/**'
+  - 'scripts/**'
+
+# Secrets can exist in any tracked file, including extensionless and dot files.
+# dorny/paths-filter uses picomatch with dot=true, so ** is genuinely all paths.
+secrets:
+  - '**'

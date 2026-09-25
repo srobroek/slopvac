@@ -2,16 +2,39 @@ name: Lint
 # Workflow, YAML, and shell hygiene, plus this repo's own prose gate run against its
 # own documentation.
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      code:
+        required: true
+        type: boolean
+      docs:
+        required: true
+        type: boolean
+      ci:
+        required: true
+        type: boolean
+      config:
+        required: true
+        type: boolean
+      shell:
+        required: true
+        type: boolean
+      precommit:
+        required: true
+        type: boolean
+      complexity:
+        required: true
+        type: boolean
+      action:
+        required: true
+        type: boolean
+
 permissions:
   contents: read
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+
 jobs:
   workflow-lint:
+    if: ${{ inputs.ci }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -66,8 +89,9 @@ jobs:
       - name: Install yamllint
         run: pip install "yamllint==1.37.1"
       - name: yamllint
-        run: yamllint -c .yamllint.yml .github/workflows/
+        run: yamllint -c .yamllint.yml .github/workflows/ .github/ci-paths.yml
   typos:
+    if: ${{ inputs.code || inputs.docs || inputs.ci }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -83,6 +107,7 @@ jobs:
         run: typos .
 
   lychee:
+    if: ${{ inputs.docs }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -100,6 +125,7 @@ jobs:
           packages/slopvac-lint/README.md packages/slopvac-lint/docs/
 
   markdownlint:
+    if: ${{ inputs.docs }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -111,6 +137,7 @@ jobs:
         run: npx --yes markdownlint-cli2@0.18.1
 
   taplo:
+    if: ${{ inputs.config }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -126,6 +153,7 @@ jobs:
         run: uvx taplo@0.9.3 fmt --check
 
   pinact:
+    if: ${{ inputs.ci || inputs.action }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -139,6 +167,7 @@ jobs:
           fix: "false"
           skip_push: "true"
   prek:
+    if: ${{ inputs.precommit }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -154,6 +183,7 @@ jobs:
         run: uvx prek@0.5.2 run --all-files
 
   complexity:
+    if: ${{ inputs.complexity }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -190,6 +220,7 @@ jobs:
           PY
 
   shell-lint:
+    if: ${{ inputs.shell }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -203,6 +234,7 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           find . -name '*.sh' -not -path './.git/*' -exec shellcheck --severity=warning {} +
   python-lint:
+    if: ${{ inputs.code }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -230,6 +262,7 @@ jobs:
   # than a published tag. A composite action that breaks is only visible when it
   # is executed, and no unit test executes one.
   action:
+    if: ${{ inputs.action }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -267,6 +300,7 @@ jobs:
           test -s "$SARIF" || { echo "the action wrote no SARIF"; exit 1; }
           python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$SARIF"
   prose:
+    if: ${{ inputs.docs }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -294,8 +328,8 @@ jobs:
           uvx --from ./packages/slopvac-lint slopvac lint \
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/docs
-  # The only required status check. Branch protection names this one job rather than
-  # every job, so adding a job above needs no change to the protection rule.
+  # Internal consistency gate for the reusable lint suite. A skipped job is
+  # accepted only when the caller explicitly classified it as irrelevant.
   gate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -314,23 +348,57 @@ jobs:
       - prose
     if: always()
     steps:
-      - name: Verify every job passed
+      - name: Verify required lint runs and valid skips
         env:
           RESULTS: ${{ toJSON(needs) }}
+          CODE: ${{ inputs.code }}
+          DOCS: ${{ inputs.docs }}
+          CI: ${{ inputs.ci }}
+          CONFIG: ${{ inputs.config }}
+          SHELL: ${{ inputs.shell }}
+          PRECOMMIT: ${{ inputs.precommit }}
+          COMPLEXITY: ${{ inputs.complexity }}
+          ACTION: ${{ inputs.action }}
         run: |
           set -euo pipefail
-          # A skipped or cancelled job is not a pass. `always()` above is what lets
-          # this job report at all when an upstream job failed.
-          #
-          # The results arrive through the environment rather than a pipe: a heredoc
-          # would override piped stdin, which shellcheck reports as SC2259.
           python3 - <<'PY'
-          import json, os, sys
+          import json
+          import os
+          import sys
 
           needs = json.loads(os.environ["RESULTS"])
-          failed = [n for n, job in needs.items() if job.get("result") != "success"]
-          if failed:
-              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+
+          def flag(name):
+              return os.environ[name].lower() == "true"
+
+          expected = {
+              "workflow-lint": flag("CI"),
+              "typos": flag("CODE") or flag("DOCS") or flag("CI"),
+              "lychee": flag("DOCS"),
+              "markdownlint": flag("DOCS"),
+              "taplo": flag("CONFIG"),
+              "pinact": flag("CI") or flag("ACTION"),
+              "prek": flag("PRECOMMIT"),
+              "complexity": flag("COMPLEXITY"),
+              "shell-lint": flag("SHELL"),
+              "python-lint": flag("CODE"),
+              "action": flag("ACTION"),
+              "prose": flag("DOCS"),
+          }
+
+          problems = []
+          for name, should_run in expected.items():
+              actual = needs[name]["result"]
+              wanted = "success" if should_run else "skipped"
+              if actual != wanted:
+                  problems.append(f"{name}: got {actual}, expected {wanted}")
+              else:
+                  print(f"{name}: {actual} (expected)")
+
+          if problems:
+              for problem in problems:
+                  print(f"::error::{problem}")
               sys.exit(1)
-          print("every job passed")
+
+          print("lint jobs ran or skipped exactly as classified")
           PY
