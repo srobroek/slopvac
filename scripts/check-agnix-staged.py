@@ -64,8 +64,6 @@ def is_agentic_path(path: str) -> bool:
         "AGENTS.md",
         "CLAUDE.md",
         "SKILL.md",
-        ".claude-plugin/plugin.json",
-        ".codex-plugin/plugin.json",
         ".mcp.json",
     }:
         return True

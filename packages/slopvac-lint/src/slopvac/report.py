@@ -36,13 +36,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .config import Severity
 from .model import (
-    AiRegisterConfirms,
     AiRegisterSummary,
     CategoryScore,
     DocumentScore,
     Finding,
     Rule,
-    RuleKind,
 )
 
 # ---------------------------------------------------------------------------
@@ -84,9 +82,6 @@ class RunSummary(BaseModel):
     score: float = Field(ge=0, le=100)
     passed: bool
     categories: list[CategorySummary] = Field(default_factory=list)
-    judgement_penalty: float = Field(default=0.0, ge=0)
-    judgement_penalty_uncapped: float = Field(default=0.0, ge=0)
-    judgement_adjusted_score: float = Field(default=100.0, ge=0, le=100)
     ai_register: dict[Literal["strong", "weak"], AiRegisterSummary] = Field(
         default_factory=lambda: {
             "strong": AiRegisterSummary(),
@@ -94,8 +89,6 @@ class RunSummary(BaseModel):
         }
     )
     prose: AiRegisterSummary = Field(default_factory=AiRegisterSummary)
-    ai_register_confirms: AiRegisterConfirms = Field(default_factory=AiRegisterConfirms)
-    judgement_cluster_gate: Literal["REVISE"] | None = None
 
 
 class LintReport(BaseModel):
@@ -329,12 +322,7 @@ def finding_fingerprint(finding: Finding, ordinal: int) -> str:
 def build_sarif(
     scores: list[DocumentScore], rules: list[Rule], *, version: str, tool_uri: str
 ) -> SarifLog:
-    """Assemble a SARIF log from a run.
-
-    JUDGEMENT rules are excluded: a rule no linter can check has no result to
-    attach, and shipping it as a descriptor with zero results makes the alert
-    list claim coverage the run does not have.
-    """
+    """Assemble a SARIF log from a run."""
     descriptors = [
         SarifReportingDescriptor(
             id=rule.qualified_id,
@@ -353,7 +341,6 @@ def build_sarif(
             ),
         )
         for rule in rules
-        if rule.kind is not RuleKind.JUDGEMENT
     ]
 
     seen: dict[tuple[str, str, str], int] = {}
@@ -447,12 +434,6 @@ def summarize(scores: list[DocumentScore]) -> RunSummary:
         if words
         else sum(score.score for score in scores) / len(scores)
     )
-    adjusted = (
-        sum(score.judgement_adjusted_score * max(score.words, 1) for score in scores)
-        / denominator
-        if words
-        else sum(score.judgement_adjusted_score for score in scores) / len(scores)
-    )
     buckets: dict[str, list[CategoryScore]] = {}
     for score in scores:
         for entry in score.categories:
@@ -475,10 +456,6 @@ def summarize(scores: list[DocumentScore]) -> RunSummary:
     ]
     register = {signal: _axis_summary(scores, signal) for signal in ("strong", "weak")}
     prose = _axis_summary(scores, "none")
-    confirms = AiRegisterConfirms(
-        strong=sum(score.ai_register_confirms.strong for score in scores),
-        weak=sum(score.ai_register_confirms.weak for score in scores),
-    )
     return RunSummary(
         documents=len(scores),
         words=words,
@@ -488,19 +465,8 @@ def summarize(scores: list[DocumentScore]) -> RunSummary:
         suggestions=sum(score.suggestions for score in scores),
         per_100_words=round(findings / words * 100, 3) if words else 0.0,
         score=round(overall, 1),
-        judgement_penalty=round(sum(score.judgement_penalty for score in scores), 1),
-        judgement_penalty_uncapped=round(
-            sum(score.judgement_penalty_uncapped for score in scores), 1
-        ),
-        judgement_adjusted_score=round(adjusted, 1),
-        judgement_cluster_gate=(
-            "REVISE"
-            if any(score.judgement_cluster_gate == "REVISE" for score in scores)
-            else None
-        ),
         passed=all(score.passed for score in scores),
         categories=categories,
         ai_register=register,
         prose=prose,
-        ai_register_confirms=confirms,
     )

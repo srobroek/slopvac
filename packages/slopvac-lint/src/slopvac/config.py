@@ -268,23 +268,6 @@ class ValeSettings(BaseModel):
     styles: list[str] | None = None
 
 
-class JudgementSettings(BaseModel):
-    """Aggregation dials for host judgement results."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    # Provisional: report the deduction, but never use it for pass or fail.
-    max_penalty: float = Field(default=15.0, ge=0)
-    # Provisional: the component count is a review signal, not a score gate.
-    cluster_min_components: int = Field(default=3, ge=1)
-    # Provisional: excess probe occurrences are reported as not_run.
-    probe_occurrences_max: int = Field(default=12, ge=1)
-    # Disabled experimental: preserve exposure is reported but does not trigger review.
-    preserve_review_trigger: bool = False
-# Provisional: frozen held-out relation table identity.
-    dependence_table: Path = Field(default=Path("dependence_table.json"))
-
-
 class ThresholdPatch(BaseModel):
     """A threshold override with no defaults for fields it does not name."""
 
@@ -384,7 +367,6 @@ class Config(BaseModel):
     vale: ValeSettings = Field(default_factory=ValeSettings)
     locale: LocaleSettings = Field(default_factory=LocaleSettings)
     vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
-    judgement: JudgementSettings = Field(default_factory=JudgementSettings)
     overrides: list[Override] = Field(default_factory=list)
 
     exclude: list[str] = Field(
@@ -471,7 +453,6 @@ class ResolvedConfig(BaseModel):
     vale: ValeSettings
     locale: LocaleSettings
     vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
-    judgement: JudgementSettings = Field(default_factory=JudgementSettings)
     applied_overrides: list[str] = Field(
         default_factory=list,
         description="Which override globs matched, in order. Reported by "
@@ -675,7 +656,6 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
     vale = config.vale.model_copy()
     locale = config.locale.model_copy()
     vocabulary = config.vocabulary.model_copy()
-    judgement = config.judgement.model_copy()
 
     # Layer 2: the top-level tables.
     for name, patch in config.categories.items():
@@ -736,15 +716,9 @@ def resolve_for(config: Config, file_path: Path) -> ResolvedConfig:
         vale=vale,
         locale=locale,
         vocabulary=vocabulary,
-        judgement=judgement,
         applied_overrides=applied,
         provenance=provenance,
     )
-
-
-def profile_judgement(profile: Profile) -> JudgementSettings:
-    """Aggregation defaults are provisional and shared by every profile."""
-    return JudgementSettings()
 
 
 def profile_thresholds(profile: Profile) -> Thresholds:

@@ -232,24 +232,3 @@ def test_an_off_specification_level_is_rejected():
                 }
             ],
         )
-
-
-def test_judgement_rules_are_not_shipped_as_descriptors():
-    """A rule no linter can check has no result to attach.
-
-    Shipping it as a descriptor with zero results makes the alert list claim
-    coverage the run does not have.
-    """
-    from slopvac.model import RuleKind
-
-    ruleset = load_ruleset()
-    judgement = {
-        rule.qualified_id for rule in ruleset.rules if rule.kind is RuleKind.JUDGEMENT
-    }
-    assert judgement, "no judgement rules ship; the test proves nothing"
-
-    log = build_sarif(
-        [_score()], ruleset.rules, version="1", tool_uri="https://example.invalid"
-    )
-    emitted = {descriptor.id for descriptor in log.runs[0].tool.driver.rules}
-    assert not (emitted & judgement)

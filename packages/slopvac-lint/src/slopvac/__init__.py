@@ -1,11 +1,4 @@
-"""slopvac: score prose against AI-slop, Simplified Technical English, and
-Orwell rulesets.
-
-Two layers, because half of this resists mechanization. The deterministic layer
-is here. The judgement layer lives in the `slopvac` agent package, which reads
-this package's `kind: judgement` rules as its source of truth rather than
-carrying a parallel prose catalog.
-"""
+"""slopvac: lint prose and source comments with deterministic rules."""
 
 __version__ = "2.10.0"  # x-release-please-version
 

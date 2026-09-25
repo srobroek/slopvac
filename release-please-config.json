@@ -49,37 +49,7 @@
       "extra-files": [
         "packages/slopvac-lint/pyproject.toml",
         "packages/slopvac-lint/src/slopvac/__init__.py",
-        ".pre-commit-hooks.yaml",
-        {
-          "type": "json",
-          "path": "packages/slopvac/package.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "packages/slopvac/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "packages/slopvac/.claude-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": "packages/slopvac/.codex-plugin/plugin.json",
-          "jsonpath": "$.version"
-        },
-        {
-          "type": "json",
-          "path": ".claude-plugin/marketplace.json",
-          "jsonpath": "$.plugins[0].version"
-        },
-        {
-          "type": "json",
-          "path": ".codex-plugin/marketplace.json",
-          "jsonpath": "$.plugins[0].version"
-        }
+        ".pre-commit-hooks.yaml"
       ]
     }
   }

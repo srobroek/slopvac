@@ -51,37 +51,8 @@ This example intentionally contains text that a rule should reject.
 
 Do not use a suppression to hide an unexplained false positive.
 
-## Contextual judgement is separate
-
-The 65 `kind: judgement` rules do not produce deterministic lint findings.
-Use the judgement workflow when contextual review is required:
-
-```sh
-slopvac judgement brief README.md --out .slopvac-review --packs fired
-```
-
-`--packs fired` selects judgement packs whose categories also produced a
-deterministic finding. If no category qualifies, `brief` falls back to all packs
-and prints a warning. Use `--packs all` when the review must not depend on
-deterministic findings.
-
-The harness or provider performs the model calls. Validate each response before
-recording it, then finish and compare the run:
-
-```sh
-slopvac judgement validate --run .slopvac-review --file response.json
-slopvac judgement finish --out .slopvac-review \
-  --responses .slopvac-review/responses.jsonl
-slopvac judgement compare --out .slopvac-review
-```
-
-`validate` checks the response shape and the expected result set. `finish`
-performs the host evidence checks and coverage accounting. Model outcomes remain
-separate from deterministic pass/fail.
-
 ## Review claims separately
 
-Neither deterministic lint nor model judgement proves that a factual statement
-is correct. For documentation, verify commands, paths, defaults, versions, and
+Lint does not prove that a factual statement is correct. For documentation, verify commands, paths, defaults, versions, and
 behavior against the implementation or another authoritative source before
 publishing the text.

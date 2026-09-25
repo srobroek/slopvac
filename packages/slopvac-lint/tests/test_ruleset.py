@@ -53,90 +53,18 @@ def test_qualified_ids_are_unique(ruleset):
     assert not duplicates, f"duplicate rule ids: {duplicates}"
 
 
-def test_judgement_rules_carry_a_decidable_question(ruleset):
-    """A judgement rule is the reviewer's only instruction, so an empty or
-    taste-based question makes the rule unusable."""
-    # Phrases that make the ANSWER a matter of taste. A question may describe the
-    # effect a construction has on a reader -- "so the affirmed half sounds
-    # larger" is a testable claim about a rhetorical move -- so the test targets
-    # the reviewer being asked for a preference, not any use of these verbs.
-    banned = (
-        "does it read better",
-        "does it sound better",
-        "do you prefer",
-        "is it more elegant",
-        "is it beautiful",
-        "how does it feel",
-        "does it feel right",
-        "is it nicer",
-    )
-    for rule in ruleset.judgement_rules():
-        question = rule.judgement_question
-        assert question, f"{rule.qualified_id} has no judgement_question"
-        assert "?" in question, f"{rule.qualified_id} question is not a question"
-        lowered = " ".join(question.lower().split())
-        for phrase in banned:
-            assert phrase not in lowered, (
-                f"{rule.qualified_id} asks for a preference: {phrase!r}"
-            )
-
-
-def test_judgement_rules_never_fire(ruleset):
-    """They are carried for the agentic reviewer. If one produced a finding the
-    linter would be claiming to check something it cannot."""
-    from pathlib import Path
-
-    from slopvac.analyze import parse
-    from slopvac.config import Config, resolve_for
-    from slopvac.engine import Engine
-
-    judgement = {rule.qualified_id for rule in ruleset.judgement_rules()}
-    assert judgement
-    text = "\n".join(
-        example.bad for rule in ruleset.judgement_rules() for example in rule.examples
-    )
-    engine = Engine(ruleset.rules, resolve_for(Config(), Path("/repo/a.md")))
-    fired = {finding.rule_id for finding in engine.run(parse("a.md", text + "\n"))}
-    assert not fired & judgement
-
-
-def test_code_change_prose_scope_judgement_uses_diff_context(ruleset):
-    rule = ruleset.by_id("prose-scope.code-change-prose-scope")
-    assert rule is not None
-    assert rule.kind is RuleKind.JUDGEMENT
-    assert "scope defect" in rule.message
-    question = rule.judgement_question.lower()
-    for phrase in (
-        "code diff",
-        "directly explains or specifies",
-        "explicitly request",
-        "elsewhere",
-        "stale",
-    ):
-        assert phrase in question
-    assert "native engine never emits" in (rule.provenance.note or "")
-
-
-def test_hunk_feature_preserves_base_inventory_and_adds_scope_rule(ruleset):
+def test_checked_rule_inventory_is_linter_only(ruleset):
     ids = {rule.qualified_id for rule in ruleset.rules}
+    assert len(ids) == 166
     assert {
         "ai-tells-structure.negative-inventory-core",
-        "ai-tells-structure.negative-inventory-remainder",
-        "prose-scope.code-change-prose-scope",
         "ai-tells-agentic.formulaic-universal-heading",
         "prose-scope.formulaic-subject-verb-slogan",
         "ai-tells-structure.contrastive-inversion-frames",
     } <= ids
-    digest = __import__("hashlib").sha256(
-        ("\n".join(sorted(ids)) + "\n").encode()
-    ).hexdigest()
-    assert digest == "a187dac6a7dcbacd31d685d916cf98ea0b288cb2504841d937f2beb2a0537e42"
-    mutated = ids - {"ai-tells-structure.negative-inventory-remainder"}
-    mutated.add("ai-tells-structure.replacement")
-    mutated_digest = __import__("hashlib").sha256(
-        ("\n".join(sorted(mutated)) + "\n").encode()
-    ).hexdigest()
-    assert mutated_digest != digest
+    assert "ai-tells-structure.negative-inventory-remainder" not in ids
+    assert "prose-scope.code-change-prose-scope" not in ids
+
 
 def test_reads_better_is_never_an_exception(ruleset):
     """The whole point of the annotation contract: an unnamed override collapses

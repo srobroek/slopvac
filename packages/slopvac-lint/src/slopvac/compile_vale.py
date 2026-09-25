@@ -32,7 +32,6 @@ rather than assumed:
      and `\b(\w+) \1\b` both compile and fire, because Vale rewrites patterns
      through a wrapper before RE2 sees them.
   2. The metric has no Vale expression. Measured per metric; see METRIC_PLANS.
-  3. The rule is `kind: judgement`, which never executes anywhere.
 
 ONE BAD RULE FAILS THE WHOLE RUN, WHICH IS WHY ROUTING IS CONSERVATIVE. A Vale
 style directory holding a single rule with an unparseable regex makes Vale abort
@@ -241,7 +240,6 @@ class CompileResult:
     config_path: Path
     vale_rules: list[str] = field(default_factory=list)
     native_rules: list[NativeRule] = field(default_factory=list)
-    judgement_rules: list[str] = field(default_factory=list)
     disabled_rules: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
     # A generated rule's Vale check mapped to the ruleset rule that owns it. The
@@ -1062,7 +1060,6 @@ def compile_ruleset(
                 config_path=outdir / ".vale.ini",
                 vale_rules=cached.get("vale_rules", []),
                 native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
-                judgement_rules=cached.get("judgement_rules", []),
                 disabled_rules=cached.get("disabled_rules", []),
                 notes=cached.get("notes", []),
                 aliases=cached.get("aliases", {}),
@@ -1087,11 +1084,6 @@ def compile_ruleset(
     vocabulary_owners: list[Rule] = []
 
     for rule in ruleset.rules:
-        if rule.kind is RuleKind.JUDGEMENT:
-            result.judgement_rules.append(rule.qualified_id)
-            if resolved_config.mode is Mode.CODE_COMMENTS and rule.qualified_id in levels:
-                result.excluded_rules.append(rule.qualified_id)
-            continue
         if rule.qualified_id not in levels:
             result.disabled_rules.append(rule.qualified_id)
             continue
@@ -1280,7 +1272,6 @@ def compile_ruleset(
                 "vale_rules": result.vale_rules,
                 "vale_version": result.vale_version,
                 "native_rules": [n.__dict__ for n in result.native_rules],
-                "judgement_rules": result.judgement_rules,
                 "disabled_rules": result.disabled_rules,
                 "notes": result.notes,
                 "aliases": result.aliases,
@@ -1309,7 +1300,6 @@ def compile_ruleset(
                     config_path=outdir / ".vale.ini",
                     vale_rules=cached.get("vale_rules", []),
                     native_rules=[NativeRule(**n) for n in cached.get("native_rules", [])],
-                    judgement_rules=cached.get("judgement_rules", []),
                     disabled_rules=cached.get("disabled_rules", []),
                     notes=cached.get("notes", []),
                     aliases=cached.get("aliases", {}),

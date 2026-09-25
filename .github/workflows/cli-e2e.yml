@@ -1,0 +1,352 @@
+name: CLI E2E
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cli-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Vale
+        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
+      - name: Add Vale to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Build and install wheel in a clean venv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip wheel --quiet --no-deps ./packages/slopvac-lint -w /tmp/slopvac-dist
+          python3 -m venv /tmp/slopvac-e2e-venv
+          /tmp/slopvac-e2e-venv/bin/python -m pip install --quiet /tmp/slopvac-dist/*.whl
+          /tmp/slopvac-e2e-venv/bin/slopvac --version
+
+      - name: Exercise installed CLI happy and red paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/tmp/slopvac-e2e-venv/bin:$HOME/.local/bin:$PATH"
+
+          # Catalogue and explain use the installed wheel, not the source tree.
+          slopvac rules --format json > /tmp/rules.json
+          python3 - <<'PY'
+          import json
+          rules = json.load(open('/tmp/rules.json'))
+          assert len(rules['rules']) == 167, len(rules['rules'])
+          assert len(rules['categories']) == 26, len(rules['categories'])
+          PY
+          slopvac explain orwell.stale-figure --format json > /tmp/explain.json
+          python3 -c 'import json; assert json.load(open("/tmp/explain.json"))["id"]'
+
+          # Init is idempotent and writes generic steering next to the config.
+          rm -rf /tmp/slopvac-project
+          mkdir -p /tmp/slopvac-project
+          cd /tmp/slopvac-project
+          slopvac init
+          test -s slopvac.toml
+          grep -q '<!-- slopvac:begin -->' AGENTS.md
+          cp AGENTS.md /tmp/agents-first.md
+          slopvac init
+          cmp AGENTS.md /tmp/agents-first.md
+          slopvac setup agents --check
+
+          # Red paths: missing, malformed, and unsupported steering targets.
+          rm -rf /tmp/harness-missing
+          mkdir -p /tmp/harness-missing
+          set +e
+          slopvac setup agents --root /tmp/harness-missing --check \
+            > /tmp/setup-missing.txt
+          setup_missing_status=$?
+          set -e
+          test "$setup_missing_status" -eq 1
+          grep -q '^missing ' /tmp/setup-missing.txt
+
+          printf '%s\n' \
+            '<!-- slopvac:end -->' \
+            'broken' \
+            '<!-- slopvac:begin -->' \
+            > /tmp/harness-missing/AGENTS.md
+          set +e
+          slopvac setup agents --root /tmp/harness-missing --check \
+            > /tmp/setup-malformed.txt
+          setup_malformed_status=$?
+          set -e
+          test "$setup_malformed_status" -eq 2
+          grep -q '^malformed ' /tmp/setup-malformed.txt
+
+          set +e
+          slopvac setup unknown --root /tmp/harness-missing \
+            > /tmp/setup-unknown.txt 2>&1
+          setup_unknown_status=$?
+          set -e
+          test "$setup_unknown_status" -eq 2
+          grep -q 'unknown harness' /tmp/setup-unknown.txt
+
+          # Public setup and guidance surfaces.
+          slopvac setup --list > /tmp/setup-list.txt
+          grep -q '^agents' /tmp/setup-list.txt
+          grep -q '^codex' /tmp/setup-list.txt
+          grep -q '^claude' /tmp/setup-list.txt
+          grep -q '^omp' /tmp/setup-list.txt
+          grep -q '^kiro' /tmp/setup-list.txt
+          slopvac prime > /tmp/prime.md
+          slopvac onboard > /tmp/onboard.md
+          grep -q 'slopvac lint' /tmp/prime.md
+          grep -q 'slopvac setup --list' /tmp/onboard.md
+
+          # Judgement is deliberately not part of this branch's CLI surface.
+          slopvac --help > /tmp/help.txt
+          if grep -q 'judgement' /tmp/help.txt; then
+            echo "judgement unexpectedly appears in top-level help"
+            exit 1
+          fi
+          set +e
+          slopvac rules --judgement > /tmp/no-judgement-option.txt 2>&1
+          rules_judgement_status=$?
+          slopvac rules --kind judgement > /tmp/no-judgement-kind.txt 2>&1
+          kind_judgement_status=$?
+          slopvac prime judgement > /tmp/no-prime-judgement.txt 2>&1
+          prime_judgement_status=$?
+          slopvac explain orwell.concrete-floor > /tmp/no-judgement-rule.txt 2>&1
+          explain_judgement_status=$?
+          set -e
+          test "$rules_judgement_status" -eq 2
+          test "$kind_judgement_status" -eq 2
+          test "$prime_judgement_status" -eq 2
+          test "$explain_judgement_status" -eq 2
+
+          # Harness-specific install/check paths.
+          for harness in agents claude omp kiro; do
+            root="/tmp/harness-$harness"
+            rm -rf "$root"
+            mkdir -p "$root"
+            slopvac setup "$harness" --root "$root"
+            slopvac setup "$harness" --root "$root" --check
+          done
+          grep -q 'inclusion: always' /tmp/harness-kiro/.kiro/steering/slopvac.md
+          test -s /tmp/harness-omp/.omp/AGENTS.md
+          test -s /tmp/harness-claude/CLAUDE.md
+
+          rm -rf /tmp/harness-codex
+          mkdir -p /tmp/harness-codex
+          printf '# Existing override\n' > /tmp/harness-codex/AGENTS.override.md
+          slopvac setup codex --root /tmp/harness-codex
+          grep -q '<!-- slopvac:begin -->' /tmp/harness-codex/AGENTS.override.md
+          test ! -e /tmp/harness-codex/AGENTS.md
+          slopvac setup codex --root /tmp/harness-codex --remove
+          test "$(cat /tmp/harness-codex/AGENTS.override.md)" = '# Existing override'
+
+          # Vale-backed lint succeeds; explicitly disabling Vale is incomplete.
+          printf '%s\n' \
+            'The cache keeps each entry for 60 seconds.' \
+            '' \
+            'Run the migration.' \
+            > /tmp/probe.md
+          set +e
+          slopvac /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format json \
+            > /tmp/probe.json
+          lint_status=$?
+          set -e
+          test "$lint_status" -ne 2
+          python3 -c 'import json; json.load(open("/tmp/probe.json"))'
+
+          set +e
+          slopvac /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --no-vale \
+            --format json \
+            > /tmp/probe-no-vale.json
+          no_vale_status=$?
+          set -e
+          test "$no_vale_status" -eq 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/probe-no-vale.json'))
+          assert report['documents'][0]['unchecked']
+          PY
+
+          # Reference, compiled routing, and cache are usable from the wheel.
+          slopvac reference > /tmp/reference.md
+          grep -q '166 checked rules' /tmp/reference.md
+          rm -rf /tmp/compiled-vale
+          slopvac compile \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --outdir /tmp/compiled-vale \
+            --format json \
+            > /tmp/compile.json
+          python3 - <<'PY'
+          import json
+          compiled = json.load(open('/tmp/compile.json'))
+          assert len(compiled['vale']) > 100
+          assert compiled['native']
+          assert 'judgement' not in compiled
+          assert compiled['vale_version'] == '3.15.2'
+          PY
+          test -s /tmp/compiled-vale/.vale.ini
+          slopvac cache > /tmp/cache.txt
+          grep -q 'tree(s)' /tmp/cache.txt
+
+          # Machine-readable and HTML reporting.
+          set +e
+          slopvac lint /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format sarif \
+            > /tmp/probe.sarif
+          sarif_status=$?
+          set -e
+          test "$sarif_status" -ne 2
+          python3 - <<'PY'
+          import json
+          sarif = json.load(open('/tmp/probe.sarif'))
+          assert sarif['version'] == '2.1.0'
+          assert sarif['runs']
+          PY
+
+          set +e
+          slopvac lint /tmp/probe.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format html \
+            --out /tmp/probe.html
+          html_status=$?
+          set -e
+          test "$html_status" -ne 2
+          grep -q '<html' /tmp/probe.html
+
+          # --fix changes an unambiguous deterministic substitution.
+          printf 'The job runs in order to finish.\n' > /tmp/fix.md
+          set +e
+          slopvac lint /tmp/fix.md \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --fix \
+            > /tmp/fix-output.txt
+          fix_status=$?
+          set -e
+          test "$fix_status" -ne 2
+          grep -q '^The job runs to finish\.$' /tmp/fix.md
+
+          # Comment-mode happy path: a comment-safe category checks comments only.
+          printf '%s\n' \
+            '# A robust seamless world-class system.' \
+            'print("robust seamless world-class")' \
+            > /tmp/comment.py
+          set +e
+          slopvac lint /tmp/comment.py \
+            --mode code-comments \
+            --category prose-inflation \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format json \
+            > /tmp/comment.json
+          comment_status=$?
+          set -e
+          test "$comment_status" -ne 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/comment.json'))
+          findings = report['documents'][0]['findings']
+          assert findings
+          assert {finding['line'] for finding in findings} == {1}
+          PY
+
+          # Red path: the full catalogue is incomplete in comment-only scopes.
+          set +e
+          slopvac lint /tmp/comment.py \
+            --mode code-comments \
+            --config /tmp/slopvac-project/slopvac.toml \
+            --format json \
+            > /tmp/comment-full.json
+          full_comment_status=$?
+          set -e
+          test "$full_comment_status" -eq 2
+          python3 - <<'PY'
+          import json
+          report = json.load(open('/tmp/comment-full.json'))
+          assert report['documents'][0]['unchecked']
+          PY
+
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install source package
+        run: python -m pip install --quiet -e ./packages/slopvac-lint
+
+      - name: Check package README calibration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from slopvac.analyze import parse
+          from slopvac.config import Config, Profile, resolve_for
+          from slopvac.engine import Engine
+          from slopvac.rules import load_ruleset
+
+          readme = Path("packages/slopvac-lint/README.md")
+          document = parse(str(readme), readme.read_text(encoding="utf-8"))
+          config = Config(profile=Profile.STRICT)
+          object.__setattr__(config, "root", Path("/repo"))
+          engine = Engine(
+              load_ruleset().rules,
+              resolve_for(config, Path("/repo/a.md")),
+          )
+          watched = {
+              "ste-nouns.multiword-noun-too-long",
+              "ai-tells-content-shape.adjective-per-noun-spray",
+              "ai-tells-register.uniform-paragraph-mass",
+          }
+          findings = [
+              finding for finding in engine.run(document)
+              if finding.rule_id in watched
+          ]
+          for finding in findings:
+              print(finding.model_dump_json())
+          assert findings == []
+          PY
+
+      - name: Check linter-only CLI surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          slopvac --help > /tmp/help.txt
+          if grep -q judgement /tmp/help.txt; then
+            echo "judgement unexpectedly appears in top-level help"
+            exit 1
+          fi
+          slopvac rules --format json > /tmp/rules.json
+          python - <<'PY'
+          import json
+          rules = json.load(open("/tmp/rules.json"))
+          assert len(rules["rules"]) == 167
+          assert len(rules["categories"]) == 26
+          PY

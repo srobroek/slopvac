@@ -17,7 +17,6 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .config import Severity
-from .judgement.types import JudgementContract
 
 
 class Tier(str, Enum):
@@ -39,8 +38,6 @@ class RuleKind(str, Enum):
     METRIC       -- a counted measurement against a threshold (sentence length,
                     passive ratio, syllables per word).
     STRUCTURE    -- block-level shape (paragraph sentence count, list form).
-    JUDGEMENT    -- not mechanizable; carried so the agentic reviewer can load a
-                    single source of truth. Never produces a finding.
     """
 
     TOKENS = "tokens"
@@ -49,7 +46,6 @@ class RuleKind(str, Enum):
     VOCABULARY = "vocabulary"
     METRIC = "metric"
     STRUCTURE = "structure"
-    JUDGEMENT = "judgement"
 
 
 class Scope(str, Enum):
@@ -82,11 +78,8 @@ class TextType(str, Enum):
     SAFETY = "safety"
 
 
-# The genre vocabulary the write-docs skill classifies a document into (its genre
-# table). `Category.recommended_for` is typed against it so the review skill's
-# `genre` value selects categories by equality rather than by a mapping table
-# nobody maintains. Code comments are not a genre here: the skills route them to
-# the language's own conventions.
+# Genre labels are rule metadata for documentation and inspection. Code comments
+# use their own source-language scopes rather than this document vocabulary.
 Genre = Literal["consumer", "internal", "change-comms", "reference", "informal"]
 AiSignal = Literal["strong", "weak", "none"]
 AiSignalSource = Literal["measured", "catalog", "unmeasured"]
@@ -101,15 +94,6 @@ class AiRegisterSummary(BaseModel):
     errors: int = 0
     warnings: int = 0
     per_100_words: float = 0.0
-
-
-class AiRegisterConfirms(BaseModel):
-    """Judgement confirmations split by the rule's AI-register signal."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    strong: int = 0
-    weak: int = 0
 
 
 class Provenance(BaseModel):
@@ -223,12 +207,7 @@ class Rule(BaseModel):
     )
     examples: list[Example] = Field(default_factory=list)
     provenance: Provenance
-    judgement: JudgementContract | None = None
-    judgement_question: str | None = Field(
-        default=None,
-        description="Required for kind=judgement: the question the reviewer must "
-        "answer. Must be decidable, not a matter of taste.",
-    )
+
     ai_signal: AiSignal = "none"
     ai_signal_source: AiSignalSource = "unmeasured"
     fix: str | None = Field(default=None, description="The rewrite operation.")
@@ -236,90 +215,6 @@ class Rule(BaseModel):
     # Set by the loader.
     category: str = Field(default="", description="Owning category; set on load.")
 
-    @model_validator(mode="before")
-    @classmethod
-    def _normalize_judgement(cls, data: object) -> object:
-        if (
-            not isinstance(data, dict)
-            or "judgement" not in data
-            or data["judgement"] is None
-        ):
-            return data
-        raw = data["judgement"]
-        if not isinstance(raw, dict):
-            return data
-        allowed = {
-            "scope_class",
-            "dims",
-            "evidence",
-            "warrant_min",
-            "protects",
-            "judgement_ceiling",
-            "adjudicates",
-            "allowed_transitions",
-            "host_predicates",
-        }
-        unknown = set(raw) - allowed
-        if unknown:
-            raise ValueError(
-                f"{data.get('id', '<unknown>')}: judgement has unknown field(s): {sorted(unknown)}"
-            )
-        normalized = dict(raw)
-        rid = data.get("id", "<unknown>")
-        dims = raw.get("dims")
-        if isinstance(dims, dict) and set(dims) != {"fit", "harm", "repair", "warrant"}:
-            raise ValueError(
-                f"{rid}: judgement.dims must contain exactly fit, harm, repair, warrant"
-            )
-        evidence = raw.get("evidence")
-        if isinstance(evidence, dict):
-            roles = evidence.get("roles", [])
-            if "defect" not in roles:
-                raise ValueError(f"{rid}: judgement.evidence.roles must contain defect")
-            if evidence.get("min_arity") not in (1, 2):
-                raise ValueError(f"{rid}: judgement.evidence.min_arity must be 1 or 2")
-            if evidence["min_arity"] > len(roles):
-                raise ValueError(
-                    f"{rid}: judgement.evidence.min_arity exceeds evidence.roles"
-                )
-        protected = {
-            "accessibility_consistency",
-            "authoritative_domain_term",
-            "controlled_language_clarity",
-            "factual_polarity_or_contrast",
-            "normative_obligation",
-            "quoted_specimen",
-            "source_locked_legal_text",
-        }
-        if (
-            isinstance(raw.get("protects"), list)
-            and not set(raw["protects"]) <= protected
-        ):
-            raise ValueError(f"{rid}: judgement.protects contains an unknown class")
-        if raw.get("adjudicates") is not None and raw.get("adjudicates") not in raw.get(
-            "protects", []
-        ):
-            raise ValueError(f"{rid}: judgement.adjudicates must be listed in protects")
-        table = normalized.get("allowed_transitions")
-        if isinstance(table, dict):
-            table = dict(table)
-            if "table" in table and "rows" not in table:
-                table["rows"] = table.pop("table")
-            rows = []
-            for row in table.get("rows", []):
-                if isinstance(row, dict):
-                    rows.append(
-                        {
-                            "token_class": row.get("class"),
-                            "src": row.get("from"),
-                            "dst": row.get("to"),
-                        }
-                    )
-            table["rows"] = rows
-            normalized["allowed_transitions"] = table
-        result = dict(data)
-        result["judgement"] = normalized
-        return result
 
     @property
     def qualified_id(self) -> str:
@@ -339,8 +234,6 @@ class Rule(BaseModel):
             "substitutions": RuleKind.SUBSTITUTION,
             "metric": RuleKind.METRIC,
             "threshold": RuleKind.METRIC,
-            "judgement_question": RuleKind.JUDGEMENT,
-            "judgement": RuleKind.JUDGEMENT,
         }
         for name, owner in owners.items():
             if getattr(self, name) is not None and self.kind is not owner:
@@ -352,67 +245,7 @@ class Rule(BaseModel):
             raise ValueError(f"kind={self.kind.value} requires `{field}`")
         if self.kind is RuleKind.METRIC and self.threshold is None:
             raise ValueError("kind=metric requires `threshold`")
-        if self.kind is RuleKind.JUDGEMENT and self.exceptions:
-            raise ValueError(
-                f"{self.id}: kind=judgement cannot declare `exceptions`; "
-                "judgement rules never emit findings to suppress"
-            )
-        if self.judgement is not None:
-            if set(self.judgement.dims) != {"fit", "harm", "repair", "warrant"}:
-                raise ValueError(
-                    f"{self.id}: judgement.dims must contain exactly fit, harm, repair, warrant"
-                )
-            if self.judgement.evidence.min_arity not in (1, 2):
-                raise ValueError(
-                    f"{self.id}: judgement.evidence.min_arity must be 1 or 2"
-                )
-            if "defect" not in self.judgement.evidence.roles:
-                raise ValueError(
-                    f"{self.id}: judgement.evidence.roles must contain defect"
-                )
-            if self.judgement.evidence.min_arity > len(self.judgement.evidence.roles):
-                raise ValueError(
-                    f"{self.id}: judgement.evidence.min_arity exceeds evidence.roles"
-                )
-            protected = {
-                "accessibility_consistency",
-                "authoritative_domain_term",
-                "controlled_language_clarity",
-                "factual_polarity_or_contrast",
-                "normative_obligation",
-                "quoted_specimen",
-                "source_locked_legal_text",
-            }
-            if not set(self.judgement.protects) <= protected:
-                raise ValueError(
-                    f"{self.id}: judgement.protects contains an unknown class"
-                )
-            if self.judgement.warrant_min not in (1, 2):
-                raise ValueError(f"{self.id}: judgement.warrant_min must be 1 or 2")
-            if (
-                self.judgement.adjudicates is not None
-                and self.judgement.adjudicates not in self.judgement.protects
-            ):
-                raise ValueError(
-                    f"{self.id}: judgement.adjudicates must be listed in protects"
-                )
-            table = self.judgement.allowed_transitions
-            if table is not None and not table.rows:
-                raise ValueError(
-                    f"{self.id}: judgement.allowed_transitions.rows must be non-empty"
-                )
-        if self.kind is RuleKind.JUDGEMENT and self.judgement is None:
-            raise ValueError(f"{self.id}: kind=judgement requires `judgement`")
-        if self.kind is not RuleKind.JUDGEMENT and self.judgement is not None:
-            raise ValueError(
-                f"{self.id}: `judgement` is not valid for kind={self.kind.value}"
-            )
-        if self.kind is RuleKind.JUDGEMENT and not self.judgement_question:
-            raise ValueError("kind=judgement requires `judgement_question`")
-        if self.kind is RuleKind.JUDGEMENT and self.severity is not Severity.OFF:
-            # A judgement rule cannot fire mechanically; letting it carry a real
-            # severity would imply the linter checks it.
-            object.__setattr__(self, "severity", Severity.SUGGESTION)
+
         return self
 
     def tier_for(self, profile: str) -> Tier:
@@ -438,10 +271,7 @@ class Category(BaseModel):
     )
     recommended_for: list[Genre] = Field(
         default_factory=list,
-        description="Genres this category suits, in the vocabulary the write-docs "
-        "and review-docs skills use, so a reviewer can select judgement rules by "
-        "the genre it classified. A second vocabulary here selected zero rules for "
-        "the skill's `consumer` genre.",
+        description="Genres this category suits for profile and documentation guidance.",
     )
     rules: list[Rule] = Field(default_factory=list)
 
@@ -526,10 +356,6 @@ class DocumentScore(BaseModel):
         description="What did NOT run, and why. A missing vale binary or an "
         "unsynced style must never read as a pass.",
     )
-    judgement_penalty: float = Field(default=0.0, ge=0)
-    judgement_penalty_uncapped: float = Field(default=0.0, ge=0)
-    judgement_adjusted_score: float = Field(default=100.0, ge=0, le=100)
-    judgement_cluster_gate: Literal["REVISE"] | None = None
     ai_register: dict[Literal["strong", "weak"], AiRegisterSummary] = Field(
         default_factory=lambda: {
             "strong": AiRegisterSummary(),
@@ -537,5 +363,3 @@ class DocumentScore(BaseModel):
         }
     )
     prose: AiRegisterSummary = Field(default_factory=AiRegisterSummary)
-    ai_register_confirms: AiRegisterConfirms = Field(default_factory=AiRegisterConfirms)
-    judgement_unchecked: list[str] = Field(default_factory=list)

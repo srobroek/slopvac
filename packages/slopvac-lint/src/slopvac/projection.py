@@ -412,6 +412,6 @@ def classify_region(block: Any) -> Region:
 
 
 def source_sha256(raw: bytes) -> str:
-    """Return the source digest used by judgement unit identities."""
+    """Return a stable digest of the source bytes."""
 
     return hashlib.sha256(raw).hexdigest()

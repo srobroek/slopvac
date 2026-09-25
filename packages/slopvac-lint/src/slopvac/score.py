@@ -31,13 +31,10 @@ the defaults below are the shipped calibration.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Literal
 
 from .config import ResolvedConfig, Severity
-from .judgement.aggregate import judgement_penalty, judgement_penalty_uncapped
 from .model import (
-    AiRegisterConfirms,
     AiRegisterSummary,
     CategoryScore,
     DocumentScore,
@@ -340,19 +337,6 @@ def _deterministic_report(
     return category_scores, overall, active_categories
 
 
-def _judgement_report(
-    findings: list[object],
-    weights: Mapping[str, float],
-    config: ResolvedConfig,
-    deterministic_score: float,
-) -> tuple[float, float, float]:
-    uncapped = judgement_penalty_uncapped(findings, weights)
-    capped = judgement_penalty(
-        findings, weights, max_penalty=config.judgement.max_penalty
-    )
-    return capped, uncapped, max(0.0, deterministic_score - capped)
-
-
 def score_document(
     path: str,
     findings: list[Finding],
@@ -362,28 +346,15 @@ def score_document(
     config: ResolvedConfig,
     categories_meta: dict[str, float],
     unchecked: list[str] | None = None,
-    *,
-    judgement_findings: list[object] | None = None,
-    judgement_weights: Mapping[str, float] | None = None,
-    judgement_gate: str | None = None,
-    judgement_unchecked: list[str] | None = None,
 ) -> DocumentScore:
-    """Build the deterministic result and its reporting-only judgement view."""
+    """Build the deterministic lint result."""
     unchecked = unchecked or []
-    judgement_findings = judgement_findings or []
-    judgement_weights = judgement_weights or categories_meta
     category_scores, overall, active_categories = _deterministic_report(
         findings, words, config, categories_meta
     )
     mechanical_errors = sum(f.severity is Severity.ERROR for f in findings)
     warnings = sum(f.severity is Severity.WARNING for f in findings)
     suggestions = sum(f.severity is Severity.SUGGESTION for f in findings)
-    capped_penalty, uncapped_penalty, adjusted = _judgement_report(
-        judgement_findings,
-        judgement_weights,
-        config,
-        overall,
-    )
 
     reasons = _failure_reasons(
         findings,
@@ -398,7 +369,6 @@ def score_document(
         len(findings) / words * 100 if words >= MIN_WORDS_FOR_DENSITY and words else 0.0
     )
     ai_register, prose = _ai_register(findings, words)
-    judgement_unchecked = judgement_unchecked or []
     return DocumentScore(
         path=path,
         profile=config.profile.value,
@@ -413,14 +383,8 @@ def score_document(
         suggestions=suggestions,
         per_100_words=round(per_100, 3),
         score=round(overall, 1),
-        judgement_penalty=round(capped_penalty, 1),
-        judgement_penalty_uncapped=round(uncapped_penalty, 1),
-        judgement_adjusted_score=round(adjusted, 1),
-        judgement_cluster_gate=judgement_gate,
-        judgement_unchecked=judgement_unchecked,
         ai_register=ai_register,
         prose=prose,
-        ai_register_confirms=AiRegisterConfirms(),
         passed=not reasons,
         failure_reasons=reasons,
         unchecked=unchecked,

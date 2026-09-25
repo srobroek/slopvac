@@ -2,7 +2,6 @@
 # `ai-tells` Vale rules that never reached this engine.
 #
 # Historical source: retired ai-tells Vale styles (immutable snapshot)
-# https://github.com/srobroek/slopvac/tree/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/
 # Seven source rules were intentionally excluded by the archived exclusions review.
 # punctuation), ColonUsage (128, same class), ShipOveruse (53, the literal
 # verb), FormalRegister (flags `implement`), RedundantPrecaution (one idiom per
@@ -45,7 +44,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeSits.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeSits.yml
       note: >-
         Disable for furniture or seating prose. Widest of the family (17
         branches) because `sit` carries the most distinct figurative senses:
@@ -75,7 +73,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeRuns.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRuns.yml
       note: >-
         Disable for athletics or plumbing prose. `hit the ground running` also
         appears in `prose-inflation.business-jargon`; the duplicate is
@@ -103,7 +100,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeFalls.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeFalls.yml
       note: >-
         Disable for gravity or accident prose. The membership branches
         (`falls under the category`) are the ones worth keeping in reference
@@ -131,7 +127,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeDraws.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeDraws.yml
       note: >-
         Disable for art or cartography prose. The `draws on` branch has the
         loosest tail in the family (`\w+` after an optional determiner),
@@ -157,7 +152,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeCasts.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeCasts.yml
       note: Disable for fishing, metalworking, or theatre-casting prose.
 
   - id: figurative-strikes
@@ -182,7 +176,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeStrikes.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeStrikes.yml
       note: >-
         Disable for labour-action or percussion prose. `strikes a balance` is
         NOT covered: the source rule's noun list is note/tone/chord, and this
@@ -209,7 +202,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeWins.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeWins.yml
       note: >-
         Disable for sports or games prose. `win-win` also appears in
         `prose-inflation.business-jargon`; kept in both so either style stands
@@ -235,7 +227,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeLends.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLends.yml
       note: Disable for library-lending or finance prose.
 
   - id: figurative-rides
@@ -258,7 +249,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeRides.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRides.yml
       note: >-
         Disable for transit or equestrian prose. The `rides the <path>` branch
         is the one that fires in performance writing, where the literal
@@ -284,7 +274,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — FigurativeLoud.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLoud.yml
       note: >-
         Disable for audio prose. `fails loudly` is the instance worth catching:
         it is a design claim with no observable in it, and the observable
@@ -310,7 +299,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — ResonateOveruse.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ResonateOveruse.yml
       note: >-
         Disable for physics or audio prose, where the word is literal. Single
         token on purpose: every figurative use is the same defect, an
@@ -338,7 +326,6 @@ rules:
     ai_signal_source: catalog
     provenance:
       source: Retired ai-tells Vale style — ColloquialAssessments.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ColloquialAssessments.yml
       note: >-
         Overlaps `ai-tells-register.figurative-verb-verdict-core` on exactly
         one token (`the point lands`); the other 21 branches, including the
@@ -375,7 +362,6 @@ rules:
     ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — PromotionalPuffery.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/PromotionalPuffery.yml
       note: >-
         The register `prose-inflation.slop-lexicon` does not reach: that rule
         owns single marketing ADJECTIVES (robust, seamless), while this owns
@@ -406,7 +392,6 @@ rules:
     ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — StrategyBuzzwords.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/StrategyBuzzwords.yml
       note: >-
         `north star` alone is in `prose-inflation.business-jargon`; the
         flywheel, moat, network-effect, and land-grab bands are not, and they
@@ -436,7 +421,6 @@ rules:
     ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — AIAdjectiveNounPairs.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/AIAdjectiveNounPairs.yml
       note: >-
         The source rule is Vale `extends: sequence` with a `JJ` + `NN|NNS`
         tag pair. This engine has no part-of-speech tagging outside
@@ -485,7 +469,6 @@ rules:
     ai_signal_source: unmeasured
     provenance:
       source: Retired ai-tells Vale style — OverusedVocabularyVerbs.yml
-      url: https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/OverusedVocabularyVerbs.yml
       note: >-
         The source rule is `extends: sequence` with verb tags; without a
         tagger this is a token list. `navigate` and its inflections are omitted

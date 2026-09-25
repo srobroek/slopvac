@@ -197,43 +197,6 @@ rules:
         false-positive source we found.
     fix: Rewrite so the word carries its permitted part of speech, or choose a different word.
 
-  - id: word-used-outside-permitted-sense
-    name: Use the word only in its permitted sense
-    kind: judgement
-    severity: suggestion
-    message: Check that each controlled word carries its permitted meaning.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does every controlled word in this sentence carry the single meaning recorded in the
-      vocabulary entry, rather than another dictionary meaning of the same spelling?
-      - quotation
-    allowlist: []
-    examples:
-      - bad: Follow the security policy when you rotate the signing key.
-        good: Obey the security policy when you rotate the signing key.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.3'
-      note: >-
-        Sense, not spelling. No regex distinguishes "follow" meaning "come after" from
-        "follow" meaning "comply with", so this stays a reviewer question rather than a
-        fabricated pattern.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, controlled_language_clarity]
-      judgement_ceiling: suggestion
-    fix: Replace the word with one whose permitted sense matches your intent.
-
   - id: verb-or-adjective-form-not-permitted
     name: Use only permitted word forms
     kind: vocabulary
@@ -263,84 +226,6 @@ rules:
         past, past participle for verbs; base, comparative, superlative for adjectives),
         not the headword basis.
     fix: Use a listed form of the word, or rewrite the sentence.
-
-  - id: domain-noun-category-membership
-    name: Confirm the domain noun belongs to a declared category
-    kind: judgement
-    severity: suggestion
-    message: Check that each out-of-vocabulary noun belongs to a declared domain-noun category.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      For each noun in this sentence that is not in the controlled vocabulary, does it name
-      a specified concept inside one of the declared domain-noun categories for this
-      project?
-      - code-span
-      - identifier-fidelity
-    allowlist: []
-    examples:
-      - bad: The doohickey drains the queue every minute.
-        good: The reaper job drains the queue every minute.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.5'
-      note: >-
-        The specification states its own category example lists are not exhaustive, so
-        absence from a list proves nothing. Membership is therefore a judgement, and the
-        category set itself is project configuration (see domain-categories.md).
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, controlled_language_clarity]
-      judgement_ceiling: suggestion
-    fix: Register the term in a domain-noun category, or replace it with a vocabulary word.
-
-  - id: unapproved-word-not-a-domain-noun
-    name: Allow an out-of-vocabulary word only as a domain noun
-    kind: judgement
-    severity: suggestion
-    message: Check that this out-of-vocabulary word is a domain noun or part of one.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain
-      noun? If it is neither, it must be replaced.
-      - code-span
-      - identifier-fidelity
-      - quotation
-    allowlist: []
-    examples:
-      - bad: The orchestrator obviates manual reconciliation.
-        good: The orchestrator removes the need for manual reconciliation.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.6'
-      note: >-
-        This is the escape hatch that makes word-outside-controlled-vocabulary usable. The
-        two rules run as a pair: the vocabulary rule finds the candidate, this question
-        decides whether the candidate is legitimate domain vocabulary.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, controlled_language_clarity]
-      judgement_ceiling: suggestion
-    fix: Register the domain noun, or replace the word.
 
   - id: noun-used-as-verb
     name: Do not use a domain noun as a verb
@@ -391,80 +276,6 @@ rules:
         detector needs a tagger and produces heavy false positives on words like "log" and
         "build", so those are excluded on purpose.
     fix: Rewrite with a verb, and keep the noun as a noun.
-
-  - id: domain-noun-not-organization-approved
-    name: Use the domain term your project already uses
-    kind: judgement
-    severity: suggestion
-    message: Check that this term is the one your project's glossary defines.
-    scope: document
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does the project glossary, API reference, or schema already name this thing? If yes,
-      does the document use that exact name?
-      - quotation
-    allowlist: []
-    examples:
-      - bad: The job runner picks up the next work item.
-        good: The worker picks up the next task.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.8'
-      note: >-
-        The authority is the project's own glossary, so this cannot be a shipped word list.
-        Partially mechanizable once a glossary file exists, as an unknown-synonym check.
-    judgement:
-      scope_class: probe
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 2, roles: [defect, referent]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, controlled_language_clarity]
-      judgement_ceiling: suggestion
-    fix: Replace the term with the glossary term.
-
-  - id: domain-noun-too-long-or-unclear
-    name: Choose a short and clear domain term
-    kind: judgement
-    severity: suggestion
-    message: Check that this new domain term is short and understandable.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: advisory
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      When you had to invent this term, is it three words or fewer, and would a reader
-      outside your team understand it without a definition?
-    allowlist: []
-    examples:
-      - bad: Restart the primary regional inbound request admission controller service.
-        good: Restart the admission controller.
-      - bad: Set the distributed idempotency deduplication cache retention window.
-        good: Set the deduplication cache retention.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.9'
-      note: >-
-        The three-word length half of this rule is mechanized by
-        ste-nouns/multiword-noun-too-long; the "easy to understand" half is not
-        mechanizable, so this entry carries only the judgement.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, controlled_language_clarity]
-      judgement_ceiling: suggestion
-    fix: Shorten the term to three words or fewer, or define it once and use a short form.
 
   - id: slang-or-jargon-term
     name: Do not use slang or jargon as a domain term
@@ -548,50 +359,6 @@ rules:
         a style preference.
     fix: Pick one term and use it in every sentence.
 
-  - id: domain-verb-category-membership
-    name: Confirm the domain verb belongs to a declared category
-    kind: judgement
-    severity: suggestion
-    message: Check that this out-of-vocabulary verb is a declared domain verb used in its own context.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Could this sentence be written with vocabulary verbs alone? If yes, the domain verb
-      is not permitted. If no, does the verb belong to a declared domain-verb category and
-      carry its category meaning in this sentence?
-      - code-span
-      - api-name
-    allowlist: []
-    examples:
-      - bad: The parser ingests the manifest and hydrates the config object.
-        good: The parser reads the manifest and fills the config object.
-      - bad: If you observe a checksum mismatch, delete the artifact.
-        good: If you find a checksum mismatch, delete the artifact.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:1.12'
-      note: >-
-        Two reasons this cannot be a word list. First, the specification puts vocabulary
-        verbs ahead of domain verbs, which requires knowing whether a paraphrase exists.
-        Second, the same verb is legal or illegal by sense: the specification's own example
-        has one verb permitted in a machine-subject sentence and refused in a
-        reader-subject sentence. Our second example above reproduces that shape with our
-        own wording.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, controlled_language_clarity]
-      judgement_ceiling: suggestion
-    fix: Rewrite with a vocabulary verb, or register the verb in a domain-verb category.
-
   - id: verb-used-as-noun
     name: Do not use a domain verb as a noun
     kind: pattern
@@ -627,4 +394,3 @@ rules:
         deployment" and "the installation" do not match, because the pattern requires a
         boundary immediately after the verb.
     fix: Replace the verb-as-noun with the noun form, or rewrite with the verb.
-

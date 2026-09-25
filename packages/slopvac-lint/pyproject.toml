@@ -60,12 +60,12 @@ packages = ["src/slopvac"]
 # `[vocabulary] path`. `examples/blocklist.toml` is a starter and is NOT packaged --
 # it is repo documentation, and shipping it would invite loading it as a default.
 #
-# Package artifacts include the YAML rules and the judgement output schema. The
-# compiler builds the Vale style tree from the YAML ruleset at runtime and writes
-# it to the cache; `vale/styles-verified/` is a test fixture, not runtime data.
+# Package artifacts include the YAML rules. The compiler builds the Vale style
+# tree from the YAML ruleset at runtime and writes it to the cache;
+# `vale/styles-verified/` is a test fixture, not runtime data.
 
 [tool.hatch.build]
-artifacts = ["src/slopvac/rules/*.yml", "src/slopvac/judgement/*.json"]
+artifacts = ["src/slopvac/rules/*.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

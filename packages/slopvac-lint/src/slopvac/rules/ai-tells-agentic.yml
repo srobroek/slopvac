@@ -1,7 +1,6 @@
 # Four categories in one multi-document YAML file, one document per catalog file.
 #
-# Historical source: retired review-docs skill AI-tells catalog (immutable snapshot)
-# https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
+# Source: the retired AI-tells catalog, consolidated into the rules below.
 #
 # Every rule traces to one catalog entry. Where an entry has a mechanizable core
 # and a judgement remainder, TWO rules carry the same catalog row and
@@ -48,7 +47,7 @@ rules:
     ai_signal: strong
     ai_signal_source: measured
     provenance:
-      source: 'AI tells catalog — structure.md ("Contrastive inversion") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Contrastive inversion")'
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         The mechanizable core of the single most-cited current tell. Judgement
@@ -58,57 +57,6 @@ rules:
         overlapping ground and stay enabled, so expect duplicate findings until one
         side is disabled.
 
-  - id: contrastive-inversion-remainder
-    name: Judge whether a contrast names a real alternative
-    kind: judgement
-    severity: suggestion
-    message: "contrastive inversion: state what the thing is; cut the strawman"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this contrast either negate an alternative nobody proposed or add no information?
-      Factual corrections and instructions that name a real alternative are not defects;
-      preserve them. Flag only when removing the contrast preserves the same actionable
-      meaning.
-    examples:
-      - bad: Where other gates check words, this one reads the shape of the argument.
-        good: The gate scores paragraph symmetry and passive density.
-      - bad: It's less about speed and more about determinism.
-        good: The gate is deterministic.
-      - bad: "The parser reads JSON, not YAML."
-        good: null
-        note: "preserve: factual correction naming the actual boundary"
-      - bad: "Choose SHA-256, not MD5."
-        good: null
-        note: "preserve: instruction naming a real alternative"
-    ai_signal: strong
-    ai_signal_source: measured
-    # Measurement: 13 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
-      note: >-
-        Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The
-        remainder needs a reader who knows whether the alternative exists, which no
-        pattern can supply. Also absorbs the catalog's "Strawman antithesis" row,
-        whose "While other gates struggle, X ..." shape is the same defect.
-
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 2, roles: [defect, contrast] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
   - id: definitional-negation-pair
     exceptions: [quotation, factual-correction]
     name: Cut a cross-sentence definitional contrast
@@ -145,7 +93,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis")'
       url: https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation
       note: >-
         The two-sentence form of the contrastive inversion: "X is A. X is not B."
@@ -189,53 +137,13 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Staccato negative parallel") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Staccato negative parallel")'
       url: https://tropes.fyi/
       note: >-
         Mechanizable core. Upstream ai-tells.ParallelStaccato covers this and is
         DEMOTED to warning in .vale.ini because its own rule comments concede the
         pattern is over-broad; this port inherits that level. Judgement remainder in
         ai-tells-structure.staccato-negative-parallel-remainder.
-
-  - id: staccato-negative-parallel-remainder
-    name: Judge whether a fragment run carries content
-    kind: judgement
-    severity: suggestion
-    message: "fragment cadence: rejoin the fragments and let the fact carry the weight"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Do the consecutive fragments in this passage each add a fact, or does the
-      run exist to build rhythm toward the last one?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Rejoin the fragments into one or two sentences.
-    examples:
-      - bad: Fast. Deterministic. Auditable.
-        good: The gate is deterministic and writes an audit line per finding.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Staccato negative parallel", "One-sentence emphasis paragraph") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://tropes.fyi/
-      note: >-
-        Judgement remainder of ai-tells-structure.staccato-negative-parallel-frames.
-        Also covers register.md's "Punchy-fragment cadence" bullet at the
-        paragraph level.
 
   - id: tricolon-abuse-core
     name: Cut a three-item list to the items that carry load
@@ -264,7 +172,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Rule of three / tricolon abuse") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Rule of three / tricolon abuse")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core, at warning for the same measured reason
@@ -274,48 +182,6 @@ rules:
         ai-tells-structure.tricolon-abuse-remainder covers the bullet-symmetry and
         back-to-back-tricolon forms no single-sentence pattern reaches. Upstream
         ai-tells.VerbTricolon and VerbTricolonDensity stay enabled.
-
-  - id: tricolon-abuse-remainder
-    name: Judge whether parallel bullets carry distinct substance
-    kind: judgement
-    severity: suggestion
-    message: "parallel symmetry: keep only the items with distinct substance"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Do the parallel items -- three identical-shape bullets, or two tricolons in
-      consecutive sentences -- each state a fact the others do not?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Merge into prose, or keep only the items with distinct substance.
-    examples:
-      - bad: "- **Speed:** it is fast.\n- **Safety:** it is safe.\n- **Scale:** it scales."
-        good: The gate reads 488 files in 0.4 s and refuses an unresolvable style.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Rule of three / tricolon abuse", "Bold-lead-in bullet symmetry") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://rlhfbook.com/c/18-style
-      note: >-
-        Judgement remainder of ai-tells-structure.tricolon-abuse-core. Absorbs the
-        catalog's "Bold-lead-in bullet symmetry" row: `**Speed:** one sentence` x 6
-        with near-zero content. The bullet SHAPE is mechanizable and lives in
-        ai-tells-formatting.inline-header-list; the "near-zero content" test is
-        this rule.
 
   - id: false-suspense-frames
     name: Delete the drumroll
@@ -345,7 +211,7 @@ rules:
     ai_signal: weak
     ai_signal_source: measured
     provenance:
-      source: 'AI tells catalog — structure.md ("False-suspense transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("False-suspense transition")'
       url: https://tropes.fyi/
       note: >-
         Mechanizable core, as a literal token list. Judgement remainder in
@@ -354,46 +220,6 @@ rules:
         generation (Washington Post analysis of 328,744 ChatGPT messages). Overlaps
         upstream ai-tells.NarrativePivots and ai-tells.OpeningCliches, which stay
         enabled.
-
-  - id: false-suspense-remainder
-    name: Judge whether a transition withholds the point
-    kind: judgement
-    severity: suggestion
-    message: "false suspense: delete the drumroll; state the point"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this transition announce that something important follows without
-      stating any part of it?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Delete the transition and open on the point.
-    examples:
-      - bad: What follows is the part that changes how you read the rest of this page.
-        good: The gate exits 1 when the score falls below 80.
-    ai_signal: weak
-    ai_signal_source: measured
-    # Measurement: 5 vs 3 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — structure.md ("False-suspense transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://tropes.fyi/
-      note: >-
-        Judgement remainder of ai-tells-structure.false-suspense-frames. The token
-        list decays per model generation; this question does not.
 
   - id: fragment-question-pivot
     name: Replace a question-answer fragment pair with a declarative
@@ -414,7 +240,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Fragment-question pivot") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Fragment-question pivot")'
       url: https://tropes.fyi/
       note: >-
         Fully mechanizable as a shape, so no judgement partner. Warning rather than
@@ -440,7 +266,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Rhetorical-question transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Rhetorical-question transition")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Anchored to a question that occupies a whole line or heading, which is the
@@ -478,7 +304,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Meta-narration") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Meta-narration")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. The document-opening frame is already mechanised as
@@ -487,100 +313,6 @@ rules:
         Judgement remainder in ai-tells-structure.meta-narration-remainder. Overlaps
         upstream ai-tells.Metacommentary, ai-tells.UnpackExplore, and
         ai-tells.StructureAnnouncements, all of which stay enabled.
-
-  - id: meta-narration-remainder
-    name: Judge whether a sentence spends itself on navigation
-    kind: judgement
-    severity: suggestion
-    message: "meta-narration: delete it; navigation is the TOC's job"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      If this sentence were removed, would the reader lose a current fact, required
-      constraint, reproducible action, or explicit change/decision purpose? Flag it
-      when it only announces the document's route, sequence, or implementation
-      journey. Keep navigation that names a prerequisite, safety boundary, release
-      delta, historical record, decision, plan, or specification purpose.
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Delete the navigation sentence; retain the fact, constraint, or purpose it was masking.
-    examples:
-      - bad: Before getting to the flags, some background on why the loader exists.
-        good: The loader reads the lockfile, then falls back to the manifest.
-      - bad: This section walks through how we arrived at the cache layout.
-        good: The cache key is the manifest path and content hash.
-      - good: This release note explains why the loader now rejects duplicate keys.
-        bad: We will explore the implementation journey in a later section.
-
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Meta-narration") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-structure.meta-narration-frames and of
-        prose-inflation.document-preamble.
-
-  - id: heading-echo
-    name: Start with the first new fact after a heading
-    kind: judgement
-    severity: suggestion
-    message: "heading echo: start with the first new fact"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Given the heading alone, does the first sentence repeat its proposition with no new
-      operation, constraint, path, metric, or scope? Same topic is not enough to flag.
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 2, roles: [defect, antecedent] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-      host_predicates:
-        - id: heading_echo_material_redundancy
-          definition: the host reads the antecedent heading and the defect sentence from the evidence and admits the finding only when the sentence is one line with a finite verb or terminal punctuation, shares a normalised content word with the heading, and adds no material token or span (figure, code, path, flag, file, link, normative word) or novel content lemma beyond stopwords; a failing clause converts the outcome to REJECT, and a missing or blank heading is ABSTAIN(heading_echo_no_antecedent)
-    fix: Delete the restatement and open on the first new fact.
-    examples:
-      - bad: "## Install the plugin\n\nThis section covers installing the plugin."
-        good: "## Install the plugin\n\nRun apm install slopvac."
-      - bad: "## Authentication\n\nAuthentication covers access control."
-        good: "## Authentication\n\nEvery request sends a bearer token."
-      - bad: "Deployment\n\nDeployment is the act of releasing software."
-        good: "Deployment\n\nThe pipeline signs the image before publishing it."
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Heading echo") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement, not pattern: deciding it requires comparing the sentence's
-        content against the heading's, and paraphrase defeats any string test.
-        prose-craft.self-reference catches the subset that names the section
-        explicitly ("This section explains"), and
-        prose-inflation.document-preamble catches the document-level form.
 
   - id: summary-closer-frames
     exceptions: [quotation]
@@ -621,7 +353,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Summary closer") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Summary closer")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. Judgement remainder in
@@ -632,207 +364,6 @@ rules:
         "and that's it", "more to come") were added in the 2026-09-12 audit: each
         had 0 occurrences in 27k words of pre-2022 human prose and appeared as
         closers in model-generated guides.
-
-  - id: summary-closer-remainder
-    name: Judge whether a closing section adds a fact
-    kind: judgement
-    severity: suggestion
-    message: "summary closer: end on the last fact"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does the final section state anything the sections above did not, or does it
-      re-list them?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 2, roles: [defect, antecedent] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Delete the section.
-    examples:
-      - bad: "The gate has three parts, described above: the loader, the checkers, and the scorer."
-        good: ""
-        note: The document ends on the scorer section.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Summary closer", "Outline conclusion") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-structure.summary-closer-frames. Also
-        absorbs the catalog's "Outline conclusion" row ("Challenges and Future
-        Outlook", "Despite these challenges ... remains"), whose heading forms are
-        covered upstream by ai-tells.DespiteChallenges and
-        ai-tells.WrapUpHeadings.
-
-  - id: listicle-in-a-trench-coat
-    name: Make it a real list or real prose
-    kind: judgement
-    severity: suggestion
-    message: "listicle in prose: either a real list, or prose with connective logic"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Do consecutive paragraphs enumerate positions in a sequence ("The first X
-      is ... The second X is ...") without any of them depending on the one before?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Convert to a list, or rewrite as prose where each paragraph follows from the last.
-    examples:
-      - bad: The first wall is latency. The second wall is memory. The third wall is cost.
-        good: "Three limits apply:\n\n- latency\n- memory\n- cost"
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Listicle in a trench coat") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        No pattern reaches it: the defect is that prose form carries list content,
-        which needs the reader to test whether each paragraph depends on the last.
-        Upstream ai-tells.SequencingMarkers and ai-tells.ListIntroductions catch
-        the marker phrases, not the shape.
-
-  - id: anaphora-abuse
-    name: Say it once and merge the objects
-    kind: judgement
-    severity: suggestion
-    message: "anaphora: say it once; merge the objects"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Do three or more consecutive sentences open on the same subject-verb pair,
-      with only the object changing?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 2, roles: [defect, antecedent] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Write the subject-verb once and list the objects.
-    examples:
-      - bad: They assume a lockfile. They assume a network. They assume a token.
-        good: They assume a lockfile, a network, and a token.
-    ai_signal: strong
-    ai_signal_source: measured
-    # Measurement: 8 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — structure.md ("Anaphora abuse") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Upstream ai-tells.StackedAnaphora attempts the mechanical form and stays
-        enabled; this judgement rule carries the case where the repeated opener is
-        paraphrased rather than identical, which no regex reaches.
-
-  - id: analogy-stack-authority
-    name: Keep one apt comparison, or none
-    kind: judgement
-    severity: suggestion
-    message: "analogy stack: one apt comparison, or none"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this passage borrow authority by naming well-known companies or products
-      that have no causal connection to the claim?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Keep the one comparison that shares a mechanism with the subject, or cut all of them.
-    examples:
-      - bad: Apple didn't build Uber. Facebook didn't build Spotify.
-        good: The plugin runs in the host process, so it cannot outlive the session.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Analogy-stack authority") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://www.oliviacal.com/post/ai-writing-tells
-      note: >-
-        Deciding it needs domain knowledge about whether the comparison shares a
-        mechanism, which is exactly what a pattern cannot hold.
-
-  - id: invented-concept-label
-    name: Coin nothing
-    kind: judgement
-    severity: suggestion
-    message: "invented concept label: use the plain description; coin nothing"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this document name a concept in title-case or quoted form ("the
-      supervision paradox", "workload creep") without defining it and without
-      citing a source that uses the term?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Replace the coinage with the plain description.
-    examples:
-      - bad: This is the supervision paradox.
-        good: A reviewer who approves faster than they read approves more defects.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Invented concept label") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Distinguishing a coinage from established domain vocabulary requires knowing
-        the field, so it cannot be a token list -- the list would have to enumerate
-        every legitimate term instead.
 
   - id: cataphoric-lead-in-core
     name: Cut the count forecast
@@ -853,7 +384,7 @@ rules:
     ai_signal: strong
     ai_signal_source: measured
     provenance:
-      source: 'AI tells catalog — structure.md ("Cataphoric numbered lead-in") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Cataphoric numbered lead-in")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. Judgement remainder in
@@ -862,84 +393,6 @@ rules:
         enabled. NOTE the conflict: a numbered forecast is CORRECT in a spec or a
         procedure where the reader needs to know how many steps remain, which is why
         relaxed excludes it.
-
-  - id: cataphoric-lead-in-remainder
-    name: Judge whether a forecast tells the reader anything
-    kind: judgement
-    severity: suggestion
-    message: "cataphoric lead-in: cut the forecast"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does announcing the count change what the reader does, or does the list
-      immediately below already show its own length?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Delete the forecast unless the reader must budget effort before reading.
-    examples:
-      - bad: A handful of considerations apply here.
-        good: "Two limits apply:"
-    ai_signal: strong
-    ai_signal_source: measured
-    # Measurement: 128 vs 6 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — structure.md ("Cataphoric numbered lead-in") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-structure.cataphoric-lead-in-core.
-
-  - id: hollow-acknowledgment
-    name: Solve it, or cut the paragraph that raises it
-    kind: judgement
-    severity: suggestion
-    message: "hollow acknowledgment: solve it, or cut the paragraph that raises it"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Does this passage name a risk, limitation, or problem and then give the
-      reader no action, no measurement, and no pointer to where it is handled?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: State the action, or delete the paragraph.
-    examples:
-      - bad: Rate limits are a real concern here.
-        good: The client retries twice, then returns 429 to the caller.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Hollow acknowledgment") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
-      note: >-
-        prose-inflation.apologizing mechanises the subset that DEFERS explicitly
-        ("further research is needed"); this rule covers all diagnosis with no
-        treatment, which carries no marker phrase. Upstream
-        ai-tells.HollowAcknowledgment attempts the phrase forms and stays enabled.
 
   - id: absolute-assertion-core
     name: State the claim with its actual scope
@@ -961,7 +414,7 @@ rules:
     ai_signal: strong
     ai_signal_source: measured
     provenance:
-      source: "AI tells catalog — structure.md (\"Absolute assertion\") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      source: "AI tells catalog — structure.md (\"Absolute assertion\")"
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core. The catalog calls this the MIRROR of hedge stacking:
@@ -971,57 +424,6 @@ rules:
         Upstream ai-tells.AbsoluteAssertions and ai-tells.FalseExclusivity stay
         enabled.
 
-  - id: absolute-assertion-remainder
-    name: Judge whether an absolute claim survives one counterexample
-    kind: judgement
-    severity: suggestion
-    message: 'absolute assertion: state the claim with its actual scope'
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Should the reviewer preserve quotations, attributed claims, and factual descriptions
-      tied to a named person, work, edition, document, product, or other explicit finite
-      set, local all/only/never with its stated antecedent, and bounded comparative
-      recommendations, while flagging unsupported authorial guarantees or categorical
-      evaluations (including "will tell you", "wherever ... has a problem", or "you are
-      wrong") and sweeping always/never/every/no X has ever claims unless attributed or
-      supported by quantified or passage evidence?
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [accessibility_consistency, factual_polarity_or_contrast, normative_obligation, quoted_specimen]
-      judgement_ceiling: suggestion
-    fix: Narrow the claim to the scope the evidence supports.
-    examples:
-      - bad: Every Project Needs A Lockfile.
-        good: A project with more than one direct dependency needs a lockfile.
-      - bad: Every request to this endpoint requires authentication.
-        good: null
-        note: "preserve: bounded endpoint domain"
-      - bad: MUST reject every invalid request.
-        good: null
-        note: "preserve: explicit specification invariant"
-      - bad: Every system always behaves correctly.
-        good: null
-        note: "flag: unsupported universal; require an observed counterexample"
-    ai_signal: strong
-    ai_signal_source: measured
-    # Measurement: 69 vs 13 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: "AI tells catalog — structure.md (\"Absolute assertion\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
-      note: >-
-        Judgement remainder of ai-tells-structure.absolute-assertion-core. Preserve quotations,
-        attributed claims, and factual descriptions tied to a named person, work, edition,
-        document, product, or other explicit finite set; local all/only/never inherits its
-        stated antecedent; and preserve bounded comparative recommendations. Flag unsupported
-        authorial guarantees or categorical evaluations (including "will tell you", "wherever
-        ... has a problem", or "you are wrong") and sweeping always/never/every/no X has ever
-        claims unless attributed or supported by quantified or passage evidence.
   - id: negative-inventory-core
     name: Cut low-value negative inventory
     kind: pattern
@@ -1050,60 +452,12 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Negative/exclusion inventory") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Negative/exclusion inventory")'
       note: >-
         Mechanizable vocabulary for inventories that announce what is absent without
         giving the reader a decision, constraint, result, or reproduction path.
         Judgement remainder in ai-tells-structure.negative-inventory-remainder.
 
-  - id: negative-inventory-remainder
-    name: Judge whether a negative constraint is actionable
-    kind: judgement
-    severity: suggestion
-    message: "negative inventory: state the supported behavior or constraint"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      If this negative statement were removed, would the reader lose a reproducible
-      result, safety or compliance constraint, debugging boundary, audit fact, or
-      a current action? Flag it when it merely inventories what was not pinned,
-      run, included, or recorded, including cache-style operational archaeology.
-      Keep an explicit boundary when it changes the current contract or records a
-      change, release, historical result, plan, or specification scope.
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Keep the actionable boundary or result and delete inventory narration.
-    examples:
-      - bad: The tooling is not pinned, and visual checks are outside scope.
-        good: CI rejects an unpinned formatter; visual checks are not run by this command.
-      - bad: Several checks were excluded and recorded elsewhere.
-        good: The audit log records the excluded checks and their reasons.
-      - bad: The cache was warm, then cold, then warmed again during the investigation.
-        good: The cache is invalidated when the manifest changes.
-      - good: This release does not include browser checks; run `make browser-smoke` before release.
-        bad: "Not included: other things."
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Negative/exclusion inventory") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-structure.negative-inventory-core. The
-        negative form is legitimate when it changes reader action or records an
-        enforced safety, compliance, debugging, reproducibility, or audit boundary.
   - id: think-of-it-as-core
     name: Explain the mechanism instead of the metaphor
     kind: pattern
@@ -1123,90 +477,12 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Think-of-it-as reflex") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Think-of-it-as reflex")'
       url: https://medium.com/@tdoherty_96508/a-field-guide-to-terrible-ai-writing-6a83ddb6a141
       note: >-
         Mechanizable core. Judgement remainder in
         ai-tells-structure.think-of-it-as-remainder, because an analogy can be
         introduced with no frame at all.
-
-  - id: think-of-it-as-remainder
-    name: Judge whether an analogy replaces the mechanism
-    kind: judgement
-    severity: suggestion
-    message: "teacher voice: explain the actual mechanism once"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Is the mechanism stated anywhere in this passage, or does the analogy stand
-      in place of it?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: State the mechanism; keep the analogy only if it shortens the explanation.
-    examples:
-      - bad: The scheduler is the traffic warden of the cluster.
-        good: The scheduler assigns each pod to the node with the most free memory.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Think-of-it-as reflex") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-structure.think-of-it-as-core.
-
-  - id: false-range
-    name: List the actual items or name the real dimension
-    kind: judgement
-    severity: suggestion
-    message: "false range: list the actual items, or name the real dimension"
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Do the two endpoints of this "from X to Y" construction sit on a real scale,
-      or are they two unordered members of a set?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: List the items, or name the dimension that actually varies.
-    examples:
-      - bad: from beef to chicken
-        good: beef, chicken, and pork
-      - bad: from startups to enterprises
-        good: teams of 3 to 3,000 engineers
-    ai_signal: strong
-    ai_signal_source: measured
-    # Measurement: 3 vs 0 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — structure.md ("False range") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        A pattern for "from X to Y" would fire on every legitimate range, so this is
-        judgement-only: the test is whether the endpoints are ordered, which needs
-        the reader to know the domain.
 
   - id: vague-attribution-core
     exceptions: [quotation]
@@ -1228,7 +504,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Vague attribution") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Vague attribution")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core, enforced at every tier: an unsourced appeal to authority
@@ -1237,45 +513,6 @@ rules:
         remainder in ai-tells-structure.vague-attribution-remainder. This is the
         one structure rule the source config already trusted enough to gate code
         comments on.
-
-  - id: vague-attribution-remainder
-    name: Judge whether a cited source is checkable
-    kind: judgement
-    severity: suggestion
-    message: "vague attribution: name the source or own the claim"
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Could a reader locate the source behind this claim from what the sentence
-      gives them?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 2, roles: [defect, referent] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Add the citation, or restate the claim as your own.
-    examples:
-      - bad: The literature is clear on this.
-        good: RFC 7231 section 6.5.1 defines the status code.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Vague attribution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-structure.vague-attribution-core. Also the
-        checkability half of content-shape's fabricated-citation entry -- see
-        ai-tells-content-shape.fabricated-citations-remainder.
 
   - id: audience-straddle-core
     name: Write for the one audience the doc has
@@ -1296,56 +533,12 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — structure.md ("Audience straddle") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — structure.md ("Audience straddle")'
       note: >-
         Mechanizable core. Judgement remainder in
         ai-tells-structure.audience-straddle-remainder covers the case where the
         straddle is implicit -- a page that defines `git commit` and then discusses
         rebase strategy.
-
-  - id: audience-straddle-remainder
-    name: Judge whether the document holds one audience
-    kind: judgement
-    severity: suggestion
-    message: "audience straddle: write for the one audience the doc has"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does the document make one reader switch between a primer and expert
-      operational detail without a single task that requires both? Flag the
-      straddle when removing either half leaves the current task and contract
-      intact. Keep definitions needed for the stated task, and keep audience
-      changes that are explicit in a change communication, decision, plan, or
-      specification.
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          accessibility_consistency,
-          factual_polarity_or_contrast,
-          normative_obligation,
-          quoted_specimen,
-        ]
-      judgement_ceiling: suggestion
-    fix: Pick the audience for the task and cut material that cannot help complete it.
-    examples:
-      - bad: "A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG."
-        good: Rebase onto the upstream to linearise the history.
-      - bad: This guide defines HTTP, then assumes you can diagnose a TLS handshake.
-        good: Diagnose the TLS handshake with `openssl s_client`.
-      - good: This release note gives the migration steps and then records the old behavior.
-        bad: Whether you are a beginner or an expert, every part of this guide is for you.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — structure.md ("Audience straddle") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-structure.audience-straddle-core.
 ---
 id: ai-tells-register
 title: AI tells -- the chat-assistant register
@@ -1383,7 +576,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Faux-candor pivot") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Faux-candor pivot")'
       url: https://tropes.fyi/
       note: >-
         Mechanizable core. tropes.fyi files this as "False Vulnerability". Judgement
@@ -1391,44 +584,6 @@ rules:
         actual test is whether the vulnerability is risk-free, which no token
         carries. The structure catalog's "Here's the thing" overlaps -- that form is
         in ai-tells-structure.false-suspense-frames.
-
-  - id: faux-candor-remainder
-    name: Judge whether an admission carries risk
-    kind: judgement
-    severity: suggestion
-    message: "faux candor: candor is the unhedged claim itself"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this admission cost the author anything -- a named mistake, a measured
-      failure, a refused feature -- or is it performed vulnerability with no exposure?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Replace the performance with the specific admission and its cost.
-    examples:
-      - bad: We're not perfect, and we're always learning.
-        good: The 3.0 release shipped with a broken lockfile path for six days.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Faux-candor pivot") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-register.faux-candor-core. The counter-signal
-        catalog names the positive form: "a concrete anecdote or a mistake admitted
-        with its cost".
 
   - id: intensifier-tics-core
     name: Drop the unearned intensifier
@@ -1458,7 +613,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Intensifier tics") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Intensifier tics")'
       url: https://github.com/conorbronsdon/avoid-ai-writing
       note: >-
         Mechanizable core. tropes.fyi files these as "magic adverbs". `actually` is
@@ -1467,41 +622,6 @@ rules:
         parent"), and prose-inflation.intensifier already owns the measured degree
         adverbs on the same reasoning. Judgement remainder in
         ai-tells-register.intensifier-tics-remainder.
-
-  - id: intensifier-tics-remainder
-    name: Judge whether emotion is announced or earned
-    kind: judgement
-    severity: suggestion
-    message: "unearned emotion: add the specific claim, or drop the adverb"
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Is the reaction this adverb announces supported anywhere in the passage by a
-      measurement, an example, or a named consequence?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Supply the support, or delete the adverb.
-    examples:
-      - bad: The rewrite is remarkably clean.
-        good: The rewrite deletes 400 lines and adds one function.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Intensifier tics") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-register.intensifier-tics-core.
 
   - id: corporate-analytic-filler-core
     name: Delete the analysis wrapper and keep the noun
@@ -1533,7 +653,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: "AI tells catalog — register.md (\"Corporate-analytic filler\") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md"
+      source: "AI tells catalog — register.md (\"Corporate-analytic filler\")"
       note: >-
         Mechanizable core. `granular` is deliberately OMITTED even though the catalog
         names it: the immutable historical record at
@@ -1543,50 +663,6 @@ rules:
         The remainder was retired 2026-09-22 after adjudication showed 16 percent
         precision. Overlaps upstream ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked,
         ai-tells.FillerPhrases, and ai-tells.LabelAndExplain, all of which stay enabled.
-
-  - id: over-formatting-reflex
-    name: Format only when the data has columns
-    kind: judgement
-    severity: suggestion
-    message: "over-formatting: format only when the data has columns or the items are parallel and independent"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Does each table, heading, and bold-colon bullet in this document carry data
-      with real columns or items that are parallel AND independent, or would two
-      sentences of prose say the same thing?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Unwrap the structure into prose where the items are neither columnar nor independent.
-    examples:
-      - bad: "| Field | Value |\n|---|---|\n| Purpose | It loads things |"
-        good: The loader reads the lockfile.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Over-formatting reflex") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://rlhfbook.com/c/18-style
-      note: >-
-        A direct reward-model artifact, with per-model formatting fingerprints
-        measured in https://arxiv.org/abs/2502.12150. Judgement-only at document
-        scope: a table is correct or not depending on whether the data has columns,
-        which is exactly the thing a pattern cannot see. The mechanizable slice of
-        this entry is ai-tells-formatting.inline-header-list, which counts the
-        bullet SHAPE. prose-format.prose-block is the inverse metric -- prose that
-        should have been a table.
 
   - id: uniform-paragraph-mass
     name: Vary paragraph length deliberately
@@ -1605,7 +681,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Uniform paragraph mass") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Uniform paragraph mass")'
       url: https://gptzero.me/news/perplexity-and-burstiness-what-is-it/
       note: >-
         The catalog states the shape numerically -- "every paragraph three sentences
@@ -1616,48 +692,6 @@ rules:
         it is also proposed in the immutable historical record at
         https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md
         as paragraph-length-dispersion -- the two are the same measurement, so ship one.
-
-  - id: hedged-symmetry
-    name: Take the position the evidence supports
-    kind: judgement
-    severity: suggestion
-    message: "hedged symmetry: take the position the evidence supports; cut the ballast"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Is each counter-claim in this passage one somebody actually makes, or was it
-      added so the passage reads even-handed?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Delete the invented counter-claim and state the position the evidence supports.
-    examples:
-      - bad: Lockfiles help reproducibility, though some argue they add friction.
-        good: The lockfile pins every transitive dependency.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Hedged symmetry") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://rlhfbook.com/c/18-style
-      note: >-
-        Upstream ai-tells.FalseBalance attempts the phrase forms and stays enabled.
-        The judgement is whether the counter-claim has a holder, which needs domain
-        knowledge. Related to but distinct from prose-inflation.hedge-stack, which
-        counts hedges on ONE claim; this counts claims balanced against each other.
-        Note the catalog file carries a `write-docs:allow E2` suppression on this
-        bullet, because describing the tell requires the word it bans.
 
   - id: sycophantic-meta-residue
     name: Delete the approval residue and audit the surrounding text
@@ -1687,7 +721,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Sycophantic meta-residue") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Sycophantic meta-residue")'
       note: >-
         Enforced at every tier for the same reason ai-residue.chat-leakage is: it is
         session residue, never a register choice. Fully mechanizable as a token list,
@@ -1725,7 +759,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Figurative-verb verdict") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Figurative-verb verdict")'
       note: >-
         Mechanizable core, as a literal token list. Distinctly 2026 register: the
         catalog records that it SURVIVED the lexical patching that killed the
@@ -1734,44 +768,6 @@ rules:
         ai-tells.FigurativeLands, FigurativeHolds, FigurativeQuiet, FigurativeCarries
         and twelve more -- all of which stay enabled, so expect duplicates.
         Judgement remainder in ai-tells-register.figurative-verb-verdict-remainder.
-
-  - id: figurative-verb-verdict-remainder
-    name: Judge whether a metaphor carries a verdict with no evidence
-    kind: judgement
-    severity: suggestion
-    message: "figurative verdict: the construction carries the verdict so no evidence has to"
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Does this sentence deliver a judgement through a metaphor while stating no
-      observation that would let a reader disagree?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Replace the metaphor with the observation and the judgement it supports.
-    examples:
-      - bad: The design pays for itself.
-        good: The design removes the second config file, so there is one place to look.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Figurative-verb verdict") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-register.figurative-verb-verdict-core, and
-        the durable form: the catalog warns the specific verbs drift per model
-        generation while the construction does not.
 
   - id: urgency-inflation-core
     name: Name what breaks, or drop the framing
@@ -1801,47 +797,12 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Urgency inflation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Urgency inflation")'
       note: >-
         Mechanizable core, enforced at every tier: .vale.ini already keeps upstream
         ai-tells.UrgencyInflation at error even for source comments, so this port
         inherits that disposition. Stakes asserted to substitute for consequence.
         Judgement remainder in ai-tells-register.urgency-inflation-remainder.
-
-  - id: urgency-inflation-remainder
-    name: Judge whether stakes name a consequence
-    kind: judgement
-    severity: suggestion
-    message: "urgency inflation: name what breaks if the reader ignores it"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this passage name what breaks if the reader ignores it, or only that the
-      matter is urgent?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: State the failure mode, or delete the urgency.
-    examples:
-      - bad: Getting this right is critical.
-        good: A wrong value here silently skips every file.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Urgency inflation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-register.urgency-inflation-core.
 
   - id: organic-consequence-core
     name: Say the choice was made, and why
@@ -1870,109 +831,13 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — register.md ("Organic-consequence framing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Organic-consequence framing")'
       note: >-
         Mechanizable core, enforced at every tier because it erases the agent who
         chose -- the same defect prose-agency.false-agency and
         prose-agency.agentless-passive gate at error in every register. Upstream
         ai-tells.OrganicConsequence covers this and stays enabled. Judgement
         remainder in ai-tells-register.organic-consequence-remainder.
-
-  - id: organic-consequence-remainder
-    name: Judge whether a design is presented as self-caused
-    kind: judgement
-    severity: suggestion
-    message: "organic-consequence framing: a designed decision presented as something that happened"
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Did a person choose the thing this sentence describes as arising on its own?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Name the chooser and the reason.
-    examples:
-      - bad: The threshold settles at 34 words.
-        good: The maintainers set the threshold at 34 words after measuring 30 and 32.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Organic-consequence framing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-register.organic-consequence-core.
-
-  - id: false-agency-remainder
-    name: Judge whether an abstraction occupies the subject slot
-    kind: judgement
-    severity: suggestion
-    message: 'false agency: name the human, or use "you" and put the reader in the seat'
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    judgement_question: >-
-      Is the subject performing deliberate intent or choice, or is it a checkable technical
-      actor under a specification? If it is a MUST/MUST NOT/DEFAULT line, imperative
-      steering, quoted text, or a component causally operating, PRESERVE; flag only
-      unowned intent, merit, or self-causation.
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Name the human. Where no specific person fits, use "you" and put the reader in the seat.
-    examples:
-      - bad: The complaint becomes a fix.
-        good: The team fixed it that week.
-      - bad: A bet lives or dies in days.
-        good: You learn within a week whether the bet paid.
-      - bad: The parser rejects malformed JSON.
-        good: null
-        note: "preserve: technical actor performing a checkable operation"
-      - bad: The cache evicts entries.
-        good: null
-        note: "preserve: component performing a checkable operation"
-      - bad: MUST reject invalid input.
-        good: null
-        note: "preserve: normative specification line"
-      - bad: Run the migration.
-        good: null
-        note: "preserve: imperative steering"
-      - bad: The cache wants to protect you.
-        good: The cache evicts entries.
-    ai_signal: weak
-    ai_signal_source: measured
-    # Measurement: 4 vs 1 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — register.md ("False agency") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of prose-agency.false-agency, which mechanises the seven
-        named subject-verb bands. This rule carries the open case, because the
-        catalog's own definition -- "an abstraction promoted to actor" -- is
-        productive: any abstract noun can occupy the subject slot, so no closed list
-        finishes the job. The catalog distinguishes it from the two entries around
-        it: those grant a component desert ("earns its keep",
-        ai-tells-register.anthropomorphised-justification-core) or self-causation
-        ("falls out naturally", ai-tells-register.organic-consequence-core).
 
   - id: anthropomorphised-justification-core
     exceptions: [quotation]
@@ -2003,7 +868,7 @@ rules:
     ai_signal: strong
     ai_signal_source: measured
     provenance:
-      source: 'AI tells catalog — register.md ("Anthropomorphised justification") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — register.md ("Anthropomorphised justification")'
       note: >-
         Mechanizable core. Upstream ai-tells.AnthropomorphicJustification covers
         this and stays enabled. BROADER than the content-shape anthropomorphism
@@ -2011,42 +876,6 @@ rules:
         prose-agency.anthropomorphism; this covers subjects DESERVING. Judgement
         remainder in
         ai-tells-register.anthropomorphised-justification-remainder.
-
-  - id: anthropomorphised-justification-remainder
-    name: Judge whether a component is granted intent
-    kind: judgement
-    severity: suggestion
-    message: "anthropomorphised justification: a component granted intent so its value needs no argument"
-    scope: sentence
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this sentence assert a component's value by granting it merit rather
-      than by naming a property a reader could check?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects:
-        [
-          controlled_language_clarity,
-          normative_obligation,
-          source_locked_legal_text,
-        ]
-      judgement_ceiling: suggestion
-    fix: Replace the merit claim with the checkable property.
-    examples:
-      - bad: The cache more than repays its complexity.
-        good: The cache removes one network round trip per run.
-    ai_signal: strong
-    ai_signal_source: measured
-    # Measurement: 61 vs 8 confirmations on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — register.md ("Anthropomorphised justification") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
 ---
 id: ai-tells-formatting
 title: AI tells -- formatting and punctuation
@@ -2074,7 +903,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Em-dash density", "Hyphen-swap") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Em-dash density", "Hyphen-swap")'
       url: https://techcrunch.com/2025/11/14/openai-says-its-fixed-chatgpts-em-dash-problem/
       note: >-
         The catalog's tell is DENSITY, not presence, and this is the metric form of
@@ -2108,7 +937,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Curly quotes/apostrophes") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Curly quotes/apostrophes")'
       note: >-
         Fully mechanizable, so no judgement partner. The tell is conditional on
         house style -- "in a repo that types straight ones" -- so relaxed excludes
@@ -2146,7 +975,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Title Case In Every Heading") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Title Case In Every Heading")'
       note: >-
         The catalog itself concedes the house-style escape ("unless house style says
         otherwise"), so this is advisory everywhere and excluded at relaxed. The
@@ -2176,7 +1005,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Bold spray") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Bold spray")'
       note: >-
         Density metric, matching the catalog's shape ("every occurrence of chosen
         terms bolded"). Threshold 20 per 1000 words was set in the 2026-09-12 audit:
@@ -2202,7 +1031,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Inline-header list") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Inline-header list")'
       note: >-
         This is the mechanizable SHAPE half of two catalog entries: formatting.md's
         "Inline-header list" and structure.md's "Bold-lead-in bullet symmetry". The
@@ -2225,7 +1054,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Skipped heading levels; horizontal rules before headings") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Skipped heading levels; horizontal rules before headings")'
       note: >-
         kind=structure, because the check is block-level shape over the heading
         sequence, not a regex over text: it needs the previous heading's level. Two
@@ -2234,39 +1063,6 @@ rules:
         skipped level breaks screen-reader navigation and every TOC generator, which
         makes it an accessibility defect rather than a register preference. No
         existing Vale rule covers it, ours or upstream.
-
-  - id: table-wrapping-one-sentence
-    name: Unwrap a table that holds one sentence
-    kind: judgement
-    severity: suggestion
-    message: "table wrapping prose: unwrap it"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Does each table in this document have at least two rows whose cells vary in
-      the same dimension, or is it one sentence in a grid?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [quoted_specimen]
-      judgement_ceiling: suggestion
-    fix: Unwrap the table into the sentence it holds.
-    examples:
-      - bad: "| Note |\n|---|\n| The loader reads the lockfile. |"
-        good: The loader reads the lockfile.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — formatting.md ("Tables wrapping what is actually one sentence of prose") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement, because a one-row table is legitimate as a header-only reference
-        stub and the test is whether the cells vary in a shared dimension. Inverse of
-        prose-format.prose-block, which flags prose that should have been a table.
 
   - id: italicised-copula
     name: Delete manufactured emphasis
@@ -2287,7 +1083,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Italicised copula for manufactured profundity") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Italicised copula for manufactured profundity")'
       note: >-
         Fully mechanizable: the tell is a closed set of function words under
         emphasis. `scope: raw` because the marker characters are markdown syntax that
@@ -2324,7 +1120,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Cross-reference signposting") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Cross-reference signposting")'
       note: >-
         Mechanizable as a token list, so no judgement partner. Complements
         prose-craft.directional-ref, which owns the POSITION-dependent forms ("see
@@ -2353,7 +1149,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — formatting.md ("Emoji as list markers or in headings") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — formatting.md ("Emoji as list markers or in headings")'
       note: >-
         The list-marker half of the catalog row. The heading half is already
         mechanised as prose-format.emoji-heading, which the source repo gates at
@@ -2393,7 +1189,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — content-shape.md ("Fabricated or damaged citations") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — content-shape.md ("Fabricated or damaged citations")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
         Mechanizable core, narrowed to the ONE checkable slice: tracking junk in a
@@ -2402,45 +1198,6 @@ rules:
         ai-residue.chat-leakage, so it is not duplicated here. Judgement remainder in
         ai-tells-content-shape.fabricated-citations-remainder covers what a pattern
         can never do -- resolve the DOI.
-
-  - id: fabricated-citations-remainder
-    name: Verify every reference you did not fetch yourself
-    kind: judgement
-    severity: suggestion
-    message: "unverified citation: verify every reference you did not fetch yourself"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    judgement_question: >-
-      For each reference in this document, did you fetch it yourself and confirm it
-      says what the sentence claims?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 2, roles: [defect, referent] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Fetch each reference, or delete the claim that rests on it.
-    examples:
-      - bad: Smith (2019) reports a 40% reduction, doi:10.1000/182.
-        good: The npm RFC 0012 measured a 40% drop in resolution variance.
-        note: >-
-          The catalog's failure modes: DOIs that resolve to unrelated papers,
-          invented ISBNs, dead URLs, and book cites with no page numbers.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Fabricated or damaged citations") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
-      note: >-
-        Judgement remainder of ai-tells-content-shape.fabricated-citations-core, and
-        enforced at every tier: a fabricated citation is a factual defect in any
-        register. Decidable, not taste -- the reviewer either fetched it or did not.
-        Related to ai-tells-structure.vague-attribution-remainder, which asks whether
-        a source is NAMED; this asks whether a named source is REAL.
 
   - id: fake-specificity
     name: Give the number or drop the quantifier
@@ -2465,7 +1222,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — content-shape.md ("Fake specificity") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — content-shape.md ("Fake specificity")'
       note: >-
         The catalog names four forms: "over 100+", "countless", "numerous", "a wide
         range of". The middle two are already mechanised in
@@ -2475,59 +1232,6 @@ rules:
         because "over 100+" is a self-contradicting construction rather than a
         register choice. Split as core-only: the residual judgement is
         prose-inflation.vague-quantifier's own message ("give the count").
-
-  - id: vaporware-description
-    name: Cut the claim, not the qualifier
-    kind: judgement
-    severity: suggestion
-    message: "vaporware: cut the CLAIM, not the qualifier"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: enforced
-    judgement_question: >-
-      In a current consumer or internal artifact, does each present-tense behavior
-      claim match code at HEAD? Flag a claim that presents planned, historical, or
-      unavailable behavior as shipped; do not apply this test to a change
-      communication, release note, historical record, decision, future plan, or
-      specification whose purpose is to state that other time or intent.
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: >-
-      For current artifacts, delete an unsupported claim or keep only the documented
-      opt-in behavior. For change, history, decisions, plans, and specifications,
-      label the status and date or target explicitly instead of disguising it as
-      current behavior.
-    examples:
-      - bad: The loader supports globs (coming soon).
-        good: The loader accepts a literal path.
-        note: >-
-          Deleting the hedge alone converts an honest roadmap note into a false
-          claim: the lint passes and the document now lies.
-      - good: Release 2.4 adds glob support; version 2.3 accepts literal paths only.
-        bad: The current loader supports globs.
-      - good: The next version will add glob support; this is a proposed behavior.
-        bad: The loader supports globs today.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Vaporware description") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        JUDGEMENT-ONLY BY DESIGN, and enforced at every tier. The catalog is explicit
-        that the mechanical rule is a TRAP: docs-discipline.status-language bans the
-        hedge ("coming soon", "not yet implemented", "planned"), and a writer who
-        deletes only the hedge to pass the gate ships a document that lies. The tell
-        is not the honesty -- it is the MIXTURE, a page that reads as shipped and
-        hedges in the margins. So this rule deliberately does NOT carry a pattern:
-        it exists to make the status-language finding decidable, and any engine that
-        fires them independently reproduces the trap. The `fix` field carries the
-        catalog's ordered procedure verbatim in substance.
 
   - id: adjective-per-noun-spray
     name: Cut decorative modifiers
@@ -2546,7 +1250,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — content-shape.md ("Adjective-per-noun spray") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — content-shape.md ("Adjective-per-noun spray")'
       note: >-
         The catalog states this as a RATIO ("every noun wears a modifier"), which is
         why it converts to a metric rather than a pattern. Threshold 0.5 is INFERRED
@@ -2555,117 +1259,6 @@ rules:
         engine does not yet have -- the same gap that blocks
         prose-craft.plural-abbreviation. The catalog's own guidance names the keep
         test: "destructive" and "reversible" carry load.
-
-  - id: elegant-variation
-    name: Repeat the noun
-    kind: judgement
-    severity: suggestion
-    message: "elegant variation: repeat the noun; precision beats variety"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Does this document refer to one thing by two or more different names without saying they are the same thing?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Pick one name and use it every time.
-    examples:
-      - bad: The loader reads it. The resolver caches it. The component then exits.
-        good: The loader reads it, caches it, then exits.
-    ai_signal: weak
-    ai_signal_source: measured
-    # Measurement: 7/11 vs 11/40 units on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Elegant variation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        A repetition-penalty artifact of the decoder. Judgement-only: deciding it
-        requires knowing that two nouns denote the same referent, which is the
-        coreference problem. The catalog file carries a `write-docs:allow E2`
-        suppression on this bullet.
-
-  - id: one-point-dilution
-    name: Say it once and stop
-    kind: judgement
-    severity: suggestion
-    message: "one-point dilution: say it once; stop"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Should the reviewer flag a later passage only when it recasts the same point without adding a current fact, constraint, reproduction step, decision, time-bounded change, required change-note, decision, plan, specification, or historical purpose, or a bounded, scoped recommendation or condition in the author's voice when it names a concrete action, antecedent, comparison, timing, or rationale?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Delete each restatement after the first unless it carries a distinct required fact or purpose.
-    examples:
-      - bad: Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
-        good: The gate produces the same findings on every run.
-      - bad: The cache is deterministic. In other words, it behaves predictably. Think of it as a stable map.
-        good: The cache returns the same value for the same key until invalidation.
-      - good: Version 2 changed the cache key; the migration note retains the old key so operators can update stored entries.
-        bad: Think of the cache as a stable map, a reliable lookup, and a predictable store.
-      - bad: Think of the cache as a stable map. When it is stale, refresh it before reading the result.
-        good: When the cache is stale, refresh it before reading the result.
-        note: "preserve: bounded, scoped recommendation or condition in the author's voice"
-    ai_signal: none
-    ai_signal_source: measured
-    # Measurement: 3/21 vs 6/35 units on ~3.9k LLM vs ~3.4k human units.
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("One-point dilution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement-only: detecting it requires recognising two passages as the same
-        argument in different words. Overlaps
-        ai-tells-structure.think-of-it-as-core, whose frames are one common vehicle
-        for a restatement.
-
-  - id: padded-symmetry
-    name: Let a section be two sentences
-    kind: judgement
-    severity: suggestion
-    message: "padded symmetry: two sentences is a fine section"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    judgement_question: >-
-      Does any section exist to match a sibling's length, or does any
-      FAQ/Tips/Troubleshooting section answer a question nobody asked?
-    judgement:
-      scope_class: probe
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Delete the padding and let the section be short.
-    examples:
-      - bad: "## Troubleshooting\n\nIf the loader fails, check the logs."
-        good: ""
-        note: A troubleshooting section for problems that do not exist.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Padded symmetry") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement-only. Related to the immutable historical record's "Asymmetric
-        structure" at
-        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md,
-        whose positive form is proposed as a document metric, `section-length-dispersion`.
-        That metric is the mechanizable proxy; this rule is the decidable question.
 
   - id: superficial-ing-analysis
     name: State the analysis as a fact or delete it
@@ -2686,7 +1279,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — content-shape.md ("Superficial -ing analysis") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — content-shape.md ("Superficial -ing analysis")'
       note: >-
         Fully mechanizable as a trailing-participle frame, so no judgement partner:
         the catalog's own test -- "either the analysis is a fact (state it as one) or
@@ -2730,7 +1323,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: 'AI tells catalog — content-shape.md ("Durable vocabulary habits") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
+      source: 'AI tells catalog — content-shape.md ("Durable vocabulary habits")'
       note: >-
         The catalog groups four SHAPES, not marker words, and three of them convert
         as substitutions: copula avoidance, ability framing, and significance
@@ -2742,172 +1335,6 @@ rules:
         replacement values are parenthetical instructions rather than literal
         swaps, because the catalog's fix names an operation, not a word.
         Upstream ai-tells.ServesAsDodge overlaps the copula band and stays enabled.
-
-  - id: textbook-connector-runs
-    name: Do not open consecutive sentences on a textbook connector
-    kind: judgement
-    severity: suggestion
-    message: "textbook connectors: replace with the concrete relation, or delete"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Do two consecutive sentences in this paragraph open on a textbook connector
-      (moreover, furthermore, additionally, consequently)?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Delete the connectors; if the relation is real, rewrite so the sentences carry it.
-    examples:
-      - bad: Moreover, the cache is warm. Furthermore, the lockfile is present.
-        good: The cache is warm and the lockfile is present.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Durable vocabulary habits") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the
-        catalog's claim is about consecutive OPENINGS, which is an adjacency
-        property, not a token match. The immutable historical record at
-        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
-        records that upstream ai-tells.FormalTransitions was DISABLED for flagging
-        these same connectives as bare tokens ("these are ordinary English connectives and this corpus uses
-        them correctly"), so the adjacency form is deliberately the only one carried
-        and prose-craft.wordiness maps `additionally` to `also` as a substitution
-        without a position claim.
-
-  - id: over-writing-remainder
-    name: Judge whether the reader acts differently for having read it
-    kind: judgement
-    severity: suggestion
-    message: "over-writing: cut it to the behavior; move the decision to an ADR, spec, or commit"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: excluded
-    judgement_question: >-
-      If this paragraph were removed, would the reader lose a current behavior,
-      constraint, reproduction step, or explicit change/decision purpose? Flag it
-      when its reasoning is an implementation journey, cache-style operational
-      archaeology, or a postscript whose removal preserves the reader's task and
-      current contract. Keep rationale in a decision, plan, specification, change
-      communication, or historical record when that is the document's purpose.
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Cut to the behavior; move decision history to an ADR, spec, commit, or change record.
-    examples:
-      - bad: A paragraph of loosely related reasoning appended to a section that had already finished.
-        good: The loader reads the lockfile, then falls back to the manifest.
-      - bad: We tried three cache layouts before settling on this one.
-        good: The cache key is the manifest path and content hash.
-      - bad: The old cache key was chosen after trying several alternatives.
-        good: This migration note records why the old cache key must be retained until version 2.4.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Over-writing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of the prose-scope category. The catalog names three
-        shapes: a rejected alternative defended in place
-        (prose-scope.rejected-alternative), an implementation cost the reader cannot
-        act on (prose-scope.implementation-leak), and a paragraph of loosely related
-        reasoning appended to a finished section -- the third has NO pattern and is
-        what this rule carries. Excluded at relaxed for the same genre reason the
-        prose-scope rules are: an ADR or a spec exists to hold this content.
-
-  - id: unasked-for-rationale
-    name: Delete the clause and keep the behavior
-    kind: judgement
-    severity: suggestion
-    message: "unasked-for rationale: delete the clause and keep the behavior, or move the reason to the commit"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: excluded
-    judgement_question: >-
-      If this rationale were removed, would the reader lose a constraint, invariant,
-      gotcha, measured threshold, reproduction step, or explicit change/decision
-      purpose? Flag a clause that only defends an implementation or narrates its
-      journey when the behavior and current contract remain unchanged without it.
-      Keep reasons in safety explanations, decisions, plans, specifications,
-      change communications, and historical records when that is their purpose.
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Delete the rationale and keep the behavior, or move the reason to the appropriate decision or change record.
-    examples:
-      - bad: This keeps the logic in one place.
-        good: The helper is shared by both parsers.
-      - bad: We chose this cache layout after trying several alternatives.
-        good: The cache key is the manifest path and content hash.
-      - good: The migration record explains why version 2 retains the old key until all workers upgrade.
-        bad: The old key was chosen because it felt simpler.
-        note: >-
-          A measured number that decided a threshold is one of the three legitimate
-          cases, so this example is a judgement call, not a defect by construction.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Unasked-for rationale") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not
-        pattern-match it." Distinct from prose-scope.rejected-alternative, which
-        needs a NAMED alternative to anchor on; this one names no alternative, so no
-        pattern reaches it. The three legitimacy tests are carried inside
-        judgement_question because all three are context the reader has and a regex
-        does not. Excluded at relaxed on the same genre grounds as prose-scope.
-
-  - id: epigram-closer-remainder
-    name: Judge whether a closing line adds a fact
-    kind: judgement
-    severity: suggestion
-    message: "epigram closer: the paragraph or table above already carried the content"
-    scope: paragraph
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this closing line state a fact the paragraph or table above did not, or
-      does it perform having concluded?
-    judgement:
-      scope_class: local
-      dims: { fit: ask, harm: ask, repair: ask, warrant: ask }
-      evidence: { min_arity: 1, roles: [defect] }
-      warrant_min: 2
-      protects: [normative_obligation, quoted_specimen]
-      judgement_ceiling: warning
-    fix: Delete it.
-    examples:
-      - bad: The linter is deterministic. The reviewer is not.
-        good: ""
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — content-shape.md ("Epigram closer") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md'
-      note: >-
-        Judgement remainder of prose-scope.epigram, which mechanises two shapes -- a
-        parallel pair and a negated maxim -- at warning, because the same shape
-        occasionally states a real contrast. That warning level IS the judgement gap,
-        and this rule names it. A reward-model favourite: it survives editing because
-        it reads quotable.
 ---
 id: ai-tells-agentic
 title: AI tells -- agentic slogan formulae
@@ -2946,7 +1373,7 @@ rules:
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
-      source: packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
+      source: retired review guidance ("Read the headings alone, in order")
       note: >-
         Three shape conditions carry this rule, and each one alone is what keeps a
         real invariant out of it. The predicate must sit IMMEDIATELY against the bare

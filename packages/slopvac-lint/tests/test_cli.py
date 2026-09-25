@@ -1,6 +1,6 @@
 """CLI contract.
 
-The exit codes are what pre-commit, the GitHub Action, and the skill all branch
+The exit codes are what pre-commit, the GitHub Action, and automation branch
 on. Exit 2 means the check could not start or did not run every selected rule;
 partial findings remain available but cannot establish a pass.
 """
@@ -578,15 +578,6 @@ def test_rules_json_carries_categories_and_tiers(runner):
     assert any(c["recommended_for"] for c in payload["categories"])
 
 
-def test_judgement_filter_returns_only_unmechanizable_rules(runner):
-    """This is the agentic reviewer's input, so it must be selectable on its own."""
-    result = runner.invoke(main, ["rules", "--judgement", "--format", "json"])
-    rules = json.loads(result.output)["rules"]
-    assert rules
-    assert all(rule["kind"] == "judgement" for rule in rules)
-    assert all(rule["judgement_question"] for rule in rules)
-
-
 def test_explain_shows_exceptions_and_the_annotation(runner):
     result = runner.invoke(main, ["explain", "orwell.stale-figure"])
     assert result.exit_code == EXIT_OK
@@ -896,7 +887,7 @@ def test_compile_json_lists_every_bucket(tmp_path):
     )
     payload = json.loads(result.output)
     assert payload["vale"]
-    assert payload["judgement"]
+    assert "judgement" not in payload
     # Every native entry names its reason, which is what --explain-config prints.
     for entry in payload["native"]:
         assert entry["reason"]

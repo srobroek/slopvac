@@ -48,10 +48,8 @@ jobs:
           def document_class(path):
               if path.startswith(".github/action-fixtures/") or "/tests/fixtures/" in path:
                   return "fixture"
-              if path.endswith("CHANGELOG.md") or "/docs/research/" in path:
-                  return "historical"
-              if path.endswith("/docs/orwell-derivation.md"):
-                  return "historical"
+              if path.endswith("CHANGELOG.md"):
+                  return "release"
               if path.endswith("/docs/rules.md"):
                   return "generated"
               if path.startswith(".beads/") or path.startswith(".agents/skills/beads/"):
@@ -149,7 +147,7 @@ jobs:
           routing = command("routing", ["slopvac", "compile", "--format", "json", "--config", "slopvac.toml"])
           if routing.returncode == 0:
               route = json.loads(routing.stdout)
-              counts = {k: len(route[k]) for k in ("vale", "native", "judgement", "disabled")}
+              counts = {k: len(route[k]) for k in ("vale", "native", "disabled")}
               print("ENGINE_ROUTING", json.dumps({"vale_version": route.get("vale_version"), **counts}), flush=True)
 
           parser = MarkdownIt("commonmark").enable("table")
@@ -214,11 +212,11 @@ jobs:
               f"Generated reference check: {reference.returncode}. Local link candidates: {len(broken)}.",
               "",
               "The unrestricted diagnostic still scans fixtures, generated references, "
-              "historical records, and managed prose.",
+              "release records, and managed prose.",
               "The authored-document gate excludes those classes. Inline intentional "
               "examples use slopvac disable directives or fenced code, so they do not "
               "count as authored prose defects.",
-              "Model judgement and external URL validation are outside this audit.",
+              "External URL validation and future semantic-judge evaluation are outside this audit.",
           ))
           Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(summary)
           incomplete = (

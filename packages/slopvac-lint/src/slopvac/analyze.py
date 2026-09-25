@@ -364,67 +364,6 @@ class Sentence:
 
 
 @dataclass
-class Unit:
-    """A judgement unit with exact projected and document coordinates."""
-
-    kind: str
-    rule_id: str
-    path: str
-    text: str
-    range: tuple[int, int]
-    doc_range: tuple[int, int]
-    projection: ProjectionMap
-    origin: str
-    region_class: str
-    source_sha256: str
-    unit_id: str = ""
-    ordinal: int = 0
-
-    @property
-    def id(self) -> str:
-        return self.unit_id
-
-    @property
-    def source_spans(self) -> tuple[tuple[int, int], ...]:
-        return self.projection.source_spans()
-
-    @property
-    def source_range(self) -> tuple[int, int]:
-        spans = self.source_spans
-        return (spans[0][0], spans[-1][1]) if spans else (0, 0)
-
-    def __post_init__(self) -> None:
-        if not self.unit_id:
-            # A source segment can feed more than one judgement rule. Keep the
-            # shared segment identity inputs while adding the rule discriminator
-            # required for result rows to remain one-to-one with requests.
-            self.unit_id = _identity_id(
-                self.path,
-                f"{self.kind}:{self.rule_id}",
-                self.text,
-                self.ordinal,
-            )
-
-
-class SpanCandidate(Unit):
-    """A local span unit sent to the judgement layer."""
-
-    def __init__(self, **kwargs: object) -> None:
-        super().__init__(kind="SPAN_CANDIDATE", **kwargs)
-
-
-class PassageProbe(Unit):
-    """A whole-passage probe unit sent to the judgement layer."""
-
-    def __init__(self, **kwargs: object) -> None:
-        super().__init__(kind="PASSAGE_PROBE", **kwargs)
-
-
-SPAN_CANDIDATE = "SPAN_CANDIDATE"
-PASSAGE_PROBE = "PASSAGE_PROBE"
-
-
-@dataclass
 class Block:
     kind: BlockKind
     lines: tuple[int, int]
@@ -512,31 +451,6 @@ class Document:
         ]
         return INLINE_CODE.sub(" ", "\n".join(kept))
 
-
-def _unit_for_block(
-    block: Block,
-    *,
-    rule_id: str,
-    path: str,
-    kind: str = SPAN_CANDIDATE,
-) -> Unit:
-    if block.projection is None:
-        raise ValueError("block has no projection map")
-    unit_type = PassageProbe if kind == PASSAGE_PROBE else SpanCandidate
-    return unit_type(
-        rule_id=rule_id,
-        path=path,
-        text=block.text,
-        range=block.range,
-        doc_range=block.doc_range,
-        projection=block.projection,
-        origin=block.origin,
-        region_class=block.region_class,
-        source_sha256=block.source_sha256,
-    )
-
-
-unit_from_block = _unit_for_block
 
 
 _ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]+);?")
