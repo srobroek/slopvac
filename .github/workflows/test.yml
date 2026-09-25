@@ -169,6 +169,7 @@ jobs:
   # one job rather than every matrix leg, so adding a Python version needs no change
   # to the protection rule.
   gate:
+    name: Tests gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [test, lint-package]
