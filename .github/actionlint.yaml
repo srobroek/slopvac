@@ -1,0 +1,7 @@
+# GitHub's hosted runner images include ubuntu-26.04, but actionlint 1.7.7
+# predates that label. Limit the compatibility exception to this workflow and
+# only the stale runner-label diagnostic; all other actionlint checks still run.
+paths:
+  .github/workflows/cli-e2e.yml:
+    ignore:
+      - 'label "ubuntu-26\.04" is unknown'

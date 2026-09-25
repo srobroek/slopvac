@@ -17,7 +17,7 @@ permissions:
 jobs:
   e2e:
     if: ${{ github.event_name == 'workflow_dispatch' || inputs.package }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -290,7 +290,7 @@ jobs:
 
   smoke:
     if: ${{ github.event_name == 'workflow_dispatch' || inputs.package || inputs.docs }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Checkout
