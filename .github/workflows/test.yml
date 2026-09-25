@@ -1,28 +1,132 @@
-name: Tests
+name: CI
 
-# Runs the whole suite. The linter has its own job below, against every Python
-# version its metadata claims; this job covers the Vale sub-gate, whose styles are
-# compiled from the YAML ruleset at run time.
-#
-# The rule tests drive the real `vale` binary against fixtures, because Vale has no
-# rule-test framework. They are skipped rather than failed when vale is absent,
-# which would make a broken install look like a pass -- hence the installer's
-# explicit version check.
-
+# One always-triggered workflow owns pull-request CI. Individual jobs are skipped
+# with job-level conditions so required checks never disappear because an entire
+# workflow was path-filtered.
 on:
   pull_request:
   push:
     branches: [main]
+  merge_group:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Classify changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      package: ${{ steps.filter.outputs.package }}
+      action: ${{ steps.filter.outputs.action }}
+      docs: ${{ steps.filter.outputs.docs }}
+      ci: ${{ steps.filter.outputs.ci }}
+      config: ${{ steps.filter.outputs.config }}
+      shell: ${{ steps.filter.outputs.shell }}
+      precommit: ${{ steps.filter.outputs.precommit }}
+      complexity: ${{ steps.filter.outputs.complexity }}
+      lint: ${{ steps.filter.outputs.lint }}
+      dependencies: ${{ steps.filter.outputs.dependencies }}
+      filesystem: ${{ steps.filter.outputs.filesystem }}
+      secrets: ${{ steps.filter.outputs.secrets }}
+      force_all: ${{ steps.bootstrap.outputs.force_all }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # This routing guard is intentionally outside .github/ci-paths.yml. A broken
+      # edit to the central map therefore cannot make its own validation disappear.
+      - name: Protect CI routing changes
+        id: bootstrap
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            force_all:
+              - '.github/ci-paths.yml'
+              - '.github/workflows/test.yml'
+
+      - name: Classify changed files
+        id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: .github/ci-paths.yml
+
+      - name: Report classification
+        env:
+          MATCHED: ${{ steps.filter.outputs.changes }}
+          FORCE_ALL: ${{ steps.bootstrap.outputs.force_all }}
+        run: |
+          set -euo pipefail
+          echo "Matched CI classes: $MATCHED"
+          echo "Force all suites: $FORCE_ALL"
+          {
+            echo "## CI change classification"
+            echo
+            echo "\`$MATCHED\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Deliberately small and always on. This catches basic Python regressions and
+  # malformed hook manifests even for docs/config-only changes.
+  quick-lint:
+    name: Quick lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+
+      - name: Ruff
+        working-directory: packages/slopvac-lint
+        run: uvx ruff@0.16.3 check .
+
+      - name: Validate hook JSON
+        run: |
+          set -euo pipefail
+          files="$(git ls-files '*hooks.json' | sort -u)"
+          test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
+          for f in $files; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
+            echo "ok $f"
+          done
+
+      # These two tests inspect repository-wide documentation and configuration.
+      # Keep them in the small always-on job so those invariants cannot be bypassed
+      # without making every docs-only change pay for the complete pytest suite.
+      - name: Repository-wide invariants
+        env:
+          INVARIANTS: >-
+            retired_integration_names_do_not_survive_in_live_sources or
+            removed_agent_packaging_has_no_live_paths_or_install_commands
+        run: |
+          uv run --project packages/slopvac-lint --extra dev python -m pytest -q \
+            packages/slopvac-lint/tests/test_steering.py -k "$INVARIANTS"
+
+  # Full repository test discovery on the newest supported Python. The root
+  # pytest configuration includes both package tests and any repository-level
+  # tests, so new test directories cannot silently sit outside CI.
   test:
+    name: Full test suite
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -36,9 +140,9 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install vale
+      - name: Install Vale
         run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
-      - name: Add vale to PATH
+      - name: Add Vale to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Install ast-grep
@@ -47,38 +151,20 @@ jobs:
           python3 -m pip install --quiet ast-grep-cli==0.45.3
           ast-grep --version
 
-      # The package itself, not just pytest. This job runs `pytest packages/slopvac-lint/tests`,
-      # and those tests import slopvac: installing the test runner alone collected every module
-      # as `ModuleNotFoundError: No module named 'slopvac'`. The `[dev]` extra brings click and
-      # the rest, which is what the lint-package job installs for the same reason.
-      - name: Install the package and pytest
+      - name: Install package and test dependencies
         run: python3 -m pip install --quiet -e "./packages/slopvac-lint[dev]"
 
-      - name: pytest
-        run: |
-          python3 -m pytest packages/slopvac-lint/tests -q
+      - name: Run every discovered pytest suite
+        run: python3 -m pytest
 
-      - name: Validate hook JSON
-        run: |
-          set -euo pipefail
-          # Discover manifests instead of maintaining a path list. A hardcoded list drifts when
-          # the repository gains or removes a plugin or hook manifest.
-          #
-          # Every tracked plugin, marketplace, and hook manifest is covered without editing this
-          # step.
-          #
-          files="$(git ls-files '*hooks.json' | sort -u)"
-          test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
-          for f in $files; do
-            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
-            echo "ok $f"
-          done
-
-  # The linter is a published package with its own dependencies, so it is tested
-  # in its own job against the Python versions its metadata claims to support. A
-  # `requires-python` floor nobody exercises is a claim, not a fact.
+  # Exercise the published package across every Python version claimed in
+  # project metadata. This is intentionally separate from the full-suite job.
   lint-package:
     name: slopvac (py${{ matrix.python }})
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.package == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -105,21 +191,15 @@ jobs:
         working-directory: packages/slopvac-lint
         run: uv pip install --system -e ".[dev]"
 
-      # The same install the `test` job does. This job runs the same `pytest tests`, and a rule
-      # test that drives the real vale binary raises `ValeUnavailable: vale is not on PATH`
-      # without it -- which is a missing dependency reported as a test failure.
-      - name: Install vale
+      - name: Install Vale
         run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
-      - name: Add vale to PATH
+      - name: Add Vale to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: pytest
         working-directory: packages/slopvac-lint
         run: python3 -m pytest tests -q
 
-      # load_ruleset raises on a broken rule, so this proves the shipped ruleset
-      # is loadable outside the test harness too -- including the generated
-      # spelling rule for every locale.
       - name: Ruleset loads for every locale
         working-directory: packages/slopvac-lint
         run: |
@@ -135,15 +215,6 @@ jobs:
             test "$status" -ne 2 || { echo "locale $locale broke the run"; exit 1; }
           done
 
-      # The committed reference must match the ruleset that produced it. A generated
-      # file with no check is a stale file with extra steps, and the failure it
-      # produces is the expensive kind: somebody plans against a rule that was
-      # renamed, retiered, or removed. `--check` exits 2 and prints a unified diff,
-      # so the log says which rules moved rather than just "drift".
-      #
-      # Runs on ONE Python version, not the whole matrix: the output is derived from
-      # the YAML rather than from anything interpreter-dependent, so N copies of the
-      # same comparison would only add N ways to spend CI minutes.
       - name: The rules reference is current
         if: matrix.python == '3.13'
         working-directory: packages/slopvac-lint
@@ -165,31 +236,186 @@ jobs:
           slopvac init --path /tmp/slopvac.toml --skip-agents
           slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 
-  # The only required status check for this workflow. Branch protection names this
-  # one job rather than every matrix leg, so adding a Python version needs no change
-  # to the protection rule.
+  cli-e2e:
+    name: CLI contract
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.package == 'true' ||
+      needs.changes.outputs.docs == 'true'
+    uses: ./.github/workflows/cli-e2e.yml
+    permissions:
+      contents: read
+    with:
+      package: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.package == 'true' }}
+      docs: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.docs == 'true' }}
+
+  action-contract:
+    name: Composite action contract
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.action == 'true'
+    uses: ./.github/workflows/action-test.yml
+    permissions:
+      contents: read
+
+  lint:
+    name: Relevant lint suites
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.lint == 'true'
+    uses: ./.github/workflows/lint.yml
+    permissions:
+      contents: read
+      security-events: write
+    with:
+      code: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.code == 'true' }}
+      docs: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.docs == 'true' }}
+      ci: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.ci == 'true' }}
+      config: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.config == 'true' }}
+      shell: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.shell == 'true' }}
+      precommit: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.precommit == 'true' }}
+      complexity: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.complexity == 'true' }}
+      action: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.action == 'true' }}
+
+  markdown-audit:
+    name: Markdown audit
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.docs == 'true'
+    uses: ./.github/workflows/markdown-audit.yml
+    permissions:
+      contents: read
+
+  security:
+    name: Relevant security suites
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.secrets == 'true' ||
+      needs.changes.outputs.code == 'true' ||
+      needs.changes.outputs.dependencies == 'true' ||
+      needs.changes.outputs.filesystem == 'true'
+    uses: ./.github/workflows/security.yml
+    permissions:
+      contents: read
+      security-events: write
+    with:
+      code: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.code == 'true' }}
+      dependencies: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.dependencies == 'true' }}
+      filesystem: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.filesystem == 'true' }}
+      secrets: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.secrets == 'true' }}
+
+  # Keep the established required-check name, but make it the single source of
+  # truth for the whole CI graph. It enforces exact skip semantics: a suite must
+  # succeed when its path class matched and must be skipped when it did not.
   gate:
     name: Tests gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [test, lint-package]
+    needs:
+      - changes
+      - quick-lint
+      - test
+      - lint-package
+      - cli-e2e
+      - action-contract
+      - lint
+      - markdown-audit
+      - security
     if: always()
     steps:
-      - name: Verify every job passed
+      - name: Verify required runs and valid skips
         env:
           RESULTS: ${{ toJSON(needs) }}
+          FORCE_ALL: ${{ needs.changes.outputs.force_all }}
+          CODE: ${{ needs.changes.outputs.code }}
+          PACKAGE: ${{ needs.changes.outputs.package }}
+          ACTION: ${{ needs.changes.outputs.action }}
+          LINT: ${{ needs.changes.outputs.lint }}
+          DOCS: ${{ needs.changes.outputs.docs }}
+          SECRETS: ${{ needs.changes.outputs.secrets }}
+          DEPENDENCIES: ${{ needs.changes.outputs.dependencies }}
+          FILESYSTEM: ${{ needs.changes.outputs.filesystem }}
         run: |
           set -euo pipefail
-          # A skipped or cancelled job is not a pass, and a matrix leg that never ran
-          # must not read as green. `always()` is what lets this job report at all
-          # when an upstream job failed.
           python3 - <<'PY'
-          import json, os, sys
+          import json
+          import os
+          import sys
 
           needs = json.loads(os.environ["RESULTS"])
-          failed = [n for n, job in needs.items() if job.get("result") != "success"]
-          if failed:
-              print(f"::error::these jobs did not succeed: {' '.join(failed)}")
+          problems = []
+
+          if needs["changes"]["result"] != "success":
+              problems.append(
+                  f"change classification was {needs['changes']['result']}, expected success"
+              )
+
+          force_all = os.environ["FORCE_ALL"] == "true"
+          code = os.environ["CODE"] == "true"
+          package = os.environ["PACKAGE"] == "true"
+          action = os.environ["ACTION"] == "true"
+          lint = os.environ["LINT"] == "true"
+          docs = os.environ["DOCS"] == "true"
+          secrets = os.environ["SECRETS"] == "true"
+          dependencies = os.environ["DEPENDENCIES"] == "true"
+          filesystem = os.environ["FILESYSTEM"] == "true"
+
+          expected = {
+              "quick-lint": True,
+              "test": force_all or code,
+              "lint-package": force_all or package,
+              "cli-e2e": force_all or package or docs,
+              "action-contract": force_all or action,
+              "lint": force_all or lint,
+              "markdown-audit": force_all or docs,
+              "security": force_all or secrets or code or dependencies or filesystem,
+          }
+
+          for name, should_run in expected.items():
+              actual = needs[name]["result"]
+              wanted = "success" if should_run else "skipped"
+              if actual != wanted:
+                  problems.append(f"{name}: got {actual}, expected {wanted}")
+              else:
+                  print(f"{name}: {actual} (expected)")
+
+          if problems:
+              for problem in problems:
+                  print(f"::error::{problem}")
               sys.exit(1)
-          print("every job passed")
+
+          print("all CI suites ran or skipped exactly as classified")
           PY
+
+  # Compatibility shims for repositories that still require the old lint/security
+  # gate names. They contain no independent policy; Tests gate is authoritative.
+  lint-gate-compat:
+    name: gate
+    needs: gate
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Mirror central gate
+        env:
+          RESULT: ${{ needs.gate.result }}
+        run: test "$RESULT" = "success"
+
+  security-gate-compat:
+    name: security-gate
+    needs: gate
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Mirror central gate
+        env:
+          RESULT: ${{ needs.gate.result }}
+        run: test "$RESULT" = "success"

@@ -1,19 +1,22 @@
 name: CLI E2E
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: boolean
+      docs:
+        required: true
+        type: boolean
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: cli-e2e-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   e2e:
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.package }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -286,6 +289,7 @@ jobs:
           PY
 
   smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || inputs.package || inputs.docs }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -349,4 +353,44 @@ jobs:
           rules = json.load(open("/tmp/rules.json"))
           assert len(rules["rules"]) == 167
           assert len(rules["categories"]) == 26
+          PY
+
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [e2e, smoke]
+    if: always()
+    steps:
+      - name: Verify E2E runs and valid skips
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+          PACKAGE: ${{ inputs.package }}
+          DOCS: ${{ inputs.docs }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          needs = json.loads(os.environ["RESULTS"])
+          manual = os.environ["EVENT_NAME"] == "workflow_dispatch"
+          package = os.environ.get("PACKAGE", "").lower() == "true"
+          docs = os.environ.get("DOCS", "").lower() == "true"
+          expected = {
+              "e2e": manual or package,
+              "smoke": manual or package or docs,
+          }
+          problems = []
+          for name, should_run in expected.items():
+              actual = needs[name]["result"]
+              wanted = "success" if should_run else "skipped"
+              if actual != wanted:
+                  problems.append(f"{name}: got {actual}, expected {wanted}")
+          if problems:
+              for problem in problems:
+                  print(f"::error::{problem}")
+              sys.exit(1)
+          print("CLI E2E jobs ran or skipped exactly as classified")
           PY

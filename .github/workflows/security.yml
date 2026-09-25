@@ -1,20 +1,47 @@
 name: Security
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      code:
+        required: false
+        type: boolean
+        default: false
+      dependencies:
+        required: false
+        type: boolean
+        default: false
+      filesystem:
+        required: false
+        type: boolean
+        default: false
+      secrets:
+        required: false
+        type: boolean
+        default: false
   schedule:
     - cron: "31 4 * * 1"
+  workflow_dispatch:
 
 permissions: {}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'schedule' }}
-
 jobs:
+  dependency-review:
+    if: ${{ github.event_name == 'pull_request' && inputs.dependencies }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
   trufflehog:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.secrets }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -35,14 +62,17 @@ jobs:
           version: 3.97.4
           extra_args: --results=verified
       - name: Scan pushed commits
-        if: github.event_name == 'push'
+        if: >-
+          github.event_name != 'pull_request' &&
+          github.event_name != 'schedule' &&
+          github.event_name != 'workflow_dispatch'
         uses: trufflesecurity/trufflehog@64d939a56362f519781c53ea09b27f8d1dc0140a # v3.97.6
         with:
           path: ./
           version: 3.97.4
           extra_args: --results=verified
       - name: Scan full tree
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         uses: trufflesecurity/trufflehog@64d939a56362f519781c53ea09b27f8d1dc0140a # v3.97.6
         with:
           path: ./
@@ -50,6 +80,7 @@ jobs:
           extra_args: --results=verified
 
   codeql:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.code }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -68,6 +99,7 @@ jobs:
         uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
 
   osv:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.dependencies }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -102,6 +134,7 @@ jobs:
           sarif_file: osv-results.sarif
 
   trivy:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.filesystem }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -133,25 +166,51 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
-    needs: [trufflehog, codeql, osv, trivy]
+    needs: [dependency-review, trufflehog, codeql, osv, trivy]
     if: always()
     steps:
-      - name: Verify every security scanner passed
+      - name: Verify required scanners and valid skips
         env:
           RESULTS: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+          CODE: ${{ inputs.code }}
+          DEPENDENCIES: ${{ inputs.dependencies }}
+          FILESYSTEM: ${{ inputs.filesystem }}
+          SECRETS: ${{ inputs.secrets }}
         run: |
+          set -euo pipefail
           python3 - <<'PY'
           import json
           import os
           import sys
 
           needs = json.loads(os.environ["RESULTS"])
-          failed = [
-              name for name, job in needs.items()
-              if job.get("result") not in {"success", "skipped"}
-          ]
-          if failed:
-              print(f"::error::these scanners did not succeed: {' '.join(failed)}")
+          full = os.environ["EVENT_NAME"] in {"schedule", "workflow_dispatch"}
+
+          def flag(name):
+              return os.environ.get(name, "").lower() == "true"
+
+          expected = {
+              "dependency-review": os.environ["EVENT_NAME"] == "pull_request" and flag("DEPENDENCIES"),
+              "trufflehog": full or flag("SECRETS"),
+              "codeql": full or flag("CODE"),
+              "osv": full or flag("DEPENDENCIES"),
+              "trivy": full or flag("FILESYSTEM"),
+          }
+
+          problems = []
+          for name, should_run in expected.items():
+              actual = needs[name]["result"]
+              wanted = "success" if should_run else "skipped"
+              if actual != wanted:
+                  problems.append(f"{name}: got {actual}, expected {wanted}")
+              else:
+                  print(f"{name}: {actual} (expected)")
+
+          if problems:
+              for problem in problems:
+                  print(f"::error::{problem}")
               sys.exit(1)
-          print("every security scanner passed")
+
+          print("security scanners ran or skipped exactly as classified")
           PY
