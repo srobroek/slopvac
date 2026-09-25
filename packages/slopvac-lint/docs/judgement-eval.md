@@ -1,265 +1,241 @@
-Host-side validation strips benign model annotation keys into per-result model_annotations and records annotation_stripped_calls in reports.
-
 # Judgement evaluation
 
-The evaluator measures model decisions against the rubric contract. An instrument
-sets one independent variable. It freezes the other comparison fields. An arm
-names a provider and model revision. It also stores decoding settings, a seed,
-and a repeat count. Each host record stores the instrument, unit, repeat, request
-digest, and cache key. A changed request cannot reuse an old result.
+The judgement evaluator measures the 65 contextual rules separately from the
+deterministic lint gate. The CLI prepares prompts and validates model output.
+Your harness selects and calls the provider.
 
-Instrument ids include the rendered rule questions and exemplars. This fix therefore changes ids and pack hashes for shipped packs; historical evaluation records retain their original ids and are not rewritten.
+A reproducible evaluation arm records the provider, model revision, decoding
+settings, request identity, and repeat number. Reusing a cached response requires
+the same request identity.
 
-## Replay mode
+## Runtime contract
 
-Run `python -m slopvac.judgement.eval run --replay fixture.jsonl` for a network-free
-run. A JSONL fixture stores one response per request. Replay uses the same parser
-and result checks as a provider adapter.
+The shared judgement spine is
+[`src/slopvac/judgement/spine.md`](../src/slopvac/judgement/spine.md). Each model
+result uses one of four verdicts: `confirm`, `reject`, `preserve`, or
+`abstain`.
 
-## Coverage report
+Host validation is authoritative. Model output can be parsed successfully and
+still fail host checks such as expected unit membership or evidence location.
+Benign annotation keys that the compatibility layer accepts are recorded
+separately rather than becoming part of the canonical result.
 
-`report` emits counts for each unit state. The states are eligible, attempted,
-confirmed, rejected, preserved, abstained, failed, truncated, and not-run.
+## Coverage
 
-Abstention is a completed adjudication. It reduces coverage. The report lists its
-reason in a separate table. The evaluator reports a document as partial when a unit
-is failed, truncated, or not-run. The evaluator never changes those states into
-abstentions.
+Coverage is reported by document, pack, and rule. The counters distinguish:
 
-## Dependence table status
+- eligible units;
+- attempted units;
+- confirmed, rejected, preserved, and abstained results;
+- failed, truncated, and not-run units.
 
-The shipped `src/slopvac/judgement/dependence_table.json` has status
-`uncalibrated` and contains no rule pairs. The aggregation layer therefore
-builds components from span overlap only and logs that limitation. B3 remains
-open until a held-out labelled set derives and validates the dependence pairs.
+An abstention is a completed attempt and is counted separately. It does **not**
+make coverage `PARTIAL`. Failed, truncated, and not-run units do make the
+affected coverage bucket partial. The evaluator does not convert those states
+into abstentions.
 
-The recall gold set is `tests/fixtures/judgement/gold/gold-v1.jsonl`: 100 seeded defects and 100 matched controls spanning every shipped judgement family. A seeded row is a hit when the model's evidence quote overlaps that row's `defect_span`; controls measure mechanical control behavior separately. Human-prose confirms are screening signals, not false-positive labels, because style rules legitimately fire on human prose. Headline precision requires blinded adjudication.
+The shipped dependence table,
+[`src/slopvac/judgement/dependence_table.json`](../src/slopvac/judgement/dependence_table.json),
+is marked `uncalibrated`. Until calibrated pairs are supplied, aggregation
+groups confirmed findings by overlapping evidence spans only.
 
-## CLI driver
+## Recall fixture
 
-The CLI driver prepares and adjudicates a judgement run. It reports model confirms and rejects, but judgement outcomes never alter deterministic pass/fail, exit status, or deterministic error/warning counts, including the `max_errors` gate; they may lower the reported `judgement_adjusted_score`. See the [README judgement layer guide](../README.md#judgement-layer) for the user workflow.
+The committed gold manifest is
+[`tests/fixtures/judgement/gold/gold-v1.jsonl`](../tests/fixtures/judgement/gold/gold-v1.jsonl).
+It contains one metadata row, **98 seeded defect rows across all 65 judgement
+rules, and 100 control rows**.
 
-`prepare` runs the deterministic scan and writes model-ready artifacts. It never calls a provider. The caller reads each `prompts.jsonl` row, sends `prompt.system` and `prompt.user` to a provider, validates the provider response against `response_schema`, and appends a `responses.jsonl` row.
+For a seeded row, evidence must overlap the row's `defect_span` to count as a
+hit. Controls measure behavior on neutral text. Human-prose confirms are not
+automatically false positives; measured precision requires adjudication.
+
+## CLI workflow
+
+Prepare a run:
 
 ```sh
-uv run --project packages/slopvac-lint slopvac judgement prepare --config slopvac.toml --out .slopvac-judgement --packs all --max-calls 300 --yes packages/slopvac-lint/README.md
-uv run --project packages/slopvac-lint slopvac judgement finish --out .slopvac-judgement --responses .slopvac-judgement/responses.jsonl
-uv run --project packages/slopvac-lint slopvac judgement compare --out .slopvac-judgement
+slopvac judgement prepare README.md \
+  --config slopvac.toml \
+  --out .slopvac-judgement \
+  --packs all \
+  --max-calls 300
 ```
 
-`--packs` accepts `all` or comma-separated pack ids. `prepare` creates `--out`, runs lint, and writes deterministic reports before it checks the call count. If the count exceeds `--max-calls` (300 by default), it refuses before writing prompts, units, or the manifest; the earlier output remains. Pass `--yes` to continue. The caller owns provider selection, authentication, retries, and transport.
+`prepare` runs deterministic lint first and writes its reports. It then prepares
+units, prompts, and a manifest. If the proposed call count exceeds
+`--max-calls`, it refuses to write the prompt/unit/manifest portion unless
+`--yes` is supplied.
 
-Each `prompts.jsonl` row contains `call_id`, top-level `unit_ids`, `prompt.system`, `prompt.user`, `response_schema`, `pack_id`, `kind`, and `cache_keys`. The JSON string in `prompt.user` contains `passages` and `pairs`; `pairs` is not a top-level row field. Each `responses.jsonl` row contains `call_id` and `response`. A multi-unit response uses `{"results": [...]}` in prompt order.
+Each `prompts.jsonl` row contains its `call_id`, `unit_ids`, prompt, response
+schema, pack id, kind, and cache keys. The caller sends `prompt.system` and
+`prompt.user` to a provider and writes one `responses.jsonl` row per call:
 
-`prepare` writes `prompts.jsonl`, `units.jsonl`, `documents/*.json`, deterministic per-document reports, and `manifest.json` under `--out`. `finish` writes `findings.jsonl`, `report.json`, and `report.md`. `compare --apply-preview` writes checker-passed rewrites under `--out/preview/`.
+```json
+{"call_id":"CALL_ID","response":{"results":[]}}
+```
 
-`finish` uses Q02's `unique-quote` offset salvage by default: a quoted unit span is relocated only when that quote occurs exactly once in the unit. Pass `--offset-salvage none` to preserve raw offsets and reproduce pre-Q02 behavior. The generated `report.json` records the selected mode in its top-level `offset_salvage` field.
+Finish and compare:
 
-The driver records malformed responses as failures instead of silently dropping units. The host then performs schema checks, evidence checks, adjudication, coverage, and aggregation.
+```sh
+slopvac judgement finish --out .slopvac-judgement \
+  --responses .slopvac-judgement/responses.jsonl
+slopvac judgement compare --out .slopvac-judgement
+```
 
-### Agent runners: `brief` and `validate`
+`finish` writes `findings.jsonl`, `report.json`, and `report.md`.
+`compare --apply-preview` may also write checker-passed rewrite previews
+under `preview/`; it does not edit the source document.
 
-`brief` is `prepare` for a runner that reads a file rather than JSONL rows. `slopvac judgement brief <file> --out <dir> --packs fired` selects the packs whose category produced a deterministic finding on the target (a clean target keeps every pack and prints a warning), then writes `brief.md` and `brief.json` next to the usual `prepare` artifacts. `brief.md` carries the shared system text once, one `### call <call_id>` section per call with its user payload, the response schema once, and the closing instruction "Respond with the JSON object only." `brief.json` lists `calls` (`call_id`, `pack_id`, `unit_ids`), `packs`, and `schema_path`. `--packs all` or a comma-separated pack list overrides the selection; `--config` names a config file, otherwise the nearest `slopvac.toml` or the starter defaults apply.
+The default `unique-quote` offset salvage relocates quoted evidence only when
+the quote occurs exactly once in its unit. Use `finish --offset-salvage none`
+when raw model offsets must be preserved.
 
-`validate` applies the per-call checks `finish` applies, to one response before it is appended to `responses.jsonl`. `slopvac judgement validate --run <dir> [--call-id ID] [--file PATH] [--hook]` reads a bare response object, a `{call_id, response}` row, or a Claude Code `SubagentStop` payload (the first JSON object inside `last_assistant_message`, code fence tolerated) from `--file` or stdin. It prints `{"ok", "call_id", "errors"}` and exits 0 when valid, 2 when invalid, 1 on a read error. When the call id is omitted it is inferred from the unit ids in the response. With `--hook`, an invalid response also prints a one-paragraph repair instruction to stderr, which Claude Code returns to the subagent on exit 2. A payload with `stop_hook_active` true exits 0 with `ok` false so a hook never blocks the same agent twice.
+## Agent-facing preparation
 
-The judgement layer reports model confirms and rejects rather than rewriting source or deterministic findings. Judgement outcomes may lower the reported `judgement_adjusted_score`, but they never alter deterministic pass/fail, exit status, or deterministic warning or error counts, including the `max_errors` gate.
+For a harness that prefers one readable bundle:
 
-Measured precision is reported only from blinded adjudication. Report true positives divided by adjudicated confirms and false-positive incidence divided by attempted human units. Human confirm rate remains a screening signal, not a precision proxy. The earlier local and sibling counts are instrument v1 (no criteria) and are historical context, not comparable v2 headline precision.
-to normative lines (MUST, NOT, DEFAULT), to factual "X, not Y" contrasts, and to
-plain section titles. When you act on a report, discard a confirm whose rewrite
-changes what the sentence claims, targets a specification or steering line, or
-rests on an evidence quote that is not in the unit. Do not add rule-level
-suppressions for these cases; they also remove the true positives, which sit on the
-same rules.
+```sh
+slopvac judgement brief README.md --out .slopvac-judgement --packs fired
+```
+
+`brief` writes `brief.md` and `brief.json` in addition to the structured run
+files. `--packs fired` selects packs whose categories produced deterministic
+findings. If none qualify, it falls back to all packs and prints a warning. Use
+`--packs all` when contextual review must not depend on deterministic findings.
+
+`brief` searches upward from the current working directory for configuration,
+or uses starter defaults when none is found. Unlike `prepare`, it calls preparation with the call
+budget approved, so `--max-calls` does not act as a refusal gate. Inspect the
+reported call count before dispatching model work.
+
+Validate each response before appending it:
+
+```sh
+slopvac judgement validate --run .slopvac-judgement --file response.json
+```
+
+`validate` checks response shape, call resolution, expected unit membership,
+result ordering, and the model-output schema. It returns 0 for a valid response,
+2 for a validation failure, and 1 for unreadable or malformed JSON. Evidence
+quote locations are checked during `finish`.
+
+## Reporting and gates
+
+Judgement confirms can lower `judgement_adjusted_score` by a bounded reporting
+penalty. They do not change deterministic findings, deterministic error or warning
+counts, the lint exit status, or deterministic thresholds such as `max_errors`.
+
+A judgement cluster result is also reported separately from the deterministic
+gate. The current dependence table is uncalibrated, so cluster interpretation
+must retain that limitation.
+
+A passing deterministic run and a clean judgement report still do not establish
+factual correctness. Documentation claims require verification against code or
+another authoritative source.
 
 ## Normalized evaluation records
 
-The raw records and their normalization contract live in the [record schema](research/rubric-2026-09-15/evaluation/RECORD-SCHEMA.md). Each normalized file preserves the raw record, reports strict and lenient precision, per-rule adjudication, abstention and evidence-validity fields, and marks unavailable denominators as `null`.
+The normalization schema is
+[`research/rubric-2026-09-15/evaluation/RECORD-SCHEMA.md`](research/rubric-2026-09-15/evaluation/RECORD-SCHEMA.md).
+Committed normalized records include:
 
-| Run | Normalized record |
-| --- | --- |
-| Local corpus | [local-corpus-run.normalized.json](research/rubric-2026-09-15/evaluation/local-corpus-run.normalized.json) |
-| Sibling full run | [sibling-full-run.normalized.json](research/rubric-2026-09-15/evaluation/sibling-full-run.normalized.json) |
-| Sibling adjudication | [sibling-full-run-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/sibling-full-run-adjudication.normalized.json) |
-| Heldout baseline | [heldout-baseline.normalized.json](research/rubric-2026-09-15/evaluation/heldout-baseline.normalized.json) |
-| Heldout baseline adjudication | [heldout-baseline-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-baseline-adjudication.normalized.json) |
-| Heldout v2 | [heldout-v2.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2.normalized.json) |
-| Heldout v2 adjudication | [heldout-v2-adjudication.normalized.json](research/rubric-2026-09-15/evaluation/heldout-v2-adjudication.normalized.json) |
+- [local corpus](research/rubric-2026-09-15/evaluation/local-corpus-run.normalized.json)
+- [sibling full run](research/rubric-2026-09-15/evaluation/sibling-full-run.normalized.json)
+- [sibling adjudication](research/rubric-2026-09-15/evaluation/sibling-full-run-adjudication.normalized.json)
+- [held-out baseline](research/rubric-2026-09-15/evaluation/heldout-baseline.normalized.json)
+- [held-out baseline adjudication](research/rubric-2026-09-15/evaluation/heldout-baseline-adjudication.normalized.json)
+- [held-out v2](research/rubric-2026-09-15/evaluation/heldout-v2.normalized.json)
+- [held-out v2 adjudication](research/rubric-2026-09-15/evaluation/heldout-v2-adjudication.normalized.json)
 
-The 2026-09-19 wider evaluation and noise-floor record is [2026-09-19-wider-evaluation.md](research/rubric-2026-09-15/evaluation/2026-09-19-wider-evaluation.md). It names each numeric source, preserves failed-row and denominator rules, and marks pending decisions explicitly.
+The dated wider evaluation record is
+[`2026-09-19-wider-evaluation.md`](research/rubric-2026-09-15/evaluation/2026-09-19-wider-evaluation.md).
+Historical records retain the instrument and denominators used when they were
+created; they are not rewritten to look like results from the current contract.
 
-## Standalone Bedrock evaluation runner
+## Bedrock runner
 
-The repeatable runner uses the same prompt assembly and JSON parser as the original
-session shard template, while supporting resumable synchronous calls and Bedrock batch
-inference. Run it from the package directory with `uv run scripts/judgement_bedrock_batch.py`:
+The helper commands in this section and the measurement sections below assume
+the current directory is `packages/slopvac-lint`.
 
-```sh
-uv run scripts/judgement_bedrock_batch.py todo --prompts prompts.jsonl --responses responses.jsonl --out todo.jsonl
-uv run scripts/judgement_bedrock_batch.py invoke --todo todo.jsonl --model-id MODEL_ID --out responses.jsonl --concurrency 4
-uv run scripts/judgement_bedrock_batch.py submit --todo todo.jsonl --model-id MODEL_ID --bucket BUCKET --role-arn ROLE_ARN --job-name judgement-001 --out-dir bedrock-batch-001
-uv run scripts/judgement_bedrock_batch.py collect --job-dir bedrock-batch-001 --out responses.jsonl
-```
-
-Batch jobs require at least 100 records; smaller remainders automatically use `invoke`.
-The default inference configuration is `{maxTokens: 32000}`. A response is successful only
-when Bedrock reports `stop_reason=end_turn`; truncated responses are retained as error rows
-with their raw text and stop reason. The model id is required and recorded in `job.json`.
-The earlier 1,546 calls used the session default `global.anthropic.claude-fable-5-1`; this
-runner is explicit and therefore repeatable, but its sampling settings may not be homogeneous
-with that earlier arm.
-
-## Running in AWS
-
-Use an Isengard Admin profile rather than the Claude Code role:
+The optional Bedrock helper can run prepared prompts synchronously or through
+Bedrock batch inference:
 
 ```sh
-isengardcli add-profile sjors+ig-genai@amazon.com --role Admin --region eu-west-1 --profile sjors+ig-genai-Admin
-export AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1
+cd packages/slopvac-lint
+uv run scripts/judgement_bedrock_batch.py todo \
+  --prompts prompts.jsonl --responses responses.jsonl --out todo.jsonl
+
+uv run scripts/judgement_bedrock_batch.py invoke \
+  --todo todo.jsonl --model-id MODEL_ID \
+  --out responses.jsonl --concurrency 4
 ```
 
-Create a private bucket with Block Public Access and SSE-S3, then a role trusted by
-`bedrock.amazonaws.com` with `aws:SourceAccount` set to the account id. The minimal inline
-policy used by this runner is `s3:ListBucket` on the bucket and `s3:GetObject`/`s3:PutObject`
-on that bucket's object ARN. The exact trust document is:
-
-```json
-{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"bedrock.amazonaws.com"},"Action":"sts:AssumeRole","Condition":{"StringEquals":{"aws:SourceAccount":"ACCOUNT_ID"}}}]}
-```
-
-The exact inline policy is:
-
-```json
-{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"s3:ListBucket","Resource":"arn:aws:s3:::BUCKET"},{"Effect":"Allow","Action":["s3:GetObject","s3:PutObject"],"Resource":"arn:aws:s3:::BUCKET/*"}]}
-```
-
-Run `todo`, then submit and later collect:
+For batch inference:
 
 ```sh
-uv run scripts/judgement_bedrock_batch.py todo --prompts prompts.jsonl --responses responses.jsonl --out todo.jsonl
-uv run scripts/judgement_bedrock_batch.py submit --todo todo.jsonl --model-id global.anthropic.claude-fable-5-1 --bucket BUCKET --role-arn ROLE_ARN --job-name bedrock-batch-001 --out-dir bedrock-batch-001 --max-tokens 32000
-uv run scripts/judgement_bedrock_batch.py collect --job-dir bedrock-batch-001 --out responses.jsonl
+uv run scripts/judgement_bedrock_batch.py submit \
+  --todo todo.jsonl --model-id MODEL_ID \
+  --bucket BUCKET --role-arn ROLE_ARN \
+  --job-name judgement-001 --out-dir bedrock-batch-001
+
+uv run scripts/judgement_bedrock_batch.py collect \
+  --job-dir bedrock-batch-001 --out responses.jsonl
 ```
 
-Runner success requires `end_turn`. Truncated output becomes an error.
-Synchronous request duration varies by model and account. Batch timing and cost also vary.
-In eu-west-1, `global.anthropic.claude-fable-5-1` is ACTIVE. CreateModelInvocationJob
-returns exactly `Batch inference is not supported for the requested model`.
-In us-east-1, `anthropic.claude-fable-5-1` is ACTIVE according to GetFoundationModel.
-The `us.anthropic.claude-fable-5-1` inference profile is also ACTIVE. The ON_DEMAND
-foundation-model listing has no matching row.
-A us-east-1 bucket (`slopvac-judgement-eval-536697262379-use1`) was created by mistake
-and deleted in the same step. It contained no objects and had no job. Use `invoke` until
-the account approves a batch-capable model/profile.
+The caller is responsible for AWS credentials, region selection, a private S3
+bucket, and a Bedrock batch role appropriate to that account. Model and batch
+availability are account- and region-dependent; this guide does not encode a
+developer's account, bucket, or profile.
 
-The prose gate in this section was run with the worktree CLI:
-`PYTHONPATH=src uv run slopvac docs/judgement-eval.md`. Released `uvx slopvac` 2.6.0
-rejects the judgement configuration key used by this repository.
+## Noise-floor measurement
 
-## Noise-floor instrument
-
-The noise-floor instrument measures disagreement across a registered 20% subsample
-with exactly three repeats. `prepare` copies the runner's `--model-id` and
-`--max-tokens` into every repeat row as `model_id` and `inference_config`;
-analysis fingerprints those fields plus `prompt_bytes_sha256` when prepared rows
-provide it, and a canonical hash of `response_schema` when that field is present.
-Legacy rows without the byte digest/schema use the legacy prompt/config fields;
-model and inference configuration remain required and mismatches across repeats
-fail closed.
-
-Analysis uses the same response parsing, result-set validation, and model-output
-schema validation as `finish`. Non-verdict repeats are classified separately as
-`missing_response`, `provider_error`, `parse_error`, `schema_invalid`, or
-`unknown_unit`, with counts overall and per rule. Only complete units contribute
-to flip-rate denominators. Failure classes for incomplete units remain visible.
-instrument reports measurements only: per-rule flip rate, complete units, and
-failure classes. It does not select an aggregation policy.
-
-Run the measurement and the separate policy decision:
+The noise-floor helper prepares repeated calls, analyses verdict variation, and
+keeps the policy decision separate from the measurement:
 
 ```sh
-PYTHONPATH=src uv run scripts/judgement_noise_floor.py analyse \
-  --prompts /path/to/noise-floor/prompts.jsonl \
-  --responses /path/to/noise-floor/responses.jsonl \
-  --run-config /path/to/noise-floor/run-config.json \
-  --out-dir /path/to/noise-floor/r2
-PYTHONPATH=src uv run scripts/judgement_noise_floor.py decide \
-  --noise-floor /path/to/noise-floor/r2/noise-floor.json \
+uv run scripts/judgement_noise_floor.py prepare \
+  --prompts prompts.jsonl --subsample subsample.json \
+  --out repeated-prompts.jsonl --model-id MODEL_ID --max-tokens 32000
+
+uv run scripts/judgement_noise_floor.py analyse \
+  --prompts repeated-prompts.jsonl --responses responses.jsonl \
+  --out-dir noise-floor
+
+uv run scripts/judgement_noise_floor.py decide \
+  --noise-floor noise-floor/noise-floor.json \
   --threshold 0.10 --min-units 30 \
-  --out /path/to/noise-floor/r2/variance-policy.json
+  --out noise-floor/variance-policy.json
 ```
 
-`decide` computes the policy separately, with an explicit `applies_to: CONFIRM`
-field. A rule is eligible for majority-of-3 only when its measured flip rate is
-strictly greater than 10% and it has at least 30 complete units. Exactly 10%
-remains single-call; below the minimum is reported as `insufficient-units`.
-
-## Variance policy
-
-The proposed majority-of-3 policy applies to **CONFIRM outcomes only**. The
-winning quote is the quote from the majority CONFIRM repeats. It must pass the
-host evidence gate again before it counts. Prefer the quote that validates;
-if no candidate quote validates, the unit is not confirmed. The record retains
-the per-repeat verdict tuples, so disagreements and every non-CONFIRM outcome
-remain visible rather than being collapsed away.
-
-No shipped `finish` path applies majority today; this is a documentation-first
-policy. The noise-floor instrument reports measurements, while the separate
-`decide` command computes the policy decision and records its threshold and
-minimum-unit basis.
+The instrument reports measurements; `decide` writes a policy record. The
+normal `finish` command does not apply majority-of-three aggregation.
 
 ## Adjudication
 
-Run adjudication after every `finish` for a human-class arm. It sends each
-human `CONFIRM` to an independent Sol model family and never changes the finish
-report. The batches contain at most three units.
+The adjudication helper independently labels model confirms for precision
+measurement. It does not rewrite the finished judgement report.
 
 ```sh
-AWS_PROFILE=sjors+ig-genai-Admin AWS_DEFAULT_REGION=eu-west-1 \
-  uv run scripts/judgement_adjudicate.py run \
+uv run scripts/judgement_adjudicate.py run \
   --run-dir .slopvac-judgement \
   --corpus-root /path/to/corpus \
-  --model-id global.openai.gpt-5.6-sol --reasoning-effort high \
-  --out .slopvac-adjudication --class human
+  --model-id MODEL_ID --reasoning-effort high \
+  --repeats 3 --out .slopvac-adjudication --class human
 ```
 
-The command writes raw request and response records under `calls/`, one
-Markdown table per rule, `SUMMARY.md`, `summary.csv`, and `summary.json`.
-`report` regenerates those tables from saved calls without model access:
+Saved calls can be re-rendered without provider access:
 
 ```sh
 uv run scripts/judgement_adjudicate.py report \
   --run-dir .slopvac-judgement --corpus-root /path/to/corpus \
   --out .slopvac-adjudication --class human
-```
 
-Each rule table reports the false-positive (FP) share of adjudicated confirms,
-`FP / (TP + FP + borderline)`, and FP incidence per attempted unit,
-`FP / attempted`, where `attempted` comes from `report.json`. The first denominator omits parse errors; the report still lists each parse error individually.
-The old confirm-rate proxy treated every human confirm as equivalent evidence;
-adjudication separates true positives, false positives, borderline calls, and
-unavailable judgements before reporting precision.
-
-Use at least three independent repeats for a human-class arm when measuring precision. Pass `--repeats 3`; the command writes `consistency.json` and `CONSISTENCY.md` with each unit's verdict tuple, per-unit flip flag, per-rule flip rate, and majority verdict. Regenerate the consistency report without model access:
-
-```sh
 uv run scripts/judgement_adjudicate.py consistency \
   --run-dir .slopvac-judgement --corpus-root /path/to/corpus \
   --out .slopvac-adjudication --class human
 ```
 
-The consistency measurement at `/Users/sjors/tmp/slopvac-judgement-eval/v2/adjudication/consistency/CONSISTENCY.md` contains 60 human confirms × 3 repeats (Sol high), 60 calls, 6 flipped units, and a per-unit flip rate of 0.100. Majority for `elegant-variation` was TP 10 / FP 1. Agreement with the earlier attempt-2 single-pass labels was 4/11 on that rule. Therefore adjudication MUST use repeats >= 3 with a majority verdict; single-pass labels are prompt-sensitive.
-
-## Spine-shape measurement
-
-The judgement spine states the exact result-object keys and directs explanatory
-text to `note`. The statement changes the rubric revision and therefore the
-instrument id. To measure it, select 50 v2 LLM responses containing an
-annotation key and 50 clean responses, rebuild both samples through
-`judgement prepare`, and invoke the Claude measurement arm once per prompt.
-Record the old annotation-key rate, the new rate, the instrument id, and the
-new schema-failure rate. Ship the spine change only when the new rate does not
-increase schema failures; a reduction of less than half is still reported.
-
-The 2026-09-21 annotation measurement at `/Users/sjors/tmp/slopvac-annotation-measure/` found a v2 baseline annotation-key rate of 374/2,707 responses (13.8%). With the new spine statement, the rate was 0/100 (50 previously annotated plus 50 clean prompts). Exact-shape failures were 7/100 (extra or missing keys), so the tolerance normaliser from PR #137 remains required.
+Precision claims must state their adjudication denominator and how borderline
+labels are treated. Confirm rate by itself is a screening measure, not a
+precision estimate.

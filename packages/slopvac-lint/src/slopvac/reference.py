@@ -61,24 +61,23 @@ def _anchor(text: str) -> str:
     return "".join(keep).strip().replace(" ", "-")
 
 
-def _provenance_line(rule: Rule) -> str:
-    """Where the rule came from, in one line.
-
-    An STE rule cites its NUMBER only. That is the scope of what may be
-    redistributed, and it is also all a reader needs to look the rule up in their
-    own copy of the specification.
-    """
+def _reference_line(rule: Rule) -> str | None:
+    """Return the user-facing source reference without repository archaeology."""
     provenance = rule.provenance
-    parts = [provenance.source]
     if provenance.ste_ref:
         issue, number = provenance.ste_ref.split(":", 1)
-        parts = [f"ASD-STE100 issue {issue}, rule {number}"]
-    elif provenance.orwell_ref:
-        parts = [f"Orwell 1946, rule {provenance.orwell_ref}"]
-    if provenance.url:
-        parts.append(f"<{provenance.url}>")
-    return " — ".join(parts)
-
+        value = f"ASD-STE100 issue {issue}, rule {number}"
+        if provenance.url:
+            value += f" — <{provenance.url}>"
+        return value
+    if provenance.orwell_ref:
+        value = f"Orwell 1946, rule {provenance.orwell_ref}"
+        if provenance.url:
+            value += f" — <{provenance.url}>"
+        return value
+    if provenance.url and "github.com/srobroek/slopvac" not in provenance.url:
+        return f"<{provenance.url}>"
+    return None
 
 def _tier_cell(rule: Rule) -> str:
     """The rule's disposition at each profile, most severe profile first.
@@ -138,21 +137,20 @@ def _rule_section(rule: Rule) -> list[str]:
         )
     if rule.kind is RuleKind.JUDGEMENT and rule.judgement_question:
         facts.append(f"- **Question.** {rule.judgement_question}")
-    facts.append(f"- **Source.** {_provenance_line(rule)}")
+    reference = _reference_line(rule)
+    if reference:
+        facts.append(f"- **Reference.** {reference}")
     facts.append(
         f"- **AI register signal.** `{rule.ai_signal}` ({rule.ai_signal_source})"
     )
     lines.extend(facts)
-
-    if rule.provenance.note:
-        lines.extend(["", rule.provenance.note])
 
     # Examples are shown for judgement rules and withheld for the rest. A
     # mechanical rule's example adds nothing a reader cannot get from `explain`,
     # and 150 of them triples the document; a judgement rule's example is the only
     # thing that makes it applicable at all, because there is no pattern to read.
     if rule.kind is RuleKind.JUDGEMENT and rule.examples:
-        lines.append("")
+        lines.extend(["", "<!-- slopvac-disable -->"])
         for example in rule.examples[:2]:
             lines.append(f"  > **Not this.** {example.bad}")
             lines.append("  >")
@@ -168,6 +166,7 @@ def _rule_section(rule: Rule) -> list[str]:
                 lines.append("  >")
                 lines.append(f"  > {example.note}")
             lines.append("")
+        lines.append("<!-- slopvac-enable -->")
     lines.append("")
     return lines
 
@@ -261,19 +260,10 @@ def render_reference(ruleset: RuleSet) -> str:
         f"slopvac ships **{len(ruleset.rules)} rules** across "
         f"**{len(ruleset.categories)} categories**.",
         "",
-        "The split below is the one that matters when you plan work against this list:",
-        "",
-        f"- **{len(deterministic)} checked rules** are executed by a checker — Vale "
-        "or the native engine. They produce findings, they gate a build, and two "
-        "runs over the same text agree.",
-        f"- **{len(judgement)} judgement rules** are not mechanizable. No checker "
-        "runs them and they never produce a finding. They ship because a reviewing "
-        "agent needs one source of truth rather than a second, drifting list, and "
-        "because a rule that cannot be automated is not thereby less true.",
-        "",
-        "Mixing the two produces the failures this tool exists to avoid: a reader "
-        "who believes a judgement rule gates their build, and an agent that treats "
-        "a mechanical rule as a matter of opinion.",
+        f"- **{len(deterministic)} checked rules** run through Vale or the native "
+        "engine and can contribute to the deterministic lint result.",
+        f"- **{len(judgement)} judgement rules** require contextual review. They do "
+        "not produce deterministic lint findings or change deterministic pass/fail.",
         "",
         "Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, "
         "worked example, or wordlist entry from that specification is reproduced "
@@ -287,8 +277,9 @@ def render_reference(ruleset: RuleSet) -> str:
         [
             "",
             "Weight scales a category's contribution to the overall score. A weight "
-            "of 0 makes the category informational: it still reports, and it cannot "
-            "fail the score gate.",
+            "of 0 keeps findings visible but removes that category from ordinary "
+            "score, density, error, and warning gates. Dedicated gates such as the "
+            "Unicode-dash ceiling remain independent.",
             "",
             "## Checked rules",
             "",
@@ -320,8 +311,8 @@ def render_reference(ruleset: RuleSet) -> str:
         [
             "## Judgement rules",
             "",
-            "None of these produce a finding. Each carries the question a reviewer "
-            "answers, and an example, because there is no pattern to read instead.",
+            "These rules require contextual review and do not produce deterministic "
+            "lint findings. Each includes the review question and an example.",
             "",
         ]
     )

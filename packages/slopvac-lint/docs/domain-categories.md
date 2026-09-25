@@ -3,7 +3,7 @@
 Three rules ask whether a term belongs to a domain category rather than whether it appears on a
 list: `domain-noun-category-membership`, `unapproved-word-not-a-domain-noun`, and
 `domain-verb-category-membership`. All three are `kind: judgement`, so a reviewer answers them.
-This file is the taxonomy they answer against.
+This file documents the taxonomy a reviewer should use. Slopvac does not parse this Markdown as runtime configuration.
 
 The source specification excludes domain terms from its word list entirely and instead defines 22
 domain-noun categories and 4 domain-verb categories. A term is permitted if it belongs to a
@@ -27,8 +27,7 @@ express:
 | `return` | verb | noun |
 | `cover` | noun, as a domain term | verb |
 
-124 headwords in the source carried more than one part-of-speech row, and software prose has the
-same shape. A single-status-per-word structure has to pick one, and either choice is wrong.
+Software prose routinely uses the same spelling as more than one part of speech. A single-status-per-word structure would therefore conflate distinct uses.
 
 That constraint is why `pos` is a required field on a blocklist entry, and why the generated
 Vale rules are grouped by part of speech. Vale's `sequence` extension point matches only where
@@ -106,10 +105,7 @@ navigation, automotive and railway, and energy and oil and gas do not.
 2. **Concurrency and lifecycle actions**: spawn, schedule, drain, throttle, retry, back off,
    fail over, reconcile, expire, evict.
 
-The source leaves eight of these verbs unapproved: `build`, `run`, `log`, `execute`, `enable`,
-`call`, `compile`, and `branch`. That reflects an aerospace context where the words were
-ambiguous. In software prose `build` and `compile` name specified processes, which is the
-domain-verb test, so all eight are permitted here.
+These software-specific categories extend the source taxonomy. Their terms are evaluated by Slopvac's software-domain criteria.
 
 ## Copyright position
 

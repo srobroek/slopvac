@@ -4,12 +4,8 @@
 
 slopvac ships **231 rules** across **26 categories**.
 
-The split below is the one that matters when you plan work against this list:
-
-- **166 checked rules** are executed by a checker — Vale or the native engine. They produce findings, they gate a build, and two runs over the same text agree.
-- **65 judgement rules** are not mechanizable. No checker runs them and they never produce a finding. They ship because a reviewing agent needs one source of truth rather than a second, drifting list, and because a rule that cannot be automated is not thereby less true.
-
-Mixing the two produces the failures this tool exists to avoid: a reader who believes a judgement rule gates their build, and an agent that treats a mechanical rule as a matter of opinion.
+- **166 checked rules** run through Vale or the native engine and can contribute to the deterministic lint result.
+- **65 judgement rules** require contextual review. They do not produce deterministic lint findings or change deterministic pass/fail.
 
 Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, worked example, or wordlist entry from that specification is reproduced here; every example below is written for this project.
 
@@ -45,7 +41,7 @@ Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, worked
 | [STE Words](#ste-words-ste-words) | 9 | 6 | 1.0 | `reference` |
 | **Total** | **166** | **65** | | |
 
-Weight scales a category's contribution to the overall score. A weight of 0 makes the category informational: it still reports, and it cannot fail the score gate.
+Weight scales a category's contribution to the overall score. A weight of 0 keeps findings visible but removes that category from ordinary score, density, error, and warning gates. Dedicated gates such as the Unicode-dash ceiling remain independent.
 
 ## Checked rules
 
@@ -71,10 +67,7 @@ Delete chat-session leakage
 - **Scope.** prose
 - **Fix.** Delete the artifact, then re-read the surrounding paragraphs, which came from the same session.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** vale-styles/ai-residue/ChatLeakage.yml — <https://github.com/srobroek/slopvac/blob/f4b4e47289fa16e850c681e7db8ebbb8952a05c0/packages/slopvac-lint/vale-styles/README.md>
 - **AI register signal.** `none` (unmeasured)
-
-E5 in the retired slop-lint.py. Enforced at every tier because the match is never a register question. No published Vale style covers it: checked tbhb/vale-ai-tells v1.25.0, where SycophancyMarkers is praise only and SelfReference is cross-references only. The .vale.ini keeps it at error for source files too. Go->Python regex conversion: the Vale source wrote the CJK bracket citation range as `\x{3010}`, `\x{2020}`, `\x{3011}`; rewritten as `【`, `†`, `】` for the Python `regex` module.
 
 ### AI tells -- agentic slogan formulae (`ai-tells-agentic`)
 
@@ -91,10 +84,7 @@ Replace a universal slogan with a title
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** paragraph
 - **Fix.** Name the section with a noun phrase, or scope the claim and state it as a sentence.
-- **Source.** packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
 - **AI register signal.** `weak` (catalog)
-
-Three shape conditions carry this rule, and each one alone is what keeps a real invariant out of it. The predicate must sit IMMEDIATELY against the bare subject noun, so a scoped invariant is not a match ("Every request TO THIS ENDPOINT requires authentication", "Every file IN THIS DIRECTORY contains a header"). The complement must be at least two words, so a terse invariant with a one-word object is not a match ("Every request requires authentication"). And the match runs to the end of the block through word characters only, so any terminal punctuation excludes it -- a heading carries none, a body sentence does. Together they select the title-shaped universal claim and leave the class invariant, which is the one construction "every" is genuinely for. `scope: paragraph`, not `heading`: the native engine's paragraph scope covers every rendered block INCLUDING headings, list items, and quotes, whereas heading scope compiles to a Vale `heading` payload and Vale then owns the rule, leaving it unchecked under `--no-vale`. See compile_vale.PARAGRAPH_SCOPE_REASON. The comma-joined pair form is prose-scope.formulaic-subject-verb-slogan; the judgement remainder for a slogan carrying no fixed frame is ai-tells-content-shape.epigram-closer-remainder.
 
 ### AI tells -- content shape (`ai-tells-content-shape`)
 
@@ -111,10 +101,7 @@ Cut decorative modifiers
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Keep adjectives that change what the reader does; cut decoration.
-- **Source.** AI tells catalog — content-shape.md ("Adjective-per-noun spray") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-The catalog states this as a RATIO ("every noun wears a modifier"), which is why it converts to a metric rather than a pattern. Threshold 0.5 is INFERRED from that phrasing (one adjective per two nouns) and is NOT measured; calibrate before enforcing outside strict. Needs a POS tagger, which the engine does not yet have -- the same gap that blocks prose-craft.plural-abbreviation. The catalog's own guidance names the keep test: "destructive" and "reversible" carry load.
 
 #### `ai-tells-content-shape.durable-vocabulary-habits`
 
@@ -126,10 +113,7 @@ Use the concrete verb
 - **Scope.** prose
 - **Fix.** Replace with the concrete verb or noun.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** AI tells catalog — content-shape.md ("Durable vocabulary habits") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-The catalog groups four SHAPES, not marker words, and three of them convert as substitutions: copula avoidance, ability framing, and significance inflation. The fourth -- textbook connectors opening consecutive sentences (`moreover`, `furthermore`) -- is a POSITION-and-adjacency claim, so it is carried separately as ai-tells-content-shape.textbook-connector-runs. The `allows you to` half of ability framing is already mechanised in prose-agency.false-agency and is deliberately not repeated. Three replacement values are parenthetical instructions rather than literal swaps, because the catalog's fix names an operation, not a word. Upstream ai-tells.ServesAsDodge overlaps the copula band and stays enabled.
 
 #### `ai-tells-content-shape.fabricated-citations-core`
 
@@ -140,10 +124,8 @@ Strip citation junk
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Strip the tracking parameters from the URL.
-- **Source.** AI tells catalog — content-shape.md ("Fabricated or damaged citations") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core, narrowed to the ONE checkable slice: tracking junk in a pasted URL. The assistant-artifact half of the same catalog row (`oaicite`, `contentReference`, `[cite: 1]`, `grok_card`) is already mechanised inside ai-residue.chat-leakage, so it is not duplicated here. Judgement remainder in ai-tells-content-shape.fabricated-citations-remainder covers what a pattern can never do -- resolve the DOI.
 
 #### `ai-tells-content-shape.fake-specificity`
 
@@ -154,10 +136,7 @@ Give the number or drop the quantifier
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Give the count, or delete the quantifier.
-- **Source.** AI tells catalog — content-shape.md ("Fake specificity") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-The catalog names four forms: "over 100+", "countless", "numerous", "a wide range of". The middle two are already mechanised in prose-inflation.vague-quantifier at WARNING on a measured base rate of 9.9 hits per 10k human-written words, so they are deliberately NOT repeated here. This rule carries only the forms that rule does not reach, and it is at error because "over 100+" is a self-contradicting construction rather than a register choice. Split as core-only: the residual judgement is prose-inflation.vague-quantifier's own message ("give the count").
 
 #### `ai-tells-content-shape.superficial-ing-analysis`
 
@@ -168,10 +147,7 @@ State the analysis as a fact or delete it
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** State the claim as its own sentence, or delete the clause.
-- **Source.** AI tells catalog — content-shape.md ("Superficial -ing analysis") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Fully mechanizable as a trailing-participle frame, so no judgement partner: the catalog's own test -- "either the analysis is a fact (state it as one) or it is air" -- is answered by making the writer promote the clause to a sentence. Upstream ai-tells.ParticipialPadding covers this and stays enabled.
 
 ### AI tells -- figurative verbs (`ai-tells-figurative`)
 
@@ -189,10 +165,7 @@ State the assessment directly
 - **Scope.** prose
 - **Fix.** Name the criterion, then say which option meets it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — ColloquialAssessments.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ColloquialAssessments.yml>
 - **AI register signal.** `weak` (catalog)
-
-Overlaps `ai-tells-register.figurative-verb-verdict-core` on exactly one token (`the point lands`); the other 21 branches, including the whole `is the move` and `what really matters` families, were unreachable by any owned rule.
 
 #### `ai-tells-figurative.figurative-casts`
 
@@ -204,10 +177,7 @@ State the doubt or the effect
 - **Scope.** prose
 - **Fix.** Name the observation, then the doubt it creates.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeCasts.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeCasts.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for fishing, metalworking, or theatre-casting prose.
 
 #### `ai-tells-figurative.figurative-draws`
 
@@ -219,10 +189,7 @@ Name the source or the comparison
 - **Scope.** prose
 - **Fix.** Cite the source, or state the two things and how they differ.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeDraws.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeDraws.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for art or cartography prose. The `draws on` branch has the loosest tail in the family (`\w+` after an optional determiner), which is why it ships at warning rather than error.
 
 #### `ai-tells-figurative.figurative-falls`
 
@@ -234,10 +201,7 @@ Name the shortfall or the membership
 - **Scope.** prose
 - **Fix.** Give the number it misses by, or name the set and the owner.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeFalls.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeFalls.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for gravity or accident prose. The membership branches (`falls under the category`) are the ones worth keeping in reference documentation: they are always a longer way to write "is".
 
 #### `ai-tells-figurative.figurative-lends`
 
@@ -249,10 +213,7 @@ State what it adds or enables
 - **Scope.** prose
 - **Fix.** Name the property, or say what the reader can now do.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeLends.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLends.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for library-lending or finance prose.
 
 #### `ai-tells-figurative.figurative-loud`
 
@@ -264,10 +225,7 @@ Name the behaviour, not the volume
 - **Scope.** prose
 - **Fix.** Say which channel it writes to and at what level.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeLoud.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeLoud.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for audio prose. `fails loudly` is the instance worth catching: it is a design claim with no observable in it, and the observable (exit code, stream, level) is what a reader needs.
 
 #### `ai-tells-figurative.figurative-rides`
 
@@ -279,10 +237,7 @@ Name the dependency or the mechanism
 - **Scope.** prose
 - **Fix.** State the dependency as a condition: X works only when Y holds.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeRides.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRides.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for transit or equestrian prose. The `rides the <path>` branch is the one that fires in performance writing, where the literal mechanism (a cache hit, a branch taken) is always available.
 
 #### `ai-tells-figurative.figurative-runs`
 
@@ -294,10 +249,7 @@ Name the actual behaviour
 - **Scope.** prose
 - **Fix.** State what happens, or which assumption the code actually makes.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeRuns.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeRuns.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for athletics or plumbing prose. `hit the ground running` also appears in `prose-inflation.business-jargon`; the duplicate is deliberate so disabling one style does not lose the idiom.
 
 #### `ai-tells-figurative.figurative-sits`
 
@@ -309,10 +261,7 @@ Name the literal relation
 - **Scope.** prose
 - **Fix.** Replace with the literal relation, or delete the sentence if it carries no fact.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeSits.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeSits.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for furniture or seating prose. Widest of the family (17 branches) because `sit` carries the most distinct figurative senses: position, idleness, discomfort, and priority. The nearest owned rule, `ai-tells-register.figurative-verb-verdict-core`, is a 10-token list about VERDICTS and does not reach any of these.
 
 #### `ai-tells-figurative.figurative-strikes`
 
@@ -324,10 +273,7 @@ State the effect or the tradeoff
 - **Scope.** prose
 - **Fix.** Name the effect, or the two things traded off and which one this takes.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeStrikes.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeStrikes.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for labour-action or percussion prose. `strikes a balance` is NOT covered: the source rule's noun list is note/tone/chord, and this port does not widen it. The loader's example check is what established that, after a first draft asserted the opposite.
 
 #### `ai-tells-figurative.figurative-wins`
 
@@ -339,10 +285,7 @@ State the benefit or the outcome
 - **Scope.** prose
 - **Fix.** Replace the win with the measurement that makes it one.
 - **Suppressible with.** `quotation`, `dead-metaphor`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — FigurativeWins.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/FigurativeWins.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for sports or games prose. `win-win` also appears in `prose-inflation.business-jargon`; kept in both so either style stands alone. Zero of the 16 branches were reachable by any owned rule.
 
 #### `ai-tells-figurative.resonate-overuse`
 
@@ -354,10 +297,7 @@ Name what connects and why
 - **Scope.** prose
 - **Fix.** State who agreed with what, or delete the sentence.
 - **Suppressible with.** `quotation`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — ResonateOveruse.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/ResonateOveruse.yml>
 - **AI register signal.** `weak` (catalog)
-
-Disable for physics or audio prose, where the word is literal. Single token on purpose: every figurative use is the same defect, an agreement claim with no agreeing party named.
 
 ### AI tells -- formatting and punctuation (`ai-tells-formatting`)
 
@@ -374,10 +314,7 @@ Bold at most the first definitional use
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Keep bold on the first definitional use of a term and delete the rest.
-- **Source.** AI tells catalog — formatting.md ("Bold spray") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Density metric, matching the catalog's shape ("every occurrence of chosen terms bolded"). Threshold 20 per 1000 words was set in the 2026-09-12 audit: measured bold density was 2.64 per 1000 words on pre-2022 human prose, 6.32 on unguided model prose; the earlier threshold of 10 fired on 2 of 11 human documents, 20 on none while still catching 2 of 17 model documents. The catalog's "key takeaway" styling half is heading content, not bold density.
 
 #### `ai-tells-formatting.cross-reference-signposting`
 
@@ -388,10 +325,7 @@ Delete the cross-reference signpost
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the signpost, or link the named section.
-- **Source.** AI tells catalog — formatting.md ("Cross-reference signposting") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable as a token list, so no judgement partner. Complements prose-craft.directional-ref, which owns the POSITION-dependent forms ("see below", "the table above") as substitutions with named replacements; these are the READING-ORDER forms, whose fix is deletion, not substitution. Upstream ai-tells.RestatementMarkers and ai-tells.SelfReference overlap.
 
 #### `ai-tells-formatting.curly-quotes`
 
@@ -402,10 +336,7 @@ Normalise curly quotes to straight ones
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** raw
 - **Fix.** Replace with the straight ASCII quote or apostrophe.
-- **Source.** AI tells catalog — formatting.md ("Curly quotes/apostrophes") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Fully mechanizable, so no judgement partner. The tell is conditional on house style -- "in a repo that types straight ones" -- so relaxed excludes it, and a project whose style is curly quotes must disable it rather than fight it. Same shape as prose-format.no-unicode-dash, which the source repo already gates at error, and `scope: raw` for the same reason: a pasted curly apostrophe inside a code fence breaks the command it lands in.
 
 #### `ai-tells-formatting.em-dash-density`
 
@@ -416,10 +347,8 @@ Keep only the em dashes that mark a real aside
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Convert each dash that is not marking a real aside into a comma, a colon, or two sentences.
-- **Source.** AI tells catalog — formatting.md ("Em-dash density", "Hyphen-swap") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://techcrunch.com/2025/11/14/openai-says-its-fixed-chatgpts-em-dash-problem/>
+- **Reference.** <https://techcrunch.com/2025/11/14/openai-says-its-fixed-chatgpts-em-dash-problem/>
 - **AI register signal.** `weak` (catalog)
-
-The catalog's tell is DENSITY, not presence, and this is the metric form of it. Deliberately counts the ASCII `--` form as well as U+2014/U+2013, which is what makes it usable in a repo whose house style writes `--`: the catalog's "Hyphen-swap" row says a find-and-replace on a tell is still the tell, and the measured `--`-to-dash ratio in the source corpus is 6,743 to 2,124. Threshold 6 per 1000 words is INFERRED from the catalog's "several dramatic pivots per page" and is NOT measured -- calibrate before enforcing outside strict. prose-format.no-unicode-dash bans the Unicode characters outright and is the presence rule; this is the density rule, and they are complements. https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md records why upstream ai-tells.EmDashUsage is disabled.
 
 #### `ai-tells-formatting.emoji-list-markers`
 
@@ -430,10 +359,7 @@ Delete emoji used as list markers
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Delete the emoji; use a plain list marker.
-- **Source.** AI tells catalog — formatting.md ("Emoji as list markers or in headings") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-The list-marker half of the catalog row. The heading half is already mechanised as prose-format.emoji-heading, which the source repo gates at warning; this rule reaches the list position that `scope: heading` cannot see. Same codepoint ranges, `scope: raw` because a list marker is markdown syntax. The 2026-09-12 audit made the markdown list marker mandatory: the optional form also matched an emoji opening a plain paragraph ("WARN **Whoa there!**" in an error message), which is emoji residue but not a list marker, and one such line in pre-2022 human prose. GO->PYTHON: `\x{1F300}` rewritten as `\U0001F300`.
 
 #### `ai-tells-formatting.heading-hierarchy`
 
@@ -444,10 +370,7 @@ Fix a skipped heading level
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** document
 - **Fix.** Use the next level down, and delete any horizontal rule immediately before a heading.
-- **Source.** AI tells catalog — formatting.md ("Skipped heading levels; horizontal rules before headings") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-kind=structure, because the check is block-level shape over the heading sequence, not a regex over text: it needs the previous heading's level. Two defects in one rule, matching the catalog row -- an H2 followed by an H4, and a horizontal rule immediately preceding a heading. Enforced at every tier: a skipped level breaks screen-reader navigation and every TOC generator, which makes it an accessibility defect rather than a register preference. No existing Vale rule covers it, ours or upstream.
 
 #### `ai-tells-formatting.inline-header-list`
 
@@ -458,10 +381,7 @@ Convert a repeated bold-colon bullet run to prose or a table
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Rewrite as prose, or as a table when there are real columns.
-- **Source.** AI tells catalog — formatting.md ("Inline-header list") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-This is the mechanizable SHAPE half of two catalog entries: formatting.md's "Inline-header list" and structure.md's "Bold-lead-in bullet symmetry". The content half -- whether the bullets carry distinct substance -- is ai-tells-structure.tricolon-abuse-remainder, and the document-level framing judgement is ai-tells-register.over-formatting-reflex. Threshold 4 is INFERRED from the structure catalog's "x 6" illustration; calibrate.
 
 #### `ai-tells-formatting.italicised-copula`
 
@@ -472,10 +392,7 @@ Delete manufactured emphasis
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** raw
 - **Fix.** Delete the emphasis; rewrite so word order carries the contrast if it is real.
-- **Source.** AI tells catalog — formatting.md ("Italicised copula for manufactured profundity") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Fully mechanizable: the tell is a closed set of function words under emphasis. `scope: raw` because the marker characters are markdown syntax that the prose parser strips. Upstream ai-tells.EmphaticCopula covers this and stays enabled, so expect duplicates. GO->PYTHON REGEX NOTE: uses two lookbehinds, unsupported by Go RE2; the upstream rule must reach the same lines another way.
 
 #### `ai-tells-formatting.title-case-heading`
 
@@ -486,10 +403,7 @@ Use sentence case in headings
 - **strict / normal / relaxed.** advisory / advisory / excluded
 - **Scope.** heading
 - **Fix.** Lower-case every word but the first and any proper noun.
-- **Source.** AI tells catalog — formatting.md ("Title Case In Every Heading") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-The catalog itself concedes the house-style escape ("unless house style says otherwise"), so this is advisory everywhere and excluded at relaxed. The pattern accepts a heading of two or more capitalised words, letting a closed list of function words, all-caps initialisms, code spans, digits, and punctuation through; it cannot distinguish a title-cased heading from one that is mostly proper nouns ("Oh My Pi", "Claude Code"), which is why it never reaches enforced. Recalibrated in the 2026-09-12 audit: the earlier three-plain-words form matched 5 of 143 AI headings and 0 of 191 human; this one matches 30 of 143 AI and 16 of 191 human, the human hits being proper nouns.
 
 ### AI tells -- the chat-assistant register (`ai-tells-register`)
 
@@ -507,10 +421,7 @@ State the measured property, not the desert
 - **Scope.** prose
 - **Fix.** State the measured property that would justify the claim.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** AI tells catalog — register.md ("Anthropomorphised justification") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `strong` (measured)
-
-Mechanizable core. Upstream ai-tells.AnthropomorphicJustification covers this and stays enabled. BROADER than the content-shape anthropomorphism entry, which covers subjects ACTING and is mechanised as prose-agency.anthropomorphism; this covers subjects DESERVING. Judgement remainder in ai-tells-register.anthropomorphised-justification-remainder.
 
 #### `ai-tells-register.corporate-analytic-filler-core`
 
@@ -521,10 +432,7 @@ Delete the analysis wrapper and keep the noun
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the wrapper and keep the noun it packaged.
-- **Source.** AI tells catalog — register.md ("Corporate-analytic filler") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. `granular` is deliberately OMITTED even though the catalog names it: the immutable historical record at https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md records that upstream ai-tells.OverusedVocabulary was disabled partly for flagging `granular`, which has an ordinary technical use. The remainder was retired 2026-09-22 after adjudication showed 16 percent precision. Overlaps upstream ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked, ai-tells.FillerPhrases, and ai-tells.LabelAndExplain, all of which stay enabled.
 
 #### `ai-tells-register.faux-candor-core`
 
@@ -535,10 +443,8 @@ Cut the intimacy performance
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the frame and make the claim it was protecting.
-- **Source.** AI tells catalog — register.md ("Faux-candor pivot") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://tropes.fyi/>
+- **Reference.** <https://tropes.fyi/>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. tropes.fyi files this as "False Vulnerability". Judgement remainder in ai-tells-register.faux-candor-remainder, because the catalog's actual test is whether the vulnerability is risk-free, which no token carries. The structure catalog's "Here's the thing" overlaps -- that form is in ai-tells-structure.false-suspense-frames.
 
 #### `ai-tells-register.figurative-verb-verdict-core`
 
@@ -549,10 +455,7 @@ State the judgement literally
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** State the judgement as a claim, with the observation that supports it.
-- **Source.** AI tells catalog — register.md ("Figurative-verb verdict") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core, as a literal token list. Distinctly 2026 register: the catalog records that it SURVIVED the lexical patching that killed the 2023-24 adjective bands, which is why it is worth a token list even though token lists decay. Upstream ships one rule per figurative verb -- ai-tells.FigurativeLands, FigurativeHolds, FigurativeQuiet, FigurativeCarries and twelve more -- all of which stay enabled, so expect duplicates. Judgement remainder in ai-tells-register.figurative-verb-verdict-remainder.
 
 #### `ai-tells-register.intensifier-tics-core`
 
@@ -563,10 +466,8 @@ Drop the unearned intensifier
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the adverb and add the claim that would have justified it.
-- **Source.** AI tells catalog — register.md ("Intensifier tics") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://github.com/conorbronsdon/avoid-ai-writing>
+- **Reference.** <https://github.com/conorbronsdon/avoid-ai-writing>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. tropes.fyi files these as "magic adverbs". `actually` is deliberately OMITTED from the token list despite the catalog naming it: it is a correct contrastive adverb in technical prose ("the flag actually reads the parent"), and prose-inflation.intensifier already owns the measured degree adverbs on the same reasoning. Judgement remainder in ai-tells-register.intensifier-tics-remainder.
 
 #### `ai-tells-register.organic-consequence-core`
 
@@ -577,10 +478,7 @@ Say the choice was made, and why
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Name the person who chose it and the constraint that drove the choice.
-- **Source.** AI tells catalog — register.md ("Organic-consequence framing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core, enforced at every tier because it erases the agent who chose -- the same defect prose-agency.false-agency and prose-agency.agentless-passive gate at error in every register. Upstream ai-tells.OrganicConsequence covers this and stays enabled. Judgement remainder in ai-tells-register.organic-consequence-remainder.
 
 #### `ai-tells-register.sycophantic-meta-residue`
 
@@ -591,10 +489,7 @@ Delete the approval residue and audit the surrounding text
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the phrase, then re-read the surrounding prose, which came from the same session.
-- **Source.** AI tells catalog — register.md ("Sycophantic meta-residue") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Enforced at every tier for the same reason ai-residue.chat-leakage is: it is session residue, never a register choice. Fully mechanizable as a token list, so no judgement partner; the catalog's own fix names the audit step, which is carried in `fix`. Overlaps upstream ai-tells.SycophancyMarkers, ai-tells.AffirmativeFormulas (kept at error even for source comments in .vale.ini), and ai-tells.ClosingPleasantries.
 
 #### `ai-tells-register.uniform-paragraph-mass`
 
@@ -605,10 +500,8 @@ Vary paragraph length deliberately
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** document
 - **Fix.** Let one point take three paragraphs and the next one clause.
-- **Source.** AI tells catalog — register.md ("Uniform paragraph mass") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://gptzero.me/news/perplexity-and-burstiness-what-is-it/>
+- **Reference.** <https://gptzero.me/news/perplexity-and-burstiness-what-is-it/>
 - **AI register signal.** `weak` (catalog)
-
-The catalog states the shape numerically -- "every paragraph three sentences of 15-20 words" -- which makes it the one register tell that mechanises as a document metric. Threshold 12 is INFERRED from that range (a corpus of 45-60-word paragraphs has a stdev near zero) and is NOT measured; calibrate before enforcing outside strict. This is the burstiness counter-signal, and it is also proposed in the immutable historical record at https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md as paragraph-length-dispersion -- the two are the same measurement, so ship one.
 
 #### `ai-tells-register.urgency-inflation-core`
 
@@ -619,10 +512,7 @@ Name what breaks, or drop the framing
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Name the consequence, or delete the framing.
-- **Source.** AI tells catalog — register.md ("Urgency inflation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core, enforced at every tier: .vale.ini already keeps upstream ai-tells.UrgencyInflation at error even for source comments, so this port inherits that disposition. Stakes asserted to substitute for consequence. Judgement remainder in ai-tells-register.urgency-inflation-remainder.
 
 ### AI tells -- rhetorical structure (`ai-tells-structure`)
 
@@ -638,10 +528,8 @@ State the claim with its actual scope
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
-- **Source.** AI tells catalog — structure.md ("Absolute assertion") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `strong` (measured)
-
-Mechanizable core. The catalog calls this the MIRROR of hedge stacking: over-commitment reads as generated too, which is why prose-inflation.hedge-stack and this rule are complements, not duplicates. Judgement remainder in ai-tells-structure.absolute-assertion-remainder. Upstream ai-tells.AbsoluteAssertions and ai-tells.FalseExclusivity stay enabled.
 
 #### `ai-tells-structure.audience-straddle-core`
 
@@ -652,10 +540,7 @@ Write for the one audience the doc has
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Pick the audience the document has and write for it.
-- **Source.** AI tells catalog — structure.md ("Audience straddle") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. Judgement remainder in ai-tells-structure.audience-straddle-remainder covers the case where the straddle is implicit -- a page that defines `git commit` and then discusses rebase strategy.
 
 #### `ai-tells-structure.cataphoric-lead-in-core`
 
@@ -666,10 +551,8 @@ Cut the count forecast
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** prose
 - **Fix.** Delete the count and let the list carry its own length.
-- **Source.** AI tells catalog — structure.md ("Cataphoric numbered lead-in") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `strong` (measured)
-
-Mechanizable core. Judgement remainder in ai-tells-structure.cataphoric-lead-in-remainder covers the paraphrased forecast. Upstream ai-tells.CataphoricForecasting covers this and stays enabled. NOTE the conflict: a numbered forecast is CORRECT in a spec or a procedure where the reader needs to know how many steps remain, which is why relaxed excludes it.
 
 #### `ai-tells-structure.contrastive-inversion-frames`
 
@@ -680,10 +563,8 @@ Cut the strawman half of a contrastive frame
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the negated half and state what the thing is.
-- **Source.** AI tells catalog — structure.md ("Contrastive inversion") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
+- **Reference.** <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
 - **AI register signal.** `strong` (measured)
-
-The mechanizable core of the single most-cited current tell. Judgement remainder in ai-tells-structure.contrastive-inversion-remainder, which covers the forms that carry no fixed frame. Upstream Vale ai-tells.ContrastiveNegation and ai-tells.ContrastiveFormulas cover overlapping ground and stay enabled, so expect duplicate findings until one side is disabled.
 
 #### `ai-tells-structure.definitional-negation-pair`
 
@@ -695,10 +576,8 @@ Cut a cross-sentence definitional contrast
 - **Scope.** paragraph
 - **Fix.** Keep the sentence that says what the thing is; delete the one that says what it is not, unless the negated half states an independent fact a reader would otherwise assume.
 - **Suppressible with.** `quotation`, `factual-correction` — any other reason is reported rather than honoured
-- **Source.** AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
+- **Reference.** <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
 - **AI register signal.** `weak` (catalog)
-
-The two-sentence form of the contrastive inversion: "X is A. X is not B." and its mirror, with the subject repeated or pronominalised. The single-sentence frame (ai-tells-structure.contrastive-inversion-frames) stops at a sentence boundary, so this rule runs at paragraph scope, where the native engine matches against the whole block (list items and quotes included; Vale's paragraph scope skips both, so the rule stays native). The negated half must open with a rhetorical marker ("about", "just", "whether", "because", ...) or with an article followed by one of the rhetorical nouns the tell reaches for ("a requirement", "an afterthought", "a checkbox", "a silver bullet", ...): "It is not configurable" states a property and does not fire, and neither does a definitional distinction over concrete nouns ("The lock is a lease. It is not a mutex."), which the first version of this rule caught 15 times in 15 constructed legitimate sentences. Measured in the 2026-09-12 audit and its follow-up: 0 hits in 21k parsed words of pre-2022 human prose and 30k of gated prose; every one of the 5 model-corpus hits kept; 1 of 15 legitimate distinctions fires (an acknowledgement that "is not a guarantee"), down from 15; 8 of 12 constructed tells fire, the 4 missed being the same-shape concrete-noun forms that the reviewer's judgement remainder covers. Warning, never error, with a `factual-correction` exception for the sentence a writer keeps.
 
 #### `ai-tells-structure.false-suspense-frames`
 
@@ -709,10 +588,8 @@ Delete the drumroll
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the phrase and state the point.
-- **Source.** AI tells catalog — structure.md ("False-suspense transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://tropes.fyi/>
+- **Reference.** <https://tropes.fyi/>
 - **AI register signal.** `weak` (measured)
-
-Mechanizable core, as a literal token list. Judgement remainder in ai-tells-structure.false-suspense-remainder, because the shape outlives any fixed phrase -- the index records that the cliche palette rotates each model generation (Washington Post analysis of 328,744 ChatGPT messages). Overlaps upstream ai-tells.NarrativePivots and ai-tells.OpeningCliches, which stay enabled.
 
 #### `ai-tells-structure.fragment-question-pivot`
 
@@ -723,10 +600,8 @@ Replace a question-answer fragment pair with a declarative
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** prose
 - **Fix.** Write one declarative sentence.
-- **Source.** AI tells catalog — structure.md ("Fragment-question pivot") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://tropes.fyi/>
+- **Reference.** <https://tropes.fyi/>
 - **AI register signal.** `weak` (catalog)
-
-Fully mechanizable as a shape, so no judgement partner. Warning rather than error because a short question followed by a short answer is also a legitimate FAQ form -- calibrate before enforcing outside strict.
 
 #### `ai-tells-structure.meta-narration-frames`
 
@@ -737,10 +612,8 @@ Delete the navigation announcement
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the sentence; the table of contents carries navigation.
-- **Source.** AI tells catalog — structure.md ("Meta-narration") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. The document-opening frame is already mechanised as prose-inflation.document-preamble at a MEASURED 250x slop ratio; this token list reaches the mid-document and imperative forms that rule's anchors miss. Judgement remainder in ai-tells-structure.meta-narration-remainder. Overlaps upstream ai-tells.Metacommentary, ai-tells.UnpackExplore, and ai-tells.StructureAnnouncements, all of which stay enabled.
 
 #### `ai-tells-structure.negative-inventory-core`
 
@@ -751,10 +624,7 @@ Cut low-value negative inventory
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
-- **Source.** AI tells catalog — structure.md ("Negative/exclusion inventory") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable vocabulary for inventories that announce what is absent without giving the reader a decision, constraint, result, or reproduction path. Judgement remainder in ai-tells-structure.negative-inventory-remainder.
 
 #### `ai-tells-structure.rhetorical-question-transition`
 
@@ -765,10 +635,8 @@ Answer directly instead of asking
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** prose
 - **Fix.** Delete the question and state the answer.
-- **Source.** AI tells catalog — structure.md ("Rhetorical-question transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
-
-Anchored to a question that occupies a whole line or heading, which is the transition position; a question inside a paragraph is often a real one. Overlaps upstream ai-tells.RhetoricalSelfAnswer and ai-tells.RhetoricalDevices, which stay enabled. Fully mechanizable at this anchor, so no judgement partner.
 
 #### `ai-tells-structure.staccato-negative-parallel-frames`
 
@@ -779,10 +647,8 @@ Replace a staccato negative run with one sentence
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** paragraph
 - **Fix.** Write one declarative sentence naming what the thing is.
-- **Source.** AI tells catalog — structure.md ("Staccato negative parallel") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://tropes.fyi/>
+- **Reference.** <https://tropes.fyi/>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. Upstream ai-tells.ParallelStaccato covers this and is DEMOTED to warning in .vale.ini because its own rule comments concede the pattern is over-broad; this port inherits that level. Judgement remainder in ai-tells-structure.staccato-negative-parallel-remainder.
 
 #### `ai-tells-structure.summary-closer-frames`
 
@@ -794,10 +660,8 @@ End on the last fact
 - **Scope.** prose
 - **Fix.** Delete the closer; the last fact ends the section.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** AI tells catalog — structure.md ("Summary closer") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. Judgement remainder in ai-tells-structure.summary-closer-remainder covers the re-listing form, which carries no marker phrase. "at the end of the day" also appears in prose-inflation.business-jargon; that duplicate is acceptable because the two rules name different fixes. The sign-off tokens ("happy coding", "and that's it", "more to come") were added in the 2026-09-12 audit: each had 0 occurrences in 27k words of pre-2022 human prose and appeared as closers in model-generated guides.
 
 #### `ai-tells-structure.think-of-it-as-core`
 
@@ -808,10 +672,8 @@ Explain the mechanism instead of the metaphor
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** prose
 - **Fix.** State the mechanism once and delete the analogy.
-- **Source.** AI tells catalog — structure.md ("Think-of-it-as reflex") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://medium.com/@tdoherty_96508/a-field-guide-to-terrible-ai-writing-6a83ddb6a141>
+- **Reference.** <https://medium.com/@tdoherty_96508/a-field-guide-to-terrible-ai-writing-6a83ddb6a141>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core. Judgement remainder in ai-tells-structure.think-of-it-as-remainder, because an analogy can be introduced with no frame at all.
 
 #### `ai-tells-structure.tricolon-abuse-core`
 
@@ -822,10 +684,8 @@ Cut a three-item list to the items that carry load
 - **strict / normal / relaxed.** advisory / advisory / excluded
 - **Scope.** sentence
 - **Fix.** Keep the one or two items that carry load and break the symmetry.
-- **Source.** AI tells catalog — structure.md ("Rule of three / tricolon abuse") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core, at warning for the same measured reason ai-tells.VerbTricolon was demoted: 149 hits on the source corpus and the rule cannot distinguish a rhetorical tricolon from a three-item technical enumeration. Judgement remainder in ai-tells-structure.tricolon-abuse-remainder covers the bullet-symmetry and back-to-back-tricolon forms no single-sentence pattern reaches. Upstream ai-tells.VerbTricolon and VerbTricolonDensity stay enabled.
 
 #### `ai-tells-structure.vague-attribution-core`
 
@@ -837,10 +697,8 @@ Name the source or own the claim
 - **Scope.** prose
 - **Fix.** Name the source with a citation, or state the claim in your own voice.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** AI tells catalog — structure.md ("Vague attribution") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
-
-Mechanizable core, enforced at every tier: an unsourced appeal to authority is a factual defect in any register, and .vale.ini already keeps upstream ai-tells.VagueAttributions at error even for source comments. Judgement remainder in ai-tells-structure.vague-attribution-remainder. This is the one structure rule the source config already trusted enough to gate code comments on.
 
 ### Docs discipline (`docs-discipline`)
 
@@ -858,10 +716,7 @@ Keep deltas out of a doc body
 - **Scope.** prose
 - **Fix.** Delete the delta; a changelog or release note carries it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — docs-discipline/HistoryNarration.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/HistoryNarration.yml>
 - **AI register signal.** `none` (unmeasured)
-
-E4 in the retired slop-lint.py. Excluded at relaxed because it encodes a genre assumption: a changelog, release note, or migration guide exists to narrate the delta, so the rule is wrong for the change-comms genre by construction.
 
 #### `docs-discipline.internal-refs`
 
@@ -873,10 +728,7 @@ Keep internal references out of consumer docs
 - **Scope.** prose
 - **Fix.** State the behaviour; drop the pointer to internal process.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — docs-discipline/InternalRefs.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/InternalRefs.yml>
 - **AI register signal.** `none` (unmeasured)
-
-E3 in the retired slop-lint.py, and a CONSUMER-genre rule only, so excluded at relaxed. Scope is deliberately prose and not raw: the original scanned whole lines so a spec path inside a link target was caught, but measured on the source corpus that cost 5 false positives per README (`--no-constitution` in a command example, `.specify/` in a code span) against one real prose hit. Link targets are validated by lychee in CI. .vale.ini disables it for specs/, .specify/, ADR paths, CONTRIBUTING, constitution, and the two package READMEs that document the rule itself.
 
 #### `docs-discipline.status-language`
 
@@ -888,10 +740,7 @@ State what the artifact does at HEAD
 - **Scope.** prose
 - **Fix.** Delete the passage, or state the behaviour the code has now.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — docs-discipline/StatusLanguage.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/docs-discipline/StatusLanguage.yml>
 - **AI register signal.** `none` (unmeasured)
-
-E1 in the retired slop-lint.py. The negative lookahead on `currently` exempts runtime-state description (currently running/active/...), which is legitimate present tense, not doc status. Relaxed is advisory rather than excluded because a false status claim is a factual defect, not a register preference. .vale.ini turns it off for the package's own normative source files, which quote the ban list they enforce. Go->Python: the lookahead `(?!...)` is RE2-safe and ports unchanged.
 
 ### Orwell's rules, modernized (`orwell`)
 
@@ -909,10 +758,8 @@ Use the single preposition
 - **Scope.** prose
 - **Fix.** Substitute the single word.
 - **Suppressible with.** `quotation`, `normative-keyword`, `legal-force` — any other reason is reported rather than honoured
-- **Source.** Orwell 1946, rule cut-what-cuts
+- **Reference.** Orwell 1946, rule cut-what-cuts
 - **AI register signal.** `none` (unmeasured)
-
-From the operators-or-verbal-false-limbs paragraph, which names compound prepositions as padding that eliminates simple connectives.
 
 #### `orwell.not-un`
 
@@ -924,10 +771,8 @@ Drop the not-un formation
 - **Scope.** prose
 - **Fix.** State the positive.
 - **Suppressible with.** `quotation`, `grammatical-requirement` — any other reason is reported rather than honoured
-- **Source.** Orwell 1946, rule cut-what-cuts
+- **Reference.** Orwell 1946, rule cut-what-cuts
 - **AI register signal.** `none` (unmeasured)
-
-Orwell names this formation directly and supplies a mnemonic for it.
 
 #### `orwell.stale-figure`
 
@@ -939,10 +784,8 @@ Cut the stale figure
 - **Scope.** prose
 - **Fix.** Delete the figure and state the underlying fact.
 - **Suppressible with.** `dead-metaphor`, `domain-term`, `quotation`, `named-entity`, `fresh-figure` — any other reason is reported rather than honoured
-- **Source.** Orwell 1946, rule stale-figure
+- **Reference.** Orwell 1946, rule stale-figure
 - **AI register signal.** `none` (unmeasured)
-
-Orwell permits a fully dead metaphor ("can generally be used without loss of vividness") and wants a fresh one; only the middle band is a violation, which is why the allowlist exists.
 
 #### `orwell.unsupported-evaluative`
 
@@ -954,10 +797,8 @@ Back the adjective or cut it
 - **Scope.** prose
 - **Fix.** Delete the adjective and state the fact that motivated it.
 - **Suppressible with.** `quantified`, `defined-term-of-art`, `quotation`, `identifier` — any other reason is reported rather than honoured
-- **Source.** Orwell 1946, rule empty-evaluative-word
+- **Reference.** Orwell 1946, rule empty-evaluative-word
 - **AI register signal.** `none` (unmeasured)
-
-EXTENSION. Warranted by the meaningless-words section: these words do not point to a discoverable object, and their negation reads as a difference of opinion rather than a disagreement about fact. The allowlist holds the phrases the 2026-09-12 audit found in pre-2022 human prose where the noun supplies the evidence ("comprehensive test suite", "a more robust preprocessor"): all five human hits were of that shape, against eight bare-adjective hits in model prose. prose-inflation.slop-lexicon shares `robust`, `powerful`, and `comprehensive`; that duplicate is deliberate, because the fixes differ (Orwell asks for the fact, the lexicon rule for deletion).
 
 ### Prose agency (`prose-agency`)
 
@@ -975,10 +816,7 @@ Name who acted in a passive
 - **Scope.** prose
 - **Fix.** Put the actor in the subject slot.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-agency/AgentlessPassive.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-agency/AgentlessPassive.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Only the two shapes where the deletion is the point: a dummy or abstract subject carrying the verb, and the stock agentless confessions. Passives that name their agent ("the record was created by the importer") and state descriptions ("the rule is disabled") stay clean. Measures the SENTENCE; prose-density.passive-density measures the DOCUMENT, and neither subsumes the other. .vale.ini keeps it at error for source comments.
 
 #### `prose-agency.anthropomorphism`
 
@@ -989,10 +827,7 @@ Name the mechanism, not a mind
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Replace the cognition verb with the mechanism -- matches, requires, selects, branches.
-- **Source.** Retired Vale style — prose-agency/Anthropomorphism.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-agency/Anthropomorphism.yml>
 - **AI register signal.** `none` (unmeasured)
-
-From Openly's Anthropomorphism, with the subject list extended to the nouns this corpus uses (parser, linter, gate, hook, agent, model) and `behaves` dropped -- "the loader behaves the same way" is ordinary English. Subject-anchored like false-agency, so "the reviewer knows the schema" stays clean. Covers MACHINES thinking; false-agency covers ABSTRACTIONS acting. Also the mechanised half of the content-shape catalog's "Anthropomorphism" entry.
 
 #### `prose-agency.false-agency`
 
@@ -1003,10 +838,7 @@ Name who acted
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Name the human, or use "you" and put the reader in the seat. For the product-agency half, say what the thing has or what the reader does.
-- **Source.** Retired Vale style — prose-agency/FalseAgency.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-agency/FalseAgency.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Enforced at every tier: a deleted actor is a defect in any register. Subject-anchored, not verb-anchored -- "the data tells us" is the tell, "tells" alone is not -- which keeps "the loader resolves paths" clean. The `allows you to` band is anchored on the pronoun so "the config allows two retries" stays clean. `lets you` and `helps you` were dropped from that band in the 2026-09-12 audit: 9 of 11 hits on pre-2022 human prose were "lets you"/"helps you" in ordinary instructions ("the flag lets you skip"), none of the model corpus hits used them, and every bad example still fires. Also the mechanised half of the register catalog's "False agency" entry and of Splunk's UserFocus; see ai-tells-register.false-agency-remainder for the judgement remainder. .vale.ini keeps it at error for source comments.
 
 #### `prose-agency.narrator-distance`
 
@@ -1017,10 +849,7 @@ Put the reader in the scene
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Name the actor, or address the reader directly with a concrete action.
-- **Source.** Retired Vale style — prose-agency/NarratorDistance.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-agency/NarratorDistance.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The opener forms are anchored to line start, because these phrases are a tell only in that position: "what people tend to forget is documented in the runbook" mid-sentence is ordinary prose. `ignorecase` is absent from the Vale source, so ignore_case is false and the case alternations inside the pattern are load-bearing. Advisory rather than enforced at relaxed: a blog or an essay legitimately uses the lecturer opener. .vale.ini disables it for the package's own normative source files.
 
 #### `prose-agency.unattributed-recommendation`
 
@@ -1031,10 +860,7 @@ Name who recommends it
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Name the recommender, or drop the frame and give the instruction.
-- **Source.** Retired Vale style — prose-agency/UnattributedRecommendation.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-agency/UnattributedRecommendation.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Harvested from Splunk's Recommendations and Datadog's recommendations, which take opposite positions on the fix -- Splunk bans the frame and directs the reader, Datadog rewrites it to name the company. Both agree the agentless form is the defect, which is the part that generalises. `we recommend` is deliberately absent: prose-craft.first-person-plural owns the first-person plural, and in an ADR or CONTRIBUTING it is correct voice.
 
 ### Prose craft (`prose-craft`)
 
@@ -1051,10 +877,7 @@ Write an initialism unpunctuated
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the periods.
-- **Source.** Retired Vale style — prose-craft/AcronymPeriods.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/AcronymPeriods.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Vale carries the regex under `tokens:` with `nonword: true`, so it is a single regex rather than a literal-phrase list; mapped to kind=pattern, not kind=tokens. The dotted form also breaks sentence splitting in every downstream tool, including this linter, so it is enforced at every tier.
 
 #### `prose-craft.ambiguity`
 
@@ -1065,10 +888,7 @@ Pick the reading you meant
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** State the reading you meant -- "a and b", "a or b", or "a, b, or both".
-- **Source.** Retired Vale style — prose-craft/Ambiguity.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Ambiguity.yml>
 - **AI register signal.** `none` (unmeasured)
-
-"and/or" is the canonical case: it means three different things and the writer had one in mind. Red Hat's DoNotUseTerms spells out all three replacements, which makes it actionable rather than a taste call. OpenStack's DangPrep (a sentence ending on a preposition) was tried and REJECTED: measured on the source repo it fired three times, every one correct English where the preposition belongs to a phrasal verb or an idiom ("the section it calls for.", "rather than the reader having to.", "and so on."). Distinguishing a stranded preposition from a phrasal one needs parsing a regex cannot do.
 
 #### `prose-craft.articles`
 
@@ -1079,10 +899,7 @@ Match the article to the initialism's pronunciation
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use the article the initialism's spoken form takes.
-- **Source.** Retired Vale style — prose-craft/Articles.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Articles.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Purely mechanical -- there is no house-style position to take -- and a reliable marker of text assembled rather than read aloud. Vale sets `ignorecase: false` explicitly, which is load-bearing: case-insensitive matching would flag "A FAQ" at the start of a sentence with the wrong replacement casing.
 
 #### `prose-craft.command-prompt`
 
@@ -1093,10 +910,7 @@ Drop the shell prompt from a command
 - **strict / normal / relaxed.** advisory / excluded / excluded
 - **Scope.** raw
 - **Fix.** Show the command alone; name the shell in the fence's language tag if it matters.
-- **Source.** Retired Vale style — prose-craft/CommandPrompt.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/CommandPrompt.yml>
 - **AI register signal.** `none` (unmeasured)
-
-`scope: raw` because the prompt lives inside a fence, which the prose parser skips. Canonical's 015-No-prompts-in-comments and Krystal's CommandLinePrompts both implement this; Krystal uses a Tengo script to find fences, but a line-anchored regex over raw text reaches the same lines without the dependency. `#` is excluded from the prompt set: in a fenced block it is far more often a comment than a root prompt. A bare `>` is excluded too: at line start in raw markdown it is a blockquote far more often than a cmd.exe prompt, and the rule fired on every quoted line of AGENTS.md. The PowerShell prompt keeps its `>` because the drive prefix disambiguates it.
 
 #### `prose-craft.conflict-markers`
 
@@ -1107,10 +921,7 @@ Resolve the merge conflict
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Resolve the conflict and delete the markers.
-- **Source.** Retired Vale style — prose-craft/ConflictMarkers.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/ConflictMarkers.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Always a defect, never a style question, so enforced at every tier. It survives review more often than it should because a rendered markdown view hides it inside the diff noise. `scope: raw` so it reaches inside code fences, where a botched merge usually lands.
 
 #### `prose-craft.dead-opener`
 
@@ -1121,10 +932,7 @@ Start the sentence with its real subject
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Move the real subject into the subject slot.
-- **Source.** Retired Vale style — prose-craft/DeadOpener.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/DeadOpener.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Existential there is matched sentence- or clause-initial only: "there is no way to know" mid-sentence stays clean, as does "check whether there is a lockfile". write-good ships this as ThereIs at error and So at error; `So` is deliberately absent, because a sentence-initial "So" is a legitimate connective in this register and it fired twice on correct prose in calibration. GO->PYTHON REGEX NOTE: uses four LOOKBEHINDS, which Go RE2 does not support at all. Python `regex` supports them, so the ported rule is exact; verify that the Vale original was not silently matching nothing on these branches.
 
 #### `prose-craft.directional-ref`
 
@@ -1136,10 +944,8 @@ Link the heading by name instead of by position
 - **Scope.** prose
 - **Fix.** Name or link the target section, table, or element.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-craft/DirectionalRef.yml — <https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics>
+- **Reference.** <https://www.w3.org/WAI/WCAG22/Understanding/sensory-characteristics>
 - **AI register signal.** `none` (unmeasured)
-
-WCAG 2.2 SC 1.3.3: position breaks for every reader who zooms, reflows, uses a screen reader, or reads the source out of order, and for the reader of a single section extracted into search results or an AI summary. Modelled on Elastic's DirectionalLanguage rather than neighbor's: neighbor matches a bare `bar` via `(side)?bar`, which fired on the word "bar" in ordinary prose, so every entry here needs a directional word. Enforced at every tier because it is an accessibility defect, not a register preference. Overlaps the formatting catalog's "Cross-reference signposting" tell; that tell's remaining forms ("as we'll see", "recall that") are ai-tells-formatting.cross-reference-signposting.
 
 #### `prose-craft.first-person-plural`
 
@@ -1151,10 +957,7 @@ Name the artifact, not the vendor
 - **Scope.** prose
 - **Fix.** Put the artifact in the subject slot.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-craft/FirstPersonPlural.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/FirstPersonPlural.yml>
 - **AI register signal.** `none` (unmeasured)
-
-GENRE-SCOPED, and the exclusions matter more than the rule, so relaxed is excluded. A commit message legitimately says "we dropped X"; an ADR says "we chose Postgres"; a CONTRIBUTING says "we review within a week". Off for change comms and internal docs, and the packaged Vale config turns it off for those paths. `us` is deliberately absent ("let us know", "tells us" are too common in correct use), and `I`/`me`/`my` are absent because a personal blog voice is not this defect.
 
 #### `prose-craft.future-tense`
 
@@ -1165,10 +968,7 @@ Describe what it does now
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** prose
 - **Fix.** Put the verb in the present tense.
-- **Source.** Retired Vale style — prose-craft/FutureTense.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/FutureTense.yml>
 - **AI register signal.** `none` (unmeasured)
-
-A doc describes what the artifact does now, so the present tense is both shorter and true at read time. "Will" also hides the roadmap case: "the flag will support globs" reads as documentation and is a promise. docs-discipline.status-language owns the explicit roadmap forms ("will eventually", "in a future release"); this rule owns the bare future tense, which is a tense choice rather than a status claim. From Openly's FutureTense, minus its `[\w][ll]` token, which matches any word containing "ll" including "will" itself, "all", and "install". Excluded at relaxed: a spec or an RFC states future obligations by genre.
 
 #### `prose-craft.gerund-heading`
 
@@ -1179,10 +979,7 @@ Use the imperative in a task heading
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** heading
 - **Fix.** Rewrite the heading in the imperative.
-- **Source.** Retired Vale style — prose-craft/GerundHeading.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/GerundHeading.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Vale carries the regex under `tokens:`, so it is a single regex and maps to kind=pattern, not kind=tokens. A gerund WITH a direct object is a task heading; a bare gerund is a topic heading ("Logging", "Troubleshooting") and stays clean, which is why the pattern needs the object rather than `^\w+ing\b`. Vale's `exceptions:` list is mapped to `allowlist` and not to `exceptions`: our schema's `exceptions` is a closed set of NAMED suppression reasons a writer may cite, while Vale's list is literal strings that never fire -- which is exactly our `allowlist`. Excluded at relaxed: heading mood is a house-style choice.
 
 #### `prose-craft.hyphens`
 
@@ -1193,10 +990,7 @@ Drop the hyphen after an -ly adverb
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the hyphen.
-- **Source.** Retired Vale style — prose-craft/Hyphens.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Hyphens.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Vale carries the regex under `tokens:` with `nonword: true`; mapped to kind=pattern. One correct answer, no house-style position, so enforced at every tier: an -ly adverb can only modify the adjective after it, so the hyphen adds no information.
 
 #### `prose-craft.latinisms`
 
@@ -1208,10 +1002,7 @@ Use the English phrase
 - **Scope.** prose
 - **Fix.** Write the English phrase.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-craft/Latinisms.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Latinisms.yml>
 - **AI register signal.** `none` (unmeasured)
-
-"e.g." and "i.e." are routinely swapped for each other, and a screen reader says "ee gee". Google, Microsoft, IBM, and Elastic all replace them, which is as close to settled as documentation style gets. `etc.` is included on purpose: it means the writer had a list and stopped. Advisory at relaxed: `via` and `ad hoc` are ordinary register in an essay.
 
 #### `prose-craft.link-text`
 
@@ -1222,10 +1013,8 @@ Name the destination in the link text
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** raw
 - **Fix.** Replace the label with the target's name.
-- **Source.** Retired Vale style — prose-craft/LinkText.yml — <https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context>
+- **Reference.** <https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context>
 - **AI register signal.** `none` (unmeasured)
-
-A screen reader can list a page's links out of context, so "here" becomes an entry with no destination; every reader loses, because link text is what a scanning eye lands on. `scope: raw` because the pattern is markdown syntax, not prose, and the parsed text node would give only the label without the brackets. The label set is the union of Datadog's links, Canonical's 027-non-descriptive-link-text, and Krystal's MeaningfulLinkWords. Canonical also matches reStructuredText and MyST roles; those are absent because Vale has no parser for either without an external converter -- our engine may add them. Enforced at every tier as an accessibility defect.
 
 #### `prose-craft.misnomer`
 
@@ -1236,10 +1025,7 @@ Drop the word the initialism already contains
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the trailing noun.
-- **Source.** Retired Vale style — prose-craft/Misnomer.yml — <https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-craft/Misnomer.yml>
 - **AI register signal.** `none` (unmeasured)
-
-RAS syndrome. Split from Redundancy.yml because the cause differs and so does the diagnosis: a grammatical redundancy ("past history") is a slip in the sentence, a misnomer is a gap in what the writer knows the initialism expands to, so it tells you to check the surrounding text for more of the same. CRAFT AXIS despite a very low human base rate (0.1 hits per 10k words): a model that has seen the expansion is LESS likely to make this error than a human writing quickly, so as a generated-text signal it points the wrong way.
 
 #### `prose-craft.negative-requirement`
 
@@ -1250,10 +1036,7 @@ State what is required
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Invert the sentence to state the requirement.
-- **Source.** Retired Vale style — prose-craft/NegativeRequirement.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/NegativeRequirement.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Double negatives cost every reader a pass, and non-native readers more than one. Excluded at relaxed and off for internal docs by default: a spec states constraints negatively on purpose ("the loader MUST NOT retry without a backoff") and that is the genre's job.
 
 #### `prose-craft.optional-plural`
 
@@ -1264,10 +1047,7 @@ Use the plural
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Write the plural.
-- **Source.** Retired Vale style — prose-craft/OptionalPlural.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/OptionalPlural.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into one alternation for kind=pattern. Covers "(es)" and the slashed form, which Google's rule misses. The reader has to resolve the parenthetical and the resolution never matters.
 
 #### `prose-craft.ordinals`
 
@@ -1278,10 +1058,7 @@ Write the word ordinal, or let the list carry the order
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Use "first", or drop the ordinal and let the list marker carry it.
-- **Source.** Retired Vale style — prose-craft/Ordinals.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Ordinals.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Two shapes: "firstly" adds -ly to a word that is already the ordinal, and the numeric form reads as a date fragment in running prose. The lookbehind excludes a bare year-like number. Advisory at relaxed: "1st" is correct in a table cell or a date. GO->PYTHON REGEX NOTE: `(?<!\w)` is a lookbehind, unsupported by Go RE2.
 
 #### `prose-craft.plural-abbreviation`
 
@@ -1292,10 +1069,7 @@ Drop the apostrophe from a plural initialism
 - **strict / normal / relaxed.** advisory / advisory / advisory
 - **Scope.** prose
 - **Fix.** Delete the apostrophe.
-- **Source.** Retired Vale style — prose-craft/PluralAbbreviation.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/PluralAbbreviation.yml>
 - **AI register signal.** `none` (unmeasured)
-
-PARTIAL CONVERSION. The Vale rule is `extends: sequence` with three tokens: `\b[A-Z]{2,}`, `'s`, and a third that NEGATES on a following noun (`tag: NN|NNS|NNP|NNPS`), because a genuine possessive has one. Our schema has no POS-keyed sequence kind, and kind=vocabulary is a controlled-vocabulary lookup rather than a tag-sequence negation. Only the first two tokens are reproduced here, so the rule WILL fire on every correct possessive. It is therefore advisory at every tier, including strict, and must not be promoted until the engine gains a POS checker. The Vale `sequence` form stays live as the accurate implementation.
 
 #### `prose-craft.politeness`
 
@@ -1306,10 +1080,7 @@ State the step, not a request
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** prose
 - **Fix.** Delete the courtesy word and state the step.
-- **Source.** Retired Vale style — prose-craft/Politeness.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Politeness.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Red Hat, OpenStack, Splunk, and Krystal all ban it, and each gives the same reason: politeness in a procedure reads as uncertainty about whether the step is required. `sorry` and `unfortunately` are here too -- both narrate the author's feelings about a limitation rather than stating the limitation, and both are a common shape in generated apologia. Excluded at relaxed: a blog or a support reply is polite by genre.
 
 #### `prose-craft.redundancy`
 
@@ -1320,10 +1091,7 @@ Cut the repeated half
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the repeated half.
-- **Source.** Retired Vale style — prose-craft/Redundancy.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Redundancy.yml>
 - **AI register signal.** `none` (unmeasured)
-
-CRAFT AXIS on a measured base rate: 0.1 hits per 10k words across 147,473 words of human-written technical documentation. Rare, but rare because it is a slip anyone makes and most editors catch, not because a model produces it more often. Grammatical redundancy, not a naming error -- see misnomer for "ATM machine", a different defect with a different cause.
 
 #### `prose-craft.relative-date`
 
@@ -1334,10 +1102,7 @@ Give the absolute date or version
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Give the absolute date or the version number.
-- **Source.** Retired Vale style — prose-craft/RelativeDate.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/RelativeDate.yml>
 - **AI register signal.** `none` (unmeasured)
-
-A relative date is correct on the day it is written and wrong every day after; the document does not carry its own write date, so neither a reader nor a model reading it later can resolve the offset. Modelled on MediaWiki's RelativeDates, whose own regex matches any month name not followed by a digit; this one matches the relative expressions instead, which is the actual defect. `soon` and `shortly` are deliberately absent so a roadmap phrase reports once, under docs-discipline.status-language, rather than twice.
 
 #### `prose-craft.self-reference`
 
@@ -1348,10 +1113,7 @@ Start with the first new fact
 - **strict / normal / relaxed.** enforced / advisory / advisory
 - **Scope.** prose
 - **Fix.** Delete the navigation clause.
-- **Source.** Retired Vale style — prose-craft/SelfReference.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/SelfReference.yml>
 - **AI register signal.** `none` (unmeasured)
-
-`page` and `document` are deliberately absent from the noun list: Vale's `text` scope hands over the PARSED text node, so a markdown link label arrives with its brackets stripped and no lookbehind can distinguish `[this page](...)` from prose. prose-craft.link-text owns the link case, and dropping the two nouns was cheaper than re-implementing markdown skipping under `scope: raw`. OUR ENGINE MAY BE ABLE TO RESTORE THEM, because it parses the document itself rather than receiving a text node. `this document` and `this guide` are also absent: a README legitimately says "this document describes the released package" once, and prose-inflation.document-preamble owns the opening frame. Mechanised half of the structure catalog's "Heading echo" tell.
 
 #### `prose-craft.sentence-length`
 
@@ -1362,10 +1124,7 @@ Split a long sentence
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** sentence
 - **Fix.** Split the sentence, or turn the enumeration into a list.
-- **Source.** Retired Vale style — prose-craft/SentenceLength.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/SentenceLength.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Converted from Vale `extends: occurrence` with `max: 34`, `token: \b(\w+)\b`, `scope: sentence`. Threshold 34 is deliberately ABOVE Microsoft's 30 and Red Hat's 32: measured on the source repo's tracked prose, 30 flagged 12 sentences, most of them correct enumerations, and 34 flags the ones that are genuinely two sentences. Raise it rather than disable it if a corpus disagrees. Complements prose-format.prose-block, which measures the paragraph; a document can pass one and fail the other, and the fixes differ.
 
 #### `prose-craft.spacing`
 
@@ -1376,10 +1135,7 @@ Use one space after a period
 - **strict / normal / relaxed.** enforced / advisory / advisory
 - **Scope.** prose
 - **Fix.** Use exactly one space.
-- **Source.** Retired Vale style — prose-craft/Spacing.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Spacing.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Vale carries TWO regexes under `tokens:` with `nonword: true`; merged into one alternation for kind=pattern. The zero-space form ("Word.Next") is a paste artifact; the two-space form is a typewriter habit that markdown renderers collapse anyway, so it survives only in the source diff. The lookbehind excludes a version or decimal, and `nonword` keeps the match off word boundaries so a filename does not trip it. GO->PYTHON REGEX NOTE: `(?<!\d)` is a lookbehind, unsupported by Go RE2.
 
 #### `prose-craft.unclear-antecedent`
 
@@ -1390,10 +1146,7 @@ Name the noun the demonstrative points at
 - **strict / normal / relaxed.** enforced / advisory / advisory
 - **Scope.** prose
 - **Fix.** Add the noun after the demonstrative.
-- **Source.** Retired Vale style — prose-craft/UnclearAntecedent.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/UnclearAntecedent.yml>
 - **AI register signal.** `none` (unmeasured)
-
-From Openly's UnclearAntecedent, tightened. Openly matches only `This is|are`; `That`, `These`, and `Those` have the same failure, and requiring a copula or a light verb keeps "This flag controls retries" -- a demonstrative WITH its noun -- clean. Advisory at relaxed: an essay carries a referent forward across sentences by design. GO->PYTHON REGEX NOTE: three lookbehinds, unsupported by Go RE2.
 
 #### `prose-craft.versions`
 
@@ -1404,10 +1157,7 @@ State version order, not magnitude
 - **strict / normal / relaxed.** enforced / advisory / advisory
 - **Scope.** prose
 - **Fix.** Use "and later" or "and earlier".
-- **Source.** Retired Vale style — prose-craft/Versions.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Versions.yml>
 - **AI register signal.** `none` (unmeasured)
-
-"3.2 and higher" is ambiguous once versions stop sorting numerically: is 3.10 higher than 3.9? Enforced at every tier because it is a correctness defect, not a register preference.
 
 #### `prose-craft.wordiness`
 
@@ -1419,10 +1169,7 @@ Use the short word
 - **Scope.** prose
 - **Fix.** Substitute the short word.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-craft/Wordiness.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Wordiness.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Merged from three upstream maps that overlap heavily: Microsoft's Wordiness (119 entries), Red Hat's SimpleWords (107), and write-good's TooWordy (216 bare tokens with no replacement). Keeps the SUBSTITUTION form on purpose -- a finding that names the replacement is actionable, one that says "too wordy" is not, and 122 of write-good's tokens ship without a replacement at all. Trimmed on three grounds: technical homographs (`implement`, `monitor`, `validate`, `evaluate`, `terminate`, `maximum`, `minimum`, `objective`, `requirement`, `indicate`, `retain` are the correct words in a software corpus and write-good flags all of them), connectives (`however`, `therefore`, `nevertheless`, `regarding`, `similar to`, `on the other hand` are ordinary English), and register-neutral verbs (`provide`, `contains`, `maintain`, `permit`, `determine`, `notify`, `encounter` read the same as their "plain" replacements, so swapping them is taste). Four replacement values carry a `|` alternation the Vale message renders literally ("do|carry out"); our engine should present those as a choice, not as a literal string.
 
 ### Prose discipline (`prose-discipline`)
 
@@ -1440,10 +1187,8 @@ Do not hedge both ways
 - **Scope.** sentence
 - **Fix.** Keep the direction the evidence supports and state its magnitude. Where both hold, give both numbers rather than both hedges.
 - **Suppressible with.** `genuine-uncertainty`, `measured-variance`, `quotation`, `legal-force`, `safety-critical` — any other reason is reported rather than honoured
-- **Source.** Orwell 1946, rule cut-what-cuts
+- **Reference.** Orwell 1946, rule cut-what-cuts
 - **AI register signal.** `none` (unmeasured)
-
-The mechanizable core of hedged-into-uselessness. Reports the shape; the judgement rule decides whether the uncertainty behind it is real.
 
 #### `prose-discipline.frozen-verb`
 
@@ -1455,10 +1200,8 @@ Put the action in the verb
 - **Scope.** prose
 - **Fix.** Promote the noun to a finite verb and delete the general-purpose verb and its article.
 - **Suppressible with.** `identifier-fidelity`, `quotation`, `code-span`, `legal-force`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.7
+- **Reference.** ASD-STE100 issue 9, rule 3.7
 - **AI register signal.** `none` (unmeasured)
-
-Both sources name this. Orwell's operators-or-verbal-false-limbs paragraph calls the pattern "the elimination of simple verbs"; the specification requires a verb for an action. Overlaps orwell-voice.passive-voice on sentences that are both passive and frozen, which is correct: they carry two defects and the fix differs.
 
 #### `prose-discipline.hedged-hedge`
 
@@ -1470,10 +1213,8 @@ One hedge or none
 - **Scope.** prose
 - **Fix.** Delete the hedging verbs and the quantifier, then name what actually changes.
 - **Suppressible with.** `genuine-uncertainty`, `measured-variance`, `quotation`, `legal-force` — any other reason is reported rather than honoured
-- **Source.** Orwell 1946, rule cut-what-cuts
+- **Reference.** Orwell 1946, rule cut-what-cuts
 - **AI register signal.** `none` (unmeasured)
-
-Separate from prose-inflation.hedge-stack: that rule matches modal plus adverb ("may possibly"), this one matches a modal wrapped around a vague quantifier ("may help reduce some of the"), which no adverb appears in.
 
 #### `prose-discipline.marketing-lexicon`
 
@@ -1485,10 +1226,7 @@ Cut the marketing adjective
 - **Scope.** prose
 - **Fix.** Delete the adjective and state what the reader can measure.
 - **Suppressible with.** `quotation`, `identifier-fidelity`, `landing-page`, `api-name` — any other reason is reported rather than honoured
-- **Source.** prose-inflation
 - **AI register signal.** `none` (unmeasured)
-
-Distinct from orwell.unsupported-evaluative by test rather than by taste: that rule asks whether evidence is present, this one asks whether the word belongs to advertising at all. `bulletproof` fails even with a benchmark beside it.
 
 #### `prose-discipline.phrasal-verb`
 
@@ -1500,10 +1238,8 @@ Use the plain verb
 - **Scope.** prose
 - **Fix.** Replace with the plain verb the list names.
 - **Suppressible with.** `identifier-fidelity`, `quotation`, `code-span`, `api-name`, `ui-label` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.5
+- **Reference.** ASD-STE100 issue 9, rule 3.5
 - **AI register signal.** `none` (unmeasured)
-
-A closed list, not a general -up/-out pattern. `set up`, `log in`, `check out`, `roll back`, and `shut down` are the correct names of real operations, and a suffix pattern would report every one of them. The allowlist is the load-bearing half of this rule.
 
 #### `prose-discipline.run-on`
 
@@ -1515,10 +1251,8 @@ Split the run-on
 - **Scope.** sentence
 - **Fix.** Split at the clause boundary that carries the least shared context.
 - **Suppressible with.** `quotation`, `code-span`, `vertical-list`, `legal-force` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 4.1
+- **Reference.** ASD-STE100 issue 9, rule 4.1
 - **AI register signal.** `none` (unmeasured)
-
-Counts coordinating conjunctions, semicolons, dashes used as clause joins, and non-restrictive "which" clauses, rather than words. A sentence under the word cap can still carry four ideas, and that is the defect a reader feels. Threshold 3 permits a compound sentence with a trailing qualifier and rejects the fourth stitch.
 
 ### Prose format (`prose-format`)
 
@@ -1535,10 +1269,7 @@ Delete emoji from a heading
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** heading
 - **Fix.** Delete the emoji; the heading text carries the meaning.
-- **Source.** Retired Vale style — prose-format/EmojiHeading.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-format/EmojiHeading.yml>
 - **AI register signal.** `none` (unmeasured)
-
-W2 in the retired slop-lint.py. Vale's `scope: heading` replaced the original manual leading-`#` test. Also the mechanised half of the formatting catalog's "Emoji as list markers or in headings" entry -- the list-marker half needs judgement, see ai-tells-formatting.emoji-list-markers. Go->Python: `\x{1F300}` becomes `\U0001F300`.
 
 #### `prose-format.no-unicode-dash`
 
@@ -1549,10 +1280,7 @@ Write ASCII double-hyphen instead of an em or en dash
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** raw
 - **Fix.** Replace with `--`, a comma, a colon, or two sentences. For a range, write "to".
-- **Source.** Retired Vale style — prose-format/NoUnicodeDash.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-format/NoUnicodeDash.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Replaces the disabled ai-tells.EmDashUsage. The difference that makes it usable: it matches ONLY the real Unicode characters, not the literal `--` this house style writes (measured 6,743 uses of `--` against 2,124 real dashes, so the upstream rule fired ~40 times per document on the house convention and buried every other finding). `scope: raw` is required here: Vale's default scope skips code fences, indented code, and inline code, which is where a pasted Unicode dash does the most damage. Measured on a fixture carrying one dash in each position, the default scope found 1 of 4 and raw found all 4. Also measured for source comments: 172 hits, all real U+2014/U+2013 (206 Unicode dashes against 2,591 ASCII `--` across the same 55 files), which is why .vale.ini puts it in the source allowlist at error. Kept at error after the 2026-09-12 audit weighed a demotion: the character is the strongest single origin signal in the corpora (6.79 per 1,000 words in unguided model prose against 0.28 in pre-2022 human prose, a 24x ratio; 15x with the genre held to READMEs), and demoting it to warning let 11 more of 48 unguided model documents pass the `normal` gate while the human cost of the error was 6 dashes in 27k words. ai-tells-formatting.em-dash-density carries the per-document density signal. Advisory at relaxed: an issue comment may keep its dashes. Go->Python: Vale's `\x{2014}` hex-brace form is rewritten as `—`.
 
 #### `prose-format.prose-block`
 
@@ -1563,10 +1291,7 @@ Convert a long paragraph to a list or table
 - **strict / normal / relaxed.** enforced / advisory / advisory
 - **Scope.** paragraph
 - **Fix.** Split the paragraph, or turn the enumeration into a list or a table.
-- **Source.** Retired Vale style — prose-format/ProseBlock.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-format/ProseBlock.yml>
 - **AI register signal.** `none` (unmeasured)
-
-W1 in the retired slop-lint.py, converted from Vale `extends: occurrence` with `max: 80`, `token: \b(\w+)\b`, `scope: paragraph`. Vale's paragraph scope replaced the original line-prefix heuristic, which miscounted wrapped list-item continuations and markdown syntax as prose words. The Vale message needed `%d` and not `%s`, because occurrence populates an int and `%s` renders it as `%!s(int=N)`; our schema interpolates `{match}` with no format verb, so the trap does not carry over. Advisory at relaxed: an essay or a spec legitimately carries a long paragraph. Complements prose-craft.sentence-length, which measures the sentence.
 
 ### Prose inclusive (`prose-inclusive`)
 
@@ -1584,10 +1309,7 @@ Replace a disability metaphor with the plainer word
 - **Scope.** prose
 - **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."prose-inclusive.ableist"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Use the plainer word that was meant.
-- **Source.** Retired Vale style — prose-inclusive/Ableist.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inclusive/Ableist.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Two shapes in one rule: a slur applied to a person, and a disability standing in for a shortcoming. The second is the one that reaches technical prose, and it is always replaceable by the plainer word that was meant, which is why the rule is enforced at every tier. `disabled` is deliberately ABSENT: Microsoft's Accessibility rule includes it and fired twice on the source corpus, both times on a config state ("the rule is disabled"); Elastic dropped it for the same reason.
 
 #### `prose-inclusive.device-assumption`
 
@@ -1599,10 +1321,8 @@ Do not assume the reader's input device
 - **Scope.** prose
 - **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."prose-inclusive.device-assumption"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Use the device-neutral verb.
-- **Source.** Retired Vale style — prose-inclusive/DeviceAssumption.yml — <https://www.w3.org/WAI/WCAG22/Understanding/>
+- **Reference.** <https://www.w3.org/WAI/WCAG22/Understanding/>
 - **AI register signal.** `none` (unmeasured)
-
-"Click the button" excludes keyboard, touch, and screen-reader users; "Select the button" covers all of them and is no longer. Hover has no touch equivalent at all. Enforced at every tier as an accessibility defect, the same disposition as prose-craft.link-text and prose-craft.directional-ref. Bare `click` is deliberately NOT matched: "a click event" and "click-through rate" are nouns, so the pattern requires the instruction shape (click + on/the/this).
 
 #### `prose-inclusive.exclusive`
 
@@ -1614,10 +1334,7 @@ Replace an exclusionary term with its settled form
 - **Scope.** prose
 - **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."prose-inclusive.exclusive"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Use the settled replacement.
-- **Source.** Retired Vale style — prose-inclusive/Exclusive.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inclusive/Exclusive.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The bar is a documented industry replacement, not a contested etymology: master/slave, blacklist/whitelist, and the hire-title metaphors are all in Linux kernel, IETF, or Google style guidance. The lookaheads on `master` and `slave` come from Red Hat's ConsciousLanguage; neighbor's version is a bare `\bmaster\b` and would flag "master boot record" and a quoted "master branch of a Git repository", both correct technical terms. Keeping the negative lookaheads is the difference between a rule people leave on and one they switch off. `stakeholder`, `target audience`, `combat`, and `tackle` are deliberately ABSENT: neighbor flags all four, they have no settled replacement, they fired twice on ordinary prose in the source corpus, and a rule a reader disagrees with gets the whole style disabled. GO->PYTHON REGEX NOTE: the `master`/`slave` exemptions are negative LOOKAHEADS, which Go RE2 also lacks -- verify the Vale original actually enforces them before trusting the false-positive claim. Python `regex` supports them, so the port is exact.
 
 ### Prose inflation (`prose-inflation`)
 
@@ -1634,10 +1351,7 @@ Keep the claim that carries load
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Keep the half that carries the claim; delete the negation.
-- **Source.** Retired Vale style — prose-inflation/AdditiveHedge.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/AdditiveHedge.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Both halves are claimed, and the negation exists only to inflate the second. Kept at error for source comments in .vale.ini. This is the mechanised form of the structure catalog's "Not-only-but-also" tell; the broader contrastive-inversion family is ai-tells-structure.contrastive-inversion.
 
 #### `prose-inflation.apologizing`
 
@@ -1648,10 +1362,7 @@ Answer the question or cut the passage
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Answer the question, or delete the passage that raises it.
-- **Source.** Retired Vale style — prose-inflation/Apologizing.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Apologizing.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The academic register's hedge: the sentence announces that the document will not answer its own question. Distinct from ai-residue.chat-leakage, which catches assistant self-reference ("I apologize"); this is third-person deferral and survives a copy-edit that strips the first person. Excluded at relaxed because it encodes a genre assumption -- a research note or a spec's open-questions section legitimately defers, and "outside the scope of this document" is a correct scope statement there. Mechanised half of the structure catalog's "Hollow acknowledgment" tell.
 
 #### `prose-inflation.borderline-hype`
 
@@ -1663,10 +1374,7 @@ Back the claim with a number or example
 - **Scope.** prose
 - **Fix.** Delete the word, or add the number or example that justifies it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-inflation/BorderlineHype.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/BorderlineHype.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Warning, not error: each token has a legitimate use, so the finding is a prompt to check rather than a defect -- hence advisory at normal and excluded at relaxed. The second band is the condescension band: a word telling the reader the thing is easy tells them nothing, and tells the reader for whom it was not easy that they are the problem. Named in MediaWiki's FreeOfFrustration and alex's Condescending, both of which include `simple`/`easy`, already covered by the first band, so only the assertion-of-obviousness half is added.
 
 #### `prose-inflation.business-jargon`
 
@@ -1677,10 +1385,7 @@ Use the plain verb
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Use the plain verb -- "double down" is "commit", "circle back" is "return to".
-- **Source.** Retired Vale style — prose-inflation/BusinessJargon.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/BusinessJargon.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Three bands: meeting-register verbs, idioms whose literal reading is not the intended one, and verbed nouns plus vision vocabulary. The idiom band is a second defect on top of the register one: a reader who learned English elsewhere has to look it up. Harvested from neighbor's EnglishIdiom, proselint's CorporateSpeak, and Joblint's Visionary, minus entries already present and minus `greenfield`, which names a real project condition. Enforced at every tier and kept at error for source comments in .vale.ini.
 
 #### `prose-inflation.document-preamble`
 
@@ -1691,10 +1396,7 @@ Start with the first fact
 - **strict / normal / relaxed.** enforced / enforced / enforced
 - **Scope.** prose
 - **Fix.** Delete the sentence; the document starts on its first fact.
-- **Source.** Retired Vale style — prose-inflation/DocumentPreamble.yml — <https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-inflation/DocumentPreamble.yml>
 - **AI register signal.** `none` (unmeasured)
-
-SLOP AXIS on a measured base rate, and the strongest ratio in the set: 0.7 hits per 10k words across 147,473 words of human-written technical documentation (slop-axis median 0.8), against 177 per 10k on a synthetic generated-slop fixture -- roughly 250x. Announcing the document's own subject before stating any of it is the canonical opening move of generated prose, which is why it is enforced at every tier. From Splunk's UserFocus; the `allows you to` half of that rule lives in prose-agency.false-agency. prose-craft.self-reference covers "this section" mid-document. Mechanised half of the structure catalog's "Meta-narration" tell.
 
 #### `prose-inflation.hedge-stack`
 
@@ -1705,10 +1407,7 @@ One hedge or none
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Keep one hedge or none; commit to the claim or cut it.
-- **Source.** Retired Vale style — prose-inflation/HedgeStack.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/HedgeStack.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Deliberately COMBINATORIAL rather than a token list. hedgeclipper ships 400+ bare tokens including `can`, `about`, `always`, and `certain`; on any technical corpus that flags most sentences. A single hedge is often correct ("the loader may retry"); two stacked on the same verb is the tell. ai-tells.HedgingPhrases and ai-tells.DefensiveHedges own the fixed idioms ("it should be noted that") and stay in Vale. Advisory at relaxed: an essay hedges by genre.
 
 #### `prose-inflation.intensifier`
 
@@ -1719,10 +1418,7 @@ Delete the degree adverb
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Delete the adverb, or replace the adjective with a measurement.
-- **Source.** Retired Vale style — prose-inflation/Intensifier.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Intensifier.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Deliberately EXCLUDED because each carries real meaning in a technical corpus: significantly/substantially/considerably (statistical and load-bearing next to a p-value), relatively/comparatively (express an actual comparison), largely/mostly/generally (scope qualifiers, see vague-quantifier), completely/entirely/fully (often the precise word, as in "fully qualified name"). Advisory at relaxed: an essay uses emphasis by genre.
 
 #### `prose-inflation.nominalized-verb`
 
@@ -1734,10 +1430,7 @@ Use the verb, not the noun
 - **Scope.** prose
 - **Fix.** Move the action back into the verb slot.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-inflation/NominalizedVerb.yml — <https://github.com/srobroek/slopvac/blob/d4611bca5c1726d6d9308adce9ade7ac9a09905a/vale-styles/prose-inflation/NominalizedVerb.yml>
 - **AI register signal.** `none` (unmeasured)
-
-SLOP AXIS on a measured base rate: 0.9 hits per 10k words across 147,473 words of human-written technical documentation, against a slop-axis median of 0.8. From Openly's VerbingNouns, widened past its perform/do/run trio to the full light-verb set and anchored so a real noun phrase ("the validation step") stays clean. `run`, `do`, and `make` are NOT treated as light verbs: "run the migration" and "make a backup" name a real action on a real object, and excluding them is what keeps the false-positive rate usable. This is the register prose-density.passive-density measures in aggregate, caught one phrase at a time. Advisory at relaxed: formal-report register is a genre.
 
 #### `prose-inflation.slop-lexicon`
 
@@ -1749,10 +1442,7 @@ Replace a marketing adjective with a measurable claim
 - **Scope.** prose
 - **Fix.** Delete the adjective, or replace it with the number, benchmark, or feature list that backs it.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-inflation/SlopLexicon.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/SlopLexicon.yml>
 - **AI register signal.** `none` (unmeasured)
-
-E2 in the retired slop-lint.py. This is the maintained mechanical ban list, and it is why ai-tells.OverusedVocabulary ships disabled: that rule carries ~190 tokens of the retired 2023-mid-2024 era band plus a creative-writing tail and words with ordinary technical uses. Enforced at every tier and kept at error for source comments in .vale.ini -- a marketing adjective is a defect in any register.
 
 #### `prose-inflation.uncomparables`
 
@@ -1764,10 +1454,7 @@ Drop the intensifier from an absolute
 - **Scope.** prose
 - **Fix.** Delete the intensifier; the adjective already means the maximum.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-inflation/Uncomparables.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/Uncomparables.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The Vale rule is an `existence` check carrying BOTH `raw` (the intensifier, consuming the trailing space so the message quotes the whole phrase) and `tokens` (the absolutes). Converted to one pattern with the 23-token list inlined as an alternation, which reproduces Vale's raw+tokens semantics exactly. `correct`, `possible`, and `sufficient` are deliberately absent from the token list: "more correct" and "least possible" are contested, and "more sufficient" is rare enough not to earn the false positives on "most possible configurations".
 
 #### `prose-inflation.vague-declarative`
 
@@ -1779,10 +1466,7 @@ Name the specific thing
 - **Scope.** prose
 - **Fix.** Replace the significance claim with the specific thing it refers to.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-inflation/VagueDeclarative.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-inflation/VagueDeclarative.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The tell is an abstract plural subject plus a bare significance predicate. The closing `\b` on each adjective keeps "the implications are documented in ADR-4" clean: a predicate that continues into a specific is not this tell. Kept at error for source comments in .vale.ini.
 
 #### `prose-inflation.vague-quantifier`
 
@@ -1794,10 +1478,7 @@ Give the count
 - **Scope.** prose
 - **Fix.** Supply the count, or name the cases.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-inflation/VagueQuantifier.yml — <https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-inflation/VagueQuantifier.yml>
 - **AI register signal.** `none` (unmeasured)
-
-WARNING, not error, on a MEASURED base rate: 9.9 hits per 10k words across 147,473 words of human-written technical documentation -- the highest rate of any rule on the slop axis, against a median of 0.8. Humans reach for "several" and "usually" constantly, so a match prompts for the count rather than evidencing who wrote the sentence. That measurement is why normal is advisory and relaxed excluded. Deliberately EXCLUDED: significantly/substantially/considerably (load-bearing next to a figure), relatively/comparatively (state an actual comparison), all/none/every/each (exact), and `some` (too common in correct generic use). It stays in prose-inflation because the DEFECT is inflation; the level carries the epistemic weight, not the category name. Also the mechanised half of the content-shape catalog's "Fake specificity" entry -- see ai-tells-content-shape.fake-specificity for the remainder.
 
 ### Prose promotion (`prose-promotion`)
 
@@ -1815,10 +1496,7 @@ Cut the promotional adjective
 - **Scope.** prose
 - **Fix.** Delete the adjective. If the claim matters, replace it with the number behind it.
 - **Suppressible with.** `quotation`, `quantified` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — AIAdjectiveNounPairs.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/AIAdjectiveNounPairs.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The source rule is Vale `extends: sequence` with a `JJ` + `NN|NNS` tag pair. This engine has no part-of-speech tagging outside `kind: vocabulary`, so the noun side is approximated by a following lowercase word -- narrower than the tagger on hyphenated and capitalised nouns, and that under-match is the safe direction. `holistic`, `seamless`, and `comprehensive` are omitted: already owned by `prose-inflation.slop-lexicon`, and a second rule on the same token would double-count in the density budget.
 
 #### `prose-promotion.promotional-puffery`
 
@@ -1830,10 +1508,7 @@ Use neutral, specific language
 - **Scope.** prose
 - **Fix.** Delete the phrase, or replace it with the number or fact behind it.
 - **Suppressible with.** `quotation`, `named-entity` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — PromotionalPuffery.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/PromotionalPuffery.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The register `prose-inflation.slop-lexicon` does not reach: that rule owns single marketing ADJECTIVES (robust, seamless), while this owns multi-word travel-and-biography CONSTRUCTIONS. Zero of 55 source tokens were matched by any owned rule, which is why it ships at error rather than warning -- unlike `AICompoundPhrases`, none of these phrases has an ordinary technical use.
 
 #### `prose-promotion.promotional-verbs`
 
@@ -1845,10 +1520,7 @@ Use the direct verb
 - **Scope.** prose
 - **Fix.** Use the plain verb: "showcase" is "show", "harness" is "use", "embark on" is "start", "foster" is "encourage" or "cause".
 - **Suppressible with.** `quotation`, `domain-term` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — OverusedVocabularyVerbs.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/OverusedVocabularyVerbs.yml>
 - **AI register signal.** `none` (unmeasured)
-
-The source rule is `extends: sequence` with verb tags; without a tagger this is a token list. `navigate` and its inflections are omitted because they are the standard UI instruction verb. `leverage` is omitted as already in `prose-inflation.slop-lexicon`. The `harness` forms are omitted on a MEASUREMENT: the only hit across 50 files in this repo was `### Any harness, without installing APM` in the README, the noun sense. Same defect that disqualified `ai-tells.FormalRegister` for `implement`.
 
 #### `prose-promotion.strategy-buzzwords`
 
@@ -1860,10 +1532,7 @@ Describe the mechanism
 - **Scope.** prose
 - **Fix.** Name the loop or the barrier, and what makes it hold.
 - **Suppressible with.** `quotation`, `defined-term-of-art` — any other reason is reported rather than honoured
-- **Source.** Retired ai-tells Vale style — StrategyBuzzwords.yml — <https://github.com/srobroek/slopvac/blob/ba959dcb3ed02f2351169c5ceb6b50b5bbdae255/packages/write-docs/.apm/skills/write-docs/vale/styles/ai-tells/StrategyBuzzwords.yml>
 - **AI register signal.** `none` (unmeasured)
-
-`north star` alone is in `prose-inflation.business-jargon`; the flywheel, moat, network-effect, and land-grab bands are not, and they are the ones that appear in generated strategy prose. Exception `defined-term-of-art` exists because `network effect` is a real term in economics writing.
 
 ### Prose scope (`prose-scope`)
 
@@ -1880,10 +1549,7 @@ Cut the closing flourish
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** paragraph
 - **Fix.** Delete it; the paragraph or table above already carried the content.
-- **Source.** Retired Vale style — prose-scope/Epigram.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/Epigram.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Two matched forms: a parallel pair (N V O. N V O. with the same or a mirrored verb) and a negated maxim (... X, not Y. as a standalone sentence). The full stop inside each pattern distinguishes an epigram from an ordinary two-clause sentence. `scope: paragraph`, not sentence: sentence scope splits a parallel pair into its halves before the pattern can see both, so the rule silently matched nothing -- verified by fixture. Kept at warning upstream because the same shape occasionally states a real contrast, so normal is advisory and relaxed excluded. GO->PYTHON REGEX NOTE: the first alternative uses a BACKREFERENCE (`\1`) to require the same verb in both halves. Go RE2 has no backreferences, so this alternative cannot have been matching under a pure RE2 engine; the Python `regex` module supports it, so the ported rule is stricter and this alternative newly becomes live. Test it against the corpus before enforcing.
 
 #### `prose-scope.formulaic-subject-verb-slogan`
 
@@ -1894,10 +1560,7 @@ Replace a paired subject-verb slogan with a title
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** paragraph
 - **Fix.** Name the section with a noun phrase, or state the one fact the two clauses gesture at.
-- **Source.** packages/slopvac/skills/review-docs/SKILL.md ("Read the headings alone, in order")
 - **AI register signal.** `none` (unmeasured)
-
-The comma-joined sibling of prose-scope.epigram. Epigram matches the parallel pair written as two SENTENCES and uses the full stops to tell it apart from an ordinary two-clause sentence; this rule matches the same pair written as a TITLE, and the absence of terminal punctuation does that same work here. Both halves must be determiner-led with a finite-looking predicate, which is what keeps the rule off a factual contrast ("The parser reads JSON, not YAML.") and off a contrastive inversion whose second subject is a pronoun ("The Harness Measures, It Does Not Judge") -- that shape belongs to ai-tells-structure.contrastive-inversion-frames. The predicate alternation ends in `[a-z][\w-]*(?<!s)s` rather than `\w+s`, so a plural noun spelled with a double s ("The Address Class, The Access Class") cannot pose as a verb. `scope: paragraph`, not `heading`: the native engine's paragraph scope covers every rendered block INCLUDING headings, list items, and quotes, so the rule reaches a bolded pseudo-heading too. Heading scope would instead compile to a Vale `heading` payload, and Vale then owns the rule -- which means `--no-vale` leaves it unchecked. See compile_vale.PARAGRAPH_SCOPE_REASON.
 
 #### `prose-scope.implementation-leak`
 
@@ -1909,10 +1572,7 @@ Move a benchmark result out of the doc
 - **Scope.** paragraph
 - **Fix.** Delete the measurement, or move it to a benchmarks page that carries its conditions and a reproduction command.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** Retired Vale style — prose-scope/ImplementationLeak.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/ImplementationLeak.yml>
 - **AI register signal.** `none` (unmeasured)
-
-A unit must sit next to the number, so version strings, ports, exit codes, and byte sizes in a config table stay clean. A stated ceiling is a documented limit, not a benchmark, so "at most five subprocesses" is excluded. `scope: paragraph` skips tables and list items, where a published figure belongs: measured over an external corpus, 100 of 154 matches were table rows or list items, all legitimate. A duration naming a timeout, budget, or deadline is configuration the reader acts on, and a figure inside an HTML `<dd>` stat tile is a deliverable; both are excluded by lookbehind. Excluded at relaxed and by glob for specs/ADR paths, and a product whose value IS its latency should turn it off rather than fight it. GO->PYTHON REGEX NOTE: this pattern uses seven variable-position negative LOOKBEHINDS. Go RE2 has no lookbehind at all, so Vale must be running these through a non-RE2 path or dropping them silently -- verify that the Vale rule actually enforces the exemptions before trusting the measurement. Python `regex` supports variable-width lookbehind, so the port is exact and may be STRICTER than the Vale original.
 
 #### `prose-scope.rejected-alternative`
 
@@ -1923,10 +1583,7 @@ Move the decision to an ADR, spec, or commit
 - **strict / normal / relaxed.** enforced / enforced / excluded
 - **Scope.** prose
 - **Fix.** Cut to the behaviour; move the decision to an ADR, a spec, or the commit that made it.
-- **Source.** Retired Vale style — prose-scope/RejectedAlternative.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/RejectedAlternative.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Excluded at relaxed and disabled by glob for specs/, .specify/, ADR paths, and CONTRIBUTING/constitution in .vale.ini: an ADR or spec IS the place for this content, so the disposition inverts by genre rather than by trying to detect the genre from the prose. Anchored to constructions that announce a comparison against a road not taken, never to "instead" or "rather" alone -- those do ordinary work ("run this instead of the wrapper"). "in favour of" needs a `because` clause, because a changelog line ("dropped X in favour of Y") states the delta, which is that genre's whole job. Mechanised half of the content-shape catalog's "Over-writing" entry; the unnamed-alternative case is ai-tells-content-shape.unasked-for-rationale.
 
 #### `prose-scope.unrequested-reassurance`
 
@@ -1937,10 +1594,7 @@ State the positive, or say nothing
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** Keep the positive statement alone, or delete the sentence -- a step that needs no setup has no setup step.
-- **Source.** Retired Vale style — prose-scope/UnrequestedReassurance.yml — <https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac-lint/vale-styles/prose-scope/UnrequestedReassurance.yml>
 - **AI register signal.** `none` (unmeasured)
-
-Anchored to the frame, never to "nothing" or "no" alone: "no rule matches" is a measurement and "nothing is committed" states where files live. The `no X required` band is narrowed on purpose -- "no signing needed" and "no spec change needed" are factual scope notes, and a corpus scan found those outnumber the sales register roughly two to one. Advisory at relaxed rather than excluded: the defect is sales register, which a marketing page owns by genre. Mechanised half of the content-shape catalog's "Unrequested reassurance" entry.
 
 ### STE Descriptive Writing (`ste-descriptive`)
 
@@ -1959,10 +1613,8 @@ Keep a paragraph to six sentences
 - **Applies to.** descriptive text
 - **Fix.** Split the paragraph into two.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 6.6
+- **Reference.** ASD-STE100 issue 9, rule 6.6
 - **AI register signal.** `none` (unmeasured)
-
-This metric uses paragraph_sentences, which is NOT the same sentence unit the word caps use. A lead-in plus its vertical list counts as one sentence here, while the word-count rules treat each list item as its own sentence. metrics.md states the resolution and the evidence for it. Getting this wrong makes almost every bulleted block a violation, which is the single largest false-positive risk in the whole set.
 
 #### `ste-descriptive.sentence-too-long-descriptive`
 
@@ -1975,10 +1627,8 @@ Keep an explanatory sentence to twenty-five words
 - **Applies to.** descriptive text
 - **Fix.** Split the sentence at a clause boundary.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 6.3
+- **Reference.** ASD-STE100 issue 9, rule 6.3
 - **AI register signal.** `none` (unmeasured)
-
-Same word-counting contract as the procedural cap, five words wider. A note inside a procedure takes this cap rather than the procedural one, which is why text_type classification (see metrics.md) decides which of the two rules applies rather than document location.
 
 ### STE Multi-word Nouns (`ste-nouns`)
 
@@ -1996,10 +1646,8 @@ Keep a noun stack to three words
 - **Scope.** sentence
 - **Fix.** Break the stack with a preposition, or define a short form.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `api-name`, `registered-domain-term` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 2.1
+- **Reference.** ASD-STE100 issue 9, rule 2.1
 - **AI register signal.** `none` (unmeasured)
-
-Counted in words, not in nouns. A vendor restatement of this rule says "nouns", which is wrong against the specification's own worked counts: it labels a four-word stack a violation even though one of the four words is an adjective. Advisory rather than excluded at relaxed tier because a five-word stack is a real comprehension cost, but our detector depends on a tagger and can miscount.
 
 ### STE Writing Practices (`ste-practices`)
 
@@ -2017,10 +1665,8 @@ Avoid a false friend
 - **Scope.** prose
 - **Fix.** Replace the word with the one that matches your intended sense.
 - **Suppressible with.** `quotation`, `code-span`, `api-name`, `identifier-fidelity` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-5
+- **Reference.** ASD-STE100 issue 9, rule GR-5
 - **AI register signal.** `none` (unmeasured)
-
-New in Issue 9. The pair list is ours, chosen for words that mislead a reader whose first language is Romance or Germanic. Two of these collide with software terms of art where the misleading sense is the correct one, so "eventual consistency" and "actual value" are allowlisted and the identity mapping documents that the collision is known rather than overlooked. Advisory at normal tier because these words are not wrong in English, only risky in translation.
 
 #### `ste-practices.gendered-or-exclusionary-language`
 
@@ -2033,10 +1679,8 @@ Use inclusive language
 - **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."ste-practices.gendered-or-exclusionary-language"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Replace the term with the inclusive alternative, unless it is an identifier.
 - **Suppressible with.** `quotation`, `code-span`, `api-name`, `identifier-fidelity` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-7
+- **Reference.** ASD-STE100 issue 9, rule GR-7
 - **AI register signal.** `none` (unmeasured)
-
-New in Issue 9. The specification bans gendered pronouns outright, so that half is a rule in effect and shares an implementation with the unclear-pronoun rule. The remaining pairs are ours, drawn from software terminology, and they go beyond what the specification addresses; one vendor argues no checker rule is needed here at all, because the controlled vocabulary contains no exclusionary terms, but our overlay adds software terms that do. The identifier-fidelity exception matters: a Git default branch name or an API field cannot be rewritten by prose tooling.
 
 #### `ste-practices.inconsistent-wording-for-same-step`
 
@@ -2048,10 +1692,8 @@ Word the same step the same way
 - **Scope.** document
 - **Fix.** Pick one wording for the step and use it everywhere.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 9.4
+- **Reference.** ASD-STE100 issue 9, rule 9.4
 - **AI register signal.** `none` (unmeasured)
-
-Mechanizable as a near-duplicate detector across steps in one document: two steps with a high token overlap but different verbs are the signal. Both wordings can be individually correct; the defect is the variation, which makes a reader think two different things happen.
 
 #### `ste-practices.latin-abbreviation`
 
@@ -2063,10 +1705,8 @@ Do not use a Latin abbreviation
 - **Scope.** prose
 - **Fix.** Replace the abbreviation with the English words, or delete the trailing list.
 - **Suppressible with.** `quotation`, `code-span`, `api-name`, `citation` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-6
+- **Reference.** ASD-STE100 issue 9, rule GR-6
 - **AI register signal.** `none` (unmeasured)
-
-New in Issue 9, and the most mechanizable of the eight recommendations, which is why it is enforced at normal tier despite being a recommendation. Note the specification's own preferred handling of a trailing "etc." is often deletion rather than substitution, because the list either matters or it does not; the fix text says so.
 
 #### `ste-practices.omitted-conjunction-that`
 
@@ -2078,10 +1718,8 @@ Keep the conjunction
 - **Scope.** prose
 - **Fix.** Insert "that" after the reporting verb.
 - **Suppressible with.** `quotation`, `code-span`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-1
+- **Reference.** ASD-STE100 issue 9, rule GR-1
 - **AI register signal.** `none` (unmeasured)
-
-A general recommendation, not a rule; the specification says so explicitly, which is why severity is suggestion and the relaxed tier excludes it. The false-positive shape is a direct object rather than a clause ("check the logs"), which is what the allowlist controls. Tested: both bad examples match, both good examples do not, and "check the config" is allowlisted rather than pattern-excluded because a lookahead for every noun is unmaintainable.
 
 #### `ste-practices.phrasal-verb`
 
@@ -2093,10 +1731,8 @@ Do not use a phrasal verb
 - **Scope.** prose
 - **Fix.** Replace the phrasal verb with the single verb.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 9.3
+- **Reference.** ASD-STE100 issue 9, rule 9.3
 - **AI register signal.** `none` (unmeasured)
-
-The pair list is ours and drawn from software prose. The specification's point is that a phrasal verb carries a meaning its parts do not, so both parts being individually permitted proves nothing. Two cautions for the implementer. First, several of these exist as legitimate closed compounds or hyphenated nouns ("a backup", "a rollback", "the setup"), so the matcher must require the two-token spaced form. Second, particle separation ("set the client up") is not matched by a fixed pair and needs a parse; we accept that miss rather than write a pattern that fires on "set the timeout up to thirty seconds".
 
 #### `ste-practices.possessive-form-unclear`
 
@@ -2108,10 +1744,8 @@ Use the possessive only when it is clear
 - **Scope.** prose
 - **Fix.** Rewrite with "of the", or split the sentence.
 - **Suppressible with.** `quotation`, `code-span`, `api-name`, `identifier-fidelity` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-8
+- **Reference.** ASD-STE100 issue 9, rule GR-8
 - **AI register signal.** `none` (unmeasured)
-
-New in Issue 9, and the specification permits the possessive; it only asks the writer to drop it when unsure, and it gives no example pairs. So a rule that flagged every possessive would contradict the source. The pattern therefore targets the two shapes that are genuinely hard to parse: a plural possessive, and two stacked possessives. Advisory at both upper tiers. Tested: the bad example matches; "the manufacturer's instructions" does not match (singular, single); "the runner's config file" does not match.
 
 #### `ste-practices.unclear-demonstrative-this`
 
@@ -2123,10 +1757,8 @@ Give the referent for a bare demonstrative
 - **Scope.** sentence
 - **Fix.** Replace the demonstrative with the noun phrase it refers to.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-4
+- **Reference.** ASD-STE100 issue 9, rule GR-4
 - **AI register signal.** `none` (unmeasured)
-
-A bare demonstrative subject followed by a verb is a mechanizable proxy for "the reader cannot tell what this refers to", and it is the highest-value item among the eight recommendations for software prose, where it is endemic. Enforced at normal tier for that reason, unlike the other recommendations. Tested: both bad examples match, both good examples do not, and "This document tells you how to deploy" does not match, because "document" is a noun rather than a verb from the list. Case folding is required: the first draft ran case-sensitively and missed the lowercase demonstrative inside parentheses, which is where the construction appears most often. Also tested against "Set this value in the config" (no match) and "Use the flag that is required" (no match, because the demonstrative is not sentence- or parenthesis-initial).
 
 #### `ste-practices.unclear-pronoun`
 
@@ -2139,10 +1771,8 @@ Replace an unclear pronoun with the noun
 - **Off by profile default.** strict, normal, relaxed — the rule is installed and silent; a `[rules."ste-practices.unclear-pronoun"]` entry with a severity turns on that rule and no other. Distinct from the tier row above: an `excluded` tier cannot be switched back on, a profile default can
 - **Fix.** Replace the pronoun with the noun it refers to.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule GR-3
+- **Reference.** ASD-STE100 issue 9, rule GR-3
 - **AI register signal.** `none` (unmeasured)
-
-Two alternates. The gendered-pronoun branch is objective and also satisfies the inclusive-language recommendation, so those two entries share an implementation. The second branch is a heuristic and deliberately narrow: it fires only on a pronoun in a clause that follows a comma and precedes a modal, which is the shape the specification's own ambiguity example takes. Broader pronoun detection produces unusable noise. Tested: both bad examples match; both good examples do not. Advisory at every profile rather than excluded outside strict, and off by a per-rule profile default instead: `Engine.is_active` drops an excluded tier before it reads a config layer, so `excluded` would make the rule unreachable for a project that wants it. Advisory plus the default keeps the quiet disposition and leaves the switch.
 
 ### STE Procedural Writing (`ste-procedural`)
 
@@ -2161,10 +1791,8 @@ Put the condition before the command
 - **Applies to.** procedural text
 - **Fix.** Move the condition clause to the front and follow it with a comma.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 5.4
+- **Reference.** ASD-STE100 issue 9, rule 5.4
 - **AI register signal.** `none` (unmeasured)
-
-Issue 9 makes condition-first an obligation and then adds the comma; Issue 7 regulated only the comma, conditional on the writer's chosen order. A checker built from the older wording misses the ordering half, so this rule enforces the ordering and comma-after-leading-condition is a separate punctuation rule. Tested: both bad examples match, both good examples do not.
 
 #### `ste-procedural.instruction-not-imperative`
 
@@ -2176,10 +1804,8 @@ Write instructions in the imperative
 - **Scope.** sentence
 - **Fix.** Rewrite the step as a direct command to the reader.
 - **Suppressible with.** `quotation`, `code-span`, `note-block` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 5.3
+- **Reference.** ASD-STE100 issue 9, rule 5.3
 - **AI register signal.** `none` (unmeasured)
-
-Three alternates covering the three ways a step loses its imperative: a subject plus an obligation modal, a reader-as-subject construction, and an impersonal "it is necessary to" opener. Deliberately not a general "does the sentence start with a verb" test, which needs a tagger and misfires on every legitimate descriptive sentence inside a procedure. note-block is excepted because notes are descriptive by rule and must not be imperative. Tested: all three bad examples match, all three good examples do not, and the descriptive "The worker drains the queue" does not match.
 
 #### `ste-procedural.multiple-instructions-per-sentence`
 
@@ -2192,10 +1818,8 @@ Write one instruction per sentence
 - **Applies to.** procedural text
 - **Fix.** Split the step so each sentence gives one instruction.
 - **Suppressible with.** `quotation`, `code-span`, `simultaneous-actions` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 5.2
+- **Reference.** ASD-STE100 issue 9, rule 5.2
 - **AI register signal.** `none` (unmeasured)
-
-The rule permits two actions in one sentence when they happen at the same time, which is the simultaneous-actions exception; a checker cannot detect simultaneity, so the exception is reviewer-applied. The pattern anchors on an imperative-initial line plus a coordinating connector followed by a second imperative verb from a closed list, rather than on "and" alone, which would fire on every coordinated object. Tested: both bad examples match; both good examples do not; and "Set the retry limit and the backoff in the client config" does not match, because "the" is not a verb in the list.
 
 #### `ste-procedural.note-gives-instruction`
 
@@ -2208,10 +1832,8 @@ Keep notes free of instructions
 - **Applies to.** descriptive text
 - **Fix.** Move the instruction into a numbered step and leave only information in the note.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 5.5
+- **Reference.** ASD-STE100 issue 9, rule 5.5
 - **AI register signal.** `none` (unmeasured)
-
-A note that carries an instruction is a real defect and not a style point: readers skip notes, so the instruction is lost. Enforced at every tier for that reason. The pattern anchors on a note marker followed by an imperative or obligation opener, and tolerates Markdown emphasis and blockquote markers. Tested: both bad examples match, both good examples do not (the imperative sits before the marker), and "NOTE: The import reads the cache at startup" does not match.
 
 #### `ste-procedural.sentence-too-long-procedural`
 
@@ -2224,10 +1846,8 @@ Keep an instruction to twenty words
 - **Applies to.** procedural text
 - **Fix.** Split the instruction into separate numbered steps.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 5.1
+- **Reference.** ASD-STE100 issue 9, rule 5.1
 - **AI register signal.** `none` (unmeasured)
-
-The twenty-word cap depends entirely on the word-counting contract in metrics.md. A whitespace tokenizer over-counts and fires on compliant sentences, which is why sentence_words is defined before this rule is implemented. Enforced at every tier, including relaxed: a long instruction is the failure mode that costs a reader most.
 
 ### STE Punctuation and Word Count (`ste-punctuation`)
 
@@ -2245,10 +1865,8 @@ Count a list lead-in as its own sentence
 - **Scope.** sentence
 - **Fix.** Shorten the lead-in, or move detail into the list items.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 8.4
+- **Reference.** ASD-STE100 issue 9, rule 8.4
 - **AI register signal.** `none` (unmeasured)
-
-The colon rule changes the sentence UNIT: the lead-in is measured against its own procedural cap; a runtime must select twenty or twenty-five from the text type of the lead-in, exactly as the two sentence-length rules do. Each list item is then counted as its own sentence against the same cap. metrics.md gives the algorithm and states why this sentence unit differs from the paragraph-sentence unit. The three counting definitions that sit beside it in the specification (8.5 parentheticals, 8.6 elements, 8.7 hyphenated groups) are tokenizer contracts, not review questions; they live in docs/metrics.md phases 0-8 rather than in this catalogue.
 
 #### `ste-punctuation.hyphen-group-too-long`
 
@@ -2260,10 +1878,8 @@ Do not hyphenate more than three words
 - **Scope.** prose
 - **Fix.** Break the group with a preposition, or register it as a domain term.
 - **Suppressible with.** `code-span`, `identifier-fidelity`, `quotation`, `api-name`, `registered-domain-term` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 8.2
+- **Reference.** ASD-STE100 issue 9, rule 8.2
 - **AI register signal.** `none` (unmeasured)
-
-Split out from the hyphenation rule because it is the one part that is fully mechanizable with no word list. Package names, CSS classes, and Kubernetes resource names routinely exceed three segments, so identifier-fidelity and api-name are load-bearing exceptions and a runtime must resolve them before this rule runs. Tested: the bad example matches (four segments); "read-only" and "command-line-client" do not match (two and three segments).
 
 #### `ste-punctuation.hyphen-missing-in-compound-modifier`
 
@@ -2275,10 +1891,8 @@ Hyphenate a compound modifier before a noun
 - **Scope.** prose
 - **Fix.** Join the two modifier words with a hyphen.
 - **Suppressible with.** `code-span`, `identifier-fidelity`, `quotation`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 8.2
+- **Reference.** ASD-STE100 issue 9, rule 8.2
 - **AI register signal.** `none` (unmeasured)
-
-The specification enumerates five hyphenation cases; only the first (a multi-word adjective before a noun) recurs in software prose, and it is open-ended, which is why we implement it as a closed two-part word list rather than as a general rule. Phase-1 analysis flagged this open-endedness as a false-positive driver, and the closed list is the mitigation. Advisory at normal tier and excluded at relaxed: a missing hyphen rarely blocks comprehension. Tested: both bad examples match, both good examples do not (the hyphen breaks the whitespace requirement), and "read the config file" does not match, because "the" is not in the second list.
 
 #### `ste-punctuation.semicolon-used`
 
@@ -2290,10 +1904,8 @@ Do not use a semicolon
 - **Scope.** prose
 - **Fix.** Replace the semicolon with a period and capitalize the next word.
 - **Suppressible with.** `code-span`, `quotation`, `identifier-fidelity`, `table-cell` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 8.1
+- **Reference.** ASD-STE100 issue 9, rule 8.1
 - **AI register signal.** `none` (unmeasured)
-
-The specification's stated reason is that the semicolon permits very long sentences and is easy to misuse. The code-span exception is not optional in software documentation: shell commands, CSS, SQL, and PATH values all carry semicolons, and a checker that flags those is unusable. Advisory at relaxed tier because a semicolon does not block comprehension.
 
 ### STE Safety Instructions (`ste-safety`)
 
@@ -2312,10 +1924,8 @@ Start a safety block with the command or the condition
 - **Applies to.** safety text
 - **Fix.** Move the command or the condition to the first sentence of the block.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 7.2
+- **Reference.** ASD-STE100 issue 9, rule 7.2
 - **AI register signal.** `none` (unmeasured)
-
-The rule wants the actionable part first, because a reader who stops after one line must still know what to do. The pattern matches the failure (a marker followed by a descriptive opener) rather than trying to recognize every valid imperative. Tested: both bad examples match; both good examples do not; and "WARNING: Rotate the key before the audit" does not match. Issue 9 changed one adjective in this rule's wording relative to Issue 7 without changing its substance.
 
 #### `ste-safety.safety-block-missing-consequence`
 
@@ -2328,10 +1938,8 @@ Explain the consequence
 - **Applies to.** safety text
 - **Fix.** Add a sentence that states what happens if the reader ignores the warning.
 - **Suppressible with.** `quotation` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 7.3
+- **Reference.** ASD-STE100 issue 9, rule 7.3
 - **AI register signal.** `none` (unmeasured)
-
-Mechanizable as a structural check: a safety block must contain at least two sentences, one of which states an outcome. Implement the outcome test as a consequence vocabulary check (a modal of possibility plus a harm noun, or an explicit result clause) rather than as a single regex, so it can be tuned without rewriting the rule. Enforced at every tier: a warning without a reason gets ignored, which defeats it.
 
 ### STE Sentences (`ste-sentences`)
 
@@ -2349,10 +1957,8 @@ Use a vertical list for complex content
 - **Scope.** sentence
 - **Fix.** Convert the coordinated series into a vertical list.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 4.3
+- **Reference.** ASD-STE100 issue 9, rule 4.3
 - **AI register signal.** `none` (unmeasured)
-
-The specification states the rule as a direction rather than a threshold, so the four-item trigger is our operational choice: three coordinated items still read cleanly inline, and the count is what a checker can measure. The formatting sub-requirements of this rule are separate mechanizable rules below.
 
 #### `ste-sentences.missing-article-or-determiner`
 
@@ -2364,10 +1970,8 @@ Use an article or a demonstrative before a noun
 - **Scope.** sentence
 - **Fix.** Add "the", "a", "an", "this", or "these" before the noun.
 - **Suppressible with.** `quotation`, `code-span`, `api-name`, `identifier-fidelity`, `heading`, `general-statement` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 4.5
+- **Reference.** ASD-STE100 issue 9, rule 4.5
 - **AI register signal.** `none` (unmeasured)
-
-This rule moved chapters between issues (it was a noun-chapter rule in Issue 7), so any ruleset citing the old number is stale. Our pattern is narrow on purpose: it anchors on a sentence-initial verb plus a closed list of software nouns, because a general bare-noun detector fires on the legitimate article-free cases the specification itself permits — general statements, abstract qualities, and a noun followed by an alphanumeric identifier. The negative lookahead keeps it off subject-position uses. Advisory at normal tier because the closed list is the only thing holding the false-positive rate down. Tested: both bad examples match, both good examples do not, and "Worker config is invalid" does not match (lookahead) nor does the heading "Cache invalidation" (not in the noun list, and headings are excepted).
 
 #### `ste-sentences.omitted-word-or-contraction`
 
@@ -2379,10 +1983,8 @@ Do not omit words or use contractions
 - **Scope.** sentence
 - **Fix.** Write the full word, or restore the omitted subject or article.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 4.2
+- **Reference.** ASD-STE100 issue 9, rule 4.2
 - **AI register signal.** `none` (unmeasured)
-
-Four alternates: negated contractions, "'s" contractions, other apostrophe contractions, and the subject-elided conditional opener, which is the omission class that actually recurs in runbooks. Both a straight apostrophe and a typographic one are matched. The conditional-opener branch anchors on the line start rather than on capitalization, so case folding is safe. Tested: all bad examples match (including "Once enabled, ..."), all good examples do not, and the possessive "the worker's queue" does not match, because the "'s" branch lists only pronouns and never reaches a common noun. The first draft ran case-sensitively and missed "It's".
 
 #### `ste-sentences.vertical-list-item-punctuation`
 
@@ -2394,10 +1996,8 @@ Punctuate list items consistently
 - **Scope.** paragraph
 - **Fix.** Capitalize each item, remove commas and semicolons, and end the last item with a period.
 - **Suppressible with.** `quotation`, `code-span`, `project-style-override` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 4.3
+- **Reference.** ASD-STE100 issue 9, rule 4.3
 - **AI register signal.** `none` (unmeasured)
-
-Five checkable conditions in one rule: each item starts with an uppercase letter, no item ends with a comma or a semicolon, a full-sentence item ends with a period, a fragment item does not, and the last item ends with a period. The project-style-override exception exists because most software style guides already fix list punctuation differently, and a conflicting checker gets switched off. Advisory at normal tier for that reason.
 
 #### `ste-sentences.vertical-list-lead-in-missing-colon`
 
@@ -2409,10 +2009,8 @@ End the list lead-in with a colon
 - **Scope.** paragraph
 - **Fix.** Replace the period at the end of the lead-in with a colon.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 4.3
+- **Reference.** ASD-STE100 issue 9, rule 4.3
 - **AI register signal.** `none` (unmeasured)
-
-Split from the parent rule because it is fully mechanizable and carries a distinct fix. The colon also terminates a sentence for word counting, so this rule is a precondition for the metrics contract (see metrics.md).
 
 ### STE Verbs (`ste-verbs`)
 
@@ -2430,10 +2028,8 @@ Do not stack auxiliaries
 - **Scope.** sentence
 - **Fix.** Rewrite as an imperative, or name the actor and use the active voice.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.4
+- **Reference.** ASD-STE100 issue 9, rule 3.4
 - **AI register signal.** `none` (unmeasured)
-
-Tested: all bad examples match, all good examples do not. Also tested against "you must rotate the token" (no match, correct: a modal plus a bare verb is permitted) and "the job can fail" (no match, correct). The explicit irregular-participle list is required: the first draft used the "-ed|-en" suffix set alone and silently missed "is to be rebuilt" and "has to be set", both common in runbooks. The two-auxiliary branch (`can be cleared`, `must be rotated`) was removed in the 2026-09-12 audit: it is a plain modal passive, which ste-verbs.passive-voice already reports, and it produced 71 duplicate findings per 21k words of pre-2022 human prose against 6 in model prose (a 0.19 ratio). What remains is the genuine three-auxiliary stack and the `is to be`/`has to be` frames.
 
 #### `ste-verbs.complex-tense`
 
@@ -2445,10 +2041,8 @@ Use simple tenses only
 - **Scope.** sentence
 - **Fix.** Rewrite in the simple present, simple past, or simple future tense.
 - **Suppressible with.** `quotation`, `code-span`, `changelog-entry`, `status-report` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.2
+- **Reference.** ASD-STE100 issue 9, rule 3.2
 - **AI register signal.** `none` (unmeasured)
-
-Three alternates: perfect tenses via a "have" auxiliary plus a participle suffix, progressive tenses via a "be" auxiliary plus "-ing", and future perfect. Tested against all three bad examples above (each matches) and against the three good examples (none match). Also tested against the false-positive traps "the release is running" (matches, and correctly so, since it is progressive) and "the config is required" (does not match, because "required" is not in the suffix set — this is the deliberate limit that keeps the rule off passive-voice territory, which passive-voice owns). The changelog-entry exception exists because release notes conventionally use the present perfect for shipped changes. status-report covers completion and status statements that use the same tense legitimately.
 
 #### `ste-verbs.nominalized-action`
 
@@ -2460,10 +2054,8 @@ State an action with a verb
 - **Scope.** sentence
 - **Fix.** Replace the light verb and its noun with the single verb that names the action.
 - **Suppressible with.** `quotation`, `code-span`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.7
+- **Reference.** ASD-STE100 issue 9, rule 3.7
 - **AI register signal.** `none` (unmeasured)
-
-Anchored on a light verb plus a nominalization suffix, not on the suffix alone. The suffix-alone version fires on every legitimate noun in software prose ("the configuration", "the deployment") and would be disabled within a day. Tested: the three bad examples match, the three good examples do not, and the trap sentences "the deployment failed" and "check the configuration" do not match. "do a test" is allowlisted because the controlled vocabulary permits the noun form of "test" and refuses the verb form, so the nominalized shape is the prescribed rewrite there.
 
 #### `ste-verbs.passive-voice`
 
@@ -2475,10 +2067,8 @@ Use the active voice
 - **Scope.** sentence
 - **Fix.** Name the actor as the subject, or rewrite as an imperative.
 - **Suppressible with.** `quotation`, `code-span`, `unknown-agent` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.6
+- **Reference.** ASD-STE100 issue 9, rule 3.6
 - **AI register signal.** `none` (unmeasured)
-
-Issue 9 permits the passive in descriptive text only when the actor is genuinely unknown, which is the unknown-agent exception. Tested: the bad examples match and the good examples do not. The allowlist is the false-positive control and it matters: adjectival predicates share the surface shape of a passive ("is deprecated" is a state, not an action by a hidden actor), and without the allowlist this rule is the single noisiest in the set. Confidence is highest when the match ends in "by", so a runtime should raise severity on that branch and lower it otherwise. The 2026-09-12 audit added the `-en` non-participles (`often`, `open`, `even`, `seven`, ...) to the guard after "is often useful" was reported as a passive, and demoted the rule to advisory at normal: it was the largest single finding source on pre-2022 human prose (11.3 per 1,000 words against 4.9 in model prose), every sampled hit was a real passive, and the active-voice contract belongs to the strict profile that STE is for.
 
 #### `ste-verbs.verb-form-not-listed`
 
@@ -2490,10 +2080,8 @@ Use only listed verb forms
 - **Scope.** prose
 - **Fix.** Use a listed form of the verb.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 3.1
+- **Reference.** ASD-STE100 issue 9, rule 3.1
 - **AI register signal.** `none` (unmeasured)
-
-Overlaps ste-words/verb-or-adjective-form-not-permitted but scopes to verbs only, where the inflection data is richest. Both read the same vocabulary dataset; a runtime should report only the more specific finding.
 
 ### STE Words (`ste-words`)
 
@@ -2511,10 +2099,8 @@ Use the controlled replacement word
 - **Scope.** prose
 - **Fix.** Replace the flagged word with the listed replacement.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.1
+- **Reference.** ASD-STE100 issue 9, rule 1.1
 - **AI register signal.** `none` (unmeasured)
-
-The pair set is ours. It seeds from the specification's own recurring-error table (a factual list of 39 word pairs) and adds software-documentation entries. Full pair set lives in seed-vocabulary.json; this rule file carries an illustrative subset so the YAML stays reviewable. Advisory at relaxed tier because a longer synonym is understood, only inconsistent.
 
 #### `ste-words.inconsistent-term-for-same-thing`
 
@@ -2526,10 +2112,8 @@ Use one term per thing
 - **Scope.** document
 - **Fix.** Pick one term and use it in every sentence.
 - **Suppressible with.** `quotation`, `glossary-definition` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.11
+- **Reference.** ASD-STE100 issue 9, rule 1.11
 - **AI register signal.** `none` (unmeasured)
-
-Mechanizable only against a configured synonym-group list; without one, the checker cannot know that "task queue" and "work list" are the same thing. Enforced at normal tier because term drift inside one document is a comprehension failure, not a style preference.
 
 #### `ste-words.noun-used-as-verb`
 
@@ -2541,10 +2125,8 @@ Do not use a domain noun as a verb
 - **Scope.** sentence
 - **Fix.** Rewrite with a verb, and keep the noun as a noun.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.7
+- **Reference.** ASD-STE100 issue 9, rule 1.7
 - **AI register signal.** `none` (unmeasured)
-
-The pair list is ours and is deliberately short: only nouns whose verbal use is both common in software prose and cleanly replaceable. A general "no noun as verb" detector needs a tagger and produces heavy false positives on words like "log" and "build", so those are excluded on purpose.
 
 #### `ste-words.obligation-word-substitution`
 
@@ -2556,10 +2138,8 @@ Use one obligation word
 - **Scope.** prose
 - **Fix.** Replace with "must" where the requirement is real. Where it is genuinely optional, say so plainly ("optional", "you can") rather than hedging the obligation word. In a document using RFC 2119 keywords, write them in capitals.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `normative-keyword` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.1
+- **Reference.** ASD-STE100 issue 9, rule 1.1
 - **AI register signal.** `none` (unmeasured)
-
-Advisory at normal tier: outside a specification the distinction between obligation words is a consistency question rather than a defect, and a document that uses `should` throughout is understood.
 
 #### `ste-words.slang-or-jargon-term`
 
@@ -2571,10 +2151,8 @@ Do not use slang or jargon as a domain term
 - **Scope.** prose
 - **Fix.** Replace the slang term with a plain description of the behaviour.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.10
+- **Reference.** ASD-STE100 issue 9, rule 1.10
 - **AI register signal.** `none` (unmeasured)
-
-Token list is ours, drawn from software-documentation jargon rather than the specification's aerospace examples. Regional-dialect detection is out of scope for a token list and is left to the vocabulary rule.
 
 #### `ste-words.verb-or-adjective-form-not-permitted`
 
@@ -2586,10 +2164,8 @@ Use only permitted word forms
 - **Scope.** prose
 - **Fix.** Use a listed form of the word, or rewrite the sentence.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.4
+- **Reference.** ASD-STE100 issue 9, rule 1.4
 - **AI register signal.** `none` (unmeasured)
-
-Requires the inflected-form basis of the vocabulary (base, third person singular, past, past participle for verbs; base, comparative, superlative for adjectives), not the headword basis.
 
 #### `ste-words.verb-used-as-noun`
 
@@ -2601,10 +2177,8 @@ Do not use a domain verb as a noun
 - **Scope.** sentence
 - **Fix.** Replace the verb-as-noun with the noun form, or rewrite with the verb.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.13
+- **Reference.** ASD-STE100 issue 9, rule 1.13
 - **AI register signal.** `none` (unmeasured)
-
-Anchored on a determiner plus a closed list, not on a general nominalization detector. The word boundary keeps it off the legitimate noun forms: "the deployment" and "the installation" do not match, because the pattern requires a boundary immediately after the verb.
 
 #### `ste-words.word-outside-controlled-vocabulary`
 
@@ -2616,10 +2190,8 @@ Do not use a word this project refuses
 - **Scope.** prose
 - **Fix.** Use the replacement the blocklist names, or rewrite the sentence.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `registered-domain-term` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.1
+- **Reference.** ASD-STE100 issue 9, rule 1.1
 - **AI register signal.** `none` (unmeasured)
-
-Rule 1.1 restricts words to a controlled list plus domain nouns and verbs. We check the INVERSE of its first clause and no part of the other two: a project states which words it refuses, and every other word is permitted. That is a weaker check than the specification describes, and deliberately so -- the clause as written needs a populated domain-term registry to be usable, and enforcing the list without one rejected ordinary software vocabulary at 8.29 findings per 100 words. No ASD content is shipped or read.
 
 #### `ste-words.word-used-in-wrong-part-of-speech`
 
@@ -2631,14 +2203,12 @@ Use the word only in its permitted part of speech
 - **Scope.** prose
 - **Fix.** Rewrite so the word carries its permitted part of speech, or choose a different word.
 - **Suppressible with.** `identifier-fidelity`, `code-span`, `quotation`, `api-name` — any other reason is reported rather than honoured
-- **Source.** ASD-STE100 issue 9, rule 1.2
+- **Reference.** ASD-STE100 issue 9, rule 1.2
 - **AI register signal.** `none` (unmeasured)
-
-Needs the POS-keyed vocabulary and a part-of-speech tagger. A flat word list cannot express this rule, which is why our schema keys on (word, pos). Advisory at normal because tagger error on imperative-initial verbs is the largest single false-positive source we found.
 
 ## Judgement rules
 
-None of these produce a finding. Each carries the question a reviewer answers, and an example, because there is no pattern to read instead.
+These rules require contextual review and do not produce deterministic lint findings. Each includes the review question and an example.
 
 ### AI tells -- content shape (`ai-tells-content-shape`)
 
@@ -2656,15 +2226,14 @@ Repeat the noun
 - **Scope.** document
 - **Fix.** Pick one name and use it every time.
 - **Question.** Does this document refer to one thing by two or more different names without saying they are the same thing?
-- **Source.** AI tells catalog — content-shape.md ("Elegant variation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (measured)
 
-A repetition-penalty artifact of the decoder. Judgement-only: deciding it requires knowing that two nouns denote the same referent, which is the coreference problem. The catalog file carries a `write-docs:allow E2` suppression on this bullet.
-
+<!-- slopvac-disable -->
   > **Not this.** The loader reads it. The resolver caches it. The component then exits.
   >
   > **This.** The loader reads it, caches it, then exits.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.epigram-closer-remainder`
 
@@ -2676,15 +2245,14 @@ Judge whether a closing line adds a fact
 - **Scope.** paragraph
 - **Fix.** Delete it.
 - **Question.** Does this closing line state a fact the paragraph or table above did not, or does it perform having concluded?
-- **Source.** AI tells catalog — content-shape.md ("Epigram closer") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of prose-scope.epigram, which mechanises two shapes -- a parallel pair and a negated maxim -- at warning, because the same shape occasionally states a real contrast. That warning level IS the judgement gap, and this rule names it. A reward-model favourite: it survives editing because it reads quotable.
-
+<!-- slopvac-disable -->
   > **Not this.** The linter is deterministic. The reviewer is not.
   >
   > **This.** *(delete it)*
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.fabricated-citations-remainder`
 
@@ -2696,17 +2264,17 @@ Verify every reference you did not fetch yourself
 - **Scope.** document
 - **Fix.** Fetch each reference, or delete the claim that rests on it.
 - **Question.** For each reference in this document, did you fetch it yourself and confirm it says what the sentence claims?
-- **Source.** AI tells catalog — content-shape.md ("Fabricated or damaged citations") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-content-shape.fabricated-citations-core, and enforced at every tier: a fabricated citation is a factual defect in any register. Decidable, not taste -- the reviewer either fetched it or did not. Related to ai-tells-structure.vague-attribution-remainder, which asks whether a source is NAMED; this asks whether a named source is REAL.
-
+<!-- slopvac-disable -->
   > **Not this.** Smith (2019) reports a 40% reduction, doi:10.1000/182.
   >
   > **This.** The npm RFC 0012 measured a 40% drop in resolution variance.
   >
   > The catalog's failure modes: DOIs that resolve to unrelated papers, invented ISBNs, dead URLs, and book cites with no page numbers.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.one-point-dilution`
 
@@ -2718,11 +2286,9 @@ Say it once and stop
 - **Scope.** document
 - **Fix.** Delete each restatement after the first unless it carries a distinct required fact or purpose.
 - **Question.** Should the reviewer flag a later passage only when it recasts the same point without adding a current fact, constraint, reproduction step, decision, time-bounded change, required change-note, decision, plan, specification, or historical purpose, or a bounded, scoped recommendation or condition in the author's voice when it names a concrete action, antecedent, comparison, timing, or rationale?
-- **Source.** AI tells catalog — content-shape.md ("One-point dilution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `none` (measured)
 
-Judgement-only: detecting it requires recognising two passages as the same argument in different words. Overlaps ai-tells-structure.think-of-it-as-core, whose frames are one common vehicle for a restatement.
-
+<!-- slopvac-disable -->
   > **Not this.** Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
   >
   > **This.** The gate produces the same findings on every run.
@@ -2731,6 +2297,7 @@ Judgement-only: detecting it requires recognising two passages as the same argum
   >
   > **This.** The cache returns the same value for the same key until invalidation.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.over-writing-remainder`
 
@@ -2742,11 +2309,9 @@ Judge whether the reader acts differently for having read it
 - **Scope.** paragraph
 - **Fix.** Cut to the behavior; move decision history to an ADR, spec, commit, or change record.
 - **Question.** If this paragraph were removed, would the reader lose a current behavior, constraint, reproduction step, or explicit change/decision purpose? Flag it when its reasoning is an implementation journey, cache-style operational archaeology, or a postscript whose removal preserves the reader's task and current contract. Keep rationale in a decision, plan, specification, change communication, or historical record when that is the document's purpose.
-- **Source.** AI tells catalog — content-shape.md ("Over-writing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of the prose-scope category. The catalog names three shapes: a rejected alternative defended in place (prose-scope.rejected-alternative), an implementation cost the reader cannot act on (prose-scope.implementation-leak), and a paragraph of loosely related reasoning appended to a finished section -- the third has NO pattern and is what this rule carries. Excluded at relaxed for the same genre reason the prose-scope rules are: an ADR or a spec exists to hold this content.
-
+<!-- slopvac-disable -->
   > **Not this.** A paragraph of loosely related reasoning appended to a section that had already finished.
   >
   > **This.** The loader reads the lockfile, then falls back to the manifest.
@@ -2755,6 +2320,7 @@ Judgement remainder of the prose-scope category. The catalog names three shapes:
   >
   > **This.** The cache key is the manifest path and content hash.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.padded-symmetry`
 
@@ -2766,11 +2332,9 @@ Let a section be two sentences
 - **Scope.** document
 - **Fix.** Delete the padding and let the section be short.
 - **Question.** Does any section exist to match a sibling's length, or does any FAQ/Tips/Troubleshooting section answer a question nobody asked?
-- **Source.** AI tells catalog — content-shape.md ("Padded symmetry") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement-only. Related to the immutable historical record's "Asymmetric structure" at https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md, whose positive form is proposed as a document metric, `section-length-dispersion`. That metric is the mechanizable proxy; this rule is the decidable question.
-
+<!-- slopvac-disable -->
   > **Not this.** ## Troubleshooting
 
 If the loader fails, check the logs.
@@ -2779,6 +2343,7 @@ If the loader fails, check the logs.
   >
   > A troubleshooting section for problems that do not exist.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.textbook-connector-runs`
 
@@ -2790,15 +2355,14 @@ Do not open consecutive sentences on a textbook connector
 - **Scope.** paragraph
 - **Fix.** Delete the connectors; if the relation is real, rewrite so the sentences carry it.
 - **Question.** Do two consecutive sentences in this paragraph open on a textbook connector (moreover, furthermore, additionally, consequently)?
-- **Source.** AI tells catalog — content-shape.md ("Durable vocabulary habits") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-content-shape.durable-vocabulary-habits: the catalog's claim is about consecutive OPENINGS, which is an adjacency property, not a token match. The immutable historical record at https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md records that upstream ai-tells.FormalTransitions was DISABLED for flagging these same connectives as bare tokens ("these are ordinary English connectives and this corpus uses them correctly"), so the adjacency form is deliberately the only one carried and prose-craft.wordiness maps `additionally` to `also` as a substitution without a position claim.
-
+<!-- slopvac-disable -->
   > **Not this.** Moreover, the cache is warm. Furthermore, the lockfile is present.
   >
   > **This.** The cache is warm and the lockfile is present.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.unasked-for-rationale`
 
@@ -2810,11 +2374,9 @@ Delete the clause and keep the behavior
 - **Scope.** paragraph
 - **Fix.** Delete the rationale and keep the behavior, or move the reason to the appropriate decision or change record.
 - **Question.** If this rationale were removed, would the reader lose a constraint, invariant, gotcha, measured threshold, reproduction step, or explicit change/decision purpose? Flag a clause that only defends an implementation or narrates its journey when the behavior and current contract remain unchanged without it. Keep reasons in safety explanations, decisions, plans, specifications, change communications, and historical records when that is their purpose.
-- **Source.** AI tells catalog — content-shape.md ("Unasked-for rationale") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not pattern-match it." Distinct from prose-scope.rejected-alternative, which needs a NAMED alternative to anchor on; this one names no alternative, so no pattern reaches it. The three legitimacy tests are carried inside judgement_question because all three are context the reader has and a regex does not. Excluded at relaxed on the same genre grounds as prose-scope.
-
+<!-- slopvac-disable -->
   > **Not this.** This keeps the logic in one place.
   >
   > **This.** The helper is shared by both parsers.
@@ -2823,6 +2385,7 @@ JUDGEMENT-ONLY, and the catalog says so explicitly: "Judge it, do not pattern-ma
   >
   > **This.** The cache key is the manifest path and content hash.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-content-shape.vaporware-description`
 
@@ -2834,11 +2397,9 @@ Cut the claim, not the qualifier
 - **Scope.** document
 - **Fix.** For current artifacts, delete an unsupported claim or keep only the documented opt-in behavior. For change, history, decisions, plans, and specifications, label the status and date or target explicitly instead of disguising it as current behavior.
 - **Question.** In a current consumer or internal artifact, does each present-tense behavior claim match code at HEAD? Flag a claim that presents planned, historical, or unavailable behavior as shipped; do not apply this test to a change communication, release note, historical record, decision, future plan, or specification whose purpose is to state that other time or intent.
-- **Source.** AI tells catalog — content-shape.md ("Vaporware description") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-JUDGEMENT-ONLY BY DESIGN, and enforced at every tier. The catalog is explicit that the mechanical rule is a TRAP: docs-discipline.status-language bans the hedge ("coming soon", "not yet implemented", "planned"), and a writer who deletes only the hedge to pass the gate ships a document that lies. The tell is not the honesty -- it is the MIXTURE, a page that reads as shipped and hedges in the margins. So this rule deliberately does NOT carry a pattern: it exists to make the status-language finding decidable, and any engine that fires them independently reproduces the trap. The `fix` field carries the catalog's ordered procedure verbatim in substance.
-
+<!-- slopvac-disable -->
   > **Not this.** The loader supports globs (coming soon).
   >
   > **This.** The loader accepts a literal path.
@@ -2849,6 +2410,7 @@ JUDGEMENT-ONLY BY DESIGN, and enforced at every tier. The catalog is explicit th
   >
   > **This.** Release 2.4 adds glob support; version 2.3 accepts literal paths only.
 
+<!-- slopvac-enable -->
 
 ### AI tells -- formatting and punctuation (`ai-tells-formatting`)
 
@@ -2866,17 +2428,16 @@ Unwrap a table that holds one sentence
 - **Scope.** document
 - **Fix.** Unwrap the table into the sentence it holds.
 - **Question.** Does each table in this document have at least two rows whose cells vary in the same dimension, or is it one sentence in a grid?
-- **Source.** AI tells catalog — formatting.md ("Tables wrapping what is actually one sentence of prose") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement, because a one-row table is legitimate as a header-only reference stub and the test is whether the cells vary in a shared dimension. Inverse of prose-format.prose-block, which flags prose that should have been a table.
-
+<!-- slopvac-disable -->
   > **Not this.** | Note |
 |---|
 | The loader reads the lockfile. |
   >
   > **This.** The loader reads the lockfile.
 
+<!-- slopvac-enable -->
 
 ### AI tells -- the chat-assistant register (`ai-tells-register`)
 
@@ -2894,15 +2455,14 @@ Judge whether a component is granted intent
 - **Scope.** sentence
 - **Fix.** Replace the merit claim with the checkable property.
 - **Question.** Does this sentence assert a component's value by granting it merit rather than by naming a property a reader could check?
-- **Source.** AI tells catalog — register.md ("Anthropomorphised justification") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `strong` (measured)
 
-Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
-
+<!-- slopvac-disable -->
   > **Not this.** The cache more than repays its complexity.
   >
   > **This.** The cache removes one network round trip per run.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.false-agency-remainder`
 
@@ -2914,11 +2474,9 @@ Judge whether an abstraction occupies the subject slot
 - **Scope.** sentence
 - **Fix.** Name the human. Where no specific person fits, use "you" and put the reader in the seat.
 - **Question.** Is the subject performing deliberate intent or choice, or is it a checkable technical actor under a specification? If it is a MUST/MUST NOT/DEFAULT line, imperative steering, quoted text, or a component causally operating, PRESERVE; flag only unowned intent, merit, or self-causation.
-- **Source.** AI tells catalog — register.md ("False agency") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (measured)
 
-Judgement remainder of prose-agency.false-agency, which mechanises the seven named subject-verb bands. This rule carries the open case, because the catalog's own definition -- "an abstraction promoted to actor" -- is productive: any abstract noun can occupy the subject slot, so no closed list finishes the job. The catalog distinguishes it from the two entries around it: those grant a component desert ("earns its keep", ai-tells-register.anthropomorphised-justification-core) or self-causation ("falls out naturally", ai-tells-register.organic-consequence-core).
-
+<!-- slopvac-disable -->
   > **Not this.** The complaint becomes a fix.
   >
   > **This.** The team fixed it that week.
@@ -2927,6 +2485,7 @@ Judgement remainder of prose-agency.false-agency, which mechanises the seven nam
   >
   > **This.** You learn within a week whether the bet paid.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.faux-candor-remainder`
 
@@ -2938,15 +2497,14 @@ Judge whether an admission carries risk
 - **Scope.** paragraph
 - **Fix.** Replace the performance with the specific admission and its cost.
 - **Question.** Does this admission cost the author anything -- a named mistake, a measured failure, a refused feature -- or is it performed vulnerability with no exposure?
-- **Source.** AI tells catalog — register.md ("Faux-candor pivot") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-register.faux-candor-core. The counter-signal catalog names the positive form: "a concrete anecdote or a mistake admitted with its cost".
-
+<!-- slopvac-disable -->
   > **Not this.** We're not perfect, and we're always learning.
   >
   > **This.** The 3.0 release shipped with a broken lockfile path for six days.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.figurative-verb-verdict-remainder`
 
@@ -2958,15 +2516,14 @@ Judge whether a metaphor carries a verdict with no evidence
 - **Scope.** sentence
 - **Fix.** Replace the metaphor with the observation and the judgement it supports.
 - **Question.** Does this sentence deliver a judgement through a metaphor while stating no observation that would let a reader disagree?
-- **Source.** AI tells catalog — register.md ("Figurative-verb verdict") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-register.figurative-verb-verdict-core, and the durable form: the catalog warns the specific verbs drift per model generation while the construction does not.
-
+<!-- slopvac-disable -->
   > **Not this.** The design pays for itself.
   >
   > **This.** The design removes the second config file, so there is one place to look.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.hedged-symmetry`
 
@@ -2978,15 +2535,15 @@ Take the position the evidence supports
 - **Scope.** paragraph
 - **Fix.** Delete the invented counter-claim and state the position the evidence supports.
 - **Question.** Is each counter-claim in this passage one somebody actually makes, or was it added so the passage reads even-handed?
-- **Source.** AI tells catalog — register.md ("Hedged symmetry") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://rlhfbook.com/c/18-style>
+- **Reference.** <https://rlhfbook.com/c/18-style>
 - **AI register signal.** `weak` (catalog)
 
-Upstream ai-tells.FalseBalance attempts the phrase forms and stays enabled. The judgement is whether the counter-claim has a holder, which needs domain knowledge. Related to but distinct from prose-inflation.hedge-stack, which counts hedges on ONE claim; this counts claims balanced against each other. Note the catalog file carries a `write-docs:allow E2` suppression on this bullet, because describing the tell requires the word it bans.
-
+<!-- slopvac-disable -->
   > **Not this.** Lockfiles help reproducibility, though some argue they add friction.
   >
   > **This.** The lockfile pins every transitive dependency.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.intensifier-tics-remainder`
 
@@ -2998,15 +2555,14 @@ Judge whether emotion is announced or earned
 - **Scope.** sentence
 - **Fix.** Supply the support, or delete the adverb.
 - **Question.** Is the reaction this adverb announces supported anywhere in the passage by a measurement, an example, or a named consequence?
-- **Source.** AI tells catalog — register.md ("Intensifier tics") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-register.intensifier-tics-core.
-
+<!-- slopvac-disable -->
   > **Not this.** The rewrite is remarkably clean.
   >
   > **This.** The rewrite deletes 400 lines and adds one function.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.organic-consequence-remainder`
 
@@ -3018,15 +2574,14 @@ Judge whether a design is presented as self-caused
 - **Scope.** sentence
 - **Fix.** Name the chooser and the reason.
 - **Question.** Did a person choose the thing this sentence describes as arising on its own?
-- **Source.** AI tells catalog — register.md ("Organic-consequence framing") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-register.organic-consequence-core.
-
+<!-- slopvac-disable -->
   > **Not this.** The threshold settles at 34 words.
   >
   > **This.** The maintainers set the threshold at 34 words after measuring 30 and 32.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.over-formatting-reflex`
 
@@ -3038,17 +2593,17 @@ Format only when the data has columns
 - **Scope.** document
 - **Fix.** Unwrap the structure into prose where the items are neither columnar nor independent.
 - **Question.** Does each table, heading, and bold-colon bullet in this document carry data with real columns or items that are parallel AND independent, or would two sentences of prose say the same thing?
-- **Source.** AI tells catalog — register.md ("Over-formatting reflex") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://rlhfbook.com/c/18-style>
+- **Reference.** <https://rlhfbook.com/c/18-style>
 - **AI register signal.** `weak` (catalog)
 
-A direct reward-model artifact, with per-model formatting fingerprints measured in https://arxiv.org/abs/2502.12150. Judgement-only at document scope: a table is correct or not depending on whether the data has columns, which is exactly the thing a pattern cannot see. The mechanizable slice of this entry is ai-tells-formatting.inline-header-list, which counts the bullet SHAPE. prose-format.prose-block is the inverse metric -- prose that should have been a table.
-
+<!-- slopvac-disable -->
   > **Not this.** | Field | Value |
 |---|---|
 | Purpose | It loads things |
   >
   > **This.** The loader reads the lockfile.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-register.urgency-inflation-remainder`
 
@@ -3060,15 +2615,14 @@ Judge whether stakes name a consequence
 - **Scope.** paragraph
 - **Fix.** State the failure mode, or delete the urgency.
 - **Question.** Does this passage name what breaks if the reader ignores it, or only that the matter is urgent?
-- **Source.** AI tells catalog — register.md ("Urgency inflation") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-register.urgency-inflation-core.
-
+<!-- slopvac-disable -->
   > **Not this.** Getting this right is critical.
   >
   > **This.** A wrong value here silently skips every file.
 
+<!-- slopvac-enable -->
 
 ### AI tells -- rhetorical structure (`ai-tells-structure`)
 
@@ -3086,11 +2640,9 @@ Judge whether an absolute claim survives one counterexample
 - **Scope.** sentence
 - **Fix.** Narrow the claim to the scope the evidence supports.
 - **Question.** Should the reviewer preserve quotations, attributed claims, and factual descriptions tied to a named person, work, edition, document, product, or other explicit finite set, local all/only/never with its stated antecedent, and bounded comparative recommendations, while flagging unsupported authorial guarantees or categorical evaluations (including "will tell you", "wherever ... has a problem", or "you are wrong") and sweeping always/never/every/no X has ever claims unless attributed or supported by quantified or passage evidence?
-- **Source.** AI tells catalog — structure.md ("Absolute assertion") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `strong` (measured)
 
-Judgement remainder of ai-tells-structure.absolute-assertion-core. Preserve quotations, attributed claims, and factual descriptions tied to a named person, work, edition, document, product, or other explicit finite set; local all/only/never inherits its stated antecedent; and preserve bounded comparative recommendations. Flag unsupported authorial guarantees or categorical evaluations (including "will tell you", "wherever ... has a problem", or "you are wrong") and sweeping always/never/every/no X has ever claims unless attributed or supported by quantified or passage evidence.
-
+<!-- slopvac-disable -->
   > **Not this.** Every Project Needs A Lockfile.
   >
   > **This.** A project with more than one direct dependency needs a lockfile.
@@ -3101,6 +2653,7 @@ Judgement remainder of ai-tells-structure.absolute-assertion-core. Preserve quot
   >
   > preserve: bounded endpoint domain
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.analogy-stack-authority`
 
@@ -3112,15 +2665,15 @@ Keep one apt comparison, or none
 - **Scope.** paragraph
 - **Fix.** Keep the one comparison that shares a mechanism with the subject, or cut all of them.
 - **Question.** Does this passage borrow authority by naming well-known companies or products that have no causal connection to the claim?
-- **Source.** AI tells catalog — structure.md ("Analogy-stack authority") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://www.oliviacal.com/post/ai-writing-tells>
+- **Reference.** <https://www.oliviacal.com/post/ai-writing-tells>
 - **AI register signal.** `weak` (catalog)
 
-Deciding it needs domain knowledge about whether the comparison shares a mechanism, which is exactly what a pattern cannot hold.
-
+<!-- slopvac-disable -->
   > **Not this.** Apple didn't build Uber. Facebook didn't build Spotify.
   >
   > **This.** The plugin runs in the host process, so it cannot outlive the session.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.anaphora-abuse`
 
@@ -3132,15 +2685,14 @@ Say it once and merge the objects
 - **Scope.** paragraph
 - **Fix.** Write the subject-verb once and list the objects.
 - **Question.** Do three or more consecutive sentences open on the same subject-verb pair, with only the object changing?
-- **Source.** AI tells catalog — structure.md ("Anaphora abuse") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `strong` (measured)
 
-Upstream ai-tells.StackedAnaphora attempts the mechanical form and stays enabled; this judgement rule carries the case where the repeated opener is paraphrased rather than identical, which no regex reaches.
-
+<!-- slopvac-disable -->
   > **Not this.** They assume a lockfile. They assume a network. They assume a token.
   >
   > **This.** They assume a lockfile, a network, and a token.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.audience-straddle-remainder`
 
@@ -3152,11 +2704,9 @@ Judge whether the document holds one audience
 - **Scope.** document
 - **Fix.** Pick the audience for the task and cut material that cannot help complete it.
 - **Question.** Does the document make one reader switch between a primer and expert operational detail without a single task that requires both? Flag the straddle when removing either half leaves the current task and contract intact. Keep definitions needed for the stated task, and keep audience changes that are explicit in a change communication, decision, plan, or specification.
-- **Source.** AI tells catalog — structure.md ("Audience straddle") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.audience-straddle-core.
-
+<!-- slopvac-disable -->
   > **Not this.** A commit is a snapshot. Later: rebase onto the upstream to linearise the DAG.
   >
   > **This.** Rebase onto the upstream to linearise the history.
@@ -3165,6 +2715,7 @@ Judgement remainder of ai-tells-structure.audience-straddle-core.
   >
   > **This.** Diagnose the TLS handshake with `openssl s_client`.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.cataphoric-lead-in-remainder`
 
@@ -3176,15 +2727,14 @@ Judge whether a forecast tells the reader anything
 - **Scope.** paragraph
 - **Fix.** Delete the forecast unless the reader must budget effort before reading.
 - **Question.** Does announcing the count change what the reader does, or does the list immediately below already show its own length?
-- **Source.** AI tells catalog — structure.md ("Cataphoric numbered lead-in") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `strong` (measured)
 
-Judgement remainder of ai-tells-structure.cataphoric-lead-in-core.
-
+<!-- slopvac-disable -->
   > **Not this.** A handful of considerations apply here.
   >
   > **This.** Two limits apply:
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.contrastive-inversion-remainder`
 
@@ -3195,11 +2745,10 @@ Judge whether a contrast names a real alternative
 - **strict / normal / relaxed.** enforced / advisory / excluded
 - **Scope.** paragraph
 - **Question.** Does this contrast either negate an alternative nobody proposed or add no information? Factual corrections and instructions that name a real alternative are not defects; preserve them. Flag only when removing the contrast preserves the same actionable meaning.
-- **Source.** AI tells catalog — structure.md ("Contrastive inversion", "Strawman antithesis") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
+- **Reference.** <https://gc.ai/blog/ai-writing-pattern-to-know-contrastive-negation>
 - **AI register signal.** `strong` (measured)
 
-Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The remainder needs a reader who knows whether the alternative exists, which no pattern can supply. Also absorbs the catalog's "Strawman antithesis" row, whose "While other gates struggle, X ..." shape is the same defect.
-
+<!-- slopvac-disable -->
   > **Not this.** Where other gates check words, this one reads the shape of the argument.
   >
   > **This.** The gate scores paragraph symmetry and passive density.
@@ -3208,6 +2757,7 @@ Judgement remainder of ai-tells-structure.contrastive-inversion-frames. The rema
   >
   > **This.** The gate is deterministic.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.false-range`
 
@@ -3219,11 +2769,9 @@ List the actual items or name the real dimension
 - **Scope.** sentence
 - **Fix.** List the items, or name the dimension that actually varies.
 - **Question.** Do the two endpoints of this "from X to Y" construction sit on a real scale, or are they two unordered members of a set?
-- **Source.** AI tells catalog — structure.md ("False range") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `strong` (measured)
 
-A pattern for "from X to Y" would fire on every legitimate range, so this is judgement-only: the test is whether the endpoints are ordered, which needs the reader to know the domain.
-
+<!-- slopvac-disable -->
   > **Not this.** from beef to chicken
   >
   > **This.** beef, chicken, and pork
@@ -3232,6 +2780,7 @@ A pattern for "from X to Y" would fire on every legitimate range, so this is jud
   >
   > **This.** teams of 3 to 3,000 engineers
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.false-suspense-remainder`
 
@@ -3243,15 +2792,15 @@ Judge whether a transition withholds the point
 - **Scope.** paragraph
 - **Fix.** Delete the transition and open on the point.
 - **Question.** Does this transition announce that something important follows without stating any part of it?
-- **Source.** AI tells catalog — structure.md ("False-suspense transition") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://tropes.fyi/>
+- **Reference.** <https://tropes.fyi/>
 - **AI register signal.** `weak` (measured)
 
-Judgement remainder of ai-tells-structure.false-suspense-frames. The token list decays per model generation; this question does not.
-
+<!-- slopvac-disable -->
   > **Not this.** What follows is the part that changes how you read the rest of this page.
   >
   > **This.** The gate exits 1 when the score falls below 80.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.heading-echo`
 
@@ -3263,11 +2812,9 @@ Start with the first new fact after a heading
 - **Scope.** paragraph
 - **Fix.** Delete the restatement and open on the first new fact.
 - **Question.** Given the heading alone, does the first sentence repeat its proposition with no new operation, constraint, path, metric, or scope? Same topic is not enough to flag.
-- **Source.** AI tells catalog — structure.md ("Heading echo") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement, not pattern: deciding it requires comparing the sentence's content against the heading's, and paraphrase defeats any string test. prose-craft.self-reference catches the subset that names the section explicitly ("This section explains"), and prose-inflation.document-preamble catches the document-level form.
-
+<!-- slopvac-disable -->
   > **Not this.** ## Install the plugin
 
 This section covers installing the plugin.
@@ -3284,6 +2831,7 @@ Authentication covers access control.
 
 Every request sends a bearer token.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.hollow-acknowledgment`
 
@@ -3295,15 +2843,15 @@ Solve it, or cut the paragraph that raises it
 - **Scope.** paragraph
 - **Fix.** State the action, or delete the paragraph.
 - **Question.** Does this passage name a risk, limitation, or problem and then give the reader no action, no measurement, and no pointer to where it is handled?
-- **Source.** AI tells catalog — structure.md ("Hollow acknowledgment") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
+- **Reference.** <https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing>
 - **AI register signal.** `weak` (catalog)
 
-prose-inflation.apologizing mechanises the subset that DEFERS explicitly ("further research is needed"); this rule covers all diagnosis with no treatment, which carries no marker phrase. Upstream ai-tells.HollowAcknowledgment attempts the phrase forms and stays enabled.
-
+<!-- slopvac-disable -->
   > **Not this.** Rate limits are a real concern here.
   >
   > **This.** The client retries twice, then returns 429 to the caller.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.invented-concept-label`
 
@@ -3315,15 +2863,14 @@ Coin nothing
 - **Scope.** document
 - **Fix.** Replace the coinage with the plain description.
 - **Question.** Does this document name a concept in title-case or quoted form ("the supervision paradox", "workload creep") without defining it and without citing a source that uses the term?
-- **Source.** AI tells catalog — structure.md ("Invented concept label") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Distinguishing a coinage from established domain vocabulary requires knowing the field, so it cannot be a token list -- the list would have to enumerate every legitimate term instead.
-
+<!-- slopvac-disable -->
   > **Not this.** This is the supervision paradox.
   >
   > **This.** A reviewer who approves faster than they read approves more defects.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.listicle-in-a-trench-coat`
 
@@ -3335,11 +2882,9 @@ Make it a real list or real prose
 - **Scope.** document
 - **Fix.** Convert to a list, or rewrite as prose where each paragraph follows from the last.
 - **Question.** Do consecutive paragraphs enumerate positions in a sequence ("The first X is ... The second X is ...") without any of them depending on the one before?
-- **Source.** AI tells catalog — structure.md ("Listicle in a trench coat") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-No pattern reaches it: the defect is that prose form carries list content, which needs the reader to test whether each paragraph depends on the last. Upstream ai-tells.SequencingMarkers and ai-tells.ListIntroductions catch the marker phrases, not the shape.
-
+<!-- slopvac-disable -->
   > **Not this.** The first wall is latency. The second wall is memory. The third wall is cost.
   >
   > **This.** Three limits apply:
@@ -3348,6 +2893,7 @@ No pattern reaches it: the defect is that prose form carries list content, which
 - memory
 - cost
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.meta-narration-remainder`
 
@@ -3359,11 +2905,9 @@ Judge whether a sentence spends itself on navigation
 - **Scope.** paragraph
 - **Fix.** Delete the navigation sentence; retain the fact, constraint, or purpose it was masking.
 - **Question.** If this sentence were removed, would the reader lose a current fact, required constraint, reproducible action, or explicit change/decision purpose? Flag it when it only announces the document's route, sequence, or implementation journey. Keep navigation that names a prerequisite, safety boundary, release delta, historical record, decision, plan, or specification purpose.
-- **Source.** AI tells catalog — structure.md ("Meta-narration") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.meta-narration-frames and of prose-inflation.document-preamble.
-
+<!-- slopvac-disable -->
   > **Not this.** Before getting to the flags, some background on why the loader exists.
   >
   > **This.** The loader reads the lockfile, then falls back to the manifest.
@@ -3372,6 +2916,7 @@ Judgement remainder of ai-tells-structure.meta-narration-frames and of prose-inf
   >
   > **This.** The cache key is the manifest path and content hash.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.negative-inventory-remainder`
 
@@ -3383,11 +2928,9 @@ Judge whether a negative constraint is actionable
 - **Scope.** paragraph
 - **Fix.** Keep the actionable boundary or result and delete inventory narration.
 - **Question.** If this negative statement were removed, would the reader lose a reproducible result, safety or compliance constraint, debugging boundary, audit fact, or a current action? Flag it when it merely inventories what was not pinned, run, included, or recorded, including cache-style operational archaeology. Keep an explicit boundary when it changes the current contract or records a change, release, historical result, plan, or specification scope.
-- **Source.** AI tells catalog — structure.md ("Negative/exclusion inventory") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.negative-inventory-core. The negative form is legitimate when it changes reader action or records an enforced safety, compliance, debugging, reproducibility, or audit boundary.
-
+<!-- slopvac-disable -->
   > **Not this.** The tooling is not pinned, and visual checks are outside scope.
   >
   > **This.** CI rejects an unpinned formatter; visual checks are not run by this command.
@@ -3396,6 +2939,7 @@ Judgement remainder of ai-tells-structure.negative-inventory-core. The negative 
   >
   > **This.** The audit log records the excluded checks and their reasons.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.staccato-negative-parallel-remainder`
 
@@ -3407,15 +2951,15 @@ Judge whether a fragment run carries content
 - **Scope.** paragraph
 - **Fix.** Rejoin the fragments into one or two sentences.
 - **Question.** Do the consecutive fragments in this passage each add a fact, or does the run exist to build rhythm toward the last one?
-- **Source.** AI tells catalog — structure.md ("Staccato negative parallel", "One-sentence emphasis paragraph") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://tropes.fyi/>
+- **Reference.** <https://tropes.fyi/>
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.staccato-negative-parallel-frames. Also covers register.md's "Punchy-fragment cadence" bullet at the paragraph level.
-
+<!-- slopvac-disable -->
   > **Not this.** Fast. Deterministic. Auditable.
   >
   > **This.** The gate is deterministic and writes an audit line per finding.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.summary-closer-remainder`
 
@@ -3427,17 +2971,16 @@ Judge whether a closing section adds a fact
 - **Scope.** document
 - **Fix.** Delete the section.
 - **Question.** Does the final section state anything the sections above did not, or does it re-list them?
-- **Source.** AI tells catalog — structure.md ("Summary closer", "Outline conclusion") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.summary-closer-frames. Also absorbs the catalog's "Outline conclusion" row ("Challenges and Future Outlook", "Despite these challenges ... remains"), whose heading forms are covered upstream by ai-tells.DespiteChallenges and ai-tells.WrapUpHeadings.
-
+<!-- slopvac-disable -->
   > **Not this.** The gate has three parts, described above: the loader, the checkers, and the scorer.
   >
   > **This.** *(delete it)*
   >
   > The document ends on the scorer section.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.think-of-it-as-remainder`
 
@@ -3449,15 +2992,14 @@ Judge whether an analogy replaces the mechanism
 - **Scope.** paragraph
 - **Fix.** State the mechanism; keep the analogy only if it shortens the explanation.
 - **Question.** Is the mechanism stated anywhere in this passage, or does the analogy stand in place of it?
-- **Source.** AI tells catalog — structure.md ("Think-of-it-as reflex") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.think-of-it-as-core.
-
+<!-- slopvac-disable -->
   > **Not this.** The scheduler is the traffic warden of the cluster.
   >
   > **This.** The scheduler assigns each pod to the node with the most free memory.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.tricolon-abuse-remainder`
 
@@ -3469,17 +3011,17 @@ Judge whether parallel bullets carry distinct substance
 - **Scope.** document
 - **Fix.** Merge into prose, or keep only the items with distinct substance.
 - **Question.** Do the parallel items -- three identical-shape bullets, or two tricolons in consecutive sentences -- each state a fact the others do not?
-- **Source.** AI tells catalog — structure.md ("Rule of three / tricolon abuse", "Bold-lead-in bullet symmetry") — historical: https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md — <https://rlhfbook.com/c/18-style>
+- **Reference.** <https://rlhfbook.com/c/18-style>
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.tricolon-abuse-core. Absorbs the catalog's "Bold-lead-in bullet symmetry" row: `**Speed:** one sentence` x 6 with near-zero content. The bullet SHAPE is mechanizable and lives in ai-tells-formatting.inline-header-list; the "near-zero content" test is this rule.
-
+<!-- slopvac-disable -->
   > **Not this.** - **Speed:** it is fast.
 - **Safety:** it is safe.
 - **Scale:** it scales.
   >
   > **This.** The gate reads 488 files in 0.4 s and refuses an unresolvable style.
 
+<!-- slopvac-enable -->
 
 #### `ai-tells-structure.vague-attribution-remainder`
 
@@ -3491,15 +3033,14 @@ Judge whether a cited source is checkable
 - **Scope.** sentence
 - **Fix.** Add the citation, or restate the claim as your own.
 - **Question.** Could a reader locate the source behind this claim from what the sentence gives them?
-- **Source.** AI tells catalog — structure.md ("Vague attribution") — https://github.com/srobroek/slopvac/blob/29d6a802562e6454bc2131e8ac7eb24eab72c1bf/packages/slopvac/.apm/skills/review-docs/references/ai-tells.md
 - **AI register signal.** `weak` (catalog)
 
-Judgement remainder of ai-tells-structure.vague-attribution-core. Also the checkability half of content-shape's fabricated-citation entry -- see ai-tells-content-shape.fabricated-citations-remainder.
-
+<!-- slopvac-disable -->
   > **Not this.** The literature is clear on this.
   >
   > **This.** RFC 7231 section 6.5.1 defines the status code.
 
+<!-- slopvac-enable -->
 
 ### Orwell's rules, modernized (`orwell`)
 
@@ -3517,15 +3058,15 @@ Name a checkable particular
 - **Scope.** document
 - **Fix.** Replace the category with the instance from the source material.
 - **Question.** Does this paragraph name at least one number, identifier, path, command, or dated event? If the writer possesses a more specific term than the one used, did they use it?
-- **Source.** Orwell 1946, rule concrete-floor
+- **Reference.** Orwell 1946, rule concrete-floor
 - **AI register signal.** `none` (unmeasured)
 
-EXTENSION, and the load-bearing one. All six of Orwell's rules PASS his own worst-case specimen ("success or failure in competitive activities exhibits no tendency to be commensurate with innate capacity"), which is the gap this rule closes.
-
+<!-- slopvac-disable -->
   > **Not this.** The system handles a variety of edge cases to ensure reliable operation.
   >
   > **This.** The parser rejects unterminated strings and nested depth over 64.
 
+<!-- slopvac-enable -->
 
 ### Prose discipline (`prose-discipline`)
 
@@ -3543,11 +3084,9 @@ Give the bare quantifier its number
 - **Scope.** document
 - **Fix.** Replace the quantifier with the figure. Where the set is genuinely unmeasured, say so and name why.
 - **Question.** Find every bare quantifier: most, some, many, few, often, usually, frequently, generally, typically, several times, much, little. For each, ask one question -- does the writer have the number? A quantifier over something the document itself counts elsewhere, over a list it contains, or over a measurement it reports is a withheld figure and must be replaced. A quantifier over a genuinely unbounded or unmeasured set is correct and stays. - genuinely-unmeasured - quotation - unbounded-set - idiom - defined-elsewhere
-- **Source.** Wikipedia MOS:WEASEL
 - **AI register signal.** `none` (measured)
 
-Deliberately NOT a lexical rule. Wikipedia lists these tokens, and its own condition is "when quantifiable measures could be provided", which no pattern decides: "most requests complete in 15 ms" is correct and "most users prefer it" is not, and the two are identical in shape. A token rule here would fire on correct prose in every document, which is how a rule gets disabled. The multi-word forms that carry the evasion in their shape -- "a number of", "in most cases" -- ARE mechanized, in prose-inflation.vague-quantifier.
-
+<!-- slopvac-disable -->
   > **Not this.** Most requests are cached.
   >
   > **This.** 94% of requests are cached.
@@ -3560,6 +3099,7 @@ Deliberately NOT a lexical rule. Wikipedia lists these tokens, and its own condi
   >
   > A list the document could have written out.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.competing-actor-terms`
 
@@ -3571,11 +3111,10 @@ Pick one term for one subject
 - **Scope.** document
 - **Fix.** Choose the narrowest accurate term, replace every other, and define the distinction at first use only when two subjects genuinely differ.
 - **Question.** List every term this document uses for a person or system that acts: user, customer, client, consumer, caller, requester, tenant, account, operator, admin, developer, integrator, subscriber, end user. For each pair, do they name the same subject? If yes, that is rotation and one term must win. If no, does the document define the difference at first use? - defined-distinction - quotation - api-name - glossary-entry
-- **Source.** ASD-STE100 issue 9, rule 1.11
+- **Reference.** ASD-STE100 issue 9, rule 1.11
 - **AI register signal.** `none` (measured)
 
-The specification requires one name for one thing. Software prose breaks this most often across actor nouns, because each one reads as a legitimate synonym in isolation. Kept as judgement because co-occurrence alone does not prove rotation: a document may legitimately distinguish a user from the client library that acts for them.
-
+<!-- slopvac-disable -->
   > **Not this.** The user submits a job. The customer receives a token. The client then polls for the result.
   >
   > **This.** The user submits a job, receives a token, and polls for the result.
@@ -3586,6 +3125,7 @@ The specification requires one name for one thing. Software prose breaks this mo
   >
   > **This.** The caller opens the connection and must close it.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.hedged-into-uselessness`
 
@@ -3597,11 +3137,10 @@ The document must assert something
 - **Scope.** document
 - **Fix.** For each hedged claim, either state it plainly with the evidence, or delete it. Where the uncertainty is real, name its cause and its bound instead of hedging the verb.
 - **Question.** List the load-bearing claims: the sentences a reader would act on. For each, is it hedged? Then ask three things. First, could the reader act on the document as written, or does every path out of it end in "it depends"? Second, is any claim hedged in BOTH directions, so that the hedge and its counter-hedge cancel ("this may improve latency, though it might also increase it")? Third, is any hedge itself hedged ("this could potentially help in some cases")? A document where the majority of load-bearing claims carry a hedge is a document that says nothing, whatever each sentence looks like on its own. - genuine-uncertainty - quotation - legal-force - safety-critical - measured-variance
-- **Source.** Orwell 1946, rule cut-what-cuts
+- **Reference.** Orwell 1946, rule cut-what-cuts
 - **AI register signal.** `none` (measured)
 
-Document-scoped on purpose. Every sentence here can pass prose-inflation.hedge-stack, which fires only on a stack inside one sentence. The defect is the ratio across the document: a single honest hedge is correct, and hedging every claim is a refusal to write the doc. A hedge is permitted where the uncertainty is real and named -- a measured variance, a documented platform difference -- and the exception list is what a suppression must cite.
-
+<!-- slopvac-disable -->
   > **Not this.** The cache may improve response time in some workloads, though results can vary and it might increase memory use depending on configuration.
   >
   > **This.** The cache cuts median response time by 40% on repeated prompts. It holds entries in memory: budget 200 MB per 10,000 entries.
@@ -3612,6 +3151,7 @@ Document-scoped on purpose. Every sentence here can pass prose-inflation.hedge-s
   >
   > **This.** Use the strict profile for reference material.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.marketing-register`
 
@@ -3623,11 +3163,10 @@ Describe, do not sell
 - **Scope.** paragraph
 - **Fix.** Replace each unmeasurable claim with the fact that motivated it, or delete the sentence.
 - **Question.** For each evaluative claim in this passage, is there a number, a benchmark, a named limit, a version, or a citation within the same sentence or the next one? And would the claim's opposite be recognized as a disagreement about fact rather than a difference of opinion? A claim that fails both is marketing. - quantified - quotation - defined-term-of-art - landing-page
-- **Source.** Orwell 1946, rule empty-evaluative-word
+- **Reference.** Orwell 1946, rule empty-evaluative-word
 - **AI register signal.** `none` (unmeasured)
 
-Paired with orwell.unsupported-evaluative, which owns the token list. This half exists because the token list is perishable and incomplete: a passage can carry the marketing register with no listed word in it, and that is the commoner failure in generated prose.
-
+<!-- slopvac-disable -->
   > **Not this.** Built for teams who care about quality, our approach gives you confidence at every step of the pipeline.
   >
   > **This.** The gate blocks a merge when coverage drops below 80%.
@@ -3638,6 +3177,7 @@ Paired with orwell.unsupported-evaluative, which owns the token list. This half 
   >
   > **This.** Runs as a pre-commit hook and a GitHub Action.
 
+<!-- slopvac-enable -->
 
 #### `prose-discipline.overloaded-sentence`
 
@@ -3649,11 +3189,10 @@ One sentence, one idea
 - **Scope.** sentence
 - **Fix.** Split at the boundary where the reader starts holding a second thing, and make the shared noun explicit in the new sentence.
 - **Question.** Read the sentence once and stop. How many separate things must the reader now remember? If more than one, could each stand as its own sentence without repeating a noun phrase to make sense? If yes, it is overloaded. A list of parallel actions sharing one subject and one verb is ONE idea, however long; two clauses joined by "and" that could each stand alone are two. - quotation - code-span - vertical-list - legal-force - parallel-list
-- **Source.** ASD-STE100 issue 9, rule 4.1
+- **Reference.** ASD-STE100 issue 9, rule 4.1
 - **AI register signal.** `none` (unmeasured)
 
-Paired with prose-discipline.run-on, which counts clause boundaries. The count is a candidate finder: it cannot tell a parallel list sharing one subject from two unrelated clauses, and both shapes appear at the same boundary count. This half carries the decision.
-
+<!-- slopvac-disable -->
   > **Not this.** The parser reads the manifest and the resolver walks the dependency graph.
   >
   > **This.** The parser reads the manifest. The resolver then walks the dependency graph.
@@ -3664,6 +3203,7 @@ Paired with prose-discipline.run-on, which counts clause boundaries. The count i
   >
   > **This.** The cache is keyed by content, so the migration must run first. The index rebuild depends on the migration. Plan for downtime.
 
+<!-- slopvac-enable -->
 
 ### Prose scope (`prose-scope`)
 
@@ -3681,10 +3221,7 @@ Keep code-change prose scoped
 - **Scope.** document
 - **Fix.** Revert unrelated prose changes; retain directly related stale-comment corrections and explicitly requested prose edits.
 - **Question.** For every changed comment or documentation passage, does the code diff show that it directly explains or specifies the changed code? If not, did the user explicitly request that prose edit? Treat unrelated same-file comments and documentation elsewhere as defects, while correcting a stale comment that describes changed behavior.
-- **Source.** Slopvac review contract — <https://github.com/srobroek/slopvac>
 - **AI register signal.** `none` (unmeasured)
-
-This judgement rule requires the code diff and user request. The native engine never emits findings for judgement rules; review-docs supplies that context to the reviewer.
 
 ### STE Descriptive Writing (`ste-descriptive`)
 
@@ -3703,15 +3240,15 @@ Give information gradually
 - **Applies to.** descriptive text
 - **Fix.** Split the paragraph so each sentence adds one idea in reading order.
 - **Question.** Does each sentence introduce at most one new idea, and does every term appear after the sentence that introduced it? If a reader must already know a later term to parse an earlier sentence, reorder. - quotation
-- **Source.** ASD-STE100 issue 9, rule 6.1
+- **Reference.** ASD-STE100 issue 9, rule 6.1
 - **AI register signal.** `none` (unmeasured)
 
-Forward-reference detection is partly mechanizable (first-use position of each glossary term), but the one-idea-per-sentence half is not, and a checker that fires on term order alone would misjudge every summary paragraph. Judgement, with the sentence-length rule carrying most of the practical benefit.
-
+<!-- slopvac-disable -->
   > **Not this.** The reconciler compares desired state from the lease store against observed state from the informer cache and writes the delta to the work queue that the shard leader drains.
   >
   > **This.** The reconciler reads the desired state from the lease store. It reads the observed state from the informer cache. It writes the difference between the two to the work queue. The shard leader drains that queue.
 
+<!-- slopvac-enable -->
 
 #### `ste-descriptive.missing-key-word-structure`
 
@@ -3724,15 +3261,15 @@ Use key words to structure the text
 - **Applies to.** descriptive text
 - **Fix.** Repeat the key word from the previous sentence rather than substituting a synonym.
 - **Question.** Does each sentence pick up a key word or key phrase from the sentence before it, and is that key word written the same way each time? - quotation
-- **Source.** ASD-STE100 issue 9, rule 6.2
+- **Reference.** ASD-STE100 issue 9, rule 6.2
 - **AI register signal.** `none` (unmeasured)
 
-The consistency half overlaps ste-words/inconsistent-term-for-same-thing, which is the mechanizable part given a synonym-group list. What is unique here is the positive requirement to carry a key word forward, which no checker can measure.
-
+<!-- slopvac-disable -->
   > **Not this.** The reconciler drains the work queue. The component then writes the outcome to the job list.
   >
   > **This.** The reconciler drains the work queue. The reconciler then writes the outcome to the work queue.
 
+<!-- slopvac-enable -->
 
 #### `ste-descriptive.paragraph-has-multiple-topics`
 
@@ -3745,16 +3282,16 @@ Keep one topic per paragraph
 - **Applies to.** descriptive text
 - **Fix.** Split the paragraph at the topic change.
 - **Question.** Could this paragraph be split at any sentence boundary without either half needing the other? If yes, it carries more than one topic. - quotation
-- **Source.** ASD-STE100 issue 9, rule 6.5
+- **Reference.** ASD-STE100 issue 9, rule 6.5
 - **AI register signal.** `none` (unmeasured)
 
-The split test above is our decidable restatement of "one topic", and it is a reviewer question rather than a finding because measuring topical cohesion needs a model, not a rule. Kept enforced at strict and normal so the reviewer is prompted.
-
+<!-- slopvac-disable -->
   > **Not this.** The gateway terminates TLS and forwards each request to a worker. The billing exporter writes a daily CSV to the audit bucket.
   >
   > **This.** The gateway terminates TLS and forwards each request to a worker.
 The billing exporter writes a daily CSV to the audit bucket.
 
+<!-- slopvac-enable -->
 
 #### `ste-descriptive.paragraph-without-related-information`
 
@@ -3767,15 +3304,15 @@ Group related information in a paragraph
 - **Applies to.** descriptive text
 - **Fix.** Add a topic sentence, or move the unrelated sentence to its own paragraph.
 - **Question.** Does the first sentence of this paragraph tell the reader what the paragraph is about, and does every later sentence add to that topic? - quotation
-- **Source.** ASD-STE100 issue 9, rule 6.4
+- **Reference.** ASD-STE100 issue 9, rule 6.4
 - **AI register signal.** `none` (unmeasured)
 
-Advisory at both upper tiers because the failure it names (a paragraph with no topic sentence) is a drafting problem a reviewer catches faster than a checker, and no threshold makes it decidable.
-
+<!-- slopvac-disable -->
   > **Not this.** Set the retry limit to five. The gateway terminates TLS. Each worker reads one queue.
   >
   > **This.** The gateway handles inbound traffic. It terminates TLS and rewrites the Host header. It then forwards each request to a worker.
 
+<!-- slopvac-enable -->
 
 ### STE Multi-word Nouns (`ste-nouns`)
 
@@ -3793,15 +3330,15 @@ Give a short form for a long domain term
 - **Scope.** document
 - **Fix.** Write the term in full once, then declare a short form or hyphenate the fixed unit.
 - **Question.** This domain term is longer than three words and cannot be shortened, because the project owns the name. Is it written in full at first use, and is either a short form declared or the words joined with hyphens as one unit? - code-span - identifier-fidelity
-- **Source.** ASD-STE100 issue 9, rule 2.2
+- **Reference.** ASD-STE100 issue 9, rule 2.2
 - **AI register signal.** `none` (unmeasured)
 
-Judgement because the checker cannot know whether a long term is an immovable project name or careless stacking. The related hyphen constraint (no more than three words joined as one unit) is mechanized in ste-punctuation/hyphen-group-too-long.
-
+<!-- slopvac-disable -->
   > **Not this.** Restart the regional inbound request admission controller after each config change.
   >
   > **This.** Restart the regional inbound request admission controller (called the admission controller in this runbook) after each config change.
 
+<!-- slopvac-enable -->
 
 ### STE Writing Practices (`ste-practices`)
 
@@ -3819,11 +3356,10 @@ Keep the instrument sense clear
 - **Scope.** sentence
 - **Fix.** Rewrite so the sense of "with" is explicit, or state the condition first.
 - **Question.** Does "with" mean an association, a shared action, or an instrument? If a reader could pick more than one, name the instrument in a separate clause or state the condition first. - quotation - code-span
-- **Source.** ASD-STE100 issue 9, rule GR-2
+- **Reference.** ASD-STE100 issue 9, rule GR-2
 - **AI register signal.** `none` (unmeasured)
 
-A recommendation, and not mechanizable: the ambiguity is in the reading, not in the surface form, and "with" is far too common to flag. Advisory at both upper tiers so it surfaces in review without generating findings.
-
+<!-- slopvac-disable -->
   > **Not this.** Restart the worker with the drained queue.
   >
   > **This.** When the queue is drained, restart the worker.
@@ -3832,6 +3368,7 @@ A recommendation, and not mechanizable: the ambiguity is in the reading, not in 
   >
   > **This.** Deploy the service that includes the new sidecar.
 
+<!-- slopvac-enable -->
 
 #### `ste-practices.word-sense-incorrect`
 
@@ -3843,15 +3380,15 @@ Use each word in its correct sense
 - **Scope.** sentence
 - **Fix.** Replace the word with one whose recorded sense matches your intent.
 - **Question.** For each vocabulary word in this sentence, does the sentence use the single sense the vocabulary entry records, rather than another common sense of the same spelling? - quotation - code-span
-- **Source.** ASD-STE100 issue 9, rule 9.2
+- **Reference.** ASD-STE100 issue 9, rule 9.2
 - **AI register signal.** `none` (unmeasured)
 
-Near-duplicate of the word-sense rule in the words chapter; the specification states it twice from different angles (vocabulary definition versus writing practice) and we keep both entries so every rule number is traceable. A runtime should report only one. Needs the sense gloss in the vocabulary dataset, which is the largest remaining extraction job.
-
+<!-- slopvac-disable -->
   > **Not this.** When the load goes down, the autoscaler removes a replica.
   >
   > **This.** When the load decreases, the autoscaler removes a replica.
 
+<!-- slopvac-enable -->
 
 #### `ste-practices.word-swap-insufficient`
 
@@ -3863,11 +3400,10 @@ Rewrite the sentence when a word swap fails
 - **Scope.** sentence
 - **Fix.** Restructure the sentence around a permitted verb, rather than swapping one word.
 - **Question.** After you substitute the replacement word, is the sentence still grammatical, still meaningful, and still carrying your original meaning? If any of the three fails, or the word has no replacement at all, restructure the sentence instead. - quotation
-- **Source.** ASD-STE100 issue 9, rule 9.1
+- **Reference.** ASD-STE100 issue 9, rule 9.1
 - **AI register signal.** `none` (unmeasured)
 
-This rule is the escape hatch for the whole substitution mechanism, and it is why a substitution rule must never auto-apply without review. Two entries in the specification's own recurring-error table have no lexical replacement at all and can only be flagged. Kept as a judgement so the reviewer owns the rewrite decision.
-
+<!-- slopvac-disable -->
   > **Not this.** The retry budget is contingent on the tenant tier.
   >
   > **This.** The tenant tier sets the retry budget.
@@ -3876,6 +3412,7 @@ This rule is the escape hatch for the whole substitution mechanism, and it is wh
   >
   > **This.** Increase the pool size until it is large enough for the peak load.
 
+<!-- slopvac-enable -->
 
 ### STE Punctuation and Word Count (`ste-punctuation`)
 
@@ -3893,15 +3430,15 @@ Use parentheses only for the listed purposes
 - **Scope.** sentence
 - **Fix.** Promote the parenthetical to its own sentence, or delete it.
 - **Question.** Does this parenthetical give a cross-reference, an item identifier, a step number, an abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it carries a second idea, promote it to its own sentence. - code-span - quotation
-- **Source.** ASD-STE100 issue 9, rule 8.3
+- **Reference.** ASD-STE100 issue 9, rule 8.3
 - **AI register signal.** `none` (unmeasured)
 
-Judgement rather than a pattern, and deliberately so: the specification gives seven permitted purposes and no counter-example, so there is nothing to anchor a regex on. A length-based proxy (flag any parenthetical over N words) would fire on legitimate explanations. Advisory at both upper tiers for the same reason.
-
+<!-- slopvac-disable -->
   > **Not this.** Rotate the signing key (we found that most teams forget this until an audit, which is why the runbook exists).
   >
   > **This.** Rotate the signing key. Most teams do this only after an audit finds the old key.
 
+<!-- slopvac-enable -->
 
 ### STE Safety Instructions (`ste-safety`)
 
@@ -3920,11 +3457,10 @@ Mark the risk level with the right word
 - **Applies to.** safety text
 - **Fix.** Add the correct risk marker, or raise the existing marker to match the consequence.
 - **Question.** Does this block describe a risk of harm to a person, or only a risk of damage to data, systems, or equipment? Harm to a person takes the higher marker; damage alone takes the lower one; when both apply, use the higher marker. - quotation
-- **Source.** ASD-STE100 issue 9, rule 7.1
+- **Reference.** ASD-STE100 issue 9, rule 7.1
 - **AI register signal.** `none` (unmeasured)
 
-Two halves. Whether a marker is present is mechanizable (a destructive-command detector can require one) but classifying the severity requires knowing the real consequence, so the rule stays judgement. In software documentation the higher marker maps to unrecoverable data loss or a security exposure and the lower one to a recoverable failure; that mapping is our adaptation, since the specification's own split is injury against equipment damage. Enforced at every tier, and the category weight is raised, because a missing warning is the highest-cost defect in a runbook.
-
+<!-- slopvac-disable -->
   > **Not this.** CAUTION: This command deletes every snapshot and cannot be undone.
   >
   > **This.** WARNING: This command deletes every snapshot. You cannot recover the data.
@@ -3933,6 +3469,7 @@ Two halves. Whether a marker is present is mechanizable (a destructive-command d
   >
   > **This.** WARNING: This command deletes every snapshot. You cannot recover the data.
 
+<!-- slopvac-enable -->
 
 ### STE Sentences (`ste-sentences`)
 
@@ -3951,15 +3488,15 @@ Connect related sentences
 - **Applies to.** descriptive text
 - **Fix.** Add a connecting word or phrase that names the relation.
 - **Question.** Does the second sentence add a result, a contrast, or a next step to the first? If yes, does a connecting word or phrase make that relation explicit? - quotation
-- **Source.** ASD-STE100 issue 9, rule 4.4
+- **Reference.** ASD-STE100 issue 9, rule 4.4
 - **AI register signal.** `none` (unmeasured)
 
-Not mechanizable in either direction: a checker cannot detect a missing logical relation, and an "add more connectors" heuristic degrades prose. Kept as a reviewer question so the reviewer has one source of truth rather than inventing the rule.
-
+<!-- slopvac-disable -->
   > **Not this.** The runner rejects the manifest. The image tag is missing.
   >
   > **This.** The runner rejects the manifest, because the image tag is missing.
 
+<!-- slopvac-enable -->
 
 #### `ste-sentences.sentence-not-short-or-clear`
 
@@ -3971,15 +3508,15 @@ Write short and clear sentences
 - **Scope.** sentence
 - **Fix.** Split the sentence into one instruction or topic per sentence.
 - **Question.** Does this sentence give exactly one instruction (in a procedure) or carry exactly one topic (in description)? If it carries more, split it. - quotation
-- **Source.** ASD-STE100 issue 9, rule 4.1
+- **Reference.** ASD-STE100 issue 9, rule 4.1
 - **AI register signal.** `none` (unmeasured)
 
-This rule carries no number of its own; the word counts live in the procedural and descriptive chapters and are mechanized there as sentence-too-long-procedural and sentence-too-long-descriptive. What is left here is the one-topic test, which is judgement. Enforced at normal tier as a reviewer question, not as a finding.
-
+<!-- slopvac-disable -->
   > **Not this.** To rotate the signing key, first revoke the old key in the console, then generate a replacement and update every service that reads it, and finally delete the old secret.
   >
   > **This.** Rotate the signing key as follows: 1. Revoke the old key in the console. 2. Generate a replacement key. 3. Update every service that reads the key. 4. Delete the old secret.
 
+<!-- slopvac-enable -->
 
 ### STE Verbs (`ste-verbs`)
 
@@ -3997,11 +3534,10 @@ Use an -ing form only as a noun or a noun modifier
 - **Scope.** sentence
 - **Fix.** Rewrite the clause with a finite verb, or split it into a separate sentence.
 - **Question.** Is this -ing word a noun (the name of a thing or a process), or a modifier inside a domain noun? If it carries the action of the clause, rewrite it. - quotation - code-span - registered-domain-term
-- **Source.** ASD-STE100 issue 9, rule 3.5
+- **Reference.** ASD-STE100 issue 9, rule 3.5
 - **AI register signal.** `none` (unmeasured)
 
-The progressive-tense half is caught by complex-tense. What is left is participial clauses and gerund objects, which need a parse to separate from legitimate noun uses such as "the logging config" or "load balancing". Judgement rather than a regex for exactly that reason: a bare "-ing" pattern would fire on every legal compound term in software documentation.
-
+<!-- slopvac-disable -->
   > **Not this.** Restart the worker, making sure the queue is empty first.
   >
   > **This.** Make sure that the queue is empty. Then restart the worker.
@@ -4010,6 +3546,7 @@ The progressive-tense half is caught by complex-tense. What is left is participi
   >
   > **This.** To reduce cost, cache the response.
 
+<!-- slopvac-enable -->
 
 #### `ste-verbs.past-participle-not-adjectival`
 
@@ -4021,11 +3558,10 @@ Use a past participle only as an adjective
 - **Scope.** sentence
 - **Fix.** Move the participle before the noun it describes, or rewrite in the active voice.
 - **Question.** Does this past participle sit before a noun, or after a form of "be", "become", or "stay", describing a condition? If it sits after another auxiliary, it is part of a verb construction and is not permitted. - quotation - code-span
-- **Source.** ASD-STE100 issue 9, rule 3.3
+- **Reference.** ASD-STE100 issue 9, rule 3.3
 - **AI register signal.** `none` (unmeasured)
 
-The mechanizable half of this rule is already covered by complex-tense and passive-voice; what remains is the position test, which needs a parse rather than a regex. Note the specification permits some participle-shaped words as adjectives in their own right even when the matching verb is not permitted, so a naive "no participles" check would be wrong.
-
+<!-- slopvac-disable -->
   > **Not this.** The corrupted index had been rebuilt by the maintenance job.
   >
   > **This.** The maintenance job rebuilds the corrupted index.
@@ -4034,6 +3570,7 @@ The mechanizable half of this rule is already covered by complex-tense and passi
   >
   > **This.** Delete each stale file.
 
+<!-- slopvac-enable -->
 
 ### STE Words (`ste-words`)
 
@@ -4051,15 +3588,15 @@ Confirm the domain noun belongs to a declared category
 - **Scope.** sentence
 - **Fix.** Register the term in a domain-noun category, or replace it with a vocabulary word.
 - **Question.** For each noun in this sentence that is not in the controlled vocabulary, does it name a specified concept inside one of the declared domain-noun categories for this project? - code-span - identifier-fidelity
-- **Source.** ASD-STE100 issue 9, rule 1.5
+- **Reference.** ASD-STE100 issue 9, rule 1.5
 - **AI register signal.** `none` (unmeasured)
 
-The specification states its own category example lists are not exhaustive, so absence from a list proves nothing. Membership is therefore a judgement, and the category set itself is project configuration (see domain-categories.md).
-
+<!-- slopvac-disable -->
   > **Not this.** The doohickey drains the queue every minute.
   >
   > **This.** The reaper job drains the queue every minute.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-noun-not-organization-approved`
 
@@ -4071,15 +3608,15 @@ Use the domain term your project already uses
 - **Scope.** document
 - **Fix.** Replace the term with the glossary term.
 - **Question.** Does the project glossary, API reference, or schema already name this thing? If yes, does the document use that exact name? - quotation
-- **Source.** ASD-STE100 issue 9, rule 1.8
+- **Reference.** ASD-STE100 issue 9, rule 1.8
 - **AI register signal.** `none` (unmeasured)
 
-The authority is the project's own glossary, so this cannot be a shipped word list. Partially mechanizable once a glossary file exists, as an unknown-synonym check.
-
+<!-- slopvac-disable -->
   > **Not this.** The job runner picks up the next work item.
   >
   > **This.** The worker picks up the next task.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-noun-too-long-or-unclear`
 
@@ -4091,11 +3628,10 @@ Choose a short and clear domain term
 - **Scope.** sentence
 - **Fix.** Shorten the term to three words or fewer, or define it once and use a short form.
 - **Question.** When you had to invent this term, is it three words or fewer, and would a reader outside your team understand it without a definition?
-- **Source.** ASD-STE100 issue 9, rule 1.9
+- **Reference.** ASD-STE100 issue 9, rule 1.9
 - **AI register signal.** `none` (unmeasured)
 
-The three-word length half of this rule is mechanized by ste-nouns/multiword-noun-too-long; the "easy to understand" half is not mechanizable, so this entry carries only the judgement.
-
+<!-- slopvac-disable -->
   > **Not this.** Restart the primary regional inbound request admission controller service.
   >
   > **This.** Restart the admission controller.
@@ -4104,6 +3640,7 @@ The three-word length half of this rule is mechanized by ste-nouns/multiword-nou
   >
   > **This.** Set the deduplication cache retention.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.domain-verb-category-membership`
 
@@ -4115,11 +3652,10 @@ Confirm the domain verb belongs to a declared category
 - **Scope.** sentence
 - **Fix.** Rewrite with a vocabulary verb, or register the verb in a domain-verb category.
 - **Question.** Could this sentence be written with vocabulary verbs alone? If yes, the domain verb is not permitted. If no, does the verb belong to a declared domain-verb category and carry its category meaning in this sentence? - code-span - api-name
-- **Source.** ASD-STE100 issue 9, rule 1.12
+- **Reference.** ASD-STE100 issue 9, rule 1.12
 - **AI register signal.** `none` (unmeasured)
 
-Two reasons this cannot be a word list. First, the specification puts vocabulary verbs ahead of domain verbs, which requires knowing whether a paraphrase exists. Second, the same verb is legal or illegal by sense: the specification's own example has one verb permitted in a machine-subject sentence and refused in a reader-subject sentence. Our second example above reproduces that shape with our own wording.
-
+<!-- slopvac-disable -->
   > **Not this.** The parser ingests the manifest and hydrates the config object.
   >
   > **This.** The parser reads the manifest and fills the config object.
@@ -4128,6 +3664,7 @@ Two reasons this cannot be a word list. First, the specification puts vocabulary
   >
   > **This.** If you find a checksum mismatch, delete the artifact.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.unapproved-word-not-a-domain-noun`
 
@@ -4139,15 +3676,15 @@ Allow an out-of-vocabulary word only as a domain noun
 - **Scope.** sentence
 - **Fix.** Register the domain noun, or replace the word.
 - **Question.** Is this out-of-vocabulary word a domain noun, or a word inside a multi-word domain noun? If it is neither, it must be replaced. - code-span - identifier-fidelity - quotation
-- **Source.** ASD-STE100 issue 9, rule 1.6
+- **Reference.** ASD-STE100 issue 9, rule 1.6
 - **AI register signal.** `none` (unmeasured)
 
-This is the escape hatch that makes word-outside-controlled-vocabulary usable. The two rules run as a pair: the vocabulary rule finds the candidate, this question decides whether the candidate is legitimate domain vocabulary.
-
+<!-- slopvac-disable -->
   > **Not this.** The orchestrator obviates manual reconciliation.
   >
   > **This.** The orchestrator removes the need for manual reconciliation.
 
+<!-- slopvac-enable -->
 
 #### `ste-words.word-used-outside-permitted-sense`
 
@@ -4159,11 +3696,12 @@ Use the word only in its permitted sense
 - **Scope.** sentence
 - **Fix.** Replace the word with one whose permitted sense matches your intent.
 - **Question.** Does every controlled word in this sentence carry the single meaning recorded in the vocabulary entry, rather than another dictionary meaning of the same spelling? - quotation
-- **Source.** ASD-STE100 issue 9, rule 1.3
+- **Reference.** ASD-STE100 issue 9, rule 1.3
 - **AI register signal.** `none` (unmeasured)
 
-Sense, not spelling. No regex distinguishes "follow" meaning "come after" from "follow" meaning "comply with", so this stays a reviewer question rather than a fabricated pattern.
-
+<!-- slopvac-disable -->
   > **Not this.** Follow the security policy when you rotate the signing key.
   >
   > **This.** Obey the security policy when you rotate the signing key.
+
+<!-- slopvac-enable -->
