@@ -27,10 +27,9 @@
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
-technical-writing constraints.
+technical-writing constraints. Use it against your AI generated docs, PR messages, code comments, statric TSX/JSX content, and more!
 
-Use the CLI locally or in CI. Coding agents can use project-local steering that
-points the harness back to the installed CLI for current lint guidance.
+Coding agents can use the CLI to detect issues and resolve them autonomosly, improving the overall quality of your docs. in addition, you can run thr check in your precommit or ci for automated validation. 
 
 ## Quick start
 
@@ -195,7 +194,7 @@ source files.
 ## Limits and evaluation
 
 A passing run means the selected checks stayed within configured thresholds.
-It does not establish factual correctness or identify who wrote the text.
+It does not establish factual correctness or determine the actual quality of the text.
 AI-signal labels describe rule evidence without changing the gate.
 
 ## In development: agentic judgement
@@ -229,10 +228,7 @@ candidate spans. It has two uses:
 An optional local reranker may sit before the typed judge when candidate volume
 is high. The first candidate is
 [Qwen3-Reranker-0.6B](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B).
-It is a **high-recall prefilter only**: it may rank or reduce candidate work, but
-it never decides whether prose is defective. Prefiltered candidates must remain
-visible in coverage data so recall loss can be measured; it is retained only if
-Slopvac's own evaluation shows essentially unchanged defect recall.
+
 
 The intended shape is:
 
@@ -245,9 +241,7 @@ source
   -> semantic detection / rule-validation report
 ```
 
-Exact source locations remain host-authoritative. The semantic layer is being
-evaluated separately from the current linter and is not part of the public CLI
-or deterministic exit status yet.
+
 
 ## License
 
