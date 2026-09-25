@@ -110,11 +110,13 @@ jobs:
       # Keep them in the small always-on job so those invariants cannot be bypassed
       # without making every docs-only change pay for the complete pytest suite.
       - name: Repository-wide invariants
+        env:
+          INVARIANTS: >-
+            retired_integration_names_do_not_survive_in_live_sources or
+            removed_agent_packaging_has_no_live_paths_or_install_commands
         run: |
           uv run --project packages/slopvac-lint --extra dev python -m pytest -q \
-            packages/slopvac-lint/tests/test_steering.py \
-            -k 'retired_integration_names_do_not_survive_in_live_sources or \
-                removed_agent_packaging_has_no_live_paths_or_install_commands'
+            packages/slopvac-lint/tests/test_steering.py -k "$INVARIANTS"
 
   # Full repository test discovery on the newest supported Python. The root
   # pytest configuration includes both package tests and any repository-level
