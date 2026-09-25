@@ -21,7 +21,7 @@
 [Metrics](packages/slopvac-lint/docs/metrics.md) ·
 [Triage](packages/slopvac-lint/docs/triage.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
-[Agent setup](#agent-setup) · [CI](#ci-integration) · [In development](#in-development-agentic-judgement)
+[Agent setup](#agent-setup) · [CI](#ci-integration) · [Roadmap](#roadmap)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
@@ -198,7 +198,9 @@ It does not establish factual correctness or make an overall judgement about
 writing quality beyond the configured rules. AI-signal labels describe rule
 evidence without changing the gate.
 
-## In development: agentic judgement
+# Roadmap 
+
+## Agentic judgement
 
 The current release is a deterministic linter. A separate development track is
 evaluating an optional semantic decision layer built around **typed judge
