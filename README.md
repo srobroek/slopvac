@@ -8,7 +8,7 @@
   </picture>
 </p>
 
-[![CI](https://img.shields.io/github/check-runs/srobroek/slopvac/main?nameFilter=Tests%20gate&label=CI)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
+[![CI](https://github.com/srobroek/slopvac/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
 [![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=schedule)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
 [![PyPI version](https://img.shields.io/pypi/v/slopvac)](https://pypi.org/project/slopvac/)
 
