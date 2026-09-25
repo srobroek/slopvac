@@ -8,10 +8,10 @@
   </picture>
 </p>
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/srobroek/slopvac/test.yml?branch=main&event=push&label=Tests)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
-[![Lint](https://img.shields.io/github/actions/workflow/status/srobroek/slopvac/lint.yml?branch=main&event=push&label=Lint)](https://github.com/srobroek/slopvac/actions/workflows/lint.yml)
-[![Markdown audit](https://img.shields.io/github/actions/workflow/status/srobroek/slopvac/markdown-audit.yml?branch=main&event=push&label=Markdown%20audit)](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml)
-[![Security](https://img.shields.io/github/actions/workflow/status/srobroek/slopvac/security.yml?branch=main&event=push&label=Security)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
+[![Tests](https://github.com/srobroek/slopvac/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
+[![Lint](https://github.com/srobroek/slopvac/actions/workflows/lint.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/lint.yml)
+[![Markdown audit](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml)
+[![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
 [![PyPI version](https://img.shields.io/pypi/v/slopvac)](https://pypi.org/project/slopvac/)
 
 ---
