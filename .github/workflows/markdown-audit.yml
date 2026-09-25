@@ -7,7 +7,7 @@ permissions:
   contents: read
 concurrency:
   group: markdown-audit-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 jobs:
   inventory-and-audit:
     runs-on: ubuntu-latest
