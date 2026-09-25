@@ -119,49 +119,6 @@ rules:
         do not match (two and three segments).
     fix: Break the group with a preposition, or register it as a domain term.
 
-  - id: parentheses-misuse
-    name: Use parentheses only for the listed purposes
-    kind: judgement
-    severity: suggestion
-    message: Check that this parenthetical serves a listed purpose.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: advisory
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this parenthetical give a cross-reference, an item identifier, a step number, an
-      abbreviation, a singular-and-plural form, a short explanation, or an alternative? If it
-      carries a second idea, promote it to its own sentence.
-      - code-span
-      - quotation
-    allowlist: []
-    examples:
-      - bad: >-
-          Rotate the signing key (we found that most teams forget this until an audit, which
-          is why the runbook exists).
-        good: >-
-          Rotate the signing key. Most teams do this only after an audit finds the old key.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:8.3'
-      note: >-
-        Judgement rather than a pattern, and deliberately so: the specification gives seven
-        permitted purposes and no counter-example, so there is nothing to anchor a regex on.
-        A length-based proxy (flag any parenthetical over N words) would fire on legitimate
-        explanations. Advisory at both upper tiers for the same reason.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [source_locked_legal_text]
-      judgement_ceiling: suggestion
-    fix: Promote the parenthetical to its own sentence, or delete it.
-
   - id: colon-terminates-sentence-for-count
     name: Count a list lead-in as its own sentence
     kind: metric

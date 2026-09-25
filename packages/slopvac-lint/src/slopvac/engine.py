@@ -120,7 +120,7 @@ def _inside_quotation(text: str, start: int, end: int) -> bool:
     """Is this match wholly inside a quoted span on the same line?
 
     A document that BANS a phrase has to print the phrase. Without this, every
-    style guide fails its own gate: `write-docs.context.md` drew 7 errors, all of
+    style guide fails its own gate: one internal guide drew 7 errors, all of
     them the phrase it was forbidding ("Experts agree", "world-class", "perform an
     analysis"). The rules already declare `quotation` in their exception lists; the
     engine simply never detected one.
@@ -428,9 +428,6 @@ class Engine:
         profile = self.config.profile.value
         if rule.tier_for(profile) is Tier.EXCLUDED:
             return False
-        if rule.kind is RuleKind.JUDGEMENT:
-            return False  # carried for the reviewer; never fires mechanically
-
         category = self.config.categories.get(rule.category)
         if category is not None and category.severity is Severity.OFF:
             return False

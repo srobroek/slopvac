@@ -36,8 +36,8 @@ STYLES = Path(__file__).parent.parent / "vale" / "styles-verified"
 # Lines in must-fire.md that no pattern reaches, with the reason. Recorded rather
 # than deleted: a known miss is a design decision, and an undocumented one is a
 # defect. `may avoid certain failures` is the cost of tightening HedgedHedge to
-# kill four false positives -- the right trade, because a false positive gets the
-# whole rule disabled while a miss falls through to the judgement layer.
+# kill four false positives -- the right trade, because a false positive can get the
+# whole rule disabled while this known miss is covered by another deterministic rule.
 KNOWN_MISSES = {
     "The flag may avoid certain failures here.": (
         "one hedge plus a quantified object, which is indistinguishable by pattern "
@@ -382,6 +382,4 @@ def test_formulaic_headings_leave_factual_contrasts_and_invariants_alone():
     )
     assert "prose-scope.formulaic-subject-verb-slogan" not in ids
     assert "ai-tells-agentic.formulaic-universal-heading" not in ids
-    from slopvac.rules import load_ruleset
-    assert load_ruleset().by_id("ai-tells-structure.contrastive-inversion-remainder") is not None
     assert "ai-tells-structure.contrastive-inversion-frames" in ids

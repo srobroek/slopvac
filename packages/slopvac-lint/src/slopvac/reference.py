@@ -10,13 +10,8 @@ the file a build artifact that happens to be committed -- committed because it
 must be readable on the forge without running anything, checked because a
 committed artifact with no check is just a stale file with extra steps.
 
-THE DETERMINISTIC SPLIT IS THE ORGANISING PRINCIPLE, not a column. A rule that a
-checker executes and a rule that only a reader can settle are different kinds of
-promise, and mixing them produces the two failures this tool exists to avoid: a
-reader who thinks a judgement rule gates their build, and an agent that thinks a
-mechanical rule is a matter of opinion. `RuleKind.JUDGEMENT` is the whole of the
-non-deterministic set -- it is defined as the rules no linter can check -- so the
-partition needs no heuristic.
+ONLY CHECKED RULES ARE PUBLISHED HERE. Contextual rule work lives on a separate
+development branch and is not part of the current linter surface.
 
 REDISTRIBUTION IS SCOPED. Rules derived from ASD-STE100 cite a rule NUMBER and
 nothing else: no rule prose, no worked examples from the specification, and no
@@ -33,10 +28,7 @@ from .model import Rule, RuleKind
 from .profiles import profile_rule_defaults
 from .rules import RuleSet
 
-#: Every kind except JUDGEMENT. Derived rather than listed, so a new kind added to
-#: the enum lands on the deterministic side by default -- which is correct, since
-#: a new kind exists because something became checkable.
-DETERMINISTIC_KINDS = tuple(k for k in RuleKind if k is not RuleKind.JUDGEMENT)
+CHECKED_KINDS = tuple(RuleKind)
 
 _KIND_BLURB = {
     RuleKind.TOKENS: "literal phrases, matched on word boundaries",
@@ -45,7 +37,6 @@ _KIND_BLURB = {
     RuleKind.VOCABULARY: "a lookup in the project blocklist, keyed by part of speech",
     RuleKind.METRIC: "a counted measurement against a threshold",
     RuleKind.STRUCTURE: "block-level shape",
-    RuleKind.JUDGEMENT: "not mechanizable; a reader or a reviewing agent settles it",
 }
 
 _TIER_ORDER = ("strict", "normal", "relaxed")
@@ -135,8 +126,6 @@ def _rule_section(rule: Rule) -> list[str]:
             f"- **Suppressible with.** {named} — any other reason is reported "
             f"rather than honoured"
         )
-    if rule.kind is RuleKind.JUDGEMENT and rule.judgement_question:
-        facts.append(f"- **Question.** {rule.judgement_question}")
     reference = _reference_line(rule)
     if reference:
         facts.append(f"- **Reference.** {reference}")
@@ -145,28 +134,6 @@ def _rule_section(rule: Rule) -> list[str]:
     )
     lines.extend(facts)
 
-    # Examples are shown for judgement rules and withheld for the rest. A
-    # mechanical rule's example adds nothing a reader cannot get from `explain`,
-    # and 150 of them triples the document; a judgement rule's example is the only
-    # thing that makes it applicable at all, because there is no pattern to read.
-    if rule.kind is RuleKind.JUDGEMENT and rule.examples:
-        lines.extend(["", "<!-- slopvac-disable -->"])
-        for example in rule.examples[:2]:
-            lines.append(f"  > **Not this.** {example.bad}")
-            lines.append("  >")
-            # An empty `good` is meaningful and common here: for a whole class of
-            # these rules the fix IS deletion. Rendered as words rather than as a
-            # bare `**This.**` with nothing after it, which reads as a truncated
-            # document rather than as an instruction.
-            good = (example.good or "").strip()
-            lines.append(
-                f"  > **This.** {good}" if good else "  > **This.** *(delete it)*"
-            )
-            if example.note:
-                lines.append("  >")
-                lines.append(f"  > {example.note}")
-            lines.append("")
-        lines.append("<!-- slopvac-enable -->")
     lines.append("")
     return lines
 
@@ -187,10 +154,8 @@ def _category_block(ruleset: RuleSet, category_id: str, rules: list[Rule]) -> li
     return lines
 
 
-def _partition(rules: list[Rule]) -> tuple[list[Rule], list[Rule]]:
-    deterministic = [r for r in rules if r.kind is not RuleKind.JUDGEMENT]
-    judgement = [r for r in rules if r.kind is RuleKind.JUDGEMENT]
-    return deterministic, judgement
+def _checked(rules: list[Rule]) -> list[Rule]:
+    return list(rules)
 
 
 def _by_category(rules: list[Rule]) -> dict[str, list[Rule]]:
@@ -201,15 +166,13 @@ def _by_category(rules: list[Rule]) -> dict[str, list[Rule]]:
 
 
 def _summary_table(ruleset: RuleSet, rules: list[Rule]) -> list[str]:
-    deterministic, judgement = _partition(rules)
-    det_by_category = _by_category(deterministic)
-    jud_by_category = _by_category(judgement)
+    checked_by_category = _by_category(rules)
 
     lines = [
-        "| Category | Checked | Judgement | Weight | Recommended for |",
-        "| --- | --: | --: | --: | --- |",
+        "| Category | Checked | Weight | Recommended for |",
+        "| --- | --: | --: | --- |",
     ]
-    for category_id in sorted(set(det_by_category) | set(jud_by_category)):
+    for category_id, category_rules in checked_by_category.items():
         category = ruleset.categories.get(category_id)
         title = category.title if category else category_id
         genres = (
@@ -220,33 +183,19 @@ def _summary_table(ruleset: RuleSet, rules: list[Rule]) -> list[str]:
         weight = category.weight if category else "—"
         lines.append(
             f"| [{title}](#{_anchor(f'{title} {category_id}')}) "
-            f"| {len(det_by_category.get(category_id, []))} "
-            f"| {len(jud_by_category.get(category_id, []))} "
-            f"| {weight} | {genres} |"
+            f"| {len(category_rules)} | {weight} | {genres} |"
         )
-    lines.append(f"| **Total** | **{len(deterministic)}** | **{len(judgement)}** | | |")
+    lines.append(f"| **Total** | **{len(rules)}** | | |")
     return lines
 
-
 def render_reference(ruleset: RuleSet) -> str:
-    """The whole rules reference, as markdown.
-
-    No timestamp and no run-specific detail anywhere in the output. A generated
-    file that changes on every run cannot be diff-checked in CI, and a diff check
-    is the only thing that keeps this honest.
-
-    THE VERSION IS RUN-SPECIFIC DETAIL, which the rule above already forbids and
-    the header used to print anyway. It made the drift check fail on every release
-    PR: release-please bumps `__version__`, the header follows, and the committed
-    copy is stale through no act of any author. The counts below describe the
-    ruleset, which is what a reader came for; the version they installed is what
-    `slopvac --version` is for.
-    """
-    deterministic, judgement = _partition(ruleset.rules)
+    """Render the checked linter rules as stable Markdown."""
+    checked = _checked(ruleset.rules)
+    checked_categories = {rule.category for rule in checked}
     kind_counts = sorted(
         (
-            (k, sum(1 for r in deterministic if r.kind is k))
-            for k in DETERMINISTIC_KINDS
+            (kind, sum(1 for rule in checked if rule.kind is kind))
+            for kind in CHECKED_KINDS
         ),
         key=lambda pair: -pair[1],
     )
@@ -257,13 +206,11 @@ def render_reference(ruleset: RuleSet) -> str:
         "<!-- Generated by `slopvac reference`. Do not edit: run "
         "`slopvac reference --write docs/rules.md`. -->",
         "",
-        f"slopvac ships **{len(ruleset.rules)} rules** across "
-        f"**{len(ruleset.categories)} categories**.",
+        f"slopvac ships **{len(checked)} checked rules** across "
+        f"**{len(checked_categories)} categories**.",
         "",
-        f"- **{len(deterministic)} checked rules** run through Vale or the native "
-        "engine and can contribute to the deterministic lint result.",
-        f"- **{len(judgement)} judgement rules** require contextual review. They do "
-        "not produce deterministic lint findings or change deterministic pass/fail.",
+        "These rules run through Vale or the native engine and can contribute to "
+        "the lint result.",
         "",
         "Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, "
         "worked example, or wordlist entry from that specification is reproduced "
@@ -272,7 +219,7 @@ def render_reference(ruleset: RuleSet) -> str:
         "## Categories",
         "",
     ]
-    lines.extend(_summary_table(ruleset, ruleset.rules))
+    lines.extend(_summary_table(ruleset, checked))
     lines.extend(
         [
             "",
@@ -284,7 +231,9 @@ def render_reference(ruleset: RuleSet) -> str:
             "## Checked rules",
             "",
             "By kind: "
-            + ", ".join(f"{count} {kind.value}" for kind, count in kind_counts if count)
+            + ", ".join(
+                f"{count} {kind.value}" for kind, count in kind_counts if count
+            )
             + ".",
             "",
             "Each rule lists what it ships as, then its disposition at strict, "
@@ -304,21 +253,7 @@ def render_reference(ruleset: RuleSet) -> str:
             "",
         ]
     )
-    for category_id, rules in _by_category(deterministic).items():
+    for category_id, rules in _by_category(checked).items():
         lines.extend(_category_block(ruleset, category_id, rules))
 
-    lines.extend(
-        [
-            "## Judgement rules",
-            "",
-            "These rules require contextual review and do not produce deterministic "
-            "lint findings. Each includes the review question and an example.",
-            "",
-        ]
-    )
-    for category_id, rules in _by_category(judgement).items():
-        lines.extend(_category_block(ruleset, category_id, rules))
-
-    # One trailing newline, and no blank line before it, so the file is stable
-    # under any formatter a contributor happens to have on save.
     return "\n".join(lines).rstrip("\n") + "\n"

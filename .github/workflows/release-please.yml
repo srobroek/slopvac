@@ -6,10 +6,8 @@ name: Release Please
 # ONE VERSION, ONE TAG. Everything here releases in lockstep behind a plain
 # `vX.Y.Z`, from a single root package in release-please-config.json.
 #
-# Version fan-out: release-please owns pyproject.toml, __init__.py, package.json,
-# plugin.json files, and native marketplace.json files declared as extra-files in
-# release-please-config.json. Those files are what native marketplace installs
-# resolve, so a stale version there is a user-visible defect.
+# Version fan-out: release-please owns the lint package metadata and pre-commit
+# hook revision declared as extra-files in release-please-config.json.
 #
 # TOKEN: the release PR is authored with a GitHub App token
 # (RELEASE_APP_CLIENT_ID + RELEASE_APP_PRIVATE_KEY), not the default GITHUB_TOKEN.

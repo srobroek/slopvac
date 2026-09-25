@@ -67,16 +67,12 @@ jobs:
           # Every tracked plugin, marketplace, and hook manifest is covered without editing this
           # step.
           #
-          files="$(git ls-files '*.claude-plugin/*.json' '*.codex-plugin/*.json' \
-            '*hooks.json' | sort -u)"
+          files="$(git ls-files '*hooks.json' | sort -u)"
           test -n "$files" || { echo 'no manifests found to validate'; exit 1; }
           for f in $files; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"
             echo "ok $f"
           done
-
-      - name: Validate plugin package contract
-        run: python3 -m unittest discover -s tests -p 'test_plugin_package.py'
 
   # The linter is a published package with its own dependencies, so it is tested
   # in its own job against the Python versions its metadata claims to support. A
@@ -158,10 +154,15 @@ jobs:
         run: |
           set -euo pipefail
           slopvac --version
-          slopvac rules --judgement --format json > /tmp/judgement.json
-          python3 -c 'import json; assert json.load(open("/tmp/judgement.json"))["rules"]'
+          slopvac rules --format json > /tmp/rules.json
+          python3 - <<'PY'
+          import json
+          payload = json.load(open("/tmp/rules.json"))
+          assert len(payload["rules"]) == 167
+          assert all(rule["kind"] != "judgement" for rule in payload["rules"])
+          PY
           slopvac explain orwell.stale-figure > /dev/null
-          slopvac init --path /tmp/slopvac.toml
+          slopvac init --path /tmp/slopvac.toml --skip-agents
           slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 
   # The only required status check for this workflow. Branch protection names this

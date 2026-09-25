@@ -83,49 +83,6 @@ rules:
         completion and status statements that use the same tense legitimately.
     fix: Rewrite in the simple present, simple past, or simple future tense.
 
-  - id: past-participle-not-adjectival
-    name: Use a past participle only as an adjective
-    kind: judgement
-    severity: suggestion
-    message: Check that this past participle acts as an adjective, not as part of a verb.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Does this past participle sit before a noun, or after a form of "be", "become", or
-      "stay", describing a condition? If it sits after another auxiliary, it is part of a
-      verb construction and is not permitted.
-      - quotation
-      - code-span
-    allowlist: []
-    examples:
-      - bad: The corrupted index had been rebuilt by the maintenance job.
-        good: The maintenance job rebuilds the corrupted index.
-      - bad: Delete each file that has been marked stale.
-        good: Delete each stale file.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:3.3'
-      note: >-
-        The mechanizable half of this rule is already covered by complex-tense and
-        passive-voice; what remains is the position test, which needs a parse rather than a
-        regex. Note the specification permits some participle-shaped words as adjectives in
-        their own right even when the matching verb is not permitted, so a naive "no
-        participles" check would be wrong.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [normative_obligation]
-      judgement_ceiling: suggestion
-    fix: Move the participle before the noun it describes, or rewrite in the active voice.
-
   - id: auxiliary-stacking
     name: Do not stack auxiliaries
     kind: pattern
@@ -169,49 +126,6 @@ rules:
         pre-2022 human prose against 6 in model prose (a 0.19 ratio). What remains is
         the genuine three-auxiliary stack and the `is to be`/`has to be` frames.
     fix: Rewrite as an imperative, or name the actor and use the active voice.
-
-  - id: gerund-outside-noun-use
-    name: Use an -ing form only as a noun or a noun modifier
-    kind: judgement
-    severity: suggestion
-    message: Check that this -ing form works as a noun or as part of a noun, not as a verb.
-    scope: sentence
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    judgement_question: >-
-      Is this -ing word a noun (the name of a thing or a process), or a modifier inside a
-      domain noun? If it carries the action of the clause, rewrite it.
-      - quotation
-      - code-span
-      - registered-domain-term
-    allowlist: []
-    examples:
-      - bad: Restart the worker, making sure the queue is empty first.
-        good: Make sure that the queue is empty. Then restart the worker.
-      - bad: You can reduce cost by caching the response.
-        good: To reduce cost, cache the response.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:3.5'
-      note: >-
-        The progressive-tense half is caught by complex-tense. What is left is participial
-        clauses and gerund objects, which need a parse to separate from legitimate noun
-        uses such as "the logging config" or "load balancing". Judgement rather than a
-        regex for exactly that reason: a bare "-ing" pattern would fire on every legal
-        compound term in software documentation.
-    judgement:
-      scope_class: local
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [normative_obligation]
-      judgement_ceiling: suggestion
-    fix: Rewrite the clause with a finite verb, or split it into a separate sentence.
 
   - id: passive-voice
     name: Use the active voice

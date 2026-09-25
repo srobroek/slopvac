@@ -10,7 +10,7 @@
 
 [![Tests](https://github.com/srobroek/slopvac/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
 [![Code and prose checks](https://github.com/srobroek/slopvac/actions/workflows/lint.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/lint.yml)
-[![Markdown audit](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml/badge.svg?branch=docs%2Frefresh-slopvac-lint-readme)](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml)
+[![Markdown audit](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml/badge.svg?branch=feat%2Fcli-agent-steering-v2)](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml)
 [![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
 [![PyPI version](https://img.shields.io/pypi/v/slopvac)](https://pypi.org/project/slopvac/)
 
@@ -21,18 +21,16 @@
 [Metrics](packages/slopvac-lint/docs/metrics.md) ·
 [Triage](packages/slopvac-lint/docs/triage.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
-[Judgement evaluation](packages/slopvac-lint/docs/judgement-eval.md) ·
 [STE principles](packages/slopvac-lint/docs/ste-principles.md) ·
-[Domain terms](packages/slopvac-lint/docs/domain-categories.md) ·
 [Vale behavior](packages/slopvac-lint/docs/vale-traps.md) ·
-[Agent setup](#agent-skills) · [CI](#ci-integration)
+[Agent setup](#agent-setup) · [CI](#ci-integration) · [In development](#in-development-agentic-judgement)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
 technical-writing constraints.
 
-Use the CLI locally or in CI. The `write-docs` and `review-docs` agent skills
-add review of claims and structure, with optional model-based checks.
+Use the CLI locally or in CI. Coding agents can use project-local steering that
+points the harness back to the installed CLI for current lint guidance.
 
 ## Quick start
 
@@ -80,14 +78,12 @@ slopvac --fix README.md
 `--fix` edits source files using deterministic replacements. Review the diff
 before keeping those edits. The **[CLI reference](packages/slopvac-lint/README.md)**
 covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
-[profiles](packages/slopvac-lint/README.md#profiles),
-[scoring](packages/slopvac-lint/README.md#scoring), and
-[contextual review](packages/slopvac-lint/README.md#judgement-layer).
+[profiles](packages/slopvac-lint/README.md#profiles), and
+[scoring](packages/slopvac-lint/README.md#scoring).
 
 ## What it checks
 
-The packaged YAML contains 231 rules across 26 categories: 166 checked rules and
-65 contextual rules marked `kind: judgement`.
+The linter ships 166 checked rules across 26 categories.
 
 | Coverage | Examples |
 | --- | --- |
@@ -103,7 +99,6 @@ and examples. Inspect them from the CLI:
 ```sh
 slopvac rules
 slopvac explain prose-craft.relative-date
-slopvac rules --judgement
 ```
 
 ### Deterministic checks
@@ -115,81 +110,40 @@ control which findings fail a run.
 Missing Vale, or `--no-vale`, leaves selected Vale-backed checks unchecked.
 Native findings remain available, but the run returns exit 2.
 
-### The judgement layer
+## Agent setup
 
-Contextual rules ask a model about passages that need interpretation, such as
-repeated explanations or claims without enough support. The CLI prepares the
-prompts and validates the responses. Your agent harness or provider client makes
-the model calls.
+Slopvac uses project-local steering instead of harness marketplaces or copied
+skills. The managed block tells the agent to ask the installed CLI for the
+current lint workflow instead of duplicating rule policy.
 
-```sh
-slopvac judgement brief README.md --out .slopvac-review --packs fired
-```
+`slopvac init` adds the generic `AGENTS.md` block by default. Use
+`--skip-agents` when only configuration should be created.
 
-This writes a review brief and structured prompts without contacting a provider.
-`--packs fired` selects categories with deterministic findings. If none qualify,
-`brief` keeps all packs and prints a warning. When some categories qualify,
-others receive no contextual review. Use `--packs all` for broader review.
+For harness-specific setup:
 
-Review the printed call count before sending prompts to a provider. `brief`
-does not enforce the call-budget refusal available through `judgement prepare`.
+| Harness | Command | Managed file |
+| --- | --- | --- |
+| Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` |
+| Codex | `slopvac setup codex` | non-empty `AGENTS.override.md`, otherwise `AGENTS.md` |
+| Claude Code | `slopvac setup claude` | `CLAUDE.md` |
+| Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` |
+| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) |
 
-Model results are advisory. They can lower `judgement_adjusted_score` but do not
-change the deterministic result. See the
-[complete workflow](packages/slopvac-lint/README.md#judgement-layer) for response
-validation, coverage, and rewrite previews.
+`setup` preserves content outside Slopvac's managed markers. Use
+`slopvac setup <harness> --check` to report `current`, `missing`, `stale`,
+or `malformed` without changing the file. Remove only the managed block with
+`slopvac setup <harness> --remove`. Run `slopvac setup --list` to inspect
+supported targets.
 
-## Agent skills
-
-`write-docs` applies the document's genre rules and hands the text to
-`review-docs`. The review checks the prose against the code and removes material
-that the intended reader does not need. Contextual model review runs on request.
-
-### Oh My Pi
+Agents get detailed guidance on demand:
 
 ```sh
-omp plugin marketplace add srobroek/slopvac
-omp plugin install slopvac@slopvac --scope user
+slopvac prime
 ```
 
-Use `--scope project` for a project installation. Start a new session after
-installing. To use a local checkout:
-
-```sh
-omp plugin link ./slopvac/packages/slopvac
-```
-
-### Claude Code
-
-Run these commands in Claude Code:
-
-```text
-/plugin marketplace add srobroek/slopvac
-/plugin install slopvac@slopvac
-```
-
-### Codex
-
-```sh
-codex plugin marketplace add srobroek/slopvac
-codex plugin add slopvac@slopvac
-```
-
-### Kiro and manual installation
-
-Copy the skills into the harness's skills directory. For Kiro:
-
-```sh
-git clone https://github.com/srobroek/slopvac /tmp/slopvac
-mkdir -p .kiro/skills
-cp -R /tmp/slopvac/packages/slopvac/skills/* .kiro/skills/
-```
-
-The corresponding project directories are `.claude/skills` for Claude Code and
-`.codex/skills` for Codex.
-
-After installing, ask the agent to write or review a document. To include
-contextual checks, ask it to review the document for AI tells as well.
+`prime` covers linting, exit-code semantics, Vale coverage, rule explanation,
+named exceptions, and factual-claim verification. `slopvac onboard` prints a short setup handoff that points the agent to
+`prime` for the detailed workflow.
 
 ## CI integration
 
@@ -242,12 +196,58 @@ source files.
 
 A passing run means the selected checks stayed within configured thresholds.
 It does not establish factual correctness or identify who wrote the text.
-AI-signal labels describe rule evidence, without changing the gate.
+AI-signal labels describe rule evidence without changing the gate.
 
-Model review can miss defects or flag correct prose. The
-[evaluation guide](packages/slopvac-lint/docs/judgement-eval.md) documents the
-evaluation workflow, coverage accounting, validation, and links to dated
-research records.
+## In development: agentic judgement
+
+The current release is a deterministic linter. A separate development track is
+evaluating an optional semantic decision layer built around **typed judge
+models** rather than free-form text generation. Candidate backends include
+hosted [Jev](https://www.typesafeai.org/jev) and local/open models such as
+[Laya](https://github.com/NandhaKishorM/laya),
+[Nimble](https://github.com/bespokelabsai/nimble), and
+[Kev](https://github.com/jaredpalmer/kev), plus the
+[SemIf](https://github.com/theoleecj/semif) direct-logit scoring approach.
+The design is tracked in
+[issue #162](https://github.com/srobroek/slopvac/issues/162).
+
+The planned layer fits **after** Slopvac has parsed the document and generated
+candidate spans. It has two uses:
+
+1. **Semantic detection.** For AI/style defects that cannot be expressed
+   reliably as syntax, structure, or fixed patterns, a typed judge evaluates
+   bounded questions such as applicability, semantic fit, evidence sufficiency,
+   and repair category. Slopvac code, not the model, derives the final
+   confirm/reject/uncertain policy.
+2. **Rule validation.** For an ordinary linter rule that already fired, the same
+   decision provider receives the rule id, exact source span, and local context
+   and asks whether the trigger actually matches the defect the rule intends to
+   detect. This is intended to measure false positives, validate rule changes
+   against gold/control corpora, and identify rules whose deterministic trigger
+   should be improved.
+
+An optional local reranker may sit before the typed judge when candidate volume
+is high. The first candidate is
+[Qwen3-Reranker-0.6B](https://huggingface.co/Qwen/Qwen3-Reranker-0.6B).
+It is a **high-recall prefilter only**: it may rank or reduce candidate work, but
+it never decides whether prose is defective. Prefiltered candidates must remain
+visible in coverage data so recall loss can be measured; it is retained only if
+Slopvac's own evaluation shows essentially unchanged defect recall.
+
+The intended shape is:
+
+```text
+source
+  -> deterministic parsing and candidate generation
+  -> optional recall-first local reranker
+  -> typed decision provider
+  -> deterministic host policy
+  -> semantic detection / rule-validation report
+```
+
+Exact source locations remain host-authoritative. The semantic layer is being
+evaluated separately from the current linter and is not part of the public CLI
+or deterministic exit status yet.
 
 ## License
 

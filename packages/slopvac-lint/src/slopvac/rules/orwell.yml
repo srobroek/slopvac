@@ -150,35 +150,3 @@ rules:
         because the fixes differ (Orwell asks for the fact, the lexicon rule for
         deletion).
     fix: Delete the adjective and state the fact that motivated it.
-
-  - id: concrete-floor
-    name: Name a checkable particular
-    kind: judgement
-    scope: document
-    message: This paragraph makes a factual claim with no checkable particular.
-    tiers: {strict: enforced, normal: enforced, relaxed: advisory}
-    judgement_question: >-
-      Does this paragraph name at least one number, identifier, path, command,
-      or dated event? If the writer possesses a more specific term than the one
-      used, did they use it?
-    examples:
-      - bad: The system handles a variety of edge cases to ensure reliable operation.
-        good: The parser rejects unterminated strings and nested depth over 64.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: Orwell 1946
-      orwell_ref: concrete-floor
-      note: >-
-        EXTENSION, and the load-bearing one. All six of Orwell's rules PASS his
-        own worst-case specimen ("success or failure in competitive activities
-        exhibits no tendency to be commensurate with innate capacity"), which is
-        the gap this rule closes.
-    judgement:
-      scope_class: probe
-      dims: {fit: ask, harm: ask, repair: ask, warrant: ask}
-      evidence: {min_arity: 1, roles: [defect]}
-      warrant_min: 2
-      protects: [authoritative_domain_term, normative_obligation]
-      judgement_ceiling: warning
-    fix: Replace the category with the instance from the source material.
