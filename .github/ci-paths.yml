@@ -8,6 +8,7 @@
 # validate the machinery they modify.
 
 code:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - '.github/action-fixtures/**'
@@ -20,6 +21,7 @@ code:
   - 'scripts/**/*.py'
 
 package:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - 'pyproject.toml'
@@ -30,6 +32,7 @@ package:
   - 'scripts/install_vale.py'
 
 action:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - '.github/action-fixtures/**'
@@ -40,6 +43,7 @@ action:
   - 'packages/slopvac-lint/src/**'
 
 docs:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - '.github/workflows/markdown-audit.yml'
@@ -60,6 +64,7 @@ ci:
   - 'scripts/test-agnix-hook.py'
 
 config:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - '.pre-commit-config.yaml'
@@ -68,16 +73,19 @@ config:
   - '**/*.toml'
 
 shell:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - '**/*.sh'
 
 precommit:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - '.pre-commit-config.yaml'
 
 complexity:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - 'packages/slopvac-lint/src/slopvac/cli.py'
@@ -106,6 +114,7 @@ lint:
   - '**/*.sh'
 
 dependencies:
+  - '.github/workflows/**'
   - '.github/ci-paths.yml'
   - '.github/workflows/test.yml'
   - 'pyproject.toml'
