@@ -8,7 +8,7 @@
   </picture>
 </p>
 
-[![Tests](https://github.com/srobroek/slopvac/actions/workflows/test.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/srobroek/slopvac/test.yml?branch=main&event=push&label=Tests)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
 [![Code and prose checks](https://github.com/srobroek/slopvac/actions/workflows/lint.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/lint.yml)
 [![Markdown audit](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml)
 [![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
