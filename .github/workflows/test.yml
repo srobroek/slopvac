@@ -35,13 +35,25 @@ jobs:
       lint: ${{ steps.filter.outputs.lint }}
       dependencies: ${{ steps.filter.outputs.dependencies }}
       filesystem: ${{ steps.filter.outputs.filesystem }}
-      security: ${{ steps.filter.outputs.security }}
+      secrets: ${{ steps.filter.outputs.secrets }}
+      force_all: ${{ steps.bootstrap.outputs.force_all }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 0
+
+      # This routing guard is intentionally outside .github/ci-paths.yml. A broken
+      # edit to the central map therefore cannot make its own validation disappear.
+      - name: Protect CI routing changes
+        id: bootstrap
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            force_all:
+              - '.github/ci-paths.yml'
+              - '.github/workflows/test.yml'
 
       - name: Classify changed files
         id: filter
@@ -52,9 +64,11 @@ jobs:
       - name: Report classification
         env:
           MATCHED: ${{ steps.filter.outputs.changes }}
+          FORCE_ALL: ${{ steps.bootstrap.outputs.force_all }}
         run: |
           set -euo pipefail
           echo "Matched CI classes: $MATCHED"
+          echo "Force all suites: $FORCE_ALL"
           {
             echo "## CI change classification"
             echo
@@ -92,13 +106,25 @@ jobs:
             echo "ok $f"
           done
 
+      # These two tests inspect repository-wide documentation and configuration.
+      # Keep them in the small always-on job so those invariants cannot be bypassed
+      # without making every docs-only change pay for the complete pytest suite.
+      - name: Repository-wide invariants
+        run: |
+          uv run --project packages/slopvac-lint --extra dev python -m pytest -q \
+            packages/slopvac-lint/tests/test_steering.py \
+            -k 'retired_integration_names_do_not_survive_in_live_sources or \
+                removed_agent_packaging_has_no_live_paths_or_install_commands'
+
   # Full repository test discovery on the newest supported Python. The root
   # pytest configuration includes both package tests and any repository-level
   # tests, so new test directories cannot silently sit outside CI.
   test:
     name: Full test suite
     needs: changes
-    if: ${{ needs.changes.outputs.code == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -134,7 +160,9 @@ jobs:
   lint-package:
     name: slopvac (py${{ matrix.python }})
     needs: changes
-    if: ${{ needs.changes.outputs.package == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.package == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -209,18 +237,23 @@ jobs:
   cli-e2e:
     name: CLI contract
     needs: changes
-    if: ${{ needs.changes.outputs.package == 'true' || needs.changes.outputs.docs == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.package == 'true' ||
+      needs.changes.outputs.docs == 'true'
     uses: ./.github/workflows/cli-e2e.yml
     permissions:
       contents: read
     with:
-      package: ${{ needs.changes.outputs.package == 'true' }}
-      docs: ${{ needs.changes.outputs.docs == 'true' }}
+      package: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.package == 'true' }}
+      docs: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.docs == 'true' }}
 
   action-contract:
     name: Composite action contract
     needs: changes
-    if: ${{ needs.changes.outputs.action == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.action == 'true'
     uses: ./.github/workflows/action-test.yml
     permissions:
       contents: read
@@ -228,25 +261,29 @@ jobs:
   lint:
     name: Relevant lint suites
     needs: changes
-    if: ${{ needs.changes.outputs.lint == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.lint == 'true'
     uses: ./.github/workflows/lint.yml
     permissions:
       contents: read
       security-events: write
     with:
-      code: ${{ needs.changes.outputs.code == 'true' }}
-      docs: ${{ needs.changes.outputs.docs == 'true' }}
-      ci: ${{ needs.changes.outputs.ci == 'true' }}
-      config: ${{ needs.changes.outputs.config == 'true' }}
-      shell: ${{ needs.changes.outputs.shell == 'true' }}
-      precommit: ${{ needs.changes.outputs.precommit == 'true' }}
-      complexity: ${{ needs.changes.outputs.complexity == 'true' }}
-      action: ${{ needs.changes.outputs.action == 'true' }}
+      code: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.code == 'true' }}
+      docs: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.docs == 'true' }}
+      ci: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.ci == 'true' }}
+      config: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.config == 'true' }}
+      shell: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.shell == 'true' }}
+      precommit: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.precommit == 'true' }}
+      complexity: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.complexity == 'true' }}
+      action: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.action == 'true' }}
 
   markdown-audit:
     name: Markdown audit
     needs: changes
-    if: ${{ needs.changes.outputs.docs == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.docs == 'true'
     uses: ./.github/workflows/markdown-audit.yml
     permissions:
       contents: read
@@ -254,16 +291,21 @@ jobs:
   security:
     name: Relevant security suites
     needs: changes
-    if: ${{ needs.changes.outputs.security == 'true' }}
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.secrets == 'true' ||
+      needs.changes.outputs.code == 'true' ||
+      needs.changes.outputs.dependencies == 'true' ||
+      needs.changes.outputs.filesystem == 'true'
     uses: ./.github/workflows/security.yml
     permissions:
       contents: read
       security-events: write
     with:
-      code: ${{ needs.changes.outputs.code == 'true' }}
-      dependencies: ${{ needs.changes.outputs.dependencies == 'true' }}
-      filesystem: ${{ needs.changes.outputs.filesystem == 'true' }}
-      secrets: true
+      code: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.code == 'true' }}
+      dependencies: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.dependencies == 'true' }}
+      filesystem: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.filesystem == 'true' }}
+      secrets: ${{ needs.changes.outputs.force_all == 'true' || needs.changes.outputs.secrets == 'true' }}
 
   # Keep the established required-check name, but make it the single source of
   # truth for the whole CI graph. It enforces exact skip semantics: a suite must
@@ -287,12 +329,15 @@ jobs:
       - name: Verify required runs and valid skips
         env:
           RESULTS: ${{ toJSON(needs) }}
+          FORCE_ALL: ${{ needs.changes.outputs.force_all }}
           CODE: ${{ needs.changes.outputs.code }}
           PACKAGE: ${{ needs.changes.outputs.package }}
           ACTION: ${{ needs.changes.outputs.action }}
           LINT: ${{ needs.changes.outputs.lint }}
           DOCS: ${{ needs.changes.outputs.docs }}
-          SECURITY: ${{ needs.changes.outputs.security }}
+          SECRETS: ${{ needs.changes.outputs.secrets }}
+          DEPENDENCIES: ${{ needs.changes.outputs.dependencies }}
+          FILESYSTEM: ${{ needs.changes.outputs.filesystem }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -308,15 +353,25 @@ jobs:
                   f"change classification was {needs['changes']['result']}, expected success"
               )
 
+          force_all = os.environ["FORCE_ALL"] == "true"
+          code = os.environ["CODE"] == "true"
+          package = os.environ["PACKAGE"] == "true"
+          action = os.environ["ACTION"] == "true"
+          lint = os.environ["LINT"] == "true"
+          docs = os.environ["DOCS"] == "true"
+          secrets = os.environ["SECRETS"] == "true"
+          dependencies = os.environ["DEPENDENCIES"] == "true"
+          filesystem = os.environ["FILESYSTEM"] == "true"
+
           expected = {
               "quick-lint": True,
-              "test": os.environ["CODE"] == "true",
-              "lint-package": os.environ["PACKAGE"] == "true",
-              "cli-e2e": os.environ["PACKAGE"] == "true" or os.environ["DOCS"] == "true",
-              "action-contract": os.environ["ACTION"] == "true",
-              "lint": os.environ["LINT"] == "true",
-              "markdown-audit": os.environ["DOCS"] == "true",
-              "security": os.environ["SECURITY"] == "true",
+              "test": force_all or code,
+              "lint-package": force_all or package,
+              "cli-e2e": force_all or package or docs,
+              "action-contract": force_all or action,
+              "lint": force_all or lint,
+              "markdown-audit": force_all or docs,
+              "security": force_all or secrets or code or dependencies or filesystem,
           }
 
           for name, should_run in expected.items():
