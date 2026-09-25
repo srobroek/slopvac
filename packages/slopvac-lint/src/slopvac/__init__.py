@@ -1,6 +1,6 @@
 """slopvac: lint prose and source comments with deterministic rules."""
 
-__version__ = "2.10.0"  # x-release-please-version
+__version__ = "2.11.0"  # x-release-please-version
 
 from .config import Config, Profile, Severity, load_config, resolve_for
 from .model import Category, DocumentScore, Finding, Rule, RuleKind

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slopvac"
-version = "2.10.0" # x-release-please-version
+version = "2.11.0" # x-release-please-version
 description = "Lint prose and source comments for AI writing patterns, prose quality, documentation discipline, and technical-writing constraints."
 readme = "README.md"
 license = "Apache-2.0"
