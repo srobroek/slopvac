@@ -69,6 +69,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run slopvac action
+        if: matrix.name != 'changed-files' || github.event_name == 'pull_request'
         id: slopvac
         uses: ./
         continue-on-error: ${{ matrix.fail == 'true' }}
@@ -82,6 +83,10 @@ jobs:
           max-per-100-words: "0"
           sarif: ${{ matrix.sarif }}
           upload-sarif: ${{ matrix.upload }}
+
+      - name: Skip PR-only changed-files case outside pull requests
+        if: matrix.name == 'changed-files' && github.event_name != 'pull_request'
+        run: echo "changed-files-only contract is pull-request specific"
 
       - name: Assert blocking findings fail
         if: matrix.name == 'blocking'
@@ -151,7 +156,7 @@ jobs:
           fi
 
       - name: Assert changed-files lints exactly the PR's changed prose
-        if: matrix.name == 'changed-files'
+        if: matrix.name == 'changed-files' && github.event_name == 'pull_request'
         env:
           OUTCOME: ${{ steps.slopvac.outcome }}
           REPORT: ${{ steps.slopvac.outputs.json }}
