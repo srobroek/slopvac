@@ -7,7 +7,7 @@ Last reviewed: 2026-09-25
 
 ## Project overview
 
-Slopvac is a Python CLI that requires Python 3.11 or later. It is also a
+Slopvac is a Python CLI that requires Python 3.11 or later. It also ships as a
 composite GitHub Action that lints prose, documentation, and source-code comments. It uses packaged deterministic rules and
 an optional Vale subprocess, then emits text, JSON, HTML, GitHub annotations, or
 SARIF.
@@ -50,7 +50,7 @@ Treat these as untrusted:
 - source-derived finding text used in reports or annotations;
 - GitHub Action inputs if a calling workflow derives them from PR-controlled data.
 
-The operator can authorize these capabilities:
+**Operator-authorized capabilities:**
 
 - explicit CLI targets/globs and `--config`, `--rules-dir`, `--out`,
   `--fix`, compile/reference output, setup, and init;
@@ -86,8 +86,8 @@ validation.
 
 Security-sensitive configuration includes:
 
-- `[vocabulary].path`, which may be absolute and can read any file that the
-  process is permitted to access;
+- `[vocabulary].path`, which may be absolute and can therefore read files
+  beyond the project root;
 - `vale.binary`, which selects an executable through `PATH`;
 - explicit config/rules/output paths chosen by the caller.
 
