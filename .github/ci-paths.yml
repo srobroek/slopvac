@@ -56,6 +56,7 @@ docs:
 # Inputs to workflow/action/hook contract checks.
 ci:
   - '.github/workflows/**'
+  - '.github/actionlint.yaml'
   - '.agnix.toml'
   - '_typos.toml'
   - '.yamllint.yml'
@@ -91,6 +92,7 @@ complexity:
 # specific classifications above.
 lint:
   - '.github/workflows/**'
+  - '.github/actionlint.yaml'
   - '.github/action-fixtures/**'
   - '.agnix.toml'
   - '_typos.toml'
