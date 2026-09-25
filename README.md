@@ -21,8 +21,8 @@
 [Metrics](packages/slopvac-lint/docs/metrics.md) ·
 [Triage](packages/slopvac-lint/docs/triage.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
-[STE principles](packages/slopvac-lint/docs/ste-principles.md) ·
-[Vale behavior](packages/slopvac-lint/docs/vale-traps.md) ·
+
+
 [Agent setup](#agent-setup) · [CI](#ci-integration) · [In development](#in-development-agentic-judgement)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
