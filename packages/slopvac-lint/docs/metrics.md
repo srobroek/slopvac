@@ -1,360 +1,117 @@
-# The word-counting contract
-
-Every length rule in this ruleset depends on this document. The source specification caps a
-procedural sentence at 20 words and an explanatory sentence at 25, then spends four separate
-rules (8.4 through 8.7) redefining what one word is. A checker that splits on whitespace
-counts more words than the specification does and fires on compliant text.
-
-The `text_type` field gates every rule layer, including lexical rules: a typed rule runs only on sentences classified with that type, while `any` remains the default.
-
-Worked example. Under this contract the sentence
-
-> Set the timeout to 30 s for the HTTP client in the "edge gateway" service.
-
-counts 13 words: `30 s` collapses to one and `"edge gateway"` to one. A whitespace
-tokenizer counts 15. On a 20-word cap that gap is the difference between silence and a
-false positive on a sentence the specification permits.
-
-All rule citations below are to Issue 9. Two of these rules changed between issues, so an
-implementation targets one issue; this contract targets Issue 9.
-
-## 1. Tokenization for `sentence_words`
-
-Input: one sentence, already delimited by section 3 below. Output: an integer.
-
-Apply the collapse phases in order. Each phase replaces a matched span with a single token
-and removes it from the input of later phases. Order matters, because the spans nest: a
-quoted title contains numbers, and a parenthetical contains abbreviations.
-
-### Phase 0: Strip uncounted numbering (rule 8.6 carve-out)
-
-Delete a leading step or paragraph identifier before anything else. It is not counted at all,
-which is different from counting as one.
-
-Delete, at the start of the sentence only:
-
-- An ordered-list marker: `1.`, `1)`, `(1)`, `A.`, `a)`, `iv.`
-- A dotted section number: `4.2.1`, `4.2.1.`
-- A step label: `Step 3.`, `Step 3:`
-
-Phase 0 is the phase implementers skip most often. Skipping it adds one word to every numbered
-step in the document, so a 20-word step measures 21.
-
-### Phase 1: Collapse code and identifiers to one token each
-
-Not from the source specification, which predates none of this but addresses none of it
-either. Phase 1 is slopvac's addition for software documentation, and it is a superset of the
-specification's alphanumeric-identifier class (rule 8.6, item 4).
-
-Collapse to one token:
-
-- An inline code span (backtick-delimited)
-- A file path, a URL, a flag (`--dry-run`), an environment variable
-- A dotted or namespaced identifier (`client.retry.limit`, `v1beta1.Deployment`)
-- An alphanumeric identifier: any token mixing letters and digits (`36L7`, `SHA256`, `T4g2`)
-
-A fenced code block is not a sentence and never enters the tokenizer.
-
-### Phase 2: Collapse quoted spans to one token (rule 8.6, item 5)
-
-A span in double, single, or typographic quotes counts as one word regardless of length. The
-specification also treats an all-caps run and a font-distinguished run as quoted text. In
-Markdown, treat a bold or italic span the same way only when it names a UI element or a
-literal value, not when it is emphasis.
-
-Consequence worth stating: a 40-word quoted error message counts as one word. The one-word
-count is intentional, because the writer cannot edit a quotation.
-
-### Phase 3: Collapse titles, headings, and label text to one token (rule 8.6, item 6)
-
-A referenced document title, section heading, or label text counts as one word. Detect it
-from an explicit reference frame (`refer to`, `see`, `in the`) followed by a title-cased run
-of two or more words, or from a quoted span already collapsed in phase 2.
-
-This class needs a project configuration list to work well. Without one, implement it as
-quoted-span-only and accept the undercount of unquoted titles.
-
-### Phase 4: Collapse proper names to one token (rule 8.6, item 7)
-
-A personal name, an organization name, or a place name counts as one word however many words
-it spans. Detect a run of two or more capitalized tokens, permitting internal lowercase
-function words (`of`, `and`, `for`, `the`).
-
-New in Issue 9. Under Issue 7 these did not collapse, so a counter written against the older
-issue reports higher counts on the same text.
-
-### Phase 5: Collapse parentheticals to one token (rule 8.5)
-
-A parenthesized span counts as one word in the containing sentence. This holds whether it
-contains an identifier, an abbreviation, or a full clause.
-
-The parenthetical's own content is then counted a second time, as a separate sentence, against
-the same cap. So a parenthetical is both one word outside and N words inside. Implement it as
-a second measurement, not as a replacement for the first.
-
-### Phase 6: Collapse a number with its unit to one token (rule 8.6, item 2)
-
-A numeral or spelled-out number, optionally followed by a unit, counts as one word.
-
-- `30 s`, `30 seconds`, `10 °C`, `10 degrees Celsius`, `20 kg`, `512 MiB` -- one word each
-- `twenty-one`, `forty-seven` -- one word each (a spelled number collapses too)
-- `13` and `16` in a range -- one word each, so `thru`/`to` between them still counts
-
-Issue 9 binds the number to its unit. Issue 7 counted the unit separately. Number-and-unit is
-the second place a counter must declare its target issue.
-
-### Phase 7: Collapse abbreviations to one token (rule 8.6, item 3)
-
-An acronym, an initialism, or a dotted abbreviation counts as one word: `HTTP`, `VPN`, `NASA`,
-`a.m.`, `No. 1`. When an abbreviation directly follows its number, the pair counts as
-one word.
-
-### Phase 8: Collapse hyphenated groups to one token (rule 8.7)
-
-A hyphen-joined group counts as one word however many segments it has. `read-only`,
-`in-flight entertainment system` (2 words: the hyphenated group plus two bare words -- the
-group is one), `main-gear-door retraction-winch handle` (3 words).
-
-This creates a real incentive: hyphenating a compound shortens the counted sentence. The
-specification permits it, and caps the group at three words in rule 8.2, which is why
-`hyphen-group-too-long` is enforced independently.
-
-### Phase 9: Count what remains
-
-Split the residue on whitespace. Count non-empty tokens. Punctuation attached to a word
-(a trailing period, comma, or colon) does not produce a token of its own.
-
-### Reference implementation order
-
-```text
-sentence_words(s):
-    s = strip_leading_numbering(s)        # phase 0, delete
-    for phase in [code_and_identifiers,   # phases 1-8, each replaces span -> "\x00"
-                  quoted_spans,
-                  titles_and_labels,
-                  proper_names,
-                  parentheticals,
-                  numbers_with_units,
-                  abbreviations,
-                  hyphenated_groups]:
-        s = phase(s)
-    return len([t for t in s.split() if t])
-```
-
-The sentinel token must be a character that cannot appear in prose, so a collapsed span is
-never re-split by a later phase.
-
-## 2. `lead_in_words`
-
-Same algorithm as `sentence_words`, applied to the text between the start of the sentence and
-a colon that introduces a vertical list. Rule 8.4 gives the colon the force of a period, so
-the lead-in is measured as a complete sentence against the cap for its own text type.
-
-Detect a list-introducing colon as: a colon at end of line, followed by one or more lines that
-each begin with a list marker (`-`, `*`, `+`, a digit plus `.` or `)`, or a letter plus `.` or
-`)`). A colon inside a sentence, or a colon followed by running prose, is not a list colon and
-does not terminate the sentence.
-
-## 3. Sentence delimitation
-
-A sentence ends at any of:
-
-1. A period, question mark, or exclamation mark followed by whitespace and a capital letter,
-   or by end of input.
-2. A list-introducing colon (section 2). Rule 8.4.
-3. The end of a vertical-list item. Rule 8.4 makes each item its own sentence, with or without
-   a closing period.
-4. A hard line break that ends a heading, a table cell, or a list item.
-
-After a dotted initialism, one space followed by a capitalized word is a sentence boundary only when the word is in the closed-class `INITIALISM_SENTENCE_OPENERS` set (the determiners, pronouns, conjunction/adverbial openers, and prepositions listed by that constant); any other capitalized word is treated as a proper-noun continuation and remains joined. The accepted error is that a sentence beginning with a proper noun directly after an initialism stays joined.
-
-### Projected source mapping and identity
-
-Every sentence and prose segment has a deterministic `id` derived from the document path,
-segment kind, NFC-normalised segment text, its occurrence index among identical text in the
-document, and (for sentences) the enclosing block kind. Block ids use the same construction
-with the block kind and normalised block text. The identity hash deliberately excludes the
-document digest and absolute source offsets: inserting unrelated text therefore leaves
-existing ids unchanged, while changing a segment's own text changes its id. Occurrence indices
-keep repeated identical segments unique within one document. The shared Markdown/HTML
-projection maps normalized text back to source spans and 1-based source line and Unicode-scalar
-column coordinates. Lists, tables, front matter, soft breaks, HTML, and excluded code use this
-same map; excluded regions produce no prose sentence or segment. `source_spans` and
-`source_range` remain separate observable fields and may move when source text is inserted.
-Judgement units expose the same identity as `unit_id` and must consume this projection rather
-than reconstructing coordinates.
-
-Non-terminators, because each produces a false split:
-
-- A period inside a collapsed span from phases 1 through 8. Run the collapse phases before
-  splitting, or the version string `v1.2.3` becomes three sentences.
-- A period in an abbreviation (`a.m.`, `No.`, `e.g.`).
-- A period inside a decimal number.
-
-## 4. `paragraph_sentences` versus `sentence_words`: the resolved conflict
-
-Phase-1 analysis flagged this as unresolved and predicted it would be the largest
-false-positive driver. It is resolved, from the specification's own worked examples.
-
-**The two counts use different sentence units. They are not the same measurement.**
-
-- For a **word count** (rules 5.1, 6.3, 8.4), each vertical-list item is its own sentence.
-- For the **six-sentences-per-paragraph cap** (rule 6.6), a lead-in plus its whole vertical
-  list is **one** sentence. The list items contribute nothing.
-
-**Evidence.** The rule 6.6 body carries a six-paragraph worked example in which each paragraph
-is annotated with its own sentence count (`/tmp/ste100/_bodies-i9.txt:1707-1737`). Two
-annotated blocks settle it:
-
-- A block containing one lead-in sentence and a three-item bulleted list is annotated as one
-  sentence.
-- A block containing one ordinary sentence, then a second lead-in sentence with a four-item
-  bulleted list, is annotated as two sentences.
-
-The second is the decisive one. Four bullets contribute zero to the count, and the number
-matches the count of lead-in sentences exactly. A second, independent instance appears in the
-rule 6.1 example (`:1541-1542`): a paragraph whose fifth sentence carries a two-item list is
-annotated as having five sentences. The two-item list contributes zero sentences.
-
-**Confidence: high.** Three annotated instances agree, drawn from two different rules, and the
-arithmetic is unambiguous in each. The specification never states the interaction in prose, so
-this remains an inference from examples rather than a quoted requirement -- that is the only
-reason it is not stated as certain.
-
-The competing reading (unify the counts) is ruled out
-positively, not merely disfavoured: under it, every annotation in the rule 6.6 example is
-wrong, and any four-bullet list would breach the six-sentence cap. The specification's own
-compliant example would then fail to comply.
-
-**Implementation.** Count `paragraph_sentences` by counting sentence-terminating punctuation
-and list-introducing colons at the paragraph's top level, and skip every line that begins with
-a list marker. The word-count path does the opposite and visits each item.
-
-## 5. Procedural, descriptive, or safety: the discriminator
-
-The caps differ by text type and the specification gives no mechanical test. The test below is
-slopvac's. It runs per block, not per document, because a note inside a procedure is descriptive and a
-warning inside a procedure is procedural.
-
-Evaluate in order and stop at the first match.
-
-```text
-classify(block):
-    1. if block starts with a safety marker
-         (WARNING | CAUTION | DANGER | NOTICE | ATTENTION, optionally wrapped in
-          markdown emphasis or a blockquote, followed by ':' or '.')
-       -> safety                      # cap 20  (rule 5.1: safety obeys the procedural cap)
-
-    2. if block starts with an information marker
-         (NOTE | TIP | INFO | IMPORTANT, same wrapping tolerance)
-       -> descriptive                 # cap 25  (rule 5.5)
-
-    3. if block is a numbered or lettered list item
-       AND its first word is a base-form verb not preceded by a subject
-       -> procedural                  # cap 20
-
-    4. if the block's first sentence begins with a base-form verb and has no subject
-         (imperative mood)
-       -> procedural                  # cap 20
-
-    5. otherwise
-       -> descriptive                 # cap 25
-```
-
-This ordering depends on two properties:
-
-- A safety block takes the **procedural** cap of 20 even though its content is usually
-  descriptive. Rule 5.1 states this directly.
-- A note takes the **descriptive** cap of 25 even though it sits inside a procedure. Rule 5.5
-  states this directly.
-
-Imperative detection (steps 3 and 4) needs a verb list plus a no-subject test. Use the
-vocabulary's verb base forms as the lexicon. Where the mood is ambiguous, prefer
-`descriptive`: the wider cap produces a miss rather than a false positive, and a false positive
-gets the rule disabled.
-
-The default at step 5 means a README classifies as descriptive throughout, which is correct;
-its imperative install steps classify as procedural individually at step 3 or 4.
-
-## 6. Metric reference
-
-Every `kind: metric` rule references one of these names.
-
-| Metric | Definition | Threshold | Applies to |
-|---|---|---|---|
-| `sentence_words` | Section 1 tokenization, one sentence | 20 | procedural, safety |
-| `sentence_words` | Section 1 tokenization, one sentence | 25 | descriptive (includes notes) |
-| `lead_in_words` | Section 1 tokenization, text before a list colon | 20 | procedural, safety |
-| `lead_in_words` | Section 1 tokenization, text before a list colon | 25 | descriptive |
-| `sentence_words` | Section 1 tokenization, one vertical-list item | 20 / 25 | by the lead-in's type |
-| `paragraph_sentences` | Section 4 count; a list collapses into its lead-in | 6 | descriptive |
-| `multiword_noun_words` | Words in a contiguous noun stack, after phase 8 collapse | 3 | any |
-| `coordinated_items` | Comma- or `and`-separated items in one series | 3 | any |
-
-Notes on the last two.
-
-`multiword_noun_words` needs a part-of-speech tagger to find the stack boundary. It counts
-words, not nouns: a vendor restatement of rule 2.1 says nouns, and that reading contradicts
-the specification's own worked counts, which label a four-word stack (three nouns plus an
-adjective) a violation. Count words.
-
-`coordinated_items` has no basis in the specification, which states rule 4.3 as a direction
-rather than a threshold. Four is slopvac's operational trigger, chosen because three inline items
-still read cleanly.
-
-## 7. Thresholds the specification does not set
-
-Recorded so no implementer invents them: there is no maximum paragraph count, no maximum words
-per paragraph, no minimum sentence length, no limit on list items or list nesting depth, and no
-readability-score target. The specification declines to regulate units of measurement,
-abbreviation style, and text formatting. The uppercase presentation of safety blocks in the
-source examples is example-specific formatting.
-
-## 8. Composite judgement reporting
-
-The deterministic score remains the score used by every existing gate. Host judgement
-results are reported beside it as a separate, bounded signal:
-
-`judgement_adjusted_score = max(0, deterministic_score - min(judgement_penalty, max_penalty))`.
-
-The shipped `max_penalty` is 15 points and is **provisional**. The uncapped penalty and
-the capped penalty are both present in JSON so a later calibration can be compared with
-the shipped result. Severity uses the existing `error = 1.0`, `warning = 0.5`, and
-`suggestion = 0.1` weights, multiplied by the finding's own resolved category weight.
-
-Judgement deductions lower only the reported `judgement_adjusted_score`; they never alter deterministic density, category scores, `max_warnings`, the `min_score` gate, or deterministic error counts and the `max_errors` gate. A cluster result is reported separately as `REVISE`; it does not alter either score.
-
-### Evaluation-record measures
-
-The normalized record uses the schema's field names and explicit denominators:
-
-- `metrics.adjudicated_precision` = `TP / (TP + FP + borderline)`; report this headline precision with both denominators: true positives divided by adjudicated confirms, and false-positive incidence divided by attempted human units.
-- `metrics.confirm_rate` = `human_confirms / attempted_human_units`; this is a screening signal only, not a false-positive or precision proxy, because style rules legitimately fire on human prose.
-- `metrics.abstention_rate` = `ABSTAIN / all_units`.
-- `metrics.evidence_validity` = `host_confirms_after_gate / model_confirms_before_gate`.
-
-`denominators.all_units` counts distinct `unit_id` values. `response_rows` and duplicate rows are diagnostic only. Failed, truncated, and no-response units have `not_run` status. They do not add to attempted coverage. Completed abstentions remain attempted adjudications.
-
-## 9. Determinism
-
-The determinism tests repeat preparation with different Python hash seeds and locales.
-They also reverse the input-file order.
-
-The tests compare JSONL and document artefacts byte-for-byte. They replace only these
-environment-dependent fields:
-
-- `path`
-- `document`
-- `config`
-- `timestamp`
-- `created_at`
-
-The source hash keeps NFC and NFD spellings distinct. Both forms remain deterministic.
-
-The edge fixtures check these parser results:
-
-- An unclosed fence yields a paragraph and a code block over the fence lines.
-- NFD text keeps a sentence span that round-trips to NFD bytes.
-- CRLF sentences exclude the carriage return.
-- HTML entities decode in sentence text. The source span covers the entity bytes.
-- Stray pipes remain a paragraph. They do not become a table.
+# Metrics and text analysis
+
+Slopvac uses deterministic text analysis for its native metric rules. The
+[CLI reference](../README.md#scoring) describes how findings become scores and
+gates.
+
+## Word counting
+
+Sentence-length rules use a software-documentation-aware word counter rather
+than a whitespace split. The counter applies these operations in order:
+
+1. Remove a leading step, list, or section number such as `1.`, `(a)`,
+   `4.2.1`, or `Step 3:`.
+2. Count each inline-code span, URL or path, command-line flag, environment
+   variable, dotted or namespaced identifier, and mixed alphanumeric identifier
+   as one word.
+3. Count quoted spans and forms such as `No. 1` as one word.
+4. Count a detected multiword proper name as one word.
+5. Count a parenthesized span as one word in its containing sentence.
+6. Count a numeric value with its unit as one word.
+7. Count a dotted abbreviation such as `U.S.` as one word.
+8. Keep apostrophes and hyphens inside a word when word characters occur on
+   both sides.
+
+Examples:
+
+| Text | Counted as |
+| --- | --- |
+| `30 s` | one word |
+| `512 MiB` | one word |
+| `"edge gateway"` | one word |
+| `client.retry.limit` | one word |
+| `--dry-run` | one word |
+| `read-only` | one word |
+
+Titles and Markdown emphasis do not receive a separate one-word exemption.
+Unquoted title text is counted by the same identifier, proper-name, and lexical
+rules as other prose.
+
+## Sentence boundaries
+
+The parser builds prose blocks with `markdown-it-py` and then splits their text
+into sentences. It treats a period, question mark, or exclamation mark as a
+sentence end only when it occurs at a valid boundary. Periods inside protected
+spans, decimal numbers, and recognized abbreviations do not split a sentence.
+
+A colon that introduces a vertical list terminates the lead-in. Each list item
+then becomes its own sentence for sentence-level metrics. List items remain
+separate Markdown blocks, so they do not increase the
+`paragraph_sentences` count of the preceding paragraph.
+
+Dotted initialisms use a conservative boundary heuristic. A following
+closed-class opener such as `The`, `This`, `If`, or `We` can start a new
+sentence; a following proper-name-like continuation remains attached.
+
+## Text type
+
+Sentence caps depend on the text type. Slopvac classifies text with lexical
+rules; it does not use a dependency parser or general part-of-speech model.
+
+- A safety marker such as `WARNING`, `CAUTION`, or `DANGER` produces safety
+  text unless the following text is an instruction.
+- `NOTE`, `TIP`, `HINT`, and `INFO` are descriptive.
+- An instruction recognized from the closed imperative-verb vocabulary is
+  procedural.
+- Ambiguous text falls back to descriptive.
+
+The current word caps are 20 words for procedural and safety text and 25 words
+for descriptive text.
+
+## Native metrics
+
+These metrics are evaluated by the native engine when selected by an active
+rule.
+
+| Metric | Measurement |
+| --- | --- |
+| `sentence_words` | canonical word count for one sentence |
+| `clause_boundaries` | heuristic count of clause joins in a sentence |
+| `lead_in_words` | words before a colon that terminates a list lead-in |
+| `paragraph_words` | canonical word count for one paragraph |
+| `paragraph_sentences` | sentence count inside a paragraph block |
+| `multiword_noun_words` | longest noun-stack candidate in a sentence |
+| `coordinated_items` | longest comma/conjunction series in a sentence |
+| `syllables_per_word` | average syllable estimate over prose words |
+| `passive_ratio` | share of sentences matching the passive-voice heuristic |
+| `hedge_per_100_words` | hedge-pattern matches per 100 prose words |
+| `abstraction_density` | abstraction-suffix matches per 100 prose words |
+| `concrete_referents_per_paragraph` | concrete-referent matches per paragraph |
+| `paragraph_words_stdev` | standard deviation of paragraph word counts |
+| `adjectives_per_noun` | adjective-suffix matches divided by noun-suffix matches |
+| `consecutive_bold_colon_bullets` | longest run of bold-label list items |
+| `bold_spans_per_1000_words` | bold spans per 1,000 prose words |
+| `dash_per_1000_words` | aside-style dash matches per 1,000 prose words |
+
+The noun-stack, passive-voice, adjective, abstraction, hedge, and concrete
+referent metrics are lexical heuristics. Their names describe the signal being
+approximated, not a claim that Slopvac performed full grammatical parsing.
+
+## Source mapping
+
+Markdown code blocks and front matter are kept out of the prose projection.
+Inline code and other protected spans remain available to the word counter so
+they can count as opaque units. Findings retain source locations mapped back to
+the original document.
+
+## Limits
+
+The analysis is deterministic, but several classifications are intentionally
+heuristic. Proper-name detection relies on capitalization, imperative detection
+uses a closed verb set, and noun-stack detection uses lexical and suffix
+patterns. A sentence outside those patterns can be classified differently from
+a human grammatical analysis.
+
+Use `slopvac explain <rule-id>` to inspect the rule that consumes a metric.
+Use the [triage guide](triage.md) when a deterministic match is valid text in its
+specific context.
