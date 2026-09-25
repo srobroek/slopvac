@@ -26,6 +26,20 @@ on:
 permissions: {}
 
 jobs:
+  dependency-review:
+    if: ${{ github.event_name == 'pull_request' && inputs.dependencies }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
   trufflehog:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.secrets }}
     runs-on: ubuntu-latest
@@ -149,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
-    needs: [trufflehog, codeql, osv, trivy]
+    needs: [dependency-review, trufflehog, codeql, osv, trivy]
     if: always()
     steps:
       - name: Verify required scanners and valid skips
@@ -174,6 +188,7 @@ jobs:
               return os.environ.get(name, "").lower() == "true"
 
           expected = {
+              "dependency-review": os.environ["EVENT_NAME"] == "pull_request" and flag("DEPENDENCIES"),
               "trufflehog": full or flag("SECRETS"),
               "codeql": full or flag("CODE"),
               "osv": full or flag("DEPENDENCIES"),
