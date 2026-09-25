@@ -4,17 +4,14 @@
 and general prose. The
 rules include constraints derived from Simplified Technical English and Orwell.
 
-The packaged YAML contains 231 rules across 26 categories: 166 checked rules and
-65 contextual rules marked `kind: judgement`. The CLI reports deterministic
-findings and scores. Optional model review produces separate advisory results.
+The linter ships 166 checked rules across 26 categories. The CLI reports
+findings, scores, and incomplete coverage when selected checks cannot run.
 
-See the [project overview](../../README.md) for agent installation and CI
-integration.
+See the [project overview](../../README.md) for agent setup and CI integration.
 
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
-[Domain terms](docs/domain-categories.md) · [Contextual review](#judgement-layer) ·
 [Rule coverage](#rules)
 
 ## Install
@@ -46,8 +43,35 @@ rules. `slopvac` generates the Vale configuration and styles.
 
 Without Vale, only the native checks run. Missing Vale, or `--no-vale`, leaves
 selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
-remain in the report, but this is an incomplete check. The separate
-[judgement layer](#judgement-layer) uses a model supplied by your harness.
+remain in the report, but this is an incomplete check.
+
+## Agent steering
+
+`slopvac init` writes project configuration and, unless `--skip-agents` is
+used, maintains a small Slopvac block in `AGENTS.md`. Detailed instructions stay
+in the installed CLI:
+
+```sh
+slopvac prime
+```
+
+Use a harness-specific steering target when needed:
+
+```sh
+slopvac setup codex
+slopvac setup claude
+slopvac setup omp
+slopvac setup kiro
+```
+
+Codex uses a non-empty `AGENTS.override.md` when one already exists, otherwise
+`AGENTS.md`. Claude Code uses `CLAUDE.md`, and Oh My Pi uses `.omp/AGENTS.md`.
+Kiro uses `.kiro/steering/slopvac.md`; new files include `inclusion: always`.
+The generic `agents` target also manages `AGENTS.md`.
+
+`slopvac setup <harness> --check` reports whether the managed block is current
+without modifying files. `--remove` removes only the managed block. Use
+`slopvac setup --list` for the supported targets and paths.
 
 ## Lint documents
 
@@ -369,120 +393,10 @@ paragraph numbers do not count.
 
 See [metrics](docs/metrics.md) for counting and text-type classification details.
 
-## Judgement layer
-
-Contextual rules cover questions such as whether a passage repeats one point
-or makes a claim without enough support. The model returns `confirm`, `reject`,
-`preserve`, or `abstain` for each requested decision.
-
-The CLI does not call a provider. Your harness sends the prepared prompts and
-records the responses. These results remain separate from deterministic lint
-findings and do not change deterministic pass/fail.
-
-### Prepare a review
-
-For an agent harness:
-
-```sh
-slopvac judgement brief README.md --out .slopvac-review --packs fired
-```
-
-`brief` writes `brief.md` and `brief.json` alongside the structured run files.
-It searches for configuration from the current working directory and uses
-starter defaults if none is present. Use `--config` to choose a file explicitly.
-
-`--packs fired` selects packs whose category produced a deterministic finding.
-If no pack qualifies, `brief` keeps all packs and prints a warning. When some
-packs qualify, other categories receive no contextual review. Use `--packs all`
-to include all packs, or provide comma-separated pack IDs.
-
-For a provider client that consumes JSONL directly:
-
-```sh
-slopvac init
-slopvac judgement prepare README.md \
-  --config slopvac.toml \
-  --out .slopvac-review \
-  --packs all \
-  --max-calls 300
-```
-
-`prepare` needs `--config`. It writes deterministic reports before checking the
-call budget. Above `--max-calls`, it refuses to write prompts, units, or a
-manifest. To approve a larger run, raise the limit or rerun `prepare` with
-`--yes`.
-
-`brief` writes its run without this call-budget refusal, including when its
-`--max-calls` value is lower than the proposed count. Inspect the printed count
-before your harness sends prompts to a provider. Use `prepare` for a
-budget-enforced preparation step.
-
-### Call the model and validate responses
-
-Each `prompts.jsonl` row supplies a `call_id` and a `response_schema`. Send
-`prompt.system` and `prompt.user` to your model. The user prompt is JSON. It
-contains passages and the unit-rule pairs to review.
-
-For each completed call, write one row to `responses.jsonl`. Preserve the
-original `call_id` and put the parsed model output under `response`. Validate the
-response before adding it:
-
-```sh
-slopvac judgement validate --run .slopvac-review --file response.json
-```
-
-`response.json` can contain a bare model response or a `call_id`/`response`
-wrapper. Supply `--call-id` to identify the call explicitly, or let validation
-infer it. Omitting `--file` reads standard input.
-
-For ordinary response files, validation prints `ok`, `call_id`, and `errors`.
-It checks the response shape, call membership, result set, result order, and
-model-output schema. Evidence quote locations are checked by `finish`. Validation
-returns 0 for valid responses, 2 for validation failures, and 1 for unreadable or
-malformed JSON. The [evaluation guide](docs/judgement-eval.md) describes the same
-contract in more detail. A response can pass this validation and still fail an evidence-location check during `finish`. Schema validity does not imply accepted evidence.
-
-### Finish and compare
-
-After your harness writes `.slopvac-review/responses.jsonl`:
-
-```sh
-slopvac judgement finish --out .slopvac-review \
-  --responses .slopvac-review/responses.jsonl
-slopvac judgement compare --out .slopvac-review
-slopvac judgement compare --out .slopvac-review --apply-preview
-```
-
-The host validates each response against its schema and checks unit ownership.
-Evidence quotes must match the unit text. `unique-quote` offset salvage relocates
-an exact quote that occurs once in its unit. `finish --offset-salvage none`
-disables that repair.
-
-Failed, truncated, and not-run units reduce coverage. They retain their own
-states, separate from model abstentions. Check coverage before interpreting a
-report with no confirms.
-
-| Stage | Files |
-| --- | --- |
-| `prepare` | `prompts.jsonl`, `units.jsonl`, `documents/`, `deterministic/`, and `manifest.json` |
-| `brief` | Preparation files plus `brief.md` and `brief.json` |
-| `finish` | `findings.jsonl`, `report.json`, and `report.md` |
-| `compare --apply-preview` | Accepted rewrite previews under `preview/` |
-
-Model confirms can lower `judgement_adjusted_score`. They do not change the
-lint exit status or deterministic error and warning counts. Rewrite previews
-leave source files untouched. The fact-preservation checker examines each
-proposed rewrite before retention. It rejects unauthorized additions, removals,
-or changes to protected values and referents.
-
-See [judgement evaluation](docs/judgement-eval.md) for the prompt contract and
-coverage definitions. Model review can produce false positives or miss defects.
-
 ## Rules
 
 In the [generated rule reference](docs/rules.md), you can find all 26 categories
-and profile tiers for 231 rules. Contextual rules also include their review
-questions and examples.
+and profile tiers for the 166 checked rules.
 
 | Family | Categories |
 | --- | --- |
@@ -494,7 +408,6 @@ questions and examples.
 
 ```sh
 slopvac rules --profile strict
-slopvac rules --judgement --format json
 slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
@@ -529,7 +442,7 @@ slopvac compile --format json
 vale --config=build/vale/.vale.ini docs/
 ```
 
-The routing report separates Vale, native, disabled, and contextual entries.
+The routing report separates Vale, native, and disabled entries.
 Running Vale directly checks only the compiled Vale subset.
 
 ## Exit codes
@@ -543,7 +456,24 @@ These codes describe deterministic lint runs:
 | `2` | An incomplete check or invalid configuration |
 
 A passing score does not verify factual correctness or establish authorship.
-Model-review commands report their own processing and validation errors.
+
+## In development
+
+Slopvac is evaluating a separate semantic layer with typed decisions. It would
+run after the current parser has produced exact spans and deterministic
+candidates. A provider such as Jev, Laya, Nimble, Kev, or a SemIf-compatible
+backend would answer bounded questions while Slopvac code keeps ownership of the
+final policy. The same provider interface would support two jobs: detect semantic-only
+cases the linter cannot express reliably, and check a finding from the linter
+against the rule's intended meaning.
+
+A local reranker such as Qwen3-Reranker-0.6B may be tested before the typed
+provider when candidate volume is high. It is a recall-first prefilter, never
+the final judge, and filtered candidates must remain visible in coverage
+measurement. This work lives on the separate `feat/judgement-rewrite` branch;
+it is not part of the current CLI or deterministic exit status. See the
+[project overview](../../README.md#in-development-agentic-judgement)
+and [issue #162](https://github.com/srobroek/slopvac/issues/162).
 
 ## Sources
 

@@ -1,7 +1,7 @@
 """Command line interface.
 
 EXIT CODES are the contract every caller depends on -- pre-commit, the GitHub
-Action, the skill, and CI:
+Action, agent steering, and CI:
 
     0  clean, or findings below every configured threshold
     1  a threshold failed (the run worked; the prose did not)
@@ -39,7 +39,6 @@ from .config import (
 )
 from .diff_scope import DiffScopeError, apply_replacements, changed_scope
 from .engine import Engine
-from .judgement import driver as judgement_driver
 from .model import RuleKind
 from .pipeline import (
     EXIT_ERROR,
@@ -101,7 +100,7 @@ class _DefaultGroup(click.Group):
 @click.version_option(__version__, prog_name="slopvac")
 @click.pass_context
 def main(context: click.Context) -> None:
-    """Lint prose and source comments with the unified Slopvac ruleset.
+    """Lint prose and source comments with the unified slopvac ruleset.
 
     `slopvac FILE...` lints. `slopvac rules` lists the rules.
     """
@@ -384,9 +383,10 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
 )
 @click.option("--category", "only", multiple=True, help="Limit to these categories.")
 @click.option(
-    "--kind", type=click.Choice([k.value for k in RuleKind]), help="Filter by kind."
+    "--kind",
+    type=click.Choice([k.value for k in RuleKind]),
+    help="Filter by checked rule kind.",
 )
-@click.option("--judgement", is_flag=True, help="Only the rules a linter cannot check.")
 @click.option(
     "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
 )
@@ -404,15 +404,11 @@ def list_rules(
     profile: str,
     only: tuple[str, ...],
     kind: str | None,
-    judgement: bool,
     output_format: str,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
 ) -> None:
-    """List the rules and whether each is on at a profile.
-
-    `--judgement` lists only the rules a reader must decide.
-    """
+    """List checked linter rules and whether each is on at a profile."""
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -427,7 +423,6 @@ def list_rules(
         for rule in ruleset.rules
         if (not only or rule.category in only)
         and (not kind or rule.kind.value == kind)
-        and (not judgement or rule.kind is RuleKind.JUDGEMENT)
     ]
 
     # The level a rule REPORTS at, resolved the way `lint` resolves it: the profile's
@@ -444,9 +439,6 @@ def list_rules(
     active = {rule.qualified_id for rule in engine.rules}
 
     def effective(rule) -> str:
-        if rule.kind is RuleKind.JUDGEMENT:
-            # Never fires mechanically; the reviewer reads it at its shipped level.
-            return rule.severity.value
         if rule.qualified_id not in active:
             return Severity.OFF.value
         return engine.severity_for(rule).value
@@ -537,7 +529,7 @@ def explain(
         console.print(f"[red]unknown rule[/]: {rule_id}")
         raise SystemExit(EXIT_ERROR) from None
 
-    # The review skill reads the exception list to choose a suppression reason, and
+    # Agents and tooling read the exception list to choose a suppression reason, and
     # scraping it out of Rich-rendered text is what this avoids. `suppression` is
     # rendered here rather than left to the caller, because a reason that is not on
     # the closed list is reported as meta.invalid-suppression rather than honoured.
@@ -567,8 +559,6 @@ def explain(
     # 'Use the en-US spelling "<replacement>".' and then 'Fix: Use the en-US spelling.'
     if rule.fix and rule.fix.rstrip(".").lower() not in rule.message.rstrip(".").lower():
         console.print(f"\n[bold]Fix[/]: {rule.fix}")
-    if rule.judgement_question:
-        console.print(f"\n[bold]Decide by asking[/]: {rule.judgement_question}")
     if rule.exceptions:
         console.print("\n[bold]Named exceptions[/] (a suppression must cite one):")
         for name in rule.exceptions:
@@ -602,18 +592,136 @@ def explain(
     default=Path("slopvac.toml"),
     show_default=True,
 )
-def init_config(profile: str, force: bool, path: Path) -> None:
-    """Write a starter slopvac.toml."""
+@click.option(
+    "--skip-agents",
+    is_flag=True,
+    help="Write configuration only; do not add the managed AGENTS.md block.",
+)
+def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> None:
+    """Initialize project configuration and agent steering."""
     console = _console(False)
-    if path.exists() and not force:
-        console.print(f"[yellow]{path} exists[/]; pass --force to overwrite.")
-        raise SystemExit(EXIT_OK)
-
+    from .steering import harness_path, update_managed_block
     from .templates import STARTER_CONFIG
 
-    path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
-    console.print(f"wrote {path}")
-    console.print("lint with: slopvac 'docs/**/*.md'")
+    if path.exists() and not force:
+        console.print(f"[yellow]{path} exists[/]; keeping it.")
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(STARTER_CONFIG.format(profile=profile), encoding="utf-8")
+        console.print(f"wrote {path}")
+
+    if not skip_agents:
+        try:
+            agents_path = harness_path(path.parent, "agents")
+            changed = update_managed_block(agents_path)
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        console.print(
+            f"{'updated' if changed else 'kept'} {agents_path} "
+            "with slopvac steering"
+        )
+
+    console.print("next: slopvac prime")
+
+
+@main.command("prime")
+def prime() -> None:
+    """Print current linter guidance for agents."""
+    from .steering import prime_text
+
+    click.echo(prime_text())
+
+
+@main.command("onboard")
+def onboard() -> None:
+    """Print concise setup guidance that points agents to prime."""
+    from .steering import ONBOARD_TEXT
+
+    click.echo(ONBOARD_TEXT)
+
+
+@main.command("setup")
+@click.argument("harness", required=False)
+@click.option("--list", "list_harnesses", is_flag=True, help="List supported harnesses.")
+@click.option("--remove", is_flag=True, help="Remove the managed slopvac block.")
+@click.option(
+    "--check",
+    is_flag=True,
+    help="Report whether the managed block is current without changing files.",
+)
+@click.option(
+    "--root",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("."),
+    show_default=True,
+)
+def setup_agent(
+    harness: str | None,
+    list_harnesses: bool,
+    remove: bool,
+    check: bool,
+    root: Path,
+) -> None:
+    """Install or remove project-local steering for a harness."""
+    from .steering import (
+        harness_path,
+        harnesses,
+        managed_block_state,
+        remove_managed_block,
+        update_managed_block,
+    )
+
+    console = _console(False)
+    if list_harnesses:
+        try:
+            for name in harnesses():
+                console.print(f"{name:8} {harness_path(root, name)}")
+        except ValueError as exc:
+            raise click.ClickException(str(exc)) from exc
+        raise SystemExit(EXIT_OK)
+
+    if harness is None:
+        raise click.UsageError("HARNESS is required unless --list is used.")
+    if harness not in harnesses():
+        raise click.UsageError(
+            f"unknown harness {harness!r}; choose from: {', '.join(harnesses())}"
+        )
+
+    try:
+        target = harness_path(root, harness)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    if check:
+        if remove:
+            raise click.UsageError("--check and --remove cannot be used together.")
+        state = managed_block_state(target)
+        console.print(f"{state} {target}")
+        if state == "current":
+            raise SystemExit(EXIT_OK)
+        if state == "malformed":
+            raise SystemExit(EXIT_ERROR)
+        raise SystemExit(EXIT_FINDINGS)
+
+    try:
+        changed = (
+            remove_managed_block(target)
+            if remove
+            else update_managed_block(
+                target,
+                preamble=(
+                    "---\ninclusion: always\n---"
+                    if harness == "kiro" and not target.exists()
+                    else ""
+                ),
+            )
+        )
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    action = "removed from" if remove else "updated"
+    if not changed:
+        action = "unchanged"
+    console.print(f"{action} {target}")
 
 
 @main.command("compile")
@@ -712,7 +820,6 @@ def compile_styles(
                     "config": str(result.config_path),
                     "vale": result.vale_rules,
                     "native": [n.__dict__ for n in result.native_rules],
-                    "judgement": result.judgement_rules,
                     "disabled": result.disabled_rules,
                     # A generated check (vocabulary part of speech, punctuation
                     # companion) and the rule it reports under; without this a
@@ -733,7 +840,6 @@ def compile_styles(
     table.add_column("why")
     table.add_row("vale", str(result.vale_count), "compiled, load proven")
     table.add_row("native", str(result.native_count), "vale cannot express it")
-    table.add_row("none (judgement)", str(len(result.judgement_rules)), "needs a reader")
     table.add_row("none (off)", str(len(result.disabled_rules)), "off in this config")
     console.print(table)
 
@@ -864,203 +970,6 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
     console.print(f"wrote [bold]{destination}[/] ({len(ruleset.rules)} rules)")
     raise SystemExit(EXIT_OK)
 
-@main.group("judgement")
-def judgement() -> None:
-    """Prepare and finish model-backed judgement evaluations."""
-
-
-@judgement.command("prepare")
-@click.option("--config", "config_path", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("--profile", type=click.Choice([profile.value for profile in Profile]), default=None)
-@click.option("--packs", default="all", help="Comma-separated pack ids, or all.")
-@click.option("--categories", default="", help="Comma-separated category ids.")
-@click.option("--gold", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None, help="Gold span JSONL manifest; defaults to gold.jsonl beside inputs.")
-@click.option("--out", "out_path", required=True, type=click.Path(file_okay=False, path_type=Path))
-@click.option("--max-calls", type=click.IntRange(min=0), default=300, show_default=True, help="Refuse runs above this call count unless --yes.")
-@click.option("--yes", is_flag=True, help="Write a run even when it exceeds --max-calls.")
-@click.argument("paths", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path))
-def judgement_prepare(
-    config_path: Path,
-    profile: str | None,
-    packs: str,
-    categories: str,
-    out_path: Path,
-    max_calls: int,
-    yes: bool,
-    gold: Path | None,
-    paths: tuple[Path, ...],
-) -> None:
-    """Create deterministic reports, units, and prompts for PATHS."""
-    try:
-        judgement_driver.prepare(
-            config=config_path,
-            out=out_path,
-            paths=paths,
-            profile=profile,
-            packs=packs,
-            categories=tuple(part.strip() for part in categories.split(",") if part.strip()),
-            max_calls=max_calls,
-            gold=gold,
-            yes=yes,
-        )
-    except (OSError, ValueError) as exc:
-        raise click.ClickException(str(exc)) from exc
-    click.echo(f"prepared judgement run in {out_path}")
-
-
-@click.option("--offset-salvage", type=click.Choice(["unique-quote", "none"]), default="unique-quote", show_default=True, help="Q02: salvage quoted offsets only when the quote occurs once in its unit; use none to preserve raw offsets.")
-@click.option("--responses", required=True, type=click.Path(exists=True, dir_okay=False, path_type=Path))
-@click.option("--adjudication", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None, help="Optional adjudication JSON used for precision fields.")
-@judgement.command("finish")
-@click.option("--out", "out_path", required=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
-def judgement_finish(out_path: Path, responses: Path, adjudication: Path | None, offset_salvage: str) -> None:
-    """Adjudicate RESPONSES and write the judgement report."""
-    try:
-        judgement_driver.finish(out=out_path, responses=responses, offset_salvage=offset_salvage, adjudication=adjudication)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        raise click.ClickException(str(exc)) from exc
-    click.echo(f"finished judgement run in {out_path}")
-
-
-@judgement.command("compare")
-@click.option("--out", "out_path", required=True, type=click.Path(exists=True, file_okay=False, path_type=Path))
-@click.option("--doc", type=click.Path(path_type=Path), default=None)
-@click.option("--apply-preview", is_flag=True, help="Write checker-passed rewrites under OUT/preview.")
-def judgement_compare(out_path: Path, doc: Path | None, apply_preview: bool) -> None:
-    """Show deterministic and judgement scores side by side."""
-    try:
-        click.echo(judgement_driver.compare(out=out_path, doc=doc, apply_preview=apply_preview))
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        raise click.ClickException(str(exc)) from exc
-
-
 
 if __name__ == "__main__":
     main()
-@judgement.command("validate")
-@click.option(
-    "--run",
-    "run_path",
-    required=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-    help="Directory written by prepare or brief.",
-)
-@click.option(
-    "--call-id",
-    default=None,
-    help="Call id the response answers; inferred from unit ids when omitted.",
-)
-@click.option(
-    "--file",
-    "file_path",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    default=None,
-    help="Response JSON; stdin when omitted.",
-)
-@click.option(
-    "--hook",
-    is_flag=True,
-    help="Hook mode: print a repair instruction to stderr when invalid.",
-)
-def judgement_validate(
-    run_path: Path, call_id: str | None, file_path: Path | None, hook: bool
-) -> None:
-    """Validate one model response the way `finish` will.
-
-    Accepts a bare response object, a `{call_id, response}` row, or a Claude Code
-    SubagentStop payload. Exit 0 when valid, 2 when invalid, 1 on usage errors.
-    """
-    from .judgement import harness
-
-    try:
-        source = (
-            file_path.read_text(encoding="utf-8")
-            if file_path is not None
-            else sys.stdin.read()
-        )
-        outer = json.loads(source)
-    except (OSError, json.JSONDecodeError) as exc:
-        click.echo(
-            json.dumps(
-                {"ok": False, "call_id": call_id, "errors": [f"response_json: {exc}"]}
-            )
-        )
-        raise click.exceptions.Exit(1) from exc
-    payload, found_call_id, stop_hook_active, errors = harness.unwrap_response(outer)
-    call_id = call_id or found_call_id
-    if not errors:
-        call_id, errors = harness.validate_call(
-            out=run_path, payload=payload, call_id=call_id
-        )
-    ok = not errors
-    click.echo(
-        json.dumps({"ok": ok, "call_id": call_id, "errors": errors}, ensure_ascii=False)
-    )
-    if stop_hook_active:
-        if not ok:
-            click.echo(
-                "warning: stop_hook_active is set; reporting the errors without blocking again.",
-                err=True,
-            )
-        raise click.exceptions.Exit(0)
-    if not ok and hook:
-        click.echo(
-            "Your judgement response was rejected by slopvac judgement validate. Return the JSON object only, "
-            "matching the response schema exactly, and fix these errors: "
-            + "; ".join(errors),
-            err=True,
-        )
-    raise click.exceptions.Exit(0 if ok else 2)
-
-
-@judgement.command("brief")
-@click.option(
-    "--out", "out_path", required=True, type=click.Path(file_okay=False, path_type=Path)
-)
-@click.option(
-    "--packs",
-    default="fired",
-    show_default=True,
-    help="fired, all, or comma-separated pack ids.",
-)
-@click.option(
-    "--profile", type=click.Choice([profile.value for profile in Profile]), default=None
-)
-@click.option(
-    "--config",
-    "config_path",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    default=None,
-    help="Config file. Default: nearest slopvac.toml, else the starter defaults.",
-)
-@click.option("--max-calls", type=click.IntRange(min=0), default=300, show_default=True)
-@click.argument(
-    "paths", nargs=-1, required=True, type=click.Path(exists=True, path_type=Path)
-)
-def judgement_brief(
-    out_path: Path,
-    packs: str,
-    profile: str | None,
-    config_path: Path | None,
-    max_calls: int,
-    paths: tuple[Path, ...],
-) -> None:
-    """Prepare PATHS and write brief.md, one agent-readable bundle of every call."""
-    from .judgement import harness
-
-    try:
-        result = harness.brief(
-            paths=paths,
-            out=out_path,
-            packs=packs,
-            profile=profile,
-            max_calls=max_calls,
-            config=config_path,
-        )
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
-        raise click.ClickException(str(exc)) from exc
-    if result["warning"]:
-        click.echo(f"warning: {result['warning']}", err=True)
-    click.echo(
-        f"{len(result['calls'])} call(s) across {len(result['packs'])} pack(s); wrote {result['path']}"
-    )

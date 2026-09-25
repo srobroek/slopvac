@@ -8,7 +8,6 @@ import pytest
 from slopvac.analyze import parse
 from slopvac.config import Config, Profile, Severity, resolve_for
 from slopvac.engine import Engine
-from slopvac.judgement.driver import _markdown_report
 from slopvac.model import Finding, Provenance, Rule, RuleKind, Tier
 from slopvac.report import LintReport, summarize
 from slopvac.rules import RuleLoadError, load_ruleset
@@ -83,24 +82,6 @@ def test_json_contains_ai_register_block() -> None:
     )
     assert set(payload["summary"]["ai_register"]) == {"strong", "weak"}
     assert set(payload["documents"][0]["ai_register"]) == {"strong", "weak"}
-
-
-def test_judgement_report_splits_confirms() -> None:
-    text = _markdown_report(
-        [
-            {
-                "path": "a.md",
-                "deterministic_score": 100,
-                "adjusted_score": 90,
-                "deterministic_findings": 0,
-                "confirmed": 2,
-                "ai_register_confirms": {"strong": 1, "weak": 1},
-            }
-        ],
-        {},
-        [],
-    )
-    assert "strong=1" in text and "weak=1" in text
 
 
 def test_invalid_ai_signal_is_rejected(tmp_path: Path) -> None:

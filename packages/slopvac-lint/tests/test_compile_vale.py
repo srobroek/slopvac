@@ -158,7 +158,6 @@ def test_every_rule_is_routed_exactly_once(compiled, ruleset):
     routed = (
         set(compiled.vale_rules)
         | {n.rule_id for n in compiled.native_rules}
-        | set(compiled.judgement_rules)
         | set(compiled.disabled_rules)
     )
     # A generated rule reports under its owner, so it is not a ruleset id itself.
@@ -170,21 +169,12 @@ def test_every_rule_is_routed_exactly_once(compiled, ruleset):
 
 
 def test_each_kind_routes_to_the_expected_engine(compiled, ruleset):
-    """Lexical and countable rules go to Vale; judgement goes nowhere."""
-    by_id = {r.qualified_id: r for r in ruleset.rules}
+    """Lexical and countable rules route to executable engines."""
     vale = set(compiled.vale_rules) - set(compiled.aliases)
 
     for kind in (RuleKind.TOKENS, RuleKind.SUBSTITUTION):
         ids = {r.qualified_id for r in ruleset.rules if r.kind is kind}
         assert ids <= vale, f"{kind.value} rules did not all compile: {ids - vale}"
-
-    # Every judgement rule, and only judgement rules, is in that bucket.
-    assert set(compiled.judgement_rules) == {
-        r.qualified_id for r in ruleset.rules if r.kind is RuleKind.JUDGEMENT
-    }
-    for rule_id in compiled.judgement_rules:
-        assert rule_id not in vale
-        assert by_id[rule_id].kind is RuleKind.JUDGEMENT
 
 
 def test_sentence_words_metric_compiles_to_vale(compiled, ruleset):

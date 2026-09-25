@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from slopvac.analyze import BlockKind, Document, Unit, parse
+from slopvac.analyze import BlockKind, Document, parse
 from slopvac.projection import ProjectionMap, classify_origin, classify_region, project
 
 
@@ -66,29 +66,14 @@ def test_region_classification_and_examples_heading() -> None:
     assert paragraphs and paragraphs[-1].region_class == "example"
 
 
-def test_unit_id_is_stable_and_source_sensitive() -> None:
+def test_block_id_is_stable_and_source_sensitive() -> None:
     raw = "A paragraph.\n"
     first = parse("README.md", raw).blocks[0]
     second = parse("README.md", raw).blocks[0]
     changed = parse("README.md", "A paragraph!\n").blocks[0]
 
-    def make(block) -> Unit:
-        return Unit(
-            kind="SPAN_CANDIDATE",
-            rule_id="example-rule",
-            path="README.md",
-            text=block.text,
-            range=block.range,
-            doc_range=block.doc_range,
-            projection=block.projection,
-            origin=block.origin,
-            region_class=block.region_class,
-            source_sha256=block.source_sha256,
-        )
-
-    assert make(first).unit_id == make(second).unit_id
-    assert make(first).unit_id != make(changed).unit_id
-
+    assert first.id == second.id
+    assert first.id != changed.id
     assert first.source_sha256 == second.source_sha256
     assert first.doc_range == first.range
     assert first.projection is not None
