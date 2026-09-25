@@ -1,13 +1,11 @@
 name: Markdown audit
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_call:
+  workflow_dispatch:
+
 permissions:
   contents: read
-concurrency:
-  group: markdown-audit-${{ github.ref }}
-  cancel-in-progress: true
+
 jobs:
   inventory-and-audit:
     runs-on: ubuntu-latest
