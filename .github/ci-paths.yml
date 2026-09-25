@@ -1,0 +1,151 @@
+# Central path classification for CI.
+#
+# Keep this file declarative. dorny/paths-filter consumes it in the orchestrator,
+# and the final gate verifies that every suite either ran or was skipped exactly
+# as these classifications require.
+#
+# Changes to this file and the orchestrator fan out broadly so CI-control changes
+# validate the machinery they modify.
+
+code:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - '.github/action-fixtures/**'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'packages/slopvac-lint/src/**'
+  - 'packages/slopvac-lint/tests/**'
+  - 'tests/**'
+  - 'scripts/**/*.py'
+
+package:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'packages/slopvac-lint/src/**'
+  - 'packages/slopvac-lint/tests/**'
+  - 'scripts/install_vale.py'
+
+action:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - '.github/action-fixtures/**'
+  - 'action.yml'
+  - 'slopvac.toml'
+  - 'scripts/action_entry.py'
+  - 'scripts/install_vale.py'
+  - 'packages/slopvac-lint/src/**'
+
+docs:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - '.github/workflows/markdown-audit.yml'
+  - '**/*.md'
+  - '**/*.markdown'
+  - '**/*.mdx'
+  - 'slopvac.toml'
+  - 'packages/slopvac-lint/src/slopvac/rules/**'
+
+ci:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/**'
+  - '.yamllint.yml'
+  - '.lychee.toml'
+  - '.pre-commit-config.yaml'
+  - 'action.yml'
+  - 'scripts/check-agnix-staged.py'
+  - 'scripts/test-agnix-hook.py'
+
+config:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - '.lychee.toml'
+  - '**/*.toml'
+
+shell:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - '**/*.sh'
+
+precommit:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - '.pre-commit-config.yaml'
+
+complexity:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - 'packages/slopvac-lint/src/slopvac/cli.py'
+  - 'packages/slopvac-lint/src/slopvac/score.py'
+
+# Broad switch for the reusable lint workflow. Individual lint jobs use the more
+# specific classifications above.
+lint:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/**'
+  - '.github/action-fixtures/**'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - '.lychee.toml'
+  - 'action.yml'
+  - 'slopvac.toml'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/**'
+  - 'tests/**'
+  - 'scripts/**'
+  - '**/*.md'
+  - '**/*.markdown'
+  - '**/*.mdx'
+  - '**/*.toml'
+  - '**/*.sh'
+
+dependencies:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/test.yml'
+  - 'pyproject.toml'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'uv.lock'
+
+# Full filesystem vulnerability/misconfiguration scans are reserved for changes
+# that can affect executable code, packaging, dependencies, or CI configuration.
+filesystem:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/**'
+  - '.github/action-fixtures/**'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - 'action.yml'
+  - 'pyproject.toml'
+  - 'uv.lock'
+  - 'packages/slopvac-lint/pyproject.toml'
+  - 'packages/slopvac-lint/src/**'
+  - 'packages/slopvac-lint/tests/**'
+  - 'tests/**'
+  - 'scripts/**'
+
+# Secret scanning covers text/config/code surfaces, including documentation.
+# CodeQL/OSV/Trivy are further narrowed by code/dependencies/filesystem above.
+security:
+  - '.github/ci-paths.yml'
+  - '.github/workflows/**'
+  - '.github/action-fixtures/**'
+  - '.env*'
+  - '.pre-commit-config.yaml'
+  - '.yamllint.yml'
+  - 'action.yml'
+  - 'uv.lock'
+  - '**/*.py'
+  - '**/*.sh'
+  - '**/*.yml'
+  - '**/*.yaml'
+  - '**/*.toml'
+  - '**/*.json'
+  - '**/*.md'
+  - '**/*.markdown'
+  - '**/*.mdx'
