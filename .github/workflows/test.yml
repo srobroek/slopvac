@@ -206,6 +206,25 @@ jobs:
           slopvac init --path /tmp/slopvac.toml --skip-agents
           slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 
+  cli-e2e:
+    name: CLI contract
+    needs: changes
+    if: ${{ needs.changes.outputs.package == 'true' || needs.changes.outputs.docs == 'true' }}
+    uses: ./.github/workflows/cli-e2e.yml
+    permissions:
+      contents: read
+    with:
+      package: ${{ needs.changes.outputs.package == 'true' }}
+      docs: ${{ needs.changes.outputs.docs == 'true' }}
+
+  action-contract:
+    name: Composite action contract
+    needs: changes
+    if: ${{ needs.changes.outputs.action == 'true' }}
+    uses: ./.github/workflows/action-test.yml
+    permissions:
+      contents: read
+
   lint:
     name: Relevant lint suites
     needs: changes
@@ -258,6 +277,8 @@ jobs:
       - quick-lint
       - test
       - lint-package
+      - cli-e2e
+      - action-contract
       - lint
       - markdown-audit
       - security
@@ -268,6 +289,7 @@ jobs:
           RESULTS: ${{ toJSON(needs) }}
           CODE: ${{ needs.changes.outputs.code }}
           PACKAGE: ${{ needs.changes.outputs.package }}
+          ACTION: ${{ needs.changes.outputs.action }}
           LINT: ${{ needs.changes.outputs.lint }}
           DOCS: ${{ needs.changes.outputs.docs }}
           SECURITY: ${{ needs.changes.outputs.security }}
@@ -290,6 +312,8 @@ jobs:
               "quick-lint": True,
               "test": os.environ["CODE"] == "true",
               "lint-package": os.environ["PACKAGE"] == "true",
+              "cli-e2e": os.environ["PACKAGE"] == "true" or os.environ["DOCS"] == "true",
+              "action-contract": os.environ["ACTION"] == "true",
               "lint": os.environ["LINT"] == "true",
               "markdown-audit": os.environ["DOCS"] == "true",
               "security": os.environ["SECURITY"] == "true",
