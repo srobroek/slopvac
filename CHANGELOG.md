@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.11.0](https://github.com/srobroek/slopvac/compare/v2.10.0...v2.11.0) (2026-09-25)
+
+
+### Features
+
+* replace agent skills with CLI-managed steering ([49a91f2](https://github.com/srobroek/slopvac/commit/49a91f2bb96d90dad6b7f9c4c289fd328acae2f7))
+
+
+### Documentation
+
+* add Codex Security threat model ([#171](https://github.com/srobroek/slopvac/issues/171)) ([95b386c](https://github.com/srobroek/slopvac/commit/95b386c7daa76e1fad43900fdbf9336111add91e))
+* fix README markdown spacing ([9baed52](https://github.com/srobroek/slopvac/commit/9baed52e4ae95d1d52863ed05a065623e56f9d0d))
+* fix Roadmap heading level ([c6f77f9](https://github.com/srobroek/slopvac/commit/c6f77f9ada9c89ddac0847a2efafbf12220340a6))
+* fix threat model lint errors ([d186e51](https://github.com/srobroek/slopvac/commit/d186e5169f989dc6d08a9d87a7fef471d1a80d41))
+* point status badges at main ([867adf8](https://github.com/srobroek/slopvac/commit/867adf872aab0d04cc8951ccda04024f71d3b9df))
+* polish linter and roadmap description ([e7d3104](https://github.com/srobroek/slopvac/commit/e7d3104779404697f01e85d8a643b415084735f4))
+* refresh Slopvac linter documentation and assets ([9e72c0a](https://github.com/srobroek/slopvac/commit/9e72c0a0eedaa5d8dfaff83a27aee34c9288fa19))
+* show live Tests gate state ([f35c63c](https://github.com/srobroek/slopvac/commit/f35c63c10ff38ec2a4706da371c8ec46d5946e86))
+* use consistent workflow status badges ([09f29ae](https://github.com/srobroek/slopvac/commit/09f29ae041dd9c56280e4d987d04e51a847db923))
+* use live workflow status for tests badge ([3b4ee70](https://github.com/srobroek/slopvac/commit/3b4ee70213b43395303a380ae635681afb8baade))
+* use native GitHub CI badge ([#170](https://github.com/srobroek/slopvac/issues/170)) ([38ab682](https://github.com/srobroek/slopvac/commit/38ab682ef1c72c1e151e6838a8fa7a766c5fbd53))
+* use native workflow status badges ([313fc5a](https://github.com/srobroek/slopvac/commit/313fc5a802ff3502a6f616d9070cf66dc4f09e27))
+
 ## [2.10.0](https://github.com/srobroek/slopvac/compare/v2.9.1...v2.10.0) (2026-09-22)
 
 
