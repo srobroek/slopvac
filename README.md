@@ -8,10 +8,8 @@
   </picture>
 </p>
 
-[![Tests](https://img.shields.io/github/check-runs/srobroek/slopvac/main?nameFilter=Tests%20gate&label=Tests)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
-[![Lint](https://github.com/srobroek/slopvac/actions/workflows/lint.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/lint.yml)
-[![Markdown audit](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/markdown-audit.yml)
-[![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=push)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
+[![CI](https://img.shields.io/github/check-runs/srobroek/slopvac/main?nameFilter=Tests%20gate&label=CI)](https://github.com/srobroek/slopvac/actions/workflows/test.yml)
+[![Security](https://github.com/srobroek/slopvac/actions/workflows/security.yml/badge.svg?branch=main&event=schedule)](https://github.com/srobroek/slopvac/actions/workflows/security.yml)
 [![PyPI version](https://img.shields.io/pypi/v/slopvac)](https://pypi.org/project/slopvac/)
 
 ---
