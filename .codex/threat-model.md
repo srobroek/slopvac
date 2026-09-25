@@ -1,293 +1,200 @@
 # Slopvac threat model
 
-> Security context for Codex Security scans and Security Review. Keep this file
-> aligned with the code; it describes the current deterministic linter, not planned
-> features.
+> Codex Security scan and Security Review context. This describes the current
+> deterministic linter. Update it when the architecture or trust assumptions change.
 
 Last reviewed: 2026-09-25
 
-## Scope and architecture
+## Project overview
 
-Slopvac is a Python 3.11+ command-line linter and composite GitHub Action. It
-processes prose, documentation, and source-code comments using packaged deterministic
-rules plus an optional Vale subprocess. It can emit text, JSON, HTML, GitHub
-workflow annotations, and SARIF.
+Slopvac is a Python 3.11+ CLI and composite GitHub Action that lints prose,
+documentation, and source-code comments. It uses packaged deterministic rules and
+an optional Vale subprocess, then emits text, JSON, HTML, GitHub annotations, or
+SARIF.
 
-The normal lint path is local and has no application server, account system,
-database, or inbound network endpoint. The GitHub Action adds package installation,
-Vale download/execution, Git diff handling, workflow annotations, and optional SARIF
-upload. Repository workflows build, test, scan, release, and publish the package.
+There is no application server, database, account system, or inbound network
+endpoint. The main security boundaries are local filesystem access, subprocess
+execution, parsing attacker-controlled repository content, GitHub Actions, and the
+release/publishing supply chain.
 
-The optional agentic judgement / typed-judge layer described in the roadmap and
-issue #162 is **not part of the current CLI or security boundary**. Update this
-model before that feature ships, especially if it adds model endpoints, API keys,
-remote inference, or new untrusted model output.
+The planned agentic judgement / typed-judge layer in issue #162 is **not part of
+the current CLI or this threat model**. Update this file before that feature ships.
 
 ## Security objectives
 
-Protect these properties:
+- Linting untrusted repository content must not cause arbitrary code execution.
+- Reads and writes must not escape paths deliberately authorized by the caller.
+- Pull-request content must not gain secrets, writable credentials, release
+  capabilities, or unintended GitHub token permissions.
+- Incomplete analysis must fail closed rather than appear clean.
+- Hostile source text and filenames must not inject workflow commands, HTML,
+  SARIF, terminal/log control data, or misleading report structure.
+- Release tags, artifacts, and PyPI publication must remain maintainer-controlled.
+- Hostile inputs should not cause unreasonable CPU, memory, disk, process, or
+  network use.
 
-- **No unintended code execution.** Linting attacker-controlled prose, comments,
-  configuration, rule data, paths, filenames, or Git diffs must not become shell
-  or arbitrary process execution.
-- **No unintended filesystem access.** Read and write operations must stay within
-  the paths explicitly authorized by the caller. In particular, `--fix`,
-  `init`, `setup`, report output, generated Vale files, and caches must not
-  follow malicious links or traverse to unintended files.
-- **CI isolation.** Pull-request content must not obtain repository secrets,
-  writable credentials, release credentials, or unintended GitHub token
-  capabilities.
-- **Release integrity.** Git tags, release metadata, built distributions, PyPI
-  publication, and release automation must not be controllable by an untrusted
-  contribution without the intended review/approval boundary.
-- **Fail closed when analysis is incomplete.** Invalid configuration, broken
-  rules, missing or failing Vale checks, bad diff state, and malformed tool output
-  must not be reported as a clean lint pass.
-- **Safe result rendering.** Attacker-controlled paths or source-derived text must
-  not inject HTML, GitHub workflow commands, SARIF structure, terminal control
-  behavior, or misleading report content.
-- **Bounded resource use.** Hostile files, patterns, rule sets, and tool output
-  should not cause unreasonable CPU, memory, disk, process, or network use.
-
-## Attacker and trust model
+## Attacker model and untrusted inputs
 
 Primary attacker: a contributor who can provide files for Slopvac to inspect,
-including through a pull request to a repository that runs Slopvac in CI.
+including through a pull request.
 
-Treat as **untrusted input**:
+Treat these as untrusted:
 
 - file contents, source comments, markup, Unicode, and file size;
-- repository-relative filenames and paths, including unusual Git-valid names;
-- changed-file lists, diff paths, and other Git-derived metadata;
-- `slopvac.toml` / `.slopvac.toml` / `pyproject.toml` when they come from an
-  untrusted checkout;
-- vocabulary files referenced by project configuration;
-- custom rule YAML supplied through `--rules-dir`;
-- stdout/stderr/JSON returned by Vale or other external helper programs;
-- report strings that can contain source-derived matches;
-- any GitHub Action input that a calling workflow derives from pull-request
-  content or other attacker-controlled data.
+- Git-valid filenames and repository-relative paths;
+- changed-file paths and other Git-derived metadata;
+- project configuration from an untrusted checkout;
+- vocabulary data referenced by project configuration;
+- custom rule YAML when a caller enables `--rules-dir`;
+- Vale stdout/stderr/JSON and output from other helper executables;
+- source-derived finding text used in reports or annotations;
+- GitHub Action inputs if a calling workflow derives them from PR-controlled data.
 
-Treat as **operator-authorized configuration, not a sandbox boundary**:
+These are **operator-authorized capabilities, not sandbox boundaries**:
 
-- explicit CLI target paths and globs;
-- `--config`, `--rules-dir`, `--out`, `--fix`, compile/reference output
-  paths, and setup/init commands;
-- the configured `vale.binary`;
-- GitHub Action inputs such as `source`, `version`, `rules-dir`,
-  `config`, `sarif-file`, and `vale-version`.
+- explicit CLI targets/globs and `--config`, `--rules-dir`, `--out`,
+  `--fix`, compile/reference output, setup, and init;
+- configured `vale.binary`;
+- Action inputs including `source`, `version`, `rules-dir`, `config`,
+  `sarif-file`, and `vale-version`.
 
-Those values are legitimate power-user controls. They are not safe to populate
-from untrusted PR metadata unless the caller separately constrains them.
+A workflow must not populate those capabilities from attacker-controlled data
+unless it separately constrains the value.
 
-External trust anchors include GitHub, PyPI, the Vale GitHub release repository,
-pinned GitHub Actions, the local Python/runtime toolchain, and executables found on
-`PATH`. Compromise of those dependencies is a supply-chain threat rather than
-an input-validation bug in Slopvac.
+## Important trust boundaries
 
-## Entry points and important data flows
+### Filesystem and Git
 
-### 1. CLI target collection
+Target collection reads repository files. Directory walks do not follow symlink
+directories/files. Diff-scoped paths are resolved under the Git root and reject
+symlinked changed paths and root escapes.
 
-Targets may be files, directories, or globs. Directory traversal deliberately
-does not follow symlink directories or symlink files. Explicit paths and globs
-still require review for link traversal, race conditions, path normalization, and
-reads outside the intended project root.
+`--fix` is privileged: it writes source files. It currently skips symlinks and
+hardlinks and verifies the expected source span before replacing it. Agent
+steering setup writes only project-contained Markdown targets and uses atomic
+replacement.
 
-Source text flows into parsers, native regex/metric rules, optional Vale, scoring,
-and output renderers.
+Review explicit file/glob targets, path normalization, symlink/hardlink handling,
+TOCTOU races, report/output paths, caches, worktrees/submodules, and unusual Git
+filenames.
 
-### 2. Project configuration
+### Configuration and rule loading
 
-Configuration is loaded with `tomllib` and strict Pydantic models. Configuration
-can affect thresholds, rule severity, exclusions, locale, vocabulary, and Vale
-settings.
+Configuration uses `tomllib` plus strict Pydantic models. Vocabulary YAML uses a
+safe loader. Extra rule YAML also uses safe loading and eager rule/regex
+validation.
 
 Security-sensitive configuration includes:
 
-- `[vocabulary].path`, which may be absolute and therefore can reference a
-  readable file outside the repository;
+- `[vocabulary].path`, which may be absolute and can therefore read a file
+  outside the repository;
 - `vale.binary`, which selects an executable through `PATH`;
-- any explicit config path supplied by the caller.
+- explicit config/rules/output paths chosen by the caller.
 
-These are trusted local configuration features. CI must treat contributor changes
-to them as untrusted when the job has capabilities worth protecting.
+These are intentional local-tool capabilities. They become security-sensitive
+when an untrusted checkout controls them inside a privileged CI job.
 
-### 3. Extra rule directories
+### Vale and subprocesses
 
-`--rules-dir` loads YAML and regex-based rules. YAML parsing uses safe loaders,
-and rules are eagerly validated, but custom regexes and examples are still
-attacker-influenced computation if a caller points this option at untrusted data.
+Slopvac invokes Git, Vale, uvx, and helper executables with argument arrays rather
+than `shell=True`. Vale rule trees are generated and probed before use; malformed
+or missing checks should produce an incomplete result rather than a clean pass.
 
-### 4. Vale subprocess boundary
+The GitHub Action downloads a selected Vale release and checksum file from Vale's
+GitHub release location, verifies SHA-256, extracts only the expected regular-file
+`vale` member, then executes it.
 
-Slopvac compiles selected rules into a generated Vale tree, probes Vale to verify
-that rules resolve, then invokes Vale with argument arrays rather than a shell.
-Vale output is parsed as untrusted JSON.
+Review executable selection, `vale-version`, package/source resolution, tool
+output parsing, timeouts, output-size limits, and upstream-release compromise.
 
-In the GitHub Action, `scripts/install_vale.py` downloads a selected Vale release
-and its checksum file from the official GitHub release location, verifies SHA-256,
-extracts only the expected regular-file `vale` member, installs it to a temporary
-prefix, and executes it.
+### GitHub Action and report surfaces
 
-Review both the integrity of the download process and ways untrusted
-`vale-version` or executable configuration could alter what is run.
+The composite Action can install Slopvac with `uvx --from <source>`, where
+`source` may be a path or URL; this is deliberate workflow-authorized code
+execution. It can also install Vale, read checkout content, create JSON/SARIF
+files, write `GITHUB_OUTPUT` and `GITHUB_STEP_SUMMARY`, print workflow
+annotations, and upload SARIF when the caller grants `security-events: write`.
 
-### 5. Git diff boundary
+The JSON report includes each finding's `matched_text`. Treat reports/artifacts
+as potentially containing source excerpts.
 
-Changed-file mode runs Git commands with argument arrays and parses diff paths.
-`diff_scope.py` resolves changed paths under the Git root and rejects symlinked
-changed paths and root escapes.
+### CI, release, and publishing
 
-Review unusual Git filenames, malformed/ambiguous patch paths, revisions,
-submodules/worktrees, filesystem races, and any discrepancy between the file Git
-describes and the file later read or modified.
+PR workflows generally use read-only contents permission and checkout with
+`persist-credentials: false`. Several jobs execute code from the PR checkout,
+including `uses: ./`; their token/secrets boundary is therefore important.
 
-### 6. File modification
+Third-party Actions are pinned by commit SHA. Security CI includes CodeQL, Trivy,
+OSV, TruffleHog, dependency review, and pin checks.
 
-`--fix` can modify lint targets. The replacement path currently skips symlinks
-and hardlinks, verifies that the exact expected source span is still present, and
-only changes eligible spans. Harness setup uses project-contained Markdown targets
-and atomic replacement.
+Publishing uses PyPI Trusted Publishing/OIDC. `release-please.yml` may use a
+GitHub App private key to mint a repository-write token, falling back to
+`GITHUB_TOKEN`. Treat the App key, minted token, OIDC identity, release tags,
+build artifacts, and publishing environments as high-value assets.
 
-Review for TOCTOU, link replacement after validation, path aliasing, permission
-changes, writes outside the intended project, and partial/corrupt writes.
-
-### 7. GitHub Action installation and outputs
-
-The composite Action can:
-
-- install Slopvac with `uvx --from <source>`; `source` may be a local path or
-  URL and therefore represents deliberate code execution selected by the workflow;
-- install and execute Vale;
-- consume repository paths/configuration/rules;
-- write JSON/SARIF files and GitHub outputs;
-- print GitHub workflow-command annotations;
-- upload SARIF when the caller grants `security-events: write`.
-
-Review all boundaries between repository-controlled strings and
-`GITHUB_OUTPUT`, `GITHUB_STEP_SUMMARY`, workflow commands, SARIF, and log output.
-
-### 8. Release and publishing workflows
-
-Publishing builds distributions on GitHub-hosted runners and publishes with PyPI
-Trusted Publishing/OIDC. The publish workflow disables dependency cache on the
-publishing path and pins third-party Actions by commit SHA.
-
-`release-please.yml` can use a GitHub App private key to mint a token with
-repository write capability, falling back to `GITHUB_TOKEN`. Treat the release
-App private key, minted token, OIDC identity, tags, release configuration, and
-published distributions as high-value assets.
-
-The workflow declares a `pypi` environment and is designed to rely on environment
-approval. Repository environment-protection settings are an external control and
-must be verified separately; this file does not assume they are present merely
-because the workflow names the environment.
-
-## Sensitive data and report handling
-
-Slopvac does not require application secrets to lint text. Nevertheless, users may
-point it at files containing secrets or confidential source text.
-
-The JSON report includes each finding's `matched_text`. Treat JSON reports and
-any artifacts derived from them as potentially containing source excerpts.
-GitHub annotations, summaries, HTML, and SARIF may also reveal paths, rule
-messages, and source-derived information. Do not intentionally lint secret stores,
-and do not publish reports from private/sensitive repositories to public
-locations.
-
-## Existing controls to account for
-
-Codex should test these controls for bypasses rather than assume their presence
-eliminates the threat:
-
-- subprocess calls use argv lists rather than `shell=True`;
-- YAML loaders for rule/vocabulary data are safe loaders;
-- configuration models reject unknown fields and malformed input;
-- incomplete lint execution uses exit code 2 instead of silently passing;
-- Vale rules are validated before shared-cache publication, and cache publication
-  uses staging plus atomic replacement/locking;
-- diff-scoped paths reject symlinks and paths escaping the Git root;
-- `--fix` skips symlinks and hardlinks and rechecks source spans before writes;
-- managed agent steering targets are constrained to project Markdown files and
-  written atomically;
-- standalone HTML escapes interpolated values;
-- Vale release archives are checksum-verified and selectively extracted;
-- repository Actions are pinned by commit SHA;
-- PR workflows generally use read-only contents permission and checkout with
-  `persist-credentials: false`;
-- CodeQL, Trivy, OSV, TruffleHog, dependency review, and action-pin checks run in
-  CI;
-- PyPI publishing uses OIDC rather than a stored PyPI API token.
+The workflow names a protected `pypi` environment, but environment protection is
+a repository setting and must be verified separately.
 
 ## Review priorities
 
-Review these areas first, in roughly this order:
+Review these areas first:
 
 1. **GitHub workflow-command injection.** The current `github` formatter builds
-   `::error` / `::warning` / `::notice` command strings directly from
-   finding paths, rule IDs, and messages. Validate whether Git-valid filenames or
-   source-derived message content containing newlines, `%`, commas, colons, or
-   workflow-command syntax can alter runner commands or annotations. Require
-   GitHub-command escaping if validation confirms the path.
-2. **Path traversal, symlink, hardlink, and TOCTOU behavior.** Cover explicit
-   targets/globs, `--fix`, config/vocabulary paths, report output, generated Vale
-   directories, cache directories, steering files, and changed-file mode.
-3. **Process execution from configuration or Action inputs.** Trace
-   `vale.binary`, `source`, `version`, `vale-version`, helper binaries found
-   on `PATH`, and any future external tool setting. Distinguish intended
-   operator-authorized execution from execution reachable through untrusted repo
-   content.
-4. **CI permission and secret boundaries.** Verify that PR-controlled code cannot
-   reach the release App key, minted write token, PyPI OIDC publication, writable
-   checkout credentials, or unnecessary GitHub token scopes. Give special
-   attention to jobs that execute `uses: ./` from the PR checkout.
-5. **Supply-chain integrity.** Review `uvx` package/source resolution, Vale
-   release download/checksum trust, build dependencies, pinned Actions, release
-   tag handling, artifact handoff between build and publish jobs, and dependency
-   update automation.
-6. **Fail-open analysis paths.** Look for exceptions, parser/tool errors, malformed
-   Vale output, cache corruption, missing rules, diff failures, or Action
-   `continue-on-error` behavior that can produce exit 0 or a misleading clean
-   report when checks did not run.
-7. **Output and report injection.** Validate GitHub output-file protocol,
-   step-summary Markdown, terminal/log output, SARIF fields, JSON, and HTML against
-   hostile filenames and source text. HTML already centralizes escaping; verify
-   the other formats to the same standard.
-8. **Resource exhaustion.** Exercise very large files, deeply nested markup,
-   pathological Unicode, expensive regexes/custom rule sets, huge Git diffs,
-   oversized Vale output, and cache growth. External subprocesses should have
-   practical timeouts and bounded output where appropriate.
-9. **Report confidentiality.** Confirm which formats include source excerpts and
-   whether default CI behavior can upload or expose them more broadly than the
-   source repository itself.
+   `::error` / `::warning` / `::notice` strings directly from finding paths,
+   rule IDs, and messages. Test Git-valid filenames and source-derived content
+   containing newlines, `%`, commas, colons, or workflow-command syntax. Require
+   GitHub-command escaping if the path is exploitable.
+2. **Path/link/TOCTOU escape.** Test explicit targets/globs, `--fix`, vocabulary
+   paths, report paths, generated Vale/cache directories, steering files, and
+   changed-file mode.
+3. **Execution through configuration or Action inputs.** Trace `vale.binary`,
+   `source`, `version`, `vale-version`, custom rules, and helper binaries.
+   Separate intended operator-authorized execution from PR-reachable execution.
+4. **CI privilege boundaries.** Verify PR-controlled code cannot reach the release
+   App key, write token, PyPI OIDC publishing, writable checkout credentials, or
+   unnecessary GitHub scopes.
+5. **Supply-chain integrity.** Review uvx resolution, Vale download/checksum trust,
+   pinned Actions, build dependencies, tag handling, and build-artifact handoff to
+   publishing jobs.
+6. **Fail-open behavior.** Look for parser/tool errors, malformed Vale output,
+   missing rules, cache corruption, diff failures, or `continue-on-error` paths
+   that can yield exit 0 or a misleading clean result.
+7. **Output injection/confidentiality.** Test `GITHUB_OUTPUT`, step-summary
+   Markdown, terminal output, SARIF, JSON, and HTML against hostile paths/content.
+   HTML already centralizes escaping; verify equivalent safety elsewhere.
+8. **Resource exhaustion.** Exercise large files, pathological Unicode/markup,
+   expensive custom regexes, huge diffs, oversized tool output, and cache growth.
+
+## Existing controls worth testing for bypasses
+
+- argv-based subprocess calls rather than shell execution;
+- safe YAML loaders and strict config validation;
+- exit code 2 for analysis that cannot be trusted;
+- validated Vale cache publication using staging/locking/atomic replacement;
+- Git-root and symlink validation in diff scope;
+- symlink/hardlink and exact-span checks before `--fix` writes;
+- project-contained, atomic agent-steering writes;
+- centralized HTML escaping;
+- checksum verification and selective extraction of downloaded Vale;
+- SHA-pinned Actions and mostly least-privilege PR workflows;
+- OIDC-based PyPI publishing rather than a stored PyPI API token.
 
 ## Assumptions and non-goals
 
-- Slopvac is a developer tool, not a sandbox for executing arbitrary untrusted
-  binaries or configurations.
-- A caller that explicitly chooses an executable, package URL, custom rule
-  directory, arbitrary output path, or file outside the repository is authorizing
-  access to that resource with the invoking process's OS permissions.
-- The local CLI inherits the invoking user's filesystem and process privileges.
-  Running Slopvac on an untrusted checkout does not create an isolation boundary.
-- GitHub-hosted runners are the intended CI environment. A self-hosted runner
-  materially increases the impact of filesystem, credential, persistence, and
-  process-execution bugs and should be threat-modeled separately.
-- Correctness of prose/style findings is not a security property unless a failure
-  can be used to bypass a security gate or trigger a privileged side effect.
+- Slopvac is a developer tool, not a sandbox for arbitrary untrusted binaries or
+  configuration.
+- Explicitly choosing an executable, package URL, custom rule directory, arbitrary
+  output path, or external file authorizes access using the invoking process's OS
+  permissions.
+- The local CLI inherits the invoking user's filesystem/process privileges.
+- GitHub-hosted runners are the intended CI environment. Self-hosted runners have
+  a materially larger persistence, credential, and filesystem impact.
+- Style/prose correctness is not itself a security property unless it bypasses a
+  gate or triggers a privileged side effect.
 
 ## Update this model when
 
-Update this file when Slopvac adds or changes:
-
-- network services or remote APIs;
-- the planned semantic/judge layer;
-- authentication, tokens, or model/provider credentials;
-- executable/plugin discovery;
-- rule or configuration loading;
-- file-writing behavior;
-- GitHub Action inputs or permissions;
-- release/publishing credentials or workflow structure;
-- report formats or uploads;
-- cache location, format, or trust assumptions.
+Update this file for new network/API integrations, the semantic judge layer,
+credentials, executable/plugin discovery, rule/config loading, file-writing
+behavior, Action permissions/inputs, release credentials, report uploads, or cache
+trust assumptions.
