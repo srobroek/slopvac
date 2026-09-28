@@ -1,6 +1,6 @@
 {
   "currency": "USD",
-  "cap_usd": 25.0,
+  "cap_usd": 250.0,
   "scope": "SageMaker training instance time for jobs submitted by judge-sagemaker. A job that has not been fetched in a final state counts at its maximum cost (hourly price x max runtime).",
   "jobs": [
     {
@@ -45,6 +45,252 @@
       "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s17-20260928144436",
       "secondary_status": "Completed",
       "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s17-20260928172527",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "submitted_at": "2026-09-28T17:25:38.767788+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "5e-05",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0"
+      },
+      "data": {
+        "train": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/train.jsonl",
+          "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+          "format": "source",
+          "rows": 775,
+          "converted_sha256": "4af35c672ae50fb4dd3a40a472e7ecd6cc2fdecdf88a2e73f074e2c6d128900e"
+        },
+        "calibration": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/calibration.jsonl",
+          "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+          "format": "source",
+          "rows": 180,
+          "converted_sha256": "8d23336147c172d3b1b8a7a7d568e5ff3f9046b9def68ef21d43ece4c38ad80a"
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s17-20260928172527"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20260928172757",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-28T17:28:07.481904+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "5e-05",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0"
+      },
+      "data": {
+        "train": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/train.jsonl",
+          "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+          "format": "source",
+          "rows": 775,
+          "converted_sha256": "4af35c672ae50fb4dd3a40a472e7ecd6cc2fdecdf88a2e73f074e2c6d128900e"
+        },
+        "calibration": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/calibration.jsonl",
+          "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+          "format": "source",
+          "rows": 180,
+          "converted_sha256": "8d23336147c172d3b1b8a7a7d568e5ff3f9046b9def68ef21d43ece4c38ad80a"
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s18-20260928172757"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20260928172808",
+      "model": "kev-4b",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "submitted_at": "2026-09-28T17:28:18.864005+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "5e-05",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0"
+      },
+      "data": {
+        "train": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/train.jsonl",
+          "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+          "format": "source",
+          "rows": 775,
+          "converted_sha256": "4af35c672ae50fb4dd3a40a472e7ecd6cc2fdecdf88a2e73f074e2c6d128900e"
+        },
+        "calibration": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/calibration.jsonl",
+          "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+          "format": "source",
+          "rows": 180,
+          "converted_sha256": "8d23336147c172d3b1b8a7a7d568e5ff3f9046b9def68ef21d43ece4c38ad80a"
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20260928172808"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260928172820",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 10800,
+      "max_cost_usd": 15.0,
+      "submitted_at": "2026-09-28T17:28:31.137730+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "5e-05",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0"
+      },
+      "data": {
+        "train": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/train.jsonl",
+          "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+          "format": "source",
+          "rows": 775,
+          "converted_sha256": "4af35c672ae50fb4dd3a40a472e7ecd6cc2fdecdf88a2e73f074e2c6d128900e"
+        },
+        "calibration": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/calibration.jsonl",
+          "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+          "format": "source",
+          "rows": 180,
+          "converted_sha256": "8d23336147c172d3b1b8a7a7d568e5ff3f9046b9def68ef21d43ece4c38ad80a"
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260928172820"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260928172832",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 10800,
+      "max_cost_usd": 21.0,
+      "submitted_at": "2026-09-28T17:28:43.478467+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "5e-05",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0"
+      },
+      "data": {
+        "train": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/train.jsonl",
+          "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+          "format": "source",
+          "rows": 775,
+          "converted_sha256": "4af35c672ae50fb4dd3a40a472e7ecd6cc2fdecdf88a2e73f074e2c6d128900e"
+        },
+        "calibration": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/calibration.jsonl",
+          "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+          "format": "source",
+          "rows": 180,
+          "converted_sha256": "8d23336147c172d3b1b8a7a7d568e5ff3f9046b9def68ef21d43ece4c38ad80a"
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s18-20260928172832"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260928172844",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 10800,
+      "max_cost_usd": 33.0,
+      "submitted_at": "2026-09-28T17:28:56.537993+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "5e-05",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0"
+      },
+      "data": {
+        "train": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/train.jsonl",
+          "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+          "format": "source",
+          "rows": 775,
+          "converted_sha256": "4af35c672ae50fb4dd3a40a472e7ecd6cc2fdecdf88a2e73f074e2c6d128900e"
+        },
+        "calibration": {
+          "source": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/data/calibration.jsonl",
+          "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+          "format": "source",
+          "rows": 180,
+          "converted_sha256": "8d23336147c172d3b1b8a7a7d568e5ff3f9046b9def68ef21d43ece4c38ad80a"
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s19-20260928172844"
     }
   ]
 }

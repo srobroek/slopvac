@@ -81,11 +81,7 @@ def committed_usd(ledger):
 
 
 def check_budget(ledger, max_cost):
-    open_jobs = [j["job_name"] for j in ledger["jobs"] if j["status"] not in FINAL]
-    if open_jobs:
-        raise SystemExit(
-            f"jobs run one at a time: fetch {', '.join(open_jobs)} in a final state first"
-        )
+    # Jobs may run in parallel; the cap counts every open job at its maximum cost.
     spent = committed_usd(ledger)
     if spent + max_cost > ledger["cap_usd"]:
         raise SystemExit(
@@ -225,14 +221,6 @@ def cmd_submit(a):
 
     s = session(res, a.profile)
     sm, s3 = s.client("sagemaker"), s.client("s3")
-    for status in ("InProgress", "Stopping"):
-        busy = sm.list_training_jobs(
-            StatusEquals=status, NameContains=res["job_name_prefix"]
-        )["TrainingJobSummaries"]
-        if busy:
-            raise SystemExit(
-                f"jobs run one at a time: {busy[0]['TrainingJobName']} is {status}"
-            )
     key = f"{res['s3_prefix']}/{job}"
     for rel in CODE_FILES:
         s3.upload_file(
