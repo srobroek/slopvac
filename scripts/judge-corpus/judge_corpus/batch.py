@@ -59,7 +59,7 @@ def model_body(model_id: str, prompt: str, *, max_tokens: int = 1000) -> dict:
             model = model[len(region_prefix) :]
             break
     if model.startswith("anthropic."):
-        return {
+        body = {
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": max_tokens,
             "temperature": 0.2,
@@ -67,20 +67,30 @@ def model_body(model_id: str, prompt: str, *, max_tokens: int = 1000) -> dict:
                 {"role": "user", "content": [{"type": "text", "text": prompt}]}
             ],
         }
+        # Claude 5.x rejects `temperature` ("deprecated for this model").
+        if re.match(r"anthropic\.claude-(opus|sonnet|haiku|fable)-5", model):
+            del body["temperature"]
+        return body
     if model.startswith("amazon.nova"):
         return {
             "schemaVersion": "messages-v1",
             "messages": [{"role": "user", "content": [{"text": prompt}]}],
             "inferenceConfig": {"maxTokens": max_tokens, "temperature": 0.2},
         }
-    if model.startswith("google."):
+    # Gemma 3 and the Mistral 3 family on Bedrock take the OpenAI chat shape;
+    # batch rejected the older `contents` / `prompt` bodies with
+    # "missing field `messages`". They fall through to the chat body below.
+    chat_native = model.startswith("google.gemma-3") or model.startswith(
+        ("mistral.ministral-3", "mistral.mistral-large-3")
+    )
+    if model.startswith("google.") and not chat_native:
         return {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.2},
         }
     if model.startswith("meta."):
         return {"prompt": prompt, "max_gen_len": max_tokens, "temperature": 0.2}
-    if model.startswith("mistral."):
+    if model.startswith("mistral.") and not chat_native:
         return {"prompt": prompt, "max_tokens": max_tokens, "temperature": 0.2}
     if model.startswith("openai.gpt-") and not model.startswith("openai.gpt-oss"):
         # GPT-5.x and GPT-6 reject `max_tokens` and a custom temperature. Low

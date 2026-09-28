@@ -110,7 +110,11 @@ def _run_one(root: Path, model: str) -> dict:
 def run_pending(root: Path) -> dict:
     """Run every `ondemand-pending` model, one model at a time."""
     routes = _load_routes(root)
-    pending = [m for m, r in routes.items() if r.get("state") in {"ondemand-pending", "ondemand-running"}]
+    pending = [
+        m
+        for m, r in routes.items()
+        if r.get("state") in {"ondemand-pending", "ondemand-running"}
+    ]
     for model in pending:
         routes = _load_routes(root)
         routes[model] = {**routes[model], "state": "ondemand-running"}
@@ -124,14 +128,37 @@ def run_pending(root: Path) -> dict:
 
 
 def collect_all(root: Path) -> dict:
-    """Wait for batch jobs, then collect every model's outputs once."""
+    """Collect every finished model's outputs once. Batch jobs that are still
+    running are skipped, so rerun this until every route is collected."""
+    from .bedrock import clients
+
+    _, _, bedrock = clients()
     routes = _load_routes(root)
     for model, route in routes.items():
-        if route.get("collected"):
+        if route.get("collected") or route.get("state") not in {
+            "submitted",
+            "ondemand-done",
+        }:
             continue
         if route.get("route") == "batch":
-            detail = wait(root, route["job_arn"], poll_seconds=120)
-            route["batch_status"] = detail.get("status")
+            status = bedrock.get_model_invocation_job(jobIdentifier=route["job_arn"])[
+                "status"
+            ]
+            if status not in {
+                "Completed",
+                "PartiallyCompleted",
+                "Failed",
+                "Stopped",
+                "Expired",
+            }:
+                print(
+                    json.dumps(
+                        {"model": model, "batch_status": status, "collected": False}
+                    ),
+                    flush=True,
+                )
+                continue
+            route["batch_status"] = status
         raw = root / "generated" / "raw" / f"{_safe(model.rsplit('/', 1)[-1])}.jsonl"
         lines = download_outputs(root, route["prefix"], raw)
         accepted, rejected = collect_generated(root, lines, model_id=model)

@@ -18,168 +18,283 @@
     "state": "skipped"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1hqg81yrmz9i",
-    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.anthropic.claude-haiku-4-5-20251001-v1_0/",
-    "route": "batch",
-    "state": "submitted"
+    "accepted": 197,
+    "batch_stop_reason": "Scheduled for over 4 h without starting",
+    "batch_stopped": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1hqg81yrmz9i",
+    "collected": true,
+    "errors": 0,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.anthropic.claude-haiku-4-5-20251001-v1_0/ondemand/",
+    "rejected": 1,
+    "route": "on-demand",
+    "state": "ondemand-done"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.moonshotai.kimi-k3": {
+    "accepted": 197,
     "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "collected": true,
     "errors": 0,
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.moonshotai.kimi-k3/ondemand/",
+    "rejected": 1,
     "route": "on-demand",
     "state": "ondemand-done"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-luna": {
+    "accepted": 197,
     "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "collected": true,
     "errors": 0,
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.openai.gpt-6-luna/ondemand/",
+    "rejected": 0,
     "route": "on-demand",
     "state": "ondemand-done"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-sol": {
+    "accepted": 196,
     "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "collected": true,
+    "errors": 0,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.openai.gpt-6-sol/ondemand/",
+    "rejected": 1,
     "route": "on-demand",
-    "state": "ondemand-running"
+    "state": "ondemand-done"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-lite-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1wwj48kwn5vb",
+    "accepted": 194,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/klp7hemvstfq",
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.amazon.nova-lite-v1_0/",
+    "rejected": 5,
     "route": "batch",
     "state": "submitted"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-micro-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1ir08dvktka4",
+    "accepted": 195,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/o2efkyv38ab8",
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.amazon.nova-micro-v1_0/",
+    "rejected": 4,
     "route": "batch",
     "state": "submitted"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-pro-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/sd0ke1nhm2y0",
+    "accepted": 197,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/k3voyyshmusn",
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.amazon.nova-pro-v1_0/",
+    "rejected": 2,
     "route": "batch",
     "state": "submitted"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-5-5": {
+    "accepted": 195,
     "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "collected": true,
+    "errors": 1,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.anthropic.claude-opus-5-5/ondemand/",
+    "rejected": 3,
     "route": "on-demand",
-    "state": "ondemand-pending"
+    "state": "ondemand-done"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-sonnet-5": {
+    "accepted": 196,
     "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "collected": true,
+    "errors": 0,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.anthropic.claude-sonnet-5/ondemand/",
+    "rejected": 2,
     "route": "on-demand",
-    "state": "ondemand-pending"
+    "state": "ondemand-done"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-1-8b-instruct-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/bh6xd0ghviao",
+    "accepted": 197,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/r2sq1agpp6e7",
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.meta.llama3-1-8b-instruct-v1_0/",
+    "rejected": 2,
     "route": "batch",
     "state": "submitted"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-3-70b-instruct-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/d7thsfqq4gbb",
+    "accepted": 195,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/md4q5woah5tb",
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.meta.llama3-3-70b-instruct-v1_0/",
+    "rejected": 4,
     "route": "batch",
     "state": "submitted"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama4-maverick-17b-instruct-v1:0": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/pnxpwcz6keiz",
+    "accepted": 196,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/12u4dziamfho",
     "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.meta.llama4-maverick-17b-instruct-v1_0/",
+    "rejected": 3,
     "route": "batch",
     "state": "submitted"
   },
   "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.openai.gpt-6-astra": {
+    "accepted": 197,
     "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "collected": true,
+    "errors": 0,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.openai.gpt-6-astra/ondemand/",
+    "rejected": 1,
     "route": "on-demand",
-    "state": "ondemand-pending"
+    "state": "ondemand-done"
   },
   "deepseek.v3.2": {
+    "accepted": 194,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/er7yx6ujdbfy",
     "prefix": "outputs/generation/deepseek.v3.2/",
+    "rejected": 5,
     "route": "batch",
     "state": "submitted"
   },
   "google.gemma-3-12b-it": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/s35wscquqcjg",
+    "accepted": 197,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/ztrccuww5yce",
     "prefix": "outputs/generation/google.gemma-3-12b-it/",
+    "rejected": 201,
     "route": "batch",
     "state": "submitted"
   },
   "google.gemma-3-4b-it": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/lcib51qhy4rx",
+    "accepted": 197,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/olsjopr3imea",
     "prefix": "outputs/generation/google.gemma-3-4b-it/",
+    "rejected": 201,
     "route": "batch",
     "state": "submitted"
   },
   "minimax.minimax-m2": {
+    "accepted": 198,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/cpqd22digvfu",
     "prefix": "outputs/generation/minimax.minimax-m2/",
+    "rejected": 1,
     "route": "batch",
     "state": "submitted"
   },
   "minimax.minimax-m2.1": {
+    "accepted": 195,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/gnm4e3oit749",
     "prefix": "outputs/generation/minimax.minimax-m2.1/",
+    "rejected": 4,
     "route": "batch",
     "state": "submitted"
   },
   "mistral.ministral-3-14b-instruct": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/t0pqf4vdbu0b",
+    "accepted": 196,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/kfs0tjrgbfwg",
     "prefix": "outputs/generation/mistral.ministral-3-14b-instruct/",
+    "rejected": 202,
     "route": "batch",
     "state": "submitted"
   },
   "mistral.ministral-3-8b-instruct": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/mw7hxkx6uljm",
+    "accepted": 196,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/9ynl3ygeq3wc",
     "prefix": "outputs/generation/mistral.ministral-3-8b-instruct/",
+    "rejected": 202,
     "route": "batch",
     "state": "submitted"
   },
   "mistral.mistral-large-3-675b-instruct": {
-    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/jj4ryx263ckx",
+    "accepted": 195,
+    "batch_status": "Completed",
+    "collected": true,
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/06zoh9on0vyh",
     "prefix": "outputs/generation/mistral.mistral-large-3-675b-instruct/",
+    "rejected": 203,
     "route": "batch",
     "state": "submitted"
   },
   "nvidia.nemotron-nano-12b-v2": {
+    "accepted": 196,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/dycep1dmtlk1",
     "prefix": "outputs/generation/nvidia.nemotron-nano-12b-v2/",
+    "rejected": 3,
     "route": "batch",
     "state": "submitted"
   },
   "nvidia.nemotron-super-3-120b": {
+    "accepted": 196,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/deryt2ussv8e",
     "prefix": "outputs/generation/nvidia.nemotron-super-3-120b/",
+    "rejected": 2,
     "route": "batch",
     "state": "submitted"
   },
   "openai.gpt-oss-20b-1:0": {
+    "accepted": 196,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/oq8uoe8zan7k",
     "prefix": "outputs/generation/openai.gpt-oss-20b-1_0/",
+    "rejected": 2,
     "route": "batch",
     "state": "submitted"
   },
   "qwen.qwen3-32b-v1:0": {
+    "accepted": 194,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/l59g86gyksg0",
     "prefix": "outputs/generation/qwen.qwen3-32b-v1_0/",
+    "rejected": 5,
     "route": "batch",
     "state": "submitted"
   },
   "qwen.qwen3-next-80b-a3b": {
+    "accepted": 198,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/sv0fs9eb6x09",
     "prefix": "outputs/generation/qwen.qwen3-next-80b-a3b/",
+    "rejected": 1,
     "route": "batch",
     "state": "submitted"
   },
   "zai.glm-4.7": {
+    "accepted": 191,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/wbcuhalxc1mm",
     "prefix": "outputs/generation/zai.glm-4.7/",
+    "rejected": 8,
     "route": "batch",
     "state": "submitted"
   },
   "zai.glm-4.7-flash": {
+    "accepted": 195,
+    "batch_status": "Completed",
+    "collected": true,
     "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/zl3qqze95fqz",
     "prefix": "outputs/generation/zai.glm-4.7-flash/",
+    "rejected": 4,
     "route": "batch",
     "state": "submitted"
   }

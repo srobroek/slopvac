@@ -216,6 +216,28 @@ def provision(root: Path) -> dict:
         PolicyName="slopvac-judge-s3",
         PolicyDocument=json.dumps(policy),
     )
+    # Batch jobs on cross-region inference profiles invoke the model as this
+    # role; without it they fail with "Customer doesn't have permissions to
+    # invokeModel".
+    iam.put_role_policy(
+        RoleName=role_name,
+        PolicyName="slopvac-judge-invoke",
+        PolicyDocument=json.dumps(
+            {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": ["bedrock:InvokeModel"],
+                        "Resource": [
+                            "arn:aws:bedrock:*::foundation-model/*",
+                            f"arn:aws:bedrock:{REGION}:{ACCOUNT}:inference-profile/*",
+                        ],
+                    }
+                ],
+            }
+        ),
+    )
     resources = {
         "created_at": now(),
         "account": ACCOUNT,
