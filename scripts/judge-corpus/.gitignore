@@ -1,0 +1,9 @@
+.cache/
+.venv/
+__pycache__/
+*.egg-info/
+briefs/input*.jsonl
+briefs/raw-output.jsonl
+briefs/retry-input.jsonl
+generated/inputs/
+generated/raw/

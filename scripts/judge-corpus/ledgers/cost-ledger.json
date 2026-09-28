@@ -1,0 +1,21 @@
+{
+  "cap_usd": 200.0,
+  "jobs": [
+    {
+      "batch_discount": 0.5,
+      "estimate_usd": 0.006227,
+      "input_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/inputs/briefs/smoke.jsonl",
+      "input_tokens_estimate": 79571,
+      "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/f09cu5a9ejuf",
+      "job_name": "slopvac-judge-smoke-briefs-a87c20aa5d",
+      "model_id": "amazon.nova-lite-v1:0",
+      "output_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/outputs/smoke-briefs/input/",
+      "output_tokens_estimate": 32000,
+      "stage": "smoke-briefs",
+      "status": "SUBMITTED",
+      "submitted_at": "2026-09-28T07:57:08Z"
+    }
+  ],
+  "total_estimate_usd": 0.006227,
+  "updated_at": "2026-09-28T07:57:08Z"
+}
