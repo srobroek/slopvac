@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "judge-sagemaker"
+version = "0.1.0"
+description = "Submit and fetch Kev 4B/9B judge fine-tunes as SageMaker training jobs"
+requires-python = ">=3.12"
+dependencies = ["boto3==1.43.103"]
+
+[project.scripts]
+judge-sagemaker = "judge_sagemaker.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/judge_sagemaker"]

@@ -1,0 +1,6 @@
+{
+  "currency": "USD",
+  "cap_usd": 25.0,
+  "scope": "SageMaker training instance time for jobs submitted by judge-sagemaker. A job that has not been fetched in a final state counts at its maximum cost (hourly price x max runtime).",
+  "jobs": []
+}
