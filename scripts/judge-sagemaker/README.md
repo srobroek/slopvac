@@ -44,6 +44,22 @@ the job and writes it into `head.pt`. `--lr` (0 uses the checkpoint's rate cappe
 `--p-none-pair` (default 0.25), `--max-state` (passes `kev.train --max_state`), `--max-runtime`
 seconds (default from `resources.json`), `--instance-type`, `--profile`. `--dry-run` prints
 the plan and the `CreateTrainingJob` request and makes no AWS calls.
+### GPU evaluation
+
+`evaluate` runs the judge-pilot harness on a SageMaker training GPU. It starts one Jev-compatible server inside the job, probes the local API, runs single-client sequential calibration/test requests, then stops the server. It skips concurrent throughput.
+
+```sh
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-0.8b --dry-run
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-0.8b
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker fetch-eval <job>
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-9b
+```
+
+`--checkpoint` selects a local fine-tuned pilot run directory or an S3 `model.tar.gz` for an `*-ft-sN` arm. Fine-tuned Kev 4B/9B arms otherwise use a completed SageMaker training job recorded in the shared cost ledger. Laya and Kev 0.8B fine-tuned arms use local pilot caches and upload dereferenced checkpoint contents to S3.
+
+`evaluate` uploads the test and calibration splits, dataset manifest, pilot runner, pinned dependencies, and an optional checkpoint into a job-specific `training/<job>/` prefix. It checks the shared cost ledger before submission and sets `MaxRuntimeInSeconds` to at most 7200 seconds. `fetch-eval` records billed instance time and cost, then downloads metrics, predictions, server logs, inventory, manifest, and compatibility probe beneath `results/<arm>/`.
+
+Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`. The task account has AWS-published quotas for `ml.g6.xlarge`, `ml.g6.2xlarge`, and `ml.g6.4xlarge` in `us-east-1`, and for g6e instances in `us-west-2`. Their on-demand SageMaker Training prices are estimates in the resource files, not verified public Training SKU rates. Use the report manifest to identify the GPU used for each arm.
 
 ### What `submit` does
 

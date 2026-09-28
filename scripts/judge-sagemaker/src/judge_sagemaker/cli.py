@@ -12,6 +12,7 @@ against the cap in cost-ledger.json. Only SageMaker training jobs are created.
 import argparse
 import datetime
 import json
+import os
 import sys
 import tarfile
 from pathlib import Path
@@ -25,7 +26,12 @@ from judge_sagemaker.convert import (
 
 PACKAGE = Path(__file__).resolve().parent
 ROOT = PACKAGE.parents[1]
-RESOURCES = ROOT / "resources.json"
+# JUDGE_SAGEMAKER_RESOURCES selects a per-region resources file (for example
+# resources-us-west-2.json) when us-east-1 has no GPU capacity. The cost ledger
+# stays shared, so the cap covers every region.
+RESOURCES = Path(os.environ.get("JUDGE_SAGEMAKER_RESOURCES") or ROOT / "resources.json")
+if not RESOURCES.is_absolute():
+    RESOURCES = ROOT / RESOURCES
 LEDGER = ROOT / "cost-ledger.json"
 JOBS = ROOT / ".cache" / "jobs"
 CODE_FILES = (
@@ -447,6 +453,9 @@ def main(argv=None):
     p.add_argument("--data", required=True)
     p.add_argument("--out", required=True)
     p.set_defaults(func=cmd_convert)
+    from judge_sagemaker.evaluate import add_parsers
+
+    add_parsers(sub)
 
     a = ap.parse_args(argv)
     a.func(a)
