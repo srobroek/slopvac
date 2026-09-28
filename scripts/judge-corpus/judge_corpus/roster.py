@@ -14,8 +14,8 @@ from .bedrock import clients, now, pricing_for
 CANDIDATES = {
     "anthropic": [
         ("anthropic.claude-haiku-4-5-20251001-v1:0", "small"),
-        ("anthropic.claude-sonnet-4-6", "mid"),
-        ("anthropic.claude-opus-4-6-v1", "frontier"),
+        ("anthropic.claude-sonnet-5", "mid"),
+        ("anthropic.claude-opus-5-5", "frontier"),
     ],
     "amazon": [
         ("amazon.nova-micro-v1:0", "small"),
@@ -24,7 +24,8 @@ CANDIDATES = {
     ],
     "meta": [
         ("meta.llama3-1-8b-instruct-v1:0", "small"),
-        ("meta.llama3-1-70b-instruct-v1:0", "frontier"),
+        ("meta.llama4-maverick-17b-instruct-v1:0", "mid"),
+        ("meta.llama3-3-70b-instruct-v1:0", "frontier"),
     ],
     "mistral": [
         ("mistral.ministral-3-8b-instruct", "small"),
@@ -33,7 +34,9 @@ CANDIDATES = {
     ],
     "openai": [
         ("openai.gpt-oss-20b-1:0", "small"),
-        ("openai.gpt-oss-120b-1:0", "frontier"),
+        ("openai.gpt-6-luna", "small"),
+        ("openai.gpt-6-sol", "mid"),
+        ("openai.gpt-6-astra", "frontier"),
     ],
     "qwen": [("qwen.qwen3-32b-v1:0", "mid"), ("qwen.qwen3-next-80b-a3b", "frontier")],
     "deepseek": [("deepseek.v3.2", "frontier")],

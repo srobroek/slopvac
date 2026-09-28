@@ -82,6 +82,15 @@ def model_body(model_id: str, prompt: str, *, max_tokens: int = 1000) -> dict:
         return {"prompt": prompt, "max_gen_len": max_tokens, "temperature": 0.2}
     if model.startswith("mistral."):
         return {"prompt": prompt, "max_tokens": max_tokens, "temperature": 0.2}
+    if model.startswith("openai.gpt-") and not model.startswith("openai.gpt-oss"):
+        # GPT-5.x and GPT-6 reject `max_tokens` and a custom temperature. Low
+        # reasoning effort keeps hidden reasoning tokens (billed as output) small;
+        # the budget still leaves headroom for them.
+        return {
+            "messages": [{"role": "user", "content": prompt}],
+            "max_completion_tokens": max_tokens * 2,
+            "reasoning_effort": "low",
+        }
     return {
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": max_tokens,
@@ -141,6 +150,11 @@ def parse_output(line: dict) -> str:
     if line.get("error"):
         return ""
     value = line.get("modelOutput", line.get("output", line))
+    # OpenAI chat-completion shape. Generic descent would return the first
+    # string child, which is `finish_reason`.
+    if isinstance(value, dict) and value.get("choices"):
+        message = value["choices"][0].get("message") or {}
+        return normalise(_deep_text(message.get("content") or ""))
     return normalise(_deep_text(value))
 
 
@@ -179,7 +193,7 @@ def collect_briefs(
             reason = "invalid_json"
         else:
             overlap = leak_scores(_source_text(root, source), raw)
-            if overlap[0] > 0.0 or overlap[1] >= 0.6:
+            if overlap[0] > 0.0:  # any shared 8-gram; sentence overlap is recorded only
                 reason = "brief_source_overlap"
             required = {
                 "genre",
@@ -255,8 +269,17 @@ def prepare_generation(
         if brief_payload is None:
             cache_path = root / brief["brief_cache_path"]
             brief_payload = json.loads(cache_path.read_text(encoding="utf-8"))
-        for offset in (0, 1):
-            model = models[(index * 2 + offset) % len(models)]
+        # Budget from the brief's target length (about 1.3 tokens per word plus
+        # headroom), so long documents are not cut off.
+        try:
+            target_words = int(brief_payload.get("target_length_words") or 800)
+        except (TypeError, ValueError):
+            target_words = 800
+        max_tokens = min(4000, max(600, int(target_words * 1.6)))
+        for offset in (0, len(models) // 2):
+            # The second model sits half the roster away, so one brief's two
+            # generations come from different vendors.
+            model = models[(index + offset) % len(models)]
             record_id = (
                 f"gen-{brief['source_id']}-{model['model_id'].replace(':', '_')}"
             )
@@ -265,8 +288,9 @@ def prepare_generation(
                 "modelInput": model_body(
                     model["model_id"],
                     generation_prompt(brief_payload),
-                    max_tokens=1200,
+                    max_tokens=max_tokens,
                 ),
+                "max_tokens": max_tokens,
             }
             by_model[model["model_id"]].append(batch_item)
             assignments.append(
@@ -284,11 +308,12 @@ def prepare_generation(
     for model, items in by_model.items():
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", model)
         path = root / "generated" / "inputs" / f"{safe}.jsonl"
+        output_budget = sum(item.pop("max_tokens") for item in items)
         write_jsonl(path, items)
         result[model] = (
             path,
             sum(token_estimate(json.dumps(item["modelInput"])) for item in items),
-            len(items) * 1200,
+            output_budget,
         )
     return result
 
@@ -321,7 +346,9 @@ def collect_generated(
                 reason = "unknown_source_id"
             else:
                 overlap = leak_scores(_source_text(root, source), text)
-                if overlap[0] > 0.0 or overlap[1] >= 0.6:
+                if (
+                    overlap[0] > 0.0
+                ):  # any shared 8-gram; sentence overlap is recorded only
                     reason = "generated_source_overlap"
         if reason:
             rejected.append(

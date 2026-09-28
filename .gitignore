@@ -23,3 +23,10 @@ __pycache__/
 dist/
 *.gate.lock*
 scripts/judge-corpus/.cache/
+
+# Batch inputs and raw model outputs are regenerable or private.
+scripts/judge-corpus/briefs/input.jsonl
+scripts/judge-corpus/briefs/raw-output.jsonl
+scripts/judge-corpus/briefs/retry-input.jsonl
+scripts/judge-corpus/generated/inputs/
+scripts/judge-corpus/generated/raw/

@@ -6,8 +6,11 @@ immediately so an interrupted run can be audited and resumed without guessing.
 
 from __future__ import annotations
 
+import functools
 import json
+import re
 import secrets
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,16 +33,23 @@ PRICES = {
     "amazon.nova-lite": (0.06, 0.24),
     "amazon.nova-pro": (0.80, 3.20),
     "anthropic.claude-haiku": (1.00, 5.00),
+    "anthropic.claude-sonnet-5": (2.00, 10.00),
+    "anthropic.claude-opus-5-5": (4.00, 20.00),
     "anthropic.claude-sonnet": (3.00, 15.00),
     "anthropic.claude-opus": (15.00, 75.00),
-    "meta.llama3.1-8b": (0.22, 0.22),
-    "meta.llama3.1-70b": (0.72, 0.72),
-    "meta.llama3-8b": (0.22, 0.22),
+    "meta.llama3-1-8b": (0.22, 0.22),
+    "meta.llama3-3-70b": (0.72, 0.72),
+    "meta.llama4-maverick": (0.24, 0.97),
     "mistral.ministral": (0.10, 0.30),
     "mistral.mistral-large": (2.00, 6.00),
+    "openai.gpt-6-luna": (0.10, 0.50),
+    "openai.gpt-6-sol": (2.00, 10.00),
+    "openai.gpt-6-astra": (10.00, 50.00),
     "openai.gpt-oss-20b": (0.07, 0.30),
     "openai.gpt-oss-120b": (0.15, 0.60),
     "qwen.qwen3-32b": (0.20, 0.60),
+    # Unverified Bedrock price; set high so the budget guard errs safe.
+    "qwen.qwen3-next": (0.50, 2.00),
     "deepseek.v3": (0.14, 0.28),
     "google.gemma-3": (0.10, 0.40),
     "moonshotai.kimi": (0.50, 2.00),
@@ -59,7 +69,10 @@ def now() -> str:
     )
 
 
+@functools.cache
 def clients():
+    # One session per process: building a session and three clients costs
+    # seconds, and collect loops call this once per uploaded object.
     session = boto3.Session(profile_name=PROFILE, region_name=REGION)
     return session.client("s3"), session.client("iam"), session.client("bedrock")
 
@@ -109,7 +122,16 @@ def ensure_budget(root: Path, estimate: float) -> None:
         )
 
 
+_LEDGER_LOCK = threading.Lock()
+
+
 def record_cost(root: Path, job: dict) -> None:
+    # Parallel on-demand runs share one ledger file.
+    with _LEDGER_LOCK:
+        _record_cost(root, job)
+
+
+def _record_cost(root: Path, job: dict) -> None:
     path = root / "ledgers" / "cost-ledger.json"
     data = (
         json.loads(path.read_text())
@@ -250,7 +272,9 @@ def submit(
     estimate = estimate_cost(model_id, input_tokens, output_tokens)
     ensure_budget(root, estimate)
     _, _, bedrock = clients()
-    job_name = f"slopvac-judge-{stage}-{secrets.token_hex(5)}"
+    # Bedrock job names: at most 63 characters, alphanumerics and hyphens.
+    slug = re.sub(r"[^A-Za-z0-9]+", "-", stage).strip("-")[:40]
+    job_name = f"sj-{slug}-{secrets.token_hex(5)}"
     response = bedrock.create_model_invocation_job(
         jobName=job_name,
         roleArn=resources["role_arn"],

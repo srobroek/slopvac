@@ -1,0 +1,186 @@
+{
+  "ai21.jamba-1-5-large-v1:0": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for model ai21.jamba-1-5-large-v1:0 in region us-east-1.",
+    "collected": true,
+    "errors": 197,
+    "prefix": "outputs/generation/ai21.jamba-1-5-large-v1_0/ondemand/",
+    "route": "on-demand",
+    "skip_reason": "InvokeModel ResourceNotFoundException: model marked Legacy by provider; account has no recent use. Briefs keep their other generation model.",
+    "state": "skipped"
+  },
+  "ai21.jamba-1-5-mini-v1:0": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for model ai21.jamba-1-5-mini-v1:0 in region us-east-1.",
+    "collected": true,
+    "errors": 197,
+    "prefix": "outputs/generation/ai21.jamba-1-5-mini-v1_0/ondemand/",
+    "route": "on-demand",
+    "skip_reason": "InvokeModel ResourceNotFoundException: model marked Legacy by provider; account has no recent use. Briefs keep their other generation model.",
+    "state": "skipped"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1hqg81yrmz9i",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.anthropic.claude-haiku-4-5-20251001-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.moonshotai.kimi-k3": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "errors": 0,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.moonshotai.kimi-k3/ondemand/",
+    "route": "on-demand",
+    "state": "ondemand-done"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-luna": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "errors": 0,
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_global.openai.gpt-6-luna/ondemand/",
+    "route": "on-demand",
+    "state": "ondemand-done"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-sol": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "route": "on-demand",
+    "state": "ondemand-running"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-lite-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1wwj48kwn5vb",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.amazon.nova-lite-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-micro-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/1ir08dvktka4",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.amazon.nova-micro-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-pro-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/sd0ke1nhm2y0",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.amazon.nova-pro-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-5-5": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "route": "on-demand",
+    "state": "ondemand-pending"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-sonnet-5": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "route": "on-demand",
+    "state": "ondemand-pending"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-1-8b-instruct-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/bh6xd0ghviao",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.meta.llama3-1-8b-instruct-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-3-70b-instruct-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/d7thsfqq4gbb",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.meta.llama3-3-70b-instruct-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama4-maverick-17b-instruct-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/pnxpwcz6keiz",
+    "prefix": "outputs/generation/arn_aws_bedrock_us-east-1_536697262379_inference-profile_us.meta.llama4-maverick-17b-instruct-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.openai.gpt-6-astra": {
+    "batch_rejection": "An error occurred (ValidationException) when calling the CreateModelInvocationJob operation: Batch inference is not supported for the requested model",
+    "route": "on-demand",
+    "state": "ondemand-pending"
+  },
+  "deepseek.v3.2": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/er7yx6ujdbfy",
+    "prefix": "outputs/generation/deepseek.v3.2/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "google.gemma-3-12b-it": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/s35wscquqcjg",
+    "prefix": "outputs/generation/google.gemma-3-12b-it/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "google.gemma-3-4b-it": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/lcib51qhy4rx",
+    "prefix": "outputs/generation/google.gemma-3-4b-it/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "minimax.minimax-m2": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/cpqd22digvfu",
+    "prefix": "outputs/generation/minimax.minimax-m2/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "minimax.minimax-m2.1": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/gnm4e3oit749",
+    "prefix": "outputs/generation/minimax.minimax-m2.1/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "mistral.ministral-3-14b-instruct": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/t0pqf4vdbu0b",
+    "prefix": "outputs/generation/mistral.ministral-3-14b-instruct/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "mistral.ministral-3-8b-instruct": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/mw7hxkx6uljm",
+    "prefix": "outputs/generation/mistral.ministral-3-8b-instruct/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "mistral.mistral-large-3-675b-instruct": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/jj4ryx263ckx",
+    "prefix": "outputs/generation/mistral.mistral-large-3-675b-instruct/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "nvidia.nemotron-nano-12b-v2": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/dycep1dmtlk1",
+    "prefix": "outputs/generation/nvidia.nemotron-nano-12b-v2/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "nvidia.nemotron-super-3-120b": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/deryt2ussv8e",
+    "prefix": "outputs/generation/nvidia.nemotron-super-3-120b/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "openai.gpt-oss-20b-1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/oq8uoe8zan7k",
+    "prefix": "outputs/generation/openai.gpt-oss-20b-1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "qwen.qwen3-32b-v1:0": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/l59g86gyksg0",
+    "prefix": "outputs/generation/qwen.qwen3-32b-v1_0/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "qwen.qwen3-next-80b-a3b": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/sv0fs9eb6x09",
+    "prefix": "outputs/generation/qwen.qwen3-next-80b-a3b/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "zai.glm-4.7": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/wbcuhalxc1mm",
+    "prefix": "outputs/generation/zai.glm-4.7/",
+    "route": "batch",
+    "state": "submitted"
+  },
+  "zai.glm-4.7-flash": {
+    "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/zl3qqze95fqz",
+    "prefix": "outputs/generation/zai.glm-4.7-flash/",
+    "route": "batch",
+    "state": "submitted"
+  }
+}

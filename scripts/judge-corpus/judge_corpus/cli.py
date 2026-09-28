@@ -19,6 +19,8 @@ from .bedrock import download_outputs, provision, submit, upload, upload_text, w
 from .common import read_jsonl, token_estimate, write_jsonl
 from .roster import build_roster
 from .sources import build_sources
+from .items import build_items, split_items
+from .panel import collect_panel, prepare_panel, submit_panel
 
 
 def root_from_args(value: str | None) -> Path:
@@ -67,10 +69,11 @@ def cmd_prepare_briefs(args: argparse.Namespace) -> None:
     local, input_tokens, output_tokens = prepare_briefs(
         root, limit=args.limit, model_id=args.model
     )
-    for source in read_jsonl(root / "sources" / "human.jsonl"):
+    if not args.skip_source_upload:
         from .batch import _source_text
 
-        upload_text(root, _source_text(root, source), source["s3_key"])
+        for source in read_jsonl(root / "sources" / "human.jsonl"):
+            upload_text(root, _source_text(root, source), source["s3_key"])
     uri = upload(
         root, local, f"inputs/briefs/{local.stem}-{args.limit or 'full'}.jsonl"
     )
@@ -156,6 +159,28 @@ def cmd_collect_briefs(args: argparse.Namespace) -> None:
             json.dumps(brief["brief"], ensure_ascii=False),
             f"briefs/{brief['id']}.json",
         )
+
+
+def cmd_invoke(args: argparse.Namespace) -> None:
+    """Run a batch-format input through on-demand InvokeModel and upload the
+    output under the same S3 prefix layout a batch job would use."""
+    from .ondemand import run_ondemand
+
+    root = root_from_args(args.root)
+    local = (
+        root / ".cache" / "ondemand" / args.stage / f"{Path(args.input).stem}.jsonl.out"
+    )
+    job = run_ondemand(
+        root,
+        Path(args.input),
+        args.model,
+        local,
+        stage=args.stage,
+        concurrency=args.concurrency,
+    )
+    prefix = f"outputs/{args.stage}/ondemand/"
+    uri = upload(root, local, prefix + local.name)
+    print(json.dumps({**job, "s3_uri": uri, "collect_prefix": prefix}))
 
 
 def cmd_prepare_generation(args: argparse.Namespace) -> None:
@@ -338,6 +363,33 @@ def cmd_report(args: argparse.Namespace) -> None:
     print(str(root / "corpus-build-report.md"))
 
 
+def cmd_items_build(args: argparse.Namespace) -> None:
+    print(
+        json.dumps(
+            build_items(
+                root_from_args(args.root), include_generated=args.include_generated
+            ),
+            sort_keys=True,
+        )
+    )
+
+
+def cmd_items_split(args: argparse.Namespace) -> None:
+    print(json.dumps(split_items(root_from_args(args.root)), sort_keys=True))
+
+
+def cmd_panel(args: argparse.Namespace) -> None:
+    root = root_from_args(args.root)
+    if args.panel_action == "prepare":
+        result = prepare_panel(root)
+    elif args.panel_action == "submit":
+        result = submit_panel(root)
+    else:
+        prefixes = dict(pair.split("=", 1) for pair in args.prefix)
+        result = collect_panel(root, prefixes or None)
+    print(json.dumps(result, sort_keys=True))
+
+
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="judge-corpus")
     p.add_argument("--root", help="scripts/judge-corpus directory")
@@ -352,7 +404,18 @@ def parser() -> argparse.ArgumentParser:
     s = sub.add_parser("prepare-briefs")
     s.add_argument("--limit", type=int)
     s.add_argument("--model", default="amazon.nova-lite-v1:0")
+    s.add_argument(
+        "--skip-source-upload",
+        action="store_true",
+        help="source texts are already in S3, for example via `aws s3 sync`",
+    )
     s.set_defaults(func=cmd_prepare_briefs)
+    s = sub.add_parser("invoke", help="on-demand run for models without batch support")
+    s.add_argument("--input", required=True)
+    s.add_argument("--model", required=True)
+    s.add_argument("--stage", required=True)
+    s.add_argument("--concurrency", type=int, default=16)
+    s.set_defaults(func=cmd_invoke)
     s = sub.add_parser("submit-briefs")
     s.add_argument("--input", required=True)
     s.add_argument("--model", default="amazon.nova-lite-v1:0")
@@ -375,6 +438,22 @@ def parser() -> argparse.ArgumentParser:
     s.add_argument("--prefix", required=True)
     s.add_argument("--model", required=True)
     s.set_defaults(func=cmd_collect_generation)
+    items = sub.add_parser("items")
+    item_actions = items.add_subparsers(dest="items_action", required=True)
+    s = item_actions.add_parser("build")
+    s.add_argument("--include-generated", action="store_true")
+    s.set_defaults(func=cmd_items_build)
+    s = item_actions.add_parser("split")
+    s.set_defaults(func=cmd_items_split)
+    panel = sub.add_parser("panel")
+    panel_actions = panel.add_subparsers(dest="panel_action", required=True)
+    for action in ("prepare", "submit", "collect"):
+        s = panel_actions.add_parser(action)
+        if action == "collect":
+            s.add_argument(
+                "--prefix", action="append", default=[], metavar="VENDOR=OUTPUT_PREFIX"
+            )
+        s.set_defaults(func=cmd_panel)
     s = sub.add_parser("wait")
     s.add_argument("--job-arn", required=True)
     s.add_argument("--poll", type=float, default=30)

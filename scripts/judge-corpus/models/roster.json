@@ -4,7 +4,7 @@
     "bedrock:list-inference-profiles",
     "AWS Bedrock batch inference documentation"
   ],
-  "generated_at": "2026-09-28T08:00:24Z",
+  "generated_at": "2026-09-28T14:31:44Z",
   "models": [
     {
       "batch_supported": true,
@@ -21,8 +21,8 @@
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
       "pricing_usd_per_million_on_demand": [
-        0.8,
-        4.0
+        1.0,
+        5.0
       ],
       "provider_name": "Anthropic",
       "tier": "small",
@@ -31,20 +31,20 @@
     {
       "batch_supported": true,
       "batch_verification": "catalogue-candidate",
-      "foundation_model_id": "anthropic.claude-sonnet-4-6",
-      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.anthropic.claude-sonnet-4-6",
+      "foundation_model_id": "anthropic.claude-sonnet-5",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-sonnet-5",
       "input_modalities": [
         "TEXT",
         "IMAGE"
       ],
-      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.anthropic.claude-sonnet-4-6",
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-sonnet-5",
       "output_modalities": [
         "TEXT"
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
       "pricing_usd_per_million_on_demand": [
-        3.0,
-        15.0
+        2.0,
+        10.0
       ],
       "provider_name": "Anthropic",
       "tier": "mid",
@@ -53,20 +53,20 @@
     {
       "batch_supported": true,
       "batch_verification": "catalogue-candidate",
-      "foundation_model_id": "anthropic.claude-opus-4-6-v1",
-      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-4-6-v1",
+      "foundation_model_id": "anthropic.claude-opus-5-5",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-5-5",
       "input_modalities": [
         "TEXT",
         "IMAGE"
       ],
-      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-4-6-v1",
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-5-5",
       "output_modalities": [
         "TEXT"
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
       "pricing_usd_per_million_on_demand": [
-        15.0,
-        75.0
+        4.0,
+        20.0
       ],
       "provider_name": "Anthropic",
       "tier": "frontier",
@@ -152,7 +152,10 @@
         "TEXT"
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
-      "pricing_usd_per_million_on_demand": null,
+      "pricing_usd_per_million_on_demand": [
+        0.22,
+        0.22
+      ],
       "provider_name": "Meta",
       "tier": "small",
       "vendor": "meta"
@@ -160,17 +163,42 @@
     {
       "batch_supported": true,
       "batch_verification": "catalogue-candidate",
-      "foundation_model_id": "meta.llama3-1-70b-instruct-v1:0",
-      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-1-70b-instruct-v1:0",
+      "foundation_model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama4-maverick-17b-instruct-v1:0",
       "input_modalities": [
-        "TEXT"
+        "TEXT",
+        "IMAGE"
       ],
-      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-1-70b-instruct-v1:0",
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama4-maverick-17b-instruct-v1:0",
       "output_modalities": [
         "TEXT"
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
-      "pricing_usd_per_million_on_demand": null,
+      "pricing_usd_per_million_on_demand": [
+        0.24,
+        0.97
+      ],
+      "provider_name": "Meta",
+      "tier": "mid",
+      "vendor": "meta"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "meta.llama3-3-70b-instruct-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-3-70b-instruct-v1:0",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-3-70b-instruct-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.72,
+        0.72
+      ],
       "provider_name": "Meta",
       "tier": "frontier",
       "vendor": "meta"
@@ -265,19 +293,64 @@
     {
       "batch_supported": true,
       "batch_verification": "catalogue-candidate",
-      "foundation_model_id": "openai.gpt-oss-120b-1:0",
-      "inference_profile_arn": null,
+      "foundation_model_id": "openai.gpt-6-luna",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-luna",
       "input_modalities": [
-        "TEXT"
+        "TEXT",
+        "IMAGE"
       ],
-      "model_id": "openai.gpt-oss-120b-1:0",
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-luna",
       "output_modalities": [
         "TEXT"
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
       "pricing_usd_per_million_on_demand": [
-        0.15,
-        0.6
+        0.1,
+        0.5
+      ],
+      "provider_name": "OpenAI",
+      "tier": "small",
+      "vendor": "openai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "openai.gpt-6-sol",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-sol",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-sol",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        2.0,
+        10.0
+      ],
+      "provider_name": "OpenAI",
+      "tier": "mid",
+      "vendor": "openai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "openai.gpt-6-astra",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.openai.gpt-6-astra",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.openai.gpt-6-astra",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        10.0,
+        50.0
       ],
       "provider_name": "OpenAI",
       "tier": "frontier",
@@ -317,7 +390,10 @@
         "TEXT"
       ],
       "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
-      "pricing_usd_per_million_on_demand": null,
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        2.0
+      ],
       "provider_name": "Qwen",
       "tier": "frontier",
       "vendor": "qwen"
