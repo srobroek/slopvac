@@ -12,6 +12,7 @@ import subprocess
 from collections import Counter, defaultdict
 from pathlib import Path
 
+os.environ.setdefault("RAYON_NUM_THREADS", "4")
 import yaml
 from tokenizers import Tokenizer
 
@@ -1037,35 +1038,59 @@ def build_items(
     ).stdout.splitlines()
     if json.loads(gold[0]).get("version") != 1:
         raise ValueError("unknown gold fixture version")
+    judgement_order = sorted(judgement_rules, key=lambda rule: rule["id"])
+    control_index = 0
     for n, line in enumerate(gold[1:]):
+        if shard and n % shard_count != shard_index:
+            continue
         record = json.loads(line)
-        rule = by_judge[record["rule_id"]]
         content = record["text"]
-        defect = record.get("defect_span", "")
-        pos = content.find(defect) if defect else -1
-        fake = {"id": f"gold-v1-{n}", "genre": "unknown", "source_family": "gold-v1"}
-        item = _make_item(
-            root,
-            role="semantic-detection",
-            rule=rule,
-            source=fake,
-            text=content,
-            label=bool(defect),
-            origin="construction",
-            split="test",
-            kind=f"gold-v1:{n}",
-            anchor=max(0, pos),
-            encoders=encoders,
-            source_group=f"gold-v1:{rule['id']}",
-            construction={
-                "kind": "gold-v1",
-                "defect_start": pos if pos >= 0 else None,
-                "defect_end": pos + len(defect) if pos >= 0 else None,
-            },
-        )
-        if item:
-            item["rule_held_out"] = rule["id"] in held_judge
-            items.append(item)
+        if record.get("rule_id"):
+            rule = by_judge[record["rule_id"]]
+            assignments = [(rule, bool(record.get("defect_span")))]
+            defect = record.get("defect_span", "")
+            pos = content.find(defect) if defect else -1
+        else:
+            assignments = [
+                (
+                    judgement_order[
+                        (control_index * 3 + offset) % len(judgement_order)
+                    ],
+                    False,
+                )
+                for offset in range(3)
+            ]
+            defect, pos = "", -1
+            control_index += 1
+        for rule, label in assignments:
+            fake = {
+                "id": f"gold-v1-{n}-{rule['id']}",
+                "genre": "unknown",
+                "source_family": "gold-v1",
+            }
+            item = _make_item(
+                root,
+                role="semantic-detection",
+                rule=rule,
+                source=fake,
+                text=content,
+                label=label,
+                origin="construction",
+                split="test",
+                kind=f"gold-v1:{n}:{rule['id']}",
+                anchor=max(0, pos),
+                encoders=encoders,
+                source_group=f"gold-v1:{rule['id']}",
+                construction={
+                    "kind": "gold-v1",
+                    "control": not bool(record.get("rule_id")),
+                    "defect_start": pos if pos >= 0 else None,
+                    "defect_end": pos + len(defect) if pos >= 0 else None,
+                },
+            )
+            if item:
+                item["rule_held_out"] = rule["id"] in held_judge
+                items.append(item)
     # Avoid duplicate item IDs and retain test-only unseen rule behavior.
     unique = {x["id"]: x for x in items}
     items = sorted(
