@@ -1,0 +1,6 @@
+numpy
+pyyaml
+regex
+tokenizers
+huggingface_hub
+psutil

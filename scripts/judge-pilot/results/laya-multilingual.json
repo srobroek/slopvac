@@ -1,0 +1,392 @@
+{
+  "arm": "laya-multilingual",
+  "family": "laya",
+  "model_repo": "convaiinnovations/laya-multilingual",
+  "model_revision": "e4e9ddf21a7b1903b7acffd8814ad4307bf63a67",
+  "base_model": null,
+  "base_revision": null,
+  "local_weights": null,
+  "upstream_repo_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+  "served_model_field_sent": "multilingual",
+  "served_model_field_returned": [
+    "laya-rl-agent"
+  ],
+  "served_checkpoint_routed": [
+    "multilingual"
+  ],
+  "runtime": {
+    "laya": "0.3.21",
+    "torch": "2.14.0",
+    "transformers": "5.17.0",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.54.0",
+    "python": "3.12.13"
+  },
+  "device": "mps",
+  "health": {
+    "status": "ok",
+    "loaded": [
+      "multilingual"
+    ],
+    "revisions": {
+      "multilingual": "e4e9ddf21a7b1903b7acffd8814ad4307bf63a67"
+    },
+    "device": "mps",
+    "device_is_preference": false,
+    "checkpoint_devices": {
+      "multilingual": "mps"
+    },
+    "cpu_fallbacks": {
+      "multilingual": {
+        "count": 0,
+        "last_reason": null
+      }
+    }
+  },
+  "hardware": {
+    "cpu": "Apple M4 Pro",
+    "memory_bytes": 51539607552,
+    "macos": "26.6.2",
+    "machine": "arm64"
+  },
+  "dataset": {
+    "train": {
+      "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+      "items": 775
+    },
+    "calibration": {
+      "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+      "items": 180
+    },
+    "test": {
+      "sha256": "6d949d8c7ab64fe1016d9af7a779d0a3f69e87157967de75816bd164ede7e9d5",
+      "items": 345
+    }
+  },
+  "inventory": {
+    "disk_bytes": 678201614,
+    "params_total": 321908998,
+    "params_by_part": {
+      "temperature": 3,
+      "act_head": 198402,
+      "encoder": 306939648,
+      "head": 14175744,
+      "scorer": 592897,
+      "type_emb": 2304
+    }
+  },
+  "load_time_s": 7.52,
+  "warmup_latency_ms": [
+    622.3,
+    185.7,
+    56.2
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 3615014912,
+    "phys_footprint_bytes": 4623092088,
+    "lifetime_max_phys_footprint_bytes": 5756489304
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 21.24,
+      "p95": 36.5364
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 20.118,
+      "p95": 34.541999999999994
+    }
+  },
+  "throughput": {
+    "concurrency": 16,
+    "requests": 483,
+    "wall_s": 11.77,
+    "questions_per_s": 41.04,
+    "non_200": 0
+  },
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "temperature_fit_on_calibration": 8.215087351377516,
+      "calibration_raw": {
+        "n": 108,
+        "accuracy": 0.6759259259259259,
+        "balanced_accuracy": 0.5347222222222222,
+        "auroc": 0.5478395061728395,
+        "brier": 0.3097094827777778,
+        "nll": 1.6616010517787638,
+        "ece_15": 0.31094259259259227
+      },
+      "test_raw": {
+        "n": 207,
+        "accuracy": 0.6473429951690821,
+        "balanced_accuracy": 0.4963768115942029,
+        "auroc": 0.5287229573618988,
+        "brier": 0.319140616763285,
+        "nll": 1.5503143061841707,
+        "ece_15": 0.3072855072463769
+      },
+      "test_cal": {
+        "n": 207,
+        "accuracy": 0.6473429951690821,
+        "balanced_accuracy": 0.4963768115942029,
+        "auroc": 0.5287229573618988,
+        "brier": 0.2279269558902045,
+        "nll": 0.6494120998794489,
+        "ece_15": 0.03795009933324677
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.46824116743471583,
+          0.5273546006944444
+        ],
+        "ece_15": [
+          0.2835916998606221,
+          0.33900589371980683
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.028500078042845864,
+          0.11157681143106338
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.043478260869565216
+        },
+        "cross": {
+          "n": 69,
+          "accuracy": 0.9420289855072463
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.9565217391304348
+        }
+      }
+    },
+    "choice": {
+      "errors": {},
+      "temperature_fit_on_calibration": 5.273054400548871,
+      "calibration_raw": {
+        "n": 72,
+        "accuracy": 0.5138888888888888,
+        "balanced_accuracy": 0.5138888888888888,
+        "auroc": 0.47337962962962965,
+        "brier": 0.7106521225000001,
+        "nll": 1.3028360226802098,
+        "ece_15": 0.17082222222222224,
+        "abstain_rate": 0.041666666666666664
+      },
+      "test_raw": {
+        "n": 138,
+        "accuracy": 0.4782608695652174,
+        "balanced_accuracy": 0.47826086956521735,
+        "auroc": 0.44454946439823567,
+        "brier": 0.7360487695652175,
+        "nll": 1.3061437065045236,
+        "ece_15": 0.22318695652173912,
+        "abstain_rate": 0.028985507246376812
+      },
+      "test_cal": {
+        "n": 138,
+        "accuracy": 0.4782608695652174,
+        "balanced_accuracy": 0.47826086956521735,
+        "auroc": 0.4444444444444444,
+        "brier": 0.6556505592655635,
+        "nll": 1.0844883514420622,
+        "ece_15": 0.09216098032608411,
+        "abstain_rate": 0.028985507246376812
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.43956043956043955,
+          0.5166666666666667
+        ],
+        "ece_15": [
+          0.18433057518679952,
+          0.2982276411163522
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.05852438826911359,
+          0.13532229305296564
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.043478260869565216
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.9130434782608695
+        }
+      },
+      "test_order_swap_agreement": 0.9130434782608695,
+      "test_order_swap_n": 138,
+      "test_order_swap_mean_abs_shift_real_defect": 0.04995724637681159
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "no-defect",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "laya-rl-agent",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": false,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.0,
+            "confidence": 1.0,
+            "answer_confidence": 1.0,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "no-defect",
+            "probabilities": {
+              "real-defect": 0.0162,
+              "no-defect": 0.758,
+              "insufficient-context": 0.2258
+            },
+            "confidence": 0.4421,
+            "answer_confidence": 0.758,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 1.4247,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.1061,
+              "1": 0.3631,
+              "2": 0.5308
+            },
+            "confidence": 0.1425,
+            "answer_confidence": 0.5308,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 215,
+          "output_tokens": 0
+        },
+        "routing": {
+          "model": "multilingual",
+          "repo": "convaiinnovations/laya-multilingual",
+          "reason": "explicit model='multilingual'",
+          "detection": null,
+          "workflow": null
+        }
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': unknown type None; use one of ['choice', 'noul', 'score']"
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': a choice question needs at least one criterion"
+      }
+    },
+    "malformed_json": {
+      "status": 400
+    },
+    "oversized_state_300k_chars": {
+      "status": 413,
+      "truncated_and_answered": false,
+      "error": {
+        "detail": "state too large (312000 > 50000 chars)"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 404,
+      "payload": {
+        "detail": "Not Found"
+      }
+    }
+  }
+}

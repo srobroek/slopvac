@@ -1,0 +1,566 @@
+{
+  "arm": "kev-4b",
+  "family": "kev",
+  "model_repo": "jaredpalmer/kev-4b",
+  "model_revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+  "base_model": "Qwen/Qwen3.5-4B-Base",
+  "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+  "local_weights": null,
+  "upstream_repo_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+  "served_model_field_sent": "kev-latest",
+  "served_model_field_returned": [
+    "kev-latest"
+  ],
+  "served_checkpoint_routed": [],
+  "runtime": {
+    "torch": "2.8.0",
+    "transformers": "5.17.0",
+    "peft": "0.21.0",
+    "mlx": "0.32.2",
+    "mlx-lm": "0.31.3",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.53.0",
+    "numpy": "2.5.3",
+    "python": "3.13.14"
+  },
+  "device": "mps/mlx/bfloat16",
+  "health": {
+    "models": [
+      {
+        "name": "kev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101 at temperature 2.41",
+        "release_date": "2026-09-28",
+        "run": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base": "Qwen/Qwen3.5-4B-Base",
+        "lora": 16,
+        "device": "mps",
+        "backend": "mlx",
+        "dtype": "bfloat16",
+        "temperature": 2.406050072164233,
+        "cuda_graphs": null,
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      },
+      {
+        "name": "jev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101 at temperature 2.41",
+        "release_date": "2026-09-28",
+        "run": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base": "Qwen/Qwen3.5-4B-Base",
+        "lora": 16,
+        "device": "mps",
+        "backend": "mlx",
+        "dtype": "bfloat16",
+        "temperature": 2.406050072164233,
+        "cuda_graphs": null,
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      }
+    ]
+  },
+  "hardware": {
+    "cpu": "Apple M4 Pro",
+    "memory_bytes": 51539607552,
+    "macos": "26.6.2",
+    "machine": "arm64"
+  },
+  "dataset": {
+    "train": {
+      "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+      "items": 775
+    },
+    "calibration": {
+      "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+      "items": 180
+    },
+    "test": {
+      "sha256": "6d949d8c7ab64fe1016d9af7a779d0a3f69e87157967de75816bd164ede7e9d5",
+      "items": 345
+    }
+  },
+  "inventory": {
+    "disk_bytes": 9502566622,
+    "disk_bytes_adapter": 159741871,
+    "disk_bytes_base": 9342824751,
+    "params_language_model": 4205751296,
+    "params_lora": 32464896,
+    "params_head": 1311232,
+    "params_total_served": 4239527424,
+    "params_base_unused": {
+      "mtp": 120599552,
+      "visual": 333514240
+    }
+  },
+  "load_time_s": 18.93,
+  "warmup_latency_ms": [
+    1095.5,
+    205.2,
+    137.7
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 2642001920,
+    "phys_footprint_bytes": 10411368128,
+    "lifetime_max_phys_footprint_bytes": 19731177080
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 149.611,
+      "p95": 239.7011
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 140.941,
+      "p95": 184.0302
+    }
+  },
+  "throughput": {
+    "concurrency": 16,
+    "requests": 483,
+    "wall_s": 80.45,
+    "questions_per_s": 6.0,
+    "non_200": 0
+  },
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.177037817948716,
+      "calibration_raw": {
+        "n": 108,
+        "accuracy": 0.6944444444444444,
+        "balanced_accuracy": 0.5833333333333333,
+        "auroc": 0.6921296296296297,
+        "brier": 0.1974331974074074,
+        "nll": 0.5916949910297544,
+        "ece_15": 0.11445370370370368
+      },
+      "test_raw": {
+        "n": 207,
+        "accuracy": 0.7053140096618358,
+        "balanced_accuracy": 0.6123188405797101,
+        "auroc": 0.7098823776517539,
+        "brier": 0.19600927700483092,
+        "nll": 0.5717183464257599,
+        "ece_15": 0.06315072463768114
+      },
+      "test_cal": {
+        "n": 207,
+        "accuracy": 0.7053140096618358,
+        "balanced_accuracy": 0.6123188405797101,
+        "auroc": 0.7098823776517539,
+        "brier": 0.19772018758453508,
+        "nll": 0.5777066614438521,
+        "ece_15": 0.07020752206730284
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.5367622549019607,
+          0.6914127604166667
+        ],
+        "ece_15": [
+          0.04980976568132657,
+          0.13057735641025645
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.04322412647173181,
+          0.1437183145701558
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.3333333333333333
+        },
+        "cross": {
+          "n": 69,
+          "accuracy": 0.8985507246376812
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.8840579710144928
+        }
+      }
+    },
+    "choice": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.79823108439566,
+      "calibration_raw": {
+        "n": 72,
+        "accuracy": 0.5277777777777778,
+        "balanced_accuracy": 0.5277777777777778,
+        "auroc": 0.6261574074074074,
+        "brier": 0.6225137765277778,
+        "nll": 1.0785688661246011,
+        "ece_15": 0.1714263888888889,
+        "abstain_rate": 0.0
+      },
+      "test_raw": {
+        "n": 138,
+        "accuracy": 0.5144927536231884,
+        "balanced_accuracy": 0.5144927536231885,
+        "auroc": 0.6396765385423231,
+        "brier": 0.6058863248550725,
+        "nll": 1.0157587676100541,
+        "ece_15": 0.021836956521739108,
+        "abstain_rate": 0.021739130434782608
+      },
+      "test_cal": {
+        "n": 138,
+        "accuracy": 0.5144927536231884,
+        "balanced_accuracy": 0.5144927536231885,
+        "auroc": 0.6410417979416089,
+        "brier": 0.618942518237719,
+        "nll": 1.0310371039493176,
+        "ece_15": 0.08616595071552255,
+        "abstain_rate": 0.021739130434782608
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.4745762711864407,
+          0.5555779569892473
+        ],
+        "ece_15": [
+          0.026738241666666645,
+          0.11806276021634611
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.04989512216585738,
+          0.13425140585361237
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.10144927536231885
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.927536231884058
+        }
+      },
+      "test_order_swap_agreement": 0.9130434782608695,
+      "test_order_swap_n": 138,
+      "test_order_swap_mean_abs_shift_real_defect": 0.040207971014492756
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "no-defect",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "kev-latest",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": true,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "kev-latest",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.2589
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "no-defect",
+            "confidence": 0.3264,
+            "probabilities": {
+              "real-defect": 0.1334,
+              "no-defect": 0.5509,
+              "insufficient-context": 0.3157
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 0.7186,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.3809,
+              "1": 0.5196,
+              "2": 0.0995
+            },
+            "confidence": 0.2795
+          }
+        },
+        "usage": {
+          "input_tokens": 118,
+          "output_tokens": 188
+        },
+        "latency_ms": 316.1
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "jev-1.13.0",
+      "routing": null,
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "slopvac-judge-pilot-v1",
+      "routing": null,
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          }
+        ]
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Input should be 'noul'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'noul'"
+            }
+          },
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]"
+            ],
+            "msg": "Value error, criteria must have 1..255 options",
+            "input": {
+              "type": "choice",
+              "instructions": "?",
+              "criteria": {}
+            },
+            "ctx": {
+              "error": {}
+            }
+          },
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Input should be 'score'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'score'"
+            }
+          },
+          {
+            "type": "list_type",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Input should be a valid list",
+            "input": {}
+          }
+        ]
+      }
+    },
+    "malformed_json": {
+      "status": 422
+    },
+    "oversized_state_300k_chars": {
+      "status": 500,
+      "truncated_and_answered": false,
+      "error": {
+        "_non_json": "Internal Server Error"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 200,
+      "payload": {
+        "models": [
+          {
+            "name": "kev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101 at temperature 2.41",
+            "release_date": "2026-09-28",
+            "run": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+            "base": "Qwen/Qwen3.5-4B-Base",
+            "lora": 16,
+            "device": "mps",
+            "backend": "mlx",
+            "dtype": "bfloat16",
+            "temperature": 2.406050072164233,
+            "cuda_graphs": null,
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 7,
+              "misses": 4,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 11,
+              "requests": 11,
+              "queued": 0
+            }
+          },
+          {
+            "name": "jev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101 at temperature 2.41",
+            "release_date": "2026-09-28",
+            "run": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+            "base": "Qwen/Qwen3.5-4B-Base",
+            "lora": 16,
+            "device": "mps",
+            "backend": "mlx",
+            "dtype": "bfloat16",
+            "temperature": 2.406050072164233,
+            "cuda_graphs": null,
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 7,
+              "misses": 4,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 11,
+              "requests": 11,
+              "queued": 0
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Upstream clones, virtualenvs, fine-tuned weights and run logs; model weights live in ~/.cache/huggingface.
+.cache/
+# Built from the rule files by build_dataset.py; the digests are in results/dataset-manifest.json.
+data/
+*.safetensors
+*.pt
