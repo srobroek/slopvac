@@ -31,6 +31,8 @@ def _train(root: Path) -> tuple[list[dict], dict]:
 
 def _prompt(root: Path, item: dict) -> str:
     state = item.get("state")
+    if state is None and item.get("state_path"):
+        state = json.loads((root / item["state_path"]).read_text(encoding="utf-8"))
     if state is None:
         text = (root / item["text_path"]).read_text(encoding="utf-8")
         state = {

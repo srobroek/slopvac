@@ -7,3 +7,5 @@ briefs/raw-output.jsonl
 briefs/retry-input.jsonl
 generated/inputs/
 generated/raw/
+items/*
+!items/index.json

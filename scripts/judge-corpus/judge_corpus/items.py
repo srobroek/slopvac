@@ -550,10 +550,8 @@ def _make_item(
         "source_id": source["id"],
         "source_group": source_group,
         "source_family": source.get("source_family"),
-        "provenance": {
-            "immutable_locator": source.get("immutable_locator"),
-            "url": source.get("url"),
-        },
+        "source_vendor": source.get("vendor"),
+        "source_tier": source.get("tier"),
         "granularity": g,
         "truncated": truncated,
         "text_path": path,
@@ -576,15 +574,25 @@ def _make_item(
             "start": position,
             "end": position + len(flagged),
             "text_path": path,
-            "text_sha256": text_digest,
-            "original_line": finding.get("line"),
-            "severity": finding.get("severity"),
         }
-        item["context"] = context
-        item["state"] = state
     if construction:
         item["construction"] = construction
     return item
+
+
+def _externalize_states(root: Path, items: list[dict]) -> None:
+    cache_dir = root / ".cache/items/state"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    for item in items:
+        state = item.pop("state", None)
+        item.pop("context", None)
+        if state is None:
+            continue
+        encoded = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+        path = cache_dir / f"{item['id']}.json"
+        path.write_text(encoded, encoding="utf-8")
+        item["state_path"] = str(path.relative_to(root))
+        item["state_sha256"] = digest(encoded.encode("utf-8"))
 
 
 def _write_outputs(
@@ -749,7 +757,11 @@ def _sample_adjudication(
     items: list[dict], limits: dict[str, int]
 ) -> tuple[list[dict], dict[str, int]]:
     selected_by_split = {}
-    selected_items = [row for row in items if row.get("label_origin") == "construction"]
+    selected_items = [
+        row
+        for row in items
+        if row["split"] not in limits or row.get("label_origin") == "construction"
+    ]
     dropped = {}
     for split, limit in limits.items():
         candidates = [
@@ -813,6 +825,7 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
     if not merged:
         raise ValueError("shard manifests are empty")
     merged, dropped = _sample_adjudication(merged, {"test": 600, "calibration": 300})
+    _externalize_states(root, merged)
     root_rows = list(read_jsonl(root / "sources/human.jsonl"))
     generated = list(read_jsonl(root / "generated/manifest.jsonl"))
     _, tokenizer_digests = load_tokenizers()
