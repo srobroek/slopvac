@@ -165,8 +165,11 @@ def collect_all(root: Path) -> dict:
         by_id = {row["id"]: row for row in accepted}
         for line in lines:
             row = by_id.get(line.get("recordId"))
-            if row:
-                upload_text(root, parse_output(line), row["s3_key"])
+            # A rerun leaves the failed first attempt's error line under the same
+            # prefix; only a successful output may write the stored text.
+            text = parse_output(line) if "modelOutput" in line else ""
+            if row and text:
+                upload_text(root, text, row["s3_key"])
         route.update(
             {"collected": True, "accepted": len(accepted), "rejected": len(rejected)}
         )

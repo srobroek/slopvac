@@ -17,6 +17,23 @@ MODELS = {
     "openai": "openai.gpt-oss-120b-1:0",
     "mistral": "mistral.mistral-large-3-675b-instruct",
 }
+# A panel model never labels a document it generated. Its vote on those items
+# goes to this substitute instead.
+SUBSTITUTE = ("deepseek", "deepseek.v3.2")
+# Substrings of a generated document id that identify each panel model.
+SELF_MARKERS = {
+    "anthropic": "claude-sonnet-5",
+    "openai": "gpt-oss-120b",
+    "mistral": "mistral-large-3",
+}
+
+
+def provenance(item: dict) -> str:
+    return "generated" if item.get("source_vendor") else "human"
+
+
+def _self_labelled(vendor: str, item: dict) -> bool:
+    return SELF_MARKERS[vendor] in str(item.get("source_id", ""))
 MAX_SPEND = 60.0
 OUTPUT_TOKENS = 180
 
@@ -59,14 +76,13 @@ def _prompt(root: Path, item: dict) -> str:
 def _sample(items: list[dict], limit: int) -> tuple[list[dict], dict]:
     strata: dict[tuple[str, ...], list[dict]] = defaultdict(list)
     for item in items:
-        provenance = str(item.get("source_family") or "unknown")
         strata[
             (
                 item["role"],
                 item["rule_id"],
                 item["genre"],
                 item["granularity"],
-                provenance,
+                provenance(item),
             )
         ].append(item)
     selected = []
@@ -90,7 +106,7 @@ def _sample(items: list[dict], limit: int) -> tuple[list[dict], dict]:
                     x["rule_id"],
                     x["genre"],
                     x["granularity"],
-                    x.get("source_family") or "unknown",
+                    provenance(x),
                 )
                 for x in selected
             }
@@ -101,17 +117,22 @@ def _sample(items: list[dict], limit: int) -> tuple[list[dict], dict]:
 def _estimate(root: Path, items: list[dict]) -> tuple[dict, float]:
     result = {}
     total = 0.0
-    for vendor, model in MODELS.items():
+    plan = {vendor: (model, [x for x in items if not _self_labelled(vendor, x)]) for vendor, model in MODELS.items()}
+    swapped = [(vendor, x) for vendor in MODELS for x in items if _self_labelled(vendor, x)]
+    if swapped:
+        plan[SUBSTITUTE[0]] = (SUBSTITUTE[1], [x for _, x in swapped])
+    for vendor, (model, vendor_items) in plan.items():
         prices = pricing_for(model)
         if prices is None:
             raise ValueError(f"no verified Bedrock price for {model}")
         records = []
         input_tokens = 0
-        for item in items:
+        for item in vendor_items:
             prompt = _prompt(root, item)
             body = model_body(model, prompt, max_tokens=OUTPUT_TOKENS)
             input_tokens += token_estimate(json.dumps(body, ensure_ascii=False))
-            records.append({"recordId": f"{item['id']}:{vendor}", "modelInput": body})
+            voter = next((v for v, x in swapped if x is item), vendor) if vendor == SUBSTITUTE[0] else vendor
+            records.append({"recordId": f"{item['id']}:{voter}", "modelInput": body})
         estimate = (
             input_tokens * prices[0] + len(records) * OUTPUT_TOKENS * prices[1]
         ) / 1_000_000
@@ -152,7 +173,7 @@ def prepare_panel(root: Path) -> dict:
     plan = {
         "schema_version": 1,
         "created_at": now(),
-        "model_ids": MODELS,
+        "model_ids": {v: m["model_id"] for v, m in models.items()},
         "files": files,
         "sample_ids": [x["id"] for x in selected],
         "sample_count": len(selected),
@@ -163,8 +184,12 @@ def prepare_panel(root: Path) -> dict:
             k: round(v["estimate_usd"], 6) for k, v in models.items()
         },
         "item_manifest_digests": manifest.get("split_digests", {}),
-        "sampling_fields": ["role", "rule_id", "genre", "granularity", "source_family"],
-        "excluded_self_labelled_votes": [],
+        "sampling_fields": ["role", "rule_id", "genre", "granularity", "provenance"],
+        "provenance_counts": dict(Counter(provenance(x) for x in selected)),
+        "self_labelled_votes_substituted": {
+            vendor: sum(_self_labelled(vendor, x) for x in selected) for vendor in MODELS
+        },
+        "substitute_model": SUBSTITUTE[1],
     }
     (root / "items/panel-plan.json").write_text(
         json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -183,8 +208,6 @@ def submit_panel(root: Path) -> dict:
     for vendor, model_id in plan["model_ids"].items():
         input_path = root / plan["files"][vendor]
         records = list(read_jsonl(input_path))
-        if len(records) < 100:
-            raise ValueError(f"{vendor} batch has fewer than 100 records")
         input_tokens = sum(
             token_estimate(json.dumps(r["modelInput"], ensure_ascii=False))
             for r in records
@@ -197,6 +220,12 @@ def submit_panel(root: Path) -> dict:
         ensure_budget(root, estimate)
         uri = upload(root, input_path, f"inputs/panel/{vendor}.jsonl")
         try:
+            if len(records) < 100:
+                # Bedrock batch needs at least 100 records; smaller sets go on demand.
+                raise ClientError(
+                    {"Error": {"Code": "ValidationException", "Message": "batch inference is not supported below 100 records"}},
+                    "CreateModelInvocationJob",
+                )
             jobs[vendor] = {
                 "mode": "batch",
                 **submit(
@@ -280,8 +309,9 @@ def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
             if ":" not in record_id:
                 continue
             item_id, record_vendor = record_id.rsplit(":", 1)
-            if item_id in sample_ids and record_vendor == vendor:
-                votes[item_id][vendor] = _answer(record)
+            # Substitute records carry the voter they stand in for.
+            if item_id in sample_ids and (record_vendor == vendor or vendor == SUBSTITUTE[0]):
+                votes[item_id][record_vendor] = _answer(record)
     train = list(read_jsonl(root / "items/train.jsonl"))
     by_id = {x["id"]: x for x in train}
     vote_rows = []
@@ -315,7 +345,7 @@ def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
         )
     write_jsonl(root / "items/train.jsonl", train)
     write_jsonl(root / "items/panel-votes.jsonl", vote_rows)
-    vendor_names = list(plan["model_ids"])
+    vendor_names = list(MODELS)
     valid = [
         r for r in vote_rows if all(r["votes"].get(v) is not None for v in vendor_names)
     ]

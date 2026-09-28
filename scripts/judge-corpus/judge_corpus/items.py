@@ -426,6 +426,14 @@ def _private_text(root: Path, item_id: str, text: str) -> tuple[str, str]:
     return str(rel), sha256_text(text)
 
 
+def _lint_text(text: str) -> str:
+    """Blank a leading `---` line so Vale does not parse the document as YAML
+    front matter. Generated documents sometimes open with a horizontal rule;
+    Vale then fails the whole batch with E201. Spaces keep every offset."""
+    m = re.match(r"(-{3,})[ \t]*(?=\r?\n)", text)
+    return " " * len(m.group(1)) + text[m.end(1):] if m else text
+
+
 def _run_lint(
     files: list[tuple[str, Path]], batch_size: int = 40
 ) -> dict[str, list[dict]]:
@@ -442,9 +450,17 @@ def _run_lint(
             text=True,
             env={**os.environ, "HF_HUB_OFFLINE": "1"},
         )
+        # Exit 2: some documents were not fully checked. One bad file can make
+        # Vale reject the whole batch, so re-lint the batch one file at a time
+        # and fail closed if any document is still unchecked.
+        if p.returncode == 2 and len(chunk) > 1:
+            for name, found in _run_lint(chunk, batch_size=1).items():
+                out[name].extend(found)
+            continue
         if p.returncode not in (0, 1):
             raise RuntimeError(
-                f"slopvac lint failed {p.returncode}: {p.stderr[-1000:]}"
+                f"slopvac lint failed {p.returncode} on {[str(x) for _, x in chunk]}: "
+                f"{p.stdout[-1000:]}{p.stderr[-500:]}"
             )
         report = json.loads(p.stdout)
         if report.get("schema_version") != 1 or any(
@@ -595,6 +611,15 @@ def _externalize_states(root: Path, items: list[dict]) -> None:
         item["state_sha256"] = digest(encoded.encode("utf-8"))
 
 
+def _state_of(root: Path, item: dict):
+    """An item's state, from the record or from its externalised state file."""
+    if "state" in item:
+        return item["state"]
+    if item.get("state_path"):
+        return json.loads((root / item["state_path"]).read_text(encoding="utf-8"))
+    return None
+
+
 def _write_outputs(
     root: Path,
     items: list[dict],
@@ -647,8 +672,8 @@ def _write_outputs(
             "genre": x["genre"],
             "text_path": x["text_path"],
             "text_sha256": x["text_sha256"],
-            "state": x["state"],
-            "context": x.get("context", ""),
+            "state": _state_of(root, x),
+            "context": x.get("context") or (_state_of(root, x) or {}).get("context", ""),
             "question": x["question"],
             "finding": x.get("finding"),
             "adjudicator_1": None,
@@ -884,7 +909,7 @@ def build_items(
     lint_files = []
     for row in rows:
         path = work / f"{row['id']}.md"
-        path.write_text(texts[row["id"]], encoding="utf-8")
+        path.write_text(_lint_text(texts[row["id"]]), encoding="utf-8")
         lint_files.append((row["id"], path))
     findings = _run_lint(lint_files)
     items = []
@@ -991,7 +1016,7 @@ def build_items(
             injected = b - len(base[:b]) + len(base[:b].rstrip()) + 1
             seed_name = f"{rule['id']}:{ex_i}:{host['id']}"
             path = seed_work / f"{digest(seed_name.encode())[:24]}.md"
-            path.write_text(seeded, encoding="utf-8")
+            path.write_text(_lint_text(seeded), encoding="utf-8")
             seed_files.append((path.stem, path))
             seed_meta[path.name] = (rule, host, seeded, injected, len(bad), ex_i)
     seed_findings = _run_lint(seed_files)
