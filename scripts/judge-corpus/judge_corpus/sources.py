@@ -32,7 +32,7 @@ UA = "slopvac corpus build (contact: slopvac corpus build)"
 REPOSITORIES = (
     (
         "django/django",
-        "3.2.x",
+        "stable/3.2.x",
         "consumer",
         "django",
         ("docs/**", "README.rst"),
@@ -127,6 +127,89 @@ REPOSITORIES = (
         ("Misc/NEWS.d/**", "Misc/NEWS"),
         "Python-2.0",
     ),
+    (
+        "numpy/numpy",
+        "maintenance/1.22.x",
+        "consumer",
+        "numpy",
+        ("doc/source/**",),
+        "BSD-3-Clause",
+    ),
+    (
+        "pandas-dev/pandas",
+        "1.4.x",
+        "consumer",
+        "pandas",
+        ("doc/source/**",),
+        "BSD-3-Clause",
+    ),
+    ("docker/docs", "main", "consumer", "docker-docs", ("**/*.md",), "Apache-2.0"),
+    (
+        "gohugoio/hugoDocs",
+        "master",
+        "consumer",
+        "hugo-docs",
+        ("content/en/**",),
+        "Apache-2.0",
+    ),
+    ("nodejs/node", "v16.x", "reference", "node-api", ("doc/api/**",), "MIT"),
+    (
+        "git/git",
+        "maint",
+        "reference",
+        "git-docs",
+        ("Documentation/*.txt",),
+        "GPL-2.0-only",
+    ),
+    ("curl/curl", "master", "reference", "curl-docs", ("docs/**",), "curl"),
+    (
+        "golang/proposal",
+        "master",
+        "internal",
+        "go-proposals",
+        ("design/**",),
+        "BSD-3-Clause",
+    ),
+    (
+        "swiftlang/swift-evolution",
+        "main",
+        "internal",
+        "swift-evolution",
+        ("proposals/**",),
+        "Apache-2.0",
+    ),
+    (
+        "django/django",
+        "stable/3.2.x",
+        "change-comms",
+        "django-releases",
+        ("docs/releases/**",),
+        "BSD-3-Clause",
+    ),
+    (
+        "rust-lang/rust",
+        "main",
+        "change-comms",
+        "rust-releases",
+        ("RELEASES.md",),
+        "MIT OR Apache-2.0",
+    ),
+    (
+        "kubernetes/kubernetes",
+        "release-1.21",
+        "change-comms",
+        "kubernetes-changelog",
+        ("CHANGELOG/**",),
+        "Apache-2.0",
+    ),
+    (
+        "nodejs/node",
+        "v16.x",
+        "change-comms",
+        "node-changelog",
+        ("doc/changelogs/**",),
+        "MIT",
+    ),
 )
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
@@ -134,10 +217,11 @@ RFC_INDEX = "https://www.rfc-editor.org/rfc-index.txt"
 RFC_BASE = "https://www.rfc-editor.org/rfc/rfc{number}.txt"
 STACKEXCHANGE_BASE = "https://archive.org/download/stackexchange_20220606"
 STACKEXCHANGE_SITES = (
-    "ai.stackexchange.com",
-    "stats.stackexchange.com",
+    "writers.stackexchange.com",
+    "academia.stackexchange.com",
+    "workplace.stackexchange.com",
+    "ux.stackexchange.com",
     "softwareengineering.stackexchange.com",
-    "superuser.com",
 )
 
 
@@ -173,9 +257,9 @@ def _github_url(path: str) -> str:
 
 
 def _github_commit(repo: str, ref: str) -> tuple[str, str]:
-    # The ref itself may point to a current branch. Resolve the newest commit at or
-    # before the cutoff, making even moving refs safe for this run.
-    query = urllib.parse.urlencode({"until": CUTOFF, "per_page": "1"})
+    # The ref may be a moving branch. Resolve the newest commit on it at or before
+    # the cutoff, so the recorded locator is immutable and pre-cutoff.
+    query = urllib.parse.urlencode({"sha": ref, "until": CUTOFF, "per_page": "1"})
     data = fetch_json(_github_url(f"repos/{repo}/commits?{query}"))
     if not data:
         raise RuntimeError(f"no pre-cutoff commit for {repo} {ref}")
@@ -187,69 +271,40 @@ def _github_commit(repo: str, ref: str) -> tuple[str, str]:
     return sha, date
 
 
-def _github_tree(repo: str, sha: str) -> list[dict]:
-    data = fetch_json(_github_url(f"repos/{repo}/git/trees/{sha}?recursive=1"))
-    return [item for item in data.get("tree", []) if item.get("type") == "blob"]
-
-
-def _git_snapshot(root: Path, repo: str) -> tuple[Path, str, str, list[dict]]:
-    checkout = root / ".cache" / "repos" / repo.replace("/", "-")
-    if not (checkout / ".git").exists():
-        checkout.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(
-            [
-                "git",
-                "clone",
-                "--filter=blob:none",
-                "--no-checkout",
-                "--shallow-since=2022-06-30",
-                f"https://github.com/{repo}.git",
-                str(checkout),
-            ],
-            check=True,
-            env={**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_PAGER": "cat"},
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-    sha = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(checkout),
-            "rev-list",
-            "-1",
-            "--before=2022-07-01T00:00:00Z",
-            "HEAD",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    date = subprocess.run(
-        ["git", "-C", str(checkout), "show", "-s", "--format=%cI", sha],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-    paths = subprocess.run(
-        ["git", "-C", str(checkout), "ls-tree", "-r", "--name-only", sha],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.splitlines()
-    return checkout, sha, date, [{"path": path, "type": "blob"} for path in paths]
-
-
-def _git_show(checkout: Path, sha: str, path: str) -> bytes:
+def _git(checkout: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", "-C", str(checkout), "show", f"{sha}:{path}"],
+        ["git", "-C", str(checkout), *args],
         check=True,
         capture_output=True,
+        text=True,
+        env={**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_PAGER": "cat"},
     ).stdout
 
 
+def _git_snapshot(
+    root: Path, repo: str, sha: str, patterns: tuple[str, ...]
+) -> tuple[Path, list[dict]]:
+    """Materialise only the matching files of one pinned commit.
+
+    One depth-1 fetch of the commit, then a sparse checkout, so blobs arrive in
+    a single batched transfer instead of one request per file.
+    """
+    checkout = root / ".cache" / "repos" / f"{repo.replace('/', '-')}-{sha[:12]}"
+    if not (checkout / ".git").exists():
+        checkout.mkdir(parents=True, exist_ok=True)
+        _git(checkout, "init", "-q")
+        _git(checkout, "remote", "add", "origin", f"https://github.com/{repo}.git")
+        _git(checkout, "fetch", "-q", "--depth=1", "--filter=blob:none", "origin", sha)
+        _git(checkout, "sparse-checkout", "set", "--no-cone", *patterns)
+        _git(checkout, "checkout", "-q", sha)
+    paths = _git(checkout, "ls-files").splitlines()
+    return checkout, [{"path": path, "type": "blob"} for path in paths]
+
+
 def _strip_markup(text: str, suffix: str) -> str:
+    if suffix.endswith(".sgml"):
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = unescape(text)
     if suffix.endswith(".rst"):
         text = re.sub(r"^[=\-~^`:#*+]+\s*$", "", text, flags=re.MULTILINE)
         text = re.sub(r"^\.\. [^\n]*\n(?:   [^\n]*\n?)*", "", text, flags=re.MULTILINE)
@@ -342,38 +397,42 @@ def _github_rows(
 ) -> list[CachedSource]:
     rows: list[CachedSource] = []
     genre_counts: dict[str, int] = {}
+    repos_per_genre: dict[str, int] = {}
+    for entry in REPOSITORIES:
+        repos_per_genre[entry[2]] = repos_per_genre.get(entry[2], 0) + 1
     for repo, ref, genre, family, patterns, licence in REPOSITORIES:
         if per_genre_limit and genre_counts.get(genre, 0) >= per_genre_limit:
             continue
-        checkout: Path | None = None
+        # Spread each genre across its repositories instead of letting the
+        # first repository fill it.
+        repo_cap = (
+            -(-per_genre_limit // repos_per_genre[genre]) if per_genre_limit else None
+        )
+        repo_count = 0
         try:
             sha, revision_date = _github_commit(repo, ref)
-            tree = _github_tree(repo, sha)
-        except Exception as api_exc:
-            try:
-                checkout, sha, revision_date, tree = _git_snapshot(root, repo)
-            except Exception as git_exc:
-                (root / "sources" / "skips.jsonl").parent.mkdir(
-                    parents=True, exist_ok=True
+            checkout, tree = _git_snapshot(root, repo, sha, patterns)
+        except Exception as exc:
+            skips = root / "sources" / "skips.jsonl"
+            skips.parent.mkdir(parents=True, exist_ok=True)
+            with skips.open("a", encoding="utf-8") as fh:
+                fh.write(
+                    json.dumps({"source_family": family, "reason": str(exc)}) + "\n"
                 )
-                with (root / "sources" / "skips.jsonl").open(
-                    "a", encoding="utf-8"
-                ) as fh:
-                    fh.write(
-                        json.dumps(
-                            {
-                                "source_family": family,
-                                "reason": f"api={api_exc}; git={git_exc}",
-                            }
-                        )
-                        + "\n"
-                    )
-                continue
+            continue
         for item in tree:
             if per_genre_limit and genre_counts.get(genre, 0) >= per_genre_limit:
                 break
+            if repo_cap and repo_count >= repo_cap:
+                break
             path = item["path"]
-            if Path(path).suffix.lower() not in {".md", ".rst", ".txt", ".adoc"}:
+            if Path(path).suffix.lower() not in {
+                ".md",
+                ".rst",
+                ".txt",
+                ".adoc",
+                ".sgml",
+            }:
                 continue
             if not any(fnmatch.fnmatch(path, pattern) for pattern in patterns):
                 continue
@@ -383,11 +442,9 @@ def _github_rows(
                 continue
             raw_url = f"https://raw.githubusercontent.com/{repo}/{sha}/{urllib.parse.quote(path, safe='/')}"
             try:
-                raw_text = (
-                    _git_show(checkout, sha, path) if checkout else _request(raw_url)
-                )
+                raw_text = (checkout / path).read_bytes()
                 text = _strip_markup(raw_text.decode("utf-8", "replace"), path)
-            except Exception:
+            except OSError:
                 continue
             units = list(_sections(text)) or _document_chunks(text)
             for section, body in units:
@@ -405,6 +462,7 @@ def _github_rows(
                     },
                     "licence": licence,
                     "redistribution_consent": "private S3 use permitted by recorded licence",
+                    "revision_date": revision_date,
                     "retrieved_at": retrieved_at,
                     "word_count": len(body.split()),
                     "sha256": sha256_text(body),
@@ -413,11 +471,13 @@ def _github_rows(
                 }
                 rows.append(CachedSource(row, body))
                 genre_counts[genre] = genre_counts.get(genre, 0) + 1
+                repo_count += 1
+                if repo_cap and repo_count >= repo_cap:
+                    break
                 if limit and len(rows) >= limit:
                     return rows
                 if per_genre_limit and genre_counts[genre] >= per_genre_limit:
                     break
-            time.sleep(0.05)
     return rows
 
 
@@ -559,50 +619,58 @@ def _wiki_rows(
     root: Path, limit: int | None, retrieved_at: str, existing: int
 ) -> list[CachedSource]:
     rows: list[CachedSource] = []
-    apcontinue: str | None = None
+    seen: set[int] = set()
+    # `rvstart` is valid only for a single page, so sample random articles in
+    # batches and then ask for each page's last revision before the cutoff.
     while not limit or existing + len(rows) < limit:
         params = {
             "action": "query",
-            "list": "allpages",
-            "aplimit": "50",
+            "list": "random",
+            "rnnamespace": "0",
+            "rnlimit": "50",
             "format": "json",
-            "apnamespace": "0",
+            "maxlag": "5",
         }
-        if apcontinue:
-            params["apcontinue"] = apcontinue
         data = fetch_json(WIKI_API + "?" + urllib.parse.urlencode(params))
-        titles = [item["title"] for item in data.get("query", {}).get("allpages", [])]
-        if not titles:
+        pages = data.get("query", {}).get("random", [])
+        if not pages:
             break
-        query = {
-            "action": "query",
-            "prop": "revisions|info",
-            "titles": "|".join(titles),
-            "rvstart": CUTOFF,
-            "rvdir": "older",
-            "rvlimit": "1",
-            "rvprop": "ids|timestamp|content",
-            "rvslots": "main",
-            "inprop": "url",
-            "format": "json",
-        }
-        payload = fetch_json(WIKI_API + "?" + urllib.parse.urlencode(query))
-        for page in payload.get("query", {}).get("pages", {}).values():
+        for random_page in pages:
+            if limit and existing + len(rows) >= limit:
+                return rows
+            if random_page["id"] in seen:
+                continue
+            seen.add(random_page["id"])
+            query = {
+                "action": "query",
+                "prop": "revisions",
+                "pageids": str(random_page["id"]),
+                "rvstart": CUTOFF,
+                "rvdir": "older",
+                "rvlimit": "1",
+                "rvprop": "ids|timestamp|content",
+                "rvslots": "main",
+                "format": "json",
+                "formatversion": "2",
+                "maxlag": "5",
+            }
+            time.sleep(1.0)
+            payload = fetch_json(WIKI_API + "?" + urllib.parse.urlencode(query))
+            page = (payload.get("query", {}).get("pages") or [{}])[0]
             revs = page.get("revisions", [])
             if not revs:
                 continue
             rev = revs[0]
             revision_date = rev.get("timestamp", "")
-            if revision_date > CUTOFF:
+            if not revision_date or revision_date > CUTOFF:
                 continue
-            content = (
-                rev.get("slots", {}).get("main", {}).get("*") or rev.get("*") or ""
-            )
+            content = rev.get("slots", {}).get("main", {}).get("content") or ""
             text = _wiki_plaintext(content)
             units = list(
                 _sections(text, min_words=300, max_words=2500)
             ) or _document_chunks(text)
-            for section, body in units:
+            # At most two sections per article keeps topical spread wide.
+            for section, body in units[:2]:
                 source_id = (
                     f"wiki-{page['pageid']}-{rev['revid']}-{sha256_text(section)[:10]}"
                 )
@@ -618,6 +686,7 @@ def _wiki_rows(
                     },
                     "licence": "CC BY-SA 3.0 (Wikipedia text)",
                     "redistribution_consent": "private S3 use permitted with attribution and share-alike",
+                    "revision_date": revision_date,
                     "retrieved_at": retrieved_at,
                     "word_count": len(body.split()),
                     "sha256": sha256_text(body),
@@ -627,10 +696,6 @@ def _wiki_rows(
                 rows.append(CachedSource(row, body))
                 if limit and existing + len(rows) >= limit:
                     return rows
-        apcontinue = data.get("continue", {}).get("apcontinue")
-        if not apcontinue:
-            break
-        time.sleep(0.2)
     return rows
 
 
