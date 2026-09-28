@@ -1,0 +1,636 @@
+{
+  "arm": "laya-typed-decisions-ft-s18",
+  "family": "laya",
+  "model_repo": "convaiinnovations/laya-typed-decisions",
+  "model_revision": "1a793eb568e6718f15941d08f85432581df534e3",
+  "base_model": null,
+  "base_revision": null,
+  "local_weights": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-laya-typed-decisions-s18/model",
+  "upstream_repo_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+  "served_model_field_sent": "typed-decisions",
+  "served_model_field_returned": [
+    "laya-rl-agent"
+  ],
+  "served_checkpoint_routed": [
+    "typed-decisions"
+  ],
+  "runtime": {
+    "laya": "0.3.21",
+    "torch": "2.14.0",
+    "transformers": "5.17.0",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.54.0",
+    "python": "3.12.13"
+  },
+  "device": "mps",
+  "health": {
+    "status": "ok",
+    "loaded": [
+      "typed-decisions"
+    ],
+    "revisions": {
+      "typed-decisions": null
+    },
+    "device": "mps",
+    "device_is_preference": false,
+    "checkpoint_devices": {
+      "typed-decisions": "mps"
+    },
+    "cpu_fallbacks": {
+      "typed-decisions": {
+        "count": 0,
+        "last_reason": null
+      }
+    }
+  },
+  "hardware": {
+    "cpu": "Apple M4 Pro",
+    "memory_bytes": 51539607552,
+    "macos": "26.6.2",
+    "machine": "arm64"
+  },
+  "dataset": {
+    "train": {
+      "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+      "items": 775
+    },
+    "calibration": {
+      "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+      "items": 180
+    },
+    "test": {
+      "sha256": "6d949d8c7ab64fe1016d9af7a779d0a3f69e87157967de75816bd164ede7e9d5",
+      "items": 345
+    }
+  },
+  "inventory": null,
+  "load_time_s": 6.99,
+  "warmup_latency_ms": [
+    145.6,
+    45.0,
+    39.5
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 3134701568,
+    "phys_footprint_bytes": 5628364864,
+    "lifetime_max_phys_footprint_bytes": 6472355056
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 34.179,
+      "p95": 50.551199999999994
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 31.577,
+      "p95": 45.471299999999985
+    }
+  },
+  "throughput": null,
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "temperature_fit_on_calibration": 2.9515379244700686,
+      "calibration_raw": {
+        "n": 108,
+        "accuracy": 0.7222222222222222,
+        "balanced_accuracy": 0.6319444444444444,
+        "auroc": 0.7444058641975309,
+        "brier": 0.22387931472222225,
+        "nll": 0.7948211493166946,
+        "ece_15": 0.2032046296296296
+      },
+      "test_raw": {
+        "n": 207,
+        "accuracy": 0.6956521739130435,
+        "balanced_accuracy": 0.6231884057971014,
+        "auroc": 0.6971749632430162,
+        "brier": 0.23997491579710145,
+        "nll": 0.8448974884273298,
+        "ece_15": 0.20124685990338165
+      },
+      "test_cal": {
+        "n": 207,
+        "accuracy": 0.6956521739130435,
+        "balanced_accuracy": 0.6231884057971014,
+        "auroc": 0.6971749632430162,
+        "brier": 0.19644413061536678,
+        "nll": 0.5767714725571472,
+        "ece_15": 0.08584339384862892
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.5799927536231884,
+          0.6710571377072819
+        ],
+        "ece_15": [
+          0.18022671849838962,
+          0.25213351518288485
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.06044929885666801,
+          0.14662635295169082
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.4057971014492754
+        },
+        "cross": {
+          "n": 69,
+          "accuracy": 0.8405797101449275
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.8405797101449275
+        }
+      }
+    },
+    "choice": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.5783858074703738,
+      "calibration_raw": {
+        "n": 72,
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.611111111111111,
+        "auroc": 0.7330246913580247,
+        "brier": 0.5583546102777778,
+        "nll": 0.925565906409211,
+        "ece_15": 0.20433888888888888,
+        "abstain_rate": 0.0
+      },
+      "test_raw": {
+        "n": 138,
+        "accuracy": 0.6666666666666666,
+        "balanced_accuracy": 0.6666666666666667,
+        "auroc": 0.7516278092837639,
+        "brier": 0.48608094775362326,
+        "nll": 0.8208958576039092,
+        "ece_15": 0.1551869565217392,
+        "abstain_rate": 0.0
+      },
+      "test_cal": {
+        "n": 138,
+        "accuracy": 0.6666666666666666,
+        "balanced_accuracy": 0.6666666666666667,
+        "auroc": 0.7529930686830498,
+        "brier": 0.46503060789345957,
+        "nll": 0.7992132057503785,
+        "ece_15": 0.07521542166037586,
+        "abstain_rate": 0.0
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.6060606060606061,
+          0.7368421052631579
+        ],
+        "ece_15": [
+          0.1020108510044643,
+          0.21948437548262545
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.05036266108630296,
+          0.1542252644410708
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.5072463768115942
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.8260869565217391
+        }
+      },
+      "test_order_swap_agreement": 0.9347826086956522,
+      "test_order_swap_n": 138,
+      "test_order_swap_mean_abs_shift_real_defect": 0.07735289855072462
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "no-defect",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "laya-rl-agent",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": false,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.1202,
+            "confidence": 0.8798,
+            "answer_confidence": 0.8798,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "no-defect",
+            "probabilities": {
+              "real-defect": 0.1125,
+              "no-defect": 0.7782,
+              "insufficient-context": 0.1093
+            },
+            "confidence": 0.3784,
+            "answer_confidence": 0.7782,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 0.6702,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.3308,
+              "1": 0.6682,
+              "2": 0.001
+            },
+            "confidence": 0.4155,
+            "answer_confidence": 0.6682,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 214,
+          "output_tokens": 0
+        },
+        "routing": {
+          "model": "typed-decisions",
+          "repo": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-laya-typed-decisions-s18/model",
+          "reason": "explicit model='typed-decisions'",
+          "detection": null,
+          "workflow": null
+        }
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': unknown type None; use one of ['choice', 'noul', 'score']"
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': a choice question needs at least one criterion"
+      }
+    },
+    "malformed_json": {
+      "status": 400
+    },
+    "oversized_state_300k_chars": {
+      "status": 413,
+      "truncated_and_answered": false,
+      "error": {
+        "detail": "state too large (312000 > 50000 chars)"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 404,
+      "payload": {
+        "detail": "Not Found"
+      }
+    }
+  },
+  "finetune": {
+    "recipe": "Laya notebooks/laya_finetune_typed_decisions_2xT4_kaggle.ipynb (RLCD), ported to one device",
+    "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+    "init_from": "convaiinnovations/laya-typed-decisions@1a793eb568e6718f15941d08f85432581df534e3",
+    "hyperparameters": {
+      "epochs": 8,
+      "micro_batch": 8,
+      "grad_accum": 8,
+      "lr_encoder": 2.5e-05,
+      "lr_head": 0.0001,
+      "weight_decay": 0.01,
+      "group_size": 4,
+      "sigma_start": 0.4,
+      "sigma_end": 0.1,
+      "w_sph": 0.75,
+      "w_rps": 1.0,
+      "ce_weight": 1.0,
+      "clip": 1.0,
+      "eta_min": 1e-06,
+      "max_len": 1024,
+      "head_max_len": 256,
+      "seed": 18,
+      "dtype": "fp32",
+      "gradient_checkpointing": true
+    },
+    "train_items": 775,
+    "calibration_items": 180,
+    "optimizer_steps": 104,
+    "epochs_log": [
+      {
+        "epoch": 1,
+        "avg_loss": 0.5804718798890556,
+        "sigma": 0.4,
+        "elapsed_s": 69.0,
+        "optimizer_steps": 13
+      },
+      {
+        "epoch": 2,
+        "avg_loss": 0.46621719279240087,
+        "sigma": 0.35714285714285715,
+        "elapsed_s": 134.1,
+        "optimizer_steps": 26
+      },
+      {
+        "epoch": 3,
+        "avg_loss": 0.324734385634206,
+        "sigma": 0.3142857142857143,
+        "elapsed_s": 201.7,
+        "optimizer_steps": 39
+      },
+      {
+        "epoch": 4,
+        "avg_loss": 0.20285122298165081,
+        "sigma": 0.27142857142857146,
+        "elapsed_s": 276.0,
+        "optimizer_steps": 52
+      },
+      {
+        "epoch": 5,
+        "avg_loss": 0.17421459926042668,
+        "sigma": 0.22857142857142856,
+        "elapsed_s": 351.0,
+        "optimizer_steps": 65
+      },
+      {
+        "epoch": 6,
+        "avg_loss": 0.20751076868552829,
+        "sigma": 0.1857142857142857,
+        "elapsed_s": 417.7,
+        "optimizer_steps": 78
+      },
+      {
+        "epoch": 7,
+        "avg_loss": 0.22265941971317701,
+        "sigma": 0.14285714285714285,
+        "elapsed_s": 489.3,
+        "optimizer_steps": 91
+      },
+      {
+        "epoch": 8,
+        "avg_loss": 0.22728922049702174,
+        "sigma": 0.09999999999999998,
+        "elapsed_s": 555.6,
+        "optimizer_steps": 104
+      }
+    ],
+    "temperatures_fit_on_calibration": {
+      "choice": 7.887974262237549,
+      "score": 1.0,
+      "noul": 10.0
+    },
+    "calibration_eval": {
+      "choice": {
+        "n": 72,
+        "accuracy": 0.6111111111111112,
+        "balanced_accuracy": 0.611111111111111,
+        "auroc": 0.7322530864197531,
+        "brier": 0.5128793672406816,
+        "nll": 0.8638202624669109,
+        "ece_15": 0.07348075635596316,
+        "abstain_rate": 0.0
+      },
+      "noul": {
+        "n": 108,
+        "accuracy": 0.7222222222222222,
+        "balanced_accuracy": 0.6319444444444444,
+        "auroc": 0.7442129629629629,
+        "brier": 0.19023850962140024,
+        "nll": 0.5684032518122817,
+        "ece_15": 0.10981858462286276
+      }
+    },
+    "wall_time_s": 555.6,
+    "device": "mps",
+    "peak_rss_bytes_sampled": 1565310976,
+    "phys_footprint_bytes": 11691248160,
+    "lifetime_max_phys_footprint_bytes": 12018158328,
+    "torch": "2.14.0"
+  },
+  "host_contention": {
+    "evaluation_run": null,
+    "latency_remeasure": [
+      {
+        "at": 1790611529.974187,
+        "swap_used_bytes": 19336265728,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 17941905408,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7035360968
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2956267192
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 1998425472
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1924413752
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1359678416
+          },
+          {
+            "pid": 8653,
+            "name": "Zen GPU Helper",
+            "cmdline": "/Applications/Zen.app/Contents/MacOS/gpu-helper.app/Contents/MacOS/Zen GPU Helper -parentBuildID 20260922050124 -prefsHandle 0:40735 -prefMapHandle 1:305510 -sbStartup -sbAppPath /Applications/Zen.app -ipcHandle 0 -initialChannelId {1978edb6-e53f-4db6-8f9e-6a15d80943f1} -parentPid 7493 -appDir /Appl",
+            "phys_footprint_bytes": 1268352968
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1161334264
+          }
+        ]
+      },
+      {
+        "at": 1790611556.325265,
+        "swap_used_bytes": 19336265728,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 17693868032,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7035360968
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2956267192
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 2120502656
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1923217720
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1358810064
+          },
+          {
+            "pid": 8653,
+            "name": "Zen GPU Helper",
+            "cmdline": "/Applications/Zen.app/Contents/MacOS/gpu-helper.app/Contents/MacOS/Zen GPU Helper -parentBuildID 20260922050124 -prefsHandle 0:40735 -prefMapHandle 1:305510 -sbStartup -sbAppPath /Applications/Zen.app -ipcHandle 0 -initialChannelId {1978edb6-e53f-4db6-8f9e-6a15d80943f1} -parentPid 7493 -appDir /Appl",
+            "phys_footprint_bytes": 1266173896
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1160596984
+          }
+        ]
+      }
+    ]
+  },
+  "latency_evaluation_run": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 39.357,
+      "p95": 74.4472
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 36.796,
+      "p95": 74.68319999999994
+    }
+  },
+  "latency_remeasured_at": 1790611556.325303
+}

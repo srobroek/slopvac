@@ -1,0 +1,889 @@
+{
+  "arm": "kev-0.8b-ft-s18",
+  "family": "kev",
+  "model_repo": "jaredpalmer/kev-0.8b",
+  "model_revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+  "base_model": "Qwen/Qwen3.5-0.8B-Base",
+  "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+  "local_weights": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint",
+  "upstream_repo_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+  "served_model_field_sent": "kev-latest",
+  "served_model_field_returned": [
+    "kev-latest"
+  ],
+  "served_checkpoint_routed": [],
+  "runtime": {
+    "torch": "2.8.0",
+    "transformers": "5.17.0",
+    "peft": "0.21.0",
+    "mlx": "0.32.2",
+    "mlx-lm": "0.31.3",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.53.0",
+    "numpy": "2.5.3",
+    "python": "3.13.14"
+  },
+  "device": "mps/mlx/bfloat16",
+  "health": {
+    "models": [
+      {
+        "name": "kev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-0.8B-Base, serving /Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint at temperature 2.46",
+        "release_date": "2026-09-28",
+        "run": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint",
+        "base": "Qwen/Qwen3.5-0.8B-Base",
+        "lora": 16,
+        "device": "mps",
+        "backend": "mlx",
+        "dtype": "bfloat16",
+        "temperature": 2.462288826689832,
+        "cuda_graphs": null,
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      },
+      {
+        "name": "jev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-0.8B-Base, serving /Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint at temperature 2.46",
+        "release_date": "2026-09-28",
+        "run": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint",
+        "base": "Qwen/Qwen3.5-0.8B-Base",
+        "lora": 16,
+        "device": "mps",
+        "backend": "mlx",
+        "dtype": "bfloat16",
+        "temperature": 2.462288826689832,
+        "cuda_graphs": null,
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      }
+    ]
+  },
+  "hardware": {
+    "cpu": "Apple M4 Pro",
+    "memory_bytes": 51539607552,
+    "macos": "26.6.2",
+    "machine": "arm64"
+  },
+  "dataset": {
+    "train": {
+      "sha256": "b0da2c929c5c5bb92ff04655e6ca501d175a8682f459ed657421971af836d804",
+      "items": 775
+    },
+    "calibration": {
+      "sha256": "71f9c21be1cb7c553b04ab30851c8071813aafe7b629a6b5d2adc39633b16490",
+      "items": 180
+    },
+    "test": {
+      "sha256": "6d949d8c7ab64fe1016d9af7a779d0a3f69e87157967de75816bd164ede7e9d5",
+      "items": 345
+    }
+  },
+  "inventory": null,
+  "load_time_s": 14.32,
+  "warmup_latency_ms": [
+    176.8,
+    78.6,
+    88.7
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 2214772736,
+    "phys_footprint_bytes": 3345271760,
+    "lifetime_max_phys_footprint_bytes": 10233629480
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 38.9,
+      "p95": 57.500099999999996
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 35.531,
+      "p95": 50.68869999999998
+    }
+  },
+  "throughput": null,
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "temperature_fit_on_calibration": 0.7754734791388559,
+      "calibration_raw": {
+        "n": 108,
+        "accuracy": 0.7407407407407407,
+        "balanced_accuracy": 0.6458333333333334,
+        "auroc": 0.7808641975308642,
+        "brier": 0.18110975796296297,
+        "nll": 0.5410645521943935,
+        "ece_15": 0.10019629629629628
+      },
+      "test_raw": {
+        "n": 207,
+        "accuracy": 0.6956521739130435,
+        "balanced_accuracy": 0.5978260869565217,
+        "auroc": 0.7454316320100819,
+        "brier": 0.18783436028985506,
+        "nll": 0.5545728235741542,
+        "ece_15": 0.09705024154589369
+      },
+      "test_cal": {
+        "n": 207,
+        "accuracy": 0.6956521739130435,
+        "balanced_accuracy": 0.5978260869565217,
+        "auroc": 0.7454316320100819,
+        "brier": 0.18394613297069376,
+        "nll": 0.5417546634443035,
+        "ece_15": 0.051897564299837315
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.5192234848484848,
+          0.6725352112676056
+        ],
+        "ece_15": [
+          0.059844659154929584,
+          0.15246824686293428
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.048116124623233364,
+          0.12558418700339086
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.30434782608695654
+        },
+        "cross": {
+          "n": 69,
+          "accuracy": 0.9130434782608695
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.8695652173913043
+        }
+      }
+    },
+    "choice": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.1617887948397758,
+      "calibration_raw": {
+        "n": 72,
+        "accuracy": 0.6388888888888888,
+        "balanced_accuracy": 0.6388888888888888,
+        "auroc": 0.7372685185185185,
+        "brier": 0.455321209861111,
+        "nll": 0.6845664713895125,
+        "ece_15": 0.10601805555555555,
+        "abstain_rate": 0.0
+      },
+      "test_raw": {
+        "n": 138,
+        "accuracy": 0.6086956521739131,
+        "balanced_accuracy": 0.6086956521739131,
+        "auroc": 0.6867254778407897,
+        "brier": 0.45762646217391306,
+        "nll": 0.6734013667305708,
+        "ece_15": 0.07530507246376807,
+        "abstain_rate": 0.0
+      },
+      "test_cal": {
+        "n": 138,
+        "accuracy": 0.6086956521739131,
+        "balanced_accuracy": 0.6086956521739131,
+        "auroc": 0.6874606175173283,
+        "brier": 0.45451460476700817,
+        "nll": 0.6783048701383587,
+        "ece_15": 0.052864324063351974,
+        "abstain_rate": 0.0
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.5367513853367435,
+          0.6750081168831169
+        ],
+        "ece_15": [
+          0.05381551785714284,
+          0.1589631832386364
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.04798708737830876,
+          0.1474910810750103
+        ]
+      },
+      "test_accuracy_by_source": {
+        "bad": {
+          "n": 69,
+          "accuracy": 0.5072463768115942
+        },
+        "good": {
+          "n": 69,
+          "accuracy": 0.7101449275362319
+        }
+      },
+      "test_order_swap_agreement": 0.9347826086956522,
+      "test_order_swap_n": 138,
+      "test_order_swap_mean_abs_shift_real_defect": 0.0407768115942029
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "no-defect",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "kev-latest",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": true,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "kev-latest",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.0946
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "no-defect",
+            "confidence": 0.697,
+            "probabilities": {
+              "real-defect": 0.1735,
+              "no-defect": 0.798,
+              "insufficient-context": 0.0285
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 0.8104,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.4166,
+              "1": 0.3563,
+              "2": 0.227
+            },
+            "confidence": 0.0
+          }
+        },
+        "usage": {
+          "input_tokens": 118,
+          "output_tokens": 182
+        },
+        "latency_ms": 82.5
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "jev-1.13.0",
+      "routing": null,
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "slopvac-judge-pilot-v1",
+      "routing": null,
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          }
+        ]
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Input should be 'noul'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'noul'"
+            }
+          },
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]"
+            ],
+            "msg": "Value error, criteria must have 1..255 options",
+            "input": {
+              "type": "choice",
+              "instructions": "?",
+              "criteria": {}
+            },
+            "ctx": {
+              "error": {}
+            }
+          },
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Input should be 'score'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'score'"
+            }
+          },
+          {
+            "type": "list_type",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Input should be a valid list",
+            "input": {}
+          }
+        ]
+      }
+    },
+    "malformed_json": {
+      "status": 422
+    },
+    "oversized_state_300k_chars": {
+      "status": 500,
+      "truncated_and_answered": false,
+      "error": {
+        "_non_json": "Internal Server Error"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 200,
+      "payload": {
+        "models": [
+          {
+            "name": "kev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-0.8B-Base, serving /Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint at temperature 2.46",
+            "release_date": "2026-09-28",
+            "run": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint",
+            "base": "Qwen/Qwen3.5-0.8B-Base",
+            "lora": 16,
+            "device": "mps",
+            "backend": "mlx",
+            "dtype": "bfloat16",
+            "temperature": 2.462288826689832,
+            "cuda_graphs": null,
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 7,
+              "misses": 4,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 11,
+              "requests": 11,
+              "queued": 0
+            }
+          },
+          {
+            "name": "jev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-0.8B-Base, serving /Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint at temperature 2.46",
+            "release_date": "2026-09-28",
+            "run": "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint",
+            "base": "Qwen/Qwen3.5-0.8B-Base",
+            "lora": 16,
+            "device": "mps",
+            "backend": "mlx",
+            "dtype": "bfloat16",
+            "temperature": 2.462288826689832,
+            "cuda_graphs": null,
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 7,
+              "misses": 4,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 11,
+              "requests": 11,
+              "queued": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "finetune": {
+    "recipe": "Kev skills/kev-finetune run_train (kev.train delta fine-tune + calibration temperature), local",
+    "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+    "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+    "base": "Qwen/Qwen3.5-0.8B-Base",
+    "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+    "hyperparameters": {
+      "lr": 5e-05,
+      "batch": 4,
+      "accum": 2,
+      "checkpointing": 1,
+      "epochs": 2,
+      "seed": 18,
+      "replay": 0,
+      "p_none_pair": 0.25,
+      "device": "mps",
+      "dtype": "fp32",
+      "lora": 16,
+      "head_dim": 256,
+      "lora_targets": "all",
+      "weights_dtype": "fp32"
+    },
+    "command": [
+      "kev.train",
+      "--data",
+      "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/data/train.jsonl",
+      "--init_from",
+      "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+      "--out",
+      "/Users/sjors/tmp/worktrees/slopvac/exp-judge-pilot/scripts/judge-pilot/.cache/runs/ft-kev-0.8b-s18/checkpoint",
+      "--device",
+      "mps",
+      "--dtype",
+      "fp32",
+      "--base",
+      "Qwen/Qwen3.5-0.8B-Base",
+      "--lora",
+      "16",
+      "--head_dim",
+      "256",
+      "--lora_targets",
+      "all",
+      "--option_isolation",
+      "0",
+      "--special_embeddings",
+      "0",
+      "--weights_dtype",
+      "fp32",
+      "--epochs",
+      "2",
+      "--lr",
+      "5e-05",
+      "--batch",
+      "4",
+      "--accum",
+      "2",
+      "--checkpointing",
+      "1",
+      "--seed",
+      "18",
+      "--p_none_pair",
+      "0.25",
+      "--base_revision",
+      "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68"
+    ],
+    "temperature_fit_on_calibration": 2.462288826689832,
+    "calibration_eval": {
+      "noul": {
+        "n": 108,
+        "accuracy": 0.7407407407407407,
+        "balanced_accuracy": 0.6458333333333334,
+        "auroc": 0.7808641975308642,
+        "brier": 0.18127646211300838,
+        "nll": 0.5413976974377029,
+        "ece_15": 0.11165770219330665
+      },
+      "choice": {
+        "n": 72,
+        "accuracy": 0.6388888888888888,
+        "balanced_accuracy": 0.6388888888888888,
+        "auroc": 0.7345679012345679,
+        "brier": 0.45476727112483967,
+        "nll": 0.6840272389226575,
+        "ece_15": 0.09501008953743792,
+        "abstain_rate": 0.0
+      }
+    },
+    "train_wall_time_s": 3495.5,
+    "calibration_fit_wall_time_s": 152.4,
+    "peak_rss_bytes_sampled": 5153538048,
+    "lifetime_max_phys_footprint_bytes": 13539089536
+  },
+  "host_contention": {
+    "evaluation_run": [
+      {
+        "at": 1790610712.106796,
+        "swap_used_bytes": 19512426496,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 19542573056,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7054923464
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2938572472
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 2001522048
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1928263992
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1272171448
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1156189688
+          },
+          {
+            "pid": 8653,
+            "name": "Zen GPU Helper",
+            "cmdline": "/Applications/Zen.app/Contents/MacOS/gpu-helper.app/Contents/MacOS/Zen GPU Helper -parentBuildID 20260922050124 -prefsHandle 0:40735 -prefMapHandle 1:305510 -sbStartup -sbAppPath /Applications/Zen.app -ipcHandle 0 -initialChannelId {1978edb6-e53f-4db6-8f9e-6a15d80943f1} -parentPid 7493 -appDir /Appl",
+            "phys_footprint_bytes": 1148372936
+          }
+        ]
+      },
+      {
+        "at": 1790610748.0287738,
+        "swap_used_bytes": 19462094848,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 15749545984,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7034754760
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2938572472
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 2120535424
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1924233528
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1280101304
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1156763128
+          }
+        ]
+      }
+    ],
+    "latency_remeasure": [
+      {
+        "at": 1790611688.059078,
+        "swap_used_bytes": 19336265728,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 19326222336,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7035360968
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2956267192
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 1998491008
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1922955576
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1445596160
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1163120120
+          }
+        ]
+      },
+      {
+        "at": 1790611718.158668,
+        "swap_used_bytes": 19336265728,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 17646239744,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7035492040
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2943618744
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 1986940288
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1926396216
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1442974744
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1162546680
+          }
+        ]
+      }
+    ]
+  },
+  "latency_evaluation_run": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 40.552,
+      "p95": 62.910799999999995
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 36.897,
+      "p95": 54.0044
+    }
+  },
+  "latency_remeasured_at": 1790611718.1587179
+}

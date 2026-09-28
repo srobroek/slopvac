@@ -1,0 +1,78 @@
+{
+  "laya-english": {
+    "disk_bytes": 846195574,
+    "params_total": 421293830,
+    "params_by_part": {
+      "temperature": 3,
+      "act_head": 263938,
+      "encoder": 394781696,
+      "head": 25192448,
+      "scorer": 1052673,
+      "type_emb": 3072
+    }
+  },
+  "laya-multilingual": {
+    "disk_bytes": 678201614,
+    "params_total": 321908998,
+    "params_by_part": {
+      "temperature": 3,
+      "act_head": 198402,
+      "encoder": 306939648,
+      "head": 14175744,
+      "scorer": 592897,
+      "type_emb": 2304
+    }
+  },
+  "laya-typed-decisions": {
+    "disk_bytes": 846195716,
+    "params_total": 421293830,
+    "params_by_part": {
+      "act_head": 263938,
+      "encoder": 394781696,
+      "head": 25192448,
+      "scorer": 1052673,
+      "temperature": 3,
+      "type_emb": 3072
+    }
+  },
+  "kev-0.8b": {
+    "disk_bytes": 1835473685,
+    "disk_bytes_adapter": 65559936,
+    "disk_bytes_base": 1769913749,
+    "params_language_model": 752393024,
+    "params_lora": 10822656,
+    "params_head": 524800,
+    "params_total_served": 763740480,
+    "params_base_unused": {
+      "visual": 100592896,
+      "mtp": 20452864
+    }
+  },
+  "kev-4b": {
+    "disk_bytes": 9502566622,
+    "disk_bytes_adapter": 159741871,
+    "disk_bytes_base": 9342824751,
+    "params_language_model": 4205751296,
+    "params_lora": 32464896,
+    "params_head": 1311232,
+    "params_total_served": 4239527424,
+    "params_base_unused": {
+      "mtp": 120599552,
+      "visual": 333514240
+    }
+  },
+  "kev-9b": {
+    "disk_bytes": 19530970823,
+    "disk_bytes_adapter": 201659847,
+    "disk_bytes_base": 19329310976,
+    "params_language_model": 7936684544,
+    "params_lora": 43278336,
+    "params_head": 2097664,
+    "params_total_served": 7982060544,
+    "params_base_unused": {
+      "lm_head": 1017118720,
+      "mtp": 243290624,
+      "visual": 456010480
+    }
+  }
+}

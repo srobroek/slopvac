@@ -1,0 +1,93 @@
+{
+  "base": "kev-0.8b",
+  "rule": "Reads .cache/runs/sweep-<base-arm>/*/finetune.json (every candidate trained with seed 17 on the train split) and writes results/sweep-<base-arm>.json with each candidate's hyperparameters, training cost and `calibration_eval`. The chosen candidate has the highest calibration noul balanced accuracy; ties (within 0.005) go to the higher calibration noul AUROC, then to the earlier (cheaper) candidate in the order they were trained. No test-split number is read here.",
+  "candidates": [
+    {
+      "tag": "lr5e-5-e2-noreplay-s17",
+      "trained_at": 1790586398.044524,
+      "hyperparameters": {
+        "lr": 5e-05,
+        "batch": 4,
+        "accum": 2,
+        "checkpointing": 1,
+        "epochs": 2,
+        "seed": 17,
+        "replay": 0,
+        "p_none_pair": 0.25,
+        "device": "mps",
+        "dtype": "fp32",
+        "lora": 16,
+        "head_dim": 256,
+        "lora_targets": "all",
+        "weights_dtype": "fp32"
+      },
+      "train_wall_time_s": 1505.0,
+      "temperature_fit_on_calibration": 2.549121254638524,
+      "calibration_eval": {
+        "noul": {
+          "n": 108,
+          "accuracy": 0.7222222222222222,
+          "balanced_accuracy": 0.6319444444444444,
+          "auroc": 0.7299382716049383,
+          "brier": 0.18890155613899892,
+          "nll": 0.5592381538226633,
+          "ece_15": 0.06657082283031607
+        },
+        "choice": {
+          "n": 72,
+          "accuracy": 0.6111111111111112,
+          "balanced_accuracy": 0.6111111111111112,
+          "auroc": 0.6990740740740741,
+          "brier": 0.4545098292144012,
+          "nll": 0.6552024550385901,
+          "ece_15": 0.07837850696978083,
+          "abstain_rate": 0.0
+        }
+      }
+    },
+    {
+      "tag": "recipe-s17",
+      "trained_at": 1790602831.8377597,
+      "hyperparameters": {
+        "lr": 2e-05,
+        "batch": 4,
+        "accum": 2,
+        "checkpointing": 1,
+        "epochs": 1,
+        "seed": 17,
+        "replay": 2000,
+        "p_none_pair": 0.25,
+        "device": "mps",
+        "dtype": "fp32",
+        "lora": 16,
+        "head_dim": 256,
+        "lora_targets": "all",
+        "weights_dtype": "fp32"
+      },
+      "train_wall_time_s": 16301.7,
+      "temperature_fit_on_calibration": 1.6245047927124707,
+      "calibration_eval": {
+        "noul": {
+          "n": 108,
+          "accuracy": 0.6944444444444444,
+          "balanced_accuracy": 0.5555555555555556,
+          "auroc": 0.6898148148148148,
+          "brier": 0.20395015277507986,
+          "nll": 0.5964448346908815,
+          "ece_15": 0.09153020129777098
+        },
+        "choice": {
+          "n": 72,
+          "accuracy": 0.5277777777777778,
+          "balanced_accuracy": 0.5277777777777778,
+          "auroc": 0.6134259259259259,
+          "brier": 0.5326717287272025,
+          "nll": 0.8017292579792645,
+          "ece_15": 0.13010726229833433,
+          "abstain_rate": 0.0
+        }
+      }
+    }
+  ],
+  "chosen": "lr5e-5-e2-noreplay-s17"
+}
