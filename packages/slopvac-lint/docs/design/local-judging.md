@@ -293,15 +293,27 @@ Mistral, OpenAI open-weight, Qwen, DeepSeek, Google, and others that support
 Bedrock batch inference. The roster records each model's vendor and tier. No
 model produces more than 12% of the generated documents.
 
-**Items.** An item is a bounded span, a question from the question pack, and a
-label. Items come from four sources:
+**Items.** An item is a span, a question from the question pack, and a label.
+The span is one paragraph. The state also carries the section heading and the
+neighbouring paragraphs as context, within the portable profile's token cap.
+Items serve the two roles:
 
-| Source | Label origin | Splits |
-| --- | --- | --- |
-| Lint-rule `bad` and `good` example pairs | Construction | `train`, `calibration` |
-| Judgement-rule exemplars and gold-v1 seeded rows at commit `49a91f2b^` | Construction | `test` |
-| Rule exemplars seeded into human carrier passages, with matched unseeded controls | Construction | All splits |
-| Deterministic findings and semantic candidates on human and generated documents | Teacher panel for `train`. Two human adjudicators for `test` | `train`, `test` |
+- **Finding confirmation (lint rules).** slopvac lints every corpus document.
+  Each finding becomes one item: the paragraph that contains it, the rule ID and
+  message, and the finding's offsets. The question asks whether the finding is a
+  `real-defect`, a `false-positive`, or `insufficient-context`. Lint rules are
+  never asked as open-ended detection questions.
+- **Semantic detection (judgement rules).** Each of the 65 judgement rules at
+  commit `49a91f2b^` asks its own question of a paragraph. The answer is `noul`,
+  with the rule's exemplars as criteria.
+
+| Source | Role | Label origin | Splits |
+| --- | --- | --- | --- |
+| Lint findings on human and generated documents | Confirmation | Teacher panel for `train`. Two human adjudicators for `test` | `train`, `test` |
+| Lint-rule `bad` examples seeded into human paragraphs, linted in place | Confirmation | Construction: `real-defect` | All splits |
+| Judgement-rule exemplars seeded into human paragraphs, with the unseeded paragraph as control | Detection | Construction | All splits |
+| Judgement rules asked of unseeded human and generated paragraphs | Detection | Teacher panel for `train`. Two human adjudicators for `test` | `train`, `test` |
+| gold-v1 seeded and control rows at commit `49a91f2b^` | Detection | Construction | `test` |
 
 The teacher panel is three Bedrock models from different vendors. An item enters
 `train` only when at least two panel models agree. Teacher labels never enter
@@ -463,7 +475,7 @@ created from a worktree branched off that branch. The feature branch merges to
 | Stage | Deliverable | Acceptance |
 | --- | --- | --- |
 | 1. Pilot | Zero-shot and post-trained runs of every arm on lint-rule example pairs | Report with per-arm metrics and hardware fit. |
-| 2. Corpus | Human pointers, briefs, generated documents, items, frozen splits | Counts per genre, vendor, and tier. Leak and dedup counts. Split digests committed. |
+| 2. Corpus | Human pointers, briefs, generated documents, paragraph items for both roles, teacher labels, frozen splits | Counts per genre, vendor, and tier. Item counts per role, rule, and label origin. Leak and dedup counts. Split digests committed. |
 | 3. Benchmark | Zero-shot and post-trained runs of every arm on the corpus, serially | Full metric report per run. Maintainer selects the default. |
 | 4. Contract and server | `slopvac-judge` package, Jev client, config, conformance suite, `serve`, `pull` | Conformance passes against `serve` with the default model, every advisory check included. Lint CLI tests unchanged. |
 | 5. Release | Rebuild workflow, signed Hub release of the default model | `pull` verifies the release on a clean machine, and the gates pass. |
