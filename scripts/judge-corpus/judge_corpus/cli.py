@@ -96,6 +96,8 @@ def cmd_submit_briefs(args: argparse.Namespace) -> None:
         token_estimate(json.dumps(row["modelInput"])) for row in read_jsonl(input_path)
     )
     records = sum(1 for _ in read_jsonl(input_path))
+    if records < 100:
+        raise ValueError("Bedrock batch jobs require at least 100 records")
     resources = json.loads((root / "ledgers" / "resources.json").read_text())
     uri = args.s3_uri or upload(
         root, input_path, f"inputs/{args.stage}/{input_path.name}"
@@ -176,10 +178,12 @@ def cmd_prepare_generation(args: argparse.Namespace) -> None:
 def cmd_submit_generation(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
     input_path = Path(args.input).resolve()
+    records = sum(1 for _ in read_jsonl(input_path))
+    if records < 100:
+        raise ValueError("Bedrock batch jobs require at least 100 records")
     uri = args.s3_uri or upload(
         root, input_path, f"inputs/generation/{input_path.name}"
     )
-    records = sum(1 for _ in read_jsonl(input_path))
     input_tokens = sum(
         token_estimate(json.dumps(row["modelInput"])) for row in read_jsonl(input_path)
     )
@@ -272,18 +276,9 @@ def cmd_report(args: argparse.Namespace) -> None:
         "| Genre | Vendor | Tier | Count |",
         "|---|---|---|---:|",
     ]
-    brief_map = {
-        row["id"]: row for row in read_jsonl(root / "briefs" / "manifest.jsonl")
-    }
     for (genre, vendor, tier), count in sorted(
         Counter(
-            (
-                brief_map.get(row["brief_id"], {})
-                .get("brief", {})
-                .get("genre", "unknown"),
-                row["vendor"],
-                row["tier"],
-            )
+            (row.get("genre", "unknown"), row["vendor"], row["tier"])
             for row in generated
         ).items()
     ):

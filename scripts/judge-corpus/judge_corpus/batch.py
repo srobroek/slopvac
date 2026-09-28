@@ -204,19 +204,30 @@ def collect_briefs(
                 }
             )
         else:
+            brief_cache_path = Path(".cache") / "briefs" / f"{source_id}.json"
+            cache_file = root / brief_cache_path
+            cache_file.parent.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(
+                json.dumps(brief, ensure_ascii=False, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
             accepted.append(
                 {
                     "id": f"brief-{source_id}",
                     "source_id": source_id,
                     "model": model_id,
                     "brief": brief,
+                    "brief_cache_path": str(brief_cache_path),
                     "digest": sha256_text(
                         json.dumps(brief, sort_keys=True, ensure_ascii=False)
                     ),
                     "overlap_score": overlap[0],
                 }
             )
-    write_jsonl(root / "briefs" / "manifest.jsonl", accepted)
+    manifest = [
+        {key: value for key, value in row.items() if key != "brief"} for row in accepted
+    ]
+    write_jsonl(root / "briefs" / "manifest.jsonl", manifest)
     write_jsonl(root / "briefs" / "rejections.jsonl", rejected)
     return accepted, rejected
 
@@ -240,6 +251,10 @@ def prepare_generation(
     # Two disjoint rotations make vendor/tier coverage deterministic. The same
     # model receives at most ceil(2/n) of rows, below 12% for n >= 17.
     for index, brief in enumerate(briefs):
+        brief_payload = brief.get("brief")
+        if brief_payload is None:
+            cache_path = root / brief["brief_cache_path"]
+            brief_payload = json.loads(cache_path.read_text(encoding="utf-8"))
         for offset in (0, 1):
             model = models[(index * 2 + offset) % len(models)]
             record_id = (
@@ -249,7 +264,7 @@ def prepare_generation(
                 "recordId": record_id,
                 "modelInput": model_body(
                     model["model_id"],
-                    generation_prompt(brief["brief"]),
+                    generation_prompt(brief_payload),
                     max_tokens=1200,
                 ),
             }
@@ -326,7 +341,7 @@ def collect_generated(
                     "id": record_id,
                     "brief_id": assignment["brief_id"],
                     "source_id": assignment["source_id"],
-                    "model": model_id,
+                    "genre": source_map[assignment["source_id"]]["genre"],
                     "vendor": assignment["vendor"],
                     "tier": assignment["tier"],
                     "inference_params": {"temperature": 0.2, "max_tokens": 1200},
