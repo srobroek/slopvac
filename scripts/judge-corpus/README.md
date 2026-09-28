@@ -13,18 +13,18 @@ Use AWS profile `sjors+ig-genai-Admin` in account `536697262379` and region `us-
 
 ## Reproduce
 
-Run the smoke corpus before scaling. The commands create a 50-source manifest, a roster, one Stage 1 batch input, and a Stage 2 batch input.
+Run the smoke corpus with 100 sources so the Bedrock batch minimum is met. The commands create a 100-source manifest, a roster, one Stage 1 batch input, and a Stage 2 batch input.
 
 ```sh
 cd scripts/judge-corpus
-uv run judge-corpus sources --limit 50
+uv run judge-corpus sources --limit 100
 uv run judge-corpus roster
 uv run judge-corpus provision
-uv run judge-corpus prepare-briefs --limit 50 --model amazon.nova-lite-v1:0
+uv run judge-corpus prepare-briefs --limit 100 --model amazon.nova-lite-v1:0
 uv run judge-corpus submit-briefs --input briefs/input.jsonl --model amazon.nova-lite-v1:0 --stage smoke-briefs
 uv run judge-corpus wait --job-arn ARN_FROM_THE_PREVIOUS_COMMAND
 uv run judge-corpus collect-briefs --prefix outputs/smoke-briefs/INPUT_STEM --model amazon.nova-lite-v1:0
-uv run judge-corpus prepare-generation --limit 50
+uv run judge-corpus prepare-generation --limit 100
 ```
 
 After inspecting the smoke report, rebuild the full manifest and submit each generation input file sequentially. `prepare-generation` assigns every brief to two models with deterministic vendor and tier rotation.
