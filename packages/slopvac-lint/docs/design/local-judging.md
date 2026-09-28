@@ -336,8 +336,10 @@ Calibration temperatures and decision thresholds are fitted per genre, and
 every metric is reported per genre. A per-genre Kev LoRA adapter is trained only
 when one genre trails the others by more than a gate margin.
 
-Splits are grouped by source document and by rule, so no document and no rule
-crosses splits. The `train`, `dev`, `calibration`, and `test` manifests are
+Splits are grouped by document family: a human document and the documents
+generated from its brief share one split. About 20% of lint rules and 20% of
+judgement rules are held out. Their items appear only in `test`, which reports
+seen-rule and unseen-rule slices separately. The `train`, `dev`, `calibration`, and `test` manifests are
 frozen with SHA-256 digests before any arm runs on `test`. The test split has
 at least 500 items. Two adjudicators label its model-derived items, and the
 report gives Cohen's kappa.
