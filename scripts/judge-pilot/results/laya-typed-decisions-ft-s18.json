@@ -78,13 +78,13 @@
   "latency": {
     "single_request_all_test_ms": {
       "n": 483,
-      "p50": 39.357,
-      "p95": 74.4472
+      "p50": 34.179,
+      "p95": 50.551199999999994
     },
     "single_request_noul_test_ms": {
       "n": 207,
-      "p50": 36.796,
-      "p95": 74.68319999999994
+      "p50": 31.577,
+      "p95": 45.471299999999985
     }
   },
   "throughput": null,
@@ -490,5 +490,147 @@
     "phys_footprint_bytes": 11691248160,
     "lifetime_max_phys_footprint_bytes": 12018158328,
     "torch": "2.14.0"
-  }
+  },
+  "host_contention": {
+    "evaluation_run": null,
+    "latency_remeasure": [
+      {
+        "at": 1790611529.974187,
+        "swap_used_bytes": 19336265728,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 17941905408,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7035360968
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2956267192
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 1998425472
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1924413752
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1359678416
+          },
+          {
+            "pid": 8653,
+            "name": "Zen GPU Helper",
+            "cmdline": "/Applications/Zen.app/Contents/MacOS/gpu-helper.app/Contents/MacOS/Zen GPU Helper -parentBuildID 20260922050124 -prefsHandle 0:40735 -prefMapHandle 1:305510 -sbStartup -sbAppPath /Applications/Zen.app -ipcHandle 0 -initialChannelId {1978edb6-e53f-4db6-8f9e-6a15d80943f1} -parentPid 7493 -appDir /Appl",
+            "phys_footprint_bytes": 1268352968
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1161334264
+          }
+        ]
+      },
+      {
+        "at": 1790611556.325265,
+        "swap_used_bytes": 19336265728,
+        "swap_total_bytes": 20401094656,
+        "memory_available_bytes": 17693868032,
+        "other_processes_over_1gib": [
+          {
+            "pid": 69927,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 7035360968
+          },
+          {
+            "pid": 6322,
+            "name": "tsc",
+            "cmdline": "/Users/sjors/personal/dev/omp-plugins/node_modules/@typescript/typescript-darwin-arm64/lib/tsc --lsp --stdio",
+            "phys_footprint_bytes": 2956267192
+          },
+          {
+            "pid": 75518,
+            "name": "com.apple.Virtualization.VirtualMachine",
+            "cmdline": "/System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine",
+            "phys_footprint_bytes": 2165264008
+          },
+          {
+            "pid": 862,
+            "name": "ghostty",
+            "cmdline": "/Applications/Ghostty.app/Contents/MacOS/ghostty",
+            "phys_footprint_bytes": 2120502656
+          },
+          {
+            "pid": 20249,
+            "name": "omp",
+            "cmdline": "omp --resume 01a0d349",
+            "phys_footprint_bytes": 1923217720
+          },
+          {
+            "pid": 50390,
+            "name": "python3.12",
+            "cmdline": "/Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/python /Users/sjors/.local/share/local-judge/rizzo-flow/.venv/bin/rizzo serve --size 4b --quant q8_0 --weights flow --device auto --host 127.0.0.1 --port 8017",
+            "phys_footprint_bytes": 1659999272
+          },
+          {
+            "pid": 89025,
+            "name": "omp",
+            "cmdline": "omp --resume",
+            "phys_footprint_bytes": 1358810064
+          },
+          {
+            "pid": 8653,
+            "name": "Zen GPU Helper",
+            "cmdline": "/Applications/Zen.app/Contents/MacOS/gpu-helper.app/Contents/MacOS/Zen GPU Helper -parentBuildID 20260922050124 -prefsHandle 0:40735 -prefMapHandle 1:305510 -sbStartup -sbAppPath /Applications/Zen.app -ipcHandle 0 -initialChannelId {1978edb6-e53f-4db6-8f9e-6a15d80943f1} -parentPid 7493 -appDir /Appl",
+            "phys_footprint_bytes": 1266173896
+          },
+          {
+            "pid": 66896,
+            "name": "omp",
+            "cmdline": "omp",
+            "phys_footprint_bytes": 1160596984
+          }
+        ]
+      }
+    ]
+  },
+  "latency_evaluation_run": {
+    "single_request_all_test_ms": {
+      "n": 483,
+      "p50": 39.357,
+      "p95": 74.4472
+    },
+    "single_request_noul_test_ms": {
+      "n": 207,
+      "p50": 36.796,
+      "p95": 74.68319999999994
+    }
+  },
+  "latency_remeasured_at": 1790611556.325303
 }

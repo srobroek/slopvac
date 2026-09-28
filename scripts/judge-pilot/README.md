@@ -69,7 +69,11 @@ ln -s sweep-laya-typed-decisions/<chosen> .cache/runs/ft-laya-typed-decisions-s1
 .cache/laya-venv/bin/python finetune_laya.py --seed 18 <chosen flags>
 HF_HUB_OFFLINE=1 python3 serve_arm.py laya-typed-decisions-ft-s17 8110
 $H run_arm.py laya-typed-decisions-ft-s17 --port 8110 --skip-throughput && $H metrics.py laya-typed-decisions-ft-s17
-# Kev uses the same pattern with .cache/src/kev/.venv/bin/python finetune_kev.py kev-0.8b ...
+# Kev: same pattern. Chosen Kev-0.8B config (also used for Kev-4B):
+.cache/src/kev/.venv/bin/python finetune_kev.py kev-0.8b --lr 5e-5 --epochs 2 --replay 0 --seed 18
+# Latency re-measure for every compared arm in one window (answers discarded, predictions kept);
+# metrics.py then reports this latency and keeps the evaluation-run one as latency_evaluation_run.
+$H run_arm.py kev-0.8b-ft-s18 --port 8110 --latency-only && $H metrics.py kev-0.8b-ft-s18
 $H compare.py
 ```
 
