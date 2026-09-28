@@ -242,6 +242,7 @@ def cmd_report(args: argparse.Namespace) -> None:
     dedup = list(read_jsonl(root / "sources" / "dedup.jsonl"))
     rejected_briefs = list(read_jsonl(root / "briefs" / "rejections.jsonl"))
     rejected_generated = list(read_jsonl(root / "generated" / "rejections.jsonl"))
+    skips = list(read_jsonl(root / "sources" / "skips.jsonl"))
     lines = [
         "# Slopvac corpus build report",
         "",
@@ -317,6 +318,25 @@ def cmd_report(args: argparse.Namespace) -> None:
         )
     else:
         lines.append("- No AWS resources recorded.")
+    lines += [
+        "",
+        "## Skips",
+        "",
+        "| Source family | Reason | Count |",
+        "|---|---|---:|",
+    ]
+    for (family, reason), count in sorted(
+        Counter(
+            (row.get("source_family", "unknown"), row.get("reason", ""))
+            for row in skips
+        ).items()
+    ):
+        lines.append(f"| {family} | {reason} | {count} |")
+    if resources.exists():
+        for job in json.loads(resources.read_text()).get("jobs", []):
+            lines.append(
+                f"- Job: `{job.get('job_arn')}` ({job.get('status', 'unknown')})"
+            )
     (root / "corpus-build-report.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )

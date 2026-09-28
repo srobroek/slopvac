@@ -66,6 +66,13 @@ def clients():
 
 def pricing_for(model_id: str) -> tuple[float, float] | None:
     foundation_id = model_id.rsplit("/", 1)[-1]
+    # Batch jobs often use an inference-profile ARN whose final component is
+    # prefixed with a geography (global., us., eu.). Pricing is published for
+    # the provider model ID, so normalize that routing prefix before lookup.
+    for region_prefix in ("global.", "us.", "eu.", "apac."):
+        if foundation_id.startswith(region_prefix):
+            foundation_id = foundation_id[len(region_prefix) :]
+            break
     return next(
         (
             prices

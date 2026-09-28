@@ -7,10 +7,12 @@ never copied into git manifests.
 from __future__ import annotations
 
 import fnmatch
+from html import unescape
 import json
 import os
 import re
 import subprocess
+import xml.etree.ElementTree as ET
 import time
 import urllib.error
 import urllib.parse
@@ -128,6 +130,15 @@ REPOSITORIES = (
 )
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
+RFC_INDEX = "https://www.rfc-editor.org/rfc-index.txt"
+RFC_BASE = "https://www.rfc-editor.org/rfc/rfc{number}.txt"
+STACKEXCHANGE_BASE = "https://archive.org/download/stackexchange_20220606"
+STACKEXCHANGE_SITES = (
+    "ai.stackexchange.com",
+    "stats.stackexchange.com",
+    "softwareengineering.stackexchange.com",
+    "superuser.com",
+)
 
 
 @dataclass(frozen=True)
@@ -410,6 +421,140 @@ def _github_rows(
     return rows
 
 
+def _rfc_rows(root: Path, limit: int, retrieved_at: str) -> list[CachedSource]:
+    """Sample immutable RFC text from the RFC Editor's bulk index."""
+    if limit <= 0:
+        return []
+    index = _request(RFC_INDEX).decode("utf-8", "replace")
+    blocks = re.findall(r"(?ms)^\s*(\d+)\s+(.+?)(?=^\s*\d+\s+|\Z)", index)
+    rows: list[CachedSource] = []
+    month_names = (
+        "January|February|March|April|May|June|July|August|September|October|"
+        "November|December"
+    )
+    for number, block in blocks:
+        publication = re.search(rf"\b({month_names})\s+(\d{{4}})\.", block)
+        if not publication or int(publication.group(2)) > 2021:
+            continue
+        url = RFC_BASE.format(number=number)
+        try:
+            raw = _request(url).decode("utf-8", "replace")
+        except (urllib.error.HTTPError, urllib.error.URLError):
+            continue
+        text = normalise(raw)
+        units = list(_sections(text)) or _document_chunks(text)
+        for section, body in units:
+            source_id = f"rfc-{number}-{sha256_text(section)[:10]}"
+            row = {
+                "id": source_id,
+                "genre": "reference",
+                "source_family": "rfc-editor",
+                "url": url,
+                "immutable_locator": {
+                    "rfc": int(number),
+                    "publication": f"{publication.group(1)} {publication.group(2)}",
+                    "section": section,
+                    "bulk_index": RFC_INDEX,
+                },
+                "licence": "IETF Trust Legal Provisions (RFC Editor)",
+                "redistribution_consent": "private S3 use under RFC Editor terms",
+                "retrieved_at": retrieved_at,
+                "word_count": len(body.split()),
+                "sha256": sha256_text(body),
+                "s3_key": f"human/{source_id}.txt",
+                "cache_path": _cache_text(root, source_id, body),
+            }
+            rows.append(CachedSource(row, body))
+            if len(rows) >= limit:
+                return rows
+    return rows
+
+
+def _stackexchange_rows(
+    root: Path, limit: int, retrieved_at: str
+) -> list[CachedSource]:
+    """Read question units from the dated Stack Exchange XML dump."""
+    if limit <= 0:
+        return []
+    rows: list[CachedSource] = []
+    per_site = (limit + len(STACKEXCHANGE_SITES) - 1) // len(STACKEXCHANGE_SITES)
+    for site in STACKEXCHANGE_SITES:
+        archive = root / ".cache" / "stackexchange" / f"{site}.7z"
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        if not archive.exists():
+            archive.write_bytes(_request(f"{STACKEXCHANGE_BASE}/{site}.7z"))
+        process = subprocess.Popen(
+            ["bsdtar", "-xOf", str(archive), "Posts.xml"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        site_rows = 0
+        stopped = False
+        try:
+            assert process.stdout is not None
+            for _, element in ET.iterparse(process.stdout, events=("end",)):
+                if element.tag != "row":
+                    continue
+                attrs = element.attrib
+                if attrs.get("PostTypeId") != "1":
+                    element.clear()
+                    continue
+                created = attrs.get("CreationDate", "")
+                if created > CUTOFF:
+                    element.clear()
+                    continue
+                title = unescape(attrs.get("Title", ""))
+                body = unescape(attrs.get("Body", ""))
+                text = normalise(re.sub(r"<[^>]+>", " ", f"{title}\n{body}"))
+                if len(text.split()) < 100:
+                    element.clear()
+                    continue
+                post_id = attrs.get("Id", "")
+                source_id = f"se-{site.replace('.', '-')}-{post_id}"
+                row = {
+                    "id": source_id,
+                    "genre": "informal",
+                    "source_family": "stackexchange-archive",
+                    "url": f"https://{site}/questions/{post_id}",
+                    "immutable_locator": {
+                        "dump": "stackexchange_20220606",
+                        "site": site,
+                        "post_id": int(post_id),
+                        "creation_date": created,
+                        "archive_file": f"{site}.7z",
+                    },
+                    "licence": "CC BY-SA 4.0 (Stack Exchange data dump)",
+                    "redistribution_consent": "private S3 use with attribution and share-alike",
+                    "retrieved_at": retrieved_at,
+                    "word_count": len(text.split()),
+                    "sha256": sha256_text(text),
+                    "s3_key": f"human/{source_id}.txt",
+                    "cache_path": _cache_text(root, source_id, text),
+                }
+                rows.append(CachedSource(row, text))
+                site_rows += 1
+                element.clear()
+                if site_rows >= per_site or len(rows) >= limit:
+                    stopped = True
+                    break
+        finally:
+            if stopped and process.poll() is None:
+                process.terminate()
+            if process.stdout:
+                process.stdout.close()
+            return_code = process.wait()
+            if return_code != 0 and not stopped:
+                error = (
+                    process.stderr.read().decode("utf-8", "replace")
+                    if process.stderr
+                    else ""
+                )
+                raise RuntimeError(f"bsdtar failed for {site}: {error.strip()}")
+        if len(rows) >= limit:
+            break
+    return rows
+
+
 def _wiki_rows(
     root: Path, limit: int | None, retrieved_at: str, existing: int
 ) -> list[CachedSource]:
@@ -499,12 +644,42 @@ def build_sources(
         .isoformat()
         .replace("+00:00", "Z")
     )
-    genre_target = (limit + 4) // 5 if limit else None
-    github = _github_rows(root, limit, retrieved_at, per_genre_limit=genre_target)
+    rfc_target = min(300, limit // 10) if limit else 0
+    stack_target = min(300, limit // 10) if limit else 0
+    github_limit = limit - rfc_target - stack_target if limit else None
+    genre_target = (github_limit + 4) // 5 if github_limit else None
+    github = _github_rows(
+        root, github_limit, retrieved_at, per_genre_limit=genre_target
+    )
+    rfc: list[CachedSource] = []
+    if rfc_target:
+        try:
+            rfc = _rfc_rows(root, rfc_target, retrieved_at)
+        except Exception as exc:
+            (root / "sources" / "skips.jsonl").parent.mkdir(parents=True, exist_ok=True)
+            with (root / "sources" / "skips.jsonl").open("a", encoding="utf-8") as fh:
+                fh.write(
+                    json.dumps({"source_family": "rfc-editor", "reason": str(exc)})
+                    + "\n"
+                )
+    stack: list[CachedSource] = []
+    if stack_target:
+        try:
+            stack = _stackexchange_rows(root, stack_target, retrieved_at)
+        except Exception as exc:
+            (root / "sources" / "skips.jsonl").parent.mkdir(parents=True, exist_ok=True)
+            with (root / "sources" / "skips.jsonl").open("a", encoding="utf-8") as fh:
+                fh.write(
+                    json.dumps(
+                        {"source_family": "stackexchange-archive", "reason": str(exc)}
+                    )
+                    + "\n"
+                )
+    existing = len(github) + len(rfc) + len(stack)
     try:
         wiki = (
-            _wiki_rows(root, limit, retrieved_at, len(github))
-            if not limit or len(github) < limit
+            _wiki_rows(root, limit, retrieved_at, existing)
+            if not limit or existing < limit
             else []
         )
     except Exception as exc:
@@ -514,7 +689,7 @@ def build_sources(
             fh.write(
                 json.dumps({"source_family": "wikipedia", "reason": str(exc)}) + "\n"
             )
-    candidates = github + wiki
+    candidates = github + rfc + stack + wiki
     accepted: list[dict] = []
     decisions: list[dict] = []
     buckets: dict[int, list[tuple[dict, set[tuple[str, ...]]]]] = {}

@@ -54,6 +54,10 @@ def generation_prompt(brief: dict) -> str:
 
 def model_body(model_id: str, prompt: str, *, max_tokens: int = 1000) -> dict:
     model = model_id.rsplit("/", 1)[-1]
+    for region_prefix in ("global.", "us.", "eu.", "apac."):
+        if model.startswith(region_prefix):
+            model = model[len(region_prefix) :]
+            break
     if model.startswith("anthropic."):
         return {
             "anthropic_version": "bedrock-2023-05-31",
