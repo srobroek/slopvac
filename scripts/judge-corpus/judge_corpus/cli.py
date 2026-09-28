@@ -364,14 +364,15 @@ def cmd_report(args: argparse.Namespace) -> None:
 
 
 def cmd_items_build(args: argparse.Namespace) -> None:
-    print(
-        json.dumps(
-            build_items(
-                root_from_args(args.root), include_generated=args.include_generated
-            ),
-            sort_keys=True,
-        )
+    shard = tuple(args.shard.split("/", 1)) if args.shard else None
+    shard_value = (int(shard[0]), int(shard[1])) if shard else None
+    result = build_items(
+        root_from_args(args.root),
+        include_generated=args.include_generated,
+        shard=shard_value,
+        merge_shards=args.merge_shards,
     )
+    print(json.dumps(result, sort_keys=True))
 
 
 def cmd_items_split(args: argparse.Namespace) -> None:
@@ -442,6 +443,10 @@ def parser() -> argparse.ArgumentParser:
     item_actions = items.add_subparsers(dest="items_action", required=True)
     s = item_actions.add_parser("build")
     s.add_argument("--include-generated", action="store_true")
+    s.add_argument("--shard", help="Stable source shard index/count, for example 0/4")
+    s.add_argument(
+        "--merge-shards", type=int, help="Merge shard manifests written by --shard"
+    )
     s.set_defaults(func=cmd_items_build)
     s = item_actions.add_parser("split")
     s.set_defaults(func=cmd_items_split)

@@ -55,17 +55,49 @@ def load_tokenizers() -> tuple[list[tuple[str, Tokenizer]], dict[str, str]]:
     return encoders, digests
 
 
+_TOKEN_CACHE: dict[tuple[str, str], int] = {}
+
+
 def token_count(text: str, encoders: list[tuple[str, Tokenizer]]) -> int:
-    return max(len(tokenizer.encode(text).ids) for _, tokenizer in encoders)
+    key = digest(text.encode("utf-8"))
+    counts = []
+    for name, tokenizer in encoders:
+        cache_key = (name, key)
+        count = _TOKEN_CACHE.get(cache_key)
+        if count is None:
+            count = len(tokenizer.encode_batch([text], add_special_tokens=False)[0].ids)
+            _TOKEN_CACHE[cache_key] = count
+        counts.append(count)
+    return max(counts)
 
 
 def _count(state: dict, question: dict, encoders: list[tuple[str, Tokenizer]]) -> int:
-    return token_count(
-        json.dumps(
-            {"state": state, "question": question}, ensure_ascii=False, sort_keys=True
-        ),
-        encoders,
+    state_text = json.dumps(state, ensure_ascii=False, sort_keys=True)
+    question_text = json.dumps(question, ensure_ascii=False, sort_keys=True)
+    state_key, question_key = (
+        digest(state_text.encode()),
+        digest(question_text.encode()),
     )
+    totals = []
+    for name, tokenizer in encoders:
+        missing = [
+            (cache_key, text)
+            for cache_key, text in (
+                (state_key, state_text),
+                (question_key, question_text),
+            )
+            if (name, cache_key) not in _TOKEN_CACHE
+        ]
+        if missing:
+            encodings = tokenizer.encode_batch(
+                [text for _, text in missing], add_special_tokens=False
+            )
+            for (cache_key, _), encoding in zip(missing, encodings):
+                _TOKEN_CACHE[(name, cache_key)] = len(encoding.ids)
+        totals.append(
+            _TOKEN_CACHE[(name, state_key)] + _TOKEN_CACHE[(name, question_key)]
+        )
+    return max(totals)
 
 
 def paragraphs(text: str) -> list[tuple[int, int, str]]:
@@ -529,6 +561,8 @@ def _make_item(
         "label": label,
         "label_origin": origin,
         "state_question_tokens": count,
+        "state": state,
+        "context": context,
     }
     if finding:
         item["finding"] = {
@@ -689,7 +723,73 @@ def _write_outputs(
     return report
 
 
-def build_items(root: Path, include_generated: bool = False) -> dict:
+def _read_texts(root: Path, rows: list[dict]) -> dict[str, str]:
+    texts = {}
+    for row in rows:
+        paths = [
+            row.get("cache_path"),
+            row.get("text_path"),
+            f".cache/generated/{row['id']}.txt",
+            f".cache/{row.get('s3_key', '')}" if row.get("s3_key") else None,
+        ]
+        path = next(
+            (root / value for value in paths if value and (root / value).is_file()),
+            None,
+        )
+        if path:
+            texts[row["id"]] = path.read_text(encoding="utf-8")
+    return texts
+
+
+def _merge_shards(root: Path, shard_count: int) -> dict:
+    rows = []
+    for index in range(shard_count):
+        path = root / ".cache/items/shards" / f"{index:02d}-of-{shard_count:02d}.jsonl"
+        rows.extend(read_jsonl(path))
+    unique = {row["id"]: row for row in rows}
+    merged = sorted(
+        unique.values(),
+        key=lambda row: (
+            row["split"],
+            row["role"],
+            row["rule_id"],
+            row["source_id"],
+            row["id"],
+        ),
+    )
+    if not merged:
+        raise ValueError("shard manifests are empty")
+    root_rows = list(read_jsonl(root / "sources/human.jsonl"))
+    generated = list(read_jsonl(root / "generated/manifest.jsonl"))
+    _, tokenizer_digests = load_tokenizers()
+    lint_rules, judge_rules = _rules_current(), _rules_judgement()
+    held_lint, held_judge = held_out(lint_rules), held_out(judge_rules)
+    counts = {
+        "human_documents": len(root_rows),
+        "generated_documents": len(generated),
+        "lint_findings": sum(
+            r["role"] == "finding-confirmation"
+            and r.get("label_origin") != "construction"
+            for r in merged
+        ),
+        "gold_v1_rows": sum(r.get("source_id") == "gold-v1" for r in merged),
+        "built_items": len(merged),
+    }
+    report = _write_outputs(
+        root, merged, tokenizer_digests, held_lint, held_judge, counts
+    )
+    report.update(counts)
+    return report
+
+
+def build_items(
+    root: Path,
+    include_generated: bool = False,
+    shard: tuple[int, int] | None = None,
+    merge_shards: int | None = None,
+) -> dict:
+    if merge_shards:
+        return _merge_shards(root, merge_shards)
     humans = list(read_jsonl(root / "sources/human.jsonl"))
     if not humans:
         raise ValueError("sources/human.jsonl is empty")
@@ -704,20 +804,13 @@ def build_items(root: Path, include_generated: bool = False) -> dict:
     held_lint, held_judge = held_out(lint_rules), held_out(judgement_rules)
     splits, human_splits = assign_splits(humans, generated)
     rows = humans + generated
-    texts = {}
-    for row in rows:
-        paths = [
-            row.get("cache_path"),
-            row.get("text_path"),
-            f".cache/generated/{row['id']}.txt",
-            f".cache/{row.get('s3_key', '')}" if row.get("s3_key") else None,
-        ]
-        p = next((root / x for x in paths if x and (root / x).is_file()), None)
-        if p:
-            texts[row["id"]] = p.read_text(encoding="utf-8")
-        elif row in humans:
-            raise FileNotFoundError(f"missing text cache for {row['id']}")
-    rows = [r for r in rows if r["id"] in texts]
+    if shard:
+        shard_index, shard_count = shard
+        if shard_count < 1 or shard_index < 0 or shard_index >= shard_count:
+            raise ValueError("shard must be index/count with 0 <= index < count")
+        rows = [row for row in rows if seed(row["id"]) % shard_count == shard_index]
+    texts = _read_texts(root, rows)
+    rows = [row for row in rows if row["id"] in texts]
     work = root / ".cache/items/lint-input"
     work.mkdir(parents=True, exist_ok=True)
     lint_files = []
@@ -727,6 +820,7 @@ def build_items(root: Path, include_generated: bool = False) -> dict:
         lint_files.append((row["id"], path))
     findings = _run_lint(lint_files)
     items = []
+    shard_index, shard_count = shard or (0, 1)
     for row in rows:
         source_id, text, split = row["id"], texts[row["id"]], splits[row["id"]]
         srcgroup = _source_group(row)
@@ -763,7 +857,8 @@ def build_items(root: Path, include_generated: bool = False) -> dict:
         candidates.sort(
             key=lambda r: (seed(f"17:rule-choice:{source_id}:{r['id']}"), r["id"])
         )
-        for rule in candidates[:3]:
+        selected_rules = candidates[:3]
+        for rule in selected_rules:
             ps = paragraphs(text)
             if not ps:
                 continue
@@ -806,6 +901,8 @@ def build_items(root: Path, include_generated: bool = False) -> dict:
                     r["id"],
                 ),
             )
+            if shard and seed(host["id"]) % shard_count != shard_index:
+                continue
             base = texts[host["id"]]
             ps = paragraphs(base)
             if not ps:
@@ -873,10 +970,19 @@ def build_items(root: Path, include_generated: bool = False) -> dict:
         exs = rule.get("examples", [])
         if not exs:
             continue
+        eligible_hosts = [
+            r
+            for r in humans
+            if shard is None or seed(r["id"]) % shard_count == shard_index
+        ]
+        if not eligible_hosts:
+            continue
         host = min(
-            humans,
+            eligible_hosts,
             key=lambda r: (seed(f"17:judgeseed:{rule['id']}:{r['id']}"), r["id"]),
         )
+        if shard and seed(host["id"]) % shard_count != shard_index:
+            continue
         base = texts[host["id"]]
         ps = paragraphs(base)
         if not ps:
@@ -965,6 +1071,16 @@ def build_items(root: Path, include_generated: bool = False) -> dict:
     items = sorted(
         unique.values(), key=lambda x: (x["split"], x["role"], x["rule_id"], x["id"])
     )
+    if shard:
+        shard_path = (
+            root / ".cache/items/shards" / f"{shard[0]:02d}-of-{shard[1]:02d}.jsonl"
+        )
+        write_jsonl(shard_path, items)
+        return {
+            "shard": list(shard),
+            "items": len(items),
+            "manifest": str(shard_path.relative_to(root)),
+        }
     for x in items:
         if (
             x["rule_held_out"]
