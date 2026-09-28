@@ -92,11 +92,15 @@ The client normalises answers into one internal shape:
 
 Question packs MUST fit both the default model and the Laya and Kev families,
 so an override answers the same questions. The binding limits are Laya's 512 to
-1,024 token context defaults and Laya's documented option-budget collapse.
+1,024 token context defaults, the 8,192-token native context of its ModernBERT
+encoders, and Laya's documented option-budget collapse.
 
 - At most 8 options per `choice` question and at most 10 levels per `score`.
-- Serialized `state` plus the longest question fit in 1,024 tokens of the
-  shortlisted tokenizer with the most tokens for the text.
+- Serialized `state` plus the longest question fit in 1,024 tokens for sentence
+  and paragraph spans, and in 4,096 tokens for document spans. Tokens are
+  counted with whichever Laya or Kev tokenizer yields more.
+- A server that cannot accept a 4,096-token document span reports those
+  questions as `not-run`. Document-span results are reported as their own slice.
 - Option IDs are lowercase ASCII identifiers. Option descriptions are one
   sentence each.
 - Each question pack has a semantic version. Its SHA-256 digest is part of every
@@ -294,9 +298,17 @@ Bedrock batch inference. The roster records each model's vendor and tier. No
 model produces more than 12% of the generated documents.
 
 **Items.** An item is a span, a question from the question pack, and a label.
-The span is one paragraph. The state also carries the section heading and the
-neighbouring paragraphs as context, within the portable profile's token cap.
-Items serve the two roles:
+Spans come at three granularities, recorded on every item and reported as
+separate slices:
+
+| Granularity | Span | Target share |
+| --- | --- | --- |
+| Sentence | One sentence | 30% |
+| Paragraph | One paragraph, with the section heading and neighbouring paragraphs as context | 45% |
+| Document | The whole unit, or its longest leading run of whole sections within the cap, marked `truncated` | 25% |
+
+Seeded defects and finding offsets are expressed relative to the span at each
+granularity. Items serve the two roles:
 
 - **Finding confirmation (lint rules).** slopvac lints every corpus document.
   Each finding becomes one item: the paragraph that contains it, the rule ID and
