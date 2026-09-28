@@ -1,7 +1,7 @@
 """Fine-tune Laya typed-decisions on the pilot train split with Laya's shipped RLCD recipe.
 
-    .cache/laya-venv/bin/python finetune_laya.py
-
+    .cache/laya-venv/bin/python finetune_laya.py [--seed N] [--out DIR] [--epochs E]
+        [--lr_encoder LR] [--lr_head LR] [--ce_weight W]
 Port of the training script in Laya's notebook
 notebooks/laya_finetune_typed_decisions_2xT4_kaggle.ipynb (commit 9d95567, cells 6/8) to one
 Apple-silicon device. Kept from the recipe: RLCD loss (4 zero-mean noisy logit samples, proper
@@ -11,11 +11,15 @@ sigma 0.4 -> 0.1, 4 epochs, micro-batch 8, gradient clip 1.0, encoder + head gra
 checkpointing, per-type temperature fit (LBFGS on NLL) and removal of inherited
 temperature_by_options. Changed for this host and pilot: one device instead of 2xT4 DDP, so
 grad-accum 8 keeps the recipe's effective batch of 64; fp32 instead of CUDA fp16 autocast; the
-temperatures are fitted on the pilot calibration split, not on a slice of training items; seed 17.
-Training items are built with the same internal question form the server uses (Agent._to_internal).
-Writes .cache/runs/ft-laya-typed-decisions/{model/, finetune.json}.
+temperatures are fitted on the pilot calibration split, not on a slice of training items; seed
+17 by default. Training items are built with the same internal question form the server uses
+(Agent._to_internal). The flags override the recipe's values for the calibration-split sweep.
+Writes <out>/{model/, finetune.json}; <out> defaults to .cache/runs/ft-laya-typed-decisions-s<seed>.
+finetune.json carries `calibration_eval`: noul and choice metrics on the calibration split at the
+fitted temperatures (metrics.summarize), the only numbers hyperparameters are chosen on.
 """
 
+import argparse
 import json
 import math
 import os
@@ -39,11 +43,12 @@ from laya.common import (
 from safetensors.torch import load_file, save_file
 from transformers import AutoTokenizer
 
-from arms import ARMS, RUNS
+from arms import ARMS, RUNS, ft_run
 from memory import rusage_footprint
+from metrics import summarize
 
 PILOT = Path(__file__).resolve().parent
-OUT = RUNS / "ft-laya-typed-decisions"
+BASE_COPY = RUNS / "laya-typed-decisions-base"
 CHOICE_ORDER = ["real-defect", "no-defect", "insufficient-context"]
 HP = {
     "epochs": 4,
@@ -156,13 +161,41 @@ def load_split(name):
     ]
 
 
+def calibration_eval(by_type, temps):
+    """Metrics on the calibration split at the fitted temperatures (noul and choice only)."""
+    out = {}
+    for kind, t in (("choice", QTYPES["choice"]), ("noul", QTYPES["noul"])):
+        z = np.array([s[0] for s in by_type[t]]) / temps[t]
+        e = np.exp(z - z.max(axis=1, keepdims=True))
+        P = e / e.sum(axis=1, keepdims=True)
+        y = np.array([s[1].index(1.0) for s in by_type[t]])
+        out[kind] = summarize(P, y, kind)
+    return out
+
+
+def parse_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--seed", type=int, default=HP["seed"])
+    ap.add_argument("--out", default="")
+    for k in ("epochs",):
+        ap.add_argument(f"--{k}", type=int, default=HP[k])
+    for k in ("lr_encoder", "lr_head", "ce_weight"):
+        ap.add_argument(f"--{k}", type=float, default=HP[k])
+    a = ap.parse_args()
+    for k in ("seed", "epochs", "lr_encoder", "lr_head", "ce_weight"):
+        HP[k] = getattr(a, k)
+    return Path(a.out) if a.out else ft_run("laya-typed-decisions", a.seed)
+
+
 def main():
+    OUT = parse_args()
+    OUT.mkdir(parents=True, exist_ok=True)
     arm = ARMS["laya-typed-decisions"]
     random.seed(HP["seed"])
     np.random.seed(HP["seed"])
     torch.manual_seed(HP["seed"])
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    base_dir = OUT / "base"
+    base_dir = BASE_COPY
     if not base_dir.exists():
         shutil.copytree(
             snapshot_download(arm["repo"], revision=arm["revision"]),
@@ -329,6 +362,7 @@ def main():
         "temperatures_fit_on_calibration": dict(
             zip(["choice", "score", "noul"], temps)
         ),
+        "calibration_eval": calibration_eval(by_type, temps),
         "wall_time_s": round(train_wall, 1),
         "device": str(device),
         "peak_rss_bytes_sampled": peak_rss,
@@ -344,6 +378,7 @@ def main():
                     "wall_time_s",
                     "temperatures_fit_on_calibration",
                     "optimizer_steps",
+                    "calibration_eval",
                 )
             }
         )

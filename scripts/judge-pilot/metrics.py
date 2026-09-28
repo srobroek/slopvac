@@ -272,9 +272,17 @@ def main(names):
         noul.pop("_test_ids")
         choice.pop("_test_ids")
         extra = {}
-        ft_meta = RUNS / f"ft-{name.removesuffix('-ft')}" / "finetune.json"
-        if arm["local"] and ft_meta.exists():
-            extra["finetune"] = json.loads(ft_meta.read_text())
+        if arm.get("ft_run"):
+            extra["finetune"] = json.loads(
+                (Path(arm["ft_run"]) / "finetune.json").read_text()
+            )
+        extra["host_contention"] = {"evaluation_run": run.get("host_contention")}
+        remeasured = RUNS / name / "latency.json"
+        if remeasured.exists():
+            lat = json.loads(remeasured.read_text())
+            extra["latency_evaluation_run"] = latency(records)
+            extra["latency_remeasured_at"] = lat["measured_at"]
+            extra["host_contention"]["latency_remeasure"] = lat["host_contention"]
         result = {
             "arm": name,
             "family": arm["family"],
@@ -307,7 +315,7 @@ def main(names):
             "load_time_s": run["load_time_s"],
             "warmup_latency_ms": run.get("warmup_latency_ms"),
             "memory": run["memory"],
-            "latency": latency(records),
+            "latency": latency(lat["requests"] if remeasured.exists() else records),
             "throughput": run["throughput"],
             "metrics": {"noul": noul, "choice": choice},
             "compat": run["compat"],

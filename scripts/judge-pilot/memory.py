@@ -31,6 +31,43 @@ def rusage_footprint(pid):
     }
 
 
+CONTENTION_MIN_FOOTPRINT = 1 << 30
+
+
+def host_contention(exclude_pids=()):
+    """Snapshot of what else holds memory on the host: swap in use and every other process whose
+    phys_footprint is at least 1 GiB (pid, name, command line, footprint)."""
+    swap = psutil.swap_memory()
+    others = []
+    for p in psutil.process_iter(["pid", "name"]):
+        if p.pid in exclude_pids:
+            continue
+        f = rusage_footprint(p.pid)
+        if not f or f["phys_footprint_bytes"] < CONTENTION_MIN_FOOTPRINT:
+            continue
+        try:
+            cmd = " ".join(p.cmdline())[:300]
+        except psutil.Error:
+            cmd = None
+        others.append(
+            {
+                "pid": p.pid,
+                "name": p.info["name"],
+                "cmdline": cmd,
+                "phys_footprint_bytes": f["phys_footprint_bytes"],
+            }
+        )
+    return {
+        "at": time.time(),
+        "swap_used_bytes": swap.used,
+        "swap_total_bytes": swap.total,
+        "memory_available_bytes": psutil.virtual_memory().available,
+        "other_processes_over_1gib": sorted(
+            others, key=lambda o: -o["phys_footprint_bytes"]
+        ),
+    }
+
+
 class Sampler(threading.Thread):
     def __init__(self, pid, interval=0.2):
         super().__init__(daemon=True)

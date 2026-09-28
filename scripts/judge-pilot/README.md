@@ -21,7 +21,9 @@ chosen on them alone.
 | `run_arm.py`, `compat.py`, `memory.py` | HTTP harness, Jev wire probe, and peak-memory capture (sampled RSS plus macOS `phys_footprint`) |
 | `metrics.py` | Computes metrics and temperature scaling and writes `results/<arm>.json` |
 | `inventory.py` | Records disk size and parameter counts in `results/inventory.json` |
-| `finetune_laya.py`, `finetune_kev.py` | Local ports of each project's shipped fine-tuning recipe (not executed yet, see below) |
+| `finetune_laya.py`, `finetune_kev.py` | Local ports of each project's shipped fine-tuning recipe. Each run fits fresh temperatures on the calibration split and records calibration-split metrics |
+| `sweep.py` | Collects a seed-17 hyperparameter sweep and picks its configuration on calibration metrics only (`results/sweep-<base>.json`) |
+| `compare.py` | Paired bootstrap over test rules (fine-tuned vs base, and vs base Kev-4B) and seed mean/range (`results/post-training.json`) |
 | `requirements-*.txt` | Pinned dependencies for the harness and the Laya environment. Kev uses its own `uv.lock` at the pinned commit |
 
 Upstream code is pinned to Laya `9d955671415fc19f069b9cc998928075c1f255ec` and Kev
@@ -52,12 +54,23 @@ $H run_arm.py kev-0.8b --port 8104 && $H metrics.py kev-0.8b
 ```
 
 The arm names are `laya-english`, `laya-multilingual`, `laya-typed-decisions`, `kev-0.8b`,
-`kev-4b`, and `kev-9b`. Fine-tuned arms (`laya-typed-decisions-ft`, `kev-0.8b-ft`, `kev-4b-ft`)
-are served from `.cache/runs/ft-*` after these commands:
+`kev-4b`, and `kev-9b`. Fine-tuned arms are named `<base>-ft-s<seed>` (seeds 17, 18, 19) and are
+served from `.cache/runs/ft-<base>-s<seed>/`. Run every training job, server, and evaluation one
+at a time. The fine-tuned arms were measured with single-client sequential requests only
+(`--skip-throughput`):
 
 ```bash
-.cache/laya-venv/bin/python finetune_laya.py
-.cache/src/kev/.venv/bin/python finetune_kev.py kev-0.8b
+# Sweep: seed 17 on train, candidates compared on calibration only.
+.cache/laya-venv/bin/python finetune_laya.py --out .cache/runs/sweep-laya-typed-decisions/recipe-s17
+.cache/laya-venv/bin/python finetune_laya.py --epochs 8 --out .cache/runs/sweep-laya-typed-decisions/e8-s17
+$H sweep.py laya-typed-decisions
+# Final: the chosen configuration for seeds 17, 18, 19 (seed 17 is the sweep run, symlinked).
+ln -s sweep-laya-typed-decisions/<chosen> .cache/runs/ft-laya-typed-decisions-s17
+.cache/laya-venv/bin/python finetune_laya.py --seed 18 <chosen flags>
+HF_HUB_OFFLINE=1 python3 serve_arm.py laya-typed-decisions-ft-s17 8110
+$H run_arm.py laya-typed-decisions-ft-s17 --port 8110 --skip-throughput && $H metrics.py laya-typed-decisions-ft-s17
+# Kev uses the same pattern with .cache/src/kev/.venv/bin/python finetune_kev.py kev-0.8b ...
+$H compare.py
 ```
 
 ## Method

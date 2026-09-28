@@ -15,6 +15,7 @@ Writes .cache/runs/<arm>/run.json and results/predictions/<arm>.jsonl.
 import argparse
 import http.client
 import json
+import os
 import random
 import threading
 import time
@@ -124,6 +125,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("arm")
     ap.add_argument("--port", type=int, required=True)
+    ap.add_argument(
+        "--skip-throughput",
+        action="store_true",
+        help="skip step 4 (16 concurrent clients); only single-client sequential requests",
+    )
+    ap.add_argument(
+        "--latency-only",
+        action="store_true",
+        help="re-measure step 3's single-client latency only (answers discarded); writes "
+        ".cache/runs/<arm>/latency.json and leaves run.json and the predictions untouched",
+    )
     a = ap.parse_args()
     arm = ARMS[a.arm]
     out = RUNS / a.arm
@@ -134,6 +146,12 @@ def main():
 
     sampler = memory.Sampler(server["pid"])
     sampler.start()
+    exclude = {os.getpid(), server["pid"]} | {
+        c.pid for c in psutil.Process(server["pid"]).children(recursive=True)
+    }
+    if os.getppid() > 1:
+        exclude.add(os.getppid())
+    host = [memory.host_contention(exclude)]
 
     items = load_items(["calibration", "test"])
     # Warm-up, excluded from latency: the first request after load pays one-off compilation.
@@ -142,9 +160,42 @@ def main():
         for it, order in request_plan(items)[:3]
     ]
 
+    if a.latency_only:
+        timings = []
+        t_seq = time.perf_counter()
+        for it, order in request_plan(items):
+            status, _p, _h, dt = client.request(
+                "POST", "/v1/systemone", body_for(arm, it, order)
+            )
+            timings.append(
+                {
+                    "split": it["split"],
+                    "kind": it["kind"],
+                    "order": order,
+                    "status": status,
+                    "latency_ms": round(dt, 3),
+                }
+            )
+        host.append(memory.host_contention(exclude))
+        (out / "latency.json").write_text(
+            json.dumps(
+                {
+                    "arm": a.arm,
+                    "measured_at": time.time(),
+                    "wall_s": round(time.perf_counter() - t_seq, 2),
+                    "warmup_latency_ms": warmup_ms,
+                    "memory": sampler.stop(),
+                    "host_contention": host,
+                    "requests": timings,
+                },
+                indent=2,
+            )
+        )
+        print(f"{a.arm}: latency re-measured, {len(timings)} requests", flush=True)
+        return
+
     probe = compat.probe(client, arm)
     print(f"{a.arm}: compat probe done", flush=True)
-
     records = []
     t_seq = time.perf_counter()
     for n, (it, order) in enumerate(request_plan(items)):
@@ -180,17 +231,29 @@ def main():
         if n % 100 == 0:
             print(f"{a.arm}: {n} requests", flush=True)
     seq_wall = time.perf_counter() - t_seq
+    host.append(memory.host_contention(exclude))
 
-    test_plan = [p for p in request_plan(items) if p[0]["split"] == "test"]
-    t_batch = time.perf_counter()
-    with ThreadPoolExecutor(CONCURRENCY) as pool:
-        statuses = list(
-            pool.map(
-                lambda p: client.request("POST", "/v1/systemone", body_for(arm, *p))[0],
-                test_plan,
+    throughput = None
+    if not a.skip_throughput:
+        test_plan = [p for p in request_plan(items) if p[0]["split"] == "test"]
+        t_batch = time.perf_counter()
+        with ThreadPoolExecutor(CONCURRENCY) as pool:
+            statuses = list(
+                pool.map(
+                    lambda p: client.request(
+                        "POST", "/v1/systemone", body_for(arm, *p)
+                    )[0],
+                    test_plan,
+                )
             )
-        )
-    batch_wall = time.perf_counter() - t_batch
+        batch_wall = time.perf_counter() - t_batch
+        throughput = {
+            "concurrency": CONCURRENCY,
+            "requests": len(test_plan),
+            "wall_s": round(batch_wall, 2),
+            "questions_per_s": round(len(test_plan) / batch_wall, 2),
+            "non_200": sum(1 for s in statuses if s != 200),
+        }
 
     peak = sampler.stop()
     PRED_DIR.mkdir(parents=True, exist_ok=True)
@@ -206,16 +269,11 @@ def main():
         "load_time_s": round(load_time_s, 2),
         "warmup_latency_ms": warmup_ms,
         "sequential": {"requests": len(records), "wall_s": round(seq_wall, 2)},
-        "throughput": {
-            "concurrency": CONCURRENCY,
-            "requests": len(test_plan),
-            "wall_s": round(batch_wall, 2),
-            "questions_per_s": round(len(test_plan) / batch_wall, 2),
-            "non_200": sum(1 for s in statuses if s != 200),
-        },
+        "throughput": throughput,
         "memory": peak,
         "server_cmdline": proc.cmdline(),
         "compat": probe,
+        "host_contention": host,
     }
     (out / "run.json").write_text(json.dumps(run, indent=2, default=str))
     print(

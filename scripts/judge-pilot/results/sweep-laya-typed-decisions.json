@@ -1,0 +1,163 @@
+{
+  "base": "laya-typed-decisions",
+  "rule": "Reads .cache/runs/sweep-<base-arm>/*/finetune.json (every candidate trained with seed 17 on the train split) and writes results/sweep-<base-arm>.json with each candidate's hyperparameters, training cost and `calibration_eval`. The chosen candidate has the highest calibration noul balanced accuracy; ties (within 0.005) go to the higher calibration noul AUROC, then to the earlier (cheaper) candidate in the order they were trained. No test-split number is read here.",
+  "candidates": [
+    {
+      "tag": "recipe-s17",
+      "trained_at": 1790578109.7389534,
+      "hyperparameters": {
+        "epochs": 4,
+        "micro_batch": 8,
+        "grad_accum": 8,
+        "lr_encoder": 2.5e-05,
+        "lr_head": 0.0001,
+        "weight_decay": 0.01,
+        "group_size": 4,
+        "sigma_start": 0.4,
+        "sigma_end": 0.1,
+        "w_sph": 0.75,
+        "w_rps": 1.0,
+        "ce_weight": 1.0,
+        "clip": 1.0,
+        "eta_min": 1e-06,
+        "max_len": 1024,
+        "head_max_len": 256,
+        "seed": 17,
+        "dtype": "fp32",
+        "gradient_checkpointing": true
+      },
+      "train_wall_time_s": 302.3,
+      "temperature_fit_on_calibration": {
+        "choice": 1.6316529512405396,
+        "score": 1.0,
+        "noul": 2.220902442932129
+      },
+      "calibration_eval": {
+        "choice": {
+          "n": 72,
+          "accuracy": 0.6805555555555556,
+          "balanced_accuracy": 0.6805555555555556,
+          "auroc": 0.7291666666666666,
+          "brier": 0.43041795781041847,
+          "nll": 0.650472782631808,
+          "ece_15": 0.0745505737058599,
+          "abstain_rate": 0.0
+        },
+        "noul": {
+          "n": 108,
+          "accuracy": 0.7037037037037037,
+          "balanced_accuracy": 0.5972222222222222,
+          "auroc": 0.7006172839506173,
+          "brier": 0.19526298182122132,
+          "nll": 0.5741223698898226,
+          "ece_15": 0.05391120041509838
+        }
+      }
+    },
+    {
+      "tag": "e8-s17",
+      "trained_at": 1790578678.0144646,
+      "hyperparameters": {
+        "epochs": 8,
+        "micro_batch": 8,
+        "grad_accum": 8,
+        "lr_encoder": 2.5e-05,
+        "lr_head": 0.0001,
+        "weight_decay": 0.01,
+        "group_size": 4,
+        "sigma_start": 0.4,
+        "sigma_end": 0.1,
+        "w_sph": 0.75,
+        "w_rps": 1.0,
+        "ce_weight": 1.0,
+        "clip": 1.0,
+        "eta_min": 1e-06,
+        "max_len": 1024,
+        "head_max_len": 256,
+        "seed": 17,
+        "dtype": "fp32",
+        "gradient_checkpointing": true
+      },
+      "train_wall_time_s": 532.9,
+      "temperature_fit_on_calibration": {
+        "choice": 5.008792877197266,
+        "score": 1.0,
+        "noul": 10.0
+      },
+      "calibration_eval": {
+        "choice": {
+          "n": 72,
+          "accuracy": 0.6388888888888888,
+          "balanced_accuracy": 0.6388888888888888,
+          "auroc": 0.7631172839506173,
+          "brier": 0.43890182407161055,
+          "nll": 0.7174042292364705,
+          "ece_15": 0.10863662592306128,
+          "abstain_rate": 0.0
+        },
+        "noul": {
+          "n": 108,
+          "accuracy": 0.7407407407407407,
+          "balanced_accuracy": 0.6388888888888888,
+          "auroc": 0.6728395061728395,
+          "brier": 0.20184747045761414,
+          "nll": 0.6115845094097097,
+          "ece_15": 0.13448999124632946
+        }
+      }
+    },
+    {
+      "tag": "lr4x-s17",
+      "trained_at": 1790578956.9329112,
+      "hyperparameters": {
+        "epochs": 4,
+        "micro_batch": 8,
+        "grad_accum": 8,
+        "lr_encoder": 0.0001,
+        "lr_head": 0.0004,
+        "weight_decay": 0.01,
+        "group_size": 4,
+        "sigma_start": 0.4,
+        "sigma_end": 0.1,
+        "w_sph": 0.75,
+        "w_rps": 1.0,
+        "ce_weight": 1.0,
+        "clip": 1.0,
+        "eta_min": 1e-06,
+        "max_len": 1024,
+        "head_max_len": 256,
+        "seed": 17,
+        "dtype": "fp32",
+        "gradient_checkpointing": true
+      },
+      "train_wall_time_s": 267.0,
+      "temperature_fit_on_calibration": {
+        "choice": 2.265814781188965,
+        "score": 1.0,
+        "noul": 2.727672576904297
+      },
+      "calibration_eval": {
+        "choice": {
+          "n": 72,
+          "accuracy": 0.5694444444444444,
+          "balanced_accuracy": 0.5694444444444444,
+          "auroc": 0.6689814814814815,
+          "brier": 0.48019314224389675,
+          "nll": 0.6974396657444223,
+          "ece_15": 0.09224847339669635,
+          "abstain_rate": 0.0
+        },
+        "noul": {
+          "n": 108,
+          "accuracy": 0.7037037037037037,
+          "balanced_accuracy": 0.5694444444444444,
+          "auroc": 0.6412037037037037,
+          "brier": 0.20640771093623833,
+          "nll": 0.5998886569374112,
+          "ece_15": 0.06026431968852308
+        }
+      }
+    }
+  ],
+  "chosen": "e8-s17"
+}

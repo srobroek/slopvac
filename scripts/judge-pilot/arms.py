@@ -71,21 +71,32 @@ ARMS = {
     "kev-0.8b": _kev("jaredpalmer/kev-0.8b", "Qwen/Qwen3.5-0.8B-Base"),
     "kev-4b": _kev("jaredpalmer/kev-4b", "Qwen/Qwen3.5-4B-Base"),
     "kev-9b": _kev("jaredpalmer/kev-9b", "Qwen/Qwen3.5-9B-Base"),
-    # Post-trained arms: same base checkpoint, weights produced by finetune_*.py under .cache/runs.
-    "laya-typed-decisions-ft": _laya(
-        "convaiinnovations/laya-typed-decisions",
-        "typed-decisions",
-        local=str(RUNS / "ft-laya-typed-decisions" / "model"),
-    ),
-    "kev-0.8b-ft": _kev(
-        "jaredpalmer/kev-0.8b",
-        "Qwen/Qwen3.5-0.8B-Base",
-        local=str(RUNS / "ft-kev-0.8b"),
-    ),
-    "kev-4b-ft": _kev(
-        "jaredpalmer/kev-4b", "Qwen/Qwen3.5-4B-Base", local=str(RUNS / "ft-kev-4b")
-    ),
 }
+# Post-trained arms: one per (base arm, training seed). finetune_*.py writes the run directory
+# .cache/runs/ft-<base>-s<seed>/ (finetune.json, logs) with the servable weights in model/ (Laya)
+# or checkpoint/ (Kev).
+FT_BASES = {
+    "laya-typed-decisions": "model",
+    "kev-0.8b": "checkpoint",
+    "kev-4b": "checkpoint",
+}
+FT_SEEDS = (17, 18, 19)
+
+
+def ft_run(base, seed):
+    return RUNS / f"ft-{base}-s{seed}"
+
+
+for _base, _sub in FT_BASES.items():
+    for _seed in FT_SEEDS:
+        _src = ARMS[_base]
+        _ft = (_laya if _src["family"] == "laya" else _kev)(
+            _src["repo"],
+            _src["checkpoint"] if _src["family"] == "laya" else _src["base"],
+            local=str(ft_run(_base, _seed) / _sub),
+        )
+        _ft.update(ft_base=_base, ft_seed=_seed, ft_run=str(ft_run(_base, _seed)))
+        ARMS[f"{_base}-ft-s{_seed}"] = _ft
 for _arm in ARMS.values():
     if _arm["local"]:
         _arm["downloads"] = []
