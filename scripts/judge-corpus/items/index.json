@@ -43,13 +43,13 @@
     {
       "path": "adjudication/test-sheet.jsonl",
       "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/adjudication/test-sheet.jsonl",
-      "sha256": "0c11169815796828a4f515171051e43db118482fe02d4c3ff55c02f30635d36d",
+      "sha256": "6aa2cc684ba593607492116f22cf1b6fc1750949d31b619cbef5ceb2b95524cc",
       "records": 600
     },
     {
       "path": "adjudication/test-sheet.csv",
       "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/adjudication/test-sheet.csv",
-      "sha256": "080578ba9055c11a00e6c17d88aa1ba6e5e82135c48504da1ab043007340c7ba",
+      "sha256": "d1adc5f0d2d6a27615eb9d10504d91b8df4631122c7cd3d93ac6af74fd98416b",
       "records": 600
     },
     {
@@ -67,7 +67,7 @@
   },
   "tokenizer_digests": {
     "qwen3.5-4b": "fe000e3ed39ed12b8d2481d527d44f93c65d37e87645d2dcc80d1bf9d50d2927",
-    "laya-modernbert-en": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30",
+    "laya-modernbert-en": "6c8aaa9a542084f2457eab775d4eeb51f92a70cfd9de28d5edb0ddec3c08d30",
     "laya-multilingual": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f"
   },
   "build_parameters": {
