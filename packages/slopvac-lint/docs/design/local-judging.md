@@ -228,9 +228,11 @@ The default model comes from the Laya and Kev families, base and post-trained.
 Both families serve the Jev surface, publish weights under Apache-2.0, and ship
 a training path. Every other model reaches slopvac only as a user override.
 
-The benchmark runs local models only. Hosted Jev and DREX are not benchmark
-arms. Arms run one at a time: one model is trained, served, or evaluated at
-any moment, and its process stops before the next arm starts.
+The benchmark runs local-weight models only. Hosted Jev and DREX are not
+benchmark arms. Training and evaluation run as SageMaker training jobs on
+single-GPU instances, so every arm's latency is measured on the same L40S class.
+Jobs may run in parallel. Work on the maintainer's laptop runs one model at a
+time.
 
 | Arm | Model | Params | Fits on | Use case |
 | --- | --- | --- | --- | --- |
@@ -413,12 +415,14 @@ Laya's "Honest limits" section constrains its use:
 
 ### Compute
 
-Laya arms and Kev 0.8B train on the maintainer's Apple Silicon workstation.
-Kev 4B and 9B train as SageMaker training jobs on `ml.g6e` instances with one
-L40S GPU of 48 GB, in `us-east-1` under the `sjors+ig-genai-Admin` account.
-Each job sets a maximum runtime, writes its outputs to the corpus S3 bucket, and
-terminates when training ends. Jobs run one at a time. The benchmark's total
-SageMaker and Bedrock spend is capped at USD 500, recorded in the cost ledger.
+Every arm trains and evaluates as a SageMaker training job on `ml.g6e` or
+`ml.g5` instances, in `us-east-1` under the `sjors+ig-genai-Admin` account.
+Evaluation jobs start the arm's Jev server inside the container and run the
+harness against it on localhost. Each job sets a maximum runtime, writes its
+outputs to the corpus S3 bucket, and terminates when it ends. Jobs run in
+parallel within per-instance quotas. The cost ledger counts each open job at its
+maximum cost. The benchmark's total SageMaker and Bedrock spend is capped at
+USD 500.
 
 ### Rebuild pipeline
 
