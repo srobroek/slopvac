@@ -63,4 +63,4 @@ Never commit `.cache/` or model output text. The root `.gitignore` excludes this
 
 ## Licence
 
-The builder code is licensed under the repository licence. Each source row records the source licence; the corpus cannot be redistributed without checking the source licence and consent field.
+Check each source licence and consent field before redistributing the corpus.
