@@ -29,7 +29,7 @@ PRICES = {
     "amazon.nova-micro": (0.035, 0.14),
     "amazon.nova-lite": (0.06, 0.24),
     "amazon.nova-pro": (0.80, 3.20),
-    "anthropic.claude-haiku": (0.80, 4.00),
+    "anthropic.claude-haiku": (1.00, 5.00),
     "anthropic.claude-sonnet": (3.00, 15.00),
     "anthropic.claude-opus": (15.00, 75.00),
     "meta.llama3.1-8b": (0.22, 0.22),

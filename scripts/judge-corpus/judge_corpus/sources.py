@@ -94,7 +94,7 @@ REPOSITORIES = (
         ("src/**",),
         "MIT OR Apache-2.0",
     ),
-    ("python/peps", "main", "internal", "peps", ("peps/*.rst",), "PSF-2.0"),
+    ("python/peps", "main", "internal", "peps", ("pep-*.txt", "pep-*.rst"), "PSF-2.0"),
     (
         "kubernetes/enhancements",
         "master",
@@ -210,6 +210,86 @@ REPOSITORIES = (
         ("doc/changelogs/**",),
         "MIT",
     ),
+    (
+        "python/cpython",
+        "3.10",
+        "change-comms",
+        "python-whatsnew",
+        ("Doc/whatsnew/*.rst",),
+        "Python-2.0",
+    ),
+    (
+        "numpy/numpy",
+        "maintenance/1.22.x",
+        "change-comms",
+        "numpy-release-notes",
+        ("doc/source/release/*.rst", "doc/changelog/*.rst"),
+        "BSD-3-Clause",
+    ),
+    (
+        "pandas-dev/pandas",
+        "1.4.x",
+        "change-comms",
+        "pandas-whatsnew",
+        ("doc/source/whatsnew/*.rst",),
+        "BSD-3-Clause",
+    ),
+    (
+        "rust-lang/blog.rust-lang.org",
+        "main",
+        "change-comms",
+        "rust-blog",
+        ("posts/*.md",),
+        "MIT OR Apache-2.0",
+    ),
+    (
+        "kubernetes/website",
+        "release-1.21",
+        "change-comms",
+        "kubernetes-blog",
+        ("content/en/blog/_posts/*.md",),
+        "CC-BY-4.0",
+    ),
+    (
+        "postgres/postgres",
+        "REL_14_0",
+        "change-comms",
+        "postgres-release-notes",
+        ("doc/src/sgml/release-*.sgml",),
+        "PostgreSQL",
+    ),
+    (
+        "hashicorp/terraform",
+        "v1.2",
+        "consumer",
+        "terraform-docs",
+        ("website/docs/**",),
+        "MPL-2.0",
+    ),
+    (
+        "ansible/ansible",
+        "stable-2.12",
+        "consumer",
+        "ansible-docs",
+        ("docs/docsite/rst/**",),
+        "GPL-3.0-or-later",
+    ),
+    (
+        "scikit-learn/scikit-learn",
+        "1.0.X",
+        "consumer",
+        "sklearn-docs",
+        ("doc/*.rst", "doc/modules/*.rst", "doc/tutorial/**"),
+        "BSD-3-Clause",
+    ),
+    (
+        "pypa/packaging.python.org",
+        "main",
+        "consumer",
+        "python-packaging-guide",
+        ("source/**",),
+        "CC-BY-SA-3.0",
+    ),
 )
 
 WIKI_API = "https://en.wikipedia.org/w/api.php"
@@ -245,6 +325,10 @@ def _request(url: str, *, api: bool = False) -> bytes:
                 raise
             delay = float(exc.headers.get("Retry-After", min(60, 2**attempt)))
             time.sleep(delay)
+        except (urllib.error.URLError, TimeoutError):
+            if attempt == 4:
+                raise
+            time.sleep(min(60, 2**attempt))
     raise RuntimeError(f"request retries exhausted: {url}")
 
 
@@ -393,91 +477,108 @@ def _cache_text(root: Path, source_id: str, text: str) -> str:
 
 
 def _github_rows(
-    root: Path, limit: int | None, retrieved_at: str, per_genre_limit: int | None = None
+    root: Path,
+    limit: int | None,
+    retrieved_at: str,
+    per_genre_limit: dict[str, int] | None = None,
 ) -> list[CachedSource]:
     rows: list[CachedSource] = []
     genre_counts: dict[str, int] = {}
     repos_per_genre: dict[str, int] = {}
     for entry in REPOSITORIES:
         repos_per_genre[entry[2]] = repos_per_genre.get(entry[2], 0) + 1
-    for repo, ref, genre, family, patterns, licence in REPOSITORIES:
-        if per_genre_limit and genre_counts.get(genre, 0) >= per_genre_limit:
-            continue
-        # Spread each genre across its repositories instead of letting the
-        # first repository fill it.
-        repo_cap = (
-            -(-per_genre_limit // repos_per_genre[genre]) if per_genre_limit else None
-        )
-        repo_count = 0
-        try:
-            sha, revision_date = _github_commit(repo, ref)
-            checkout, tree = _git_snapshot(root, repo, sha, patterns)
-        except Exception as exc:
-            skips = root / "sources" / "skips.jsonl"
-            skips.parent.mkdir(parents=True, exist_ok=True)
-            with skips.open("a", encoding="utf-8") as fh:
-                fh.write(
-                    json.dumps({"source_family": family, "reason": str(exc)}) + "\n"
-                )
-            continue
-        for item in tree:
-            if per_genre_limit and genre_counts.get(genre, 0) >= per_genre_limit:
-                break
-            if repo_cap and repo_count >= repo_cap:
-                break
-            path = item["path"]
-            if Path(path).suffix.lower() not in {
-                ".md",
-                ".rst",
-                ".txt",
-                ".adoc",
-                ".sgml",
-            }:
+    seen_ids: set[str] = set()
+    # Sweep 0 spreads each genre evenly across its repositories. Sweep 1 lets
+    # repositories with more material fill what smaller ones could not.
+    for sweep in range(2):
+        for repo, ref, genre, family, patterns, licence in REPOSITORIES:
+            genre_limit = per_genre_limit.get(genre) if per_genre_limit else None
+            if genre_limit is not None and genre_counts.get(genre, 0) >= genre_limit:
                 continue
-            if not any(fnmatch.fnmatch(path, pattern) for pattern in patterns):
-                continue
-            if any(
-                part in path for part in ("node_modules", ".github", "_build", "target")
-            ):
-                continue
-            raw_url = f"https://raw.githubusercontent.com/{repo}/{sha}/{urllib.parse.quote(path, safe='/')}"
+            # Spread each genre across its repositories instead of letting the
+            # first repository fill it.
+            repo_cap = (
+                -(-genre_limit // repos_per_genre[genre])
+                if genre_limit and sweep == 0
+                else None
+            )
+            repo_count = 0
             try:
-                raw_text = (checkout / path).read_bytes()
-                text = _strip_markup(raw_text.decode("utf-8", "replace"), path)
-            except OSError:
+                sha, revision_date = _github_commit(repo, ref)
+                checkout, tree = _git_snapshot(root, repo, sha, patterns)
+            except Exception as exc:
+                skips = root / "sources" / "skips.jsonl"
+                skips.parent.mkdir(parents=True, exist_ok=True)
+                with skips.open("a", encoding="utf-8") as fh:
+                    fh.write(
+                        json.dumps({"source_family": family, "reason": str(exc)}) + "\n"
+                    )
                 continue
-            units = list(_sections(text)) or _document_chunks(text)
-            for section, body in units:
-                source_id = f"gh-{repo.replace('/', '-')}-{sha[:12]}-{sha256_text(path + section)[:12]}"
-                row = {
-                    "id": source_id,
-                    "genre": genre,
-                    "source_family": family,
-                    "url": raw_url,
-                    "immutable_locator": {
-                        "repository": repo,
-                        "commit": sha,
-                        "path": path,
-                        "section": section,
-                    },
-                    "licence": licence,
-                    "redistribution_consent": "private S3 use permitted by recorded licence",
-                    "revision_date": revision_date,
-                    "retrieved_at": retrieved_at,
-                    "word_count": len(body.split()),
-                    "sha256": sha256_text(body),
-                    "s3_key": f"human/{source_id}.txt",
-                    "cache_path": _cache_text(root, source_id, body),
-                }
-                rows.append(CachedSource(row, body))
-                genre_counts[genre] = genre_counts.get(genre, 0) + 1
-                repo_count += 1
+            for item in tree:
+                if (
+                    genre_limit is not None
+                    and genre_counts.get(genre, 0) >= genre_limit
+                ):
+                    break
                 if repo_cap and repo_count >= repo_cap:
                     break
-                if limit and len(rows) >= limit:
-                    return rows
-                if per_genre_limit and genre_counts[genre] >= per_genre_limit:
-                    break
+                path = item["path"]
+                if Path(path).suffix.lower() not in {
+                    ".md",
+                    ".rst",
+                    ".txt",
+                    ".adoc",
+                    ".sgml",
+                }:
+                    continue
+                if not any(fnmatch.fnmatch(path, pattern) for pattern in patterns):
+                    continue
+                if any(
+                    part in path
+                    for part in ("node_modules", ".github", "_build", "target")
+                ):
+                    continue
+                raw_url = f"https://raw.githubusercontent.com/{repo}/{sha}/{urllib.parse.quote(path, safe='/')}"
+                try:
+                    raw_text = (checkout / path).read_bytes()
+                    text = _strip_markup(raw_text.decode("utf-8", "replace"), path)
+                except OSError:
+                    continue
+                units = list(_sections(text)) or _document_chunks(text)
+                for section, body in units:
+                    source_id = f"gh-{repo.replace('/', '-')}-{sha[:12]}-{sha256_text(path + section)[:12]}"
+                    row = {
+                        "id": source_id,
+                        "genre": genre,
+                        "source_family": family,
+                        "url": raw_url,
+                        "immutable_locator": {
+                            "repository": repo,
+                            "commit": sha,
+                            "path": path,
+                            "section": section,
+                        },
+                        "licence": licence,
+                        "redistribution_consent": "private S3 use permitted by recorded licence",
+                        "revision_date": revision_date,
+                        "retrieved_at": retrieved_at,
+                        "word_count": len(body.split()),
+                        "sha256": sha256_text(body),
+                        "s3_key": f"human/{source_id}.txt",
+                        "cache_path": _cache_text(root, source_id, body),
+                    }
+                    if row["id"] in seen_ids:
+                        continue
+                    seen_ids.add(row["id"])
+                    rows.append(CachedSource(row, body))
+                    genre_counts[genre] = genre_counts.get(genre, 0) + 1
+                    repo_count += 1
+                    if repo_cap and repo_count >= repo_cap:
+                        break
+                    if limit and len(rows) >= limit:
+                        return rows
+                    if genre_limit is not None and genre_counts[genre] >= genre_limit:
+                        break
     return rows
 
 
@@ -518,6 +619,9 @@ def _rfc_rows(root: Path, limit: int, retrieved_at: str) -> list[CachedSource]:
                 },
                 "licence": "IETF Trust Legal Provisions (RFC Editor)",
                 "redistribution_consent": "private S3 use under RFC Editor terms",
+                "revision_date": datetime.strptime(
+                    f"{publication.group(1)} {publication.group(2)}", "%B %Y"
+                ).strftime("%Y-%m"),
                 "retrieved_at": retrieved_at,
                 "word_count": len(body.split()),
                 "sha256": sha256_text(body),
@@ -585,6 +689,7 @@ def _stackexchange_rows(
                     },
                     "licence": "CC BY-SA 4.0 (Stack Exchange data dump)",
                     "redistribution_consent": "private S3 use with attribution and share-alike",
+                    "revision_date": created,
                     "retrieved_at": retrieved_at,
                     "word_count": len(text.split()),
                     "sha256": sha256_text(text),
@@ -623,23 +728,29 @@ def _wiki_rows(
     # `rvstart` is valid only for a single page, so sample random articles in
     # batches and then ask for each page's last revision before the cutoff.
     while not limit or existing + len(rows) < limit:
+        # Random articles are mostly stubs. Ask for 50 at once with their current
+        # length and fetch revisions only for pages long enough to yield a unit.
         params = {
             "action": "query",
-            "list": "random",
-            "rnnamespace": "0",
-            "rnlimit": "50",
+            "generator": "random",
+            "grnnamespace": "0",
+            "grnfilterredir": "nonredirects",
+            "grnlimit": "50",
+            "prop": "info",
             "format": "json",
+            "formatversion": "2",
             "maxlag": "5",
         }
         data = fetch_json(WIKI_API + "?" + urllib.parse.urlencode(params))
-        pages = data.get("query", {}).get("random", [])
+        pages = data.get("query", {}).get("pages", [])
         if not pages:
             break
         for random_page in pages:
             if limit and existing + len(rows) >= limit:
                 return rows
-            if random_page["id"] in seen:
+            if random_page["pageid"] in seen or random_page.get("length", 0) < 12000:
                 continue
+            random_page["id"] = random_page["pageid"]
             seen.add(random_page["id"])
             query = {
                 "action": "query",
@@ -696,6 +807,7 @@ def _wiki_rows(
                 rows.append(CachedSource(row, body))
                 if limit and existing + len(rows) >= limit:
                     return rows
+        time.sleep(1.0)
     return rows
 
 
@@ -709,13 +821,23 @@ def build_sources(
         .isoformat()
         .replace("+00:00", "Z")
     )
-    rfc_target = min(300, limit // 10) if limit else 0
-    stack_target = min(300, limit // 10) if limit else 0
-    github_limit = limit - rfc_target - stack_target if limit else None
-    genre_target = (github_limit + 4) // 5 if github_limit else None
-    github = _github_rows(
-        root, github_limit, retrieved_at, per_genre_limit=genre_target
+    # Each genre gets an equal share. RFCs fill half of `reference`; Stack
+    # Exchange and Wikipedia split `informal`.
+    genre_share = limit // 5 if limit else None
+    rfc_target = genre_share // 2 if genre_share else 0
+    stack_target = genre_share // 2 if genre_share else 0
+    wiki_target = genre_share - stack_target if genre_share else None
+    genre_limits = (
+        {
+            "consumer": genre_share,
+            "internal": genre_share,
+            "change-comms": genre_share,
+            "reference": genre_share - rfc_target,
+        }
+        if genre_share
+        else None
     )
+    github = _github_rows(root, None, retrieved_at, per_genre_limit=genre_limits)
     rfc: list[CachedSource] = []
     if rfc_target:
         try:
@@ -740,13 +862,8 @@ def build_sources(
                     )
                     + "\n"
                 )
-    existing = len(github) + len(rfc) + len(stack)
     try:
-        wiki = (
-            _wiki_rows(root, limit, retrieved_at, existing)
-            if not limit or existing < limit
-            else []
-        )
+        wiki = _wiki_rows(root, wiki_target, retrieved_at, 0)
     except Exception as exc:
         wiki = []
         (root / "sources" / "skips.jsonl").parent.mkdir(parents=True, exist_ok=True)
