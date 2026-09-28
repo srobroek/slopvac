@@ -340,9 +340,14 @@ Splits are grouped by document family: a human document and the documents
 generated from its brief share one split. About 20% of lint rules and 20% of
 judgement rules are held out. Their items appear only in `test`, which reports
 seen-rule and unseen-rule slices separately. The `train`, `dev`, `calibration`, and `test` manifests are
-frozen with SHA-256 digests before any arm runs on `test`. The test split has
-at least 500 items. Two adjudicators label its model-derived items, and the
-report gives Cohen's kappa.
+frozen with SHA-256 digests before any arm runs on `test`.
+
+`test` and `calibration` hold every constructed and gold-v1 item in their
+documents. Model-derived items there need human labels, so each split keeps a
+stratified sample for two adjudicators: 600 items in `test` and 300 in
+`calibration`. The sample is stratified by role, rule category, genre,
+granularity, and provenance. Model-derived items in those documents outside the
+sample are dropped from every split. The report gives Cohen's kappa.
 
 ### Harness
 
