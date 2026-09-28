@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "build_id": "human-20260928-s17-v1",
+  "created_at": "2026-09-28T16:49:02Z",
+  "bucket_prefix": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/",
+  "objects": [
+    {
+      "path": "train.jsonl",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/train.jsonl",
+      "sha256": "de4849220312eaa04d16dcc98f7d4311c6bd4c4de37823f8b77523f2a325f636",
+      "records": 73829
+    },
+    {
+      "path": "dev.jsonl",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/dev.jsonl",
+      "sha256": "1565bac2d4119d6d4776100b67979964e6fb5961672a84e4ecad5f4412df2105",
+      "records": 12121
+    },
+    {
+      "path": "calibration.jsonl",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/calibration.jsonl",
+      "sha256": "3a9815c97b3f6075adf2bc9f2d126062fd9e201f67ceaeb524760f97861af74a",
+      "records": 350
+    },
+    {
+      "path": "test.jsonl",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/test.jsonl",
+      "sha256": "66c6a37a8e4dbb974fb495d79657dffe423f7246fdadcdf21481d60d52280084",
+      "records": 1084
+    },
+    {
+      "path": "manifest.json",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/manifest.json",
+      "sha256": "d8f3929005c23271dc87682e368ff339a0a0e46ed98e88a3e156f7d54fa09533",
+      "records": 1
+    },
+    {
+      "path": "manifest.sha256",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/manifest.sha256",
+      "sha256": "d229531bea470b7de7c09bc0c5f23df7fd8b102ea7d9d4666c963bda7caf102a",
+      "records": 1
+    },
+    {
+      "path": "adjudication/test-sheet.jsonl",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/adjudication/test-sheet.jsonl",
+      "sha256": "0c11169815796828a4f515171051e43db118482fe02d4c3ff55c02f30635d36d",
+      "records": 600
+    },
+    {
+      "path": "adjudication/test-sheet.csv",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/adjudication/test-sheet.csv",
+      "sha256": "080578ba9055c11a00e6c17d88aa1ba6e5e82135c48504da1ab043007340c7ba",
+      "records": 600
+    },
+    {
+      "path": "state-cache.tar.gz",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/items/human-20260928-s17-v1/state-cache.tar.gz",
+      "sha256": "3296f672d81b2ce1bdbfdbb972aa266e28a14daadc6824a6a8625136ac8cb601",
+      "records": 87384
+    }
+  ],
+  "split_counts": {
+    "train": 73829,
+    "dev": 12121,
+    "calibration": 350,
+    "test": 1084
+  },
+  "tokenizer_digests": {
+    "qwen3.5-4b": "fe000e3ed39ed12b8d2481d527d44f93c65d37e87645d2dcc80d1bf9d50d2927",
+    "laya-modernbert-en": "6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30",
+    "laya-multilingual": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f"
+  },
+  "build_parameters": {
+    "seed": 17,
+    "include_generated": false,
+    "granularity_percent": {
+      "sentence": 30,
+      "paragraph": 45,
+      "document": 25
+    },
+    "token_caps": {
+      "sentence": 1024,
+      "paragraph": 1024,
+      "document": 4096
+    },
+    "held_out_lint_rule_percent": 20,
+    "held_out_judgement_rule_percent": 20,
+    "adjudication_sample": {
+      "test": 600,
+      "calibration": 300
+    }
+  }
+}
