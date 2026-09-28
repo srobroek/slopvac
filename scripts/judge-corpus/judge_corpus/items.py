@@ -625,8 +625,7 @@ def _write_outputs(
     test = [
         x
         for x in items
-        if x["split"] == "test"
-        and x["label_origin"] in ("teacher-panel", "human-adjudication")
+        if x["split"] == "test" and x.get("label_origin") == "human-adjudication"
     ]
     sheet_dir = out / "adjudication"
     sheet_dir.mkdir(exist_ok=True)
@@ -635,10 +634,13 @@ def _write_outputs(
             "item_id": x["id"],
             "role": x["role"],
             "rule_id": x["rule_id"],
+            "rule_category": x["rule_category"],
             "granularity": x["granularity"],
             "genre": x["genre"],
             "text_path": x["text_path"],
             "text_sha256": x["text_sha256"],
+            "state": x["state"],
+            "context": x.get("context", ""),
             "question": x["question"],
             "finding": x.get("finding"),
             "adjudicator_1": None,
@@ -657,6 +659,7 @@ def _write_outputs(
         "genre",
         "text_path",
         "text_sha256",
+        "state",
         "question",
         "finding",
         "adjudicator_1",
@@ -742,6 +745,55 @@ def _read_texts(root: Path, rows: list[dict]) -> dict[str, str]:
     return texts
 
 
+def _sample_adjudication(
+    items: list[dict], limits: dict[str, int]
+) -> tuple[list[dict], dict[str, int]]:
+    selected_by_split = {}
+    selected_items = [row for row in items if row.get("label_origin") == "construction"]
+    dropped = {}
+    for split, limit in limits.items():
+        candidates = [
+            row
+            for row in items
+            if row["split"] == split and row.get("label_origin") != "construction"
+        ]
+        strata: dict[tuple, list[dict]] = defaultdict(list)
+        for row in candidates:
+            strata[
+                (
+                    row["role"],
+                    row["rule_category"],
+                    row["genre"],
+                    row["granularity"],
+                    json.dumps(row.get("provenance", {}), sort_keys=True),
+                )
+            ].append(row)
+        queues = []
+        for key, values in sorted(strata.items()):
+            values.sort(key=lambda row: (seed(f"17:{split}:{row['id']}"), row["id"]))
+            queues.append(values)
+        selected = []
+        while len(selected) < limit and queues:
+            remaining = []
+            for values in queues:
+                if len(selected) < limit and values:
+                    selected.append(values.pop(0))
+                if values:
+                    remaining.append(values)
+            queues = remaining
+        selected_by_split[split] = {row["id"] for row in selected}
+        selected_items.extend(selected)
+        dropped[split] = len(candidates) - len(selected)
+    retained = [
+        row
+        for row in selected_items
+        if row["split"] not in limits
+        or row.get("label_origin") == "construction"
+        or row["id"] in selected_by_split[row["split"]]
+    ]
+    return retained, dropped
+
+
 def _merge_shards(root: Path, shard_count: int) -> dict:
     rows = []
     for index in range(shard_count):
@@ -760,6 +812,7 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
     )
     if not merged:
         raise ValueError("shard manifests are empty")
+    merged, dropped = _sample_adjudication(merged, {"test": 600, "calibration": 300})
     root_rows = list(read_jsonl(root / "sources/human.jsonl"))
     generated = list(read_jsonl(root / "generated/manifest.jsonl"))
     _, tokenizer_digests = load_tokenizers()
@@ -775,6 +828,7 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
         ),
         "gold_v1_rows": sum(r.get("source_id") == "gold-v1" for r in merged),
         "built_items": len(merged),
+        "dropped_model_derived_for_adjudication": dropped,
     }
     report = _write_outputs(
         root, merged, tokenizer_digests, held_lint, held_judge, counts
