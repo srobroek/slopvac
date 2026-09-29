@@ -397,10 +397,6 @@ def question_for(role: str, rule: dict, finding: dict | None = None) -> dict:
             "rule_message": finding.get("rule_message", ""),
             "lint_message": finding.get("message", ""),
             "matched_text": finding.get("matched_text", ""),
-            "finding_offsets": {
-                "start": finding.get("start", 0),
-                "end": finding.get("end", 0),
-            },
             "options": {
                 "real-defect": "A real prose defect under this lint rule.",
                 "false-positive": "The rule fired on acceptable prose.",
@@ -431,7 +427,7 @@ def _lint_text(text: str) -> str:
     front matter. Generated documents sometimes open with a horizontal rule;
     Vale then fails the whole batch with E201. Spaces keep every offset."""
     m = re.match(r"(-{3,})[ \t]*(?=\r?\n)", text)
-    return " " * len(m.group(1)) + text[m.end(1):] if m else text
+    return " " * len(m.group(1)) + text[m.end(1) :] if m else text
 
 
 def _run_lint(
@@ -628,6 +624,10 @@ def _write_outputs(
     held_judgement: set[str],
     counts: dict,
 ) -> dict:
+    held = held_lint | held_judgement
+    for x in items:
+        if x["split"] != "test" and (x["rule_held_out"] or x["rule_id"] in held):
+            raise AssertionError(f"held-out rule leaked: {x['rule_id']}")
     out = root / "items"
     out.mkdir(parents=True, exist_ok=True)
     sizes, digests = {}, {}
@@ -673,7 +673,8 @@ def _write_outputs(
             "text_path": x["text_path"],
             "text_sha256": x["text_sha256"],
             "state": _state_of(root, x),
-            "context": x.get("context") or (_state_of(root, x) or {}).get("context", ""),
+            "context": x.get("context")
+            or (_state_of(root, x) or {}).get("context", ""),
             "question": x["question"],
             "finding": x.get("finding"),
             "adjudicator_1": None,
@@ -864,7 +865,7 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
             and r.get("label_origin") != "construction"
             for r in merged
         ),
-        "gold_v1_rows": sum(r.get("source_id") == "gold-v1" for r in merged),
+        "gold_v1_items": sum(r.get("source_family") == "gold-v1" for r in merged),
         "built_items": len(merged),
         "dropped_model_derived_for_adjudication": dropped,
     }
@@ -1183,8 +1184,11 @@ def build_items(
             if item:
                 item["rule_held_out"] = rule["id"] in held_judge
                 items.append(item)
-    # Avoid duplicate item IDs and retain test-only unseen rule behavior.
-    unique = {x["id"]: x for x in items}
+    # Avoid duplicate item IDs. A held-out rule is unseen: none of its items,
+    # constructions included, may reach train, dev, or calibration.
+    unique = {
+        x["id"]: x for x in items if not (x["rule_held_out"] and x["split"] != "test")
+    }
     items = sorted(
         unique.values(), key=lambda x: (x["split"], x["role"], x["rule_id"], x["id"])
     )
@@ -1198,13 +1202,6 @@ def build_items(
             "items": len(items),
             "manifest": str(shard_path.relative_to(root)),
         }
-    for x in items:
-        if (
-            x["rule_held_out"]
-            and x["split"] != "test"
-            and x["label_origin"] != "construction"
-        ):
-            raise AssertionError(f"held-out rule leaked: {x['rule_id']}")
     counts = {
         "human_documents": len(humans),
         "generated_documents": len(generated),
@@ -1226,6 +1223,12 @@ def split_items(root: Path) -> dict:
     if not items:
         raise ValueError("no items; run items build first")
     _, tokenizers = load_tokenizers()
+    manifest = json.loads((root / "items/manifest.json").read_text(encoding="utf-8"))
     return _write_outputs(
-        root, items, tokenizers, set(), set(), {"built_items": len(items)}
+        root,
+        items,
+        tokenizers,
+        set(manifest["held_out_lint_rules"]),
+        set(manifest["held_out_judgement_rules"]),
+        {**manifest.get("counts", {}), "built_items": len(items)},
     )

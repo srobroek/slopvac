@@ -480,6 +480,48 @@
       "stage": "generation-mistral.mistral-large-3-675b-instruct",
       "status": "SUBMITTED",
       "submitted_at": "2026-09-28T18:28:24Z"
+    },
+    {
+      "batch_discount": 0.5,
+      "estimate_usd": 0.035,
+      "input_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/inputs/panel/deepseek.jsonl",
+      "input_tokens_estimate": 374360,
+      "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/wdjh8459gljm",
+      "job_name": "sj-panel-deepseek-0f9ff8bea4",
+      "model_id": "deepseek.v3.2",
+      "output_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/outputs/panel/deepseek/",
+      "output_tokens_estimate": 62820,
+      "stage": "panel-deepseek",
+      "status": "SUBMITTED",
+      "submitted_at": "2026-09-28T23:19:29Z"
+    },
+    {
+      "batch_discount": 0.5,
+      "estimate_usd": 12.615382,
+      "input_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/inputs/panel/mistral.jsonl",
+      "input_tokens_estimate": 8372602,
+      "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/b5juxmeoqt8y",
+      "job_name": "sj-panel-mistral-2326d92be3",
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "output_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/outputs/panel/mistral/",
+      "output_tokens_estimate": 1414260,
+      "stage": "panel-mistral",
+      "status": "SUBMITTED",
+      "submitted_at": "2026-09-28T23:19:34Z"
+    },
+    {
+      "batch_discount": 0.5,
+      "estimate_usd": 1.070489,
+      "input_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/inputs/panel/openai.jsonl",
+      "input_tokens_estimate": 8513187,
+      "job_arn": "arn:aws:bedrock:us-east-1:536697262379:model-invocation-job/4bkz36128k4r",
+      "job_name": "sj-panel-openai-05ec91aaa0",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_s3_uri": "s3://slopvac-judge-536697262379-84848969f6/outputs/panel/openai/",
+      "output_tokens_estimate": 1440000,
+      "stage": "panel-openai",
+      "status": "SUBMITTED",
+      "submitted_at": "2026-09-28T23:19:37Z"
     }
   ],
   "region": "us-east-1",

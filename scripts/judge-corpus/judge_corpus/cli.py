@@ -384,7 +384,7 @@ def cmd_panel(args: argparse.Namespace) -> None:
     if args.panel_action == "prepare":
         result = prepare_panel(root)
     elif args.panel_action == "submit":
-        result = submit_panel(root)
+        result = submit_panel(root, on_demand=args.on_demand)
     else:
         prefixes = dict(pair.split("=", 1) for pair in args.prefix)
         result = collect_panel(root, prefixes or None)
@@ -454,6 +454,12 @@ def parser() -> argparse.ArgumentParser:
     panel_actions = panel.add_subparsers(dest="panel_action", required=True)
     for action in ("prepare", "submit", "collect"):
         s = panel_actions.add_parser(action)
+        if action == "submit":
+            s.add_argument(
+                "--on-demand",
+                action="store_true",
+                help="invoke every panel model on demand instead of Bedrock batch",
+            )
         if action == "collect":
             s.add_argument(
                 "--prefix", action="append", default=[], metavar="VENDOR=OUTPUT_PREFIX"
