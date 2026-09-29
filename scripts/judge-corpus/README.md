@@ -48,6 +48,29 @@ uv run judge-corpus collect-generation --prefix outputs/generation/MODEL --model
 
 The submit command estimates input and output tokens at the published on-demand price with the documented batch discount. It refuses a job that would take the ledger above the USD 200 cap. It also refuses models without a recorded price.
 
+## Labels: rule example bank, constructions, teacher panel, export
+
+These stages build the labelled judging items. All paid calls run on demand and are recorded in the ledger. `--max-usd` and `--max-spend` refuse a run whose pre-run estimate is above the limit you give.
+
+```sh
+uv run --frozen judge-corpus bank generate --max-usd 22
+uv run --frozen judge-corpus bank verify --max-usd 25
+uv run --frozen judge-corpus items build --merge-shards 4
+uv run --frozen judge-corpus panel prepare --max-spend 45
+uv run --frozen judge-corpus panel submit --on-demand
+uv run --frozen judge-corpus panel collect
+uv run --frozen python label_sheets.py --low-confidence 0.9
+uv run --frozen judge-corpus items export --balance oversample --publish BUILD_ID
+uv run --frozen judge-corpus items export --min-confidence 0.9 --balance oversample --publish BUILD_ID
+```
+
+- `bank generate` asks Sonnet 5 for bad, good, tricky, and near-miss passages for every current lint rule and every judgement rule, spread across the five corpus genres.
+- `bank verify` keeps a lint-rule passage only when `slopvac lint` behaves as intended and gpt-oss and Sonnet both give the intended verdict. For bad passages, the rule must fire and both judges must call the finding a real defect. For tricky passages, the rule must fire and both must call the finding a false positive. For good and near-miss passages, the rule must not fire and both must judge the text acceptable. A judgement-rule passage is kept when both judges agree with its intended answer. The bank itself is private: it is stored in `.cache/bank/bank.jsonl` and under `s3://…/bank/`. The committed `items/bank-manifest.json` records the rule descriptions and the per-rule counts of kept and rejected passages.
+- `items build --merge-shards N` inserts kept bank passages into human host text at sentence, paragraph, and document granularity. Finding confirmation gets real-defect items from bad passages and false-positive items from tricky passages. Semantic detection gets true items from bad passages, and false items from good passages, near-miss passages, and clean host controls. Near-duplicate bank passages share a split. Held-out rules go to test only. The build drops any construction whose host span or inserted passage near-duplicates, by shingle Jaccard ≥ 0.5, a construction in another split. It also trims bank constructions until each split holds about as many items of each class per role.
+- `panel prepare` samples train items for the teacher panel and adds `--anchors` train constructions with known labels. The panel prompt gives the rule's description and four to six labelled bank passages, never the item's own passage. `panel collect` aggregates the votes with semi-supervised Dawid-Skene per role, with the anchors fixing each teacher's confusion matrix. It writes `label`, `label_confidence` (the posterior), and `label_origin=teacher-panel`.
+- `label_sheets.py` writes `items/adjudication/label-{test,calibration,disagreement}.csv`, with `label_rater1`, `label_rater2`, and `rater_notes` columns. The disagreement sheet holds 300 train items, stratified by rule, where the teachers split or the posterior is below `--low-confidence`.
+- `items export` writes `items/export/<variant>/`. `--min-confidence` drops teacher-panel labels below that posterior. `--balance oversample` repeats minority-class teacher-panel rows in train, with at most 8 copies of any row. Copies have ids of the form `<id>~<n>`. `export-manifest.json` records the class counts, the sampling weights, and per-rule class counts per split. `--publish BUILD_ID` uploads the variant and the sheets and records them in `items/export-index.json`.
+
 ## Outputs
 
 - `sources/human.jsonl` records one immutable source pointer, revision date, licence, normalized-text digest, and S3 key per admitted document or section.

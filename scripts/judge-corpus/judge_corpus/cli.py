@@ -19,9 +19,10 @@ from .bedrock import download_outputs, provision, submit, upload, upload_text, w
 from .common import read_jsonl, token_estimate, write_jsonl
 from .roster import build_roster
 from .sources import build_sources
+from .bank import generate_bank, verify_bank
 from .export import export_items, publish_export
 from .items import build_items, split_items
-from .panel import collect_panel, prepare_panel, submit_panel
+from .panel import ANCHORS, MAX_SPEND, collect_panel, prepare_panel, submit_panel
 
 
 def root_from_args(value: str | None) -> Path:
@@ -380,16 +381,25 @@ def cmd_items_split(args: argparse.Namespace) -> None:
 
 def cmd_items_export(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
-    report = export_items(root)
+    variant = args.variant or ("full" if args.min_confidence is None else "confident")
+    report = export_items(
+        root, variant=variant, min_confidence=args.min_confidence, balance=args.balance
+    )
     if args.publish:
-        report = publish_export(root, args.publish)
+        report = publish_export(root, args.publish, variant)
     print(json.dumps(report, sort_keys=True))
+
+
+def cmd_bank(args: argparse.Namespace) -> None:
+    root = root_from_args(args.root)
+    action = generate_bank if args.bank_action == "generate" else verify_bank
+    print(json.dumps(action(root, max_usd=args.max_usd), sort_keys=True))
 
 
 def cmd_panel(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
     if args.panel_action == "prepare":
-        result = prepare_panel(root)
+        result = prepare_panel(root, max_spend=args.max_spend, anchors=args.anchors)
     elif args.panel_action == "submit":
         result = submit_panel(root, on_demand=args.on_demand)
     else:
@@ -461,15 +471,49 @@ def parser() -> argparse.ArgumentParser:
         "export", help="write labelled items in the judge-pilot training format"
     )
     s.add_argument(
+        "--min-confidence",
+        type=float,
+        help="keep teacher-panel labels only at or above this posterior confidence",
+    )
+    s.add_argument(
+        "--balance",
+        choices=("none", "oversample"),
+        default="none",
+        help="oversample minority classes per role in train",
+    )
+    s.add_argument(
+        "--variant",
+        help="export subdirectory (default: full, or confident with --min-confidence)",
+    )
+    s.add_argument(
         "--publish",
         metavar="BUILD_ID",
-        help="upload the export to s3://<corpus bucket>/exports/BUILD_ID/",
+        help="upload the variant to s3://<corpus bucket>/exports/BUILD_ID/VARIANT/",
     )
     s.set_defaults(func=cmd_items_export)
+    bank = sub.add_parser("bank", help="generate and verify the rule example bank")
+    bank_actions = bank.add_subparsers(dest="bank_action", required=True)
+    for action in ("generate", "verify"):
+        s = bank_actions.add_parser(action)
+        s.add_argument(
+            "--max-usd",
+            type=float,
+            required=True,
+            help="refuse a run whose pre-run estimate exceeds this",
+        )
+        s.set_defaults(func=cmd_bank)
     panel = sub.add_parser("panel")
     panel_actions = panel.add_subparsers(dest="panel_action", required=True)
     for action in ("prepare", "submit", "collect"):
         s = panel_actions.add_parser(action)
+        if action == "prepare":
+            s.add_argument("--max-spend", type=float, default=MAX_SPEND)
+            s.add_argument(
+                "--anchors",
+                type=int,
+                default=ANCHORS,
+                help="train constructions with known labels to include",
+            )
         if action == "submit":
             s.add_argument(
                 "--on-demand",

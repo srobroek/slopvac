@@ -7,22 +7,29 @@ labelled corpus items in that format, one file per split. It adds fields for
 slicing metrics: role, rule_id, rule_held_out, granularity, genre, label_origin
 and provenance.
 
-Only labelled items are exported: train holds teacher-panel majority labels and
-constructions; dev, calibration and test hold constructions and, once people
-have filled in the adjudication sheets, human labels. State is rendered as one
-string, since the pilot state is plain text. For finding confirmation, the
-corpus label false-positive becomes the pilot's no-defect slot, which has the
-same meaning.
+Only labelled items are exported: train holds teacher-panel labels (Dawid-Skene
+posteriors, see panel.py) and constructions; dev, calibration and test hold
+constructions and, once people have filled in the adjudication sheets, human
+labels. State is rendered as one string, since the pilot state is plain text.
+For finding confirmation, the corpus label false-positive becomes the pilot's
+no-defect slot, which has the same meaning.
+
+Each export is a variant under items/export/<variant>/. `min_confidence` drops
+teacher-panel labels below that posterior confidence. `balance="oversample"`
+repeats minority-class teacher-panel rows in train until each role's classes
+are level (at most MAX_OVERSAMPLE copies of a row); copies get the id
+`<id>~<n>` and `oversample_of`. Constructions, which are built 50/50, and the
+dev, calibration and test splits keep their distributions.
 """
 
 from __future__ import annotations
 
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from .common import read_jsonl, write_jsonl
-from .items import SPLITS, _state_of, digest
+from .items import SPLITS, _state_of, digest, seed
 
 CHOICE_LABELS = {
     "real-defect": "real-defect",
@@ -35,6 +42,7 @@ CHOICE_CRITERIA = {
     "insufficient-context": "The text and context do not decide the finding.",
 }
 MAX_EXAMPLES = 2
+MAX_OVERSAMPLE = 8
 
 
 def render_state(state: dict) -> str:
@@ -105,22 +113,86 @@ def export_item(root: Path, item: dict) -> dict | None:
         "granularity": item.get("granularity"),
         "genre": item.get("genre"),
         "label_origin": item.get("label_origin"),
+        "label_confidence": item.get("label_confidence"),
         "provenance": "generated" if item.get("source_vendor") else "human",
     }
 
 
-def export_items(root: Path) -> dict:
-    out = root / "items/export"
-    out.mkdir(parents=True, exist_ok=True)
-    report: dict = {"files": {}, "counts": {}}
-    for split in SPLITS:
-        rows = [
-            row
-            for row in (
-                export_item(root, x) for x in read_jsonl(root / f"items/{split}.jsonl")
+def _oversample(rows: list[dict]) -> tuple[list[dict], dict]:
+    """Level each role's classes in train by repeating teacher-panel rows of
+    the smaller classes; constructions count toward the totals but are never
+    repeated."""
+    out = list(rows)
+    weights: dict = {}
+    for role in sorted({r["role"] for r in rows}):
+        mine = [r for r in rows if r["role"] == role]
+        counts = Counter(json.dumps(r["label"]) for r in mine)
+        top = max(counts.values())
+        weights[role] = {}
+        for label, n in sorted(counts.items()):
+            pool = sorted(
+                (
+                    r
+                    for r in mine
+                    if json.dumps(r["label"]) == label
+                    and r["label_origin"] != "construction"
+                ),
+                key=lambda r: (seed(f"17:oversample:{r['id']}"), r["id"]),
             )
-            if row is not None
-        ]
+            extra = min(top - n, len(pool) * (MAX_OVERSAMPLE - 1)) if pool else 0
+            for k in range(extra):
+                src = pool[k % len(pool)]
+                out.append(
+                    {
+                        **src,
+                        "id": f"{src['id']}~{k // len(pool) + 1}",
+                        "oversample_of": src["id"],
+                    }
+                )
+            weights[role][label] = {
+                "items": n,
+                "teacher_panel_items": len(pool),
+                "exported": n + extra,
+                "weight": round((n + extra) / n, 4),
+            }
+    return out, weights
+
+
+def export_items(
+    root: Path,
+    *,
+    variant: str = "full",
+    min_confidence: float | None = None,
+    balance: str = "none",
+) -> dict:
+    out = root / "items/export" / variant
+    out.mkdir(parents=True, exist_ok=True)
+    report: dict = {
+        "variant": variant,
+        "min_confidence": min_confidence,
+        "balance": balance,
+        "files": {},
+        "counts": {},
+        "dropped_below_confidence": {},
+        "per_rule": defaultdict(lambda: defaultdict(Counter)),
+    }
+    for split in SPLITS:
+        rows, dropped = [], Counter()
+        for x in read_jsonl(root / f"items/{split}.jsonl"):
+            row = export_item(root, x)
+            if row is None:
+                continue
+            if (
+                min_confidence is not None
+                and row["label_origin"] == "teacher-panel"
+                and (row["label_confidence"] or 0.0) < min_confidence
+            ):
+                dropped[f"{row['role']}|{row['label']}"] += 1
+                continue
+            rows.append(row)
+            report["per_rule"][row["rule_id"]][split][str(row["label"])] += 1
+        if split == "train" and balance == "oversample":
+            rows, report["sampling_weights"] = _oversample(rows)
         path = out / f"{split}.jsonl"
         write_jsonl(path, rows)
         report["files"][split] = {
@@ -131,47 +203,78 @@ def export_items(root: Path) -> dict:
         report["counts"][split] = dict(
             Counter(f"{r['role']}|{r['label_origin']}|{r['label']}" for r in rows)
         )
+        report["dropped_below_confidence"][split] = dict(dropped)
     (out / "export-manifest.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    return report
+    return {k: v for k, v in report.items() if k != "per_rule"}
 
 
-def publish_export(root: Path, build_id: str) -> dict:
-    """Upload items/export and the adjudication sheets to
-    s3://<corpus bucket>/exports/<build_id>/ and record the objects in
-    items/export-index.json, which is committed."""
+def publish_export(root: Path, build_id: str, variant: str) -> dict:
+    """Upload items/export/<variant> to s3://<corpus bucket>/exports/<build_id>/
+    <variant>/ and the adjudication sheets to .../<build_id>/adjudication/, and
+    record the objects in items/export-index.json (committed), one entry per
+    build. Builds recorded as frozen are never written again."""
     from .bedrock import upload
 
-    src = root / "items/export"
+    src = root / "items/export" / variant
     manifest = json.loads((src / "export-manifest.json").read_text(encoding="utf-8"))
     items_manifest = json.loads(
         (root / "items/manifest.json").read_text(encoding="utf-8")
     )
-    objects = []
-    files = [src / f"{s}.jsonl" for s in SPLITS] + [src / "export-manifest.json"]
-    files += sorted((root / "items/adjudication").glob("*-sheet.*"))
-    files += sorted((root / "items/adjudication").glob("label-*.csv"))
-    for path in files:
-        name = str(path.relative_to(src if path.parent == src else root / "items"))
-        objects.append(
-            {
-                "path": name,
-                "sha256": digest(path.read_bytes()),
-                "uri": upload(root, path, f"exports/{build_id}/{name}"),
-            }
+    index_path = root / "items/export-index.json"
+    index = (
+        json.loads(index_path.read_text(encoding="utf-8"))
+        if index_path.is_file()
+        else {}
+    )
+    if index.get("schema_version") == 1:
+        # The single-build index of v2: kept as a frozen build entry.
+        legacy = {k: v for k, v in index.items() if k != "schema_version"}
+        index = {
+            "schema_version": 2,
+            "builds": {legacy["build_id"]: {**legacy, "frozen": True}},
+        }
+    index.setdefault("schema_version", 2)
+    builds = index.setdefault("builds", {})
+    if builds.get(build_id, {}).get("frozen"):
+        raise RuntimeError(
+            f"{build_id} is a frozen build; publish under a new build id"
         )
-    index = {
-        "schema_version": 1,
-        "build_id": build_id,
-        "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
-        "item_split_digests": items_manifest.get("split_digests", {}),
-        "held_out_lint_rules": items_manifest.get("held_out_lint_rules", []),
-        "held_out_judgement_rules": items_manifest.get("held_out_judgement_rules", []),
+
+    def put(path: Path, name: str) -> dict:
+        return {
+            "path": name,
+            "sha256": digest(path.read_bytes()),
+            "uri": upload(root, path, f"exports/{build_id}/{name}"),
+        }
+
+    objects = [put(src / f"{s}.jsonl", f"{variant}/{s}.jsonl") for s in SPLITS] + [
+        put(src / "export-manifest.json", f"{variant}/export-manifest.json")
+    ]
+    sheets = sorted((root / "items/adjudication").glob("*-sheet.*")) + sorted(
+        (root / "items/adjudication").glob("label-*.csv")
+    )
+    entry = builds.setdefault(build_id, {"build_id": build_id, "variants": {}})
+    entry.update(
+        {
+            "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+            "item_split_digests": items_manifest.get("split_digests", {}),
+            "held_out_lint_rules": items_manifest.get("held_out_lint_rules", []),
+            "held_out_judgement_rules": items_manifest.get(
+                "held_out_judgement_rules", []
+            ),
+            "adjudication": [put(p, f"adjudication/{p.name}") for p in sheets],
+        }
+    )
+    entry["variants"][variant] = {
+        "min_confidence": manifest["min_confidence"],
+        "balance": manifest["balance"],
         "counts": manifest["counts"],
+        "sampling_weights": manifest.get("sampling_weights"),
         "objects": objects,
     }
-    (root / "items/export-index.json").write_text(
+    index_path.write_text(
         json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    return index
+    return entry

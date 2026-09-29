@@ -9,3 +9,4 @@ generated/inputs/
 generated/raw/
 items/*
 !items/export-index.json
+!items/bank-manifest.json

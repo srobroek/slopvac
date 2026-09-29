@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import math
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
 from botocore.exceptions import ClientError
+from .bank import prompt_examples, rule_guide
 from .bedrock import download_outputs, ensure_budget, now, pricing_for, submit, upload
 from .batch import model_body, parse_output
 from .common import read_jsonl, token_estimate, write_jsonl
+from .items import _draw
 from .ondemand import run_ondemand
 
 MODELS = {
@@ -39,6 +43,12 @@ def _self_labelled(vendor: str, item: dict) -> bool:
 
 MAX_SPEND = 60.0
 OUTPUT_TOKENS = 400
+# Output tokens per vote for spend estimates. A vote is a short JSON object;
+# the re-run averaged 13 (Sonnet, Mistral) to 71 (gpt-oss, reasoning) tokens.
+EXPECTED_OUTPUT_TOKENS = 80
+# Construction items with known labels in the panel sample. They anchor each
+# teacher's per-role confusion in the Dawid-Skene aggregation.
+ANCHORS = 800
 
 
 def _panel_body(model: str, prompt: str) -> dict:
@@ -61,7 +71,10 @@ def _train(root: Path) -> tuple[list[dict], dict]:
     return rows, manifest
 
 
-def _prompt(root: Path, item: dict) -> str:
+def _prompt(root: Path, item: dict, examples: list[dict] | None = None) -> str:
+    """The panel prompt: the rule's description and, unless `examples` is
+    given, four to six labelled bank passages for the rule (never the item's
+    own passage), then the item's state and question."""
     state = item.get("state")
     if state is None and item.get("state_path"):
         state = json.loads((root / item["state_path"]).read_text(encoding="utf-8"))
@@ -74,6 +87,10 @@ def _prompt(root: Path, item: dict) -> str:
             "granularity": item["granularity"],
         }
     question = item["question"]
+    if examples is None:
+        examples = prompt_examples(
+            root, item, state.get("text", "") + "\n" + (state.get("context") or "")
+        )
     if question.get("type") == "choice":
         labels = " or ".join(f'"{k}"' for k in question["options"])
         target = (
@@ -87,18 +104,34 @@ def _prompt(root: Path, item: dict) -> str:
             'has the defect, "false" means it does not. question.criteria '
             "gives bad and good examples of the defect."
         )
-    instruction = (
-        "You are labelling prose for a writing-quality checker. Use only the "
-        f"supplied state and question. {target} Reply with only a JSON object "
-        f'of the form {{"answer": LABEL}}, where LABEL is exactly {labels}. '
-        "Do not explain, and do not answer questions the text itself asks."
+    rule = rule_guide(root, item["rule_id"])
+    parts = [name for name, value in (("rule", rule), ("examples", examples)) if value]
+    guide = []
+    if rule:
+        guide.append("rule describes what the rule targets and how to fix it.")
+    if examples:
+        guide.append(
+            "examples are other passages for the same rule, each with the answer "
+            "it gets; they are reference, not the text to judge."
+        )
+    instruction = " ".join(
+        [
+            "You are labelling prose for a writing-quality checker. Use only the "
+            f"supplied {', '.join(parts + ['state'])} and question.",
+            target,
+            *guide,
+            f'Reply with only a JSON object of the form {{"answer": LABEL}}, where '
+            f"LABEL is exactly {labels}. Do not explain, and do not answer questions "
+            "the text itself asks.",
+        ]
     )
+    payload = {"rule": rule, "examples": examples, "state": state, "question": question}
     return (
         instruction
         + "\n"
         # question.finding carries offsets into state.text. The item's own
         # finding holds document offsets and a private path, so it stays out.
-        + json.dumps({"state": state, "question": question}, ensure_ascii=False)
+        + json.dumps({k: v for k, v in payload.items() if v}, ensure_ascii=False)
     )
 
 
@@ -172,13 +205,13 @@ def _estimate(root: Path, items: list[dict]) -> tuple[dict, float]:
             )
             records.append({"recordId": f"{item['id']}:{voter}", "modelInput": body})
         estimate = (
-            input_tokens * prices[0] + len(records) * OUTPUT_TOKENS * prices[1]
+            input_tokens * prices[0] + len(records) * EXPECTED_OUTPUT_TOKENS * prices[1]
         ) / 1_000_000
         result[vendor] = {
             "model_id": model,
             "records": records,
             "input_tokens": input_tokens,
-            "output_tokens": len(records) * OUTPUT_TOKENS,
+            "output_tokens": len(records) * EXPECTED_OUTPUT_TOKENS,
             "estimate_usd": estimate,
             "prices": prices,
         }
@@ -186,22 +219,41 @@ def _estimate(root: Path, items: list[dict]) -> tuple[dict, float]:
     return result, total
 
 
-def prepare_panel(root: Path) -> dict:
+def _anchor_sample(train: list[dict], limit: int) -> list[dict]:
+    """Train constructions with known labels, the same number per role and
+    per label within a role, spread over construction kinds and rules."""
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for x in train:
+        if x.get("label_origin") == "construction" and x.get("label") is not None:
+            groups[(x["role"], json.dumps(x["label"]))].append(x)
+    roles = sorted({role for role, _ in groups})
+    chosen: set[str] = set()
+    for role in roles:
+        labels = [k for k in groups if k[0] == role]
+        for key in labels:
+            chosen |= _draw(groups[key], limit // len(roles) // len(labels))
+    return [x for x in train if x["id"] in chosen]
+
+
+def prepare_panel(
+    root: Path, *, max_spend: float = MAX_SPEND, anchors: int = ANCHORS
+) -> dict:
     train, manifest = _train(root)
     candidates = [x for x in train if x.get("label_origin") == "teacher-panel"]
     if not candidates:
         raise ValueError("no train candidates marked for teacher-panel labels")
-    # Bound to $60 using authoritative price data before writing any panel input.
+    anchor_items = _anchor_sample(train, anchors)
+    # Bound the spend using authoritative price data before writing any panel input.
     limit = min(len(candidates), 8000)
     while limit >= 100:
         selected, strata = _sample(candidates, limit)
-        models, total = _estimate(root, selected)
-        if total <= MAX_SPEND:
+        models, total = _estimate(root, selected + anchor_items)
+        if total <= max_spend:
             break
-        limit = int(limit * MAX_SPEND / total * 0.92)
+        limit = int(limit * max_spend / total * 0.92)
     else:
         raise RuntimeError(
-            "cannot fit at least 100 stratified items under the $60 panel cap"
+            f"cannot fit at least 100 stratified items under the ${max_spend} cap"
         )
     files = {}
     for vendor, model in models.items():
@@ -213,10 +265,16 @@ def prepare_panel(root: Path) -> dict:
         "created_at": now(),
         "model_ids": {v: m["model_id"] for v, m in models.items()},
         "files": files,
-        "sample_ids": [x["id"] for x in selected],
+        "sample_ids": [x["id"] for x in selected + anchor_items],
+        "anchor_ids": [x["id"] for x in anchor_items],
         "sample_count": len(selected),
+        "anchor_count": len(anchor_items),
+        "anchor_labels": dict(
+            Counter(f"{x['role']}|{x['label']}" for x in anchor_items)
+        ),
         "candidate_count": len(candidates),
         "strata": strata,
+        "max_spend_usd": max_spend,
         "estimated_total_usd": round(total, 6),
         "estimated_by_model": {
             k: round(v["estimate_usd"], 6) for k, v in models.items()
@@ -241,8 +299,9 @@ def submit_panel(root: Path, *, on_demand: bool = False) -> dict:
     if not path.is_file():
         prepare_panel(root)
     plan = json.loads(path.read_text(encoding="utf-8"))
-    if plan["estimated_total_usd"] > MAX_SPEND:
-        raise RuntimeError("panel plan exceeds the $60 cap")
+    max_spend = plan.get("max_spend_usd", MAX_SPEND)
+    if plan["estimated_total_usd"] > max_spend:
+        raise RuntimeError(f"panel plan exceeds the ${max_spend} cap")
     jobs = {}
     for vendor, model_id in plan["model_ids"].items():
         input_path = root / plan["files"][vendor]
@@ -251,7 +310,7 @@ def submit_panel(root: Path, *, on_demand: bool = False) -> dict:
             token_estimate(json.dumps(r["modelInput"], ensure_ascii=False))
             for r in records
         )
-        output_tokens = len(records) * OUTPUT_TOKENS
+        output_tokens = len(records) * EXPECTED_OUTPUT_TOKENS
         price = pricing_for(model_id)
         if price is None:
             raise ValueError(f"no verified price for {model_id}")
@@ -286,7 +345,10 @@ def submit_panel(root: Path, *, on_demand: bool = False) -> dict:
         except ClientError as exc:
             if "batch inference is not supported" not in str(exc).lower():
                 raise
-            output_path = root / "items" / f"panel-{vendor}-ondemand.jsonl"
+            # Keyed by the input digest: a resumed run skips only records of
+            # this plan, never votes left over from an earlier prompt.
+            tag = hashlib.sha256(input_path.read_bytes()).hexdigest()[:12]
+            output_path = root / "items" / f"panel-{vendor}-{tag}-ondemand.jsonl"
             run = run_ondemand(
                 root,
                 input_path,
@@ -294,7 +356,8 @@ def submit_panel(root: Path, *, on_demand: bool = False) -> dict:
                 output_path,
                 stage=f"panel-{vendor}",
                 concurrency=8,
-                expected_output_tokens=OUTPUT_TOKENS,
+                expected_output_tokens=EXPECTED_OUTPUT_TOKENS,
+                max_usd=max_spend,
             )
             jobs[vendor] = {
                 "mode": "on-demand",
@@ -374,6 +437,76 @@ def _allowed_labels(item: dict) -> set[str]:
     return set()
 
 
+def _vote_value(label) -> str:
+    """Labels as vote strings: yes/no construction labels are booleans."""
+    return ("true" if label else "false") if isinstance(label, bool) else label
+
+
+def dawid_skene(
+    rows: list[tuple[str, dict[str, str | None]]],
+    classes: list[str],
+    anchors: dict[str, str],
+    vendors: list[str],
+    *,
+    iterations: int = 200,
+    smoothing: float = 1.0,
+) -> tuple[dict[str, dict[str, float]], dict, dict[str, float]]:
+    """Semi-supervised Dawid-Skene. Anchor items (known labels) keep one-hot
+    posteriors and so pin each teacher's confusion matrix; the class prior
+    comes from the other items only, since constructions are balanced by
+    design. Returns posteriors, confusion[vendor][true][vote] and the prior."""
+    k = len(classes)
+    post: dict[str, dict[str, float]] = {}
+    for item_id, votes in rows:
+        if item_id in anchors:
+            post[item_id] = {c: float(c == anchors[item_id]) for c in classes}
+        else:
+            counts = Counter(v for v in votes.values() if v in classes)
+            total = sum(counts.values())
+            post[item_id] = {c: (counts[c] + 0.1) / (total + 0.1 * k) for c in classes}
+    free = [(i, v) for i, v in rows if i not in anchors]
+    prior = {c: 1.0 / k for c in classes}
+    conf: dict = {}
+    for _ in range(iterations):
+        prior = {
+            c: (sum(post[i][c] for i, _ in free) + smoothing)
+            / (len(free) + smoothing * k)
+            for c in classes
+        }
+        conf = {}
+        for v in vendors:
+            conf[v] = {}
+            for t in classes:
+                num = {c: smoothing for c in classes}
+                for i, votes in rows:
+                    vote = votes.get(v)
+                    if vote in num:
+                        num[vote] += post[i][t]
+                total = sum(num.values())
+                conf[v][t] = {c: n / total for c, n in num.items()}
+        change = 0.0
+        for i, votes in free:
+            logp = {}
+            for t in classes:
+                lp = math.log(prior[t])
+                for v in vendors:
+                    vote = votes.get(v)
+                    if vote in classes:
+                        lp += math.log(conf[v][t][vote])
+                logp[t] = lp
+            top = max(logp.values())
+            z = sum(math.exp(x - top) for x in logp.values())
+            new = {t: math.exp(logp[t] - top) / z for t in classes}
+            change = max(change, max(abs(new[t] - post[i][t]) for t in classes))
+            post[i] = new
+        if change < 1e-6:
+            break
+    return post, conf, prior
+
+
+CONFIDENCE_BINS = [round(0.5 + 0.05 * i, 2) for i in range(11)]
+
+
 def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
     plan_path = root / "items/panel-plan.json"
     plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -399,6 +532,8 @@ def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
                 votes[item_id][record_vendor] = _answer(record)
     train = list(read_jsonl(root / "items/train.jsonl"))
     by_id = {x["id"]: x for x in train}
+    anchor_ids = set(plan.get("anchor_ids", []))
+    vendor_names = list(MODELS)
     vote_rows = []
     for item_id in sorted(sample_ids):
         if item_id not in by_id:
@@ -410,21 +545,7 @@ def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
         item_votes = {
             v: (a if a in allowed else None) for v, a in votes.get(item_id, {}).items()
         }
-        counts = Counter(x for x in item_votes.values() if x)
-        label = (
-            counts.most_common(1)[0][0]
-            if counts and counts.most_common(1)[0][1] >= 2
-            else None
-        )
         item["panel_votes"] = item_votes
-        # Construction labels for yes/no questions are JSON booleans; panel
-        # labels match them.
-        if label is not None and item["question"].get("type") == "noul":
-            label = label == "true"
-        item["label"] = label
-        item["label_origin"] = (
-            "teacher-panel" if label is not None else "teacher-panel-disagreement"
-        )
         vote_rows.append(
             {
                 "item_id": item_id,
@@ -433,28 +554,90 @@ def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
                 "genre": item["genre"],
                 "granularity": item["granularity"],
                 "source_family": item.get("source_family"),
+                "anchor": item_id in anchor_ids,
+                "known_label": _vote_value(item["label"])
+                if item_id in anchor_ids
+                else None,
                 "votes": item_votes,
-                "label": label,
             }
         )
-    write_jsonl(root / "items/train.jsonl", train)
-    write_jsonl(root / "items/panel-votes.jsonl", vote_rows)
-    vendor_names = list(MODELS)
-    valid = [
-        r for r in vote_rows if all(r["votes"].get(v) is not None for v in vendor_names)
-    ]
-    report = {
+    report: dict = {
+        "aggregation": "semi-supervised Dawid-Skene, per role, anchored on constructions",
         "sampled_items": len(vote_rows),
-        "complete_three_vote_items": len(valid),
-        "fleiss_kappa": _fleiss(valid, vendor_names),
+        "anchor_items": sum(r["anchor"] for r in vote_rows),
+        "complete_three_vote_items": sum(
+            all(r["votes"].get(v) is not None for v in vendor_names) for r in vote_rows
+        ),
         "per_role": {},
         "per_rule": {},
     }
-    for key in sorted({r["role"] for r in vote_rows}):
-        group = [r for r in vote_rows if r["role"] == key]
-        report["per_role"][key] = {
+    for role in sorted({r["role"] for r in vote_rows}):
+        group = [r for r in vote_rows if r["role"] == role]
+        classes = sorted(_allowed_labels(by_id[group[0]["item_id"]]))
+        anchors = {r["item_id"]: r["known_label"] for r in group if r["anchor"]}
+        post, conf, prior = dawid_skene(
+            [(r["item_id"], r["votes"]) for r in group], classes, anchors, vendor_names
+        )
+        natural = [r for r in group if not r["anchor"]]
+        for r in natural:
+            item = by_id[r["item_id"]]
+            p = post[r["item_id"]]
+            best = max(classes, key=lambda c: (p[c], c))
+            voted = any(r["votes"].get(v) for v in vendor_names)
+            label = best if voted else None
+            if label is not None and item["question"].get("type") == "noul":
+                label = label == "true"
+            item["label"] = label
+            item["label_confidence"] = round(p[best], 6) if voted else None
+            item["label_posterior"] = {c: round(p[c], 6) for c in classes}
+            item["label_origin"] = "teacher-panel" if voted else "teacher-panel-no-vote"
+            r["label"] = label
+            r["label_confidence"] = item["label_confidence"]
+            r["posterior"] = item["label_posterior"]
+            counts = Counter(x for x in r["votes"].values() if x)
+            r["unanimous"] = len(counts) == 1 and sum(counts.values()) == len(
+                vendor_names
+            )
+            r["majority"] = (
+                counts.most_common(1)[0][0]
+                if counts and counts.most_common(1)[0][1] >= 2
+                else None
+            )
+        teachers = {}
+        for v in vendor_names:
+            scored = [r for r in group if r["anchor"] and r["votes"].get(v)]
+            teachers[v] = {
+                # Expected accuracy under the natural-item class prior.
+                "estimated_accuracy": round(
+                    sum(prior[c] * conf[v][c][c] for c in classes), 4
+                ),
+                "estimated_recall": {c: round(conf[v][c][c], 4) for c in classes},
+                "anchor_accuracy": round(
+                    sum(r["votes"][v] == r["known_label"] for r in scored)
+                    / len(scored),
+                    4,
+                )
+                if scored
+                else None,
+                "anchor_votes": len(scored),
+            }
+        confidences = [r["label_confidence"] for r in natural if r["label"] is not None]
+        report["per_role"][role] = {
             "items": len(group),
+            "anchors": len(anchors),
+            "anchor_labels": dict(Counter(anchors.values())),
             "fleiss_kappa": _fleiss(group, vendor_names),
+            "class_prior": {c: round(prior[c], 4) for c in classes},
+            "teachers": teachers,
+            "labels": dict(Counter(str(r["label"]) for r in natural)),
+            "unanimous": sum(r["unanimous"] for r in natural),
+            "agrees_with_majority": sum(
+                r["majority"] is not None and _vote_value(r["label"]) == r["majority"]
+                for r in natural
+            ),
+            "confidence_at_least": {
+                str(b): sum(c >= b for c in confidences) for b in CONFIDENCE_BINS
+            },
         }
     for key in sorted({r["rule_id"] for r in vote_rows}):
         group = [r for r in vote_rows if r["rule_id"] == key]
@@ -462,6 +645,8 @@ def collect_panel(root: Path, prefixes: dict[str, str] | None = None) -> dict:
             "items": len(group),
             "fleiss_kappa": _fleiss(group, vendor_names),
         }
+    write_jsonl(root / "items/train.jsonl", train)
+    write_jsonl(root / "items/panel-votes.jsonl", vote_rows)
     (root / "items/panel-agreement.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

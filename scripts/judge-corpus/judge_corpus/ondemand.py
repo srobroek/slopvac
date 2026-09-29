@@ -69,7 +69,10 @@ def run_ondemand(
     stage: str,
     concurrency: int = 16,
     expected_output_tokens: int = 800,
+    max_usd: float | None = None,
 ) -> dict:
+    """`max_usd` refuses a run whose pre-run estimate exceeds a caller's own
+    spend limit; the ledger cap applies regardless."""
     records = list(read_jsonl(input_path))
     done: set[str] = set()
     if output_path.exists():
@@ -86,6 +89,11 @@ def run_ondemand(
     estimate = (
         input_tokens * prices[0] + len(todo) * expected_output_tokens * prices[1]
     ) / 1_000_000
+    print(f"{stage}: {len(todo)} records, pre-run estimate ${estimate:.4f}", flush=True)
+    if max_usd is not None and estimate > max_usd:
+        raise RuntimeError(
+            f"{stage}: estimate ${estimate:.4f} exceeds the ${max_usd:.2f} limit"
+        )
     ensure_budget(root, estimate)
 
     client = boto3.Session(profile_name=PROFILE, region_name=REGION).client(

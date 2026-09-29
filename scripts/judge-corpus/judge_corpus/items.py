@@ -10,18 +10,21 @@ import random
 import re
 import subprocess
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 os.environ.setdefault("RAYON_NUM_THREADS", "4")
 import yaml
 from tokenizers import Tokenizer
 
-from .common import read_jsonl, sha256_text, write_jsonl
+from .common import read_jsonl, sha256_text, shingles, write_jsonl
 
 CANONICAL = Path("/Users/sjors/personal/dev/slopvac")
 JUDGEMENT_REV = "49a91f2b^"
 SPLITS = ("train", "dev", "calibration", "test")
 GRANULARITY = (("sentence", 30), ("paragraph", 45), ("document", 25))
+# Verified rule example bank (see bank.py); private.
+BANK_PATH = Path(".cache/bank/bank.jsonl")
 
 
 def digest(data: bytes) -> str:
@@ -431,9 +434,16 @@ def _lint_text(text: str) -> str:
 
 
 def _run_lint(
-    files: list[tuple[str, Path]], batch_size: int = 40
+    files: list[tuple[str, Path]], batch_size: int = 40, workers: int = 1
 ) -> dict[str, list[dict]]:
     out = defaultdict(list)
+    if workers > 1 and len(files) > batch_size:
+        chunks = [files[i : i + batch_size] for i in range(0, len(files), batch_size)]
+        with ThreadPoolExecutor(workers) as pool:
+            for found in pool.map(lambda c: _run_lint(c, batch_size), chunks):
+                for name, rows in found.items():
+                    out[name].extend(rows)
+        return out
     cmd = ["uvx", "--from", str(CANONICAL / "packages/slopvac-lint"), "slopvac", "lint"]
     for i in range(0, len(files), batch_size):
         chunk = files[i : i + batch_size]
@@ -491,8 +501,11 @@ def _make_item(
     source_group: str,
     finding: dict | None = None,
     construction: dict | None = None,
+    g: str | None = None,
 ) -> dict | None:
-    g = granularity(f"{role}:{source['id']}:{rule['id']}:{anchor}:{construction or ''}")
+    g = g or granularity(
+        f"{role}:{source['id']}:{rule['id']}:{anchor}:{construction or ''}"
+    )
     flagged = (finding or {}).get("matched_text") or ""
     if finding and not flagged:
         containing = next((p for p in paragraphs(text) if p[0] <= anchor <= p[1]), None)
@@ -806,19 +819,31 @@ def _sample_adjudication(
                     json.dumps(row.get("provenance", {}), sort_keys=True),
                 )
             ].append(row)
-        queues = []
-        for key, values in sorted(strata.items()):
-            values.sort(key=lambda row: (seed(f"17:{split}:{row['id']}"), row["id"]))
-            queues.append(values)
+        # Each role gets an equal share of the limit; a shortfall in one role
+        # passes to the roles after it. Without the shares, the sorted
+        # finding-confirmation strata filled the whole sample.
+        roles = sorted({key[0] for key in strata})
         selected = []
-        while len(selected) < limit and queues:
-            remaining = []
-            for values in queues:
-                if len(selected) < limit and values:
-                    selected.append(values.pop(0))
-                if values:
-                    remaining.append(values)
-            queues = remaining
+        for n, role in enumerate(roles):
+            quota = (limit - len(selected)) // (len(roles) - n)
+            queues = []
+            for key, values in sorted(strata.items()):
+                if key[0] != role:
+                    continue
+                values.sort(
+                    key=lambda row: (seed(f"17:{split}:{row['id']}"), row["id"])
+                )
+                queues.append(values)
+            taken = []
+            while len(taken) < quota and queues:
+                remaining = []
+                for values in queues:
+                    if len(taken) < quota and values:
+                        taken.append(values.pop(0))
+                    if values:
+                        remaining.append(values)
+                queues = remaining
+            selected += taken
         selected_by_split[split] = {row["id"] for row in selected}
         selected_items.extend(selected)
         dropped[split] = len(candidates) - len(selected)
@@ -830,6 +855,422 @@ def _sample_adjudication(
         or row["id"] in selected_by_split[row["split"]]
     ]
     return retained, dropped
+
+
+# Bank constructions: verified bank passages (bank.py) injected into human host
+# text at sentence, paragraph and document granularity. Finding confirmation
+# gets real-defect items from bad passages and false-positive items from tricky
+# ones (the rule fires on acceptable prose). Semantic detection gets true items
+# from bad passages, and false items from good passages, near-miss hard
+# negatives and clean host controls.
+BANK_SPLIT_PERCENT = {
+    "default": (("train", 55), ("dev", 15), ("calibration", 15), ("test", 15)),
+    # Hard negatives are calibration material first.
+    ("semantic-detection", "near"): (
+        ("train", 35),
+        ("dev", 15),
+        ("calibration", 35),
+        ("test", 15),
+    ),
+}
+BANK_REPEATS = {"train": 5, "dev": 3, "calibration": 4, "test": 3}
+BANK_USE = {
+    ("finding-confirmation", "bad"): "real-defect",
+    ("finding-confirmation", "tricky"): "false-positive",
+    ("semantic-detection", "bad"): True,
+    ("semantic-detection", "good"): False,
+    ("semantic-detection", "near"): False,
+}
+# Draw weights among negative sources when the false class is trimmed.
+FALSE_MIX = {"bank-good": 0.5, "bank-near": 0.3, "bank-control": 0.2}
+# On a cross-split near-duplicate, the item in the lower-priority split goes.
+SPLIT_PRIORITY = {"test": 3, "calibration": 2, "dev": 1, "train": 0}
+NEAR_DUP_JACCARD = 0.5
+_BLOCK_START = re.compile(r"^\s*(?:#|\||```|~~~|>|[-*+]\s|\d+[.)]\s|\.\. |<)")
+
+
+def _signature(text: str, n: int) -> set[int]:
+    return {hash(s) for s in shingles(text, n)}
+
+
+def _near_pairs(
+    sigs: dict[str, set[int]],
+    threshold: float,
+    group: dict[str, str] | None = None,
+    max_postings: int = 2000,
+):
+    """Key pairs whose shingle sets reach the Jaccard threshold, found through
+    an inverted index. With `group`, only pairs from different groups; each
+    key then reads only the other groups' postings."""
+    group = group or {}
+    index: dict[tuple, list[str]] = defaultdict(list)
+    for key, sig in sigs.items():
+        for s in sig:
+            index[(group.get(key), s)].append(key)
+    groups = sorted({group.get(k) for k in sigs}, key=str)
+    for key, sig in sigs.items():
+        mine = group.get(key)
+        shared: Counter = Counter()
+        for g in groups:
+            if group and g == mine:
+                continue
+            for s in sig:
+                posting = index.get((g, s))
+                if posting and len(posting) <= max_postings:
+                    shared.update(posting)
+        for other, n in shared.items():
+            if other <= key:
+                continue
+            if n / (len(sig) + len(sigs[other]) - n) >= threshold:
+                yield key, other
+
+
+def bank_split(rows: list[dict], held: set[str]) -> dict[str, str]:
+    """Split per near-duplicate cluster of kept bank passages, so no passage
+    and none of its near copies reach two splits. Held-out rules go to test."""
+    sigs = {r["id"]: _signature(r["text"], 3) for r in rows}
+    parent = {k: k for k in sigs}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for a, b in _near_pairs(sigs, NEAR_DUP_JACCARD):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[max(ra, rb)] = min(ra, rb)
+    members: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        members[find(r["id"])].append(r)
+    out = {}
+    for rep, group in members.items():
+        first = min(group, key=lambda r: r["id"])
+        split = "test"
+        if not any(r["rule_id"] in held for r in group):
+            ratios = BANK_SPLIT_PERCENT.get(
+                (first["role"], first["kind"]), BANK_SPLIT_PERCENT["default"]
+            )
+            n, acc = seed(f"17:bank-split:{rep}") % 100, 0
+            for split, pct in ratios:
+                acc += pct
+                if n < acc:
+                    break
+        for r in group:
+            out[r["id"]] = split
+    return out
+
+
+def _host_paragraphs(text: str) -> list[int]:
+    """Indexes of plain prose paragraphs among a host's first 20."""
+    ok = []
+    for i, (_, _, p) in enumerate(paragraphs(text)[:20]):
+        if not 150 <= len(p) <= 1500 or _BLOCK_START.match(p) or "```" in p:
+            continue
+        if "\n    " in p or not re.search(r"[.!?][\"')\]]*$", p):
+            continue
+        if sum(c.isalpha() or c.isspace() for c in p) / len(p) < 0.85:
+            continue
+        ok.append(i)
+    return ok
+
+
+def _granularities(example: str) -> tuple[str, ...]:
+    if "\n" in example:
+        return ("paragraph", "document") if "\n\n" not in example else ("document",)
+    single = len(sentences(example, 0, len(example))) == 1
+    if single and (example[0].isupper() or example[0].isdigit()):
+        return ("sentence", "paragraph", "document")
+    return ("paragraph", "document")
+
+
+def _inject(text: str, pi: int, example: str, where: int) -> tuple[str, int, int]:
+    """The host prefix through the paragraph after `pi`, with the example
+    inline after a sentence of paragraph `pi`, or as its own block after it."""
+    ps = paragraphs(text)
+    a, b, _ = ps[pi]
+    end = ps[min(pi + 1, len(ps) - 1)][1]
+    if "\n" in example:
+        return text[:b] + "\n\n" + example + text[b:end], b + 2, end
+    ss = sentences(text, a, b) or [(a, b, text[a:b])]
+    cut = ss[where % len(ss)][1]
+    return text[:cut] + " " + example + text[cut:end], cut + 1, end
+
+
+def _draw(rows: list[dict], n: int) -> set[str]:
+    """`n` rows by weighted round-robin over construction kinds, and within a
+    kind round-robin over rules, in seeded order."""
+    queues = {}
+    by_kind: dict[str, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    for x in rows:
+        by_kind[x["construction"]["kind"]][x["rule_id"]].append(x)
+    for kind, rules in by_kind.items():
+        pools = [
+            sorted(rules[r], key=lambda x: seed(f"17:balance:{x['id']}"))
+            for r in sorted(rules)
+        ]
+        order = []
+        while any(pools):
+            for pool in pools:
+                if pool:
+                    order.append(pool.pop(0))
+        queues[kind] = order
+    taken: Counter = Counter()
+    chosen: set[str] = set()
+    while len(chosen) < n and any(queues.values()):
+        kind = min(
+            (k for k in queues if queues[k]),
+            key=lambda k: (taken[k] / FALSE_MIX.get(k, 1.0), k),
+        )
+        chosen.add(queues[kind].pop(0)["id"])
+        taken[kind] += 1
+    return chosen
+
+
+def _bank_items(
+    root: Path,
+    humans: list[dict],
+    human_splits: dict[str, str],
+    texts: dict[str, str],
+    rules: dict[str, dict],
+    held: set[str],
+    encoders,
+) -> tuple[list[dict], dict]:
+    bank = [r for r in read_jsonl(root / BANK_PATH) if r.get("kept")]
+    report: Counter = Counter()
+    pools: dict[tuple[str, str | None], list[dict]] = defaultdict(list)
+    eligible = {}
+    for h in sorted(humans, key=lambda h: h["id"]):
+        if h["id"] in texts and (ps := _host_paragraphs(texts[h["id"]])):
+            eligible[h["id"]] = ps
+            pools[(human_splits[h["id"]], h.get("genre"))].append(h)
+            pools[(human_splits[h["id"]], None)].append(h)
+    plans = []
+    for row in sorted(bank, key=lambda r: r["id"]):
+        label = BANK_USE.get((row["role"], row["kind"]))
+        if label is None or row["rule_id"] not in rules or not row.get("split"):
+            continue
+        split, example = row["split"], row["text"]
+        pool = pools.get((split, row["genre"])) or pools.get((split, None)) or []
+        allowed = _granularities(example)
+        # A sentence-granularity item is the passage alone, so a passage is
+        # used at sentence granularity at most once; later repeats cycle
+        # through the wider granularities.
+        wider = [g for g in allowed if g != "sentence"]
+        base = seed(f"17:bank-host:{row['id']}")
+        for r in range(min(BANK_REPEATS[split], len(pool))):
+            host = pool[(base + r) % len(pool)]
+            ps = eligible[host["id"]]
+            pi = ps[seed(f"17:bank-p:{row['id']}:{r}") % len(ps)]
+            if r < len(allowed):
+                g = allowed[(base + r) % len(allowed)]
+            else:
+                g = wider[(base + r) % len(wider)]
+            where = seed(f"17:bank-s:{row['id']}:{r}")
+            new, start, end = _inject(texts[host["id"]], pi, example, where)
+            plans.append(
+                (row, r, host, g, new, start, start + len(example), end, label)
+            )
+            if row["role"] == "semantic-detection" and label is True:
+                # A clean control: the same rule on an untouched host paragraph.
+                chost = pool[(base + r + len(pool) // 2) % len(pool)]
+                cps = eligible[chost["id"]]
+                cpi = cps[seed(f"17:bank-cp:{row['id']}:{r}") % len(cps)]
+                ctext = texts[chost["id"]]
+                a, b, _ = paragraphs(ctext)[cpi]
+                ss = sentences(ctext, a, b) or [(a, b, "")]
+                anchor = ss[where % len(ss)][0]
+                cend = paragraphs(ctext)[min(cpi + 1, len(paragraphs(ctext)) - 1)][1]
+                plans.append(
+                    (row, r, chost, g, ctext[:cend], anchor, anchor, cend, False)
+                )
+    report["planned"] = len(plans)
+    # Finding confirmation needs the rule to fire inside the injected passage.
+    work = root / ".cache/items/bank-input"
+    work.mkdir(parents=True, exist_ok=True)
+    files, names = [], {}
+    for plan in plans:
+        row, r, host, *_ = plan
+        if row["role"] == "finding-confirmation":
+            name = digest(f"{row['id']}:{r}:{host['id']}".encode())[:24]
+            path = work / f"{name}.md"
+            path.write_text(_lint_text(plan[4]), encoding="utf-8")
+            files.append((name, path))
+            names[(row["id"], r)] = f"{name}.md"
+    found = _run_lint(files, workers=6)
+    items = []
+    for row, r, host, g, new, start, stop, end, label in plans:
+        rule = rules[row["rule_id"]]
+        control = start == stop
+        kind = "bank-control" if control else f"bank-{row['kind']}"
+        finding, anchor = None, start
+        if row["role"] == "finding-confirmation":
+            finding = next(
+                (
+                    f
+                    for f in found.get(names[(row["id"], r)], [])
+                    if f["rule_id"] == rule["id"]
+                    and start
+                    <= _offset(new, f.get("line", 1), f.get("column", 1))
+                    < stop
+                ),
+                None,
+            )
+            if finding is None:
+                report["dropped_rule_silent_in_context"] += 1
+                continue
+            anchor = _offset(new, finding.get("line", 1), finding.get("column", 1))
+        construction = {
+            "kind": kind,
+            "bank_id": None if control else row["id"],
+            "paired_bank_id": row["id"] if control else None,
+            "bank_split": row["split"],
+            "host_id": host["id"],
+            "injected_start": None if control else start,
+            "injected_end": None if control else stop,
+            "repeat": r,
+            "provenance": row["provenance"],
+        }
+        item = _make_item(
+            root,
+            role=row["role"],
+            rule=rule,
+            source=host,
+            text=new,
+            label=label,
+            origin="construction",
+            split=row["split"],
+            kind=f"{kind}:{row['id']}:{r}",
+            anchor=anchor,
+            encoders=encoders,
+            source_group=_source_group(host),
+            finding=finding,
+            construction=construction,
+            g=g,
+        )
+        if item is None:
+            report["dropped_span_budget"] += 1
+            continue
+        value = item["state"]["text"]
+        if not control:
+            at = value.find(row["text"])
+            if at < 0:
+                report["dropped_span_excludes_passage"] += 1
+                continue
+            if finding:
+                # The flagged text must be the occurrence inside the passage.
+                flagged = item["finding"]["matched_text"]
+                pos = value.find(flagged, at)
+                if pos < 0 or pos + len(flagged) > at + len(row["text"]):
+                    report["dropped_flag_outside_passage"] += 1
+                    continue
+                for f in (item["finding"], item["question"]["finding"]):
+                    f["start"], f["end"] = pos, pos + len(flagged)
+        if g == "document" and end < len(texts[host["id"]]):
+            item["truncated"] = True
+        item["rule_held_out"] = rule["id"] in held
+        items.append(item)
+    report["built"] = len(items)
+    return items, dict(report)
+
+
+def _dedup_constructions(
+    items: list[dict], passages: dict[str, str]
+) -> tuple[list[dict], dict]:
+    """Drop constructions whose host span or injected passage near-duplicates
+    (shingle Jaccard >= NEAR_DUP_JACCARD) a construction in another split."""
+    cons = [x for x in items if x.get("label_origin") == "construction"]
+    group = {x["id"]: x["split"] for x in cons}
+    host_sigs, passage_sigs = {}, {}
+    for x in cons:
+        text = (x.get("state") or {}).get("text", "")
+        passage = passages.get((x.get("construction") or {}).get("bank_id") or "")
+        if passage:
+            passage_sigs[x["id"]] = _signature(passage, 3)
+            text = text.replace(passage, " ")
+        if sig := _signature(text, 5):
+            host_sigs[x["id"]] = sig
+    drop: dict[str, str] = {}
+    for sigs, reason in ((passage_sigs, "injected-passage"), (host_sigs, "host-span")):
+        for a, b in _near_pairs(sigs, NEAR_DUP_JACCARD, group):
+            loser = a if SPLIT_PRIORITY[group[a]] < SPLIT_PRIORITY[group[b]] else b
+            drop.setdefault(loser, reason)
+    by_id = {x["id"]: x for x in cons}
+    report = dict(
+        Counter(
+            f"{by_id[i]['split']}|{by_id[i]['role']}|{reason}"
+            for i, reason in drop.items()
+        )
+    )
+    return [x for x in items if x["id"] not in drop], report
+
+
+def _balance_constructions(items: list[dict]) -> tuple[list[dict], dict]:
+    """Trim bank constructions of the majority class so every split holds
+    about as many true as false (finding confirmation: real-defect as
+    false-positive) constructions per role. Other constructions stay."""
+    classes: dict[tuple, dict[str, list[dict]]] = defaultdict(lambda: defaultdict(list))
+    for x in items:
+        if x.get("label_origin") == "construction":
+            classes[(x["split"], x["role"])][json.dumps(x["label"])].append(x)
+    drop: set[str] = set()
+    for by_label in classes.values():
+        if len(by_label) < 2:
+            continue
+        target = min(len(v) for v in by_label.values())
+        for rows in by_label.values():
+            bank = [
+                x
+                for x in rows
+                if (x.get("construction") or {}).get("kind", "").startswith("bank-")
+            ]
+            keep = _draw(bank, max(0, target - (len(rows) - len(bank))))
+            drop |= {x["id"] for x in bank if x["id"] not in keep}
+    kept = [x for x in items if x["id"] not in drop]
+    report = {
+        split: {
+            role: {
+                str(json.loads(label)): len(rows) - sum(x["id"] in drop for x in rows)
+                for label, rows in sorted(classes[(split, role)].items())
+            }
+            for role in ("finding-confirmation", "semantic-detection")
+            if (split, role) in classes
+        }
+        for split in SPLITS
+    }
+    return kept, report
+
+
+def _add_bank_constructions(
+    root: Path,
+    items: list[dict],
+    humans: list[dict],
+    generated: list[dict],
+    texts: dict[str, str],
+    lint_rules: list[dict],
+    judge_rules: list[dict],
+    held: set[str],
+    encoders,
+) -> tuple[list[dict], dict]:
+    _, human_splits = assign_splits(humans, generated)
+    rules = {r["id"]: r for r in lint_rules + judge_rules}
+    bank_items, report = _bank_items(
+        root, humans, human_splits, texts, rules, held, encoders
+    )
+    ids = {x["id"] for x in items}
+    items = items + [x for x in bank_items if x["id"] not in ids]
+    passages = {r["id"]: r["text"] for r in read_jsonl(root / BANK_PATH)}
+    items, report["near_duplicate_drops"] = _dedup_constructions(items, passages)
+    items, report["construction_classes"] = _balance_constructions(items)
+    report["bank_constructions"] = dict(
+        Counter(
+            f"{x['split']}|{x['role']}|{x['construction']['kind']}"
+            for x in items
+            if (x.get("construction") or {}).get("kind", "").startswith("bank-")
+        )
+    )
+    return items, report
 
 
 def _merge_shards(root: Path, shard_count: int) -> dict:
@@ -850,13 +1291,33 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
     )
     if not merged:
         raise ValueError("shard manifests are empty")
-    merged, dropped = _sample_adjudication(merged, {"test": 600, "calibration": 300})
-    _externalize_states(root, merged)
     root_rows = list(read_jsonl(root / "sources/human.jsonl"))
     generated = list(read_jsonl(root / "generated/manifest.jsonl"))
-    _, tokenizer_digests = load_tokenizers()
+    encoders, tokenizer_digests = load_tokenizers()
     lint_rules, judge_rules = _rules_current(), _rules_judgement()
     held_lint, held_judge = held_out(lint_rules), held_out(judge_rules)
+    merged, bank_report = _add_bank_constructions(
+        root,
+        merged,
+        root_rows,
+        generated,
+        _read_texts(root, root_rows),
+        lint_rules,
+        judge_rules,
+        held_lint | held_judge,
+        encoders,
+    )
+    merged.sort(
+        key=lambda row: (
+            row["split"],
+            row["role"],
+            row["rule_id"],
+            row["source_id"],
+            row["id"],
+        )
+    )
+    merged, dropped = _sample_adjudication(merged, {"test": 600, "calibration": 300})
+    _externalize_states(root, merged)
     counts = {
         "human_documents": len(root_rows),
         "generated_documents": len(generated),
@@ -868,6 +1329,7 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
         "gold_v1_items": sum(r.get("source_family") == "gold-v1" for r in merged),
         "built_items": len(merged),
         "dropped_model_derived_for_adjudication": dropped,
+        "constructions": bank_report,
     }
     report = _write_outputs(
         root, merged, tokenizer_digests, held_lint, held_judge, counts
@@ -1202,12 +1664,25 @@ def build_items(
             "items": len(items),
             "manifest": str(shard_path.relative_to(root)),
         }
+    items, bank_report = _add_bank_constructions(
+        root,
+        items,
+        humans,
+        generated,
+        texts,
+        lint_rules,
+        judgement_rules,
+        held_lint | held_judge,
+        encoders,
+    )
+    items.sort(key=lambda x: (x["split"], x["role"], x["rule_id"], x["id"]))
     counts = {
         "human_documents": len(humans),
         "generated_documents": len(generated),
         "lint_findings": sum(len(x) for x in findings.values()),
         "gold_v1_rows": len(gold) - 1,
         "built_items": len(items),
+        "constructions": bank_report,
     }
     report = _write_outputs(
         root, items, tokenizer_digests, held_lint, held_judge, counts
