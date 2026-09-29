@@ -313,16 +313,14 @@ def cmd_report(args: argparse.Namespace) -> None:
     for licence, count in sorted(Counter(row["licence"] for row in human).items()):
         lines.append(f"| {licence} | {count} |")
     ledger = root / "ledgers" / "cost-ledger.json"
-    total = (
-        json.loads(ledger.read_text()).get("total_estimate_usd", 0.0)
-        if ledger.exists()
-        else 0.0
-    )
+    data = json.loads(ledger.read_text()) if ledger.exists() else {}
+    total = data.get("total_estimate_usd", 0.0)
+    cap = data.get("cap_usd", 0.0)
     lines += [
         "",
-        f"## Bedrock cost",
+        "## Bedrock cost",
         "",
-        f"Estimated batch cost: **${total:.4f} / $200.00 cap**.",
+        f"Estimated batch cost: **${total:.4f} / ${cap:.2f} cap**.",
         "",
         "## AWS resources",
         "",

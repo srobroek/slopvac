@@ -23,7 +23,8 @@ from .common import append_jsonl, read_jsonl, token_estimate, write_jsonl
 ACCOUNT = "536697262379"
 REGION = "us-east-1"
 PROFILE = "sjors+ig-genai-Admin"
-CAP_USD = 200.0
+# Default for a new ledger only; an existing ledger's cap_usd is authoritative.
+CAP_USD = 300.0
 BATCH_DISCOUNT = 0.5
 
 # USD/M-token on-demand list prices. Unknown models are not submitted until a
@@ -116,9 +117,10 @@ def ensure_budget(root: Path, estimate: float) -> None:
         else {"cap_usd": CAP_USD, "jobs": [], "total_estimate_usd": 0.0}
     )
     total = float(data.get("total_estimate_usd", 0.0)) + estimate
-    if total > CAP_USD:
+    cap = float(data.get("cap_usd", CAP_USD))
+    if total > cap:
         raise RuntimeError(
-            f"budget cap exceeded: ${total:.4f} > ${CAP_USD:.2f}; job not submitted"
+            f"budget cap exceeded: ${total:.4f} > ${cap:.2f}; job not submitted"
         )
 
 
