@@ -1,0 +1,25 @@
+kev-9b-ft-s18: ready after 90.5s
+kev-9b-ft-s18: compat probe done
+kev-9b-ft-s18: 0 requests
+kev-9b-ft-s18: 100 requests
+kev-9b-ft-s18: 200 requests
+kev-9b-ft-s18: 300 requests
+kev-9b-ft-s18: 400 requests
+kev-9b-ft-s18: 500 requests
+kev-9b-ft-s18: 600 requests
+kev-9b-ft-s18: 700 requests
+{
+ "load_time_s": 90.53,
+ "sequential": {
+  "requests": 735,
+  "wall_s": 39.99
+ },
+ "throughput": null,
+ "memory": {
+  "peak_rss_bytes_sampled": 15547338752,
+  "peak_gpu_memory_bytes_sampled": 43130028032,
+  "phys_footprint_bytes": 15554084864,
+  "lifetime_max_phys_footprint_bytes": 26571673600,
+  "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+ }
+}

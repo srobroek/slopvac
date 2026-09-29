@@ -1,0 +1,133 @@
+/opt/laya/laya/router.py:456: RuntimeWarning: laya: this checkpoint ships invalid temperatures or values outside [0.5, 5]; using temperature[0]=7.887974262237549 -> 5, temperature[2]=10.0 -> 5. Treat confidence from the affected entries as uncalibrated.
+  agent = Agent(repo, **kwargs)
+serve_arm: laya-typed-decisions-ft-s18 ready in 4.83 s
+inference failed for model=None
+Traceback (most recent call last):
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 277, in snapshot_download
+    repo_info = api.repo_info(repo_id=repo_id, repo_type=repo_type, revision=revision)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/hf_api.py", line 3643, in repo_info
+    return method(
+           ^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/hf_api.py", line 3322, in model_info
+    r = get_session().get(path, headers=headers, timeout=timeout, params=params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 977, in _send_handling_redirects
+    hook(request)
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 284, in hf_request_event_hook
+    raise OfflineModeIsEnabled(
+huggingface_hub.errors.OfflineModeIsEnabled: Cannot reach https://huggingface.co/api/models/convaiinnovations/laya/revision/main: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/laya/laya/serve.py", line 490, in _systemone_inner
+    result = await loop.run_in_executor(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/serve.py", line 491, in <lambda>
+    pool, lambda: router.predict(state, questions, model=model))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/router.py", line 758, in predict
+    agent = self.load(decision["model"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/router.py", line 456, in load
+    agent = Agent(repo, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/agent.py", line 359, in __init__
+    model_dir = snapshot_download(model_id_or_path, **kw)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 266, in _inner
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 369, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, set 'HF_HUB_OFFLINE=0' as environment variable.
+inference failed for model=None
+Traceback (most recent call last):
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 277, in snapshot_download
+    repo_info = api.repo_info(repo_id=repo_id, repo_type=repo_type, revision=revision)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/hf_api.py", line 3643, in repo_info
+    return method(
+           ^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/hf_api.py", line 3322, in model_info
+    r = get_session().get(path, headers=headers, timeout=timeout, params=params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 1053, in get
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/httpx/_client.py", line 977, in _send_handling_redirects
+    hook(request)
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 284, in hf_request_event_hook
+    raise OfflineModeIsEnabled(
+huggingface_hub.errors.OfflineModeIsEnabled: Cannot reach https://huggingface.co/api/models/convaiinnovations/laya/revision/main: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/laya/laya/serve.py", line 490, in _systemone_inner
+    result = await loop.run_in_executor(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/serve.py", line 491, in <lambda>
+    pool, lambda: router.predict(state, questions, model=model))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/router.py", line 758, in predict
+    agent = self.load(decision["model"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/router.py", line 456, in load
+    agent = Agent(repo, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya/laya/agent.py", line 359, in __init__
+    model_dir = snapshot_download(model_id_or_path, **kw)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/utils/_http.py", line 266, in _inner
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/laya-venv/lib/python3.12/site-packages/huggingface_hub/_snapshot_download.py", line 369, in snapshot_download
+    raise LocalEntryNotFoundError(
+huggingface_hub.errors.LocalEntryNotFoundError: Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, set 'HF_HUB_OFFLINE=0' as environment variable.
