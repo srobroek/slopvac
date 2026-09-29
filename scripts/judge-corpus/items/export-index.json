@@ -1,0 +1,134 @@
+{
+  "build_id": "corpus-20260929-s17-v2",
+  "counts": {
+    "calibration": {
+      "finding-confirmation|construction|real-defect": 11,
+      "semantic-detection|construction|False": 14,
+      "semantic-detection|construction|True": 12
+    },
+    "dev": {
+      "finding-confirmation|construction|real-defect": 12,
+      "semantic-detection|construction|False": 13,
+      "semantic-detection|construction|True": 14
+    },
+    "test": {
+      "finding-confirmation|construction|real-defect": 18,
+      "semantic-detection|construction|False": 334,
+      "semantic-detection|construction|True": 132
+    },
+    "train": {
+      "finding-confirmation|construction|real-defect": 64,
+      "finding-confirmation|teacher-panel|insufficient-context": 44,
+      "finding-confirmation|teacher-panel|no-defect": 1504,
+      "finding-confirmation|teacher-panel|real-defect": 2002,
+      "semantic-detection|construction|False": 111,
+      "semantic-detection|construction|True": 108,
+      "semantic-detection|teacher-panel|False": 1428,
+      "semantic-detection|teacher-panel|True": 159
+    }
+  },
+  "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+  "held_out_judgement_rules": [
+    "ai-tells-content-shape.textbook-connector-runs",
+    "ai-tells-content-shape.unasked-for-rationale",
+    "ai-tells-register.intensifier-tics-remainder",
+    "ai-tells-register.urgency-inflation-remainder",
+    "ai-tells-structure.false-range",
+    "ai-tells-structure.invented-concept-label",
+    "ai-tells-structure.meta-narration-remainder",
+    "ai-tells-structure.negative-inventory-remainder",
+    "prose-discipline.overloaded-sentence",
+    "ste-descriptive.information-not-gradual",
+    "ste-practices.word-swap-insufficient",
+    "ste-words.domain-noun-category-membership"
+  ],
+  "held_out_lint_rules": [
+    "ai-tells-content-shape.durable-vocabulary-habits",
+    "ai-tells-figurative.figurative-falls",
+    "ai-tells-figurative.figurative-rides",
+    "ai-tells-formatting.curly-quotes",
+    "ai-tells-formatting.emoji-list-markers",
+    "ai-tells-register.figurative-verb-verdict-core",
+    "ai-tells-register.sycophantic-meta-residue",
+    "ai-tells-structure.absolute-assertion-core",
+    "ai-tells-structure.cataphoric-lead-in-core",
+    "ai-tells-structure.definitional-negation-pair",
+    "docs-discipline.history-narration",
+    "orwell.compound-preposition",
+    "prose-agency.anthropomorphism",
+    "prose-craft.link-text",
+    "prose-craft.politeness",
+    "prose-craft.redundancy",
+    "prose-craft.relative-date",
+    "prose-craft.unclear-antecedent",
+    "prose-discipline.hedged-hedge",
+    "prose-format.no-unicode-dash",
+    "prose-inclusive.device-assumption",
+    "prose-inflation.intensifier",
+    "prose-inflation.nominalized-verb",
+    "prose-promotion.promotional-verbs",
+    "prose-scope.formulaic-subject-verb-slogan",
+    "ste-practices.gendered-or-exclusionary-language",
+    "ste-practices.phrasal-verb",
+    "ste-procedural.note-gives-instruction",
+    "ste-punctuation.colon-terminates-sentence-for-count",
+    "ste-sentences.missing-article-or-determiner",
+    "ste-verbs.verb-form-not-listed",
+    "ste-words.noun-used-as-verb",
+    "ste-words.word-used-in-wrong-part-of-speech"
+  ],
+  "item_split_digests": {
+    "calibration": "3e66881f8ba9c8f8ea7389da9a6c142e929940fbd89fa38b348f79d9b7af0c4f",
+    "dev": "3c9dd8a7213dd6d78c51fbc7c50cd87cc5d96c29769eacaaf6176116db95c97b",
+    "test": "421ec3382c8bbf94ab0c777e687fe54f15408ffe52c13471e0415d372d65a0f3",
+    "train": "6f229530fefee9d2d40726f7caf6a0fbd6ab90f15a48c004be3a324e099eb277"
+  },
+  "objects": [
+    {
+      "path": "train.jsonl",
+      "sha256": "43a6ec5f3660aa81051dd2ef3bcf91517bb0ab5d548b7a2b43dd2eafd5b8250b",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl"
+    },
+    {
+      "path": "dev.jsonl",
+      "sha256": "202bcdbfc8621408ad190b0c2370ce51575502a1a211ad198a0e73ec5823333c",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/dev.jsonl"
+    },
+    {
+      "path": "calibration.jsonl",
+      "sha256": "b78f4e52f4fdd09e4d76dab93e386337ee94a6b17a0d7c569dd9aa387503c452",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl"
+    },
+    {
+      "path": "test.jsonl",
+      "sha256": "794e0af7205c2d0b5495964cb4efa0d905e4f54a2ea9f287ada99952ba4a3436",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/test.jsonl"
+    },
+    {
+      "path": "export-manifest.json",
+      "sha256": "97ab1708c906e57e8a275d90375eb0cc2793b0e89abaf54e198bc33fa92d3615",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json"
+    },
+    {
+      "path": "adjudication/calibration-sheet.csv",
+      "sha256": "181a65518f7b4bbce0a4da54e430f4c54f045921063b84bcdcff4045b1d42f06",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/calibration-sheet.csv"
+    },
+    {
+      "path": "adjudication/calibration-sheet.jsonl",
+      "sha256": "a7aa2aa57d65218d0a186003fa71932b70e252a28ca7324212541f40fadc7d82",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/calibration-sheet.jsonl"
+    },
+    {
+      "path": "adjudication/test-sheet.csv",
+      "sha256": "f47100cdaef11a37882ddedcb615e73f5e20567cd16e1567804461410473e872",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/test-sheet.csv"
+    },
+    {
+      "path": "adjudication/test-sheet.jsonl",
+      "sha256": "b0f85468fa0cffff9de67cad1981a94c8032fb6147f08dedd1292412d74bb1a0",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/test-sheet.jsonl"
+    }
+  ],
+  "schema_version": 1
+}

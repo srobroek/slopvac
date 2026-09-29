@@ -19,6 +19,7 @@ from .bedrock import download_outputs, provision, submit, upload, upload_text, w
 from .common import read_jsonl, token_estimate, write_jsonl
 from .roster import build_roster
 from .sources import build_sources
+from .export import export_items, publish_export
 from .items import build_items, split_items
 from .panel import collect_panel, prepare_panel, submit_panel
 
@@ -379,6 +380,14 @@ def cmd_items_split(args: argparse.Namespace) -> None:
     print(json.dumps(split_items(root_from_args(args.root)), sort_keys=True))
 
 
+def cmd_items_export(args: argparse.Namespace) -> None:
+    root = root_from_args(args.root)
+    report = export_items(root)
+    if args.publish:
+        report = publish_export(root, args.publish)
+    print(json.dumps(report, sort_keys=True))
+
+
 def cmd_panel(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
     if args.panel_action == "prepare":
@@ -450,6 +459,15 @@ def parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_items_build)
     s = item_actions.add_parser("split")
     s.set_defaults(func=cmd_items_split)
+    s = item_actions.add_parser(
+        "export", help="write labelled items in the judge-pilot training format"
+    )
+    s.add_argument(
+        "--publish",
+        metavar="BUILD_ID",
+        help="upload the export to s3://<corpus bucket>/exports/BUILD_ID/",
+    )
+    s.set_defaults(func=cmd_items_export)
     panel = sub.add_parser("panel")
     panel_actions = panel.add_subparsers(dest="panel_action", required=True)
     for action in ("prepare", "submit", "collect"):

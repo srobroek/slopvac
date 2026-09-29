@@ -8,4 +8,4 @@ briefs/retry-input.jsonl
 generated/inputs/
 generated/raw/
 items/*
-!items/index.json
+!items/export-index.json
