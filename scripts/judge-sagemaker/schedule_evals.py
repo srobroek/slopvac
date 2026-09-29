@@ -402,6 +402,7 @@ FIXED_CODE_SIGNATURES = (
     "KeyError: 'dtype'",
     "KeyError: 'laya_commit'",
     "NameError: name 'ckpt' is not defined",
+    "hyperparameters do not match arms.py for laya",
 )
 
 
@@ -938,6 +939,8 @@ def status_by_target(
                 entries and not retryable(entries)
             ):
                 exhausted += 1
+            else:
+                waiting += 1  # not yet submitted, or retryable after a free failure
     for arm in EVAL_ARMS:
         if result_is_current(arm, expected):
             succeeded += 1
@@ -949,6 +952,8 @@ def status_by_target(
                 entries and not retryable(entries)
             ):
                 exhausted += 1
+            else:
+                waiting += 1  # not yet submitted, or waiting for its checkpoint
     return {
         "training_ready": trained,
         "evaluation_done": succeeded,
@@ -1123,7 +1128,8 @@ def one_pass(
         f"training ready {counts['training_ready']}/12 eval done {counts['evaluation_done']}/18 waiting={counts['waiting']} exhausted={counts['exhausted']}",
         flush=True,
     )
-    return counts["exhausted"] > 0 and counts["waiting"] == 0
+    # Finished when nothing is left to wait for; exhausted targets set the exit code.
+    return counts["waiting"] == 0
 
 
 def acquire_lock() -> Path:
