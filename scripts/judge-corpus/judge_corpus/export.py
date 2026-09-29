@@ -151,6 +151,7 @@ def publish_export(root: Path, build_id: str) -> dict:
     objects = []
     files = [src / f"{s}.jsonl" for s in SPLITS] + [src / "export-manifest.json"]
     files += sorted((root / "items/adjudication").glob("*-sheet.*"))
+    files += sorted((root / "items/adjudication").glob("label-*.csv"))
     for path in files:
         name = str(path.relative_to(src if path.parent == src else root / "items"))
         objects.append(

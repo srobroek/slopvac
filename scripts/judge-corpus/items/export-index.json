@@ -110,16 +110,6 @@
       "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json"
     },
     {
-      "path": "adjudication/calibration-sheet.csv",
-      "sha256": "181a65518f7b4bbce0a4da54e430f4c54f045921063b84bcdcff4045b1d42f06",
-      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/calibration-sheet.csv"
-    },
-    {
-      "path": "adjudication/calibration-sheet.jsonl",
-      "sha256": "a7aa2aa57d65218d0a186003fa71932b70e252a28ca7324212541f40fadc7d82",
-      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/calibration-sheet.jsonl"
-    },
-    {
       "path": "adjudication/test-sheet.csv",
       "sha256": "f47100cdaef11a37882ddedcb615e73f5e20567cd16e1567804461410473e872",
       "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/test-sheet.csv"
@@ -128,6 +118,16 @@
       "path": "adjudication/test-sheet.jsonl",
       "sha256": "b0f85468fa0cffff9de67cad1981a94c8032fb6147f08dedd1292412d74bb1a0",
       "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/test-sheet.jsonl"
+    },
+    {
+      "path": "adjudication/label-calibration.csv",
+      "sha256": "1ccc94f4352490b1193360250fb334e455a187b5c88500663441f1a3da8ca7ee",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/label-calibration.csv"
+    },
+    {
+      "path": "adjudication/label-test.csv",
+      "sha256": "7e172fb58a5900ab2c1401679fbfd27c03e037f62fb3b98375f40c8e9e6cea99",
+      "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/label-test.csv"
     }
   ],
   "schema_version": 1
