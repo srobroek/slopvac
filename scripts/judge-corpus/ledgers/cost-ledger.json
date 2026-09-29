@@ -927,8 +927,44 @@
       "pre_run_estimate_usd": 19.797628,
       "records": 863,
       "stage": "bank-generate"
+    },
+    {
+      "completed_at": "2026-09-29T17:57:29Z",
+      "errors": 0,
+      "estimate_usd": 0.109814,
+      "input_tokens": 3822,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 10217,
+      "pre_run_estimate_usd": 0.137504,
+      "records": 6,
+      "stage": "bank-generate"
+    },
+    {
+      "completed_at": "2026-09-29T18:38:09Z",
+      "errors": 0,
+      "estimate_usd": 18.558802,
+      "input_tokens": 8456486,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 164583,
+      "pre_run_estimate_usd": 24.560896,
+      "records": 13434,
+      "stage": "bank-verify-anthropic"
+    },
+    {
+      "completed_at": "2026-09-29T18:53:14Z",
+      "errors": 0,
+      "estimate_usd": 1.561634,
+      "input_tokens": 6542371,
+      "mode": "on-demand",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_tokens": 967130,
+      "pre_run_estimate_usd": 1.651645,
+      "records": 13434,
+      "stage": "bank-verify-openai"
     }
   ],
-  "total_estimate_usd": 131.283763,
-  "updated_at": "2026-09-29T17:54:04Z"
+  "total_estimate_usd": 151.514013,
+  "updated_at": "2026-09-29T18:53:14Z"
 }

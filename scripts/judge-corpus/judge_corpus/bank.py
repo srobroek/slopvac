@@ -49,6 +49,19 @@ from .items import (
 )
 from .ondemand import run_ondemand
 
+
+def _parse_examples(text: str) -> dict:
+    """The generator's JSON object. Sonnet sometimes fences it in ```json or
+    leaves raw newlines inside strings; both are accepted. Malformed JSON is
+    a parse failure."""
+    body = re.sub(r"^\s*```(?:json)?\s*|\s*```\s*$", "", text)
+    try:
+        value = json.loads(body, strict=False)
+    except json.JSONDecodeError:
+        value = parse_json_object(text)
+    return value if isinstance(value, dict) else {}
+
+
 GENERATOR = "us.anthropic.claude-sonnet-5"
 # Passages requested per rule and kind; verification rejects some.
 REQUEST = {
@@ -291,7 +304,7 @@ def generate_bank(root: Path, *, max_usd: float) -> dict:
         if "modelOutput" not in line or line["recordId"] not in meta:
             continue
         rule, kind, prompt_digest = meta[line["recordId"]]
-        parsed = parse_json_object(parse_output(line)) or {}
+        parsed = _parse_examples(parse_output(line))
         examples = parsed.get("examples")
         if not isinstance(examples, list):
             parse_failures.append(line["recordId"])
