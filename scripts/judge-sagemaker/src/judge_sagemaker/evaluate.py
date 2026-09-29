@@ -424,7 +424,7 @@ def cmd_fetch_eval(a):
     }
     uri = d.get("ModelArtifacts", {}).get("S3ModelArtifacts")
     if status == "Completed" and uri:
-        out = cli.ROOT / "results" / "corpus" / entry["arm"]
+        out = cli.ROOT / "results" / a.results / entry["arm"]
         out.mkdir(parents=True, exist_ok=True)
         b, k = cli.parse_s3(uri)
         tarpath = out / "model.tar.gz"
@@ -472,4 +472,9 @@ def add_parsers(sub):
     p = sub.add_parser("fetch-eval", help="record evaluation status and fetch results")
     p.add_argument("job")
     p.add_argument("--profile")
+    p.add_argument(
+        "--results",
+        default="corpus",
+        help="directory under results/ to extract into (one per campaign)",
+    )
     p.set_defaults(func=cmd_fetch_eval)

@@ -236,7 +236,7 @@ def cmd_submit(a):
     }
     if model["family"] == "laya":
         data["model"] = {"source": res["laya_base_prefix"]}
-    data["manifest"] = {"source": res["corpus_export"]["manifest"]}
+    data["manifest"] = {"source": a.manifest or res["corpus_export"]["manifest"]}
     max_cost = round(price * a.max_runtime / 3600, 2)
     ledger = load_json(LEDGER)
     spent = check_budget(ledger, max_cost)
@@ -440,6 +440,10 @@ def main(argv=None):
     p.add_argument(
         "--calibration",
         help="calibration split S3 URI or local JSONL; defaults to corpus export",
+    )
+    p.add_argument(
+        "--manifest",
+        help="export-manifest.json S3 URI; defaults to corpus export",
     )
     p.add_argument("--epochs", type=int)
     p.add_argument("--seed", type=int, default=RECIPE["seed"])

@@ -38,7 +38,7 @@ REGIONS = tuple(REGION_FILE)
 FINAL = {"Completed", "Failed", "Stopped"}
 MAX_ATTEMPTS = 3
 DEFAULT_INTERVAL = 60
-BASE_ARMS = (
+DEFAULT_BASE_ARMS = (
     "kev-0.8b",
     "kev-4b",
     "kev-9b",
@@ -47,11 +47,12 @@ BASE_ARMS = (
     "laya-typed-decisions",
 )
 SEEDS = (17, 18, 19)
-TRAIN_MODELS = ("kev-0.8b", "kev-4b", "kev-9b", "laya-typed-decisions")
+DEFAULT_TRAIN_MODELS = ("kev-0.8b", "kev-4b", "kev-9b", "laya-typed-decisions")
+# Rebound by set_campaign(); these are the default campaign's arms.
+BASE_ARMS = DEFAULT_BASE_ARMS
+TRAIN_MODELS = DEFAULT_TRAIN_MODELS
 EVAL_ARMS = BASE_ARMS + tuple(
-    f"{model}-ft-s{seed}"
-    for model in ("kev-0.8b", "kev-4b", "kev-9b", "laya-typed-decisions")
-    for seed in SEEDS
+    f"{model}-ft-s{seed}" for model in TRAIN_MODELS for seed in SEEDS
 )
 TRAIN_CANDIDATES = {
     "kev-0.8b": (
@@ -164,7 +165,70 @@ def committed_usd(value: dict[str, Any]) -> float:
     return round(total, 4)
 
 
+# The campaign the scheduler is currently working on. None means the default
+# campaign: the corpus export named in resources.json (round 1, v2). Set with
+# set_campaign(); one process can serve several campaigns in turn, so one
+# ledger writer covers all of them.
+CAMPAIGN: dict[str, Any] | None = None
+
+
+def load_campaign(path: Path) -> dict[str, Any]:
+    """A campaign file: id (exports/<id>/train.jsonl identifies its training
+    jobs), results (directory under results/), train_models, base_arms, seeds,
+    per-region data URIs (train, calibration, test, manifest), and the expected
+    test and calibration SHA-256 digests."""
+    c = load_json(path)
+    for key in ("id", "results", "train_models", "base_arms", "data", "expected"):
+        if key not in c:
+            raise SystemExit(f"{path}: campaign lacks {key}")
+    for region in REGIONS:
+        missing = {"train", "calibration", "test", "manifest"} - set(
+            c["data"].get(region, {})
+        )
+        if missing:
+            raise SystemExit(f"{path}: {region} data lacks {sorted(missing)}")
+    return c
+
+
+def set_campaign(c: dict[str, Any] | None) -> None:
+    global CAMPAIGN, TRAIN_MODELS, BASE_ARMS, EVAL_ARMS
+    CAMPAIGN = c
+    if c is None:
+        TRAIN_MODELS, BASE_ARMS = DEFAULT_TRAIN_MODELS, DEFAULT_BASE_ARMS
+    else:
+        TRAIN_MODELS, BASE_ARMS = tuple(c["train_models"]), tuple(c["base_arms"])
+    EVAL_ARMS = BASE_ARMS + tuple(
+        f"{model}-ft-s{seed}" for model in TRAIN_MODELS for seed in SEEDS
+    )
+
+
+def data_args(region: str, kind: str) -> list[str]:
+    """CLI data flags for this campaign; the default campaign uses resources.json."""
+    if CAMPAIGN is None:
+        return []
+    d = CAMPAIGN["data"][region]
+    if kind == "training":
+        return [
+            "--data",
+            d["train"],
+            "--calibration",
+            d["calibration"],
+            "--manifest",
+            d["manifest"],
+        ]
+    return [
+        "--test",
+        d["test"],
+        "--calibration",
+        d["calibration"],
+        "--manifest",
+        d["manifest"],
+    ]
+
+
 def corpus_build_id(config: dict[str, Any]) -> str:
+    if CAMPAIGN is not None:
+        return CAMPAIGN["id"]
     return config["corpus_export"]["build_id"]
 
 
@@ -256,19 +320,30 @@ def current_eval_entries(
     for job in value["jobs"]:
         if job.get("kind") != "evaluation" or job.get("arm") != arm:
             continue
-        mark = job.get("scheduler", {})
-        if mark.get("campaign") == run_id or (
-            campaign_start and job.get("submitted_at", "") >= campaign_start
+        marked = job.get("scheduler", {}).get("campaign")
+        # A job marked for another campaign never counts here. Unmarked jobs
+        # (submitted by hand in round 1) belong to the default campaign by time.
+        if marked == run_id or (
+            marked is None
+            and CAMPAIGN is None
+            and campaign_start
+            and job.get("submitted_at", "") >= campaign_start
         ):
             found.append(job)
     return found
 
 
+def results_dir() -> str:
+    return CAMPAIGN["results"] if CAMPAIGN is not None else "corpus"
+
+
 def result_path(arm: str) -> Path:
-    return ROOT / "results" / "corpus" / arm
+    return ROOT / "results" / results_dir() / arm
 
 
 def expected_dataset() -> dict[str, str]:
+    if CAMPAIGN is not None:
+        return {split: CAMPAIGN["expected"][split] for split in ("test", "calibration")}
     path = result_path("kev-0.8b") / "results" / "dataset-manifest.json"
     if not path.is_file():
         raise RuntimeError(f"missing verified corpus baseline dataset manifest: {path}")
@@ -517,7 +592,24 @@ def max_cost(
     return round(float(price) * runtime / 3600, 2)
 
 
+# Billed training seconds measured in round 1 (v2 export, 5,420 train rows).
+MEASURED_TRAIN_S = {
+    "kev-0.8b": 9300,
+    "kev-4b": 7400,
+    "kev-9b": 8000,
+    "laya-typed-decisions": 28800,
+}
+RUNTIME_HEADROOM = 1.4
+
+
 def training_runtime(config: dict[str, Any], model: str) -> int:
+    if CAMPAIGN is not None:
+        # Training time scales with rows; runtime_scale is train rows / 5,420.
+        return int(
+            MEASURED_TRAIN_S[model]
+            * float(CAMPAIGN["runtime_scale"])
+            * RUNTIME_HEADROOM
+        )
     if model == "kev-0.8b":
         return 14400
     if model == "kev-4b":
@@ -531,7 +623,13 @@ def training_runtime(config: dict[str, Any], model: str) -> int:
     return int(config["models"][model]["max_runtime_s"])
 
 
-def training_args(model: str, seed: int, instance: str, runtime: int) -> list[str]:
+def eval_runtime() -> int:
+    return int(CAMPAIGN.get("eval_runtime", 3600)) if CAMPAIGN is not None else 3600
+
+
+def training_args(
+    model: str, seed: int, instance: str, runtime: int, region: str
+) -> list[str]:
     args = [
         "submit",
         "--model",
@@ -550,7 +648,7 @@ def training_args(model: str, seed: int, instance: str, runtime: int) -> list[st
         args += ["--checkpointing", "1", "--dtype", "bf16", "--weights-dtype", "bf16"]
     if model.startswith("kev-"):
         args += ["--max-state", "4096"]
-    return args
+    return args + data_args(region, "training")
 
 
 def evaluation_args(
@@ -565,11 +663,11 @@ def evaluation_args(
         "--resources",
         REGION_FILE[region],
         "--max-runtime",
-        "3600",
+        str(eval_runtime()),
     ]
     if checkpoint:
         args += ["--checkpoint", checkpoint]
-    return args
+    return args + data_args(region, "evaluation")
 
 
 def checkpoint_by_success(
@@ -754,7 +852,10 @@ def fetch_terminal_jobs(
         if status not in FINAL or not needs_fetch:
             continue
         fetch = "fetch-eval" if entry.get("kind") == "evaluation" else "fetch"
-        result = cli_command([fetch, name], region or parse_region(entry))
+        fetch_args = [fetch, name]
+        if fetch == "fetch-eval":
+            fetch_args += ["--results", results_dir()]
+        result = cli_command(fetch_args, region or parse_region(entry))
         if result.returncode:
             exact = error_text(result)
             record_job_error(name, fetch, exact)
@@ -853,6 +954,7 @@ def schedule_training(
                             seed,
                             instance,
                             training_runtime(configs[region], model),
+                            region,
                         ),
                         region=region,
                         instance=instance,
@@ -1029,7 +1131,7 @@ def plan(
                 "target": arm,
                 "region": region,
                 "instance": instance,
-                "max_cost_usd": max_cost(configs, region, instance, 3600),
+                "max_cost_usd": max_cost(configs, region, instance, eval_runtime()),
                 "available_now": slot is not None,
                 "waiting_for_training": bool(
                     ft_identity(arm)
@@ -1054,7 +1156,10 @@ def dry_run(
     committed: float,
     projected: float,
 ) -> int:
-    print("Corpus campaign: 12 fine-tune targets, 18 evaluation targets")
+    label = CAMPAIGN["id"] if CAMPAIGN is not None else "default"
+    print(
+        f"Corpus campaign {label}: {len(TRAIN_MODELS) * len(SEEDS)} fine-tune targets, {len(EVAL_ARMS)} evaluation targets"
+    )
     print(
         f"Ledger: ${committed:.2f} committed; reserve ${projected - committed:.2f}; projected ${projected:.2f} / ${cap:.2f} cap"
     )
@@ -1068,6 +1173,7 @@ def dry_run(
                 item["seed"],
                 item["instance"],
                 training_runtime(configs[item["region"]], item["model"]),
+                item["region"],
             )
         else:
             args = evaluation_args(
@@ -1119,7 +1225,7 @@ def one_pass(
             f"campaign paused projected ${projected:.2f} > cap ${value['cap_usd']:.2f}",
             flush=True,
         )
-        return True
+        return False  # paused, not finished: poll again once reservations settle
     schedule_training(value, configs, build_id, occupied, campaign)
     value = ledger()
     occupied = occupied_from_ledger(value)
@@ -1128,7 +1234,7 @@ def one_pass(
     )
     counts = status_by_target(ledger(), build_id, start, expected)
     print(
-        f"training ready {counts['training_ready']}/12 eval done {counts['evaluation_done']}/18 waiting={counts['waiting']} exhausted={counts['exhausted']}",
+        f"[{CAMPAIGN['id'] if CAMPAIGN is not None else 'default'}] training ready {counts['training_ready']}/{len(TRAIN_MODELS) * len(SEEDS)} eval done {counts['evaluation_done']}/{len(EVAL_ARMS)} waiting={counts['waiting']} exhausted={counts['exhausted']}",
         flush=True,
     )
     # Finished when nothing is left to wait for; exhausted targets set the exit code.
@@ -1153,12 +1259,8 @@ def acquire_lock() -> Path:
     return path
 
 
-def run_live(once: bool, interval: int) -> int:
-    configs = resources()
-    build_id = corpus_build_id(configs["us-east-1"])
-    expected = expected_dataset()
-    value = ledger()
-    mark_laya_eval_retries()
+def mark_default_state_defects(build_id: str) -> None:
+    """Stop and mark round-1 Kev jobs submitted without max_state=4096."""
     current = ledger()
     for job in current["jobs"]:
         if (
@@ -1183,16 +1285,13 @@ def run_live(once: bool, interval: int) -> int:
                         flush=True,
                     )
     save_ledger(current)
-    value = current
-    tasks, projected = plan(
-        value, configs, build_id, campaign_started(value, build_id), expected
-    )
-    if projected > float(value["cap_usd"]):
-        print(
-            f"refusing to start: reserve ${projected:.2f} exceeds cap ${value['cap_usd']:.2f}",
-            file=sys.stderr,
-        )
-        return 2
+
+
+def run_live(campaigns: list[dict[str, Any] | None], once: bool, interval: int) -> int:
+    configs = resources()
+    mark_laya_eval_retries()
+    set_campaign(None)
+    mark_default_state_defects(corpus_build_id(configs["us-east-1"]))
     sessions = {
         region: boto3.Session(
             profile_name=configs[region]["profile"], region_name=region
@@ -1203,21 +1302,21 @@ def run_live(once: bool, interval: int) -> int:
     lock = acquire_lock()
     try:
         while True:
-            finished = one_pass(sm, configs, build_id, expected, f"corpus-{build_id}")
+            done, exhausted = [], 0
+            for c in campaigns:
+                set_campaign(c)
+                build_id = corpus_build_id(configs["us-east-1"])
+                expected = expected_dataset()
+                done.append(
+                    one_pass(sm, configs, build_id, expected, f"corpus-{build_id}")
+                )
+                exhausted += status_by_target(
+                    ledger(), build_id, campaign_started(ledger(), build_id), expected
+                )["exhausted"]
             if once:
                 return 0
-            if finished:
-                return (
-                    0
-                    if status_by_target(
-                        ledger(),
-                        build_id,
-                        campaign_started(ledger(), build_id),
-                        expected,
-                    )["exhausted"]
-                    == 0
-                    else 2
-                )
+            if all(done):
+                return 0 if exhausted == 0 else 2
             time.sleep(interval)
     except KeyboardInterrupt:
         return 130
@@ -1232,19 +1331,36 @@ def main(argv: list[str] | None = None) -> int:
     action.add_argument("--once", action="store_true")
     action.add_argument("--run", action="store_true")
     parser.add_argument("--interval-seconds", type=int, default=DEFAULT_INTERVAL)
-    args = parser.parse_args(argv)
-    configs = resources()
-    build_id = corpus_build_id(configs["us-east-1"])
-    expected = expected_dataset()
-    value = ledger()
-    tasks, projected = plan(
-        value, configs, build_id, campaign_started(value, build_id), expected
+    parser.add_argument(
+        "--campaign",
+        action="append",
+        default=[],
+        help="campaign JSON file, or 'default' for the resources.json export; repeatable (default: default)",
     )
-    if args.dry_run:
-        return dry_run(
+    args = parser.parse_args(argv)
+    campaigns = [
+        None if name == "default" else load_campaign(Path(name))
+        for name in (args.campaign or ["default"])
+    ]
+    if not args.dry_run:
+        return run_live(campaigns, args.once, args.interval_seconds)
+    configs = resources()
+    rc = 0
+    for c in campaigns:
+        set_campaign(c)
+        build_id = corpus_build_id(configs["us-east-1"])
+        value = ledger()
+        tasks, projected = plan(
+            value,
+            configs,
+            build_id,
+            campaign_started(value, build_id),
+            expected_dataset(),
+        )
+        rc |= dry_run(
             tasks, configs, float(value["cap_usd"]), committed_usd(value), projected
         )
-    return run_live(args.once, args.interval_seconds)
+    return rc
 
 
 if __name__ == "__main__":
