@@ -92,6 +92,9 @@ def stage_data():
             )
         shutil.copyfile(src / f"{split}.jsonl", DATA / f"{split}.jsonl")
         manifest["files"][split] = {"sha256": actual, "items": info["records"]}
+    # Eval stages only test and calibration; a fine-tuned arm's training job must
+    # have trained on this export's train split, whose digest the export records.
+    manifest["export_train_sha256"] = raw_manifest["files"]["train"]["sha256"]
     (RESULTS / "dataset-manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n"
     )
@@ -118,10 +121,56 @@ def calibration_eval(rows, T):
     return out
 
 
+def finetune_from_laya_manifest(m, arm, base, dataset):
+    """Map a laya_train.py manifest.json onto the pilot's finetune.json fields."""
+    checks = {
+        "init_from": (m["init_from"], f"{base['repo']}@{base['revision']}"),
+        "seed": (m["seed"], arm["ft_seed"]),
+        "upstream_commit": (m["upstream_commit"], arm["upstream_commit"]),
+        "train sha256": (
+            m["input_data_sha256"].get("train"),
+            dataset["export_train_sha256"],
+        ),
+        "calibration sha256": (
+            m["input_data_sha256"].get("calibration"),
+            dataset["files"]["calibration"]["sha256"],
+        ),
+    }
+    wrong = {k: v for k, v in checks.items() if v[0] != v[1]}
+    if wrong:
+        raise SystemExit(
+            f"training job {m['job_name']} does not match {arm['ft_base']}: {wrong}"
+        )
+    return {
+        "recipe": m["recipe"],
+        "upstream_commit": m["upstream_commit"],
+        "init_from": m["init_from"],
+        "hyperparameters": m["hyperparameters"],
+        "temperature_fit_on_calibration": m.get("temperature_fit_on_calibration"),
+        "truncated_records": m.get("truncated_records"),
+        "train_wall_time_s": m.get("train_wall_time_s"),
+        "sagemaker_training_job": {
+            k: m.get(k)
+            for k in (
+                "job_name",
+                "training_job_arn",
+                "model",
+                "seed",
+                "input_data_sha256",
+                "optimizer_steps",
+                "epochs_log",
+                "hardware",
+            )
+        },
+    }
+
+
 def finetune_from_training_manifest(run, arm, dataset):
     """Map a `judge-sagemaker submit` job's manifest.json onto the pilot's finetune.json fields."""
     m = json.loads((run / "manifest.json").read_text())
     base = ARMS[arm["ft_base"]]
+    if arm["family"] == "laya":
+        return finetune_from_laya_manifest(m, arm, base, dataset)
     checks = {
         "init_from": (m["init_from"], f"{base['repo']}@{base['revision']}"),
         "base_revision": (m["base_revision"], base["base_revision"]),
@@ -129,7 +178,7 @@ def finetune_from_training_manifest(run, arm, dataset):
         "kev_commit": (m["kev_commit"], arm["upstream_commit"]),
         "train sha256": (
             m["input_data_sha256"].get("train"),
-            dataset["files"]["train"]["sha256"],
+            dataset["export_train_sha256"],
         ),
         "calibration sha256": (
             m["input_data_sha256"].get("calibration"),

@@ -403,6 +403,7 @@ FIXED_CODE_SIGNATURES = (
     "KeyError: 'laya_commit'",
     "NameError: name 'ckpt' is not defined",
     "hyperparameters do not match arms.py for laya",
+    "KeyError: 'train'",
 )
 
 
