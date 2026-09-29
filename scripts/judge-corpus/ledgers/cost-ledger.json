@@ -963,8 +963,128 @@
       "pre_run_estimate_usd": 1.651645,
       "records": 13434,
       "stage": "bank-verify-openai"
+    },
+    {
+      "completed_at": "2026-09-29T20:35:54Z",
+      "errors": 0,
+      "estimate_usd": 0.666098,
+      "input_tokens": 314399,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 3730,
+      "pre_run_estimate_usd": 0.729812,
+      "records": 300,
+      "stage": "panel-v3-pilot-old-anthropic"
+    },
+    {
+      "completed_at": "2026-09-29T20:36:29Z",
+      "errors": 0,
+      "estimate_usd": 0.047251,
+      "input_tokens": 225122,
+      "mode": "on-demand",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_tokens": 22471,
+      "pre_run_estimate_usd": 0.050482,
+      "records": 300,
+      "stage": "panel-v3-pilot-old-openai"
+    },
+    {
+      "completed_at": "2026-09-29T20:36:56Z",
+      "errors": 0,
+      "estimate_usd": 0.448318,
+      "input_tokens": 213416,
+      "mode": "on-demand",
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "output_tokens": 3581,
+      "pre_run_estimate_usd": 0.62107,
+      "records": 300,
+      "stage": "panel-v3-pilot-old-mistral"
+    },
+    {
+      "completed_at": "2026-09-29T20:38:11Z",
+      "errors": 0,
+      "estimate_usd": 1.066832,
+      "input_tokens": 514936,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 3696,
+      "pre_run_estimate_usd": 1.04015,
+      "records": 300,
+      "stage": "panel-v3-pilot-new-anthropic"
+    },
+    {
+      "completed_at": "2026-09-29T20:38:46Z",
+      "errors": 0,
+      "estimate_usd": 0.067824,
+      "input_tokens": 357361,
+      "mode": "on-demand",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_tokens": 23699,
+      "pre_run_estimate_usd": 0.073759,
+      "records": 300,
+      "stage": "panel-v3-pilot-new-openai"
+    },
+    {
+      "completed_at": "2026-09-29T20:39:11Z",
+      "errors": 0,
+      "estimate_usd": 0.721394,
+      "input_tokens": 350059,
+      "mode": "on-demand",
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "output_tokens": 3546,
+      "pre_run_estimate_usd": 0.931378,
+      "records": 300,
+      "stage": "panel-v3-pilot-new-mistral"
+    },
+    {
+      "completed_at": "2026-09-29T21:02:54Z",
+      "errors": 0,
+      "estimate_usd": 23.11601,
+      "input_tokens": 11189115,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 73778,
+      "pre_run_estimate_usd": 22.073052,
+      "records": 5694,
+      "stage": "panel-anthropic"
+    },
+    {
+      "completed_at": "2026-09-29T21:04:29Z",
+      "errors": 0,
+      "estimate_usd": 0.038554,
+      "input_tokens": 271929,
+      "mode": "on-demand",
+      "model_id": "deepseek.v3.2",
+      "output_tokens": 1727,
+      "pre_run_estimate_usd": 0.050237,
+      "records": 210,
+      "stage": "panel-deepseek"
+    },
+    {
+      "completed_at": "2026-09-29T21:11:51Z",
+      "errors": 0,
+      "estimate_usd": 15.547772,
+      "input_tokens": 7565413,
+      "mode": "on-demand",
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "output_tokens": 69491,
+      "pre_run_estimate_usd": 20.138214,
+      "records": 5728,
+      "stage": "panel-mistral"
+    },
+    {
+      "completed_at": "2026-09-29T21:22:26Z",
+      "errors": 0,
+      "estimate_usd": 1.439664,
+      "input_tokens": 7797111,
+      "mode": "on-demand",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_tokens": 450163,
+      "pre_run_estimate_usd": 1.609364,
+      "records": 5816,
+      "stage": "panel-openai"
     }
   ],
-  "total_estimate_usd": 151.514013,
-  "updated_at": "2026-09-29T18:53:14Z"
+  "total_estimate_usd": 194.67373,
+  "updated_at": "2026-09-29T21:22:26Z"
 }

@@ -147,7 +147,8 @@ def disagreement_items(low_confidence: float) -> tuple[list[dict], dict]:
     evenly by role and round-robin over rules within a role."""
     candidates = []
     for item in read_split("train"):
-        if item.get("label_origin") != "teacher-panel":
+        # Only items the panel voted on; the rest of train has no panel label.
+        if item.get("label_origin") != "teacher-panel" or item.get("label") is None:
             continue
         votes = [v for v in (item.get("panel_votes") or {}).values() if v]
         split = len(set(votes)) > 1
