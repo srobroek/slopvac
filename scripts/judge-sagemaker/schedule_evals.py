@@ -525,7 +525,9 @@ def training_runtime(config: dict[str, Any], model: str) -> int:
     if model == "kev-9b":
         return 18300
     if model == "laya-typed-decisions":
-        return 14400
+        # Measured on an A10G: 2 of 4 epochs in 14,400 s, so the full run is
+        # about 28,800 s; 36,000 s leaves 25% headroom.
+        return 36000
     return int(config["models"][model]["max_runtime_s"])
 
 
