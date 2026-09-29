@@ -129,11 +129,7 @@ def _package_local_checkpoint(run: str) -> str:
 
 def _job_request(res, arm, source, checkpoint, name, instance, runtime, price, data):
     job_root = f"s3://{res['bucket']}/{res['s3_prefix']}/{name}"
-    channels = (
-        ["code", "data"]
-        + (["checkpoint"] if checkpoint else [])
-        + (["model"] if arm.startswith("laya-") else [])
-    )
+    channels = ["code", "data"] + (["checkpoint"] if checkpoint else [])
     model_family = "laya" if arm.startswith("laya-") else "kev"
     return {
         "TrainingJobName": name,
