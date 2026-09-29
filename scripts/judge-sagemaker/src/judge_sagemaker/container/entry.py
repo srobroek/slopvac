@@ -1,20 +1,4 @@
-"""SageMaker training-job entry point: Kev delta fine-tune on one converted JSONL split.
-
-Runs inside the AWS PyTorch DLC after bootstrap.sh has checked out Kev at the pinned commit
-(KEV_ROOT) and installed its locked dependencies. Ports judge-pilot finetune_kev.py, itself a
-port of `run_train` in Kev's skills/kev-finetune/scripts/kev_modal.py (commit 3e1cd3b): the
-kev.train command is built from the init checkpoint's recorded args (lr capped at 5e-5, batch /
-accum / checkpointing from the checkpoint, LoRA rank, head dim, targets, isolation, special
-embeddings, weights dtype, base revision) with --device cuda --dtype bf16 as Kev's GPU recipe
-runs it. When a calibration channel is present, a temperature is fitted on it from raw logits
-(kev.metrics.fit_temperature, micro) and written into head.pt.
-
-Inputs: /opt/ml/input/config/hyperparameters.json (written by `judge-sagemaker submit`), one
-*.jsonl in the train channel, optionally one in the calibration channel (source items or Kev
-requests; see convert.py). Outputs in /opt/ml/model (uploaded as model.tar.gz): checkpoint/
-(adapter_model.safetensors, adapter_config.json, head.pt, tokenizer, training_config.json,
-training_metrics.json), data/ (converted splits), train.log, calibration-eval/ and manifest.json.
-"""
+"""SageMaker training-job entry point for corpus Kev delta fine-tunes."""
 
 import json
 import os
@@ -62,11 +46,10 @@ def channel_file(name, required):
 
 
 def load_hyperparameters():
-    hp = json.loads(
-        HYPERPARAMETERS.read_text()
-    )  # SageMaker passes every value as a string
+    hp = json.loads(HYPERPARAMETERS.read_text())
     return {
         "model": hp["model"],
+        "family": hp["family"],
         "init_from": hp["init_from"],
         "base_revision": hp["base_revision"],
         "kev_commit": hp["kev_commit"],
@@ -114,6 +97,8 @@ def digests(root):
 def main():
     started = time.time()
     hp = load_hyperparameters()
+    if hp["family"] != "kev":
+        raise SystemExit(f"entry.py only runs Kev training; family={hp['family']}")
     kev_root = Path(os.environ["KEV_ROOT"])
     sys.path.insert(0, str(kev_root))
     import torch
@@ -123,11 +108,8 @@ def main():
         raise SystemExit("no CUDA device visible to the training container")
     data = MODEL / "data"
     splits = {"train": convert_file(channel_file("train", True), data / "train.jsonl")}
-    calibration_src = channel_file("calibration", False)
-    if calibration_src:
-        splits["calibration"] = convert_file(
-            calibration_src, data / "calibration.jsonl"
-        )
+    calibration_src = channel_file("calibration", True)
+    splits["calibration"] = convert_file(calibration_src, data / "calibration.jsonl")
     print("data:", json.dumps(splits), flush=True)
 
     init = Checkpoint(hp["init_from"])
@@ -191,6 +173,8 @@ def main():
         cmd += ["--suite", kev_root / "evals/v7/decision-v7", "--replay", cfg["replay"]]
     if hp["max_state"]:
         cmd += ["--max_state", hp["max_state"]]
+    elif hp["model"] == "kev-0.8b":
+        cmd += ["--max_state", 4096]
     cmd = [str(c) for c in cmd]
     print("training:", " ".join(cmd[2:]), flush=True)
     t0 = time.time()
@@ -233,7 +217,8 @@ def main():
         "base_revision": meta.base_revision,
         "hyperparameters": {
             **cfg,
-            "max_state": hp["max_state"] or None,
+            "max_state": hp["max_state"]
+            or (4096 if hp["model"] == "kev-0.8b" else None),
             "device": "cuda",
             "dtype": "bf16",
             "lora": meta.lora,

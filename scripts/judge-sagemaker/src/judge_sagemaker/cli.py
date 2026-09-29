@@ -1,12 +1,12 @@
-"""judge-sagemaker: submit and fetch Kev 4B/9B delta fine-tunes as SageMaker training jobs.
+"""judge-sagemaker: train and evaluate judge arms as SageMaker training jobs.
 
-    judge-sagemaker submit --model kev-4b|kev-9b --data <s3 uri | local jsonl> --epochs N --seed S [--dry-run]
+    judge-sagemaker submit --model kev-0.8b|kev-4b|kev-9b|laya-typed-decisions --data <S3 URI | local JSONL> --seed 17 [--dry-run]
     judge-sagemaker fetch <job> [--out DIR] [--logs N]
     judge-sagemaker stop <job>
     judge-sagemaker convert --data <local jsonl> --out <kev jsonl>
 
-Account, region, bucket, role, image and prices come from resources.json; spend is tracked
-against the cap in cost-ledger.json. Only SageMaker training jobs are created.
+All training and evaluation runs in SageMaker training jobs; spend is tracked
+against cost-ledger.json across regions.
 """
 
 import argparse
@@ -39,9 +39,11 @@ CODE_FILES = (
     "convert.py",
     "container/__init__.py",
     "container/entry.py",
+    "container/laya_train.py",
     "container/bootstrap.sh",
     "container/requirements-kev.txt",
     "container/requirements-fla.txt",
+    "pilot/requirements-laya.txt",
 )
 CODE_DIR = "/opt/ml/input/data/code"
 FINAL = ("Completed", "Failed", "Stopped")
@@ -62,14 +64,12 @@ def utcnow():
     return datetime.datetime.now(datetime.timezone.utc)
 
 
-def parse_s3(uri):
+def parse_s3(uri, allow_prefix=False):
     if not uri.startswith("s3://"):
         raise SystemExit(f"not an s3:// URI: {uri}")
     bucket, _, key = uri[5:].partition("/")
-    if not bucket or not key or key.endswith("/"):
-        raise SystemExit(
-            f"--data/--calibration must name one S3 object, not a prefix: {uri}"
-        )
+    if not bucket or not key or (key.endswith("/") and not allow_prefix):
+        raise SystemExit(f"S3 URI must name one object: {uri}")
     return bucket, key
 
 
@@ -98,11 +98,30 @@ def check_budget(ledger, max_cost):
 
 
 # --- request ----------------------------------------------------------------------------------------------------------
-
-
 def job_request(res, a, job, model, instance_type, price, has_calibration):
     base = f"s3://{res['bucket']}/{res['s3_prefix']}/{job}"
+    family = model["family"]
     channels = ["code", "train"] + (["calibration"] if has_calibration else [])
+    if family == "laya":
+        channels.append("model")
+    hyperparameters = {
+        "model": a.model,
+        "family": family,
+        "init_from": model["init_from"],
+        "base_revision": model.get("base_revision", ""),
+        "kev_commit": KEV_COMMIT,
+        "laya_commit": model.get("laya_commit", ""),
+        "repo": model.get("repo", ""),
+        "revision": model.get("revision", ""),
+        "upstream_commit": model.get("upstream_commit", ""),
+        "epochs": str(a.epochs),
+        "seed": str(a.seed),
+        "lr": repr(a.lr),
+        "replay": str(a.replay),
+        "p_none_pair": repr(a.p_none_pair),
+        "max_state": str(a.max_state),
+        "max_len": str(a.max_state or 4096),
+    }
     return {
         "TrainingJobName": job,
         "RoleArn": res["role_arn"],
@@ -114,31 +133,20 @@ def job_request(res, a, job, model, instance_type, price, has_calibration):
                 f"{CODE_DIR}/judge_sagemaker/container/bootstrap.sh",
             ],
         },
-        "HyperParameters": {
-            "model": a.model,
-            "init_from": model["init_from"],
-            "base_revision": model["base_revision"],
-            "kev_commit": KEV_COMMIT,
-            "epochs": str(a.epochs),
-            "seed": str(a.seed),
-            "lr": repr(a.lr),
-            "replay": str(a.replay),
-            "p_none_pair": repr(a.p_none_pair),
-            "max_state": str(a.max_state),
-        },
+        "HyperParameters": hyperparameters,
         "InputDataConfig": [
             {
-                "ChannelName": c,
+                "ChannelName": channel,
                 "InputMode": "File",
                 "DataSource": {
                     "S3DataSource": {
                         "S3DataType": "S3Prefix",
-                        "S3Uri": f"{base}/input/{c}/",
+                        "S3Uri": f"{base}/input/{channel}/",
                         "S3DataDistributionType": "FullyReplicated",
                     }
                 },
             }
-            for c in channels
+            for channel in channels
         ],
         "OutputDataConfig": {"S3OutputPath": f"{base}/output"},
         "ResourceConfig": {
@@ -154,7 +162,7 @@ def job_request(res, a, job, model, instance_type, price, has_calibration):
             "JUDGE_IMAGE_URI": res["image_uri"],
             "JUDGE_HOURLY_USD": repr(price),
         },
-        "Tags": [{"Key": k, "Value": v} for k, v in res["tags"].items()]
+        "Tags": [{"Key": key, "Value": value} for key, value in res["tags"].items()]
         + [{"Key": "model", "Value": a.model}],
     }
 
@@ -197,22 +205,37 @@ def session(res, profile):
 def cmd_submit(a):
     res = load_json(RESOURCES)
     model = res["models"][a.model]
+    if a.epochs is None:
+        a.epochs = 2 if a.model == "kev-0.8b" else 4 if model["family"] == "laya" else 1
+    if a.replay is None:
+        a.replay = (
+            0
+            if a.model == "kev-0.8b" or model["family"] == "laya"
+            else RECIPE["replay"]
+        )
+    if a.model == "kev-0.8b" and a.max_state == 0:
+        a.max_state = 4096
     instance_type = a.instance_type or model["instance_type"]
     price = res["instance_prices_usd_per_hour"].get(instance_type)
     if price is None:
         raise SystemExit(f"no hourly price for {instance_type} in resources.json")
     if a.max_runtime is None:
         a.max_runtime = model["max_runtime_s"]
-    if a.epochs < 1 or a.max_runtime < 600:
-        raise SystemExit("--epochs must be >= 1 and --max-runtime >= 600 seconds")
-    job = f"{res['job_name_prefix']}-{a.model}-s{a.seed}-{utcnow():%Y%m%d%H%M%S}"
-    data = {"train": describe_data(a.data, "data")}
-    if a.calibration:
-        data["calibration"] = describe_data(a.calibration, "calibration")
+    model_name = a.model.replace(".", "")
+    job = f"{res['job_name_prefix']}-{model_name}-s{a.seed}-{utcnow():%Y%m%d%H%M%S}"
+    data = {
+        "train": describe_data(a.data or res["corpus_export"]["train"], "data"),
+        "calibration": describe_data(
+            a.calibration or res["corpus_export"]["calibration"], "calibration"
+        ),
+    }
+    if model["family"] == "laya":
+        data["model"] = {"source": res["laya_base_prefix"]}
+    data["manifest"] = {"source": res["corpus_export"]["manifest"]}
     max_cost = round(price * a.max_runtime / 3600, 2)
     ledger = load_json(LEDGER)
     spent = check_budget(ledger, max_cost)
-    request = job_request(res, a, job, model, instance_type, price, bool(a.calibration))
+    request = job_request(res, a, job, model, instance_type, price, True)
     plan = {
         "job_name": job,
         "data": data,
@@ -234,14 +257,25 @@ def cmd_submit(a):
         )
     for channel, d in data.items():
         if d["source"].startswith("s3://"):
-            src_bucket, src_key = parse_s3(d["source"])
-            head = s3.head_object(Bucket=src_bucket, Key=src_key)
-            d["etag"], d["version_id"] = head["ETag"], head.get("VersionId")
-            s3.copy(
-                {"Bucket": src_bucket, "Key": src_key},
-                res["bucket"],
-                f"{key}/input/{channel}/{Path(src_key).name}",
-            )
+            src_bucket, src_key = parse_s3(d["source"], allow_prefix=True)
+            if src_key.endswith("/"):
+                paginator = s3.get_paginator("list_objects_v2")
+                for page in paginator.paginate(Bucket=src_bucket, Prefix=src_key):
+                    for obj in page.get("Contents", []):
+                        relative = obj["Key"][len(src_key) :]
+                        s3.copy(
+                            {"Bucket": src_bucket, "Key": obj["Key"]},
+                            res["bucket"],
+                            f"{key}/input/{channel}/{relative}",
+                        )
+            else:
+                head = s3.head_object(Bucket=src_bucket, Key=src_key)
+                d["etag"], d["version_id"] = head["ETag"], head.get("VersionId")
+                s3.copy(
+                    {"Bucket": src_bucket, "Key": src_key},
+                    res["bucket"],
+                    f"{key}/input/{channel}/{Path(src_key).name}",
+                )
         else:
             s3.upload_file(
                 d["source"],
@@ -390,17 +424,19 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("submit", help="submit one training job")
-    p.add_argument("--model", required=True, choices=["kev-4b", "kev-9b"])
     p.add_argument(
-        "--data",
+        "--model",
         required=True,
-        help="train split: s3://bucket/key.jsonl or a local .jsonl",
+        choices=["kev-0.8b", "kev-4b", "kev-9b", "laya-typed-decisions"],
+    )
+    p.add_argument(
+        "--data", help="train split S3 URI or local JSONL; defaults to corpus export"
     )
     p.add_argument(
         "--calibration",
-        help="optional calibration split (same forms); fits the temperature in the job",
+        help="calibration split S3 URI or local JSONL; defaults to corpus export",
     )
-    p.add_argument("--epochs", type=int, default=RECIPE["epochs"])
+    p.add_argument("--epochs", type=int)
     p.add_argument("--seed", type=int, default=RECIPE["seed"])
     p.add_argument(
         "--lr", type=float, default=0.0, help="0 = the checkpoint's lr capped at 5e-5"
@@ -408,7 +444,6 @@ def main(argv=None):
     p.add_argument(
         "--replay",
         type=int,
-        default=RECIPE["replay"],
         help="records replayed from Kev's decision-v7 training partition (0 = none)",
     )
     p.add_argument("--p-none-pair", type=float, default=RECIPE["p_none_pair"])

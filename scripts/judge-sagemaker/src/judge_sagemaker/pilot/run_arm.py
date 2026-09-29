@@ -99,14 +99,14 @@ def load_items(splits):
 
 
 def body_for(arm, item, order):
-    q = {
+    question = {
         "type": item["question"]["type"],
         "instructions": item["question"]["instructions"],
     }
     if item["kind"] == "choice":
         keys = CHOICE_ORDER if order == "forward" else list(reversed(CHOICE_ORDER))
-        q["criteria"] = {k: item["question"]["criteria"][k] for k in keys}
-    return {"state": item["state"], "model": arm["model"], "questions": {"q": q}}
+        question["criteria"] = {key: item["question"]["criteria"][key] for key in keys}
+    return {"state": item["state"], "model": arm["model"], "questions": {"q": question}}
 
 
 def request_plan(items):
@@ -210,9 +210,15 @@ def main():
                 "kind": it["kind"],
                 "order": order,
                 "label": it["label"],
-                "state_rule": it["state_rule"],
-                "asked_rule": it["asked_rule"],
-                "source": it["source"],
+                "state_rule": it.get("rule_id") or it.get("state_rule", ""),
+                "asked_rule": it.get("rule_id") or it.get("asked_rule", ""),
+                "role": it.get("role", "unknown"),
+                "rule_held_out": it.get("rule_held_out"),
+                "granularity": it.get("granularity", "unknown"),
+                "provenance": it.get("provenance", "unknown"),
+                "label_origin": it.get("label_origin", "unknown"),
+                "genre": it.get("genre", "unknown"),
+                "source": it.get("provenance", it.get("source", "unknown")),
                 "status": status,
                 "latency_ms": round(dt, 3),
                 "server_latency_ms": payload.get("latency_ms")

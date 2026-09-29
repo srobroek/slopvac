@@ -78,21 +78,24 @@ def run_logged(cmd, log_name, cwd=PILOT, env=None):
 
 def stage_data():
     src = CHANNELS / "data"
-    manifest = json.loads((src / "dataset-manifest.json").read_text())
+    manifest_path = src / "export-manifest.json"
+    raw_manifest = json.loads(manifest_path.read_text())
+    manifest = {"builder": "corpus-export", "files": {}}
     DATA.mkdir(parents=True, exist_ok=True)
     RESULTS.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(src / "dataset-manifest.json", RESULTS / "dataset-manifest.json")
-    digests = {}
     for split in SPLITS:
-        expected = manifest["files"][split]["sha256"]
+        info = raw_manifest["files"][split]
         actual = sha256_file(src / f"{split}.jsonl")
-        if actual != expected:
+        if actual != info["sha256"]:
             raise SystemExit(
-                f"{split}.jsonl sha256 {actual} differs from dataset-manifest.json {expected}"
+                f"{split}.jsonl sha256 {actual} differs from export manifest {info['sha256']}"
             )
         shutil.copyfile(src / f"{split}.jsonl", DATA / f"{split}.jsonl")
-        digests[split] = actual
-    return manifest, digests
+        manifest["files"][split] = {"sha256": actual, "items": info["records"]}
+    (RESULTS / "dataset-manifest.json").write_text(
+        json.dumps(manifest, indent=2) + "\n"
+    )
+    return manifest, {split: manifest["files"][split]["sha256"] for split in SPLITS}
 
 
 def calibration_eval(rows, T):
@@ -283,7 +286,9 @@ def load_hyperparameters():
         "checkpoint_ref": hp.get("checkpoint_ref") or None,
         "port": int(hp["port"]),
         "kev_commit": hp["kev_commit"],
-        "laya_commit": hp["laya_commit"],
+        "data_uri_test": hp.get("data_uri_test"),
+        "data_uri_calibration": hp.get("data_uri_calibration"),
+        "data_manifest_uri": hp.get("data_manifest_uri"),
     }
 
 

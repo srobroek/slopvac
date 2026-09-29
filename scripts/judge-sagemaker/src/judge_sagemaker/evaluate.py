@@ -127,18 +127,13 @@ def _package_local_checkpoint(run: str) -> str:
     return archive
 
 
-def _job_request(
-    res,
-    arm: str,
-    source: str,
-    checkpoint: str | None,
-    name: str,
-    instance: str,
-    runtime: int,
-    price: float,
-) -> dict:
+def _job_request(res, arm, source, checkpoint, name, instance, runtime, price, data):
     job_root = f"s3://{res['bucket']}/{res['s3_prefix']}/{name}"
-    channels = ["code", "data"] + (["checkpoint"] if checkpoint else [])
+    channels = (
+        ["code", "data"]
+        + (["checkpoint"] if checkpoint else [])
+        + (["model"] if arm.startswith("laya-") else [])
+    )
     model_family = "laya" if arm.startswith("laya-") else "kev"
     return {
         "TrainingJobName": name,
@@ -159,6 +154,9 @@ def _job_request(
             "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
             "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
             "port": "8100",
+            "data_uri_test": data["test"],
+            "data_uri_calibration": data["calibration"],
+            "data_manifest_uri": data["manifest"],
         },
         "InputDataConfig": [
             {
@@ -219,26 +217,35 @@ def cmd_evaluate(a):
     checkpoint_uri = checkpoint
     if a.instance_type:
         instance = a.instance_type
-    elif a.arm in ("kev-9b", "kev-9b-ft-s17", "kev-9b-ft-s18", "kev-9b-ft-s19"):
+    elif a.arm.startswith("kev-9b"):
         instance = "ml.g6e.2xlarge"
     elif a.arm.startswith("laya-") or a.arm.startswith("kev-4b"):
         instance = "ml.g5.4xlarge"
     else:
-        instance = "ml.g5.2xlarge"
+        instance = "ml.g6.xlarge"
     price = res["instance_prices_usd_per_hour"].get(instance)
-    if price is None:
-        raise SystemExit(f"no price estimate configured for {instance}")
     runtime = a.max_runtime or 7200
-    if not 60 <= runtime <= 7200:
-        raise SystemExit("evaluation max runtime must be in [60,7200] seconds")
+    if not 60 <= runtime <= 21600:
+        raise SystemExit("evaluation max runtime must be in [60,21600] seconds")
     short_arm = a.arm.replace(".", "")
     job = f"sv-eval-{short_arm}-{cli.utcnow():%y%m%d%H%M%S%f}"
     job_root = f"s3://{res['bucket']}/{res['s3_prefix']}/{job}"
     max_cost = round(price * runtime / 3600, 2)
     ledger = cli.load_json(cli.LEDGER)
     spent = cli.check_budget(ledger, max_cost)
+    data = {
+        "test": a.test or res["corpus_export"]["test"],
+        "calibration": a.calibration or res["corpus_export"]["calibration"],
+        "manifest": a.manifest or res["corpus_export"]["manifest"],
+    }
+    for field in ("test", "calibration", "manifest"):
+        value = data[field]
+        if value.startswith("s3://"):
+            cli.parse_s3(value)
+        elif not Path(value).expanduser().is_file():
+            raise SystemExit(f"--{field}: no such file: {value}")
     request = _job_request(
-        res, a.arm, source, checkpoint_uri, job, instance, runtime, price
+        res, a.arm, source, checkpoint_uri, job, instance, runtime, price, data
     )
     plan = {
         "job_name": job,
@@ -296,9 +303,20 @@ def cmd_evaluate(a):
             s3.upload_file(
                 str(path), res["bucket"], f"{key}/input/code/judge_sagemaker/{rel}"
             )
-    for rel in ("test.jsonl", "calibration.jsonl", "dataset-manifest.json"):
-        src = PILOT / ("results" if rel == "dataset-manifest.json" else "data") / rel
-        s3.upload_file(str(src), res["bucket"], f"{key}/input/data/{rel}")
+    for rel, field in (
+        ("test.jsonl", "test"),
+        ("calibration.jsonl", "calibration"),
+        ("export-manifest.json", "manifest"),
+    ):
+        value = data[field]
+        destination = f"{key}/input/data/{rel}"
+        if value.startswith("s3://"):
+            bucket, obj = cli.parse_s3(value)
+            s3.copy({"Bucket": bucket, "Key": obj}, res["bucket"], destination)
+        else:
+            s3.upload_file(
+                str(Path(value).expanduser().resolve()), res["bucket"], destination
+            )
     if local_archive:
         s3.upload_file(
             str(local_archive),
@@ -377,7 +395,7 @@ def cmd_fetch_eval(a):
     }
     uri = d.get("ModelArtifacts", {}).get("S3ModelArtifacts")
     if status == "Completed" and uri:
-        out = cli.ROOT / "results" / entry["arm"]
+        out = cli.ROOT / "results" / "corpus" / entry["arm"]
         out.mkdir(parents=True, exist_ok=True)
         b, k = cli.parse_s3(uri)
         tarpath = out / "model.tar.gz"
@@ -398,6 +416,17 @@ def add_parsers(sub):
     p.add_argument(
         "--checkpoint",
         help="S3 model.tar.gz or local fine-tune run/checkpoint directory",
+    )
+    p.add_argument(
+        "--test", help="corpus test S3 URI or local JSONL; defaults to published export"
+    )
+    p.add_argument(
+        "--calibration",
+        help="corpus calibration S3 URI or local JSONL; defaults to published export",
+    )
+    p.add_argument(
+        "--manifest",
+        help="corpus export manifest S3 URI or local JSON file; defaults to published export",
     )
     p.add_argument(
         "--instance-type",

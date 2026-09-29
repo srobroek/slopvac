@@ -29,9 +29,32 @@
   "ml.g6.2xlarge": 2.5,
   "ml.g6.4xlarge": 3.5
  },
- "price_source": "Conservative estimates only, not verified standard SageMaker Training prices. AWS public SageMaker Price List (published 2026-09-27) did not expose the standard ml.g6e.2xlarge Training SKU; its distinct TrainingWarmPool SKU is $2.80/hour. Estimate ml.g6e.2xlarge at $4.00/hour; reconcile charges in Cost Explorer. All other g6e/g5/g6 rates are unverified conservative estimates.",
+ "price_source": "Conservative estimates only, not verified standard SageMaker Training prices. AWS public SageMaker Price List (published 2026-09-27) did not expose the standard ml.g6e.2xlarge Training SKU; its distinct TrainingWarmPool SKU is $2.80/hour. Estimate ml.g6e.2xlarge at $4.00/hour; all other rates are unverified conservative estimates.",
+ "corpus_export": {
+  "build_id": "corpus-20260929-s17-v2",
+  "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+  "calibration": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+  "test": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/test.jsonl",
+  "manifest": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json"
+ },
+ "laya_base_prefix": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/",
  "models": {
+  "kev-0.8b": {
+   "family": "kev",
+   "repo": "jaredpalmer/kev-0.8b",
+   "revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+   "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+   "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+   "base": "Qwen/Qwen3.5-0.8B-Base",
+   "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+   "instance_type": "ml.g6.xlarge",
+   "max_runtime_s": 21600
+  },
   "kev-4b": {
+   "family": "kev",
+   "repo": "jaredpalmer/kev-4b",
+   "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+   "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
    "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
    "base": "Qwen/Qwen3.5-4B-Base",
    "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
@@ -39,11 +62,25 @@
    "max_runtime_s": 7200
   },
   "kev-9b": {
+   "family": "kev",
+   "repo": "jaredpalmer/kev-9b",
+   "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+   "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
    "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
    "base": "Qwen/Qwen3.5-9B-Base",
    "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
    "instance_type": "ml.g6e.2xlarge",
    "max_runtime_s": 18000
+  },
+  "laya-typed-decisions": {
+   "family": "laya",
+   "repo": "convaiinnovations/laya-typed-decisions",
+   "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+   "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+   "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+   "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+   "instance_type": "ml.g5.2xlarge",
+   "max_runtime_s": 21600
   }
  }
 }

@@ -105,7 +105,7 @@ def dist_of(rec):
     a = rec["answer"]
     if rec["kind"] == "noul":
         p = float(a["noul"])
-        return np.array([1 - p, p])  # [false, true]
+        return np.array([1 - p, p])
     probs = a["probabilities"]
     return np.array([float(probs[k]) for k in CHOICE_ORDER])
 
@@ -143,7 +143,7 @@ def auroc(scores, positives):
     order = allv.argsort(kind="mergesort")
     ranks = np.empty(len(allv))
     ranks[order] = np.arange(1, len(allv) + 1)
-    for v in np.unique(allv):  # average ranks over ties
+    for v in np.unique(allv):
         m = allv == v
         ranks[m] = ranks[m].mean()
     return float(
@@ -204,90 +204,131 @@ def bootstrap(P, y, clusters, kind, fn_keys=("balanced_accuracy", "ece_15"), rep
         pick = np.concatenate(
             [index[c] for c in rng.choice(ids, size=len(ids), replace=True)]
         )
-        s = summarize(P[pick], y[pick], kind)
-        for k in fn_keys:
-            samples[k].append(s[k])
+        score = summarize(P[pick], y[pick], kind)
+        for key in fn_keys:
+            samples[key].append(score[key])
     return {
-        k: [float(np.percentile(v, 2.5)), float(np.percentile(v, 97.5))]
-        for k, v in samples.items()
+        key: [float(np.percentile(values, 2.5)), float(np.percentile(values, 97.5))]
+        for key, values in samples.items()
     }
 
 
 def by_source(P, y, sources):
     pred = P.argmax(axis=1)
     return {
-        s: {
-            "n": int((sources == s).sum()),
-            "accuracy": float((pred[sources == s] == y[sources == s]).mean()),
+        source: {
+            "n": int((sources == source).sum()),
+            "accuracy": float((pred[sources == source] == y[sources == source]).mean()),
         }
-        for s in np.unique(sources)
+        for source in np.unique(sources)
     }
 
 
 def score_kind(records, kind):
     fwd = {r["id"]: r for r in records if r["kind"] == kind and r["order"] == "forward"}
-    ok = {i: r for i, r in fwd.items() if r["status"] == 200 and r["answer"]}
-    res = {"errors": {i: r["error"] for i, r in fwd.items() if i not in ok}}
+    ok = {
+        item_id: row
+        for item_id, row in fwd.items()
+        if row["status"] == 200 and row["answer"]
+    }
+    res = {
+        "errors": {
+            item_id: row["error"] for item_id, row in fwd.items() if item_id not in ok
+        }
+    }
 
     def arrays(split):
-        rs = [r for r in ok.values() if r["split"] == split]
+        rows = [row for row in ok.values() if row["split"] == split]
         return (
-            np.array([dist_of(r) for r in rs]),
-            np.array([label_index(r) for r in rs]),
-            np.array([r["state_rule"] for r in rs]),
-            np.array([r["source"] for r in rs]),
-            rs,
+            np.array([dist_of(row) for row in rows]),
+            np.array([label_index(row) for row in rows]),
+            np.array([row["state_rule"] for row in rows]),
+            np.array([row["source"] for row in rows]),
+            rows,
         )
 
     Pc, yc, _, _, _ = arrays("calibration")
-    Pt, yt, ct, st, rt = arrays("test")
-    T = fit_temperature(Pc, yc)
-    Ptc = scale(Pt, T)
-    res["temperature_fit_on_calibration"] = T
+    Pt, yt, ct, sources, test_rows = arrays("test")
+    temperature = fit_temperature(Pc, yc)
+    Ptc = scale(Pt, temperature)
+    res["temperature_fit_on_calibration"] = temperature
     res["calibration_raw"] = summarize(Pc, yc, kind)
     res["test_raw"] = summarize(Pt, yt, kind)
     res["test_cal"] = summarize(Ptc, yt, kind)
     res["test_raw_ci95"] = bootstrap(Pt, yt, ct, kind)
     res["test_cal_ci95"] = bootstrap(Ptc, yt, ct, kind, fn_keys=("ece_15",))
-    res["test_accuracy_by_source"] = by_source(Pt, yt, st)
+    if kind == "noul":
+        pred = Pt.argmax(axis=1)
+        res["test_bad_recall"] = (
+            float((pred[yt == 1] == 1).mean()) if (yt == 1).any() else None
+        )
+        res["test_good_recall"] = (
+            float((pred[yt == 0] == 0).mean()) if (yt == 0).any() else None
+        )
+    slices = {}
+    for field in ("role", "rule_held_out", "granularity", "provenance"):
+        groups = {}
+        for value in sorted({str(row.get(field, "unknown")) for row in test_rows}):
+            mask = np.array(
+                [str(row.get(field, "unknown")) == value for row in test_rows]
+            )
+            truth, predictions = yt[mask], Pt.argmax(axis=1)[mask]
+            groups[value] = {
+                "n": int(mask.sum()),
+                "accuracy": float((predictions == truth).mean()),
+                "balanced_accuracy": balanced_accuracy(
+                    predictions, truth, list(range(Pt.shape[1]))
+                ),
+                "ece_15": ece(Pt[mask], truth),
+                "bad_recall": float((predictions[truth == 1] == 1).mean())
+                if (truth == 1).any()
+                else None,
+                "good_recall": float((predictions[truth == 0] == 0).mean())
+                if (truth == 0).any()
+                else None,
+            }
+        slices[field] = groups
+    res["test_slices"] = slices
+    res["test_accuracy_by_source"] = by_source(Pt, yt, sources)
     if kind == "choice":
-        rev = {
-            r["id"]: r
-            for r in records
-            if r["kind"] == kind
-            and r["order"] == "reversed"
-            and r["status"] == 200
-            and r["answer"]
+        reversed_rows = {
+            row["id"]: row
+            for row in records
+            if row["kind"] == kind
+            and row["order"] == "reversed"
+            and row["status"] == 200
+            and row["answer"]
         }
         agree = [
-            ok[i]["answer"]["choice"] == rev[i]["answer"]["choice"]
-            for i in ok
-            if i in rev and ok[i]["split"] == "test"
+            ok[item_id]["answer"]["choice"]
+            == reversed_rows[item_id]["answer"]["choice"]
+            for item_id in ok
+            if item_id in reversed_rows and ok[item_id]["split"] == "test"
         ]
         res["test_order_swap_agreement"] = float(np.mean(agree))
         res["test_order_swap_n"] = len(agree)
-        mean_shift = [
+        shift = [
             abs(
-                ok[i]["answer"]["probabilities"]["real-defect"]
-                - rev[i]["answer"]["probabilities"]["real-defect"]
+                ok[item_id]["answer"]["probabilities"]["real-defect"]
+                - reversed_rows[item_id]["answer"]["probabilities"]["real-defect"]
             )
-            for i in ok
-            if i in rev and ok[i]["split"] == "test"
+            for item_id in ok
+            if item_id in reversed_rows and ok[item_id]["split"] == "test"
         ]
-        res["test_order_swap_mean_abs_shift_real_defect"] = float(np.mean(mean_shift))
-    res["_test_ids"] = [r["id"] for r in rt]
+        res["test_order_swap_mean_abs_shift_real_defect"] = float(np.mean(shift))
+    res["_test_ids"] = [row["id"] for row in test_rows]
     return res
 
 
 def latency(records):
-    test = [r for r in records if r["split"] == "test" and r["status"] == 200]
-    lat = np.array([r["latency_ms"] for r in test])
-    noul = np.array([r["latency_ms"] for r in test if r["kind"] == "noul"])
+    test = [row for row in records if row["split"] == "test" and row["status"] == 200]
+    latencies = np.array([row["latency_ms"] for row in test])
+    noul = np.array([row["latency_ms"] for row in test if row["kind"] == "noul"])
     return {
         "single_request_all_test_ms": {
-            "n": int(len(lat)),
-            "p50": float(np.percentile(lat, 50)),
-            "p95": float(np.percentile(lat, 95)),
+            "n": int(len(latencies)),
+            "p50": float(np.percentile(latencies, 50)),
+            "p95": float(np.percentile(latencies, 95)),
         },
         "single_request_noul_test_ms": {
             "n": int(len(noul)),
@@ -320,10 +361,10 @@ def main(names):
         extra["host_contention"] = {"evaluation_run": run.get("host_contention")}
         remeasured = RUNS / name / "latency.json"
         if remeasured.exists():
-            lat = json.loads(remeasured.read_text())
+            remeasure = json.loads(remeasured.read_text())
             extra["latency_evaluation_run"] = latency(records)
-            extra["latency_remeasured_at"] = lat["measured_at"]
-            extra["host_contention"]["latency_remeasure"] = lat["host_contention"]
+            extra["latency_remeasured_at"] = remeasure["measured_at"]
+            extra["host_contention"]["latency_remeasure"] = remeasure["host_contention"]
         result = {
             "arm": name,
             "family": arm["family"],
@@ -335,28 +376,28 @@ def main(names):
             "upstream_repo_commit": arm["upstream_commit"],
             "served_model_field_sent": arm["model"],
             "served_model_field_returned": sorted(
-                {r["model"] for r in records if r["model"]}
+                {row["model"] for row in records if row["model"]}
             ),
             "served_checkpoint_routed": sorted(
-                {r["routed_to"] for r in records if r.get("routed_to")}
+                {row["routed_to"] for row in records if row.get("routed_to")}
             ),
             "runtime": runtime_versions(arm["family"]),
             "device": (run.get("health") or {}).get("device")
             or "/".join(
-                str(((run.get("health") or {}).get("models") or [{}])[0].get(k))
-                for k in ("device", "backend", "dtype")
+                str(((run.get("health") or {}).get("models") or [{}])[0].get(key))
+                for key in ("device", "backend", "dtype")
             ),
             "health": run.get("health"),
             "hardware": hardware(arm["family"]),
             "dataset": {
-                k: {"sha256": v["sha256"], "items": v["items"]}
-                for k, v in manifest["files"].items()
+                key: {"sha256": value["sha256"], "items": value["items"]}
+                for key, value in manifest["files"].items()
             },
             "inventory": inventory.get(name),
             "load_time_s": run["load_time_s"],
             "warmup_latency_ms": run.get("warmup_latency_ms"),
             "memory": run["memory"],
-            "latency": latency(lat["requests"] if remeasured.exists() else records),
+            "latency": latency(records),
             "throughput": run["throughput"],
             "metrics": {"noul": noul, "choice": choice},
             "compat": run["compat"],
@@ -367,10 +408,7 @@ def main(names):
         )
         n, c = noul["test_raw"], choice["test_raw"]
         print(
-            f"{name}: noul acc={n['accuracy']:.3f} bal={n['balanced_accuracy']:.3f} auroc={n['auroc']} "
-            f"ece raw={n['ece_15']:.3f} cal={noul['test_cal']['ece_15']:.3f} T={noul['temperature_fit_on_calibration']:.2f}"
-            f" | choice acc={c['accuracy']:.3f} bal={c['balanced_accuracy']:.3f} swap={choice['test_order_swap_agreement']:.3f}"
-            f" abstain={c['abstain_rate']:.3f} | p50={result['latency']['single_request_all_test_ms']['p50']:.1f}ms"
+            f"{name}: noul acc={n['accuracy']:.3f} bal={n['balanced_accuracy']:.3f} auroc={n['auroc']} ece raw={n['ece_15']:.3f} cal={noul['test_cal']['ece_15']:.3f} T={noul['temperature_fit_on_calibration']:.2f} | choice acc={c['accuracy']:.3f} bal={c['balanced_accuracy']:.3f} swap={choice['test_order_swap_agreement']:.3f} abstain={c['abstain_rate']:.3f} | p50={result['latency']['single_request_all_test_ms']['p50']:.1f}ms"
         )
 
 
