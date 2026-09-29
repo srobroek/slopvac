@@ -141,12 +141,13 @@ def finetune_from_training_manifest(run, arm, dataset):
         raise SystemExit(
             f"training job {m['job_name']} does not match {arm['ft_base']}: {wrong}"
         )
-    T = m["temperature_fit_on_calibration"]
-    if T is None:
-        raise SystemExit(
-            f"training job {m['job_name']} fitted no calibration temperature"
-        )
-    rows = json.loads((run / "calibration-eval" / "rows.json").read_text())
+    T = m.get("temperature_fit_on_calibration")
+    rows_path = run / "calibration-eval" / "rows.json"
+    rows = (
+        json.loads(rows_path.read_text())
+        if T is not None and rows_path.is_file()
+        else []
+    )
     return {
         "recipe": m["recipe"],
         "upstream_commit": m["kev_commit"],
@@ -156,8 +157,8 @@ def finetune_from_training_manifest(run, arm, dataset):
         "hyperparameters": m["hyperparameters"],
         "command": m["command"],
         "temperature_fit_on_calibration": T,
-        "calibration_eval": calibration_eval(rows, T),
-        "train_wall_time_s": m["train_wall_time_s"],
+        "calibration_eval": calibration_eval(rows, T) if rows else None,
+        "train_wall_time_s": m.get("train_wall_time_s"),
         # The training job records its whole container wall time, not the calibration fit alone,
         # and samples no process memory; those pilot fields stay null.
         "calibration_fit_wall_time_s": None,
@@ -184,6 +185,65 @@ def finetune_from_training_manifest(run, arm, dataset):
     }
 
 
+def finetune_from_checkpoint_config(arm):
+    """Recover fine-tune provenance from a Kev checkpoint-only SageMaker artifact."""
+    config_path = Path(arm["local"]) / "training_config.json"
+    config = json.loads(config_path.read_text())
+    args = config["args"]
+    base = ARMS[arm["ft_base"]]
+    init_from = config.get("init_source", {}).get("init_from")
+    expected_init = f"{base['repo']}@{base['revision']}"
+    checks = {
+        "init_from": (init_from, expected_init),
+        "base": (args.get("base"), base["base"]),
+        "base_revision": (config.get("base_revision"), base["base_revision"]),
+        "seed": (args.get("seed"), arm["ft_seed"]),
+    }
+    wrong = {key: pair for key, pair in checks.items() if pair[0] != pair[1]}
+    if wrong:
+        raise SystemExit(
+            f"checkpoint training config does not match {arm['ft_base']}: {wrong}"
+        )
+    if not config.get("init_source", {}).get("weights_sha256"):
+        raise SystemExit(
+            "Kev checkpoint training_config.json lacks initialization digest"
+        )
+    return {
+        "recipe": "Kev skills/kev-finetune run_train (Kev checkpoint training_config.json), SageMaker",
+        "upstream_commit": arm["upstream_commit"],
+        "init_from": init_from,
+        "base": args["base"],
+        "base_revision": config["base_revision"],
+        "hyperparameters": {
+            key: args.get(key)
+            for key in (
+                "lr",
+                "batch",
+                "accum",
+                "checkpointing",
+                "epochs",
+                "seed",
+                "replay",
+                "p_none_pair",
+                "max_state",
+                "device",
+                "dtype",
+                "weights_dtype",
+                "lora",
+                "head_dim",
+                "lora_targets",
+            )
+        },
+        "trainer_arguments": args,
+        "temperature_fit_on_calibration": None,
+        "calibration_eval": None,
+        "train_wall_time_s": None,
+        "calibration_fit_wall_time_s": None,
+        "peak_rss_bytes_sampled": None,
+        "lifetime_max_phys_footprint_bytes": None,
+    }
+
+
 def stage_checkpoint(arm, source, dataset):
     """Unpack the checkpoint channel's one archive into the arm's ft_run directory."""
     archives = sorted((CHANNELS / "checkpoint").rglob("*.tar.gz"))
@@ -195,17 +255,26 @@ def stage_checkpoint(arm, source, dataset):
     run.mkdir(parents=True, exist_ok=True)
     with tarfile.open(archives[0]) as tar:
         tar.extractall(run, filter="data")
-    # SageMaker training artifacts include a top-level manifest.json. Reconstruct the
-    # pilot's finetune.json when either an auto-resolved or explicit S3 artifact is used.
+    # A successful training artifact has a full manifest; a calibration-context failure can
+    # still retain the trained Kev checkpoint and its training_config.json.
     if (run / "manifest.json").is_file():
-        (run / "finetune.json").write_text(
-            json.dumps(finetune_from_training_manifest(run, arm, dataset), indent=2)
-        )
+        metadata = finetune_from_training_manifest(run, arm, dataset)
+    elif (
+        arm["family"] == "kev"
+        and (Path(arm["local"]) / "training_config.json").is_file()
+    ):
+        metadata = finetune_from_checkpoint_config(arm)
+    else:
+        metadata = None
+    if metadata is not None:
+        (run / "finetune.json").write_text(json.dumps(metadata, indent=2))
     marker = "head.pt" if arm["family"] == "kev" else "model.safetensors"
     if not (Path(arm["local"]) / marker).is_file():
         raise SystemExit(f"{archives[0].name} has no {marker} under {arm['local']}")
     if not (run / "finetune.json").is_file():
-        raise SystemExit(f"{archives[0].name} has no finetune.json")
+        raise SystemExit(
+            f"{archives[0].name} has no usable training manifest or checkpoint config"
+        )
     RUNS.joinpath(arm["name"]).mkdir(parents=True, exist_ok=True)
     shutil.copyfile(run / "finetune.json", RUNS / arm["name"] / "finetune.json")
     return {
@@ -297,10 +366,8 @@ def main():
     hp = load_hyperparameters()
     name = hp["arm"]
     arm = {**ARMS[name], "name": name}
-    if (
-        arm["family"] != hp["family"]
-        or arm["upstream_commit"] != hp[f"{arm['family']}_commit"]
-    ):
+    commit_key = f"{arm['family']}_commit"
+    if arm["family"] != hp["family"] or arm["upstream_commit"] != hp.get(commit_key):
         raise SystemExit(f"hyperparameters do not match arms.py for {name}")
     timings = {}
     dataset, data_digests = stage_data()

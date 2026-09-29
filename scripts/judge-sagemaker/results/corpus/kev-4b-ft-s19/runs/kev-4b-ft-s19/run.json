@@ -1,0 +1,446 @@
+{
+  "arm": "kev-4b-ft-s19",
+  "arm_config": {
+    "family": "kev",
+    "model": "kev-latest",
+    "repo": "jaredpalmer/kev-4b",
+    "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+    "base": "Qwen/Qwen3.5-4B-Base",
+    "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+    "local": "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+    "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+    "ft_base": "kev-4b",
+    "ft_seed": 19,
+    "ft_run": "/opt/judge/ft/ft-kev-4b-s19"
+  },
+  "server": {
+    "arm": "kev-4b-ft-s19",
+    "started_at": 1790675904.1008694,
+    "argv": [
+      "/usr/local/bin/python",
+      "-m",
+      "kev.serve",
+      "--run",
+      "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+      "--port",
+      "8100"
+    ],
+    "port": 8100,
+    "pid": 196,
+    "ready_at": 1790676008.069368,
+    "load_time_s": 103.97
+  },
+  "health": {
+    "models": [
+      {
+        "name": "kev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving /opt/judge/ft/ft-kev-4b-s19/checkpoint at temperature 1.00",
+        "release_date": "2026-09-29",
+        "run": "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+        "base": "Qwen/Qwen3.5-4B-Base",
+        "lora": 16,
+        "device": "cuda",
+        "backend": "torch",
+        "dtype": "bfloat16",
+        "temperature": 1.0,
+        "cuda_graphs": {
+          "captured": 0,
+          "kept": 0,
+          "pending": 0,
+          "failed": 0
+        },
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      },
+      {
+        "name": "jev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving /opt/judge/ft/ft-kev-4b-s19/checkpoint at temperature 1.00",
+        "release_date": "2026-09-29",
+        "run": "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+        "base": "Qwen/Qwen3.5-4B-Base",
+        "lora": 16,
+        "device": "cuda",
+        "backend": "torch",
+        "dtype": "bfloat16",
+        "temperature": 1.0,
+        "cuda_graphs": {
+          "captured": 0,
+          "kept": 0,
+          "pending": 0,
+          "failed": 0
+        },
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      }
+    ]
+  },
+  "load_time_s": 103.97,
+  "warmup_latency_ms": [
+    13481.2,
+    146.9,
+    147.9
+  ],
+  "sequential": {
+    "requests": 550,
+    "wall_s": 42.89
+  },
+  "throughput": null,
+  "memory": {
+    "peak_rss_bytes_sampled": 9045704704,
+    "peak_gpu_memory_bytes_sampled": 20560478208,
+    "phys_footprint_bytes": 9536684032,
+    "lifetime_max_phys_footprint_bytes": 16546430976,
+    "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+  },
+  "server_cmdline": [
+    "/usr/local/bin/python",
+    "-m",
+    "kev.serve",
+    "--run",
+    "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+    "--port",
+    "8100"
+  ],
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "no-defect",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "kev-latest",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": true,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "kev-latest",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.0077
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "no-defect",
+            "confidence": 0.9987,
+            "probabilities": {
+              "real-defect": 0.0004,
+              "no-defect": 0.9992,
+              "insufficient-context": 0.0004
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 0.6548,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.3473,
+              "1": 0.6505,
+              "2": 0.0022
+            },
+            "confidence": 0.4757
+          }
+        },
+        "usage": {
+          "input_tokens": 118,
+          "output_tokens": 188
+        },
+        "latency_ms": 1299.8
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "jev-1.13.0",
+      "routing": null,
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "slopvac-judge-pilot-v1",
+      "routing": null,
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          }
+        ]
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Input should be 'noul'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'noul'"
+            }
+          },
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]"
+            ],
+            "msg": "Value error, criteria must have 1..255 options",
+            "input": {
+              "type": "choice",
+              "instructions": "?",
+              "criteria": {}
+            },
+            "ctx": {
+              "error": {}
+            }
+          },
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Input should be 'score'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'score'"
+            }
+          },
+          {
+            "type": "list_type",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Input should be a valid list",
+            "input": {}
+          }
+        ]
+      }
+    },
+    "malformed_json": {
+      "status": 422
+    },
+    "oversized_state_300k_chars": {
+      "status": 500,
+      "truncated_and_answered": false,
+      "error": {
+        "_non_json": "Internal Server Error"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 200,
+      "payload": {
+        "models": [
+          {
+            "name": "kev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving /opt/judge/ft/ft-kev-4b-s19/checkpoint at temperature 1.00",
+            "release_date": "2026-09-29",
+            "run": "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+            "base": "Qwen/Qwen3.5-4B-Base",
+            "lora": 16,
+            "device": "cuda",
+            "backend": "torch",
+            "dtype": "bfloat16",
+            "temperature": 1.0,
+            "cuda_graphs": {
+              "captured": 1,
+              "kept": 1,
+              "pending": 7,
+              "failed": 0
+            },
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 6,
+              "misses": 5,
+              "cached_states": 1,
+              "oom_retries": 1
+            },
+            "batches": {
+              "count": 11,
+              "requests": 11,
+              "queued": 0
+            }
+          },
+          {
+            "name": "jev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-4B-Base, serving /opt/judge/ft/ft-kev-4b-s19/checkpoint at temperature 1.00",
+            "release_date": "2026-09-29",
+            "run": "/opt/judge/ft/ft-kev-4b-s19/checkpoint",
+            "base": "Qwen/Qwen3.5-4B-Base",
+            "lora": 16,
+            "device": "cuda",
+            "backend": "torch",
+            "dtype": "bfloat16",
+            "temperature": 1.0,
+            "cuda_graphs": {
+              "captured": 1,
+              "kept": 1,
+              "pending": 7,
+              "failed": 0
+            },
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 6,
+              "misses": 5,
+              "cached_states": 1,
+              "oom_retries": 1
+            },
+            "batches": {
+              "count": 11,
+              "requests": 11,
+              "queued": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "host_contention": [
+    {
+      "at": 1790676008.1773562,
+      "swap_used_bytes": 0,
+      "swap_total_bytes": 0,
+      "memory_available_bytes": 61448933376,
+      "other_processes_over_1gib": []
+    },
+    {
+      "at": 1790676067.6805012,
+      "swap_used_bytes": 0,
+      "swap_total_bytes": 0,
+      "memory_available_bytes": 61024841728,
+      "other_processes_over_1gib": []
+    }
+  ]
+}

@@ -59,6 +59,11 @@ def load_hyperparameters():
         "replay": int(hp["replay"]),
         "p_none_pair": float(hp["p_none_pair"]),
         "max_state": int(hp["max_state"]),
+        "batch": int(hp.get("batch", 0)),
+        "accum": int(hp.get("accum", 0)),
+        "checkpointing": int(hp.get("checkpointing", -1)),
+        "dtype": hp.get("dtype", "bf16"),
+        "weights_dtype": hp.get("weights_dtype", ""),
     }
 
 
@@ -94,6 +99,127 @@ def digests(root):
     }
 
 
+def training_command(hp, meta, args, data_path, ckpt, kev_root):
+    cfg = {
+        "lr": hp["lr"] or min(args["lr"], MAX_DELTA_LR),
+        **{key: args[key] for key in ("batch", "accum", "checkpointing")},
+        **{key: hp[key] for key in ("epochs", "seed", "replay", "p_none_pair")},
+        "dtype": hp["dtype"],
+        "weights_dtype": hp["weights_dtype"],
+    }
+    if hp["batch"] > 0:
+        cfg["batch"] = hp["batch"]
+    if hp["accum"] > 0:
+        cfg["accum"] = hp["accum"]
+    if hp["checkpointing"] >= 0:
+        cfg["checkpointing"] = hp["checkpointing"]
+    cmd = [
+        sys.executable,
+        "-m",
+        "kev.train",
+        "--data",
+        data_path,
+        "--init_from",
+        hp["init_from"],
+        "--out",
+        ckpt,
+        "--device",
+        "cuda",
+        "--dtype",
+        cfg["dtype"],
+        "--base",
+        meta.base,
+        "--lora",
+        meta.lora,
+        "--head_dim",
+        meta.head_dim,
+        "--lora_targets",
+        args["lora_targets"],
+        "--option_isolation",
+        int(meta.option_isolation),
+        "--special_embeddings",
+        int(meta.special_embeddings),
+        "--weights_dtype",
+        cfg["weights_dtype"] or meta.weights_dtype,
+        "--epochs",
+        cfg["epochs"],
+        "--lr",
+        cfg["lr"],
+        "--batch",
+        cfg["batch"],
+        "--accum",
+        cfg["accum"],
+        "--checkpointing",
+        cfg["checkpointing"],
+        "--seed",
+        cfg["seed"],
+        "--p_none_pair",
+        cfg["p_none_pair"],
+    ]
+    if meta.base_revision:
+        cmd += ["--base_revision", meta.base_revision]
+    if cfg["replay"]:
+        cmd += ["--suite", kev_root / "evals/v7/decision-v7", "--replay", cfg["replay"]]
+    if hp["max_state"]:
+        cmd += ["--max_state", hp["max_state"]]
+    elif hp["model"] == "kev-0.8b":
+        cmd += ["--max_state", 4096]
+    return cfg, [str(value) for value in cmd]
+
+
+def _dry_run_training_argv(hyperparameters, metadata, checkpoint_args):
+    """Print the exact kev.train command for a captured SageMaker hyperparameter map."""
+    cfg, argv = training_command(
+        hyperparameters,
+        metadata,
+        checkpoint_args,
+        "/opt/ml/model/data/train.jsonl",
+        "/opt/ml/model/checkpoint",
+        Path("/opt/kev"),
+    )
+    print(json.dumps({"config": cfg, "argv": argv}, indent=2))
+
+
+def best_effort_calibration(hp, checkpoint, data_path, output_dir):
+    """Fit the calibration temperature at the same state limit as training, without losing weights."""
+    from kev.benchmark import evaluate_records
+    from kev.checkpoint import LoadOptions, read_meta, write_meta
+    from kev.data import load_records
+    from kev.metrics import fit_temperature
+    from kev.model import training_context
+    from kev.predictors import LocalPredictor
+
+    try:
+        records = load_records(data_path)
+        context = training_context(hp["max_state"] or 4096)
+        predictor = LocalPredictor(
+            str(checkpoint), "cuda", LoadOptions(temperature=1.0), context=context
+        )
+        _, rows = evaluate_records(records, predictor, output_dir)
+        temperature = fit_temperature(rows, aggregation="micro")
+        meta = read_meta(str(checkpoint))
+        meta.temperature = temperature
+        meta.extra["temperature_fit"] = {
+            "rows": "calibration channel",
+            "n": len(records),
+            "method": "min NLL, micro, kev.metrics.fit_temperature",
+            "value": temperature,
+            "max_state": context["max_state"],
+        }
+        write_meta(str(checkpoint), meta)
+        return temperature, None
+    except Exception as error:
+        detail = f"{type(error).__name__}: {error}"
+        print(
+            "calibration failed; preserving trained weights without a fitted temperature: "
+            + detail
+            + "\n"
+            + traceback.format_exc(),
+            flush=True,
+        )
+        return None, detail
+
+
 def main():
     started = time.time()
     hp = load_hyperparameters()
@@ -118,64 +244,8 @@ def main():
         raise SystemExit(
             f"{hp['init_from']} records base revision {meta.base_revision}, expected {hp['base_revision']}"
         )
-    cfg = {
-        "lr": hp["lr"] or min(args["lr"], MAX_DELTA_LR),
-        **{k: args[k] for k in ("batch", "accum", "checkpointing")},
-        **{k: hp[k] for k in ("epochs", "seed", "replay", "p_none_pair")},
-    }
     ckpt = MODEL / "checkpoint"
-    cmd = [
-        sys.executable,
-        "-m",
-        "kev.train",
-        "--data",
-        data / "train.jsonl",
-        "--init_from",
-        hp["init_from"],
-        "--out",
-        ckpt,
-        "--device",
-        "cuda",
-        "--dtype",
-        "bf16",
-        "--base",
-        meta.base,
-        "--lora",
-        meta.lora,
-        "--head_dim",
-        meta.head_dim,
-        "--lora_targets",
-        args["lora_targets"],
-        "--option_isolation",
-        int(meta.option_isolation),
-        "--special_embeddings",
-        int(meta.special_embeddings),
-        "--weights_dtype",
-        meta.weights_dtype,
-        "--epochs",
-        cfg["epochs"],
-        "--lr",
-        cfg["lr"],
-        "--batch",
-        cfg["batch"],
-        "--accum",
-        cfg["accum"],
-        "--checkpointing",
-        cfg["checkpointing"],
-        "--seed",
-        cfg["seed"],
-        "--p_none_pair",
-        cfg["p_none_pair"],
-    ]
-    if meta.base_revision:
-        cmd += ["--base_revision", meta.base_revision]
-    if cfg["replay"]:
-        cmd += ["--suite", kev_root / "evals/v7/decision-v7", "--replay", cfg["replay"]]
-    if hp["max_state"]:
-        cmd += ["--max_state", hp["max_state"]]
-    elif hp["model"] == "kev-0.8b":
-        cmd += ["--max_state", 4096]
-    cmd = [str(c) for c in cmd]
+    cfg, cmd = training_command(hp, meta, args, data / "train.jsonl", ckpt, kev_root)
     print("training:", " ".join(cmd[2:]), flush=True)
     t0 = time.time()
     rc = tee(cmd, MODEL / "train.log", kev_root)
@@ -183,27 +253,9 @@ def main():
     if rc:
         raise SystemExit(f"kev.train failed ({rc}); see train.log")
 
-    temperature = None
-    if calibration_src:
-        from kev.benchmark import evaluate_records
-        from kev.checkpoint import LoadOptions, read_meta, write_meta
-        from kev.data import load_records
-        from kev.metrics import fit_temperature
-        from kev.predictors import LocalPredictor
-
-        records = load_records(data / "calibration.jsonl")
-        predictor = LocalPredictor(str(ckpt), "cuda", LoadOptions(temperature=1.0))
-        _, rows = evaluate_records(records, predictor, MODEL / "calibration-eval")
-        temperature = fit_temperature(rows, aggregation="micro")
-        m = read_meta(str(ckpt))
-        m.temperature = temperature
-        m.extra["temperature_fit"] = {
-            "rows": "calibration channel",
-            "n": len(records),
-            "method": "min NLL, micro, kev.metrics.fit_temperature",
-            "value": temperature,
-        }
-        write_meta(str(ckpt), m)
+    temperature, calibration_error = best_effort_calibration(
+        hp, MODEL / "checkpoint", data / "calibration.jsonl", MODEL / "calibration-eval"
+    )
 
     metrics_path = ckpt / "training_metrics.json"
     manifest = {
@@ -231,6 +283,7 @@ def main():
         "data": splits,
         "input_data_sha256": {k: v["input"]["sha256"] for k, v in splits.items()},
         "temperature_fit_on_calibration": temperature,
+        "calibration_error": calibration_error,
         "training_metrics": json.loads(metrics_path.read_text())
         if metrics_path.exists()
         else None,

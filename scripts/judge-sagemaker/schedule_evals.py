@@ -22,6 +22,8 @@ import json
 import os
 import subprocess
 import sys
+import tarfile
+import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -68,17 +70,12 @@ TRAIN_CANDIDATES = {
             "ml.g6e.8xlarge",
             "ml.g6e.16xlarge",
         )
-        for region in ("us-west-2", "us-east-1")
+        for region in ("us-east-1", "us-west-2")
     ),
     "kev-9b": tuple(
         (region, instance)
-        for instance in (
-            "ml.g6e.2xlarge",
-            "ml.g6e.4xlarge",
-            "ml.g6e.8xlarge",
-            "ml.g6e.16xlarge",
-        )
-        for region in ("us-west-2", "us-east-1")
+        for instance in ("ml.g6e.4xlarge", "ml.g6e.8xlarge", "ml.g6e.16xlarge")
+        for region in ("us-east-1", "us-west-2")
     ),
     "laya-typed-decisions": tuple(
         (region, instance)
@@ -148,6 +145,15 @@ def ledger() -> dict[str, Any]:
     return load_json(ROOT / "cost-ledger.json")
 
 
+def parse_s3(uri: str) -> tuple[str, str]:
+    if not uri.startswith("s3://"):
+        raise ValueError(f"not an S3 URI: {uri}")
+    bucket, separator, key = uri[5:].partition("/")
+    if not separator or not bucket or not key:
+        raise ValueError(f"S3 URI must name an object: {uri}")
+    return bucket, key
+
+
 def committed_usd(value: dict[str, Any]) -> float:
     total = 0.0
     for job in value["jobs"]:
@@ -162,18 +168,55 @@ def corpus_build_id(config: dict[str, Any]) -> str:
     return config["corpus_export"]["build_id"]
 
 
+def usable_trained_artifact(job: dict[str, Any]) -> bool:
+    """A target completes only with the fine-tuned artifact from its accepted recipe."""
+    hp = job.get("hyperparameters", {})
+    if job.get("model") == "laya-typed-decisions":
+        return (
+            job.get("status") == "Completed"
+            and str(hp.get("epochs")) == "4"
+            and str(hp.get("max_len")) == "4096"
+        )
+    recipe_ok = str(hp.get("max_state")) == "4096" and str(hp.get("epochs")) == "2"
+    if job.get("status") == "Completed":
+        return recipe_ok
+    marker = job.get("scheduler", {}).get("implementation_defect")
+    return (
+        recipe_ok
+        and job.get("status") == "Failed"
+        and marker
+        in {
+            "calibration_context_failure_artifact_ok",
+            "kev_container_post_training_ckpt_nameerror_artifact_ok",
+        }
+    )
+
+
+def has_usable_training(
+    value: dict[str, Any], build_id: str, model: str, seed: int
+) -> bool:
+    return any(
+        usable_trained_artifact(job)
+        for job in train_entries(value, build_id, model, seed)
+    )
+
+
 def corpus_train_job(job: dict[str, Any], build_id: str) -> bool:
     source = job.get("data", {}).get("train", {}).get("source", "")
     is_train = (
         job.get("model") in TRAIN_MODELS
         and f"/exports/{build_id}/train.jsonl" in source
     )
-    retry_noop_laya = (
-        job.get("model") == "laya-typed-decisions"
-        and job.get("scheduler", {}).get("implementation_defect")
-        == "trainer_not_called"
+    retry_implementation_defect = job.get("scheduler", {}).get("implementation_defect")
+    return bool(
+        is_train
+        and retry_implementation_defect
+        not in {
+            "trainer_not_called",
+            "kev_calibration_context_default",
+            "kev_max_state_default",
+        }
     )
-    return bool(is_train and not retry_noop_laya)
 
 
 def seed_of(job: dict[str, Any]) -> int | None:
@@ -341,31 +384,91 @@ def record_job_error(name: str, task: str, error: str) -> None:
     save_ledger(value)
 
 
-def retryable(entries: list[dict[str, Any]]) -> bool:
-    failures = [
-        job
-        for job in entries
-        if job.get("status") in FINAL and job.get("status") != "Completed"
-    ]
-    if not failures:
-        return True
-    return all(
-        (
-            job.get("model") == "laya-typed-decisions"
-            and job.get("scheduler", {}).get("implementation_defect")
-            == "trainer_not_called"
-        )
-        or is_capacity_error(
-            "\n".join(
-                (
-                    str(job.get("failure_reason") or ""),
-                    str(job.get("submission_error") or ""),
-                    json.dumps(job.get("scheduler", {}).get("submission_errors", [])),
-                )
-            )
-        )
-        for job in failures
+FIXED_CODE_MARKERS = {
+    "approved_epoch_alignment",
+    "approved_runtime_resize",
+    "calibration_context_failure_artifact_ok",
+    "kev_calibration_context_default",
+    "kev_container_dtype_keyerror",
+    "kev_container_laya_commit_keyerror",
+    "kev_container_post_training_ckpt_nameerror_artifact_ok",
+    "laya_eval_identity_commit",
+    "laya_eval_model_channel",
+    "trainer_not_called",
+}
+
+
+FIXED_CODE_SIGNATURES = (
+    "KeyError: 'dtype'",
+    "KeyError: 'laya_commit'",
+    "NameError: name 'ckpt' is not defined",
+)
+
+
+def attempt_budget_exempt(job: dict[str, Any]) -> bool:
+    """Only fixed code failures and capacity/quota refusals are free retries."""
+    if job.get("status") in {"Completed", "InProgress", "Submitting", "Stopping"}:
+        return False
+    scheduler = job.get("scheduler", {})
+    marker = scheduler.get("implementation_defect") or scheduler.get(
+        "retry_implementation_defect"
     )
+    if marker in FIXED_CODE_MARKERS:
+        return True
+    reason = str(job.get("failure_reason") or "")
+    if any(signature in reason for signature in FIXED_CODE_SIGNATURES):
+        return True
+    text = "\n".join(
+        (
+            reason,
+            str(job.get("submission_error") or ""),
+            json.dumps(scheduler.get("submission_errors", [])),
+            json.dumps(job.get("scheduler_errors", [])),
+        )
+    )
+    if is_capacity_error(text):
+        return True
+    return (
+        not job.get("arn")
+        and job.get("note") == "create_training_job raised"
+        and "ValidationException" in text
+        and "trainingJobName" in text
+    )
+
+
+def attempt_count(entries: list[dict[str, Any]]) -> int:
+    return sum(
+        (
+            job.get("status") == "Failed"
+            or job.get("secondary_status") == "MaxRuntimeExceeded"
+        )
+        and not attempt_budget_exempt(job)
+        for job in entries
+    )
+
+
+def retryable(entries: list[dict[str, Any]]) -> bool:
+    return attempt_count(entries) < MAX_ATTEMPTS
+
+
+def mark_laya_eval_retries() -> None:
+    value = ledger()
+    names = {"laya-english", "laya-multilingual", "laya-typed-decisions"}
+    updated = False
+    for job in value["jobs"]:
+        if (
+            job.get("kind") == "evaluation"
+            and job.get("arm") in names
+            and job.get("scheduler", {}).get("campaign")
+            == "corpus-corpus-20260929-s17-v2"
+            and job.get("status") == "Failed"
+        ):
+            job.setdefault("scheduler", {})["retry_implementation_defect"] = (
+                "laya_eval_identity_commit"
+            )
+            updated = True
+    if updated:
+        save_ledger(value)
 
 
 def live_entries(value: dict[str, Any]) -> list[dict[str, Any]]:
@@ -414,14 +517,18 @@ def max_cost(
 
 def training_runtime(config: dict[str, Any], model: str) -> int:
     if model == "kev-0.8b":
-        return 3600
+        return 14400
+    if model == "kev-4b":
+        return 20040
+    if model == "kev-9b":
+        return 18300
     if model == "laya-typed-decisions":
         return 14400
     return int(config["models"][model]["max_runtime_s"])
 
 
 def training_args(model: str, seed: int, instance: str, runtime: int) -> list[str]:
-    return [
+    args = [
         "submit",
         "--model",
         model,
@@ -434,6 +541,12 @@ def training_args(model: str, seed: int, instance: str, runtime: int) -> list[st
         "--replay",
         "0",
     ]
+    if model == "kev-9b":
+        args += ["--max-state", "4096", "--batch", "1", "--accum", "8"]
+        args += ["--checkpointing", "1", "--dtype", "bf16", "--weights-dtype", "bf16"]
+    if model.startswith("kev-"):
+        args += ["--max-state", "4096"]
+    return args
 
 
 def evaluation_args(
@@ -465,7 +578,7 @@ def checkpoint_by_success(
     successes = [
         job
         for job in train_entries(value, build_id, model, seed)
-        if job.get("status") == "Completed"
+        if usable_trained_artifact(job)
     ]
     for job in sorted(
         successes, key=lambda item: item.get("submitted_at", ""), reverse=True
@@ -480,8 +593,38 @@ def checkpoint_by_success(
         except ClientError:
             continue
         uri = detail.get("ModelArtifacts", {}).get("S3ModelArtifacts")
-        if uri:
-            return job, uri
+        if not uri:
+            continue
+        if (
+            job.get("scheduler", {}).get("implementation_defect")
+            == "calibration_context_failure_artifact_ok"
+        ):
+            try:
+                bucket, key = parse_s3(uri)
+                with tempfile.NamedTemporaryFile(suffix=".tar.gz") as archive_file:
+                    boto3.Session(
+                        profile_name=resources()[region]["profile"], region_name=region
+                    ).client("s3").download_file(bucket, key, archive_file.name)
+                    with tarfile.open(archive_file.name, "r:gz") as archive:
+                        names = set(archive.getnames())
+                if not {
+                    "checkpoint/adapter_model.safetensors",
+                    "checkpoint/head.pt",
+                }.issubset(names):
+                    record_job_error(
+                        job["job_name"],
+                        "artifact-validation",
+                        "archive lacks trained adapter/head",
+                    )
+                    continue
+            except (ClientError, OSError, tarfile.TarError) as error:
+                record_job_error(
+                    job["job_name"],
+                    "artifact-validation",
+                    f"{type(error).__name__}: {error}",
+                )
+                continue
+        return job, uri
     return None
 
 
@@ -514,6 +657,56 @@ def describe(sm: dict[str, Any], name: str) -> tuple[str | None, dict[str, Any] 
     return None, None
 
 
+def mark_calibration_artifact(
+    entry: dict[str, Any], detail: dict[str, Any], region: str | None
+) -> None:
+    """Verify a failed calibration-only run's model artifact before marking it usable."""
+    reason = str(detail.get("FailureReason") or "")
+    if (
+        detail.get("TrainingJobStatus") != "Failed"
+        or "ContextOverflow" not in reason
+        or "calibration-eval" not in reason
+        or not region
+    ):
+        return
+    uri = detail.get("ModelArtifacts", {}).get("S3ModelArtifacts")
+    if not uri:
+        return
+    try:
+        bucket, key = parse_s3(uri)
+        with tempfile.NamedTemporaryFile(suffix=".tar.gz") as archive_file:
+            boto3.Session(
+                profile_name=resources()[region]["profile"], region_name=region
+            ).client("s3").download_file(bucket, key, archive_file.name)
+            with tarfile.open(archive_file.name, "r:gz") as archive:
+                names = set(archive.getnames())
+        if not {
+            "checkpoint/adapter_model.safetensors",
+            "checkpoint/head.pt",
+        }.issubset(names):
+            return
+    except (ClientError, OSError, tarfile.TarError, ValueError) as error:
+        record_job_error(
+            entry["job_name"],
+            "artifact-validation",
+            f"{type(error).__name__}: {error}",
+        )
+        return
+    value = ledger()
+    current = next(
+        (job for job in value["jobs"] if job.get("job_name") == entry["job_name"]),
+        None,
+    )
+    if current is not None:
+        current["status"] = "Failed"
+        current["failure_reason"] = reason
+        current["secondary_status"] = detail.get("SecondaryStatus")
+        current.setdefault("scheduler", {})["implementation_defect"] = (
+            "calibration_context_failure_artifact_ok"
+        )
+        save_ledger(value)
+
+
 def campaign_jobs(
     value: dict[str, Any], build_id: str, campaign_start: str | None
 ) -> list[dict[str, Any]]:
@@ -543,6 +736,8 @@ def fetch_terminal_jobs(
         if status == "InvalidName":
             record_job_error(name, "describe", detail["FailureReason"])
             continue
+        if status == "Failed":
+            mark_calibration_artifact(entry, detail, region)
         needs_fetch = (
             entry.get("status") not in FINAL
             or entry.get("billable_seconds") is None
@@ -637,18 +832,17 @@ def schedule_training(
     for model in TRAIN_MODELS:
         for seed in SEEDS:
             entries = train_entries(value, build_id, model, seed)
-            if any(job.get("status") == "Completed" for job in entries):
+            if any(usable_trained_artifact(job) for job in entries):
                 continue
             if (
                 any(job.get("status") not in FINAL for job in entries)
-                or len(entries) >= MAX_ATTEMPTS
-                or not retryable(entries)
+                or attempt_count(entries) >= MAX_ATTEMPTS
             ):
                 continue
             for region, instance in priced_candidates(TRAIN_CANDIDATES[model], configs):
                 if (region, instance) in occupied:
                     continue
-                while len(entries) < MAX_ATTEMPTS:
+                while attempt_count(entries) < MAX_ATTEMPTS:
                     ok, capacity, created, error = submit_one(
                         args=training_args(
                             model,
@@ -691,7 +885,7 @@ def schedule_evaluations(
         entries = current_eval_entries(value, build_id, campaign_start, arm)
         if (
             any(job.get("status") not in FINAL for job in entries)
-            or len(entries) >= MAX_ATTEMPTS
+            or attempt_count(entries) >= MAX_ATTEMPTS
             or (entries and not retryable(entries))
         ):
             continue
@@ -704,7 +898,7 @@ def schedule_evaluations(
         for region, instance in priced_candidates(candidates_for_eval(arm), configs):
             if (region, instance) in occupied:
                 continue
-            while len(entries) < MAX_ATTEMPTS:
+            while attempt_count(entries) < MAX_ATTEMPTS:
                 ok, capacity, created, error = submit_one(
                     args=evaluation_args(arm, instance, region, checkpoint),
                     region=region,
@@ -736,11 +930,13 @@ def status_by_target(
     for model in TRAIN_MODELS:
         for seed in SEEDS:
             entries = train_entries(value, build_id, model, seed)
-            if any(job.get("status") == "Completed" for job in entries):
+            if any(usable_trained_artifact(job) for job in entries):
                 trained += 1
             elif any(job.get("status") not in FINAL for job in entries):
                 waiting += 1
-            elif len(entries) >= MAX_ATTEMPTS or (entries and not retryable(entries)):
+            elif attempt_count(entries) >= MAX_ATTEMPTS or (
+                entries and not retryable(entries)
+            ):
                 exhausted += 1
     for arm in EVAL_ARMS:
         if result_is_current(arm, expected):
@@ -749,7 +945,9 @@ def status_by_target(
             entries = current_eval_entries(value, build_id, campaign_start, arm)
             if any(job.get("status") not in FINAL for job in entries):
                 waiting += 1
-            elif len(entries) >= MAX_ATTEMPTS or (entries and not retryable(entries)):
+            elif attempt_count(entries) >= MAX_ATTEMPTS or (
+                entries and not retryable(entries)
+            ):
                 exhausted += 1
     return {
         "training_ready": trained,
@@ -773,9 +971,9 @@ def plan(
         for seed in SEEDS:
             entries = train_entries(value, build_id, model, seed)
             if (
-                any(job.get("status") == "Completed" for job in entries)
+                any(usable_trained_artifact(job) for job in entries)
                 or any(job.get("status") not in FINAL for job in entries)
-                or len(entries) >= MAX_ATTEMPTS
+                or attempt_count(entries) >= MAX_ATTEMPTS
                 or not retryable(entries)
             ):
                 continue
@@ -806,7 +1004,7 @@ def plan(
         entries = current_eval_entries(value, build_id, campaign_start, arm)
         if (
             any(job.get("status") not in FINAL for job in entries)
-            or len(entries) >= MAX_ATTEMPTS
+            or attempt_count(entries) >= MAX_ATTEMPTS
             or (entries and not retryable(entries))
         ):
             continue
@@ -896,6 +1094,7 @@ def one_pass(
 ) -> bool:
     value = ledger()
     start = campaign_started(value, build_id)
+    value = ledger()
     value, observed = fetch_terminal_jobs(sm, value, build_id, start, expected)
     occupied = occupied_from_ledger(value)
     for entry in campaign_jobs(value, build_id, start):
@@ -924,7 +1123,7 @@ def one_pass(
         f"training ready {counts['training_ready']}/12 eval done {counts['evaluation_done']}/18 waiting={counts['waiting']} exhausted={counts['exhausted']}",
         flush=True,
     )
-    return counts["waiting"] == 0 or counts["exhausted"] > 0
+    return counts["exhausted"] > 0 and counts["waiting"] == 0
 
 
 def acquire_lock() -> Path:
@@ -950,6 +1149,32 @@ def run_live(once: bool, interval: int) -> int:
     build_id = corpus_build_id(configs["us-east-1"])
     expected = expected_dataset()
     value = ledger()
+    mark_laya_eval_retries()
+    current = ledger()
+    for job in current["jobs"]:
+        if (
+            str(job.get("model", "")).startswith("kev-")
+            and job.get("data", {})
+            .get("train", {})
+            .get("source", "")
+            .find(f"/exports/{build_id}/train.jsonl")
+            >= 0
+            and job.get("scheduler", {}).get("implementation_defect") is None
+            and job.get("hyperparameters", {}).get("max_state") in (0, "0", None, "")
+        ):
+            job.setdefault("scheduler", {})["implementation_defect"] = (
+                "kev_max_state_default"
+            )
+            if job.get("status") not in FINAL:
+                region = parse_region(job)
+                if region:
+                    result = cli_command(["stop", job["job_name"]], region)
+                    print(
+                        f"stop invalid-state job {job['job_name']} rc={result.returncode}: {error_text(result)}",
+                        flush=True,
+                    )
+    save_ledger(current)
+    value = current
     tasks, projected = plan(
         value, configs, build_id, campaign_started(value, build_id), expected
     )

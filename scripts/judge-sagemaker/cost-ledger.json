@@ -1269,8 +1269,122 @@
           "task": "describe",
           "at": "2026-09-29T04:24:57.920931+00:00",
           "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:40:05.746643+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:47:46.931841+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:49:38.691515+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:51:45.514634+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:57:30.409791+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:21:45.368685+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:24:01.553446+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:25:10.003171+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:26:50.629536+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:27:27.391934+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:28:53.811960+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:30:12.573072+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:31:31.231678+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:50:55.040565+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:53:44.355441+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T05:55:25.015734+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T09:02:58.844273+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T09:06:06.099216+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T09:11:21.578273+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T09:17:23.261731+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T10:45:00.767692+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T10:51:25.345431+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
         }
-      ]
+      ],
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CreateTrainingJob rejected before execution"
+      }
     },
     {
       "job_name": "slopvac-judge-kev-08b-s17-20260929032000",
@@ -1358,9 +1472,9 @@
       "max_runtime_s": 21600,
       "max_cost_usd": 12.0,
       "submitted_at": "2026-09-29T03:36:46.090396+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Failed",
+      "billable_seconds": 9261,
+      "cost_usd": 5.145,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -1396,7 +1510,14 @@
           "version_id": null
         }
       },
-      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-08b-s17-20260929033635"
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-08b-s17-20260929033635",
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: ContextOverflow: state exceeds 384 tokens: 3013\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 282, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 196, in main\n    _, rows = evaluate_records(records, predictor, MODEL / \"calibration-eval\")\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/benchmark.py\", line 137, in evaluate_records\n    pred = next(preds)()\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 120, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/predictors.py\", line 60, in __call__\n    enc = self.model.encode(self.tok, materialize(record), max_state=self.context[\"max_state\"], max_branch=self.context[\"max_branch\"], strict=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "Kev corpus context overflow in calibration step; checkpoint retrained with max_state=4096",
+        "implementation_defect": "calibration_context_failure_artifact_ok"
+      }
     },
     {
       "job_name": "slopvac-judge-kev-08b-s17-20260929033756",
@@ -1494,7 +1615,11 @@
       },
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-08b-s17-20260929033817",
       "secondary_status": "Stopped",
-      "failure_reason": null
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
     },
     {
       "job_name": "slopvac-judge-kev-08b-s17-20260929034151",
@@ -1544,7 +1669,11 @@
       },
       "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-08b-s17-20260929034151",
       "secondary_status": "Stopped",
-      "failure_reason": null
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
     },
     {
       "job_name": "slopvac-judge-kev-08b-s18-20260929040934",
@@ -1554,9 +1683,9 @@
       "max_runtime_s": 3600,
       "max_cost_usd": 2.0,
       "submitted_at": "2026-09-29T04:09:43.496263+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Stopped",
+      "billable_seconds": 3775,
+      "cost_usd": 2.0972,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -1600,7 +1729,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6.xlarge"
-      }
+      },
+      "secondary_status": "MaxRuntimeExceeded",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-08b-s19-20260929040944",
@@ -1610,9 +1741,9 @@
       "max_runtime_s": 3600,
       "max_cost_usd": 2.5,
       "submitted_at": "2026-09-29T04:09:52.905472+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Stopped",
+      "billable_seconds": 3764,
+      "cost_usd": 2.6139,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -1656,7 +1787,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6.2xlarge"
-      }
+      },
+      "secondary_status": "MaxRuntimeExceeded",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s17-20260929040953",
@@ -1666,9 +1799,9 @@
       "max_runtime_s": 7200,
       "max_cost_usd": 8.0,
       "submitted_at": "2026-09-29T04:10:04.558641+00:00",
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -1711,8 +1844,11 @@
         "target": "kev-4b-ft-s17",
         "attempt": 1,
         "region": "us-west-2",
-        "instance_type": "ml.g6e.2xlarge"
-      }
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "kev_max_state_default"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s18-20260929041005",
@@ -1722,9 +1858,9 @@
       "max_runtime_s": 7200,
       "max_cost_usd": 8.0,
       "submitted_at": "2026-09-29T04:10:14.194073+00:00",
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -1767,8 +1903,11 @@
         "target": "kev-4b-ft-s18",
         "attempt": 1,
         "region": "us-east-1",
-        "instance_type": "ml.g6e.2xlarge"
-      }
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "kev_max_state_default"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s19-20260929041015",
@@ -1778,9 +1917,9 @@
       "max_runtime_s": 7200,
       "max_cost_usd": 10.0,
       "submitted_at": "2026-09-29T04:10:25.485753+00:00",
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -1823,8 +1962,11 @@
         "target": "kev-4b-ft-s19",
         "attempt": 1,
         "region": "us-west-2",
-        "instance_type": "ml.g6e.4xlarge"
-      }
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "kev_max_state_default"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s17-20260929041026",
@@ -1834,9 +1976,9 @@
       "max_runtime_s": 18000,
       "max_cost_usd": 25.0,
       "submitted_at": "2026-09-29T04:10:35.182538+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Failed",
+      "billable_seconds": 1526,
+      "cost_usd": 2.1194,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -1879,8 +2021,11 @@
         "target": "kev-9b-ft-s17",
         "attempt": 1,
         "region": "us-east-1",
-        "instance_type": "ml.g6e.4xlarge"
-      }
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "kev_calibration_context_default"
+      },
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: ContextOverflow: state exceeds 384 tokens: 3013\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 282, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 196, in main\n    _, rows = evaluate_records(records, predictor, MODEL / \"calibration-eval\")\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/benchmark.py\", line 137, in evaluate_records\n    pred = next(preds)()\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 120, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/predictors.py\", line 60, in __call__\n    enc = self.model.encode(self.tok, materialize(record), max_state=self.context[\"max_state\"], max_branch=self.context[\"max_branch\"], strict=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20260929041036",
@@ -1890,9 +2035,9 @@
       "max_runtime_s": 18000,
       "max_cost_usd": 35.0,
       "submitted_at": "2026-09-29T04:10:46.876943+00:00",
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -1935,8 +2080,11 @@
         "target": "kev-9b-ft-s18",
         "attempt": 1,
         "region": "us-west-2",
-        "instance_type": "ml.g6e.8xlarge"
-      }
+        "instance_type": "ml.g6e.8xlarge",
+        "implementation_defect": "kev_max_state_default"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s19-20260929041048",
@@ -1946,9 +2094,9 @@
       "max_runtime_s": 18000,
       "max_cost_usd": 35.0,
       "submitted_at": "2026-09-29T04:10:56.751543+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Failed",
+      "billable_seconds": 1505,
+      "cost_usd": 2.9264,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -1991,8 +2139,11 @@
         "target": "kev-9b-ft-s19",
         "attempt": 1,
         "region": "us-east-1",
-        "instance_type": "ml.g6e.8xlarge"
-      }
+        "instance_type": "ml.g6e.8xlarge",
+        "implementation_defect": "kev_calibration_context_default"
+      },
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: ContextOverflow: state exceeds 384 tokens: 3013\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 282, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 196, in main\n    _, rows = evaluate_records(records, predictor, MODEL / \"calibration-eval\")\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/benchmark.py\", line 137, in evaluate_records\n    pred = next(preds)()\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 120, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/predictors.py\", line 60, in __call__\n    enc = self.model.encode(self.tok, materialize(record), max_state=self.context[\"max_state\"], max_branch=self.context[\"max_branch\"], strict=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
     },
     {
       "job_name": "slopvac-judge-laya-typed-decisions-s17-20260929041057",
@@ -2209,9 +2360,9 @@
       "hourly_usd": 3.0,
       "max_runtime_s": 3600,
       "max_cost_usd": 3.0,
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 495,
+      "cost_usd": 0.4125,
       "submitted_at": "2026-09-29T04:12:36.402962+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-260929041224096974",
       "scheduler": {
@@ -2221,7 +2372,8 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g5.4xlarge"
-      }
+      },
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-9b-260929041237553906",
@@ -2231,9 +2383,9 @@
       "hourly_usd": 11.0,
       "max_runtime_s": 3600,
       "max_cost_usd": 11.0,
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "submitted_at": "2026-09-29T04:12:49.757987+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-260929041237553906",
       "scheduler": {
@@ -2242,8 +2394,11 @@
         "target": "kev-9b",
         "attempt": 1,
         "region": "us-west-2",
-        "instance_type": "ml.g6e.16xlarge"
-      }
+        "instance_type": "ml.g6e.16xlarge",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      },
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-laya-english-260929041250920509",
@@ -2269,7 +2424,10 @@
             "at": "2026-09-29T04:13:02.005044+00:00",
             "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 496, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/evaluate.py\", line 350, in cmd_evaluate\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: No S3 objects found under S3 URL \"s3://slopvac-judge-536697262379-84848969f6/training/sv-eval-laya-english-260929041250920509/input/model/\" given in input data source. Please ensure that the bucket exists in the selected region (us-east-1), that objects exist under that S3 prefix, and that the role \"arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training\" has \"s3:ListBucket\" permissions on bucket \"slopvac-judge-536697262379-84848969f6\"."
           }
-        ]
+        ],
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
       }
     },
     {
@@ -2296,7 +2454,10 @@
             "at": "2026-09-29T04:13:12.715932+00:00",
             "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 496, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/evaluate.py\", line 350, in cmd_evaluate\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: No S3 objects found under S3 URL \"s3://slopvac-judge-536697262379-84848969f6/training/sv-eval-laya-multilingual-260929041302121474/input/model/\" given in input data source. Please ensure that the bucket exists in the selected region (us-east-1), that objects exist under that S3 prefix, and that the role \"arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training\" has \"s3:ListBucket\" permissions on bucket \"slopvac-judge-536697262379-84848969f6\"."
           }
-        ]
+        ],
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
       }
     },
     {
@@ -2323,7 +2484,2934 @@
             "at": "2026-09-29T04:13:23.738442+00:00",
             "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 496, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/evaluate.py\", line 350, in cmd_evaluate\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: No S3 objects found under S3 URL \"s3://slopvac-judge-536697262379-84848969f6/training/sv-eval-laya-typed-decisions-260929041312809706/input/model/\" given in input data source. Please ensure that the bucket exists in the selected region (us-east-1), that objects exist under that S3 prefix, and that the role \"arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training\" has \"s3:ListBucket\" permissions on bucket \"slopvac-judge-536697262379-84848969f6\"."
           }
-        ]
+        ],
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s17-20260929044020",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T04:40:37.692692+00:00",
+      "status": "Stopped",
+      "billable_seconds": 14641,
+      "cost_usd": 8.1339,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-laya-typed-decisions-s17-20260929044020",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge"
+      },
+      "secondary_status": "MaxRuntimeExceeded",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s18-20260929044038",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T04:41:23.958925+00:00",
+      "status": "Stopped",
+      "billable_seconds": 14628,
+      "cost_usd": 8.1267,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-laya-typed-decisions-s18-20260929044038",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge"
+      },
+      "secondary_status": "MaxRuntimeExceeded",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s19-20260929044125",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 12.0,
+      "submitted_at": "2026-09-29T04:41:42.379111+00:00",
+      "status": "Stopped",
+      "billable_seconds": 14641,
+      "cost_usd": 12.2008,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-laya-typed-decisions-s19-20260929044125",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "secondary_status": "MaxRuntimeExceeded",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-english-260929044802854218",
+      "kind": "evaluation",
+      "arm": "laya-english",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Failed",
+      "billable_seconds": 340,
+      "cost_usd": 0.3778,
+      "submitted_at": "2026-09-29T04:48:12.806163+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-english-260929044802854218",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-english",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "failure_reason": "AlgorithmError: KeyError: 'laya_commit'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 373, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    or arm[\"upstream_commit\"] != hp[f\"{arm['family']}_commit\"]\n                                 ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'laya_commit'\n, exit code: 1",
+      "secondary_status": "Failed"
+    },
+    {
+      "job_name": "sv-eval-laya-multilingual-260929044813873749",
+      "kind": "evaluation",
+      "arm": "laya-multilingual",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Failed",
+      "billable_seconds": 355,
+      "cost_usd": 0.3944,
+      "submitted_at": "2026-09-29T04:48:26.115707+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-multilingual-260929044813873749",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-multilingual",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.8xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "failure_reason": "AlgorithmError: KeyError: 'laya_commit'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 373, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    or arm[\"upstream_commit\"] != hp[f\"{arm['family']}_commit\"]\n                                 ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'laya_commit'\n, exit code: 1",
+      "secondary_status": "Failed"
+    },
+    {
+      "job_name": "sv-eval-laya-typed-decisions-260929044827339422",
+      "kind": "evaluation",
+      "arm": "laya-typed-decisions",
+      "instance_type": "ml.g5.12xlarge",
+      "hourly_usd": 9.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 9.0,
+      "status": "Failed",
+      "billable_seconds": 396,
+      "cost_usd": 0.99,
+      "submitted_at": "2026-09-29T04:48:37.230008+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-typed-decisions-260929044827339422",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-typed-decisions",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.12xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "secondary_status": "Pending",
+      "failure_reason": "AlgorithmError: KeyError: 'laya_commit'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 373, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    or arm[\"upstream_commit\"] != hp[f\"{arm['family']}_commit\"]\n                                 ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'laya_commit'\n, exit code: 1"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929045753",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18000,
+      "max_cost_usd": 25.0,
+      "submitted_at": "2026-09-29T04:58:02.509779+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929045753",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "approved_runtime_resize",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_runtime_resize"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260929045803",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18000,
+      "max_cost_usd": 35.0,
+      "submitted_at": "2026-09-29T04:58:11.885748+00:00",
+      "status": "Failed",
+      "billable_seconds": 390,
+      "cost_usd": 0.7583,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s19-20260929045803",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "implementation_defect": "approved_runtime_retry",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_runtime_retry"
+      },
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: SystemExit: kev.train failed (1); see train.log\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 282, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 184, in main\n    raise SystemExit(f\"kev.train failed ({rc}); see train.log\")\nSystemExit: kev.train failed (1); see train.log\n, exit code: 1"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s17-20260929051510",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T05:15:22.816202+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "2000",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "kev_max_state_default"
+      },
+      "scheduler_errors": [
+        {
+          "task": "training",
+          "error": "CreateTrainingJob failed quota for ml.g6e.2xlarge; needs retry with corrected --max-state 4096."
+        }
+      ]
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20260929052214",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T05:22:24.296101+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20260929052214",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "approved_epoch_alignment",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_epoch_alignment"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20260929052225",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T05:22:33.896088+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20260929052225",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "approved_epoch_alignment",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_epoch_alignment"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260929052234",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18000,
+      "max_cost_usd": 25.0,
+      "submitted_at": "2026-09-29T05:22:45.883624+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s18-20260929052234",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "approved_runtime_resize",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_runtime_resize"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-multilingual-260929052247092583",
+      "kind": "evaluation",
+      "arm": "laya-multilingual",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "Failed",
+      "billable_seconds": 365,
+      "cost_usd": 0.3042,
+      "submitted_at": "2026-09-29T05:22:59.908409+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-multilingual-260929052247092583",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-multilingual",
+        "attempt": 3,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "failure_reason": "AlgorithmError: KeyError: 'laya_commit'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 373, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    or arm[\"upstream_commit\"] != hp[f\"{arm['family']}_commit\"]\n                                 ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'laya_commit'\n, exit code: 1"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s17-20260929052527",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 14.0,
+      "submitted_at": "2026-09-29T05:25:37.870199+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s17-20260929052527",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.8xlarge",
+        "implementation_defect": "approved_epoch_alignment",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_epoch_alignment"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-english-260929052539071881",
+      "kind": "evaluation",
+      "arm": "laya-english",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Failed",
+      "billable_seconds": 350,
+      "cost_usd": 0.3889,
+      "submitted_at": "2026-09-29T05:25:49.140119+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-english-260929052539071881",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-english",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "failure_reason": "AlgorithmError: KeyError: 'laya_commit'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 373, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    or arm[\"upstream_commit\"] != hp[f\"{arm['family']}_commit\"]\n                                 ~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: 'laya_commit'\n, exit code: 1"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s17-20260929055127",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 22.27,
+      "submitted_at": "2026-09-29T05:51:35.589099+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s17-20260929055127",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-4b-ft-s17",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20260929055136",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 22.27,
+      "submitted_at": "2026-09-29T05:51:46.781039+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20260929055136",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-4b-ft-s18",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20260929055147",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 27.83,
+      "submitted_at": "2026-09-29T05:51:56.198123+00:00",
+      "status": "Stopped",
+      "billable_seconds": 1922,
+      "cost_usd": 2.6694,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20260929055147",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "approved_epoch_alignment",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "approved_epoch_alignment"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929055157",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T05:52:07.733515+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929055157",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260929055208",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T05:52:17.852262+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s18-20260929055208",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260929055218",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T05:52:29.075409+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s19-20260929055218",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.8xlarge",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-multilingual-260929055230473606",
+      "kind": "evaluation",
+      "arm": "laya-multilingual",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "Failed",
+      "billable_seconds": 355,
+      "cost_usd": 0.2958,
+      "submitted_at": "2026-09-29T05:52:42.668997+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-multilingual-260929055230473606",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-multilingual",
+        "attempt": 4,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "failure_reason": "AlgorithmError: SystemExit: hyperparameters do not match arms.py for laya-multilingual\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 371, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    raise SystemExit(f\"hyperparameters do not match arms.py for {name}\")\nSystemExit: hyperparameters do not match arms.py for laya-multilingual\n, exit code: 1"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929055909",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T05:59:19.681759+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929055909",
+      "secondary_status": "Stopped",
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929060509",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T06:05:18.474795+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929060618",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T06:06:27.656759+00:00",
+      "status": "Failed",
+      "billable_seconds": 260,
+      "cost_usd": 0.5056,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929060618",
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: KeyError: 'seed'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 293, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 104, in main\n    hp = load_hyperparameters()\n         ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 57, in load_hyperparameters\n    \"seed\": int(hp[\"seed\"]),\n                ~~^^^^^^^^\nKeyError: 'seed'\n, exit code: 1"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929061448",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T06:14:56.719675+00:00",
+      "status": "Failed",
+      "billable_seconds": 265,
+      "cost_usd": 0.5153,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929061448",
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: KeyError: 'dtype'\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 293, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 151, in main\n    cfg[\"dtype\"],\n    ~~~^^^^^^^^^\nKeyError: 'dtype'\n, exit code: 1",
+      "scheduler": {
+        "retry_implementation_defect": "kev_container_dtype_keyerror",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "pre-existing Kev entry cfg omitted dtype key, fixed in container entry.py"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929062230",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T06:22:39.336379+00:00",
+      "status": "Stopped",
+      "billable_seconds": 87,
+      "cost_usd": 0.1692,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "1",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929062230",
+      "secondary_status": "Stopped",
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s17-20260929062810",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 22.27,
+      "submitted_at": "2026-09-29T06:28:32.985092+00:00",
+      "status": "Failed",
+      "billable_seconds": 7431,
+      "cost_usd": 8.2567,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s17-20260929062810",
+      "failure_reason": "AlgorithmError: ContextOverflow: state exceeds 384 tokens: 3013\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 295, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 209, in main\n    _, rows = evaluate_records(records, predictor, MODEL / \"calibration-eval\")\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/benchmark.py\", line 137, in evaluate_records\n    pred = next(preds)()\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 120, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/predictors.py\", line 60, in __call__\n    enc = self.model.encode(self.tok, materialize(record), max_state=self.context[\"max_state\"], max_branch=self.context[\"max_branch\"], strict=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "secondary_status": "Failed",
+      "scheduler": {
+        "implementation_defect": "calibration_context_failure_artifact_ok",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "calibration_context_failure_artifact_ok"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20260929062841",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 22.27,
+      "submitted_at": "2026-09-29T06:29:05.492073+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20260929062915",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 27.83,
+      "submitted_at": "2026-09-29T06:29:39.196184+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20260929062915"
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20260929062949",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 20040,
+      "max_cost_usd": 38.97,
+      "submitted_at": "2026-09-29T06:30:11.167682+00:00",
+      "status": "Failed",
+      "billable_seconds": 7372,
+      "cost_usd": 14.3344,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20260929062949",
+      "secondary_status": "Failed",
+      "scheduler": {
+        "implementation_defect": "calibration_context_failure_artifact_ok",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "calibration_context_failure_artifact_ok"
+      },
+      "failure_reason": "AlgorithmError: ContextOverflow: state exceeds 384 tokens: 3013\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 295, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 209, in main\n    _, rows = evaluate_records(records, predictor, MODEL / \"calibration-eval\")\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/benchmark.py\", line 137, in evaluate_records\n    pred = next(preds)()\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 120, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/predictors.py\", line 60, in __call__\n    enc = self.model.encode(self.tok, materialize(record), max_state=self.context[\"max_state\"], max_branch=self.context[\"max_branch\"], strict=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929064038",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T06:40:47.053365+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CloudTrail quota rejection"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929064323",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T06:43:31.971509+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CloudTrail quota rejection"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929064354",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T06:44:04.638983+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CloudTrail quota rejection"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929064613",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 55.92,
+      "submitted_at": "2026-09-29T06:46:21.670986+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929064613",
+      "secondary_status": "Stopped",
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929065509",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 20.33,
+      "submitted_at": "2026-09-29T06:55:19.996415+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929065509",
+      "secondary_status": "Stopped",
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929072636",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 20.33,
+      "submitted_at": "2026-09-29T07:26:45.553712+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CloudTrail quota rejection"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929072815",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 15.25,
+      "submitted_at": "2026-09-29T07:28:24.682574+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929072815",
+      "secondary_status": "Stopped",
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929075928",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T07:59:39.281658+00:00",
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929075928",
+      "secondary_status": "Stopped",
+      "failure_reason": null,
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "cancelled or superseded before completing this campaign recipe"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260929081017",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T08:10:26.024958+00:00",
+      "status": "Failed",
+      "billable_seconds": 8016,
+      "cost_usd": 11.1333,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20260929081017",
+      "secondary_status": "Failed",
+      "failure_reason": "AlgorithmError: NameError: name 'ckpt' is not defined\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 313, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 226, in main\n    predictor = LocalPredictor(str(ckpt), \"cuda\", LoadOptions(temperature=1.0))\n                                   ^^^^\nNameError: name 'ckpt' is not defined\n, exit code: 1",
+      "scheduler": {
+        "implementation_defect": "kev_container_post_training_ckpt_nameerror_artifact_ok",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "trained artifact adapter/head verified; only post-training metrics packaging failed"
+      }
+    },
+    {
+      "job_name": "sv-eval-laya-english-260929090423570480",
+      "kind": "evaluation",
+      "arm": "laya-english",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 2.0,
+      "status": "Failed",
+      "billable_seconds": 365,
+      "cost_usd": 0.2028,
+      "submitted_at": "2026-09-29T09:04:33.664265+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-english-260929090423570480",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-english",
+        "attempt": 4,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "retry_implementation_defect": "laya_eval_identity_commit",
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "laya_eval_identity_commit"
+      },
+      "failure_reason": "AlgorithmError: SystemExit: hyperparameters do not match arms.py for laya-english\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 371, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    raise SystemExit(f\"hyperparameters do not match arms.py for {name}\")\nSystemExit: hyperparameters do not match arms.py for laya-english\n, exit code: 1"
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-260929090443924704",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "Failed",
+      "billable_seconds": 300,
+      "cost_usd": 0.25,
+      "submitted_at": "2026-09-29T09:04:55.708252+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-260929090443924704",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": "AlgorithmError: SystemExit: model.tar.gz has no finetune.json\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 371, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 307, in main\n    checkpoint = stage_checkpoint(arm, hp[\"checkpoint_source\"], dataset)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 208, in stage_checkpoint\n    raise SystemExit(f\"{archives[0].name} has no finetune.json\")\nSystemExit: model.tar.gz has no finetune.json\n, exit code: 1"
+    },
+    {
+      "job_name": "sv-eval-laya-typed-decisions-260929090720127077",
+      "kind": "evaluation",
+      "arm": "laya-typed-decisions",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "Failed",
+      "billable_seconds": 369,
+      "cost_usd": 0.3075,
+      "submitted_at": "2026-09-29T09:07:32.348812+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-typed-decisions-260929090720127077",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-typed-decisions",
+        "attempt": 3,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": "AlgorithmError: SystemExit: hyperparameters do not match arms.py for laya-typed-decisions\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 371, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/eval_entry.py\", line 302, in main\n    raise SystemExit(f\"hyperparameters do not match arms.py for {name}\")\nSystemExit: hyperparameters do not match arms.py for laya-typed-decisions\n, exit code: 1"
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-260929094659059066",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "Completed",
+      "billable_seconds": 501,
+      "cost_usd": 0.4175,
+      "submitted_at": "2026-09-29T09:47:11.692171+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-260929094659059066",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260929100053",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T10:01:03.545677+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CloudTrail quota rejection"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260929100127",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 25.42,
+      "submitted_at": "2026-09-29T10:01:36.148189+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "CloudTrail quota rejection"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260929100154",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T10:02:02.871679+00:00",
+      "status": "Stopped",
+      "billable_seconds": 1672,
+      "cost_usd": 3.2511,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s18-20260929100154",
+      "secondary_status": "Stopped",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "stopped before retraining due known NameError ckpt post-training path"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260929100219",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 18300,
+      "max_cost_usd": 35.58,
+      "submitted_at": "2026-09-29T10:02:30.020566+00:00",
+      "status": "Stopped",
+      "billable_seconds": 1082,
+      "cost_usd": 2.1039,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s19-20260929100219",
+      "secondary_status": "Stopped",
+      "scheduler": {
+        "attempt_budget_exempt": true,
+        "attempt_budget_exempt_reason": "stopped before retraining due known NameError ckpt post-training path"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-08b-s18-20260929104701",
+      "model": "kev-0.8b",
+      "instance_type": "ml.g6.xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T10:47:10.263593+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-0.8b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-0.8b",
+        "revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-08b-s18-20260929104701",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-0.8b-ft-s18",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6.xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-08b-s19-20260929104711",
+      "model": "kev-0.8b",
+      "instance_type": "ml.g6.xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T10:47:21.914273+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-0.8b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-0.8b",
+        "revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-08b-s19-20260929104711",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "kev-0.8b-ft-s19",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6.xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s17-20260929104723",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T10:47:40.686352+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-laya-typed-decisions-s17-20260929104723",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s17",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s18-20260929104741",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 8.0,
+      "submitted_at": "2026-09-29T10:48:24.456397+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-laya-typed-decisions-s18-20260929104741",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s18",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s19-20260929104825",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 14400,
+      "max_cost_usd": 12.0,
+      "submitted_at": "2026-09-29T10:48:42.400202+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-laya-typed-decisions-s19-20260929104825",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s19",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-9b-260929104843431604",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-29T10:48:55.662719+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-260929104843431604",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-laya-english-260929104856918893",
+      "kind": "evaluation",
+      "arm": "laya-english",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-29T10:49:09.263260+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-english-260929104856918893",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-english",
+        "attempt": 5,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-laya-multilingual-260929104910480790",
+      "kind": "evaluation",
+      "arm": "laya-multilingual",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-29T10:49:20.549604+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-multilingual-260929104910480790",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-multilingual",
+        "attempt": 5,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s17-260929104931586180",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s17",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-29T10:49:45.770545+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-08b-ft-s17-260929104931586180",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.8xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s17-260929104958309380",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s17",
+      "instance_type": "ml.g5.12xlarge",
+      "hourly_usd": 9.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 9.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-29T10:50:10.292756+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s17-260929104958309380",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.12xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-260929105011594033",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-29T10:50:23.817285+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s17-260929105011594033",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge"
       }
     }
   ]

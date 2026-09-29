@@ -93,7 +93,11 @@ def _source(arm: str, checkpoint: str | None) -> tuple[str, str | None]:
                 f"no SageMaker training job recorded for {arm}; pass --checkpoint <S3 model.tar.gz>"
             )
         entry = sorted(candidates, key=lambda j: j["submitted_at"])[-1]
-        if entry.get("status") != "Completed":
+        artifact_ok = (
+            entry.get("scheduler", {}).get("implementation_defect")
+            == "calibration_context_failure_artifact_ok"
+        )
+        if entry.get("status") != "Completed" and not artifact_ok:
             raise SystemExit(
                 f"source training job {entry['job_name']} is {entry.get('status')}; wait for it to complete"
             )
@@ -107,6 +111,35 @@ def _source(arm: str, checkpoint: str | None) -> tuple[str, str | None]:
             raise SystemExit(
                 f"source training job {entry['job_name']} has no model artifact"
             )
+        if entry.get("status") != "Completed" and artifact_ok:
+            output_bucket, output_key = cli.parse_s3(uri)
+            fd, local_archive = tempfile.mkstemp(
+                prefix=f"judge-{arm}-", suffix=".tar.gz"
+            )
+            os.close(fd)
+            try:
+                source_res = cli.load_json(
+                    cli.ROOT
+                    / (
+                        "resources-us-west-2.json"
+                        if uri.startswith("s3://slopvac-judge-536697262379-usw2/")
+                        else "resources.json"
+                    )
+                )
+                cli.session(source_res, None).client("s3").download_file(
+                    output_bucket, output_key, local_archive
+                )
+                with tarfile.open(local_archive, "r:gz") as archive:
+                    names = set(archive.getnames())
+                if not {
+                    "checkpoint/adapter_model.safetensors",
+                    "checkpoint/head.pt",
+                }.issubset(names):
+                    raise SystemExit(
+                        f"source training job {entry['job_name']} artifact lacks a trained checkpoint"
+                    )
+            finally:
+                Path(local_archive).unlink(missing_ok=True)
         return "training-job", uri
     default = PILOT / ".cache" / "runs" / f"ft-{base}-s{seed}"
     if not default.is_dir():

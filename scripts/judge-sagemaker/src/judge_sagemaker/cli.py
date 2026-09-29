@@ -121,6 +121,11 @@ def job_request(res, a, job, model, instance_type, price, has_calibration):
         "p_none_pair": repr(a.p_none_pair),
         "max_state": str(a.max_state),
         "max_len": str(a.max_state or 4096),
+        "batch": str(a.batch),
+        "accum": str(a.accum),
+        "checkpointing": str(a.checkpointing),
+        "dtype": a.dtype,
+        "weights_dtype": a.weights_dtype,
     }
     return {
         "TrainingJobName": job,
@@ -206,14 +211,14 @@ def cmd_submit(a):
     res = load_json(RESOURCES)
     model = res["models"][a.model]
     if a.epochs is None:
-        a.epochs = 2 if a.model == "kev-0.8b" else 4 if model["family"] == "laya" else 1
+        a.epochs = 2 if model["family"] == "kev" else 4
     if a.replay is None:
         a.replay = (
             0
             if a.model == "kev-0.8b" or model["family"] == "laya"
             else RECIPE["replay"]
         )
-    if a.model == "kev-0.8b" and a.max_state == 0:
+    if a.model.startswith("kev-") and a.max_state == 0:
         a.max_state = 4096
     instance_type = a.instance_type or model["instance_type"]
     price = res["instance_prices_usd_per_hour"].get(instance_type)
@@ -452,6 +457,34 @@ def main(argv=None):
         type=int,
         default=0,
         help="kev.train --max_state (0 = Kev's default)",
+    )
+    p.add_argument(
+        "--batch",
+        type=int,
+        default=0,
+        help="records per forward pass (0 = checkpoint recipe)",
+    )
+    p.add_argument(
+        "--accum",
+        type=int,
+        default=0,
+        help="gradient accumulation (0 = checkpoint recipe)",
+    )
+    p.add_argument(
+        "--checkpointing",
+        type=int,
+        choices=(0, 1),
+        default=-1,
+        help="gradient checkpointing (-1 = checkpoint recipe)",
+    )
+    p.add_argument(
+        "--dtype", choices=("fp32", "bf16"), default="bf16", help="autocast dtype"
+    )
+    p.add_argument(
+        "--weights-dtype",
+        choices=("fp32", "bf16"),
+        default="fp32",
+        help="frozen backbone storage dtype",
     )
     p.add_argument(
         "--max-runtime", type=int, help="seconds; default from resources.json per model"

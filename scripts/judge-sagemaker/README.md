@@ -41,9 +41,11 @@ uv run judge-sagemaker convert --data train.jsonl --out train.kev.jsonl
 `submit` options: `--calibration <s3 uri | local jsonl>` fits the temperature on that split in
 the job and writes it into `head.pt`. `--lr` (0 uses the checkpoint's rate capped at 5e-5),
 `--replay` (default 2000 records of Kev's decision-v7 training partition; 0 disables it),
-`--p-none-pair` (default 0.25), `--max-state` (passes `kev.train --max_state`), `--max-runtime`
-seconds (default from `resources.json`), `--instance-type`, `--profile`. `--dry-run` prints
-the plan and the `CreateTrainingJob` request and makes no AWS calls.
+`--p-none-pair` (default 0.25), `--max-state` (passes `kev.train --max_state`), and
+`--batch`, `--accum`, `--checkpointing`, `--dtype`, and `--weights-dtype` override the saved
+checkpoint training recipe; omit these to keep its batch and precision settings. `--max-runtime`
+seconds (default from `resources.json`), `--instance-type`, and `--profile` select the job
+resources. `--dry-run` prints the plan and `CreateTrainingJob` request without AWS calls.
 ### GPU evaluation
 
 `evaluate` runs the judge-pilot harness on a SageMaker training GPU. It starts one Jev-compatible server inside the job, probes the local API, runs single-client sequential calibration/test requests, then stops the server. It skips concurrent throughput.
