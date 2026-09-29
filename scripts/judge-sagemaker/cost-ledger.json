@@ -1259,6 +1259,16 @@
           "task": "describe",
           "at": "2026-09-29T04:14:39.250653+00:00",
           "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:20:45.558369+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-29T04:24:57.920931+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
         }
       ]
     },
@@ -1992,9 +2002,9 @@
       "max_runtime_s": 14400,
       "max_cost_usd": 8.0,
       "submitted_at": "2026-09-29T04:11:16.191677+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 350,
+      "cost_usd": 0.1944,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -2040,8 +2050,18 @@
         "target": "laya-typed-decisions-ft-s17",
         "attempt": 1,
         "region": "us-east-1",
-        "instance_type": "ml.g5.2xlarge"
-      }
+        "instance_type": "ml.g5.2xlarge",
+        "implementation_defect": "trainer_not_called"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null,
+      "scheduler_errors": [
+        {
+          "task": "fetch",
+          "at": "2026-09-29T04:20:56.643506+00:00",
+          "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 496, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 369, in cmd_fetch\n    s.client(\"s3\").download_file(bucket, key, str(tar_path))\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/boto3/s3/inject.py\", line 223, in download_file\n    return transfer.download_file(\n           ~~~~~~~~~~~~~~~~~~~~~~^\n        bucket=Bucket,\n        ^^^^^^^^^^^^^^\n    ...<3 lines>...\n        callback=Callback,\n        ^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/boto3/s3/transfer.py\", line 484, in download_file\n    future.result()\n    ~~~~~~~~~~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/futures.py\", line 111, in result\n    return self._coordinator.result()\n           ~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/futures.py\", line 287, in result\n    raise self._exception\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/tasks.py\", line 272, in _main\n    self._submit(transfer_future=transfer_future, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/download.py\", line 379, in _submit\n    response = client.head_object(\n        Bucket=transfer_future.meta.call_args.bucket,\n        Key=transfer_future.meta.call_args.key,\n        **transfer_future.meta.call_args.extra_args,\n    )\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (404) when calling the HeadObject operation: Not Found"
+        }
+      ]
     },
     {
       "job_name": "slopvac-judge-laya-typed-decisions-s18-20260929041117",
@@ -2051,9 +2071,9 @@
       "max_runtime_s": 14400,
       "max_cost_usd": 8.0,
       "submitted_at": "2026-09-29T04:12:04.363348+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 353,
+      "cost_usd": 0.1961,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -2099,8 +2119,18 @@
         "target": "laya-typed-decisions-ft-s18",
         "attempt": 1,
         "region": "us-west-2",
-        "instance_type": "ml.g5.2xlarge"
-      }
+        "instance_type": "ml.g5.2xlarge",
+        "implementation_defect": "trainer_not_called"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null,
+      "scheduler_errors": [
+        {
+          "task": "fetch",
+          "at": "2026-09-29T04:25:09.890244+00:00",
+          "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 496, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 369, in cmd_fetch\n    s.client(\"s3\").download_file(bucket, key, str(tar_path))\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/boto3/s3/inject.py\", line 223, in download_file\n    return transfer.download_file(\n           ~~~~~~~~~~~~~~~~~~~~~~^\n        bucket=Bucket,\n        ^^^^^^^^^^^^^^\n    ...<3 lines>...\n        callback=Callback,\n        ^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/boto3/s3/transfer.py\", line 484, in download_file\n    future.result()\n    ~~~~~~~~~~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/futures.py\", line 111, in result\n    return self._coordinator.result()\n           ~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/futures.py\", line 287, in result\n    raise self._exception\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/tasks.py\", line 272, in _main\n    self._submit(transfer_future=transfer_future, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/download.py\", line 379, in _submit\n    response = client.head_object(\n        Bucket=transfer_future.meta.call_args.bucket,\n        Key=transfer_future.meta.call_args.key,\n        **transfer_future.meta.call_args.extra_args,\n    )\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (404) when calling the HeadObject operation: Not Found"
+        }
+      ]
     },
     {
       "job_name": "slopvac-judge-laya-typed-decisions-s19-20260929041205",
@@ -2110,9 +2140,9 @@
       "max_runtime_s": 14400,
       "max_cost_usd": 12.0,
       "submitted_at": "2026-09-29T04:12:23.054404+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 351,
+      "cost_usd": 0.2925,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -2158,8 +2188,18 @@
         "target": "laya-typed-decisions-ft-s19",
         "attempt": 1,
         "region": "us-east-1",
-        "instance_type": "ml.g5.4xlarge"
-      }
+        "instance_type": "ml.g5.4xlarge",
+        "implementation_defect": "trainer_not_called"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null,
+      "scheduler_errors": [
+        {
+          "task": "fetch",
+          "at": "2026-09-29T04:21:00.473735+00:00",
+          "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 496, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 369, in cmd_fetch\n    s.client(\"s3\").download_file(bucket, key, str(tar_path))\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/boto3/s3/inject.py\", line 223, in download_file\n    return transfer.download_file(\n           ~~~~~~~~~~~~~~~~~~~~~~^\n        bucket=Bucket,\n        ^^^^^^^^^^^^^^\n    ...<3 lines>...\n        callback=Callback,\n        ^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/boto3/s3/transfer.py\", line 484, in download_file\n    future.result()\n    ~~~~~~~~~~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/futures.py\", line 111, in result\n    return self._coordinator.result()\n           ~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/futures.py\", line 287, in result\n    raise self._exception\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/tasks.py\", line 272, in _main\n    self._submit(transfer_future=transfer_future, **kwargs)\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/s3transfer/download.py\", line 379, in _submit\n    response = client.head_object(\n        Bucket=transfer_future.meta.call_args.bucket,\n        Key=transfer_future.meta.call_args.key,\n        **transfer_future.meta.call_args.extra_args,\n    )\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (404) when calling the HeadObject operation: Not Found"
+        }
+      ]
     },
     {
       "job_name": "sv-eval-kev-4b-260929041224096974",

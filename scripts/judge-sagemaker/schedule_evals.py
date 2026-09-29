@@ -164,10 +164,16 @@ def corpus_build_id(config: dict[str, Any]) -> str:
 
 def corpus_train_job(job: dict[str, Any], build_id: str) -> bool:
     source = job.get("data", {}).get("train", {}).get("source", "")
-    return (
+    is_train = (
         job.get("model") in TRAIN_MODELS
         and f"/exports/{build_id}/train.jsonl" in source
     )
+    retry_noop_laya = (
+        job.get("model") == "laya-typed-decisions"
+        and job.get("scheduler", {}).get("implementation_defect")
+        == "trainer_not_called"
+    )
+    return bool(is_train and not retry_noop_laya)
 
 
 def seed_of(job: dict[str, Any]) -> int | None:
@@ -344,7 +350,12 @@ def retryable(entries: list[dict[str, Any]]) -> bool:
     if not failures:
         return True
     return all(
-        is_capacity_error(
+        (
+            job.get("model") == "laya-typed-decisions"
+            and job.get("scheduler", {}).get("implementation_defect")
+            == "trainer_not_called"
+        )
+        or is_capacity_error(
             "\n".join(
                 (
                     str(job.get("failure_reason") or ""),
@@ -958,8 +969,21 @@ def run_live(once: bool, interval: int) -> int:
     lock = acquire_lock()
     try:
         while True:
-            if one_pass(sm, configs, build_id, expected, f"corpus-{build_id}") or once:
+            finished = one_pass(sm, configs, build_id, expected, f"corpus-{build_id}")
+            if once:
                 return 0
+            if finished:
+                return (
+                    0
+                    if status_by_target(
+                        ledger(),
+                        build_id,
+                        campaign_started(ledger(), build_id),
+                        expected,
+                    )["exhausted"]
+                    == 0
+                    else 2
+                )
             time.sleep(interval)
     except KeyboardInterrupt:
         return 130
