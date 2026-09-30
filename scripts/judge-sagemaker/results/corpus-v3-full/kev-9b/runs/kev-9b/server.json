@@ -1,0 +1,17 @@
+{
+  "arm": "kev-9b",
+  "started_at": 1790734487.7518375,
+  "argv": [
+    "/usr/local/bin/python",
+    "-m",
+    "kev.serve",
+    "--run",
+    "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+    "--port",
+    "8100"
+  ],
+  "port": 8100,
+  "pid": 289,
+  "ready_at": 1790734578.9867406,
+  "load_time_s": 91.23
+}

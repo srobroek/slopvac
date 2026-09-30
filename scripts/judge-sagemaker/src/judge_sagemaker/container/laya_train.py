@@ -26,6 +26,9 @@ ML = Path("/opt/ml")
 CHANNELS = ML / "input/data"
 MODEL = ML / "model"
 CHOICE_ORDER = ["real-defect", "no-defect", "insufficient-context"]
+# Forward-pass batch for the post-training temperature fit; 16 OOMed a 24 GB
+# A10G at 4,096 tokens.
+CALIBRATION_BATCH = 2
 HP = {
     "epochs": 4,
     "micro_batch": 8,
@@ -270,36 +273,8 @@ def main():
         print(json.dumps(record), flush=True)
     wall = time.time() - started
     model.eval()
-    by_type = {kind: [] for kind in range(3)}
-    truncation = {"train": 0, "calibration": 0}
-    for split_name, raw, built in (
-        ("train", train_raw, train),
-        ("calibration", calib_raw, calib),
-    ):
-        truncation[split_name] = sum(len(b["ids"]) >= HP["max_len"] for b in built)
-    with torch.no_grad():
-        for start in range(0, len(calib), 16):
-            chunk = calib[start : start + 16]
-            batch = {
-                key: value.to(device)
-                for key, value in collate(chunk, tok.pad_token_id).items()
-            }
-            logits, _ = model(
-                batch["input_ids"],
-                batch["attention_mask"],
-                batch["marker_pos"],
-                batch["marker_mask"],
-                batch["qtype"],
-            )
-            logits = logits.float().cpu().numpy()
-            for index, item in enumerate(chunk):
-                by_type[item["qtype"]].append(
-                    (logits[index, : len(item["markers"])].tolist(), item["target"])
-                )
-    temperatures = [1.0, 1.0, 1.0]
-    for kind, rows in by_type.items():
-        if rows:
-            temperatures[kind] = fit_one_temp(rows)
+    # Save the trained weights before calibration, so a calibration failure
+    # cannot lose four epochs of training (round 1 lost three runs this way).
     out = MODEL / "model"
     out.mkdir(parents=True, exist_ok=True)
     save_file(
@@ -311,6 +286,49 @@ def main():
     )
     model.encoder.config.save_pretrained(str(out / "encoder"))
     tok.save_pretrained(str(out / "tokenizer"))
+    # The optimizer states and gradients are no longer needed; free them before
+    # the calibration forward passes, which OOMed a 24 GB A10G at batch 16.
+    del optimizer, scheduler
+    model.zero_grad(set_to_none=True)
+    torch.cuda.empty_cache()
+    by_type = {kind: [] for kind in range(3)}
+    truncation = {"train": 0, "calibration": 0}
+    for split_name, raw, built in (
+        ("train", train_raw, train),
+        ("calibration", calib_raw, calib),
+    ):
+        truncation[split_name] = sum(len(b["ids"]) >= HP["max_len"] for b in built)
+    calibration_error = None
+    try:
+        with torch.no_grad():
+            for start in range(0, len(calib), CALIBRATION_BATCH):
+                chunk = calib[start : start + CALIBRATION_BATCH]
+                batch = {
+                    key: value.to(device)
+                    for key, value in collate(chunk, tok.pad_token_id).items()
+                }
+                logits, _ = model(
+                    batch["input_ids"],
+                    batch["attention_mask"],
+                    batch["marker_pos"],
+                    batch["marker_mask"],
+                    batch["qtype"],
+                )
+                logits = logits.float().cpu().numpy()
+                for index, item in enumerate(chunk):
+                    by_type[item["qtype"]].append(
+                        (logits[index, : len(item["markers"])].tolist(), item["target"])
+                    )
+    except torch.OutOfMemoryError as exc:
+        # The evaluation job fits its own temperature on calibration; the
+        # checkpoint stays usable with T=1.
+        calibration_error = f"{type(exc).__name__}: {exc}"
+        print(json.dumps({"calibration_error": calibration_error}), flush=True)
+        by_type = {kind: [] for kind in range(3)}
+    temperatures = [1.0, 1.0, 1.0]
+    for kind, rows in by_type.items():
+        if rows:
+            temperatures[kind] = fit_one_temp(rows)
     cfg["fine_tuned"] = True
     cfg["model_name"] = "laya-typed-decisions-slopvac-corpus"
     cfg["temperature"] = temperatures
@@ -339,6 +357,7 @@ def main():
         "optimizer_steps": step,
         "epochs_log": log,
         "truncated_records": truncation,
+        "calibration_error": calibration_error,
         "hardware": {
             "gpu": torch.cuda.get_device_name(0),
             "gpu_memory_bytes": torch.cuda.get_device_properties(0).total_memory,

@@ -463,6 +463,8 @@ FIXED_CODE_MARKERS = {
     "approved_epoch_alignment",
     "approved_runtime_resize",
     "calibration_context_failure_artifact_ok",
+    "capacity_rotation",
+    "laya_calibration_oom",
     "kev_calibration_context_default",
     "kev_container_dtype_keyerror",
     "kev_container_laya_commit_keyerror",
@@ -819,6 +821,47 @@ def campaign_jobs(
     return list(unique.values())
 
 
+# A job that has waited this long for instance capacity is stopped and
+# resubmitted on another region or instance type (round 1: several g6e jobs
+# waited 5-21 h for capacity that never came).
+CAPACITY_WAIT_S = 3 * 3600
+
+
+def rotate_if_starved(
+    entry: dict[str, Any], detail: dict[str, Any], region: str | None
+) -> bool:
+    if detail["TrainingJobStatus"] != "InProgress" or detail.get("TrainingStartTime"):
+        return False
+    message = " ".join(
+        t.get("StatusMessage", "") for t in detail.get("SecondaryStatusTransitions", [])
+    ).lower()
+    created = detail["CreationTime"]
+    waited = (datetime.now(created.tzinfo) - created).total_seconds()
+    if "capacity" not in message or waited < CAPACITY_WAIT_S or not region:
+        return False
+    result = cli_command(["stop", entry["job_name"]], region)
+    value = ledger()
+    current = next(j for j in value["jobs"] if j.get("job_name") == entry["job_name"])
+    current.setdefault("scheduler", {})["implementation_defect"] = "capacity_rotation"
+    save_ledger(value)
+    print(
+        f"stop capacity-starved {entry['job_name']} ({region} {entry.get('instance_type')}, waited {waited / 3600:.1f} h) rc={result.returncode}",
+        flush=True,
+    )
+    return True
+
+
+def starved_slots(entries: list[dict[str, Any]]) -> set[tuple[str, str]]:
+    """Region/instance pairs a target already waited out; try elsewhere first."""
+    return {
+        (region, str(job["instance_type"]))
+        for job in entries
+        if job.get("scheduler", {}).get("implementation_defect") == "capacity_rotation"
+        and (region := parse_region(job))
+        and job.get("instance_type")
+    }
+
+
 def fetch_terminal_jobs(
     sm: dict[str, Any],
     value: dict[str, Any],
@@ -835,6 +878,8 @@ def fetch_terminal_jobs(
             continue
         status = detail["TrainingJobStatus"]
         observed[name] = status
+        if rotate_if_starved(entry, detail, region):
+            continue
         if status == "InvalidName":
             record_job_error(name, "describe", detail["FailureReason"])
             continue
@@ -944,7 +989,9 @@ def schedule_training(
                 or attempt_count(entries) >= MAX_ATTEMPTS
             ):
                 continue
-            for region, instance in priced_candidates(TRAIN_CANDIDATES[model], configs):
+            starved = starved_slots(entries)
+            options = priced_candidates(TRAIN_CANDIDATES[model], configs)
+            for region, instance in sorted(options, key=lambda o: o in starved):
                 if (region, instance) in occupied:
                     continue
                 while attempt_count(entries) < MAX_ATTEMPTS:
@@ -1001,7 +1048,9 @@ def schedule_evaluations(
             if not trained:
                 continue
             _, checkpoint = trained
-        for region, instance in priced_candidates(candidates_for_eval(arm), configs):
+        starved = starved_slots(entries)
+        options = priced_candidates(candidates_for_eval(arm), configs)
+        for region, instance in sorted(options, key=lambda o: o in starved):
             if (region, instance) in occupied:
                 continue
             while attempt_count(entries) < MAX_ATTEMPTS:

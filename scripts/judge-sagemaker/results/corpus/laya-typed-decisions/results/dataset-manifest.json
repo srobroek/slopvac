@@ -1,0 +1,13 @@
+{
+  "builder": "corpus-export",
+  "files": {
+    "test": {
+      "sha256": "794e0af7205c2d0b5495964cb4efa0d905e4f54a2ea9f287ada99952ba4a3436",
+      "items": 484
+    },
+    "calibration": {
+      "sha256": "b78f4e52f4fdd09e4d76dab93e386337ee94a6b17a0d7c569dd9aa387503c452",
+      "items": 37
+    }
+  }
+}

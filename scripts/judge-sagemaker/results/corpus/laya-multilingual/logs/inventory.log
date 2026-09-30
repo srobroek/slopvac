@@ -1,0 +1,1 @@
+laya-multilingual {"disk_bytes": 678201614, "params_total": 321908998, "params_by_part": {"temperature": 3, "act_head": 198402, "encoder": 306939648, "head": 14175744, "scorer": 592897, "type_emb": 2304}}

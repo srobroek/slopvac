@@ -1,0 +1,86 @@
+laya-multilingual: ready after 8.7s
+laya-multilingual: compat probe done
+laya-multilingual: 0 requests
+laya-multilingual: 100 requests
+laya-multilingual: 200 requests
+laya-multilingual: 300 requests
+laya-multilingual: 400 requests
+laya-multilingual: 500 requests
+laya-multilingual: 600 requests
+laya-multilingual: 700 requests
+laya-multilingual: 800 requests
+laya-multilingual: 900 requests
+laya-multilingual: 1000 requests
+laya-multilingual: 1100 requests
+laya-multilingual: 1200 requests
+laya-multilingual: 1300 requests
+laya-multilingual: 1400 requests
+laya-multilingual: 1500 requests
+laya-multilingual: 1600 requests
+laya-multilingual: 1700 requests
+laya-multilingual: 1800 requests
+laya-multilingual: 1900 requests
+laya-multilingual: 2000 requests
+laya-multilingual: 2100 requests
+laya-multilingual: 2200 requests
+laya-multilingual: 2300 requests
+laya-multilingual: 2400 requests
+laya-multilingual: 2500 requests
+laya-multilingual: 2600 requests
+laya-multilingual: 2700 requests
+laya-multilingual: 2800 requests
+laya-multilingual: 2900 requests
+laya-multilingual: 3000 requests
+laya-multilingual: 3100 requests
+laya-multilingual: 3200 requests
+laya-multilingual: 3300 requests
+laya-multilingual: 3400 requests
+laya-multilingual: 3500 requests
+laya-multilingual: 3600 requests
+laya-multilingual: 3700 requests
+laya-multilingual: 3800 requests
+laya-multilingual: 3900 requests
+laya-multilingual: 4000 requests
+laya-multilingual: 4100 requests
+laya-multilingual: 4200 requests
+laya-multilingual: 4300 requests
+laya-multilingual: 4400 requests
+laya-multilingual: 4500 requests
+laya-multilingual: 4600 requests
+laya-multilingual: 4700 requests
+laya-multilingual: 4800 requests
+laya-multilingual: 4900 requests
+laya-multilingual: 5000 requests
+laya-multilingual: 5100 requests
+laya-multilingual: 5200 requests
+laya-multilingual: 5300 requests
+laya-multilingual: 5400 requests
+laya-multilingual: 5500 requests
+laya-multilingual: 5600 requests
+laya-multilingual: 5700 requests
+laya-multilingual: 5800 requests
+laya-multilingual: 5900 requests
+laya-multilingual: 6000 requests
+laya-multilingual: 6100 requests
+laya-multilingual: 6200 requests
+laya-multilingual: 6300 requests
+laya-multilingual: 6400 requests
+laya-multilingual: 6500 requests
+laya-multilingual: 6600 requests
+laya-multilingual: 6700 requests
+laya-multilingual: 6800 requests
+{
+ "load_time_s": 8.65,
+ "sequential": {
+  "requests": 6842,
+  "wall_s": 161.63
+ },
+ "throughput": null,
+ "memory": {
+  "peak_rss_bytes_sampled": 2236923904,
+  "peak_gpu_memory_bytes_sampled": 1981808640,
+  "phys_footprint_bytes": 2236923904,
+  "lifetime_max_phys_footprint_bytes": 2875060224,
+  "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+ }
+}
