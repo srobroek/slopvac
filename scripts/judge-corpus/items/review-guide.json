@@ -1,0 +1,930 @@
+{
+  "ai-residue.chat-leakage": {
+    "catches": "This flags leftover phrases from an AI chat session, such as references to 'my last update' or the AI describing itself, that accidentally got left in the text. These phrases don't belong in the final prose and signal that the surrounding paragraphs may also contain leftover chat artifacts that need review.",
+    "fine_when": ""
+  },
+  "ai-tells-agentic.formulaic-universal-heading": {
+    "catches": "This rule flags text that reads like a vague inspirational slogan (a bare subject noun followed directly by a predicate, ending without punctuation) rather than a real, useful title or a specific, scoped statement of fact. This is a problem because it sounds catchy but doesn't tell the reader anything concrete or actionable.",
+    "fine_when": "It is acceptable when the claim is scoped (for example, by adding a phrase that narrows the subject) or when it ends with punctuation as a full sentence, or when it is rewritten as a noun-phrase title instead."
+  },
+  "ai-tells-content-shape.adjective-per-noun-spray": {
+    "catches": "This rule flags writing where nearly every noun has an adjective attached, resulting in too many decorative modifiers. This is a problem because it buries the words that actually matter under excess description, making it harder for the reader to tell which details matter.",
+    "fine_when": "An adjective is fine to keep when it changes what the reader does, such as one that signals something is destructive or reversible."
+  },
+  "ai-tells-content-shape.durable-vocabulary-habits": {
+    "catches": "This flags vague verbs and phrases that avoid stating a direct action, such as saying something 'serves as,' 'is designed to,' 'features,' or 'offers' something instead of describing what it actually does. This is a problem for a reader because it adds indirect, roundabout wording where a plain, concrete verb or noun would communicate the same point more clearly.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.elegant-variation": {
+    "catches": "This flags a document that calls one and the same thing by two or more different names without ever stating that the names refer to the same thing. This is a problem because readers may think two different things are being discussed, when really it's just one thing described inconsistently.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.epigram-closer-remainder": {
+    "catches": "This rule flags a closing line that restates or performs a sense of conclusion without stating any fact the preceding paragraph or table didn't already state. That's a problem for a reader because the line adds no new information while sounding like it does.",
+    "fine_when": "It is acceptable when the closing line states a fact that the paragraph or table above did not already carry."
+  },
+  "ai-tells-content-shape.fabricated-citations-core": {
+    "catches": "This flags URLs that still have tracking parameters (like utm_source) attached to them. This is a problem because it leaves junk in the reference that should have been stripped before verifying and citing it.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.fabricated-citations-remainder": {
+    "catches": "This flags a reference in the document that you did not personally fetch and confirm to support the claim being made. This is a problem because the reference could be fabricated, unrelated, or otherwise not actually say what the text claims, misleading the reader.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.fake-specificity": {
+    "catches": "This rule flags vague quantity phrases like 'over 100+' or 'a wide range of' that sound specific but don't actually tell you how many or how much. This is a problem because it gives readers a false impression of precision without any real information behind it.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.one-point-dilution": {
+    "catches": "This flags a later passage that just repeats an earlier point in different words without adding anything new. That's a problem because it makes the writing longer without giving the reader any new fact, constraint, step, decision, timing detail, rationale, or specification.",
+    "fine_when": "It's acceptable if the later passage adds a distinct required fact or purpose, such as a current fact, constraint, reproduction step, decision, time-bounded change, required change-note, plan, specification, or historical purpose. It's also acceptable if the later passage is a bounded, scoped recommendation or condition given in the author's voice that names a concrete action, antecedent, comparison, timing, or rationale."
+  },
+  "ai-tells-content-shape.over-writing-remainder": {
+    "catches": "This flags a paragraph you could delete without the reader losing any current behavior, constraint, reproduction step, or explicit reason for a change or decision. It's a problem because the paragraph is likely leftover implementation narration, old operational detail, or unrelated reasoning tacked onto a finished section that doesn't help the reader do anything.",
+    "fine_when": "It's acceptable if removing the paragraph would cause the reader to lose a current behavior, constraint, reproduction step, or explicit change/decision purpose, or if the document's actual purpose is to serve as a decision record, plan, specification, change communication, or historical record."
+  },
+  "ai-tells-content-shape.padded-symmetry": {
+    "catches": "This flags a section that seems to exist only to match the length of other sections, or a FAQ/Tips/Troubleshooting section that answers a question no one would actually ask. It's a problem for readers because it adds padding that doesn't give them anything useful.",
+    "fine_when": "You should let a section be short if that's genuinely all it needs to say; a two-sentence section is fine on its own terms."
+  },
+  "ai-tells-content-shape.superficial-ing-analysis": {
+    "catches": "This flags a trailing clause that starts with a word like 'ensuring' and tacks on an analysis or conclusion instead of stating it as its own fact. This is a problem because the claim ends up unverified filler rather than something the reader can check or trust.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.textbook-connector-runs": {
+    "catches": "This flags when two sentences in a row both start with a textbook-style connector like moreover, furthermore, additionally, or consequently. This is a problem because it signals a mechanical, filler transition rather than showing the reader the actual relationship between the ideas.",
+    "fine_when": ""
+  },
+  "ai-tells-content-shape.unasked-for-rationale": {
+    "catches": "This flags a clause that only explains or justifies an implementation choice, or narrates how the author got there, without adding any constraint, invariant, gotcha, measured threshold, reproduction step, or explicit reason for a change or decision. Such a clause is a problem because the reader could remove it and lose nothing about the actual behavior or contract.",
+    "fine_when": "It is acceptable when the reasoning is part of a safety explanation, a decision, a plan, a specification, a change communication, or a historical record, since giving reasons is the actual purpose of those kinds of text."
+  },
+  "ai-tells-content-shape.vaporware-description": {
+    "catches": "This flags a present-tense claim in a current document that describes behavior as already working when it is actually planned, past, or not currently available in the code. This is a problem because it misleads the reader into believing something is usable right now when it isn't.",
+    "fine_when": "This does not apply to a change communication, release note, historical record, decision, future plan, or specification whose stated purpose is to describe behavior at another time or as an intention, rather than as current fact."
+  },
+  "ai-tells-figurative.colloquial-assessment": {
+    "catches": "This flags casual, informal phrases that announce a judgement (like calling something 'the move' or saying what 'really matters') without stating the judgement itself or the evidence behind it. This is a problem because the reader is told an assessment was made but not what was assessed or why, leaving the actual reasoning missing.",
+    "fine_when": ""
+  },
+  "ai-tells-figurative.figurative-casts": {
+    "catches": "You flag the phrase pattern of saying something figuratively 'casts' doubt without stating what the doubt actually is or what evidence supports it. This is a problem for the reader because they aren't told the specific observation or the reasoning that leads to the doubt.",
+    "fine_when": "This wording is acceptable when the text is about fishing, metalworking, or theatre-casting."
+  },
+  "ai-tells-figurative.figurative-draws": {
+    "catches": "This flags figurative uses of the word \"draws\" (like \"draws on\" or \"draws a distinction\") where the actual source or comparison being made isn't stated. This is a problem because the reader doesn't learn what is actually being referenced or compared, leaving the statement vague.",
+    "fine_when": "This is acceptable in art or cartography prose, where the rule should be disabled."
+  },
+  "ai-tells-figurative.figurative-falls": {
+    "catches": "This flags figurative uses of \"falls\" (like \"falls short\" or \"falls within\") that don't state the actual number, amount, or specific set involved. This is a problem for the reader because it leaves out concrete information they need, such as how much something missed by or which category something belongs to.",
+    "fine_when": "This does not apply to prose about actual gravity or accidents."
+  },
+  "ai-tells-figurative.figurative-lends": {
+    "catches": "This flags figurative uses of the word 'lends' (as in 'lends itself to'), which sound vague. The problem is that the reader isn't told what property is actually added or what capability is actually made possible.",
+    "fine_when": "This is acceptable when the prose is about library-lending or finance topics, where 'lends' is used in its literal sense."
+  },
+  "ai-tells-figurative.figurative-loud": {
+    "catches": "This rule flags figurative use of 'loud' or 'loudly' to describe behavior, such as saying something 'fails loudly.' This is a problem because it makes a claim about behavior without stating anything observable, like which channel it writes to or what exit code or level is involved.",
+    "fine_when": "This rule should be disabled for audio prose, where 'loud' describes actual sound rather than being used figuratively."
+  },
+  "ai-tells-figurative.figurative-rides": {
+    "catches": "You flag the figurative use of 'rides' (or similar phrasing) to describe a dependency, without naming what actually depends on what. This is a problem because it leaves the reader guessing at the real condition or mechanism behind the relationship.",
+    "fine_when": "This is acceptable when the text is transit or equestrian prose, where 'rides' is being used in its literal sense rather than figuratively."
+  },
+  "ai-tells-figurative.figurative-runs": {
+    "catches": "This rule flags figurative uses of \"runs\" (and similar motion wording) that describe an abstract situation instead of stating what actually happens. This is a problem for a reader because it substitutes vague motion imagery for a clear description of the actual behavior or assumption involved.",
+    "fine_when": "It's acceptable when the text is genuinely about athletics or plumbing, where the physical sense of \"running\" applies."
+  },
+  "ai-tells-figurative.figurative-sits": {
+    "catches": "This rule flags figurative uses of the word 'sits' (or similar) to describe where something is, what state it's in, or how important it is, instead of stating that directly. This is a problem for a reader because it obscures the actual fact being communicated, making them work out the literal meaning behind the figurative phrasing.",
+    "fine_when": "This is acceptable when the text is actually describing furniture or seating."
+  },
+  "ai-tells-figurative.figurative-strikes": {
+    "catches": "This flags figurative uses of the word 'strikes' (as in strikes a note/tone/chord) that describe something vaguely instead of stating what it actually does or what tradeoff it makes. This is a problem for the reader because it sounds evocative but leaves the actual effect or the two competing things being weighed unclear.",
+    "fine_when": "This is acceptable when the text is about labour actions (like a strike) or percussion (like striking an instrument). It also does not apply to the phrase 'strikes a balance.'"
+  },
+  "ai-tells-figurative.figurative-wins": {
+    "catches": "You flag the word 'win' (or similar) used in a figurative way to describe a benefit, without saying what the benefit actually is or how big it is. This is a problem because the reader can't tell what actually improved or by how much.",
+    "fine_when": "This is acceptable in sports or games writing, where the word is used literally rather than figuratively."
+  },
+  "ai-tells-figurative.resonate-overuse": {
+    "catches": "This flags figurative uses of the word 'resonate' where something supposedly connects with people but no specific person or group is named as agreeing, and no reason for the agreement is given. This is a problem because it makes an agreement claim without saying who actually agreed or what they agreed with.",
+    "fine_when": "This is acceptable when the word 'resonate' is used literally, such as in physics or audio contexts."
+  },
+  "ai-tells-formatting.bold-spray": {
+    "catches": "This flags text where too many words or phrases are bolded throughout the document, instead of only bolding a term the first time it is defined. Overusing bold like this makes it harder for the reader to tell which words are actually important.",
+    "fine_when": ""
+  },
+  "ai-tells-formatting.cross-reference-signposting": {
+    "catches": "This rule flags phrases that point readers to other parts of the document based on reading order, such as references to something mentioned earlier or later. This is a problem because a document with a table of contents is not necessarily read start to finish, so these signposts can be inaccurate or unhelpful.",
+    "fine_when": ""
+  },
+  "ai-tells-formatting.curly-quotes": {
+    "catches": "This flags curly (typographic) quote and apostrophe characters instead of straight ASCII ones. This matters because a curly quote or apostrophe pasted into a code fence can break the command it appears in.",
+    "fine_when": "This is acceptable in a project whose house style is to use curly quotes, in which case the rule should be disabled rather than overridden."
+  },
+  "ai-tells-formatting.em-dash-density": {
+    "catches": "This rule flags writing that uses too many dashes (either the em dash character or a double hyphen typed as a dash) relative to the amount of text, specifically more than 6 per 1000 words. A high rate of dashes suggests most of them are being used as a default punctuation crutch rather than to mark a genuine aside, and could instead be a comma, a colon, or a split into two sentences.",
+    "fine_when": "The rule is about density, not the mere presence of dashes, so using dashes is acceptable as long as they stay under the density threshold and are marking a real aside."
+  },
+  "ai-tells-formatting.emoji-list-markers": {
+    "catches": "This rule flags an emoji placed right after a list marker (like a dash or asterisk) at the start of a list item. The list marker itself already shows the structure, so the emoji is redundant and should be deleted.",
+    "fine_when": ""
+  },
+  "ai-tells-formatting.heading-hierarchy": {
+    "catches": "This flags when a heading jumps down more than one level from the heading before it (like going from a level-2 heading straight to a level-4 heading), and also flags a horizontal rule placed directly before a heading. Skipped heading levels break navigation for screen reader users and confuse tools that build tables of contents from headings.",
+    "fine_when": ""
+  },
+  "ai-tells-formatting.inline-header-list": {
+    "catches": "You flag a series of bullet points that each start with a bolded word or phrase followed by a colon, repeated several times in a row. This pattern can signal that the content would read better as regular prose or as a table with proper columns.",
+    "fine_when": ""
+  },
+  "ai-tells-formatting.italicised-copula": {
+    "catches": "This flags sentences where a small linking word (like 'is') is italicized for emphasis instead of letting the sentence structure show the contrast. It's a problem because the emphasis is artificial—it doesn't add real meaning and can be replaced by clearer wording.",
+    "fine_when": ""
+  },
+  "ai-tells-formatting.table-wrapping-one-sentence": {
+    "catches": "This flags a table that only contains a single sentence, with no additional rows whose cells vary along a shared dimension. This is a problem because the content is just plain prose forced into a table structure, when it could be written as a normal sentence.",
+    "fine_when": "It is acceptable when the table is a header-only reference stub with a single row."
+  },
+  "ai-tells-formatting.title-case-heading": {
+    "catches": "This flags headings written in title case, where most words start with a capital letter instead of only the first word and proper nouns. Title-case headings are a problem because the expected style is sentence case, with only the first word and proper nouns capitalized.",
+    "fine_when": "This is acceptable if house style specifies something other than sentence case for headings."
+  },
+  "ai-tells-register.anthropomorphised-justification-core": {
+    "catches": "This flags language that justifies a claim by describing a component as deserving something (like being 'load-bearing') instead of stating the actual measured property or evidence behind the claim. This is a problem for a reader because it doesn't tell them what would actually happen or what data supports the statement, leaving the justification vague and unverifiable.",
+    "fine_when": ""
+  },
+  "ai-tells-register.anthropomorphised-justification-remainder": {
+    "catches": "This flags sentences that claim a component's value by saying it earns, deserves, or justifies itself, rather than by pointing to a specific, checkable property. This is a problem because the reader can't verify the claim; they're just being told to trust that the component is worthwhile.",
+    "fine_when": ""
+  },
+  "ai-tells-register.corporate-analytic-filler-core": {
+    "catches": "This rule flags phrases that wrap a simple statement in extra analytical-sounding language instead of just stating the point directly. This is a problem because the wrapper adds words without adding meaning, making the writing longer and less direct than it needs to be.",
+    "fine_when": ""
+  },
+  "ai-tells-register.false-agency-remainder": {
+    "catches": "This flags sentences where an abstract idea or concept is given human-like intent, choice, merit, or the ability to cause things on its own, instead of naming the actual person responsible. This is a problem because it hides who is actually doing the work or making the decision, leaving the reader unsure who is really responsible.",
+    "fine_when": "It's acceptable when the subject is a technical actor performing a checkable, specified operation, when the sentence is a MUST/MUST NOT/DEFAULT normative line, when it's an imperative instruction telling someone what to do, or when it's quoted text."
+  },
+  "ai-tells-register.faux-candor-core": {
+    "catches": "You flag phrases that frame a statement as if the writer is being especially honest or candid, when the phrase itself adds no real information. This is a problem because it performs openness instead of just stating the claim directly, hedging what should be a plain assertion.",
+    "fine_when": ""
+  },
+  "ai-tells-register.faux-candor-remainder": {
+    "catches": "This flags admissions that sound humble but don't actually name a mistake, a measured failure, or a specific cost to the author. The problem is that it reads as candor while giving the reader no real information or accountability.",
+    "fine_when": "It is acceptable when the admission names a specific mistake, a measured failure, or a refused feature that actually costs the author something."
+  },
+  "ai-tells-register.figurative-verb-verdict-core": {
+    "catches": "This flags a figurative or idiomatic verdict used in place of a plain statement of judgement. The problem is that it states a conclusion without giving the concrete observation that supports it, leaving the reader unable to verify the claim.",
+    "fine_when": ""
+  },
+  "ai-tells-register.figurative-verb-verdict-remainder": {
+    "catches": "This flags sentences that deliver a judgement through a metaphor without stating any observation to back it up, so you have no way to check or disagree with the claim.",
+    "fine_when": ""
+  },
+  "ai-tells-register.hedged-symmetry": {
+    "catches": "You flag passages that add a counter-claim just to seem balanced, rather than one that a real person or group actually holds. This is a problem because it dilutes a position the evidence actually supports with invented ballast.",
+    "fine_when": "The counter-claim is one that somebody actually makes, rather than one added only to make the passage seem even-handed."
+  },
+  "ai-tells-register.intensifier-tics-core": {
+    "catches": "This rule flags intensifier words (like 'genuinely') that are used to boost a claim without backing it up with any specific detail. The problem is that the intensifier makes the writing sound more convincing than it actually is, without giving the reader anything concrete to verify.",
+    "fine_when": ""
+  },
+  "ai-tells-register.intensifier-tics-remainder": {
+    "catches": "This flags an adverb that announces an emotional or evaluative reaction (like 'remarkably') without backing it up with a measurement, example, or named consequence elsewhere in the passage. This is a problem for the reader because they're told how to feel about something without being given the evidence to judge it themselves.",
+    "fine_when": ""
+  },
+  "ai-tells-register.organic-consequence-core": {
+    "catches": "This flags language that describes a design or outcome as if it emerged naturally on its own, without saying that someone made a choice. That framing hides who made the decision and what constraint or reason drove it, leaving the reader unable to know who is responsible or why the choice was made.",
+    "fine_when": ""
+  },
+  "ai-tells-register.organic-consequence-remainder": {
+    "catches": "You are flagging sentences that describe a decision someone actually made as if it happened by itself, with no person behind it. This is a problem because it hides who made the choice and why, leaving the reader unable to understand or question the reasoning.",
+    "fine_when": ""
+  },
+  "ai-tells-register.over-formatting-reflex": {
+    "catches": "This flags tables, headings, and bold-colon bullets that are used even though the underlying content isn't really made of columns or of parallel, independent items. That's a problem because the structure adds no value over plain prose and the same information could just be stated in a sentence or two.",
+    "fine_when": "It's acceptable when each table, heading, or bold-colon bullet actually carries data with real columns, or items that are both parallel and independent of each other."
+  },
+  "ai-tells-register.sycophantic-meta-residue": {
+    "catches": "This rule flags leftover praise or approval phrases (like an enthusiastic opener before getting to the actual content) that come from a conversational session rather than serving the reader. It's a problem because this residue doesn't belong in the finished text and signals that the surrounding writing may not have been reviewed after the fact.",
+    "fine_when": ""
+  },
+  "ai-tells-register.uniform-paragraph-mass": {
+    "catches": "This rule flags writing where every paragraph has roughly the same word count, with very little variation (a low standard deviation). Uniform paragraph length like this can make a document feel monotonous or mechanical to read.",
+    "fine_when": ""
+  },
+  "ai-tells-register.urgency-inflation-core": {
+    "catches": "This rule flags language that asserts something is important, critical, or urgent without stating what actually happens if the reader ignores it. This is a problem because the reader is told to feel urgency but isn't given the concrete consequence needed to act on it.",
+    "fine_when": ""
+  },
+  "ai-tells-register.urgency-inflation-remainder": {
+    "catches": "You flag text that tells the reader something is urgent, critical, or important without stating what actually happens if they ignore it. This is a problem because the reader is told to feel concern but isn't given the information needed to judge or act on it.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.absolute-assertion-core": {
+    "catches": "This flags absolute claims (like 'the only way' or 'every project needs') that assert something applies universally when the actual scope is narrower. Stating a claim more broadly than it really applies can mislead the reader about when or where it holds true.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.absolute-assertion-remainder": {
+    "catches": "This flags absolute claims using words like always, never, every, or no, along with unsupported guarantees or sweeping judgments (such as 'will tell you', 'wherever ... has a problem', or 'you are wrong') that aren't backed by attribution or evidence. This is a problem because the claim may not hold up if even one counterexample exists, making it misleading to the reader.",
+    "fine_when": "The claim is a quotation, an attributed statement, or a factual description tied to a specific named person, work, edition, document, product, or other explicit finite set. It is also fine when an absolute word like all, only, or never applies to a stated, local antecedent, or when the claim is a bounded comparative recommendation."
+  },
+  "ai-tells-structure.analogy-stack-authority": {
+    "catches": "This flags text that stacks up multiple comparisons to well-known companies or products that have no real causal or mechanical link to the claim being made. Doing this borrows credibility from famous names without actually supporting the point, which can mislead the reader into accepting a claim that isn't backed by evidence.",
+    "fine_when": "It is acceptable to keep one comparison if that comparison shares a mechanism with the subject being discussed."
+  },
+  "ai-tells-structure.anaphora-abuse": {
+    "catches": "This flags three or more sentences in a row that start with the same subject and verb, where only the object at the end changes. This pattern is repetitive for the reader and can be stated more clearly by combining the objects into a single sentence.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.audience-straddle-core": {
+    "catches": "You flag text that tries to address multiple audiences at once, such as claiming to serve both beginners and experts in the same passage. This is a problem because the document ends up not clearly written for anyone, making it harder for the actual reader to know what to expect or rely on.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.audience-straddle-remainder": {
+    "catches": "This flags a document that makes the reader switch between basic, introductory explanation and expert-level operational detail, when no single task actually needs both. That's a problem because it means the document isn't written consistently for one audience, and part of it could be cut without harming the task it's meant to support.",
+    "fine_when": "It's acceptable if the definitions are needed for the stated task, or if the audience shift is explicit within a change communication, decision, plan, or specification."
+  },
+  "ai-tells-structure.cataphoric-lead-in-core": {
+    "catches": "This rule flags a lead-in sentence that announces how many items are coming right before a list, such as saying 'three pillars' before naming them. Stating the count this way is unnecessary because the list itself already shows the reader how many items there are.",
+    "fine_when": "A numbered forecast is correct in a spec or a procedure where the reader needs to know how many steps remain."
+  },
+  "ai-tells-structure.cataphoric-lead-in-remainder": {
+    "catches": "This flags a lead-in sentence that announces a list or a count of items is coming, when the list right below it already makes that clear on its own. It's a problem because it adds words without giving the reader any new information they need.",
+    "fine_when": "It is acceptable when announcing the count changes what the reader does, such as when the reader needs to budget effort before reading further."
+  },
+  "ai-tells-structure.contrastive-inversion-frames": {
+    "catches": "This flags sentences built as 'it's not X, it's Y' or 'not about X, more about Y,' where the writer denies something before stating what's true. This pattern wastes the reader's attention on a rejected idea instead of just stating the fact directly.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.contrastive-inversion-remainder": {
+    "catches": "This flags sentences that describe something by contrasting it with an alternative that nobody actually suggested, or that add no real information beyond what a plain statement would give. This is a problem because the reader has to parse a comparison that doesn't tell them anything true or useful about the thing itself.",
+    "fine_when": "It is acceptable when the contrast is a factual correction or an instruction that names a real, existing alternative, and removing the contrast would lose that actionable meaning."
+  },
+  "ai-tells-structure.definitional-negation-pair": {
+    "catches": "This flags a two-sentence pattern where a sentence states what something is, followed by a sentence saying what it is not (or the reverse), across a paragraph. This pattern states what a thing is once and then adds an invented alternative or contrast that isn't needed, which pads the writing without adding information.",
+    "fine_when": "It's acceptable if the negated sentence states an independent fact a reader would otherwise assume, or if the negated part states a property rather than a rhetorical contrast (for example, \"It is not configurable\"), or if it draws a definitional distinction between two concrete nouns."
+  },
+  "ai-tells-structure.false-range": {
+    "catches": "This flags 'from X to Y' phrasing where X and Y are not actually points on a continuous scale, but just two items from a set. It's a problem because it implies an ordered range or spectrum exists when really the two things are just unrelated or unordered examples.",
+    "fine_when": "It's acceptable when the two endpoints do sit on a real, ordered scale or dimension, meaning it's a genuine range rather than a false one."
+  },
+  "ai-tells-structure.false-suspense-frames": {
+    "catches": "You flag phrases that build up false suspense or fanfare before making a point instead of just stating it directly. This is a problem for a reader because it delays the actual information without adding value.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.false-suspense-remainder": {
+    "catches": "This flags a transition that announces something important is coming without actually saying what it is. It's a problem because it makes the reader wait through empty buildup instead of just getting the point.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.fragment-question-pivot": {
+    "catches": "This rule flags a short question immediately followed by a short answer fragment, used as a stylistic pivot instead of a plain sentence. This pattern can make writing feel gimmicky or unclear instead of simply stating the point.",
+    "fine_when": "This pattern is legitimate when it takes the form of a short question followed by a short answer used as an FAQ."
+  },
+  "ai-tells-structure.heading-echo": {
+    "catches": "This flags a first sentence after a heading that just repeats the heading's own idea without adding any new operation, constraint, path, metric, or scope. It's a problem because the reader gains no new information and has to keep reading before learning anything useful.",
+    "fine_when": "It is not a false positive to flag merely because the sentence shares the same topic as the heading; a shared topic alone is not enough to trigger the flag."
+  },
+  "ai-tells-structure.hollow-acknowledgment": {
+    "catches": "This flags a passage that names a risk, limitation, or problem but then gives you no action to take, no measurement, and no pointer to where it's actually handled. It's a problem because the reader is left knowing something is wrong without any way to know what to do about it.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.invented-concept-label": {
+    "catches": "This flags text that gives a made-up idea a special title-case or quoted name (like \"the supervision paradox\") without explaining what it means or pointing to a source that already uses that name. This is a problem because the reader is left with an unexplained label instead of a clear, plain description of the idea.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.listicle-in-a-trench-coat": {
+    "catches": "You flag consecutive paragraphs that enumerate items in a sequence (like 'The first X is... The second X is...') where none of the paragraphs actually depends on the one before it. This is a problem because the content is really a list dressed up as prose, making it harder for the reader to follow.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.meta-narration-frames": {
+    "catches": "This flags sentences that announce what the document is about to do or cover, instead of just doing it. This is a problem because it adds filler that doesn't inform the reader and duplicates what a table of contents already shows.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.meta-narration-remainder": {
+    "catches": "This flags sentences that only announce the document's route, sequence, or implementation journey rather than stating a fact. It's a problem because removing the sentence wouldn't lose the reader any current fact, required constraint, reproducible action, or explicit change or decision purpose.",
+    "fine_when": "It's acceptable when the sentence names a prerequisite, safety boundary, release delta, historical record, decision, plan, or specification purpose."
+  },
+  "ai-tells-structure.negative-inventory-core": {
+    "catches": "This flags text that only lists what is missing, excluded, or not covered without telling you what actually happens, what rule applies, or what result you get. That leaves you without anything you can act on or rely on.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.negative-inventory-remainder": {
+    "catches": "This flags writing that just lists what wasn't pinned, run, included, or recorded, without giving you anything useful to act on. That kind of narration reads like trivia about the process rather than something that helps you understand a real constraint or result.",
+    "fine_when": "It's acceptable if removing the negative statement would cause you to lose a reproducible result, a safety or compliance constraint, a debugging boundary, an audit fact, or a current action. It's also fine if the statement changes the current contract or records a change, release, historical result, plan, or specification scope."
+  },
+  "ai-tells-structure.rhetorical-question-transition": {
+    "catches": "You flag a question that occupies a whole line or heading, in a transition position, instead of stating the answer directly. This is a problem because it withholds the point the reader needs and asks them to wait for it instead of just telling them.",
+    "fine_when": "A question inside a paragraph is often a real one, so it is not what this rule targets."
+  },
+  "ai-tells-structure.staccato-negative-parallel-frames": {
+    "catches": "This rule flags a run of short, similarly structured negative statements (like 'Not a bug. Not a feature.') used one after another instead of a single clear sentence. This pattern can make the writing feel choppy and can delay or obscure the actual point being made.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.staccato-negative-parallel-remainder": {
+    "catches": "This flags a run of consecutive sentence fragments that exist mainly to build rhythm leading up to a final fragment, rather than each fragment adding its own fact. This is a problem because the reader gets style and emphasis instead of actual information.",
+    "fine_when": "It's acceptable when each fragment in the run genuinely adds a distinct fact rather than just building toward the last one."
+  },
+  "ai-tells-structure.summary-closer-frames": {
+    "catches": "This flags summary-closer phrases (like 'in conclusion' or sign-offs such as 'happy coding') placed at the end of a section instead of just ending on the last fact. Such closers add nothing and delay or dilute the actual final piece of information the reader needs.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.summary-closer-remainder": {
+    "catches": "This flags a closing section that just repeats or re-lists points already made earlier in the document, without adding anything new. That's a problem because it wastes the reader's time and adds no value at the point where the document ends.",
+    "fine_when": "It is acceptable if the final section states something the earlier sections did not already say."
+  },
+  "ai-tells-structure.think-of-it-as-core": {
+    "catches": "This flags text that introduces an idea through an analogy or comparison instead of directly stating how it actually works. This is a problem because the reader gets a metaphor instead of the real explanation, so the underlying mechanism is never made clear.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.think-of-it-as-remainder": {
+    "catches": "This flags an analogy that is used in place of explaining how something actually works. It's a problem for the reader because they get a comparison instead of the real mechanism, so they don't learn how the thing actually functions.",
+    "fine_when": "It is acceptable if the mechanism is stated somewhere in the passage and the analogy is kept only because it makes the explanation shorter."
+  },
+  "ai-tells-structure.tricolon-abuse-core": {
+    "catches": "This flags a three-item list written in a symmetrical, matching pattern. Such lists can pad a sentence with items that don't add real information, when only one or two of them actually matter.",
+    "fine_when": "This may be a false positive when the three items form a legitimate technical enumeration rather than a rhetorical flourish, since the pattern cannot tell the two apart."
+  },
+  "ai-tells-structure.tricolon-abuse-remainder": {
+    "catches": "This flags parallel bullets or matching sentence structures where each item just restates the same point in a different label, without adding any new fact. That's a problem because the reader gets repetition dressed up as a list instead of actual distinct information.",
+    "fine_when": "It is acceptable when each parallel item states a fact that the others do not."
+  },
+  "ai-tells-structure.vague-attribution-core": {
+    "catches": "This rule flags phrases that attribute a claim to an unnamed source, like 'experts agree' or 'studies show'. This is a problem because the reader cannot verify who actually made the claim or check the evidence behind it.",
+    "fine_when": ""
+  },
+  "ai-tells-structure.vague-attribution-remainder": {
+    "catches": "This flags claims that are attributed to a source but not in a way that lets you actually find that source, such as vague phrases like 'studies show' or 'the literature says.' This is a problem because the reader has no way to check whether the claim is accurate or where it came from.",
+    "fine_when": "It is acceptable if the reader could locate the source behind the claim from what the sentence gives them."
+  },
+  "docs-discipline.history-narration": {
+    "catches": "This rule flags language that narrates a change or history, like noting what something was previously named or how it used to work. This is a problem because a doc body should describe the current state of things, not track past changes, which belong in dedicated change communications.",
+    "fine_when": "This is acceptable in change-comms genres such as a changelog, release note, or migration guide, since those documents exist specifically to narrate deltas."
+  },
+  "docs-discipline.internal-refs": {
+    "catches": "You flag places where consumer-facing documentation points to internal process artifacts (like spec files) instead of stating the actual behavior. This is a problem because readers of the released artifact shouldn't need to consult internal documents to understand what something does.",
+    "fine_when": ""
+  },
+  "docs-discipline.status-language": {
+    "catches": "This rule flags language that describes a feature's status over time, such as saying something is upcoming, planned, or not yet implemented, instead of describing what the code actually does right now. This is a problem because it tells the reader about a future or past state rather than the current, factual behavior of the artifact.",
+    "fine_when": "Text describing runtime state using words like 'currently running' or 'currently active' is legitimate present-tense description, not a documentation status claim."
+  },
+  "orwell.compound-preposition": {
+    "catches": "You flag multi-word prepositions (like 'prior to') that are used instead of a simpler, single-word equivalent (like 'before'). This is a problem because the extra words add padding without adding meaning, making the text wordier than it needs to be.",
+    "fine_when": ""
+  },
+  "orwell.concrete-floor": {
+    "catches": "You flag a paragraph that makes a factual claim but does not name any checkable particular, such as a number, identifier, path, command, or dated event. This is a problem because the reader cannot verify or pin down what is actually being claimed.",
+    "fine_when": "This is acceptable if the writer did not have access to a more specific term than the one they used."
+  },
+  "orwell.not-un": {
+    "catches": "This rule flags phrasing that negates a negative adjective (a \"not un-\" construction) instead of stating the positive adjective directly. This can make the sentence harder to read than if you had just used the positive term.",
+    "fine_when": ""
+  },
+  "orwell.stale-figure": {
+    "catches": "This rule flags worn, overused figures of speech that stand in for a plain fact. It's a problem because the reader doesn't get the actual underlying information, just a stale phrase.",
+    "fine_when": "A figure of speech is acceptable if it is either a fully dead metaphor that can still be used without losing vividness, or a genuinely fresh one; only the middle band of worn-but-not-dead figures counts as a violation."
+  },
+  "orwell.unsupported-evaluative": {
+    "catches": "This flags evaluative adjectives (like 'robust,' 'seamless,' or 'comprehensive') that make a judgment without giving you any number or fact to back it up. This is a problem because the reader can't verify the claim or tell what it actually means.",
+    "fine_when": "It is acceptable when the noun the adjective attaches to itself supplies the evidence, such as in a phrase like 'comprehensive test suite' or 'a more robust preprocessor.'"
+  },
+  "prose-agency.agentless-passive": {
+    "catches": "This flags sentences where an action is described without saying who or what did it, using either a filler subject like \"it\" or vague stock phrases like \"mistakes were made.\" This is a problem because the reader can't tell who is responsible for the action.",
+    "fine_when": "This is acceptable when the passive sentence names its actor (for example, \"the record was created by the importer\") or when the sentence is simply describing a state (for example, \"the rule is disabled\")."
+  },
+  "prose-agency.anthropomorphism": {
+    "catches": "This flags sentences where a system component (like a parser, linter, gate, hook, agent, or model) is described using verbs of thought or understanding, such as 'knows' or 'understands'. This is a problem because it describes the mechanism as having a mind instead of stating what it actually does.",
+    "fine_when": "This is acceptable when the subject of the cognition verb is a person (such as a reviewer) rather than one of the mechanism nouns."
+  },
+  "prose-agency.false-agency": {
+    "catches": "This flags sentences where an abstract thing (like data, a complaint, or a tool) is written as if it performed an action, when really a person did it or the thing simply has a feature. This hides who actually did something, or overstates what a product does versus what the reader does with it.",
+    "fine_when": "It stays clean when the sentence describes what a thing has, or what the thing does mechanically (like a tool resolving paths or a config allowing a set number of retries), rather than crediting the thing with a human-like action."
+  },
+  "prose-agency.narrator-distance": {
+    "catches": "This flags sentences that open by talking about people in general (like 'developers tend to...') instead of naming a specific actor or speaking directly to the reader. This is a problem because it distances the reader from the action and leaves it unclear who is actually doing the thing being described.",
+    "fine_when": "In a blog post or essay, this kind of general lecturing opener can be legitimately used."
+  },
+  "prose-agency.unattributed-recommendation": {
+    "catches": "You flag phrases that recommend an action without saying who is making the recommendation. This leaves the reader unsure whose authority backs the advice, and it can be replaced either by naming the recommender or by simply stating the instruction directly.",
+    "fine_when": ""
+  },
+  "prose-craft.acronym-periods": {
+    "catches": "This rule flags initialisms written with periods between the letters, such as A.P.I. instead of API. Punctuating an initialism this way is a problem because it can interfere with correctly splitting text into sentences.",
+    "fine_when": ""
+  },
+  "prose-craft.ambiguity": {
+    "catches": "This flags wording like 'and/or' that can be read in more than one way, forcing you to guess which meaning the writer intended. You should state clearly whether you mean 'a and b', 'a or b', or 'a, b, or both' so readers don't have to guess.",
+    "fine_when": ""
+  },
+  "prose-craft.articles": {
+    "catches": "You flag when 'a' or 'an' doesn't match how the initialism is actually pronounced when spoken aloud. This matters because mismatched articles suggest the text wasn't read aloud during writing or review, and it can sound wrong to readers.",
+    "fine_when": ""
+  },
+  "prose-craft.command-prompt": {
+    "catches": "This flags a shell command that is shown with its prompt symbol (like $ or ❯) still attached at the start of the line. That's a problem because it means the reader can't copy the line and run it directly without first deleting the prompt character.",
+    "fine_when": ""
+  },
+  "prose-craft.conflict-markers": {
+    "catches": "This flags leftover merge conflict markers (like <<<<<<< HEAD) that were never resolved and removed from the text. Their presence means the conflicting versions were never actually reconciled, so the reader may be looking at broken or incomplete content.",
+    "fine_when": ""
+  },
+  "prose-craft.dead-opener": {
+    "catches": "This rule flags sentences that open with an empty filler phrase (like \"There is\" or \"It is\") instead of the actual subject the sentence is about. This is a problem because it delays the real subject and makes the sentence weaker or less direct.",
+    "fine_when": "The phrase \"there is\" is acceptable when it appears in the middle of a sentence or clause rather than at the very start."
+  },
+  "prose-craft.directional-ref": {
+    "catches": "This flags references to a heading, table, or other element by its position, such as 'below' or 'above', instead of by its name. This is a problem because readers who zoom, reflow text, use a screen reader, or encounter the content out of order, or read an extracted section on its own, may not experience the same spatial layout, so the positional reference won't make sense to them.",
+    "fine_when": ""
+  },
+  "prose-craft.first-person-plural": {
+    "catches": "This rule flags first-person plural phrasing like 'we' where the vendor or team is the subject, instead of naming the actual artifact (like a tool or product). This is a problem for readers because it centers the people making the thing rather than describing what the thing itself does.",
+    "fine_when": "This is acceptable in change communications (like commit messages) and internal documents such as architecture decision records or contributor guides, where saying 'we dropped X,' 'we chose Postgres,' or 'we review within a week' is legitimate."
+  },
+  "prose-craft.future-tense": {
+    "catches": "This flags verbs written in the future tense (using 'will') when describing what something does. Using future tense makes the description longer than needed and can be mistaken for a promise about future functionality rather than a statement of current behavior.",
+    "fine_when": "This is acceptable when the text is a spec or an RFC, since that type of document states future obligations as part of its genre."
+  },
+  "prose-craft.gerund-heading": {
+    "catches": "This flags task headings written as a gerund followed by a direct object, like 'Installing the plugin', instead of the imperative form. This is a problem because task headings should tell the reader what action to perform, and the imperative form does that directly.",
+    "fine_when": "This is acceptable when the heading is a bare gerund with no direct object, such as a topic heading like 'Logging' or 'Troubleshooting', since that is not a task heading."
+  },
+  "prose-craft.hyphens": {
+    "catches": "This flags a hyphen placed between an -ly adverb and the word it modifies. The hyphen is unnecessary because an -ly adverb can only modify the word that follows it, so the hyphen adds no information.",
+    "fine_when": ""
+  },
+  "prose-craft.latinisms": {
+    "catches": "This flags Latin abbreviations (like 'e.g.', 'i.e.', and 'etc.') and asks you to use the equivalent English phrase instead. These abbreviations are often confused with each other, and a screen reader will read them out as letters rather than words, making the text harder to follow for some readers.",
+    "fine_when": "'via' and 'ad hoc' are treated as ordinary register in an essay and are only flagged as advisory under relaxed settings."
+  },
+  "prose-craft.link-text": {
+    "catches": "This flags link text like \"here\" that does not name what the link leads to. Readers scanning links, including screen reader users who may hear links listed out of context, see text with no indication of the destination.",
+    "fine_when": ""
+  },
+  "prose-craft.misnomer": {
+    "catches": "This flags phrases where you add an extra word right after an initialism that repeats a word already spelled out inside the initialism itself, like adding 'interface' after 'API' when API already means 'Application Programming Interface'. This is a problem because it's redundant and may suggest you don't actually know what the initialism stands for.",
+    "fine_when": ""
+  },
+  "prose-craft.negative-requirement": {
+    "catches": "This flags sentences that state a requirement as a negative or double negative, such as saying what you cannot do without something instead of what you need. This forces the reader to mentally invert the sentence to understand the actual requirement, which slows down reading and is especially costly for non-native readers.",
+    "fine_when": "This is acceptable in a spec that states constraints negatively on purpose, such as saying a component must not do something without a certain condition, since that is the genre's job."
+  },
+  "prose-craft.optional-plural": {
+    "catches": "This flags writing a word with an optional plural ending in parentheses, like \"file(s)\". It's a problem because the reader has to stop and mentally resolve whether the word is singular or plural, even though that resolution never actually changes the meaning of the sentence.",
+    "fine_when": ""
+  },
+  "prose-craft.ordinals": {
+    "catches": "This flags ordinal words formed by adding '-ly' to an already-ordinal word (like 'firstly'), or numeric ordinal forms that can read as date fragments in running prose. This is a problem because it adds unnecessary complexity when the plain ordinal word or the list's own ordering could carry the same meaning.",
+    "fine_when": "It is acceptable when the numeric ordinal form (like '1st') appears in a table cell or in a date."
+  },
+  "prose-craft.plural-abbreviation": {
+    "catches": "This rule flags an initialism (a word made of two or more capital letters) followed by an apostrophe and 's. This pattern is intended to catch cases where a plural initialism was incorrectly written with an apostrophe instead of just adding an s.",
+    "fine_when": "The match is a genuine possessive form (for example, showing that something belongs to the initialism), rather than a plural. The rule cannot distinguish between these two cases, so it will incorrectly flag correct possessives as well."
+  },
+  "prose-craft.politeness": {
+    "catches": "This rule flags courtesy words (like 'please' or 'kindly') added to an instruction, as well as words like 'sorry' and 'unfortunately' that describe the author's feelings instead of stating a limitation directly. Politeness in a procedure can make it unclear whether the step is actually required.",
+    "fine_when": "It is acceptable in a blog post or a support reply, since being polite fits the genre in those cases."
+  },
+  "prose-craft.redundancy": {
+    "catches": "This flags phrases where two words repeat the same meaning, so one of them is unnecessary. It's a problem because it makes the writing wordier than it needs to be without adding any new information.",
+    "fine_when": ""
+  },
+  "prose-craft.relative-date": {
+    "catches": "This flags relative time expressions (like 'recently') used to describe when something happened or changed. The problem is that a relative date is only accurate on the day it was written, and since the document doesn't record its own write date, a reader looking at it later has no way to figure out what date is actually meant.",
+    "fine_when": ""
+  },
+  "prose-craft.self-reference": {
+    "catches": "This flags an opening sentence that just restates what the heading already tells you, instead of giving you a new fact right away. It's a problem because it wastes the reader's time before getting to actual content.",
+    "fine_when": ""
+  },
+  "prose-craft.sentence-length": {
+    "catches": "This rule flags sentences that contain more than 34 words, because sentences that long are hard for readers to follow and understand. The suggested fix is to split the sentence into shorter ones or turn a list of items within it into a formatted list.",
+    "fine_when": ""
+  },
+  "prose-craft.spacing": {
+    "catches": "You flag sentences where a period is followed by no space or by more than one space before the next word. This matters because it makes sentence boundaries inconsistent or hard to read.",
+    "fine_when": "The period is part of a version number or decimal, or the text immediately after the period is not a separate word (such as part of a filename)."
+  },
+  "prose-craft.unclear-antecedent": {
+    "catches": "This flags a demonstrative word like 'this', 'that', 'these', or 'those' used alone before a verb, without naming the noun it refers to. This is a problem for readers because they can't tell what the demonstrative is pointing at, making the sentence unclear.",
+    "fine_when": "It is fine when the demonstrative is followed by the noun it refers to, rather than standing alone."
+  },
+  "prose-craft.versions": {
+    "catches": "You flag phrases like 'and higher' or 'and lower' used to describe a range of software versions. This wording is a problem because version numbers don't always sort the way regular numbers do, so it's unclear whether a later version with a bigger-looking number actually counts as 'higher'.",
+    "fine_when": ""
+  },
+  "prose-craft.wordiness": {
+    "catches": "This flags a wordy phrase or word and suggests a shorter replacement in its place. Using the longer form makes the writing needlessly wordy when a shorter word would say the same thing.",
+    "fine_when": ""
+  },
+  "prose-discipline.bare-quantifier-with-figure-available": {
+    "catches": "This flags vague words like most, some, many, few, often, usually, and similar terms when they stand in for a number the writer actually has, such as a count, list, or measurement reported elsewhere in the document. Leaving the number out forces the reader to guess a quantity the writer could have simply stated.",
+    "fine_when": "It is acceptable when the quantifier describes a set that is genuinely unmeasured or unbounded, in which case the writer should say so and explain why."
+  },
+  "prose-discipline.bidirectional-hedge": {
+    "catches": "This flags sentences that hedge in two opposite directions at once, so the claims cancel each other out and leave the reader with no usable information. You should instead state which direction the evidence actually supports, or give both numbers if both effects genuinely occur.",
+    "fine_when": ""
+  },
+  "prose-discipline.competing-actor-terms": {
+    "catches": "This flags places where a document uses two or more different terms (like user, customer, client, caller) that seem to refer to the same person or system. This is a problem because the reader can't tell if the terms mean the same thing or if they're meant to be different, causing confusion about who or what is being discussed.",
+    "fine_when": "It is acceptable if the document defines the distinction between the terms at first use, such as through a stated definition, a quotation, an API name, or a glossary entry, showing that the terms genuinely refer to different subjects."
+  },
+  "prose-discipline.frozen-verb": {
+    "catches": "This rule flags sentences where an action is expressed as a noun paired with a general-purpose verb (like 'perform an analysis') instead of as a plain verb (like 'analyzes'). This is a problem because it freezes the action, making the sentence longer and less direct than it needs to be.",
+    "fine_when": ""
+  },
+  "prose-discipline.hedged-hedge": {
+    "catches": "You flag sentences that stack multiple hedging words together, such as a modal verb wrapped around a vague quantifier (like 'may help reduce some of the'). This is a problem because it makes the claim so soft that the reader can't tell what actually happens.",
+    "fine_when": ""
+  },
+  "prose-discipline.hedged-into-uselessness": {
+    "catches": "This flags a document where most of the important claims are hedged, so the reader can't act on anything and every point trails off into 'it depends.' This includes claims hedged in both directions so they cancel out, and hedges piled on hedges, which together mean the document ends up asserting nothing.",
+    "fine_when": "A hedge is acceptable when the uncertainty is real and named, such as a measured variance or a documented platform difference, or when only a single hedge appears rather than most claims being hedged."
+  },
+  "prose-discipline.marketing-lexicon": {
+    "catches": "This rule flags words that belong to advertising language, like sales-style adjectives, rather than plain factual description. Such words are a problem because they don't give the reader anything measurable or verifiable, even if evidence or data appears nearby.",
+    "fine_when": ""
+  },
+  "prose-discipline.marketing-register": {
+    "catches": "This flags evaluative claims about an artifact that cannot be checked against a number, benchmark, named limit, version, or citation, and whose opposite would just sound like a different opinion rather than a factual disagreement. This is a problem because the reader is being sold on quality instead of being told what the artifact actually does or what they can measure.",
+    "fine_when": ""
+  },
+  "prose-discipline.overloaded-sentence": {
+    "catches": "This flags a sentence that packs in more than one idea, forcing the reader to hold onto multiple separate things at once. It targets cases where two clauses joined by a conjunction could each stand alone as a complete sentence, since that means the sentence is overloaded.",
+    "fine_when": "It is acceptable when the sentence is a list of parallel actions that share one subject and one verb, since that counts as one idea no matter how long the list is. It is also acceptable within quotations, code spans, vertical lists, statements of legal force, or parallel lists."
+  },
+  "prose-discipline.phrasal-verb": {
+    "catches": "This rule flags certain wordy or informal verb phrases (from a fixed list) and asks you to replace them with a plainer, simpler verb. This is a problem for readers because the fancier phrasing adds no meaning and just makes the text harder to read quickly.",
+    "fine_when": "The phrase is one of the named real operations, such as \"set up\", \"log in\", \"check out\", \"roll back\", or \"shut down\", since these are correct names for actual actions rather than needlessly fancy substitutes."
+  },
+  "prose-discipline.run-on": {
+    "catches": "You flag sentences that stitch together too many independent ideas using coordinating conjunctions, semicolons, dash joins, or non-restrictive 'which' clauses, beyond an allowed limit. This is a problem because a reader can feel the sentence carrying too many ideas at once, even if the sentence isn't long in terms of word count.",
+    "fine_when": "A compound sentence with a trailing qualifier is acceptable, as long as it does not add a fourth stitched idea beyond the threshold."
+  },
+  "prose-format.emoji-heading": {
+    "catches": "This rule flags emoji placed in a heading. The heading text alone should carry the meaning, so the emoji is unnecessary.",
+    "fine_when": ""
+  },
+  "prose-format.no-unicode-dash": {
+    "catches": "This flags real em dashes (—) or en dashes (–) written as actual Unicode characters in your text. These are a problem because your house style wants plain ASCII double-hyphens, a comma, a colon, or two separate sentences instead.",
+    "fine_when": "An issue comment may keep its dashes."
+  },
+  "prose-format.prose-block": {
+    "catches": "This rule flags a paragraph that contains more than 80 words. Long paragraphs like this can be hard for a reader to follow and might work better as a list or table.",
+    "fine_when": "An essay or a spec may legitimately contain a long paragraph."
+  },
+  "prose-inclusive.ableist": {
+    "catches": "This flags phrases that use a disability as a stand-in word for a shortcoming, gap, or failure to notice something. This can be a problem because the disability term is being used figuratively when a plainer, more literal word would say what is actually meant.",
+    "fine_when": ""
+  },
+  "prose-inclusive.device-assumption": {
+    "catches": "You flag instructions that assume the reader is using a mouse, such as telling them to 'click' or 'hover over' something. This is a problem because it excludes readers using a keyboard, touch screen, or screen reader to interact with the interface.",
+    "fine_when": "The word 'click' is used as a noun rather than as an instruction, such as in phrases like 'a click event' or 'click-through rate'."
+  },
+  "prose-inclusive.exclusive": {
+    "catches": "This rule flags exclusionary terms and asks you to use their settled replacement instead. Using these terms is a problem because there is a documented, widely-used alternative that has replaced them in industry guidance.",
+    "fine_when": "It is acceptable when the term appears as \"master branch,\" \"master boot record,\" or in a named contract form like \"Master Subscription Agreement,\" since these are exempted."
+  },
+  "prose-inflation.additive-hedge": {
+    "catches": "This flags sentences that claim two things at once using a structure like 'not only X but also Y,' where the negation doesn't actually negate anything but just inflates the second claim. This is a problem because it adds words without adding meaning, burying the real point under an unnecessary setup.",
+    "fine_when": ""
+  },
+  "prose-inflation.apologizing": {
+    "catches": "This flags sentences that raise a question or point to a need but then defer answering it, instead of providing the actual information. It's a problem because you're left without the answer you were promised, making the passage hollow.",
+    "fine_when": "This is acceptable in a research note or a spec's open-questions section, where legitimately deferring the answer is expected, and stating something is outside the scope of the document is a correct scope statement in that context."
+  },
+  "prose-inflation.borderline-hype": {
+    "catches": "This flags words that claim something is easy, simple, or obvious without giving a number or example to back up that claim. Such words don't actually tell the reader anything useful, and if the reader doesn't find it easy, the wording implies that's their fault.",
+    "fine_when": "You keep the word only if a number or example backs it up."
+  },
+  "prose-inflation.business-jargon": {
+    "catches": "This flags business jargon such as meeting-register verbs, idioms whose literal meaning isn't the intended meaning, and verbed nouns or vision-related buzzwords, telling you to use the plain verb instead. This is a problem because a reader who didn't learn the idiom or jargon has to stop and look it up, and plain wording says the same thing more directly.",
+    "fine_when": ""
+  },
+  "prose-inflation.document-preamble": {
+    "catches": "This flags an opening sentence that announces or restates what the document is about instead of starting with an actual fact. It's a problem because the title already tells the reader the subject, so the sentence wastes the reader's time before any real content begins.",
+    "fine_when": ""
+  },
+  "prose-inflation.hedge-stack": {
+    "catches": "This flags sentences where two or more hedging words are stacked on the same verb, making the claim sound uncertain or wishy-washy. When hedges pile up like this, it's often a sign the writer is avoiding committing to a clear statement rather than genuinely qualifying it.",
+    "fine_when": "A single hedge on a claim is often correct, so text with only one hedging word is not a problem."
+  },
+  "prose-inflation.intensifier": {
+    "catches": "This rule flags degree adverbs (intensifiers) placed before adjectives, like saying something is 'very fast' instead of giving an actual measurement. This is a problem for a reader because the intensifier doesn't convey real, verifiable information the way a specific number or measurement would.",
+    "fine_when": "This rule's flagged words are deliberately excluded when the word carries real meaning in a technical context: words like significantly/substantially/considerably (used with statistics or a p-value), relatively/comparatively (expressing an actual comparison), largely/mostly/generally (used as scope qualifiers), and completely/entirely/fully (when it is the precise word needed, as in 'fully qualified name'). It is also treated as only advisory when used at a relaxed setting, since an essay may use emphasis as part of its genre."
+  },
+  "prose-inflation.nominalized-verb": {
+    "catches": "This flags sentences that turn an action into a noun paired with a light verb, like 'perform validation' instead of 'validate'. This pattern makes writing wordier and less direct than simply using the verb form of the action.",
+    "fine_when": "This is acceptable when the phrase is a real noun phrase rather than an action, such as 'the validation step'. It is also acceptable when the light verb is 'run', 'do', or 'make', since these can name a real action on a real object, as in 'run the migration' or 'make a backup'."
+  },
+  "prose-inflation.slop-lexicon": {
+    "catches": "This flags vague marketing adjectives used to describe something, since they sound impressive but give the reader no actual, checkable information. You should delete the adjective or replace it with the specific number, benchmark, or feature list that supports the claim.",
+    "fine_when": ""
+  },
+  "prose-inflation.uncomparables": {
+    "catches": "You flag an intensifier (like 'very') placed in front of an adjective that is already absolute and can't logically be made more or less true. This is a problem because it's redundant and doesn't make sense grammatically—the adjective already expresses the maximum degree.",
+    "fine_when": ""
+  },
+  "prose-inflation.vague-declarative": {
+    "catches": "This flags sentences that make a vague claim about something being 'significant,' 'important,' or similar without stating what the thing actually is. It's a problem because the reader is told something matters but not what it is or why.",
+    "fine_when": "It's acceptable when the predicate continues on into a specific detail, such as pointing to where the specifics are documented, rather than stopping at the bare significance claim."
+  },
+  "prose-inflation.vague-quantifier": {
+    "catches": "This rule flags vague quantifiers like 'several' or 'usually' that don't give an actual count or name specific cases. This is a problem because the reader doesn't get the concrete information they need and has to guess how many or which ones are meant.",
+    "fine_when": ""
+  },
+  "prose-promotion.promotional-adjective-noun": {
+    "catches": "You flag adjectives that sound impressive or promotional but don't convey a specific, checkable fact. This is a problem because readers get a vague impression of importance or quality instead of the actual measurement or detail behind the claim.",
+    "fine_when": ""
+  },
+  "prose-promotion.promotional-puffery": {
+    "catches": "This rule flags vague, inflated phrases that sound impressive but don't state a concrete fact or number. This is a problem because the reader can't tell what actually happened or verify the claim.",
+    "fine_when": ""
+  },
+  "prose-promotion.promotional-verbs": {
+    "catches": "This flags promotional or inflated verbs like 'showcase,' 'harness,' 'embark on,' or 'foster' where a plainer, more direct verb would do. These words dress up simple actions in grander language, which can make writing sound vague or overhyped instead of clear.",
+    "fine_when": ""
+  },
+  "prose-promotion.strategy-buzzwords": {
+    "catches": "You flag strategy buzzwords like 'moat,' 'flywheel,' 'network effect,' or 'land-grab' used without explaining the actual mechanism or advantage behind them. This is a problem because the reader gets a label instead of understanding what loop or barrier is actually at work and what makes it hold.",
+    "fine_when": "It is acceptable when the term is a defined term of art, such as 'network effect' used in economics writing."
+  },
+  "prose-scope.code-change-prose-scope": {
+    "catches": "This flags prose (comments or documentation) that was changed alongside code but does not directly explain or specify the code that changed. This is a problem because it introduces unrelated edits that are outside the intended scope of the change.",
+    "fine_when": "It is acceptable if the prose change directly explains or specifies the changed code, if it corrects a stale comment describing changed behavior, or if the user explicitly requested that prose edit."
+  },
+  "prose-scope.epigram": {
+    "catches": "This flags a closing sentence that repeats, in a punchy or mirrored way, a point the paragraph or table already made. It's a problem because it adds a flourish without new content, making the writing redundant.",
+    "fine_when": "This shape occasionally states a real contrast rather than restating an existing point, in which case it is acceptable."
+  },
+  "prose-scope.formulaic-subject-verb-slogan": {
+    "catches": "This flags a title or heading written as two matching subject-plus-verb clauses joined without end punctuation, where both halves start with a determiner and use a finite-looking verb. This pattern is a formulaic slogan rather than a real title or a stated fact, so it doesn't tell the reader what the section actually contains.",
+    "fine_when": "It is acceptable if the text is instead a factual contrast where the second half is a bare object rather than a second determiner-led clause, or if the second subject is a pronoun rather than a determiner-led noun phrase."
+  },
+  "prose-scope.implementation-leak": {
+    "catches": "This flags specific benchmark measurements (like speed comparisons or timing results) written directly into documentation. This is a problem because the reader cannot act on a raw measurement; that information belongs in a commit message, ADR, or spec instead.",
+    "fine_when": "It's acceptable when a unit sits next to a number in a config table (version strings, ports, exit codes, byte sizes), when a stated ceiling describes a documented limit rather than a benchmark, when the figure appears in a table row or list item, when a duration names a timeout, budget, or deadline, or when a figure appears inside an HTML stat tile. It's also fine within spec or ADR paths, or when a product's value is its latency and the rule is turned off."
+  },
+  "prose-scope.rejected-alternative": {
+    "catches": "This rule flags text that explains a rejected alternative and gives the reasoning behind choosing one approach over another. This is a problem because that kind of decision explanation belongs elsewhere, and including it in the prose means the text is describing a choice rather than stating what the thing actually does.",
+    "fine_when": "This content is acceptable in an ADR, a spec, or the commit that made the decision."
+  },
+  "prose-scope.unrequested-reassurance": {
+    "catches": "This flags sentences that reassure the reader that nothing needs to be done or that something 'just works,' instead of stating what actually happens. This is a problem because it tells the reader what isn't needed rather than giving them the actual information about behavior.",
+    "fine_when": "It's acceptable when the statement is a factual scope note, such as saying a particular action or change isn't needed, rather than an unrequested reassurance."
+  },
+  "ste-descriptive.information-not-gradual": {
+    "catches": "This flags a paragraph that introduces more than one new idea per sentence, or that uses a term before the sentence that explains it. This is a problem because the reader may need to understand a later term just to follow an earlier sentence, making the paragraph hard to follow in order.",
+    "fine_when": "A checker that judges this only by whether terms appear in order, without also checking that each sentence introduces just one idea, would misjudge every summary paragraph."
+  },
+  "ste-descriptive.missing-key-word-structure": {
+    "catches": "This flags sentences that swap in a synonym instead of repeating the key word or key phrase from the sentence before. This is a problem because the reader has to work out that the new word refers to the same thing, making the text harder to follow.",
+    "fine_when": ""
+  },
+  "ste-descriptive.paragraph-has-multiple-topics": {
+    "catches": "You flag a paragraph that can be split at some sentence boundary so that neither resulting half needs the other to make sense. This signals the paragraph is actually covering more than one topic, which makes it harder for the reader to follow a single idea.",
+    "fine_when": ""
+  },
+  "ste-descriptive.paragraph-too-many-sentences": {
+    "catches": "This flags a paragraph that has more than six sentences, since a long paragraph like this can be hard for a reader to follow. The fix is to split it into two paragraphs.",
+    "fine_when": "A lead-in sentence plus a vertical list following it counts as a single sentence for this rule, so such a block is not flagged just for having many list items."
+  },
+  "ste-descriptive.paragraph-without-related-information": {
+    "catches": "This flags a paragraph whose first sentence does not tell you what the paragraph is about, or where later sentences don't stay on that topic. This is a problem because the reader can't tell what the paragraph is meant to convey or how its sentences relate to each other.",
+    "fine_when": ""
+  },
+  "ste-descriptive.sentence-too-long-descriptive": {
+    "catches": "You flag a sentence that runs longer than twenty-five words. Long sentences like this can be hard for a reader to follow, since they often pack in multiple ideas that would be clearer as separate sentences.",
+    "fine_when": ""
+  },
+  "ste-nouns.long-domain-term-without-short-form": {
+    "catches": "This flags a domain term longer than three words that is used without being written in full first and then given a short form or joined with hyphens as one fixed unit. Without this, readers may struggle to recognize or follow references to the term later in the text.",
+    "fine_when": "It is acceptable if the term is written in full at first use and either a short form is declared afterward, or the words are joined with hyphens as one unit."
+  },
+  "ste-nouns.multiword-noun-too-long": {
+    "catches": "This flags a run of four or more words stacked together as modifiers before a noun, counted by word count rather than by counting only nouns. A long noun stack like this is harder for a reader to parse and understand.",
+    "fine_when": ""
+  },
+  "ste-practices.ambiguous-preposition-with": {
+    "catches": "This flags uses of \"with\" where a reader could not tell whether it means an association, a shared action, or an instrument. That ambiguity is a problem because the reader might understand the sentence differently than intended.",
+    "fine_when": "The ambiguity is in how the reader might interpret the sentence, not in the surface wording itself, so this cannot be checked mechanically."
+  },
+  "ste-practices.false-friend-term": {
+    "catches": "This flags words that look like they mean one thing but are commonly misread by non-native readers as meaning something else, such as 'eventual' or 'actual'. This matters because such a reader may understand the sentence incorrectly, even though the word is not wrong in standard English.",
+    "fine_when": "It's acceptable when the word is part of a set phrase like 'eventual consistency' or 'actual value', where the potentially misleading sense is actually the correct and intended one."
+  },
+  "ste-practices.gendered-or-exclusionary-language": {
+    "catches": "This rule flags non-inclusive terms, including certain software terminology and gendered pronouns, and suggests an inclusive replacement instead. Such wording can be exclusionary to readers.",
+    "fine_when": "It is acceptable when the term is an identifier, such as a Git default branch name or an API field, since these cannot be rewritten."
+  },
+  "ste-practices.inconsistent-wording-for-same-step": {
+    "catches": "This flags when the same step is described using two different wordings within the same document. This is a problem because the reader may think the differing phrasings refer to two different actions when they actually describe the same one.",
+    "fine_when": "Both wordings can individually be correct; the issue is only that the variation exists."
+  },
+  "ste-practices.latin-abbreviation": {
+    "catches": "This flags Latin abbreviations used in place of their English equivalents. Readers who don't know Latin abbreviations may find these confusing or unclear.",
+    "fine_when": ""
+  },
+  "ste-practices.omitted-conjunction-that": {
+    "catches": "This flags sentences where a reporting verb (like \"make sure\" or \"shows\") is directly followed by a clause but the word \"that\" is missing before it. Leaving out \"that\" in this spot can make the sentence harder to read or momentarily ambiguous.",
+    "fine_when": "It's fine when what follows the verb is a direct object rather than a clause, such as in \"check the logs.\""
+  },
+  "ste-practices.phrasal-verb": {
+    "catches": "This flags phrasal verbs (a verb plus a particle, written as two separate words) and suggests replacing them with a single verb instead. The concern is that a phrasal verb's meaning isn't just the sum of its two parts, so using one can be less direct or clear than a single word would be.",
+    "fine_when": "It is acceptable when the words appear as a closed compound or hyphenated noun form (such as \"a backup\", \"a rollback\", or \"the setup\") rather than as the two-token spaced verb form."
+  },
+  "ste-practices.possessive-form-unclear": {
+    "catches": "This flags possessive forms that are hard to read: a plural possessive, or two possessives stacked together. These forms can confuse the reader about what belongs to what, so the sentence should be rewritten using \"of the\" or split into two sentences.",
+    "fine_when": "A possessive is fine when it is singular and used only once in the phrase."
+  },
+  "ste-practices.unclear-demonstrative-this": {
+    "catches": "You flag a sentence that starts (or, inside parentheses, begins) with a demonstrative word like \"this\" or \"that\" used as the subject, directly followed by a verb, without naming what it refers to. This is a problem because the reader can't tell what the demonstrative is pointing back to.",
+    "fine_when": "It does not match when the word after the demonstrative is a noun rather than a verb, or when the demonstrative is not at the start of a sentence or parenthetical."
+  },
+  "ste-practices.unclear-pronoun": {
+    "catches": "You flag a pronoun that could refer to more than one noun, making it unclear to the reader which thing is being talked about. This includes gendered pronouns, and pronouns appearing in a clause that follows a comma and comes before a modal verb.",
+    "fine_when": ""
+  },
+  "ste-practices.word-sense-incorrect": {
+    "catches": "This flags a vocabulary word that is used with a different common meaning than the single sense recorded for it in the vocabulary. This is a problem because a reader may understand the word differently than intended, causing confusion about the actual meaning.",
+    "fine_when": "The text is fine when the word is used inside a quotation or a code span."
+  },
+  "ste-practices.word-swap-insufficient": {
+    "catches": "This flags a sentence where a word was swapped for another word, but after the swap the sentence is ungrammatical, doesn't make sense, or no longer means what you originally meant. This is a problem because a simple word substitution isn't enough to fix the sentence correctly, and it needs to be restructured instead.",
+    "fine_when": "It is acceptable if, after substituting the replacement word, the sentence remains grammatical, meaningful, and still carries the original meaning."
+  },
+  "ste-procedural.condition-after-command": {
+    "catches": "This flags instructions where the condition comes after the command instead of before it. Reading the command first before knowing the condition that governs it can make instructions harder to follow.",
+    "fine_when": ""
+  },
+  "ste-procedural.instruction-not-imperative": {
+    "catches": "This rule flags an instruction step that is phrased as a description or obligation statement instead of a direct command, such as naming a subject with a modal like \"must\" or \"should,\" or using an impersonal opener like \"it is necessary to.\" This is a problem because instructions should tell the reader exactly what to do rather than describe what should happen.",
+    "fine_when": "This phrasing is acceptable inside a note, since notes are meant to be descriptive rather than imperative."
+  },
+  "ste-procedural.multiple-instructions-per-sentence": {
+    "catches": "This flags a step written as one sentence that actually contains more than one instruction. That's a problem because a reader may only follow one of the instructions or lose track of the order they need to happen in.",
+    "fine_when": "It is acceptable when the two actions described happen at the same time, since the rule allows two actions in one sentence in that case."
+  },
+  "ste-procedural.note-gives-instruction": {
+    "catches": "This flags a note that contains an instruction (a command telling the reader to do something) rather than plain information. This is a problem because readers often skip notes, so an instruction placed there may never be seen or followed.",
+    "fine_when": "It is acceptable when the instruction is moved before the note marker (as a step) and the note itself only states information, not a command."
+  },
+  "ste-procedural.sentence-too-long-procedural": {
+    "catches": "This rule flags an instruction that is longer than twenty words. A long instruction is hard for a reader to follow, so it should be split into separate numbered steps.",
+    "fine_when": ""
+  },
+  "ste-punctuation.colon-terminates-sentence-for-count": {
+    "catches": "This flags a list lead-in (the text before a colon introducing a list) that has too many words, based on the same word-count cap used for sentence length. A long lead-in makes the reader hold too much information before they even get to the list items.",
+    "fine_when": ""
+  },
+  "ste-punctuation.hyphen-group-too-long": {
+    "catches": "You flag hyphenated word groups that chain together more than three words. Long hyphen chains like this can be hard for a reader to parse and understand.",
+    "fine_when": "It is acceptable when the hyphenated group is a package name, CSS class, or Kubernetes resource name, or otherwise registered as a domain term."
+  },
+  "ste-punctuation.hyphen-missing-in-compound-modifier": {
+    "catches": "You flag two words acting together as a single descriptive term before a noun when they are written as separate words instead of joined by a hyphen. Without the hyphen, a reader may momentarily misread the two words as separate ideas rather than one combined description.",
+    "fine_when": ""
+  },
+  "ste-punctuation.parentheses-misuse": {
+    "catches": "This flags a parenthetical that carries a second idea instead of serving one of the allowed purposes (cross-reference, item identifier, step number, abbreviation, singular-and-plural form, short explanation, or alternative). This is a problem because it hides an extra idea inside parentheses instead of giving it its own sentence, making the text harder to read.",
+    "fine_when": "It's acceptable when the parenthetical gives a cross-reference, an item identifier, a step number, an abbreviation, a singular-and-plural form, a short explanation, or an alternative."
+  },
+  "ste-punctuation.semicolon-used": {
+    "catches": "You flag any use of a semicolon in a sentence. Semicolons let sentences run on too long and can be used incorrectly, making the text harder to follow.",
+    "fine_when": "This does not apply when the semicolon appears inside a code span, such as shell commands, CSS, SQL, or PATH values."
+  },
+  "ste-safety.risk-level-word-missing-or-wrong": {
+    "catches": "This flags text where the risk marker used doesn't match how serious the actual consequence is, such as using a lower-level word when the risk is unrecoverable data loss or a security exposure, or missing a marker entirely. This matters because a reader may not take the right precautions if the warning understates or omits the real danger.",
+    "fine_when": ""
+  },
+  "ste-safety.safety-block-does-not-start-with-command": {
+    "catches": "This flags a safety block (like a warning or caution) that opens with a description of the risk instead of the command to run or the condition to watch for. This is a problem because a reader who only reads the first sentence would not know what action to take.",
+    "fine_when": ""
+  },
+  "ste-safety.safety-block-missing-consequence": {
+    "catches": "This rule flags a safety warning that tells you not to do something but never explains what will happen if you do it anyway. Without that explanation, you have no way to judge how serious the risk is or why you should care.",
+    "fine_when": ""
+  },
+  "ste-sentences.complex-text-not-in-vertical-list": {
+    "catches": "This flags a sentence that packs a large number of coordinated items into a single inline list. Reading many items strung together in a sentence is hard to follow, so the rule suggests breaking them out into a vertical list instead.",
+    "fine_when": "It's acceptable when the sentence has only a few coordinated items, since a small number of items still reads cleanly inline."
+  },
+  "ste-sentences.missing-article-or-determiner": {
+    "catches": "This rule flags a noun that appears right after a sentence-initial verb without an article or demonstrative like \"the,\" \"a,\" \"an,\" \"this,\" or \"these\" in front of it. This is a problem for a reader because the sentence can read as unclear or incomplete without a word marking which or how many of the noun is meant.",
+    "fine_when": "It is acceptable when the noun is in subject position rather than following a sentence-initial verb, when the statement is general, when it refers to an abstract quality, when the noun is followed by an alphanumeric identifier, or when the text is a heading."
+  },
+  "ste-sentences.missing-connector-between-related-sentences": {
+    "catches": "This flags two consecutive sentences where the second adds a result, contrast, or next step to the first, but no connecting word or phrase makes that relationship clear. Without the connection spelled out, the reader has to guess how the two sentences relate to each other.",
+    "fine_when": "It is acceptable if the second sentence does not actually add a result, a contrast, or a next step to the first."
+  },
+  "ste-sentences.omitted-word-or-contraction": {
+    "catches": "This flags contractions (like \"don't\" or \"it's\") and sentences that leave out a subject or article, such as starting a conditional with \"If configured,\" instead of \"If it is configured,\". These omissions can make sentences ambiguous or less precise about who or what is being referred to.",
+    "fine_when": ""
+  },
+  "ste-sentences.sentence-not-short-or-clear": {
+    "catches": "This rule flags sentences that try to give more than one instruction or cover more than one topic at once. Cramming multiple instructions or topics into a single sentence makes it harder for the reader to follow and act on.",
+    "fine_when": ""
+  },
+  "ste-sentences.vertical-list-item-punctuation": {
+    "catches": "This flags list items that aren't punctuated consistently, such as items not starting with a capital letter, items ending in commas or semicolons instead of appropriate punctuation, or the last item missing a final period. Inconsistent punctuation across list items can make a list harder to read and looks unpolished.",
+    "fine_when": ""
+  },
+  "ste-sentences.vertical-list-lead-in-missing-colon": {
+    "catches": "This rule flags a sentence introducing a vertical list when that sentence ends with a period instead of a colon. This is a problem because the lead-in should signal to the reader that a list follows.",
+    "fine_when": ""
+  },
+  "ste-verbs.auxiliary-stacking": {
+    "catches": "This flags sentences that stack multiple auxiliary verbs together (such as 'will have been' or 'has to be') instead of stating the action plainly. This kind of phrasing buries the actual action and makes the sentence harder to read and act on.",
+    "fine_when": "A modal followed directly by a bare verb (like 'you must rotate the token') is permitted and not flagged."
+  },
+  "ste-verbs.complex-tense": {
+    "catches": "This rule flags verb constructions that use perfect tenses (have/has plus a participle), progressive tenses (is/are plus -ing), or future perfect tense, instead of simple present, past, or future tense. This is a problem for a reader because these complex verb forms can make sentences harder to read than necessary when a simpler tense would express the same meaning.",
+    "fine_when": "This is acceptable in changelog entries, since release notes conventionally use the present perfect tense for describing shipped changes, and in status reports covering completion and status statements that use the same tense legitimately."
+  },
+  "ste-verbs.gerund-outside-noun-use": {
+    "catches": "This flags an -ing word that is doing the work of the main verb in a sentence instead of acting as a noun or a noun modifier. When an -ing form carries the action of the clause, it can make the sentence unclear or harder to follow, and the rule asks you to rewrite it with a finite verb or split it into its own sentence.",
+    "fine_when": "It is acceptable when the -ing word is a noun (naming a thing or process) or is part of a noun as a modifier, including cases inside quotations, code spans, or registered domain terms."
+  },
+  "ste-verbs.nominalized-action": {
+    "catches": "This flags sentences that turn an action into a noun paired with a light verb (like 'performs a validation of' or 'provides protection against') instead of using the action's verb directly. This pattern makes writing wordier and less direct than it needs to be.",
+    "fine_when": "This is acceptable for the phrase 'do a test,' since the noun form of 'test' is permitted while the verb form is not."
+  },
+  "ste-verbs.passive-voice": {
+    "catches": "This rule flags sentences written in the passive voice, where the subject receives the action instead of performing it. This is a problem because it can leave the actor unnamed, making the sentence less direct and clear.",
+    "fine_when": "The passive voice is acceptable in descriptive text when the actor is genuinely unknown."
+  },
+  "ste-verbs.past-participle-not-adjectival": {
+    "catches": "This flags a past participle that is being used as part of a verb construction (sitting after an auxiliary other than \"be\", \"become\", or \"stay\") rather than as an adjective. This can make a sentence rely on passive or complex verb forms instead of clearly stating who or what is performing the action.",
+    "fine_when": "It is acceptable when the past participle sits before a noun it describes, or when it follows a form of \"be\", \"become\", or \"stay\" to describe a condition."
+  },
+  "ste-verbs.verb-form-not-listed": {
+    "catches": "This flags a verb form that is not one of the accepted forms of its base verb, which can make the writing inconsistent with the expected style or harder to follow.",
+    "fine_when": ""
+  },
+  "ste-words.approved-word-substitution": {
+    "catches": "The rule flags a word from a specific list and asks you to swap it for a designated replacement word instead. This matters because the original word is considered inconsistent, even though readers would still understand it.",
+    "fine_when": "The rule is treated as advisory rather than mandatory, since the flagged word is understood by readers and only creates inconsistency, not a comprehension problem."
+  },
+  "ste-words.domain-noun-category-membership": {
+    "catches": "This flags a noun that is not in the controlled vocabulary and does not clearly name a concept in one of the project's declared domain-noun categories. This is a problem because the reader cannot tell what the noun refers to or confirm it is a legitimate project term.",
+    "fine_when": "It is acceptable when the noun, though outside the controlled vocabulary, does name a specified concept that falls within one of the declared domain-noun categories for the project."
+  },
+  "ste-words.domain-noun-not-organization-approved": {
+    "catches": "This flags when you use a different word for something that your project's glossary, API reference, or schema already names. It's a problem because readers may not realize you're referring to the same thing, or may get confused by inconsistent terminology.",
+    "fine_when": "It's acceptable if the project's glossary, API reference, or schema does not already define a name for the thing being described."
+  },
+  "ste-words.domain-noun-too-long-or-unclear": {
+    "catches": "This flags a newly invented domain term that is longer than three words or that a reader outside your team wouldn't understand without a definition. Such terms make the text harder to follow because readers can't easily grasp their meaning.",
+    "fine_when": "It is fine if the term is three words or fewer and a reader outside your team would understand it without needing a definition."
+  },
+  "ste-words.domain-verb-category-membership": {
+    "catches": "This flags a verb that is not one of the standard vocabulary verbs, used in a sentence that could have been written with an ordinary vocabulary verb instead, or used without belonging to a declared domain-verb category with its category meaning intact. This is a problem because it introduces a non-standard word where plain wording would work, or uses a specialized term outside the meaning it's supposed to carry.",
+    "fine_when": "It is acceptable if the sentence could not be written with vocabulary verbs alone, and the verb belongs to a declared domain-verb category and carries that category's meaning in the sentence."
+  },
+  "ste-words.inconsistent-term-for-same-thing": {
+    "catches": "This flags a document that refers to the same thing using two different terms, such as calling something one name in one sentence and a different name later. That is a problem because it forces you to figure out whether the two terms mean the same thing or something different, which slows down and confuses reading.",
+    "fine_when": "The rule can only be checked reliably when a list of known synonym groups is available to confirm that two terms actually refer to the same thing; without such a list, it cannot be determined that the terms are truly interchangeable."
+  },
+  "ste-words.noun-used-as-verb": {
+    "catches": "This flags a domain noun that is being used as a verb, and asks you to use a real verb instead while keeping the noun as a noun. Using the noun this way can make the writing less clear or less standard.",
+    "fine_when": "This rule only applies to a specific, short list of nouns chosen because their verb use is common in software writing and can be cleanly replaced; other nouns used as verbs, such as \"log\" or \"build,\" are not covered by this rule."
+  },
+  "ste-words.obligation-word-substitution": {
+    "catches": "This flags inconsistent use of different obligation words (like 'should', 'shall', 'must') for expressing the same kind of requirement. Mixing these words can make it unclear whether something is truly required or just recommended.",
+    "fine_when": "A document that uses 'should' consistently throughout is still understood, and outside of a specification the choice between obligation words is a matter of consistency rather than an actual defect."
+  },
+  "ste-words.slang-or-jargon-term": {
+    "catches": "This rule flags slang or jargon words used as if they were precise technical terms. This is a problem because readers may not understand casual or informal terms, or may interpret them inconsistently, instead of getting a clear description of the actual behavior.",
+    "fine_when": ""
+  },
+  "ste-words.spelling": {
+    "catches": "You flag words spelled in a non-American English way, since the text should use en-US spelling instead. Inconsistent spelling conventions can make the text look unpolished or unclear about which regional standard it follows.",
+    "fine_when": ""
+  },
+  "ste-words.unapproved-word-not-a-domain-noun": {
+    "catches": "This flags a word that isn't in the approved vocabulary list when that word is not a domain-specific term (or part of one). Such a word is a problem because it should be replaced rather than kept as-is.",
+    "fine_when": "It is acceptable when the out-of-vocabulary word is a domain noun, or is a word inside a multi-word domain noun."
+  },
+  "ste-words.verb-or-adjective-form-not-permitted": {
+    "catches": "This rule flags a word form that is not one of the allowed forms of its base word (for example, an inflected verb or adjective form outside the permitted set). Such a form is a problem for a reader because it is not a recognized or accepted way to write that word, which can make the sentence confusing or nonstandard.",
+    "fine_when": ""
+  },
+  "ste-words.verb-used-as-noun": {
+    "catches": "You flag using a verb from a specific set as if it were a noun (for example, saying 'the deploy' instead of 'the deployment'). This is a problem because it uses a non-standard word form where a proper noun form exists.",
+    "fine_when": ""
+  },
+  "ste-words.word-outside-controlled-vocabulary": {
+    "catches": "This rule flags any word that the project has put on its own blocklist. Using such a word is a problem because the project has specifically said this word should not appear, and a replacement or rewrite is expected instead.",
+    "fine_when": "There is no stated case in the definition where a blocklisted word is acceptable."
+  },
+  "ste-words.word-used-in-wrong-part-of-speech": {
+    "catches": "This flags a word that is being used as a part of speech (for example, a verb) that isn't the part of speech it's permitted to have (for example, a noun). This is a problem because it uses the word in a way that isn't allowed for it, even though the word itself is otherwise acceptable.",
+    "fine_when": ""
+  },
+  "ste-words.word-used-outside-permitted-sense": {
+    "catches": "This flags a controlled word that is being used with a different meaning than the one meaning it's allowed to carry. This is a problem because a reader may understand the word in its ordinary dictionary sense when only one specific, defined meaning is intended.",
+    "fine_when": "It is acceptable when the word is used to carry exactly the single meaning recorded for it, even if the word also has other dictionary meanings."
+  }
+}

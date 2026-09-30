@@ -137,29 +137,34 @@
     "corpus-20260930-s17-v3": {
       "adjudication": [
         {
-          "path": "adjudication/test-sheet.csv",
-          "sha256": "66c9ff1f0c4b4efa66ea19afe0e040b9c3dd4fd17e098e2b2c79437361ff47f1",
-          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/test-sheet.csv"
+          "path": "adjudication/review-lint-findings-calibration.csv",
+          "sha256": "5cd2112b922b57776a51a3aa57c7fb98eb6ae5a4b2bea8e6bdc0cac2ca521110",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-lint-findings-calibration.csv"
         },
         {
-          "path": "adjudication/test-sheet.jsonl",
-          "sha256": "1b8426851325418e12f8e9fcc5a6ec1b8bdd6536b3ca4b8e2d9a51b4ae9f0bd0",
-          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/test-sheet.jsonl"
+          "path": "adjudication/review-lint-findings-disagreement.csv",
+          "sha256": "279223c1a75b2a4f743bdf104397153984218fbdfc8cf108146a2bab5d109062",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-lint-findings-disagreement.csv"
         },
         {
-          "path": "adjudication/label-calibration.csv",
-          "sha256": "dbe6490c3712481e599fc0f8634e90f5c579e27befd0ed011e61b49f2d0507e3",
-          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/label-calibration.csv"
+          "path": "adjudication/review-lint-findings-test.csv",
+          "sha256": "c3892e5aab2d1ab197fa4a3eb971a9a5ec368aad29080cc49f11e5a58c0293bd",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-lint-findings-test.csv"
         },
         {
-          "path": "adjudication/label-disagreement.csv",
-          "sha256": "d97aee8ecf778d829c32184d6900a5a4c5153c1705d4c8c94356e811a7cd1710",
-          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/label-disagreement.csv"
+          "path": "adjudication/review-semantic-calibration.csv",
+          "sha256": "93ca4938a0f9266fd8179a60c1b50f55d0551bd3167515b6beb168e06a7d4eb4",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-semantic-calibration.csv"
         },
         {
-          "path": "adjudication/label-test.csv",
-          "sha256": "2f590ef6f812965cf738fbd645d0a3880b1457df4613fffa46d2f499b63508d9",
-          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/label-test.csv"
+          "path": "adjudication/review-semantic-disagreement.csv",
+          "sha256": "9628f27310c19a36a049dd4ad354bf26673508113f3c9d5d84bb6bbc95d2048d",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-semantic-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-test.csv",
+          "sha256": "8f4f6ec12f9b0ad794f10e9236da5b631adc0f0e0c067879bbcd9cec9128ec29",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-semantic-test.csv"
         }
       ],
       "build_id": "corpus-20260930-s17-v3",

@@ -1,8 +1,8 @@
 """Merge human labels from the adjudication sheets into the item splits.
 
-Reads label sheets written by label_sheets.py (label-test.csv,
-label-calibration.csv, label-disagreement.csv) and sets each labelled item's
-`label` in items/{train,dev,calibration,test}.jsonl:
+Reads the review sheets written by label_sheets.py
+(review-lint-findings-<sheet>.csv, review-semantic-<sheet>.csv) and sets each
+answered item's `label` in items/{train,dev,calibration,test}.jsonl:
 
 - One rater: that rater's label.
 - Two raters who agree: the shared label.
@@ -38,7 +38,7 @@ CHOICE = {
     "insufficient-context": "insufficient-context",
 }
 YES_NO = {"1": True, "0": False, "true": True, "yes": True, "false": False, "no": False}
-RATERS = ("label_rater1", "label_rater2")
+RATERS = ("answer", "second_answer")
 
 
 def _normalise(raw: str, kind: str):
@@ -94,7 +94,9 @@ def import_labels(root: Path, sheets: list[Path]) -> dict:
                     try:
                         answers[rater] = _normalise(row.get(rater, ""), kind)
                     except ValueError as exc:
-                        errors.append(f"{sheet.name}:{line_no} {rater}: {exc}")
+                        errors.append(
+                            f"{sheet.name} row {row.get('row', line_no)} {rater}: {exc}"
+                        )
                 given = {r: a for r, a in answers.items() if a is not None}
                 if not given:
                     continue
@@ -106,7 +108,7 @@ def import_labels(root: Path, sheets: list[Path]) -> dict:
                 decided[item["id"]] = (
                     next(iter(given.values())),
                     given,
-                    row.get("rater_notes", ""),
+                    row.get("notes", ""),
                 )
     if errors:
         raise ValueError("labels not imported:\n- " + "\n- ".join(errors))

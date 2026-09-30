@@ -252,9 +252,9 @@ def publish_export(root: Path, build_id: str, variant: str) -> dict:
     objects = [put(src / f"{s}.jsonl", f"{variant}/{s}.jsonl") for s in SPLITS] + [
         put(src / "export-manifest.json", f"{variant}/export-manifest.json")
     ]
-    sheets = sorted((root / "items/adjudication").glob("*-sheet.*")) + sorted(
-        (root / "items/adjudication").glob("label-*.csv")
-    )
+    # Reviewer-facing sheets only (label_sheets.py); the build's raw
+    # *-sheet.* dumps stay local.
+    sheets = sorted((root / "items/adjudication").glob("review-*.csv"))
     entry = builds.setdefault(build_id, {"build_id": build_id, "variants": {}})
     entry.update(
         {
