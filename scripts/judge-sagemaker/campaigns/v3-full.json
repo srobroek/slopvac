@@ -34,5 +34,6 @@
     "test": "f973edaa3b5feda1ee549f8be3df661fdd49e25f8ed2c53db7b45cdbd4c892e7",
     "calibration": "fca2452aa1e15bb80bc10514699e3495cbed42a690626cc5aaf4f7534293d8a9"
   },
-  "notes": "Round 2 on the v3 export (full). Base arms are evaluated in the full campaign only: both variants share test and calibration. Laya fine-tunes are left out until round 1 shows Laya fine-tuning beats its base."
+  "notes": "Round 2 on the v3 export (full). Base arms are evaluated in the full campaign only: both variants share test and calibration. Laya fine-tunes are left out until round 1 shows Laya fine-tuning beats its base.",
+  "panel_agreement": "items/panel-agreement.json"
 }

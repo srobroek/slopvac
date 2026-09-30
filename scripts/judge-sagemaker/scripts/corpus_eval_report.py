@@ -12,7 +12,10 @@ import json
 import math
 import statistics
 import sys
+from collections import Counter
 from pathlib import Path
+
+import thresholds
 
 EXPECTED_BUILDER = "corpus-export"
 SPLITS = ("calibration", "test")
@@ -39,6 +42,20 @@ def load_jsonl(path: Path):
         for line in path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
+
+
+def composition(rows):
+    """(label origins, choice label counts, yes/no label counts) of a split."""
+    origins = Counter(str(row.get("label_origin")) for row in rows)
+    choice = Counter(
+        str(row.get("label")) for row in rows if row.get("kind") == "choice"
+    )
+    noul = Counter(str(row.get("label")) for row in rows if row.get("kind") == "noul")
+    return (
+        dict(sorted(origins.items())),
+        dict(sorted(choice.items())),
+        dict(sorted(noul.items())),
+    )
 
 
 def file_sha256(path: Path):
@@ -199,22 +216,13 @@ def collect(results_root: Path, registry, ledger_path: Path, panel_path: Path):
         if "test" not in split_data:
             errors.append(f"{arm}: test split could not be loaded")
         else:
+            # Composition (label origins, class counts) is reported, not
+            # asserted: it changes between exports and once human labels land.
             result["_test_rows"] = split_data["test"]["rows"]
-            test_rows = result["_test_rows"]
-            origins = {row.get("label_origin") for row in test_rows}
-            choice_labels = [
-                row.get("label") for row in test_rows if row.get("kind") == "choice"
-            ]
-            if origins != {"construction"}:
-                errors.append(
-                    f"{arm}: test split is not construction-only (label_origin={sorted(map(str, origins))})"
-                )
-            if len(choice_labels) != 18 or any(
-                label != "real-defect" for label in choice_labels
-            ):
-                errors.append(
-                    f"{arm}: expected 18 test choice items, all real-defect; got {len(choice_labels)} items with labels {choice_labels}"
-                )
+        predictions = arm_dir / "results" / "predictions" / f"{arm}.jsonl"
+        result["_thresholds"] = (
+            thresholds.analyse(predictions) if predictions.is_file() else None
+        )
 
         metrics = result.get("metrics")
         if not isinstance(metrics, dict):
@@ -412,18 +420,15 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
     for split, digest, count in splits:
         lines.append(f"- {split.title()}: {count} examples; SHA-256 `{digest}`.")
     test_rows = next(iter(results.values())).get("_test_rows")
-    # The profile was validated during collection; report corpus composition directly from the verified split.
     if test_rows is not None:
-        choice_labels = [
-            row.get("label") for row in test_rows if row.get("kind") == "choice"
-        ]
-        origins = sorted({str(row.get("label_origin")) for row in test_rows})
-        choice_counts = {
-            label: choice_labels.count(label) for label in sorted(set(choice_labels))
-        }
+        origins, choice_counts, noul_counts = composition(test_rows)
         lines.append(
-            f"- Test construction: label origins `{', '.join(origins)}`; choice test N={len(choice_labels)}, labels: "
-            + ", ".join(f"{label}={count}" for label, count in choice_counts.items())
+            "- Test composition: label origins "
+            + ", ".join(f"`{o}`={n}" for o, n in origins.items())
+            + "; choice labels "
+            + (", ".join(f"{k}={v}" for k, v in choice_counts.items()) or "none")
+            + "; yes/no labels "
+            + (", ".join(f"{k}={v}" for k, v in noul_counts.items()) or "none")
             + "."
         )
     lines += [
@@ -438,7 +443,7 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
             f"- {role}: Fleiss κ={value['fleiss_kappa']:.2f} ({value['items']} three-vote items)."
         )
     lines += [
-        "- These agreement values are low, especially for semantic-detection. Model-vs-gold scores must be interpreted as performance against the constructed labels, not as a claim of stable human consensus.",
+        "- Scores on panel-labelled rows measure agreement with the panel. Only constructions and human-adjudicated rows have independent ground truth.",
         "",
         "## Per-arm training recipes",
         "",
@@ -654,10 +659,55 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
     lines += [
         table(slice_headers, slice_rows),
         "",
+        "## Decision thresholds (yes/no questions)",
+        "",
+        f"Thresholds are fit on calibration only: one global threshold that maximises balanced accuracy, and one per rule where each class has at least {thresholds.MIN_PER_CLASS} calibration items (other rules fall back to the global one). Test balanced accuracy at each:",
+        "",
+    ]
+    threshold_rows = []
+    for arm in sorted(results):
+        t = results[arm].get("_thresholds")
+        if t is None:
+            threshold_rows.append([arm, "—", "—", "—", "—", "—", "—"])
+            continue
+        b = t["test_balanced_accuracy"]
+        threshold_rows.append(
+            [
+                arm,
+                fmt(t["calibration_n"]),
+                fmt(t["global_threshold"]),
+                fmt(t["rules_with_own_threshold"]),
+                fmt(b["at_0.5"]),
+                fmt(b["at_global"]),
+                fmt(b["at_per_rule"]),
+            ]
+        )
+    lines += [
+        table(
+            [
+                "arm",
+                "calibration n",
+                "global threshold",
+                "rules with own threshold",
+                "test bal. acc @0.5",
+                "@global",
+                "@per-rule",
+            ],
+            threshold_rows,
+        ),
+        "",
+    ]
+    origins, choice_counts, noul_counts = composition(test_rows or [])
+    kappas = ", ".join(
+        f"κ={panel_values[role]['fleiss_kappa']:.2f} {role}"
+        for role in ("finding-confirmation", "semantic-detection")
+    )
+    lines += [
         "## Interpretation and caveats",
         "",
-        "- This is a construction-only test set, not a randomly sampled deployment distribution; all 18 test choice items are real-defect examples, so choice metrics are not class-balanced estimates.",
-        "- The reference panel has low Fleiss agreement (κ=.13 finding-confirmation, κ=.02 semantic-detection). Treat labels as constructed targets with material annotator disagreement.",
+        f"- Test label origins: {', '.join(f'{o} ({n})' for o, n in origins.items())}. Constructions are injected known-answer cases, not a random sample of deployment text; human-adjudicated rows are the natural-text estimate once present.",
+        f"- Test class counts: choice {', '.join(f'{k}={v}' for k, v in choice_counts.items()) or 'none'}; yes/no {', '.join(f'{k}={v}' for k, v in noul_counts.items()) or 'none'}. Plain accuracy is not comparable across splits with different class balance; read balanced accuracy and AUROC.",
+        f"- Training labels come from a teacher panel with {kappas}. Treat model-vs-label scores on panel-labelled rows as agreement with the panel, not with human consensus.",
         "- Cluster-bootstrap intervals quantify only within-test-set uncertainty. They do not capture corpus construction, prompt, model-release, or deployment variation; overall intervals are not subgroup-specific.",
         "- Calibration temperature is fit on the calibration split and applied to test predictions; it does not turn test data into calibration data.",
         "- Latency is recorded single-request p50/p95, grouped by actual GPU class/instance/region; comparisons across different hardware are confounded by the hardware and are not concurrency/throughput comparisons.",
@@ -668,45 +718,66 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
     return "\n".join(lines)
 
 
+def campaign_arms(campaign, registry):
+    seeds = (17, 18, 19)
+    names = list(campaign["base_arms"]) + [
+        f"{model}-ft-s{seed}" for model in campaign["train_models"] for seed in seeds
+    ]
+    missing = [n for n in names if n not in registry]
+    if missing:
+        raise ValueError(f"campaign arms not in arms.py: {missing}")
+    return {n: registry[n] for n in names}
+
+
+ROUND1 = {
+    "results": "corpus",
+    "panel_agreement": ".cache/items-v2/panel-agreement.json",
+    "base_arms": [
+        "kev-0.8b",
+        "kev-4b",
+        "kev-9b",
+        "laya-english",
+        "laya-multilingual",
+        "laya-typed-decisions",
+    ],
+    "train_models": ["kev-0.8b", "kev-4b", "kev-9b", "laya-typed-decisions"],
+}
+
+
 def main():
     script = Path(__file__).resolve()
+    corpus = script.parents[4] / "exp-judge-corpus" / "scripts" / "judge-corpus"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--results-root", type=Path, default=script.parents[1] / "results" / "corpus"
+        "--campaign",
+        type=Path,
+        help="campaign JSON under campaigns/; default: round 1 (results/corpus)",
     )
+    parser.add_argument("--results-root", type=Path)
     parser.add_argument(
         "--ledger", type=Path, default=script.parents[1] / "cost-ledger.json"
     )
-    parser.add_argument(
-        "--panel-agreement",
-        type=Path,
-        default=script.parents[4]
-        / "exp-judge-corpus"
-        / "scripts"
-        / "judge-corpus"
-        / "items"
-        / "panel-agreement.json",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=script.parents[3] / "results" / "corpus" / "corpus-eval-report.md",
-    )
+    parser.add_argument("--panel-agreement", type=Path)
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        registry = arms_registry()
+        campaign = load_json(args.campaign) if args.campaign else ROUND1
+        registry = campaign_arms(campaign, arms_registry())
+        results_root = (
+            args.results_root or script.parents[1] / "results" / campaign["results"]
+        )
+        panel_path = args.panel_agreement or corpus / campaign["panel_agreement"]
+        output = args.output or results_root / "corpus-eval-report.md"
         results, signature, panel_values, ledger = collect(
-            args.results_root, registry, args.ledger, args.panel_agreement
+            results_root, registry, args.ledger, panel_path
         )
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    report = render(
-        results, signature, panel_values, ledger, args.panel_agreement, registry
-    )
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(report, encoding="utf-8")
-    print(f"Wrote {args.output} ({len(results)} arms)")
+    report = render(results, signature, panel_values, ledger, panel_path, registry)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(report, encoding="utf-8")
+    print(f"Wrote {output} ({len(results)} arms)")
     return 0
 
 
