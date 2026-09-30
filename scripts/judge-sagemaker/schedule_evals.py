@@ -887,7 +887,9 @@ def fetch_terminal_jobs(
             mark_calibration_artifact(entry, detail, region)
         needs_fetch = (
             entry.get("status") not in FINAL
-            or entry.get("billable_seconds") is None
+            # A job stopped before it started never gets billable seconds, but
+            # fetch records cost_usd (0.0) for it; fetch each terminal job once.
+            or entry.get("cost_usd") is None
             or (
                 entry.get("kind") == "evaluation"
                 and status == "Completed"

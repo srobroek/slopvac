@@ -2454,6 +2454,16 @@
           "task": "describe",
           "at": "2026-09-30T03:24:00.464282+00:00",
           "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T03:28:35.267883+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T08:20:42.554511+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
         }
       ],
       "scheduler": {
@@ -5095,9 +5105,9 @@
       "max_runtime_s": 20040,
       "max_cost_usd": 27.83,
       "submitted_at": "2026-09-29T06:29:39.196184+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Failed",
+      "billable_seconds": 7416,
+      "cost_usd": 10.3,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -5138,7 +5148,12 @@
           "version_id": null
         }
       },
-      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20260929062915"
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20260929062915",
+      "failure_reason": "AlgorithmError: ContextOverflow: state exceeds 384 tokens: 3013\nTraceback (most recent call last):\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 295, in <module>\n    main()\n  File \"/opt/ml/input/data/code/judge_sagemaker/container/entry.py\", line 209, in main\n    _, rows = evaluate_records(records, predictor, MODEL / \"calibration-eval\")\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/benchmark.py\", line 137, in evaluate_records\n    pred = next(preds)()\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/torch/utils/_contextlib.py\", line 120, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/kev/kev/predictors.py\", line 60, in __call__\n    enc = self.model.encode(self.tok, materialize(record), max_state=self.context[\"max_state\"], max_branch=self.context[\"max_branch\"], strict=True)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+      "secondary_status": "Failed",
+      "scheduler": {
+        "implementation_defect": "calibration_context_failure_artifact_ok"
+      }
     },
     {
       "job_name": "slopvac-judge-kev-4b-s19-20260929062949",
@@ -6390,7 +6405,8 @@
         "target": "kev-9b",
         "attempt": 2,
         "region": "us-west-2",
-        "instance_type": "ml.g6e.2xlarge"
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
       }
     },
     {
@@ -6506,7 +6522,8 @@
         "target": "kev-9b-ft-s17",
         "attempt": 1,
         "region": "us-east-1",
-        "instance_type": "ml.g6e.2xlarge"
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
       }
     },
     {
@@ -8346,9 +8363,9 @@
       "max_runtime_s": 36000,
       "max_cost_usd": 20.0,
       "submitted_at": "2026-09-29T22:15:49.085228+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Stopped",
+      "billable_seconds": 18555,
+      "cost_usd": 10.3083,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -8400,7 +8417,9 @@
         "attempt": 7,
         "region": "us-west-2",
         "instance_type": "ml.g5.2xlarge"
-      }
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20260930001932",
@@ -8410,9 +8429,9 @@
       "max_runtime_s": 29858,
       "max_cost_usd": 41.47,
       "submitted_at": "2026-09-30T00:19:41.543525+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 18028,
+      "cost_usd": 25.0389,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -8461,7 +8480,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.4xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-08b-s18-20260930012603",
@@ -9024,9 +9045,9 @@
       "max_runtime_s": 29858,
       "max_cost_usd": 91.23,
       "submitted_at": "2026-09-30T01:55:14.814942+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 18425,
+      "cost_usd": 56.2986,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -9075,7 +9096,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.16xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-4b-ft-s19-260930015516499752",
@@ -9944,9 +9967,9 @@
       "max_runtime_s": 36000,
       "max_cost_usd": 20.0,
       "submitted_at": "2026-09-30T03:11:39.752468+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Stopped",
+      "billable_seconds": 842,
+      "cost_usd": 0.4678,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -9998,6 +10021,222 @@
         "attempt": 6,
         "region": "us-east-1",
         "instance_type": "ml.g5.2xlarge"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s17-20260930083119",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 36000,
+      "max_cost_usd": 20.0,
+      "submitted_at": "2026-09-30T08:31:40.410122+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-laya-typed-decisions-s17-20260930083119",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s17",
+        "attempt": 6,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s18-20260930083141",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 36000,
+      "max_cost_usd": 20.0,
+      "submitted_at": "2026-09-30T08:32:39.241089+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-laya-typed-decisions-s18-20260930083141",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s18",
+        "attempt": 8,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-laya-typed-decisions-s19-20260930083241",
+      "model": "laya-typed-decisions",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 36000,
+      "max_cost_usd": 30.0,
+      "submitted_at": "2026-09-30T08:33:01.795747+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "laya-typed-decisions",
+        "family": "laya",
+        "init_from": "s3://slopvac-judge-536697262379-84848969f6/checkpoints/laya-typed-decisions-1a793eb568e6718f15941d08f85432581df534e3.tar.gz",
+        "base_revision": "",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "repo": "convaiinnovations/laya-typed-decisions",
+        "revision": "1a793eb568e6718f15941d08f85432581df534e3",
+        "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+        "epochs": "4",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "0",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
+          "etag": "\"8accd0187e6b8d26a505294f5229f672-3\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
+          "etag": "\"be5d098546f4ba05fdc8f6337b2c1962\"",
+          "version_id": null
+        },
+        "model": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/"
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json",
+          "etag": "\"81b9ce9411c6ce1e9955f9ea792b69c2\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-laya-typed-decisions-s19-20260930083241",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "training",
+        "target": "laya-typed-decisions-ft-s19",
+        "attempt": 7,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s18-260930083520945776",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s18",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-09-30T08:35:47.351180+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-ft-s18-260930083520945776",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge"
       }
     }
   ]
