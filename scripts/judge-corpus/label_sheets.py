@@ -10,7 +10,9 @@ All sheets go to items/adjudication/ (private; gitignored). One row per item:
 what to judge, the allowed labels, the flagged text, and the span with the
 flagged text marked [[like this]]. The `priority` column marks a
 rule-stratified first pass (up to 120 rows per role) as 1 and the rest as 2.
-The first rater fills in `label_rater1` with one of `allowed_labels`; rows with
+The first rater fills in `label_rater1` with one of `allowed_labels`: for a
+lint finding 1 = real defect, 0 = false positive, - = insufficient context; for
+a semantic question 1 = defect present, 0 = not present. Rows with
 `double_label` = 1 (a rule-stratified subset of the first pass, up to 40 per
 role) also get `label_rater2` from a second rater. `rater_notes` is free text.
 """
@@ -66,7 +68,7 @@ def describe(question: dict, state: dict) -> dict:
             "rule": f"{f['rule_name']} ({f['rule_id']})",
             "rule_detail": f["lint_message"],
             "flagged_text": f["matched_text"],
-            "allowed_labels": "real-defect | false-positive | insufficient-context",
+            "allowed_labels": "1 = real defect | 0 = false positive | - = insufficient context",
             "text_with_flag": marked(state["text"], f["start"], f["end"]),
         }
     examples = "; ".join(
@@ -78,7 +80,7 @@ def describe(question: dict, state: dict) -> dict:
         "rule": question["rule_id"],
         "rule_detail": examples,
         "flagged_text": "",
-        "allowed_labels": "true (defect present) | false",
+        "allowed_labels": "1 = defect present | 0 = not present",
         "text_with_flag": state["text"],
     }
 

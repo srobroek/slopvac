@@ -11,10 +11,11 @@ label-calibration.csv, label-disagreement.csv) and sets each labelled item's
 
 Every merged item gets `label_origin=human-adjudication`, `label_confidence=1.0`
 and `human_labels` holding each rater's answer, so a human label replaces a
-teacher-panel label. Labels are validated against the item's question: finding
-confirmation takes real-defect | false-positive | insufficient-context, yes/no
-questions take true | false (also yes | no), written as JSON booleans. An
-invalid label stops the import and lists the offending rows; nothing is written.
+teacher-panel label. Labels are validated against the item's question: a lint
+finding takes 1 (real-defect), 0 (false-positive) or - (insufficient-context);
+a yes/no question takes 1 or 0, written as JSON booleans. The spelled-out
+labels are accepted too. An invalid label stops the import and lists the
+offending rows; nothing is written.
 """
 
 from __future__ import annotations
@@ -26,8 +27,17 @@ from pathlib import Path
 from .common import read_jsonl, write_jsonl
 from .items import SPLITS
 
-CHOICE = {"real-defect", "false-positive", "insufficient-context"}
-YES_NO = {"true": True, "yes": True, "false": False, "no": False}
+# Sheet codes (label_sheets.py): 1 / 0 / - for lint findings, 1 / 0 for
+# semantic questions. The spelled-out labels are accepted too.
+CHOICE = {
+    "1": "real-defect",
+    "0": "false-positive",
+    "-": "insufficient-context",
+    "real-defect": "real-defect",
+    "false-positive": "false-positive",
+    "insufficient-context": "insufficient-context",
+}
+YES_NO = {"1": True, "0": False, "true": True, "yes": True, "false": False, "no": False}
 RATERS = ("label_rater1", "label_rater2")
 
 
@@ -37,10 +47,12 @@ def _normalise(raw: str, kind: str):
         return None
     if kind == "choice":
         if value not in CHOICE:
-            raise ValueError(f"{raw!r} is not one of {sorted(CHOICE)}")
-        return value
+            raise ValueError(
+                f"{raw!r} is not 1 (real defect), 0 (false positive) or - (insufficient context)"
+            )
+        return CHOICE[value]
     if value not in YES_NO:
-        raise ValueError(f"{raw!r} is not true or false")
+        raise ValueError(f"{raw!r} is not 1 (defect present) or 0 (not present)")
     return YES_NO[value]
 
 
