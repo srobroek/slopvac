@@ -16,7 +16,8 @@ from pathlib import Path
 
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, HTTPClientError
+from botocore.exceptions import ConnectionError as BotoConnectionError
 
 from .bedrock import PROFILE, REGION, ensure_budget, now, pricing_for, record_cost
 from .common import read_jsonl, token_estimate
@@ -27,11 +28,17 @@ RETRYABLE = {
     "ModelTimeoutException",
     "InternalServerException",
 }
+# A network outage (DNS failure, dropped connection) is retried for up to
+# NETWORK_RETRIES * NETWORK_BACKOFF_S seconds before the run fails.
+NETWORK_RETRIES = 60
+NETWORK_BACKOFF_S = 30
 
 
 def _invoke(client, model_id: str, record: dict) -> dict:
     body = json.dumps(record["modelInput"]).encode("utf-8")
-    for attempt in range(8):
+    attempt = 0
+    network_failures = 0
+    while True:
         try:
             response = client.invoke_model(
                 modelId=model_id,
@@ -49,7 +56,12 @@ def _invoke(client, model_id: str, record: dict) -> dict:
                     "error": {"code": code, "message": str(exc)},
                 }
             time.sleep(min(60, 2**attempt))
-    raise AssertionError("unreachable")
+            attempt += 1
+        except (BotoConnectionError, HTTPClientError):
+            network_failures += 1
+            if network_failures > NETWORK_RETRIES:
+                raise
+            time.sleep(NETWORK_BACKOFF_S)
 
 
 def _usage(output: dict) -> tuple[int, int]:

@@ -52,6 +52,8 @@ PRICES = {
     # Unverified Bedrock price; set high so the budget guard errs safe.
     "qwen.qwen3-next": (0.50, 2.00),
     "deepseek.v3": (0.14, 0.28),
+    # Third-party listing (aws-bedrock-explorer.com, 2026-09-30); not an AWS page.
+    "xai.grok-4.6": (2.00, 6.00),
     "google.gemma-3": (0.10, 0.40),
     "moonshotai.kimi": (0.50, 2.00),
     "zai.glm": (0.50, 2.00),
