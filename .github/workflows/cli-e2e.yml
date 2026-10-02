@@ -55,7 +55,7 @@ jobs:
           python3 - <<'PY'
           import json
           rules = json.load(open('/tmp/rules.json'))
-          assert len(rules['rules']) == 167, len(rules['rules'])
+          assert len(rules['rules']) == 166, len(rules['rules'])
           assert len(rules['categories']) == 26, len(rules['categories'])
           PY
           slopvac explain orwell.stale-figure --format json > /tmp/explain.json
@@ -351,7 +351,7 @@ jobs:
           python - <<'PY'
           import json
           rules = json.load(open("/tmp/rules.json"))
-          assert len(rules["rules"]) == 167
+          assert len(rules["rules"]) == 166
           assert len(rules["categories"]) == 26
           PY
 
