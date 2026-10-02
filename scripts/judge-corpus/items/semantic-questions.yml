@@ -1,0 +1,225 @@
+# One plain yes/no question per semantic-detection rule, about the text an item
+# highlights [[like this]]. Yes means the highlighted text has the defect.
+# Drafted by Opus 5.5 (judge-corpus items draft-questions), then checked by hand
+# against each rule's original question and examples. Edit here; a re-draft
+# only adds rules that are missing.
+ai-tells-content-shape.elegant-variation:
+  question: Does the highlighted text call one thing by two or more different names without saying the names mean the same thing?
+  yes_example: Start the sync daemon before editing files. Once the background worker is running, the watcher pushes each change to the server.
+  no_example: Start the sync daemon (also called the watcher) before editing files. Once the sync daemon is running, it pushes each change to the server.
+ai-tells-content-shape.epigram-closer-remainder:
+  question: Does the highlighted text close on a punchy, quotable line that adds no fact the paragraph or table above did not already give?
+  yes_example: The cache keeps each response for five minutes and refreshes it after expiry. Fresh data is fast data.
+  no_example: The cache keeps each response for five minutes and refreshes it after expiry. Writes bypass the cache entirely.
+ai-tells-content-shape.one-point-dilution:
+  question: Does the highlighted text restate a point already made, in other words, without adding any new fact, condition, step, decision or concrete recommendation?
+  yes_example: The scheduler retries failed jobs automatically. Put simply, if a job fails, the scheduler will try it again on its own.
+  no_example: The scheduler retries failed jobs automatically. It stops after five attempts and moves the job to the dead-letter queue.
+ai-tells-content-shape.over-writing-remainder:
+  question: Is the highlighted text backstory or an afterthought the reader could lose without losing any current behavior, limit, reproduction step or decision the document records?
+  yes_example: Early on we stored sessions in Redis, then briefly in Postgres, and only after a long debugging week did the team land on signed cookies.
+  no_example: Sessions are stored in signed cookies that expire after 24 hours; existing Redis sessions stay valid until the 3.0 release, when they are dropped.
+ai-tells-content-shape.padded-symmetry:
+  question: Does the highlighted section exist only to match its sibling sections' length, or is it an FAQ, tips or troubleshooting section answering questions nobody asked?
+  yes_example: 'A "Troubleshooting" section that says only: "If something goes wrong, check your settings and try again."'
+  no_example: 'An "Uninstalling" section: "Run `brew uninstall quillctl`. Cached tokens in ~/.quill are kept, so delete that folder to sign out fully."'
+ai-tells-content-shape.textbook-connector-runs:
+  question: Do two back-to-back sentences in the highlighted text both open with a stock connector such as moreover, furthermore, additionally or consequently?
+  yes_example: Additionally, the scheduler retries failed jobs. Consequently, transient network errors rarely reach users.
+  no_example: The scheduler retries failed jobs up to three times. Consequently, transient network errors rarely reach users.
+ai-tells-content-shape.unasked-for-rationale:
+  question: Does the highlighted text only defend an implementation or tell how it came about, with no constraint, gotcha, threshold or decision the reader needs?
+  yes_example: The retry queue uses a plain list, which we settled on after some back-and-forth because it seemed cleaner.
+  no_example: The retry queue holds at most 500 entries, because larger queues exhausted worker memory in load tests.
+ai-tells-formatting.table-wrapping-one-sentence:
+  question: Is the highlighted text a table that just holds one sentence of prose, rather than rows whose cells vary along a shared dimension?
+  yes_example: 'A one-column table headed "Warning" whose only row reads "Restarting the worker clears all pending jobs from the queue."'
+  no_example: A table of command-line flags with Default and Description columns, one row each for --retries and --timeout.
+ai-tells-register.anthropomorphised-justification-remainder:
+  question: Does the highlighted text credit a software component with merit or intent, instead of stating a property a reader could check?
+  yes_example: The retry layer earns its place in the pipeline and pulls its weight during outages.
+  no_example: The retry layer resends a failed request up to three times, waiting two seconds between attempts.
+ai-tells-register.false-agency-remainder:
+  question: Does the highlighted text credit an abstract subject with intent, choice or self-caused change that a person owns, rather than software performing a checkable operation?
+  yes_example: The roadmap decided that offline mode could wait until next quarter.
+  no_example: The scheduler retries failed jobs three times before marking them as dead.
+ai-tells-register.faux-candor-remainder:
+  question: Does the highlighted text perform modesty or honesty without admitting any specific mistake, failure, limitation or cost the author actually owns?
+  yes_example: Honestly, our sync engine isn't flawless, and we're the first to admit there's always room to grow.
+  no_example: Our sync engine drops edits made offline for longer than 72 hours; we have not fixed this and do not plan to in 2.x.
+ai-tells-register.figurative-verb-verdict-remainder:
+  question: Does the highlighted text pass judgement through a metaphor without stating any observation that would let a reader check or dispute it?
+  yes_example: The new caching layer is a safety net for the whole API.
+  no_example: The new caching layer serves repeated requests from memory, so the API keeps responding when the database restarts.
+ai-tells-register.hedged-symmetry:
+  question: Does the highlighted text weigh its point against a vague counter-claim nobody actually makes, just to sound even-handed?
+  yes_example: Connection pooling reduces latency under load, although some feel it may introduce unnecessary complexity.
+  no_example: Connection pooling reduces latency under load, but on serverless platforms each instance holds its own pool, which can exhaust the database's connection limit.
+ai-tells-register.intensifier-tics-remainder:
+  question: Does the highlighted text use an adverb like "incredibly" to announce a reaction that no measurement, example or named consequence in the passage supports?
+  yes_example: The new caching layer is incredibly fast and makes the dashboard feel dramatically better.
+  no_example: "The new caching layer is surprisingly fast: dashboard page loads dropped from 1.8 seconds to 200 milliseconds."
+ai-tells-register.organic-consequence-remainder:
+  question: Does the highlighted text describe something people deliberately chose as if it simply happened on its own?
+  yes_example: Over time, the API converged on cursor-based pagination, and page numbers fell away.
+  no_example: The API team switched to cursor-based pagination because page numbers skipped records when items were inserted mid-scan.
+ai-tells-register.over-formatting-reflex:
+  question: Does the highlighted text put content without real columns or independent parallel items into a table, headings or bold-label bullets, where prose would do?
+  yes_example: A two-column "Topic | Detail" table whose only row says that the scheduler retries failed jobs three times.
+  no_example: A table of command-line flags with Type and Default columns, one row per flag.
+ai-tells-register.urgency-inflation-remainder:
+  question: Does the highlighted text stress that something is important or urgent without saying what breaks if the reader ignores it?
+  yes_example: It is absolutely essential that you rotate your API keys on schedule. Do not skip this step.
+  no_example: Rotate your API keys every 90 days; expired keys are rejected at login, and every scheduled job using them stops running.
+ai-tells-structure.absolute-assertion-remainder:
+  question: Does the highlighted text make a sweeping always, never or every claim, or a flat guarantee, that no source, evidence or stated bounded scope supports?
+  yes_example: Caching never causes stale data, so you can safely enable it on every service without a second thought.
+  no_example: Every response from the v2 billing API reports amounts in cents, not dollars.
+ai-tells-structure.analogy-stack-authority:
+  question: Does the highlighted text borrow authority by naming famous companies or products that have no real connection to the claim it makes?
+  yes_example: Netflix didn't wait for permission, and Airbnb didn't ask hotels first; our config loader takes the same bold approach to default values.
+  no_example: Like Git, the sync tool stores each file version under a hash of its contents, so identical files are saved only once.
+ai-tells-structure.anaphora-abuse:
+  question: Do three or more sentences in a row in the highlighted text open with the same subject and verb, with only the object changing?
+  yes_example: The migration tool requires a database backup. The migration tool requires an admin token. The migration tool requires write access to the schema folder.
+  no_example: The migration tool reads the current schema. It compares each table against the target version. It then writes the pending changes to a plan file.
+ai-tells-structure.audience-straddle-remainder:
+  question: Does the highlighted text switch between a beginner's primer and expert operational detail when the task needs only one, beyond definitions the task requires?
+  yes_example: A database index works like the index at the back of a book, helping you find rows faster. To tune it, set fillfactor to 70 and run REINDEX CONCURRENTLY when WAL pressure is low.
+  no_example: Set `fillfactor` (the percentage of each page Postgres fills before leaving room for updates) to 70, then run `REINDEX CONCURRENTLY`.
+ai-tells-structure.cataphoric-lead-in-remainder:
+  question: Does the highlighted text announce what follows, such as how many items come next, when that announcement changes nothing the reader does?
+  yes_example: There are a few things to know about log rotation. Logs rotate daily and are kept for seven days.
+  no_example: Restoring from backup takes six steps, two of which need the database offline, so schedule a maintenance window before you start.
+ai-tells-structure.contrastive-inversion-remainder:
+  question: Does the highlighted text contrast against an alternative nobody proposed, so dropping the contrast loses nothing, unlike a correction or instruction naming a real alternative?
+  yes_example: Unlike tools that just move files around, the sync command keeps your data in harmony across machines.
+  no_example: Pass the token in the Authorization header, not as a query parameter, because query strings are written to server logs.
+ai-tells-structure.false-range:
+  question: Is a "from X to Y" in the highlighted text naming two members of a set rather than two ends of a real scale?
+  yes_example: The plugin supports every editor, from Vim to Sublime Text.
+  no_example: Build times range from about 40 seconds on a laptop to under 10 seconds on the CI cluster.
+ai-tells-structure.false-suspense-remainder:
+  question: Does the highlighted text announce that something important follows without stating any part of it?
+  yes_example: Before you deploy, there is one detail about caching that most teams miss, and it matters more than anything else here.
+  no_example: "One detail matters most before you deploy: the cache keeps stale entries for 24 hours unless you set CACHE_TTL."
+ai-tells-structure.heading-echo:
+  question: Does the first sentence of the highlighted text only restate the heading above it, adding no new operation, limit, path, number or scope?
+  yes_example: 'Under the heading "Configure log rotation": "This section explains how to configure log rotation."'
+  no_example: 'Under the heading "Configure log rotation": "Log rotation runs nightly and keeps the last 14 files in /var/log/app."'
+ai-tells-structure.hollow-acknowledgment:
+  question: Does the highlighted text name a risk, limitation or problem but give no action, no measurement and no pointer to where it is handled?
+  yes_example: Cache invalidation can be tricky when multiple services write to the same keys, so keep this in mind.
+  no_example: Cache entries can go stale when two services write the same key; each write bumps a version number, and readers discard entries older than the current version.
+ai-tells-structure.invented-concept-label:
+  question: Does the highlighted text name a concept with a coined, title-case or quoted label without defining it or citing a source that uses the term?
+  yes_example: Most outages in this service trace back to the Config Drift Spiral, so pin your versions early.
+  no_example: Most outages in this service come from configuration drift, where running servers slowly diverge from the settings stored in the repository.
+ai-tells-structure.listicle-in-a-trench-coat:
+  question: Does the highlighted text enumerate points in prose ("The first ... The second ...") where none of them depends on the one before?
+  yes_example: The first requirement is a running Redis instance. The second requirement is Python 3.10 or later. The third requirement is a valid API token.
+  no_example: The first step creates the database schema. The second step then seeds it with the default roles, which the schema's foreign keys require to exist.
+ai-tells-structure.meta-narration-remainder:
+  question: Does the highlighted text only announce what the document covers next or in what order, stating no fact, requirement, step or prerequisite?
+  yes_example: Next, we'll take a closer look at how the scheduler handles retries, and then move on to configuration.
+  no_example: Read the authentication section first, because every API call below requires a valid token.
+ai-tells-structure.negative-inventory-remainder:
+  question: Does the highlighted text only list what was not run, pinned or included, with no boundary or result the reader must rely on?
+  yes_example: The test fixtures were not regenerated, the staging database was not checked, and older SDK versions were not tried.
+  no_example: This command does not migrate stored sessions; run `auth-migrate --sessions` before upgrading or users will be signed out.
+ai-tells-structure.staccato-negative-parallel-remainder:
+  question: Does the highlighted text use a run of short fragments to build rhythm, rather than each fragment adding a distinct fact?
+  yes_example: The new scheduler is here. Smarter. Leaner. Built for scale.
+  no_example: "Timeout: 30 seconds by default. Maximum: 300 seconds. Retries: three, with exponential backoff between attempts."
+ai-tells-structure.summary-closer-remainder:
+  question: Does the highlighted closing text only re-list what the sections above already covered, without stating anything new?
+  yes_example: To recap, this guide showed how to install the CLI, configure your API token, and deploy your first function.
+  no_example: Deployed functions are deleted automatically after 30 days of inactivity unless you pin them with `fn pin`.
+ai-tells-structure.think-of-it-as-remainder:
+  question: Does the highlighted text use an analogy in place of saying how the thing actually works, rather than alongside such an explanation?
+  yes_example: The rate limiter is the bouncer at the door of your API, keeping the crowd under control.
+  no_example: Like a coat check, the session store gives each client a token and returns that client's saved session data whenever the token is presented.
+ai-tells-structure.tricolon-abuse-remainder:
+  question: Do the highlighted parallel items, such as same-shaped bullets or back-to-back triplets, repeat each other instead of each stating a fact the others do not?
+  yes_example: 'Three bullets: "Reliable: the logger is dependable." "Robust: it holds up well." "Stable: it keeps working."'
+  no_example: 'Three bullets: "Rotation: log files roll over at 50 MB." "Retention: files older than 14 days are deleted." "Format: each line is one JSON object."'
+ai-tells-structure.vague-attribution-remainder:
+  question: Does the highlighted text credit a claim to a source too vague for a reader to find, such as unnamed experts or studies?
+  yes_example: Industry experts agree that connection pooling is the single biggest factor in database performance.
+  no_example: The PostgreSQL 16 documentation, section 20.4, recommends setting shared_buffers to about 25% of system memory.
+orwell.concrete-floor:
+  question: Does the highlighted text make a factual claim without naming any checkable particular, such as a number, identifier, path, command or dated event?
+  yes_example: The sync service includes several safeguards that keep data consistent across devices.
+  no_example: The sync service retries failed uploads three times, then writes the conflict to ~/.sync/conflicts.log.
+prose-discipline.bare-quantifier-with-figure-available:
+  question: Does the highlighted text use a vague amount word such as "most", "some" or "many" where the passage counts, lists or measures the actual figure?
+  yes_example: "Several plugins fail to load on startup. The startup log below lists the three that failed: auth-ldap, metrics-push and cache-warm."
+  no_example: Some third-party themes may override these styles, since anyone can publish a theme and we cannot test them all.
+prose-discipline.competing-actor-terms:
+  question: Does the highlighted text name the same acting person or system with different terms, such as user and customer, without defining a difference?
+  yes_example: The subscriber registers a webhook URL. When an event fires, the listener receives a signed payload and the recipient must verify the signature.
+  no_example: The operator deploys the gateway; tenants, the teams whose traffic it routes, cannot change its settings. The operator rotates its certificates monthly.
+prose-discipline.hedged-into-uselessness:
+  question: Does the highlighted text hedge so much, or both ways at once, that a reader cannot act on it, beyond any real, measured uncertainty?
+  yes_example: Enabling compression might reduce bandwidth in some setups, though it could also slow things down, so it may or may not be worth trying depending on your environment.
+  no_example: Enabling compression cuts bandwidth by about 60% on JSON payloads. On ARM devices without hardware zlib support, CPU use rises 15–20%, so test there first.
+prose-discipline.marketing-register:
+  question: Does the highlighted text sell rather than describe, with praise nobody could check, instead of numbers, limits, versions or citations?
+  yes_example: Our caching layer is crafted to keep your applications feeling effortless, so your users always get the experience they deserve.
+  no_example: The caching layer serves repeated queries in under 5 ms at the 95th percentile and evicts entries after 10 minutes of inactivity.
+prose-discipline.overloaded-sentence:
+  question: Does the highlighted sentence hold two or more ideas that could each stand alone as a sentence, beyond a list of parallel actions?
+  yes_example: The scheduler assigns each job to a worker node, and the monitoring service sends an alert when any node runs out of memory.
+  no_example: The installer checks disk space, downloads the packages, verifies their checksums, and writes the configuration file.
+ste-descriptive.information-not-gradual:
+  question: Does a highlighted sentence introduce more than one new idea, or use a term that is only introduced later?
+  yes_example: The scheduler pulls jobs from the priority ring, which the dispatcher fills after the rate limiter checks each tenant's token bucket.
+  no_example: Each tenant has a token bucket. The rate limiter checks that bucket before the dispatcher accepts a job. Accepted jobs go into the priority ring.
+ste-descriptive.missing-key-word-structure:
+  question: Does a highlighted sentence fail to repeat a key word from the sentence before it, or spell that key word differently?
+  yes_example: The scheduler assigns each task a priority. The dispatcher then runs the jobs in order of urgency.
+  no_example: The cache keeps each response for one hour. When the cache drops a response, the log records the response as evicted.
+ste-descriptive.paragraph-has-multiple-topics:
+  question: Could the highlighted text be split at a sentence boundary so that neither half needs the other?
+  yes_example: The scheduler retries failed jobs up to three times before marking them dead. Log files rotate nightly and are compressed after seven days.
+  no_example: The scheduler retries failed jobs up to three times. After the third failure, it marks the job dead and sends an alert to the on-call channel.
+ste-descriptive.paragraph-without-related-information:
+  question: Does the highlighted paragraph lack a first sentence that states its topic, or hold a later sentence that does not add to that topic?
+  yes_example: Log files rotate every night at midnight. The CLI accepts a --verbose flag. Backups are written to a separate storage bucket.
+  no_example: The scheduler decides when each job runs. It parses the cron expression, skips runs that would overlap, and hands the job to the next free worker.
+ste-nouns.long-domain-term-without-short-form:
+  question: Does the highlighted text use a project term of four or more words without declaring a short form or hyphenating it, outside code formatting?
+  yes_example: Enable the cross-cluster background snapshot retention scheduler before the first backup, then confirm that the cross-cluster background snapshot retention scheduler is healthy.
+  no_example: Set `cross_cluster_background_snapshot_retention_scheduler` to `true` in the config file before the first backup.
+ste-practices.ambiguous-preposition-with:
+  question: Does the highlighted text use "with" so that a reader cannot tell whether it names a tool, something included, or a condition?
+  yes_example: Rebuild the index with the updated schema.
+  no_example: Rebuild the index by running `reindex --schema v2`, which applies the updated schema.
+ste-punctuation.parentheses-misuse:
+  question: Does the highlighted text hold a parenthetical that carries a second idea, rather than a reference, identifier, abbreviation, short explanation or alternative?
+  yes_example: Clear the build cache before upgrading (the cache format changed twice last year, and support tickets spiked each time).
+  no_example: Clear the build cache before upgrading (see Troubleshooting) and restart the language server (LS).
+ste-safety.risk-level-word-missing-or-wrong:
+  question: Does the highlighted text describe a risk with no risk label, or the wrong one (WARNING for harm to people, CAUTION for damage only)?
+  yes_example: "CAUTION: Disconnect the power before you open the case. The capacitors can give a fatal shock."
+  no_example: "WARNING: The power supply holds a lethal charge for one minute after you unplug it."
+ste-sentences.missing-connector-between-related-sentences:
+  question: Does a highlighted sentence add a result, contrast or next step to the sentence before it without a connecting word to say so?
+  yes_example: The scheduler retries failed jobs only once. Your nightly export can be missing after a network outage.
+  no_example: The scheduler retries failed jobs only once. As a result, your nightly export can be missing after a network outage.
+ste-sentences.sentence-not-short-or-clear:
+  question: Does the highlighted sentence give more than one instruction or cover more than one topic, not counting quoted text such as error messages?
+  yes_example: Open the settings file and set the cache size to 512 MB, then restart the worker and check the logs for warnings.
+  no_example: If the worker fails to start, the log shows "Cache size exceeds available memory; reduce cache_size and restart."
+ste-verbs.gerund-outside-noun-use:
+  question: Does the highlighted text use an -ing word to carry an action, rather than as a noun or part of a name like "load balancing"?
+  yes_example: Deploy the new build, verifying that the health checks pass before routing traffic.
+  no_example: The logging settings control how much detail the parser writes during startup.
+ste-verbs.past-participle-not-adjectival:
+  question: Does the highlighted text use a past participle like "removed" after "has", "have" or "had", as part of a verb, not as an adjective?
+  yes_example: The temporary tokens have been revoked by the scheduler before each deployment.
+  no_example: If the connection stays closed, check the configured proxy settings.
+ste-words.domain-noun-too-long-or-unclear:
+  question: Does the highlighted text use a coined term that is longer than three words, or unclear to readers outside the team, without defining it?
+  yes_example: Enable the tenant-scoped asynchronous webhook retry backoff orchestrator before you deploy the new release.
+  no_example: The sync coordinator, which schedules data copies between replicas, runs every five minutes.

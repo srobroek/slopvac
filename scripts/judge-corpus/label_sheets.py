@@ -1,21 +1,31 @@
 """Human review sheets, one file per task and sheet.
 
-Writes items/adjudication/review-<task>-<sheet>.csv (private; gitignored):
+Writes items/adjudication/<prefix>-<task>-<sheet>.csv (private; gitignored;
+`--prefix` defaults to `review`):
 
 - task: `lint-findings` (is this lint finding a real defect?) or `semantic`
-  (does this passage have this defect?);
+  (does the highlighted text have this defect?);
 - sheet: `test` and `calibration` (items with no label yet: the human sample)
   or `disagreement` (DISAGREEMENT_ROWS teacher-panel train items where the
   teachers split or the Dawid-Skene posterior is below `--low-confidence`).
 
-Each row asks one direct question and shows only what a reviewer needs: the
-flagged text, the passage with the flag marked [[like this]], the surrounding
-text, what the rule catches, and when the rule is known to misfire. The
-reviewer writes `answer` (lint findings: 1 = real defect, 0 = false positive,
-- = can't tell; semantic: 1 = yes, 0 = no). Rows with `second_rater` = yes (a
-rule-stratified subset of the first pass, up to 40 per task) also take
-`second_answer` from a different person. `priority` 1 marks a rule-stratified
-first pass (up to 120 rows per task). `item_id` is for import-labels only.
+Each row asks one direct question and shows only what a reviewer needs. A
+lint row shows the flagged text, the passage with the flag marked [[like
+this]], the surrounding text, what the rule catches, and when the rule is
+known to misfire. A semantic row shows the rule's plain yes/no question with
+its Yes and No examples (items/semantic-questions.yml), the highlighted text,
+the passage with that region marked [[like this]], and the surrounding text.
+The reviewer writes `answer` (lint findings: 1 = real defect, 0 = false
+positive, - = can't tell; semantic: 1 = yes, 0 = no). Rows with
+`second_rater` = yes (a rule-stratified subset of the first pass, up to 40 per
+task) also take `second_answer` from a different person. `priority` 1 marks a
+rule-stratified first pass (up to 120 rows per task). `item_id` is for
+import-labels only.
+
+`--prefill SHEET...` copies `answer`, `second_answer` and `notes` from earlier
+lint-findings sheets into lint rows with the same item id, so answers a person
+already gave are kept. Run it before import-labels: the sampler only offers
+items whose label is not yet a human one.
 """
 
 import argparse
@@ -28,7 +38,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-from judge_corpus.items import _state_of  # noqa: E402
+from judge_corpus.items import _state_of, mark_span  # noqa: E402
 
 OUT = ROOT / "items/adjudication"
 FIRST_PASS = 120
@@ -56,21 +66,18 @@ SEMANTIC_FIELDS = [
     "priority",
     "second_rater",
     "question",
+    "yes_example",
+    "no_example",
+    "highlighted_text",
     "passage",
     "surrounding_text",
-    "what_counts",
     "answer",
     "second_answer",
     "notes",
     "item_id",
 ]
 TASK_FILE = {"finding-confirmation": "lint-findings", "semantic-detection": "semantic"}
-
-
-def marked(text: str, start: int, end: int) -> str:
-    if 0 <= start < end <= len(text):
-        return text[:start] + "[[" + text[start:end] + "]]" + text[end:]
-    return text
+PREFILL = ("answer", "second_answer", "notes")
 
 
 def _rules() -> dict[str, dict]:
@@ -86,11 +93,10 @@ def _rules() -> dict[str, dict]:
     return {rule_id: {**r, "guide": guide[rule_id]} for rule_id, r in rules.items()}
 
 
-def _examples(rule: dict, criteria: list[dict] | None = None) -> str:
-    examples = criteria or rule.get("examples") or []
+def _examples(rule: dict) -> str:
     return " | ".join(
         f"Defect: \u201c{e['bad']}\u201d \u2192 fine: \u201c{e.get('good', '')}\u201d"
-        for e in examples[:3]
+        for e in (rule.get("examples") or [])[:3]
         if e.get("bad")
     )
 
@@ -114,7 +120,7 @@ def lint_row(question: dict, state: dict, rule: dict) -> dict:
             "misfired here (false positive); - = cannot tell from the text shown."
         ),
         "flagged_text": f["matched_text"],
-        "passage": marked(state["text"], f["start"], f["end"]),
+        "passage": mark_span(state["text"], f["start"], f["end"]),
         "surrounding_text": surrounding(state),
         "what_the_rule_catches": " ".join(
             x
@@ -130,25 +136,37 @@ def lint_row(question: dict, state: dict, rule: dict) -> dict:
 
 
 def semantic_row(question: dict, state: dict, rule: dict) -> dict:
+    region = question["region"]
     return {
         "question": f"{question['prompt']} Answer 1 = yes; 0 = no.",
-        "passage": state["text"],
+        "yes_example": question["yes_example"],
+        "no_example": question["no_example"],
+        "highlighted_text": state["text"][region["start"] : region["end"]],
+        "passage": mark_span(state["text"], region["start"], region["end"]),
         "surrounding_text": surrounding(state),
-        "what_counts": " ".join(
-            x
-            for x in (
-                rule["guide"]["catches"],
-                _examples(rule, question.get("criteria")),
-                f"Not a defect when: {rule['guide']['fine_when']}"
-                if rule["guide"]["fine_when"]
-                else "",
-            )
-            if x
-        ),
     }
 
 
-def write_sheet(name: str, items: list[dict], rules: dict[str, dict]) -> dict:
+def read_prefill(paths: list[Path]) -> dict[str, dict]:
+    """Answers already given on earlier lint-findings sheets, by item id."""
+    given = {}
+    for path in paths:
+        if "lint-findings-" not in path.name:
+            continue
+        with path.open(newline="", encoding="utf-8") as fh:
+            for row in csv.DictReader(fh):
+                if row["answer"].strip() or row["second_answer"].strip():
+                    given[row["item_id"]] = {k: row.get(k, "") for k in PREFILL}
+    return given
+
+
+def write_sheet(
+    name: str,
+    items: list[dict],
+    rules: dict[str, dict],
+    prefix: str,
+    prefill: dict[str, dict],
+) -> dict:
     first = set(stratified(items, FIRST_PASS, "first-pass"))
     double = set(
         stratified([x for x in items if x["id"] in first], DOUBLE_LABEL, "double")
@@ -157,15 +175,15 @@ def write_sheet(name: str, items: list[dict], rules: dict[str, dict]) -> dict:
     for item in items:
         state = _state_of(ROOT, item)
         rule = rules.get(item["rule_id"], {})
-        describe = lint_row if item["role"] == "finding-confirmation" else semantic_row
+        lint = item["role"] == "finding-confirmation"
+        describe = lint_row if lint else semantic_row
+        given = prefill.get(item["id"], {}) if lint else {}
         by_task[item["role"]].append(
             {
                 "priority": 1 if item["id"] in first else 2,
                 "second_rater": "yes" if item["id"] in double else "",
                 **describe(item["question"], state, rule),
-                "answer": "",
-                "second_answer": "",
-                "notes": "",
+                **{k: given.get(k, "") for k in PREFILL},
                 "item_id": item["id"],
                 "_rule": item["rule_id"],
             }
@@ -178,7 +196,7 @@ def write_sheet(name: str, items: list[dict], rules: dict[str, dict]) -> dict:
             row["row"] = n
             row.pop("_rule")
         fields = LINT_FIELDS if role == "finding-confirmation" else SEMANTIC_FIELDS
-        path = OUT / f"review-{TASK_FILE[role]}-{name}.csv"
+        path = OUT / f"{prefix}-{TASK_FILE[role]}-{name}.csv"
         with path.open("w", newline="", encoding="utf-8") as fh:
             writer = csv.DictWriter(fh, fieldnames=fields)
             writer.writeheader()
@@ -187,6 +205,7 @@ def write_sheet(name: str, items: list[dict], rules: dict[str, dict]) -> dict:
             "rows": len(rows),
             "priority_1": sum(r["priority"] == 1 for r in rows),
             "second_rater": sum(r["second_rater"] == "yes" for r in rows),
+            "prefilled": sum(bool(r["answer"] or r["second_answer"]) for r in rows),
         }
     return summary
 
@@ -271,16 +290,30 @@ if __name__ == "__main__":
         required=True,
         help="posterior confidence below which a panel label goes to the disagreement sheet",
     )
+    p.add_argument(
+        "--prefix",
+        default="review",
+        help="sheet file prefix: PREFIX-<task>-<sheet>.csv",
+    )
+    p.add_argument(
+        "--prefill",
+        nargs="*",
+        default=[],
+        type=Path,
+        help="earlier lint-findings sheets whose answers carry over by item id",
+    )
     args = p.parse_args()
     rules = _rules()
+    prefill = read_prefill(args.prefill)
     summary = {}
     for split in ("test", "calibration"):
         items = [x for x in read_split(split) if x.get("label") is None]
-        summary.update(write_sheet(split, items, rules))
+        summary.update(write_sheet(split, items, rules, args.prefix, prefill))
     items, composition = disagreement_items(args.low_confidence)
-    summary.update(write_sheet("disagreement", items, rules))
+    summary.update(write_sheet("disagreement", items, rules, args.prefix, prefill))
     summary["disagreement_composition"] = composition
-    (OUT / "sheets-summary.json").write_text(
+    summary["prefill_answers_offered"] = len(prefill)
+    (OUT / f"{args.prefix}-summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     print(json.dumps(summary, indent=2, sort_keys=True))

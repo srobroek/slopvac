@@ -11,3 +11,4 @@ items/*
 !items/export-index.json
 !items/bank-manifest.json
 !items/review-guide.json
+!items/semantic-questions.yml

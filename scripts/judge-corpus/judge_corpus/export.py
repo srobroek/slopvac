@@ -12,7 +12,10 @@ posteriors, see panel.py) and constructions; dev, calibration and test hold
 constructions and, once people have filled in the adjudication sheets, human
 labels. State is rendered as one string, since the pilot state is plain text.
 For finding confirmation, the corpus label false-positive becomes the pilot's
-no-defect slot, which has the same meaning.
+no-defect slot, which has the same meaning. For semantic detection, the state
+marks the item's region [[like this]] and the instructions are the rule's
+plain yes/no question (items/semantic-questions.yml) with its Yes and No
+examples.
 
 Each export is a variant under items/export/<variant>/. `min_confidence` drops
 teacher-panel labels below that posterior confidence. `balance="oversample"`
@@ -29,7 +32,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from .common import read_jsonl, write_jsonl
-from .items import SPLITS, _state_of, digest, seed
+from .items import SPLITS, _state_of, digest, mark_span, seed
 
 CHOICE_LABELS = {
     "real-defect": "real-defect",
@@ -41,17 +44,20 @@ CHOICE_CRITERIA = {
     "no-defect": "The rule fired on acceptable prose.",
     "insufficient-context": "The text and context do not decide the finding.",
 }
-MAX_EXAMPLES = 2
 MAX_OVERSAMPLE = 8
 
 
-def render_state(state: dict) -> str:
+def render_state(state: dict, region: dict | None = None) -> str:
+    """The state as one string. A semantic item's region is marked [[like this]]."""
+    text = state["text"]
+    if region:
+        text = mark_span(text, region["start"], region["end"])
     parts = [f"Genre: {state.get('genre', 'unknown')}"]
     if state.get("heading"):
         parts.append(f"Heading: {state['heading']}")
     if state.get("context"):
         parts.append(f"Context:\n{state['context']}")
-    parts.append(f"Text:\n{state['text']}")
+    parts.append(f"Text:\n{text}")
     return "\n\n".join(parts)
 
 
@@ -68,11 +74,12 @@ def _choice_instructions(question: dict) -> str:
 
 def _noul_instructions(question: dict) -> str:
     lines = [question["prompt"]]
-    for example in (question.get("criteria") or [])[:MAX_EXAMPLES]:
-        if example.get("bad"):
-            lines.append(f"Defect example: {example['bad']}")
-        if example.get("good"):
-            lines.append(f"Acceptable example: {example['good']}")
+    if question.get("region"):
+        lines.append("The highlighted text is marked [[like this]].")
+    if question.get("yes_example"):
+        lines.append(f"Yes example: {question['yes_example']}")
+    if question.get("no_example"):
+        lines.append(f"No example: {question['no_example']}")
     return "\n".join(lines)
 
 
@@ -103,7 +110,7 @@ def export_item(root: Path, item: dict) -> dict | None:
     return {
         "id": item["id"],
         "kind": kind,
-        "state": render_state(state),
+        "state": render_state(state, question.get("region")),
         "label": out_label,
         "question": out_question,
         "split": item["split"],
@@ -210,7 +217,9 @@ def export_items(
     return {k: v for k, v in report.items() if k != "per_rule"}
 
 
-def publish_export(root: Path, build_id: str, variant: str) -> dict:
+def publish_export(
+    root: Path, build_id: str, variant: str, prefix: str = "review"
+) -> dict:
     """Upload items/export/<variant> to s3://<corpus bucket>/exports/<build_id>/
     <variant>/ and the adjudication sheets to .../<build_id>/adjudication/, and
     record the objects in items/export-index.json (committed), one entry per
@@ -252,9 +261,13 @@ def publish_export(root: Path, build_id: str, variant: str) -> dict:
     objects = [put(src / f"{s}.jsonl", f"{variant}/{s}.jsonl") for s in SPLITS] + [
         put(src / "export-manifest.json", f"{variant}/export-manifest.json")
     ]
-    # Reviewer-facing sheets only (label_sheets.py); the build's raw
-    # *-sheet.* dumps stay local.
-    sheets = sorted((root / "items/adjudication").glob("review-*.csv"))
+    # Reviewer-facing sheets of this build only (label_sheets.py --prefix);
+    # the build's raw *-sheet.* dumps stay local.
+    sheets = sorted(
+        p
+        for task in ("lint-findings", "semantic")
+        for p in (root / "items/adjudication").glob(f"{prefix}-{task}-*.csv")
+    )
     entry = builds.setdefault(build_id, {"build_id": build_id, "variants": {}})
     entry.update(
         {

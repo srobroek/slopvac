@@ -14,7 +14,7 @@ from .bank import prompt_examples, rule_guide
 from .bedrock import download_outputs, ensure_budget, now, pricing_for, submit, upload
 from .batch import model_body, parse_output
 from .common import read_jsonl, token_estimate, write_jsonl
-from .items import _draw
+from .items import _draw, mark_span
 from .ondemand import run_ondemand
 
 MODELS = {
@@ -74,7 +74,8 @@ def _train(root: Path) -> tuple[list[dict], dict]:
 def _prompt(root: Path, item: dict, examples: list[dict] | None = None) -> str:
     """The panel prompt: the rule's description and, unless `examples` is
     given, four to six labelled bank passages for the rule (never the item's
-    own passage), then the item's state and question."""
+    own passage), then the item's state and question. A semantic item's
+    region is marked [[like this]] in state.text."""
     state = item.get("state")
     if state is None and item.get("state_path"):
         state = json.loads((root / item["state_path"]).read_text(encoding="utf-8"))
@@ -99,11 +100,25 @@ def _prompt(root: Path, item: dict, examples: list[dict] | None = None) -> str:
         )
     else:
         labels = '"true" or "false"'
-        target = (
-            'Answer question.prompt about state.text: "true" means the text '
-            'has the defect, "false" means it does not. question.criteria '
-            "gives bad and good examples of the defect."
-        )
+        region = question.get("region")
+        if region:
+            state = {
+                **state,
+                "text": mark_span(state["text"], region["start"], region["end"]),
+            }
+            question = {k: v for k, v in question.items() if k != "region"}
+        target = " ".join(
+            [
+                "Answer question.prompt about the text marked [[like this]] in "
+                "state.text:"
+                if region
+                else "Answer question.prompt about state.text:",
+                '"true" means yes, the text has the defect; "false" means no.',
+                "question.yes_example and question.no_example show one case of each."
+                if question.get("yes_example")
+                else "",
+            ]
+        ).strip()
     rule = rule_guide(root, item["rule_id"])
     parts = [name for name, value in (("rule", rule), ("examples", examples)) if value]
     guide = []

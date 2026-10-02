@@ -24,6 +24,7 @@ from .bank import generate_bank, verify_bank
 from .export import export_items, publish_export
 from .items import build_items, split_items
 from .panel import ANCHORS, MAX_SPEND, collect_panel, prepare_panel, submit_panel
+from .semantic_questions import draft_questions
 
 
 def root_from_args(value: str | None) -> Path:
@@ -392,8 +393,13 @@ def cmd_items_export(args: argparse.Namespace) -> None:
         root, variant=variant, min_confidence=args.min_confidence, balance=args.balance
     )
     if args.publish:
-        report = publish_export(root, args.publish, variant)
+        report = publish_export(root, args.publish, variant, args.sheets)
     print(json.dumps(report, sort_keys=True))
+
+
+def cmd_items_draft_questions(args: argparse.Namespace) -> None:
+    root = root_from_args(args.root)
+    print(json.dumps(draft_questions(root, max_usd=args.max_usd), indent=2))
 
 
 def cmd_bank(args: argparse.Namespace) -> None:
@@ -496,6 +502,12 @@ def parser() -> argparse.ArgumentParser:
         metavar="BUILD_ID",
         help="upload the variant to s3://<corpus bucket>/exports/BUILD_ID/VARIANT/",
     )
+    s.add_argument(
+        "--sheets",
+        default="review",
+        metavar="PREFIX",
+        help="with --publish: the review sheets PREFIX-{lint-findings,semantic}-*.csv",
+    )
     s.set_defaults(func=cmd_items_export)
     s = item_actions.add_parser(
         "import-labels",
@@ -503,6 +515,17 @@ def parser() -> argparse.ArgumentParser:
     )
     s.add_argument("sheets", nargs="+", help="filled-in label sheet CSV files")
     s.set_defaults(func=cmd_items_import_labels)
+    s = item_actions.add_parser(
+        "draft-questions",
+        help="draft missing items/semantic-questions.yml entries with Opus",
+    )
+    s.add_argument(
+        "--max-usd",
+        type=float,
+        required=True,
+        help="refuse a run whose pre-run estimate exceeds this",
+    )
+    s.set_defaults(func=cmd_items_draft_questions)
     bank = sub.add_parser("bank", help="generate and verify the rule example bank")
     bank_actions = bank.add_subparsers(dest="bank_action", required=True)
     for action in ("generate", "verify"):

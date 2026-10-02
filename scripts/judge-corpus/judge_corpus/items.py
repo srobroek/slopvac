@@ -11,6 +11,7 @@ import re
 import subprocess
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
 from pathlib import Path
 
 os.environ.setdefault("RAYON_NUM_THREADS", "4")
@@ -29,6 +30,35 @@ SPLITS = ("train", "dev", "calibration", "test")
 GRANULARITY = (("sentence", 30), ("paragraph", 45), ("document", 25))
 # Verified rule example bank (see bank.py); private.
 BANK_PATH = Path(".cache/bank/bank.jsonl")
+# One plain yes/no question per semantic rule, about the item's highlighted
+# region, with a one-line Yes example and No example (semantic_questions.py
+# drafts them; checked by hand; committed).
+QUESTIONS_PATH = Path(__file__).resolve().parents[1] / "items/semantic-questions.yml"
+# Judgement rules whose question needs context an item cannot carry. Their bank
+# passages stay (so bank splits and held-out rules do not move), but they get
+# no semantic-detection items.
+EXCLUDED_JUDGEMENT_RULES = {
+    "prose-scope.code-change-prose-scope": "needs the code diff and the user's request",
+    "ai-tells-content-shape.vaporware-description": "needs the code at HEAD to check each behaviour claim",
+    "ai-tells-content-shape.fabricated-citations-remainder": "needs the cited sources, fetched",
+    "ste-words.domain-noun-not-organization-approved": "needs the project glossary, API reference or schema",
+    "ste-words.domain-noun-category-membership": "needs the controlled vocabulary and the project's declared domain-noun categories",
+    "ste-words.domain-verb-category-membership": "needs the controlled vocabulary and the project's declared domain-verb categories",
+    "ste-words.unapproved-word-not-a-domain-noun": "needs the controlled vocabulary to know a word is out of vocabulary",
+    "ste-words.word-used-outside-permitted-sense": "needs the meaning the controlled-vocabulary entry records",
+    "ste-practices.word-sense-incorrect": "needs the sense the controlled-vocabulary entry records",
+    "ste-practices.word-swap-insufficient": "needs the replacement word the vocabulary suggests",
+}
+# The rule files at JUDGEMENT_REV fold a list of exception codes into the
+# question text ("... rewrite it. - quotation - code-span").
+_EXCEPTION_CODES = re.compile(r"(?:\s+-\s+[a-z][a-z0-9-]*)+\s*$")
+# A semantic item's region must hold this many words of prose. Regions picked
+# from host text aim at the length of a bank passage for the rule (this many
+# characters when the rule has none); an unseeded span whose region fails is
+# resampled from up to REGION_ATTEMPTS anchor paragraphs.
+MIN_REGION_WORDS = 6
+DEFAULT_REGION_CHARS = 200
+REGION_ATTEMPTS = 3
 
 
 def digest(data: bytes) -> str:
@@ -374,12 +404,42 @@ def _rules_judgement() -> list[dict]:
             category = doc.get("id", Path(path).stem)
             for rule in doc.get("rules", []):
                 if rule.get("kind") == "judgement":
+                    question = rule.get("judgement_question", "")
+                    codes = _EXCEPTION_CODES.search(question)
                     found.append(
-                        {**rule, "category": category, "id": f"{category}.{rule['id']}"}
+                        {
+                            **rule,
+                            "category": category,
+                            "id": f"{category}.{rule['id']}",
+                            "judgement_question": question[: codes.start()]
+                            if codes
+                            else question,
+                            "judgement_exceptions": re.findall(
+                                r"-\s+([a-z][a-z0-9-]*)", codes.group()
+                            )
+                            if codes
+                            else [],
+                        }
                     )
     if len(found) != 65:
         raise ValueError(f"expected 65 judgement rules, found {len(found)}")
     return found
+
+
+def semantic_rules() -> tuple[list[dict], set[str]]:
+    """The judgement rules that get semantic-detection items, and the held-out
+    ones among them. Held-out rules are drawn from all judgement rules, so an
+    excluded rule never moves another rule in or out of the held-out set."""
+    rules = _rules_judgement()
+    kept = [r for r in rules if r["id"] not in EXCLUDED_JUDGEMENT_RULES]
+    return kept, held_out(rules) - set(EXCLUDED_JUDGEMENT_RULES)
+
+
+@lru_cache(maxsize=1)
+def semantic_questions() -> dict[str, dict[str, str]]:
+    if not QUESTIONS_PATH.is_file():
+        return {}
+    return yaml.safe_load(QUESTIONS_PATH.read_text(encoding="utf-8")) or {}
 
 
 def held_out(rules: list[dict]) -> set[str]:
@@ -410,15 +470,166 @@ def question_for(role: str, rule: dict, finding: dict | None = None) -> dict:
                 "insufficient-context": "The span and context do not decide the finding.",
             },
         }
+    asked = semantic_questions().get(rule["id"])
+    if asked is None:
+        if rule["id"] not in EXCLUDED_JUDGEMENT_RULES:
+            raise KeyError(f"{QUESTIONS_PATH.name} has no question for {rule['id']}")
+        # Excluded rules get no items; bank verify still judges their passages.
+        return {
+            "type": "noul",
+            "rule_id": rule["id"],
+            "prompt": rule["judgement_question"],
+        }
     return {
         "type": "noul",
         "rule_id": rule["id"],
-        "prompt": rule.get("judgement_question", "Does the span exhibit the defect?"),
-        "criteria": [
-            {k: e.get(k) for k in ("bad", "good", "note") if e.get(k) is not None}
-            for e in rule.get("examples", [])
-        ],
+        "prompt": asked["question"],
+        "yes_example": asked["yes_example"],
+        "no_example": asked["no_example"],
     }
+
+
+def mark_span(text: str, start: int, end: int) -> str:
+    """`text` with text[start:end] marked [[like this]]."""
+    if 0 <= start < end <= len(text):
+        return text[:start] + "[[" + text[start:end] + "]]" + text[end:]
+    return text
+
+
+def _fenced_spans(text: str) -> list[tuple[int, int]]:
+    """Offsets of fenced code blocks, fences included."""
+    spans, start, pos = [], None, 0
+    for line in text.splitlines(keepends=True):
+        if re.match(r"[ \t]*(```|~~~)", line):
+            if start is None:
+                start = pos
+            else:
+                spans.append((start, pos + len(line)))
+                start = None
+        pos += len(line)
+    if start is not None:
+        spans.append((start, len(text)))
+    return spans
+
+
+def prose_words(text: str) -> int:
+    """Words of prose in `text`. Fenced and indented code, headings, rules,
+    table separators, directives, prompts, inline code, HTML tags, URLs, list
+    markers and emphasis marks do not count; table cell text does."""
+    lines = text.splitlines()
+    kept, fenced = [], False
+    for i, line in enumerate(lines):
+        s = line.strip()
+        if re.match(r"(```|~~~)", s):
+            fenced = not fenced
+            continue
+        if fenced or not s or re.match(r"( {4}|\t)", line):
+            continue
+        underline = i + 1 < len(lines) and re.fullmatch(
+            r"[=~^`-]{3,}", lines[i + 1].strip()
+        )
+        if (
+            underline
+            or re.match(r"#{1,6}(\s|$)", s)
+            or re.fullmatch(r"[\s|:=~^`*_+-]+", s)
+            or s.startswith(("..", ">>>", "$ "))
+        ):
+            continue
+        s = re.sub(r"`[^`]*`", " ", s)
+        s = re.sub(r"<[^>]*>", " ", s)
+        s = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", s)
+        s = re.sub(r"https?://\S+", " ", s)
+        s = re.sub(r"^(?:[-*+>]|\d+[.)])\s+", "", s)
+        kept.append(s)
+    return len(re.findall(r"[A-Za-z][A-Za-z'\u2019-]*", " ".join(kept)))
+
+
+def region_ok(text: str) -> bool:
+    return prose_words(text) >= MIN_REGION_WORDS
+
+
+def _prose_paragraphs(text: str) -> list[tuple[int, int, str]]:
+    """Paragraphs outside fenced code that hold enough prose for a region."""
+    fences = _fenced_spans(text)
+    return [
+        (a, b, p)
+        for a, b, p in paragraphs(text)
+        if region_ok(p) and not any(fa < b and a < fb for fa, fb in fences)
+    ]
+
+
+def _pick_region(text: str, anchor: int, target: int) -> tuple[int, int] | None:
+    """A deterministic prose region of `text`: the run of whole sentences
+    inside one prose paragraph closest to `target` characters long and to
+    `anchor`. The paragraph holding `anchor` is tried first, then the others
+    by distance."""
+    target = max(target, 1)
+    candidates = sorted(
+        _prose_paragraphs(text),
+        key=lambda p: (not p[0] <= anchor <= p[1], abs(p[0] - anchor), p[0]),
+    )
+    for a, b, value in candidates:
+        ss = sentences(text, a, b) or [(a, b, value)]
+        runs = [
+            (ss[i][0], ss[j][1])
+            for i in range(len(ss))
+            for j in range(i, len(ss))
+            if region_ok(text[ss[i][0] : ss[j][1]])
+        ]
+        if runs:
+            return min(
+                runs,
+                key=lambda r: (
+                    abs(r[1] - r[0] - target) / target
+                    + abs(r[0] - anchor) / max(len(text), 1),
+                    r[0],
+                ),
+            )
+    return None
+
+
+def _relative_anchor(value: str, text: str, anchor: int) -> int:
+    """`anchor`, a document offset, as an offset into the item's span `value`."""
+    para = next((p for p in paragraphs(text) if p[0] <= anchor <= p[1]), None)
+    if para:
+        at = value.find(para[2])
+        if at >= 0:
+            return at + anchor - para[0]
+    at = text.find(value)
+    return min(max(anchor - at, 0), len(value)) if at >= 0 else 0
+
+
+def _set_region(item: dict, region: tuple[int, int] | None) -> bool:
+    """Mark state.text[start:end] as the item's region; False when there is
+    no region or it holds fewer than MIN_REGION_WORDS words of prose."""
+    if region is None:
+        return False
+    text = item["state"]["text"]
+    start, end = region
+    while start < end and text[start].isspace():
+        start += 1
+    while end > start and text[end - 1].isspace():
+        end -= 1
+    if not region_ok(text[start:end]):
+        return False
+    item["question"]["region"] = {"start": start, "end": end}
+    return True
+
+
+def _passage_region(item: dict, passage: str) -> tuple[int, int] | None:
+    at = item["state"]["text"].find(passage)
+    return (at, at + len(passage)) if at >= 0 else None
+
+
+def _containing_sentences(text: str, span: str) -> tuple[int, int, str]:
+    """The run of whole sentences of `text` that holds `span`, or (0, 0, "")."""
+    at = text.find(span) if span else -1
+    if at < 0:
+        return 0, 0, ""
+    stop = at + len(span)
+    ss = [s for s in sentences(text, 0, len(text)) if s[0] < stop and at < s[1]]
+    start, end = (ss[0][0], ss[-1][1]) if ss else (at, stop)
+    return start, end, text[start:end]
 
 
 def _private_text(root: Path, item_id: str, text: str) -> tuple[str, str]:
@@ -1171,6 +1382,19 @@ def _bank_items(
                     continue
                 for f in (item["finding"], item["question"]["finding"]):
                     f["start"], f["end"] = pos, pos + len(flagged)
+        if row["role"] == "semantic-detection":
+            # The region is the inserted passage; a clean control gets a host
+            # region of about the paired passage's length.
+            region = (
+                _pick_region(
+                    value, _relative_anchor(value, new, start), len(row["text"])
+                )
+                if control
+                else _passage_region(item, row["text"])
+            )
+            if not _set_region(item, region):
+                report[f"dropped_region_{kind}"] += 1
+                continue
         if g == "document" and end < len(texts[host["id"]]):
             item["truncated"] = True
         item["rule_held_out"] = rule["id"] in held
@@ -1298,8 +1522,8 @@ def _merge_shards(root: Path, shard_count: int) -> dict:
     root_rows = list(read_jsonl(root / "sources/human.jsonl"))
     generated = list(read_jsonl(root / "generated/manifest.jsonl"))
     encoders, tokenizer_digests = load_tokenizers()
-    lint_rules, judge_rules = _rules_current(), _rules_judgement()
-    held_lint, held_judge = held_out(lint_rules), held_out(judge_rules)
+    lint_rules, (judge_rules, held_judge) = _rules_current(), semantic_rules()
+    held_lint = held_out(lint_rules)
     merged, bank_report = _add_bank_constructions(
         root,
         merged,
@@ -1358,10 +1582,10 @@ def build_items(
     )
     encoders, tokenizer_digests = load_tokenizers()
     lint_rules = _rules_current()
-    judgement_rules = _rules_judgement()
+    judgement_rules, held_judge = semantic_rules()
     by_lint = {r["id"]: r for r in lint_rules}
     by_judge = {r["id"]: r for r in judgement_rules}
-    held_lint, held_judge = held_out(lint_rules), held_out(judgement_rules)
+    held_lint = held_out(lint_rules)
     splits, human_splits = assign_splits(humans, generated)
     rows = humans + generated
     if shard:
@@ -1381,6 +1605,13 @@ def build_items(
     findings = _run_lint(lint_files)
     items = []
     shard_index, shard_count = shard or (0, 1)
+    region_report: Counter = Counter()
+    region_lengths: dict[str, list[int]] = defaultdict(list)
+    for r in read_jsonl(root / BANK_PATH):
+        if r.get("kept") and r["role"] == "semantic-detection":
+            region_lengths[r["rule_id"]].append(len(r["text"]))
+    for lengths in region_lengths.values():
+        lengths.sort()
     for row in rows:
         source_id, text, split = row["id"], texts[row["id"]], splits[row["id"]]
         srcgroup = _source_group(row)
@@ -1418,30 +1649,55 @@ def build_items(
             key=lambda r: (seed(f"17:rule-choice:{source_id}:{r['id']}"), r["id"])
         )
         selected_rules = candidates[:3]
+        prose = _prose_paragraphs(text)
         for rule in selected_rules:
-            ps = paragraphs(text)
-            if not ps:
+            if not prose:
+                region_report["unseeded|no-prose-paragraph"] += 1
                 continue
-            anchor = ps[seed(f"17:anchor:{source_id}:{rule['id']}") % len(ps)][0]
-            item = _make_item(
-                root,
-                role="semantic-detection",
-                rule=rule,
-                source=row,
-                text=text,
-                label=None,
-                origin="human-adjudication"
-                if split == "test"
-                else ("teacher-panel" if split == "train" else None),
-                split=split,
-                kind="unseeded",
-                anchor=anchor,
-                encoders=encoders,
-                source_group=srcgroup,
+            # The anchor paragraph is a seeded draw among prose paragraphs; a
+            # span whose region holds too little prose is resampled from the
+            # next one.
+            order = sorted(
+                prose,
+                key=lambda p: (
+                    seed(f"17:anchor:{source_id}:{rule['id']}:{p[0]}"),
+                    p[0],
+                ),
             )
-            if item:
-                item["rule_held_out"] = rule["id"] in held_judge
-                items.append(item)
+            lengths = region_lengths.get(rule["id"]) or [DEFAULT_REGION_CHARS]
+            target = lengths[seed(f"17:region:{source_id}:{rule['id']}") % len(lengths)]
+            for attempt, (anchor, _, _) in enumerate(order[:REGION_ATTEMPTS]):
+                item = _make_item(
+                    root,
+                    role="semantic-detection",
+                    rule=rule,
+                    source=row,
+                    text=text,
+                    label=None,
+                    origin="human-adjudication"
+                    if split == "test"
+                    else ("teacher-panel" if split == "train" else None),
+                    split=split,
+                    kind="unseeded",
+                    anchor=anchor,
+                    encoders=encoders,
+                    source_group=srcgroup,
+                )
+                if item and _set_region(
+                    item,
+                    _pick_region(
+                        item["state"]["text"],
+                        _relative_anchor(item["state"]["text"], text, anchor),
+                        target,
+                    ),
+                ):
+                    item["rule_held_out"] = rule["id"] in held_judge
+                    items.append(item)
+                    if attempt:
+                        region_report["unseeded|resampled"] += 1
+                    break
+            else:
+                region_report["unseeded|dropped"] += 1
     # Construction positives from lint-rule bad examples, re-linted at sentence/paragraph/document scope.
     seed_work = root / ".cache/items/seed-input"
     seed_work.mkdir(parents=True, exist_ok=True)
@@ -1544,7 +1800,7 @@ def build_items(
         if shard and seed(host["id"]) % shard_count != shard_index:
             continue
         base = texts[host["id"]]
-        ps = paragraphs(base)
+        ps = _prose_paragraphs(base)
         if not ps:
             continue
         a, b, para = ps[seed(f"17:judgespan:{rule['id']}") % len(ps)]
@@ -1554,7 +1810,9 @@ def build_items(
             continue
         g = granularity(f"judgeseed:{rule['id']}:{host['id']}")
         seeded = base[:b].rstrip() + " " + bad + base[b:]
-        anchor = b
+        # The positive's anchor is the inserted example itself, so a sentence
+        # span is the example and not the host sentence before it.
+        anchor = len(base[:b].rstrip()) + 1
         split = human_splits[host["id"]]
         for label, content, content_anchor in (
             (False, base, a),
@@ -1579,10 +1837,22 @@ def build_items(
                     "positive": label,
                 },
             )
-            if item:
-                item["rule_held_out"] = rule["id"] in held_judge
-                item["granularity"] = g
-                items.append(item)
+            if not item:
+                continue
+            # The positive's region is the example; the control's is host
+            # text of about its length at the same place, the paragraph end.
+            value = item["state"]["text"]
+            region = (
+                _passage_region(item, bad)
+                if label
+                else _pick_region(value, _relative_anchor(value, base, b), len(bad))
+            )
+            if not _set_region(item, region):
+                region_report[f"judgement-example:{int(label)}|dropped"] += 1
+                continue
+            item["rule_held_out"] = rule["id"] in held_judge
+            item["granularity"] = g
+            items.append(item)
     gold = subprocess.run(
         [
             "git",
@@ -1598,13 +1868,27 @@ def build_items(
     if json.loads(gold[0]).get("version") != 1:
         raise ValueError("unknown gold fixture version")
     judgement_order = sorted(judgement_rules, key=lambda rule: rule["id"])
+    records = [json.loads(line) for line in gold[1:]]
+    # A gold positive's region is the sentence holding its defect span; the
+    # region of a control row is a seeded sentence run of the median length.
+    defect_sentences = sorted(
+        len(_containing_sentences(r["text"], r["defect_span"])[2])
+        for r in records
+        if r.get("defect_span") and r["defect_span"] in r["text"]
+    )
+    gold_target = (
+        defect_sentences[len(defect_sentences) // 2]
+        if defect_sentences
+        else DEFAULT_REGION_CHARS
+    )
     control_index = 0
-    for n, line in enumerate(gold[1:]):
+    for n, record in enumerate(records):
         if shard and n % shard_count != shard_index:
             continue
-        record = json.loads(line)
         content = record["text"]
         if record.get("rule_id"):
+            if record["rule_id"] not in by_judge:
+                continue
             rule = by_judge[record["rule_id"]]
             assignments = [(rule, bool(record.get("defect_span")))]
             defect = record.get("defect_span", "")
@@ -1627,6 +1911,12 @@ def build_items(
                 "genre": "unknown",
                 "source_family": "gold-v1",
             }
+            ss = sentences(content, 0, len(content)) or [(0, len(content), content)]
+            anchor = (
+                pos
+                if pos >= 0
+                else ss[seed(f"17:gold-anchor:{fake['id']}") % len(ss)][0]
+            )
             item = _make_item(
                 root,
                 role="semantic-detection",
@@ -1637,7 +1927,7 @@ def build_items(
                 origin="construction",
                 split="test",
                 kind=f"gold-v1:{n}:{rule['id']}",
-                anchor=max(0, pos),
+                anchor=anchor,
                 encoders=encoders,
                 source_group=f"gold-v1:{rule['id']}",
                 construction={
@@ -1647,9 +1937,21 @@ def build_items(
                     "defect_end": pos + len(defect) if pos >= 0 else None,
                 },
             )
-            if item:
-                item["rule_held_out"] = rule["id"] in held_judge
-                items.append(item)
+            if not item:
+                continue
+            value = item["state"]["text"]
+            if pos >= 0:
+                start, end, _ = _containing_sentences(value, defect)
+                region = (start, end) if end > start else None
+            else:
+                region = _pick_region(
+                    value, _relative_anchor(value, content, anchor), gold_target
+                )
+            if not _set_region(item, region):
+                region_report[f"gold-v1:{int(label)}|dropped"] += 1
+                continue
+            item["rule_held_out"] = rule["id"] in held_judge
+            items.append(item)
     # Avoid duplicate item IDs. A held-out rule is unseen: none of its items,
     # constructions included, may reach train, dev, or calibration.
     unique = {
@@ -1667,6 +1969,7 @@ def build_items(
             "shard": list(shard),
             "items": len(items),
             "manifest": str(shard_path.relative_to(root)),
+            "semantic_regions": dict(region_report),
         }
     items, bank_report = _add_bank_constructions(
         root,
@@ -1686,6 +1989,7 @@ def build_items(
         "lint_findings": sum(len(x) for x in findings.values()),
         "gold_v1_rows": len(gold) - 1,
         "built_items": len(items),
+        "semantic_regions": dict(region_report),
         "constructions": bank_report,
     }
     report = _write_outputs(

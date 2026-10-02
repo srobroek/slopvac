@@ -819,6 +819,10 @@
     "catches": "This flags two consecutive sentences where the second adds a result, contrast, or next step to the first, but no connecting word or phrase makes that relationship clear. Without the connection spelled out, the reader has to guess how the two sentences relate to each other.",
     "fine_when": "It is acceptable if the second sentence does not actually add a result, a contrast, or a next step to the first."
   },
+  "ste-sentences.omitted-subject": {
+    "catches": "You flag sentences that start with If, When, or Once followed by a condition like \"configured\" or \"enabled\" without naming what is configured or enabled. This matters because the reader can't tell what the condition actually applies to.",
+    "fine_when": ""
+  },
   "ste-sentences.omitted-word-or-contraction": {
     "catches": "This flags contractions (like \"don't\" or \"it's\") and sentences that leave out a subject or article, such as starting a conditional with \"If configured,\" instead of \"If it is configured,\". These omissions can make sentences ambiguous or less precise about who or what is being referred to.",
     "fine_when": ""

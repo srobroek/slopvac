@@ -1,16 +1,19 @@
 """Four-model LLM review of the reviewer sheets, with disagreement flags.
 
 Each model gets the same question a human reviewer sees in
-items/adjudication/review-*.csv (the question, flagged text, passage,
-surrounding text and rule guidance) and returns an answer code, whether the row
-is ambiguous, and a one-sentence reason. The results are written next to the
-sheets as llm-review-<sheet>.csv with every model's answer and reason, the
+items/adjudication/<prefix>-<task>-<sheet>.csv (the question, flagged or
+highlighted text, passage, surrounding text and rule guidance or Yes/No
+examples) and returns an answer code, whether the row is ambiguous, and a
+one-sentence reason. The results are written next to the sheets as
+llm-<prefix>-<task>-<sheet>.csv with every model's answer and reason, the
 majority, and flags:
 
 - `unanimous`: all valid answers agree;
 - `disagreement`: the answers split;
 - `ambiguous`: any model flagged the row ambiguous or answered "-";
-- `needs_human`: disagreement, ambiguous, or fewer than 3 valid answers.
+- `needs_human`: the row is not settled: fewer than len(MODELS) x rounds -
+  SETTLE_MISSES votes (11 of 12) give the same definite answer (1 or 0), or a
+  run flagged it ambiguous or answered "-".
 
 A run first drops cached answers that could not be parsed (truncated
 reasoning, malformed JSON) so they are asked again; refusals are kept, since
@@ -64,15 +67,30 @@ LINT_FIELDS = (
     ("when_the_rule_is_wrong", "When the rule is wrong"),
 )
 SEMANTIC_FIELDS = (
-    ("passage", "Passage"),
+    ("yes_example", "Yes example"),
+    ("no_example", "No example"),
+    ("passage", "Passage (the highlighted text is marked [[like this]])"),
     ("surrounding_text", "Surrounding text"),
-    ("what_counts", "What counts"),
 )
 CODES = {"lint": {"1", "0", "-"}, "semantic": {"1", "0"}}
+TASKS = ("lint-findings", "semantic")
+SHEETS = ("test", "calibration", "disagreement")
 
 
 def _kind(sheet: Path) -> str:
-    return "lint" if sheet.name.startswith("review-lint-findings-") else "semantic"
+    return "lint" if "lint-findings-" in sheet.name else "semantic"
+
+
+def _sheets(root: Path, prefix: str, llm: bool = False) -> list[Path]:
+    """The review sheets PREFIX-<task>-<sheet>.csv that exist, or with `llm`
+    their llm-PREFIX-... review results."""
+    lead = f"llm-{prefix}" if llm else prefix
+    paths = [
+        root / SHEET_DIR / f"{lead}-{task}-{name}.csv"
+        for task in TASKS
+        for name in SHEETS
+    ]
+    return [p for p in paths if p.is_file()]
 
 
 def _prompt(row: dict, kind: str) -> str:
@@ -139,18 +157,18 @@ def _drop_unparsed(path: Path, kinds: dict[str, str]) -> int:
     return len(records) - len(keep)
 
 
-def run_review(root: Path, rounds: int = 3, sheets: list[Path] | None = None) -> dict:
-    """Every model answers every row `rounds` times. Model x round jobs run
-    concurrently in one process, so the cost ledger has a single writer."""
+def run_review(root: Path, rounds: int = 3, prefix: str = "review") -> dict:
+    """Every model answers every row of the PREFIX sheets `rounds` times.
+    Model x round jobs run concurrently in one process, so the cost ledger
+    has a single writer. Answers are cached under .cache/llm-PREFIX."""
     from concurrent.futures import ThreadPoolExecutor
 
-    sheets = sheets or sorted((root / SHEET_DIR).glob("review-*.csv"))
     rows: dict[str, tuple[Path, dict]] = {}
-    for sheet in sheets:
+    for sheet in _sheets(root, prefix):
         with sheet.open(newline="", encoding="utf-8") as fh:
             for row in csv.DictReader(fh):
                 rows[f"{sheet.stem}|{row['item_id']}"] = (sheet, row)
-    work = root / ".cache/llm-review"
+    work = root / ".cache" / f"llm-{prefix}"
     work.mkdir(parents=True, exist_ok=True)
     for name, model_id in MODELS.items():
         write_jsonl(
@@ -189,7 +207,11 @@ def run_review(root: Path, rounds: int = 3, sheets: list[Path] | None = None) ->
             key = record.get("recordId")
             if key in rows:
                 answers[key][name].append(_parse(record, _kind(rows[key][0])))
-    return {"runs": runs, "retried": retried, **_write(root, rows, answers, rounds)}
+    return {
+        "runs": runs,
+        "retried": retried,
+        **_write(root, rows, answers, rounds, prefix),
+    }
 
 
 def _fleiss(tables: list[Counter], raters: int) -> float | None:
@@ -207,7 +229,7 @@ def _fleiss(tables: list[Counter], raters: int) -> float | None:
     return 1.0 if p_e == 1 else (p_bar - p_e) / (1 - p_e)
 
 
-def _write(root: Path, rows: dict, answers: dict, rounds: int) -> dict:
+def _write(root: Path, rows: dict, answers: dict, rounds: int, prefix: str) -> dict:
     """Per model: its answer across rounds (majority) and whether the rounds
     agreed. Across models: consensus share over all model-round votes, the
     model-level majority, and flags."""
@@ -251,9 +273,7 @@ def _write(root: Path, rows: dict, answers: dict, rounds: int) -> dict:
             "models_disagree": "yes" if disagreement else "",
             "unstable_across_rounds": ", ".join(unstable_models),
             "ambiguous": "yes" if ambiguous else "",
-            "needs_human": "yes"
-            if disagreement or unstable_models or ambiguous or n_models < MIN_VALID
-            else "",
+            "needs_human": "",
         }
         for name, results in answers[key].items():
             record[f"{name}_answers"] = ",".join(a or "?" for a, _, _ in results)
@@ -261,11 +281,12 @@ def _write(root: Path, rows: dict, answers: dict, rounds: int) -> dict:
                 ("[ambiguous] " if amb else "") + reason for _, amb, reason in results
             ]
             record[f"{name}_reasons"] = " || ".join(reasons)
+        record["needs_human"] = "" if _settled(record, rounds) else "yes"
         record["item_id"] = row["item_id"]
         out_rows.setdefault(sheet, []).append(record)
         tables.setdefault(sheet.name, []).append(model_votes)
     for sheet, records in out_rows.items():
-        path = sheet.with_name(sheet.name.replace("review-", "llm-review-", 1))
+        path = sheet.with_name(f"llm-{sheet.name}")
         with path.open("w", newline="", encoding="utf-8") as fh:
             writer = csv.DictWriter(fh, fieldnames=list(records[0]))
             writer.writeheader()
@@ -298,15 +319,16 @@ def _write(root: Path, rows: dict, answers: dict, rounds: int) -> dict:
             ),
         }
     report = {"rounds": rounds, "sheets": summary, "models": per_model}
-    (root / SHEET_DIR / "llm-review-summary.json").write_text(
+    (root / SHEET_DIR / f"llm-{prefix}-summary.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     return report
 
 
-# Rows are settled, and kept out of the human queue, when every round of each
-# of these models gave the same definite answer.
-SETTLING_MODELS = ("opus", "sol", "grok")
+# A row is settled, and kept out of the human queue, when at least
+# len(MODELS) x rounds - SETTLE_MISSES votes give the same definite answer and
+# no run flagged it ambiguous (or answered "-").
+SETTLE_MISSES = 1
 QUEUE_CODES = {
     "lint": {"y": "1", "n": "0", "u": "-"},
     "semantic": {"y": "1", "n": "0", "u": ""},
@@ -314,32 +336,36 @@ QUEUE_CODES = {
 
 
 def _settled(record: dict, rounds: int) -> bool:
-    votes = [
-        a for name in SETTLING_MODELS for a in record[f"{name}_answers"].split(",")
-    ]
+    votes = Counter(a for name in MODELS for a in record[f"{name}_answers"].split(","))
+    agree = max((votes[a] for a in ("0", "1")), default=0)
     return (
-        len(votes) == rounds * len(SETTLING_MODELS)
-        and len(set(votes)) == 1
-        and votes[0] in {"0", "1"}
+        agree >= len(MODELS) * rounds - SETTLE_MISSES and record["ambiguous"] != "yes"
     )
 
 
-def write_label_queue(root: Path, rounds: int = 3) -> dict:
-    """Write the unsettled rows as label-queue.csv and label-queue.html.
+def write_label_queue(root: Path, rounds: int = 3, prefix: str = "review") -> dict:
+    """Write the rows of the PREFIX sheets that are neither settled nor
+    answered by a person as label-queue.csv and label-queue.html.
 
-    Both carry one y/n/u question per row. Model answers are left out so the
-    reviewer is not anchored on them."""
+    Both carry one y/n/u question per row, with the Yes and No examples for
+    semantic rows. Model answers are left out so the reviewer is not anchored
+    on them."""
     queue = []
-    for path in sorted((root / SHEET_DIR).glob("llm-review-*.csv")):
-        sheet = path.with_name(path.name.replace("llm-review-", "review-", 1))
+    for path in _sheets(root, prefix, llm=True):
+        sheet = path.with_name(path.name.removeprefix("llm-"))
         kind = _kind(sheet)
         with sheet.open(newline="", encoding="utf-8") as fh:
             source = {r["item_id"]: r for r in csv.DictReader(fh)}
         with path.open(newline="", encoding="utf-8") as fh:
             for record in csv.DictReader(fh):
-                if _settled(record, rounds):
-                    continue
                 row = source[record["item_id"]]
+                answered = (
+                    row.get("answer", "").strip()
+                    or row.get("second_answer", "").strip()
+                )
+                # Settled and person-answered rows stay out of the queue.
+                if answered or _settled(record, rounds):
+                    continue
                 question = re.sub(
                     r"\s*Answer 1 = .*$", "", row["question"], flags=re.DOTALL
                 )
@@ -352,7 +378,9 @@ def write_label_queue(root: Path, rounds: int = 3) -> dict:
                     for key, label in (
                         LINT_FIELDS if kind == "lint" else SEMANTIC_FIELDS
                     )
-                    if key not in {"flagged_text", "passage"} and row.get(key)
+                    if key not in {"flagged_text", "highlighted_text", "passage"}
+                    and key not in {"yes_example", "no_example"}
+                    and row.get(key)
                 )
                 queue.append(
                     {
@@ -361,7 +389,11 @@ def write_label_queue(root: Path, rounds: int = 3) -> dict:
                         "split": sheet.stem.rsplit("-", 1)[1],
                         "question": question,
                         "legend": legend,
-                        "flagged": row.get("flagged_text", ""),
+                        "yes_example": row.get("yes_example", ""),
+                        "no_example": row.get("no_example", ""),
+                        "flag_label": "Flagged" if kind == "lint" else "Highlighted",
+                        "flagged": row.get("flagged_text")
+                        or row.get("highlighted_text", ""),
                         "passage": row.get("passage", ""),
                         "guidance": guidance,
                     }
@@ -373,12 +405,18 @@ def write_label_queue(root: Path, rounds: int = 3) -> dict:
     out = root / SHEET_DIR
     with (out / "label-queue.csv").open("w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
-        writer.writerow(["n", "answer", "question", "flagged", "passage", "key"])
+        writer.writerow(
+            ["n", "answer", "question", "yes_example", "no_example", "flagged"]
+            + ["passage", "key"]
+        )
         for n, q in enumerate(queue, 1):
             writer.writerow(
-                [n, "", q["question"], q["flagged"], q["passage"], q["key"]]
+                [n, "", q["question"], q["yes_example"], q["no_example"]]
+                + [q["flagged"], q["passage"], q["key"]]
             )
-    html = _QUEUE_HTML.replace("__DATA__", json.dumps(queue).replace("</", "<\\/"))
+    html = _QUEUE_HTML.replace(
+        "__DATA__", json.dumps(queue).replace("</", "<\\/")
+    ).replace("__STORE__", json.dumps(f"slopvac-label-queue:{prefix}"))
     (out / "label-queue.html").write_text(html, encoding="utf-8")
     return {
         "rows": len(queue),
@@ -387,7 +425,9 @@ def write_label_queue(root: Path, rounds: int = 3) -> dict:
     }
 
 
-def apply_label_queue(root: Path, answers: Path, column: str = "answer") -> dict:
+def apply_label_queue(
+    root: Path, answers: Path, column: str = "answer", prefix: str = "review"
+) -> dict:
     """Copy y/n/u answers (label-queue.csv, or the CSV the HTML page downloads)
     into the `column` of the review sheets, as the sheet codes import-labels reads."""
     with answers.open(newline="", encoding="utf-8") as fh:
@@ -397,7 +437,7 @@ def apply_label_queue(root: Path, answers: Path, column: str = "answer") -> dict
     if bad:
         raise ValueError(f"answers must be y, n or u: {sorted(bad.items())[:5]}")
     written = Counter()
-    for sheet in sorted((root / SHEET_DIR).glob("review-*.csv")):
+    for sheet in _sheets(root, prefix):
         kind = _kind(sheet)
         with sheet.open(newline="", encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
@@ -431,6 +471,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:1rem;fl
 .card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:1.25rem 1.5rem;margin:1rem 0}
 .q{font-weight:600;font-size:1.1rem}
 .legend{color:#444;margin:.5rem 0 1rem}
+.ex{margin:.25rem 0;color:#333}
 .flag{background:#fff3c4;padding:0 .2rem;border-radius:3px}
 pre{white-space:pre-wrap;font:15px/1.5 ui-monospace,monospace;background:#f4f4f4;padding:.75rem;border-radius:6px;max-height:24rem;overflow:auto}
 mark{background:#ffd54a}
@@ -446,7 +487,7 @@ details{margin-top:.75rem;color:#333}
 <div class="card" id="card" aria-live="polite"></div>
 <script>
 const DATA = __DATA__;
-const STORE = "slopvac-label-queue";
+const STORE = __STORE__;
 const answers = JSON.parse(localStorage.getItem(STORE) || "{}");
 let i = DATA.findIndex(q => !answers[q.key]); if (i < 0) i = 0;
 const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -456,12 +497,16 @@ function render(){
   document.getElementById("card").innerHTML =
     `<div class="meta">#${i+1} of ${DATA.length} · ${q.kind} · ${q.split}</div>
      <p class="q">${esc(q.question)}</p>
+     ${q.yes_example ? `<p class="ex"><b>Yes example:</b> ${esc(q.yes_example)}</p>` : ""}
+     ${q.no_example ? `<p class="ex"><b>No example:</b> ${esc(q.no_example)}</p>` : ""}
      <p class="legend">${esc(q.legend)}</p>
-     ${q.flagged ? `<p>Flagged: <span class="flag">${esc(q.flagged)}</span></p>` : ""}
-     ${q.passage ? `<pre>${passage}</pre>` : ""}
+     ${q.flagged ? `<p>${q.flag_label}: <span class="flag">${esc(q.flagged)}</span></p>` : ""}
+     ${q.passage ? `<pre id="passage">${passage}</pre>` : ""}
      ${q.guidance ? `<details><summary>Rule guidance and surrounding text</summary><pre>${esc(q.guidance)}</pre></details>` : ""}
      <div class="buttons">${["y","n","u"].map(k => `<button data-k="${k}" class="${a===k?"on":""}">${k}</button>`).join("")}
      <button data-nav="-1">← back</button><button data-nav="1">next →</button></div>`;
+  const pre = document.getElementById("passage"), m = pre && pre.querySelector("mark");
+  if (m) pre.scrollTop = Math.max(0, m.offsetTop - pre.offsetTop - 48);
   const done = DATA.filter(x => answers[x.key]).length;
   document.getElementById("progress").textContent = `${done} / ${DATA.length} answered`;
 }

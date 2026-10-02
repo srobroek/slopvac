@@ -8248,27 +8248,27 @@
   "seed": 17,
   "verify_jobs": {
     "anthropic": {
-      "completed_at": "2026-10-02T11:21:39Z",
+      "completed_at": "2026-10-02T13:14:33Z",
       "errors": 0,
-      "estimate_usd": 0.009584,
-      "input_tokens": 4407,
+      "estimate_usd": 0.0,
+      "input_tokens": 0,
       "mode": "on-demand",
       "model_id": "us.anthropic.claude-sonnet-5",
-      "output_tokens": 77,
-      "pre_run_estimate_usd": 0.012962,
-      "records": 7,
+      "output_tokens": 0,
+      "pre_run_estimate_usd": 0.0,
+      "records": 0,
       "stage": "bank-verify-anthropic"
     },
     "openai": {
-      "completed_at": "2026-10-02T11:21:42Z",
+      "completed_at": "2026-10-02T13:14:34Z",
       "errors": 0,
-      "estimate_usd": 0.000871,
-      "input_tokens": 3410,
+      "estimate_usd": 0.0,
+      "input_tokens": 0,
       "mode": "on-demand",
       "model_id": "openai.gpt-oss-120b-1:0",
-      "output_tokens": 599,
-      "pre_run_estimate_usd": 0.000873,
-      "records": 7,
+      "output_tokens": 0,
+      "pre_run_estimate_usd": 0.0,
+      "records": 0,
       "stage": "bank-verify-openai"
     }
   }
