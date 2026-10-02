@@ -918,34 +918,6 @@ rules:
         https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
         records why upstream ai-tells.EmDashUsage is disabled.
 
-  - id: curly-quotes
-    name: Normalise curly quotes to straight ones
-    kind: pattern
-    severity: warning
-    message: "curly quote: {match} -- normalise to a straight quote"
-    scope: raw
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: excluded
-    pattern: "[‘’“”]"
-    ignore_case: false
-    fix: Replace with the straight ASCII quote or apostrophe.
-    examples:
-      - bad: "the loader’s cache"
-        good: the loader's cache
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — formatting.md ("Curly quotes/apostrophes")'
-      note: >-
-        Fully mechanizable, so no judgement partner. The tell is conditional on
-        house style -- "in a repo that types straight ones" -- so relaxed excludes
-        it, and a project whose style is curly quotes must disable it rather than
-        fight it. Same shape as prose-format.no-unicode-dash, which the source repo
-        already gates at error, and `scope: raw` for the same reason: a pasted curly
-        apostrophe inside a code fence breaks the command it lands in.
-
   - id: title-case-heading
     name: Use sentence case in headings
     kind: pattern
