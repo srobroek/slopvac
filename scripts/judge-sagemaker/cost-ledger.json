@@ -13031,9 +13031,9 @@
       "hourly_usd": 2.0,
       "max_runtime_s": 7200,
       "max_cost_usd": 4.0,
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 1214,
+      "cost_usd": 0.6744,
       "submitted_at": "2026-10-02T11:54:49.602977+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-261002115437505262",
       "scheduler": {
@@ -13043,7 +13043,8 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g5.2xlarge"
-      }
+      },
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-9b-261002115450824073",
@@ -13053,9 +13054,9 @@
       "hourly_usd": 11.0,
       "max_runtime_s": 7200,
       "max_cost_usd": 22.0,
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 951,
+      "cost_usd": 2.9058,
       "submitted_at": "2026-10-02T11:55:02.851076+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-261002115450824073",
       "scheduler": {
@@ -13065,7 +13066,8 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6e.16xlarge"
-      }
+      },
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-laya-english-261002115504115034",
@@ -13119,9 +13121,9 @@
       "hourly_usd": 4.0,
       "max_runtime_s": 7200,
       "max_cost_usd": 8.0,
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 606,
+      "cost_usd": 0.6733,
       "submitted_at": "2026-10-02T11:55:38.025565+00:00",
       "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-typed-decisions-261002115528348115",
       "scheduler": {
@@ -13131,6 +13133,183 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g5.8xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s17-261002122525883450",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s17",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:25:45.164450+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-08b-ft-s17-261002122525883450",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s18-261002122546737428",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s18",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:26:03.414722+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-08b-ft-s18-261002122546737428",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s19-261002122605040597",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s19",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:26:22.711331+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-08b-ft-s19-261002122605040597",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s19",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.8xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s17-261002122624204593",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s17",
+      "instance_type": "ml.g5.12xlarge",
+      "hourly_usd": 9.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 18.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:26:37.965658+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s17-261002122624204593",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.12xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s18-261002122639826150",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s18",
+      "instance_type": "ml.g5.12xlarge",
+      "hourly_usd": 9.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 18.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:26:54.977431+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-ft-s18-261002122639826150",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.12xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-261002122656337902",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.16xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 14.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:27:08.606941+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-261002122656337902",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.16xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-261002122709990654",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 22.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:27:24.805543+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-261002122709990654",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.16xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261002122726214212",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 22.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T12:27:38.395434+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s18-261002122726214212",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/v3-checkpoints",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.16xlarge"
       }
     }
   ]

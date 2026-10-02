@@ -63,6 +63,16 @@ JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm k
 
 Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`. The task account has AWS-published quotas for `ml.g6.xlarge`, `ml.g6.2xlarge`, and `ml.g6.4xlarge` in `us-east-1`, and for g6e instances in `us-west-2`. Their on-demand SageMaker Training prices are estimates in the resource files, not verified public Training SKU rates. Use the report manifest to identify the GPU used for each arm.
 
+### Campaigns
+
+`schedule_evals.py` trains and evaluates every arm of one or more campaign files under `campaigns/`
+(`uv run python schedule_evals.py --dry-run|--once|--run --campaign campaigns/<file>.json`, repeatable;
+only one scheduler runs at a time). A campaign names its export `id`, `results` directory,
+`train_models`, `base_arms`, per-region `data` URIs and `expected` test/calibration SHA-256 digests.
+`checkpoints_from` makes a campaign eval-only: it submits no training and evaluates its
+`train_models` × seed fine-tune arms on the usable checkpoints of the named campaign id.
+`campaigns/v3-on-v4.json` uses it to test the v3-full fine-tunes on the v4 full test export.
+
 ### Campaign reports
 
 `scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` once every arm of a campaign has fetched results. It leads with per-role (finding-confirmation, semantic-detection) balanced accuracy, class recalls, ECE, GPU, latency and cost per arm and seed mean ± SD, then fine-tune-vs-base deltas, a comparison with `--compare` (a campaign on the same test export; it also supplies base arms the campaign does not evaluate), and every ledger job the campaign submitted with failed and stopped attempts. It refuses to render while an arm is missing. `--note` adds a status line. The committed reports were generated with:

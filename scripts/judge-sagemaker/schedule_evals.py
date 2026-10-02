@@ -176,7 +176,9 @@ def load_campaign(path: Path) -> dict[str, Any]:
     """A campaign file: id (exports/<id>/train.jsonl identifies its training
     jobs), results (directory under results/), train_models, base_arms, seeds,
     per-region data URIs (train, calibration, test, manifest), and the expected
-    test and calibration SHA-256 digests."""
+    test and calibration SHA-256 digests. An optional checkpoints_from names
+    another campaign id: the campaign then submits no training and evaluates
+    its fine-tune arms on that campaign's checkpoints."""
     c = load_json(path)
     for key in ("id", "results", "train_models", "base_arms", "data", "expected"):
         if key not in c:
@@ -230,6 +232,18 @@ def corpus_build_id(config: dict[str, Any]) -> str:
     if CAMPAIGN is not None:
         return CAMPAIGN["id"]
     return config["corpus_export"]["build_id"]
+
+
+def checkpoint_build_id(build_id: str) -> str:
+    """The campaign whose training jobs supply this campaign's fine-tune checkpoints."""
+    if CAMPAIGN is not None and CAMPAIGN.get("checkpoints_from"):
+        return str(CAMPAIGN["checkpoints_from"])
+    return build_id
+
+
+def trains(build_id: str) -> bool:
+    """False for an eval-only campaign (checkpoints_from)."""
+    return checkpoint_build_id(build_id) == build_id
 
 
 def usable_trained_artifact(job: dict[str, Any]) -> bool:
@@ -981,7 +995,7 @@ def schedule_training(
     occupied: set[tuple[str, str]],
     campaign: str,
 ) -> None:
-    for model in TRAIN_MODELS:
+    for model in TRAIN_MODELS if trains(build_id) else ():
         for seed in SEEDS:
             entries = train_entries(value, build_id, model, seed)
             if any(usable_trained_artifact(job) for job in entries):
@@ -1046,7 +1060,9 @@ def schedule_evaluations(
             continue
         checkpoint = None
         if ft_identity(arm):
-            trained = checkpoint_by_success(sm, value, build_id, arm)
+            trained = checkpoint_by_success(
+                sm, value, checkpoint_build_id(build_id), arm
+            )
             if not trained:
                 continue
             _, checkpoint = trained
@@ -1086,7 +1102,7 @@ def status_by_target(
     trained = succeeded = waiting = exhausted = 0
     for model in TRAIN_MODELS:
         for seed in SEEDS:
-            entries = train_entries(value, build_id, model, seed)
+            entries = train_entries(value, checkpoint_build_id(build_id), model, seed)
             if any(usable_trained_artifact(job) for job in entries):
                 trained += 1
             elif any(job.get("status") not in FINAL for job in entries):
@@ -1127,7 +1143,7 @@ def plan(
 ) -> tuple[list[dict[str, Any]], float]:
     occupied = occupied_from_ledger(value)
     tasks: list[dict[str, Any]] = []
-    for model in TRAIN_MODELS:
+    for model in TRAIN_MODELS if trains(build_id) else ():
         runtime = training_runtime(configs["us-east-1"], model)
         for seed in SEEDS:
             entries = train_entries(value, build_id, model, seed)
@@ -1188,7 +1204,9 @@ def plan(
                     ft_identity(arm)
                     and not any(
                         j.get("status") == "Completed"
-                        for j in train_entries(value, build_id, *ft_identity(arm))
+                        for j in train_entries(
+                            value, checkpoint_build_id(build_id), *ft_identity(arm)
+                        )
                     )
                 ),
             }
