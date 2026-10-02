@@ -57,7 +57,7 @@ JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker fetch-eval <job>
 JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-9b
 ```
 
-`--checkpoint` selects a local fine-tuned pilot run directory or an S3 `model.tar.gz` for an `*-ft-sN` arm. Fine-tuned Kev 4B/9B arms otherwise use a completed SageMaker training job recorded in the shared cost ledger. Laya and Kev 0.8B fine-tuned arms use local pilot caches and upload dereferenced checkpoint contents to S3.
+`--checkpoint` selects a local fine-tuned pilot run directory or an S3 `model.tar.gz` for an `*-ft-sN` arm. Fine-tuned Kev 4B/9B arms otherwise use a completed SageMaker training job recorded in the shared cost ledger. Laya and Kev 0.8B fine-tuned arms use local pilot caches and upload dereferenced checkpoint contents to S3. A training-job checkpoint must match the arm's base model, seed and commit, and must have trained on the evaluated export's train and calibration splits. `--cross-export-checkpoint` drops only the split check, for a checkpoint from another export; the reported calibrated (`test_cal`) temperature is still fit on the evaluated calibration split.
 
 `evaluate` uploads the test and calibration splits, dataset manifest, pilot runner, pinned dependencies, and an optional checkpoint into a job-specific `training/<job>/` prefix. It checks the shared cost ledger before submission and sets `MaxRuntimeInSeconds` to at most 7200 seconds. `fetch-eval` records billed instance time and cost, then downloads metrics, predictions, server logs, inventory, manifest, and compatibility probe beneath `results/<arm>/`.
 
@@ -70,7 +70,8 @@ Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`. The task account ha
 only one scheduler runs at a time). A campaign names its export `id`, `results` directory,
 `train_models`, `base_arms`, per-region `data` URIs and `expected` test/calibration SHA-256 digests.
 `checkpoints_from` makes a campaign eval-only: it submits no training and evaluates its
-`train_models` × seed fine-tune arms on the usable checkpoints of the named campaign id.
+`train_models` × seed fine-tune arms on the usable checkpoints of the named campaign id, passing
+`--cross-export-checkpoint`.
 `campaigns/v3-on-v4.json` uses it to test the v3-full fine-tunes on the v4 full test export.
 
 ### Campaign reports

@@ -511,6 +511,15 @@ def attempt_budget_exempt(job: dict[str, Any]) -> bool:
     reason = str(job.get("failure_reason") or "")
     if any(signature in reason for signature in FIXED_CODE_SIGNATURES):
         return True
+    # Evals submitted before --cross-export-checkpoint existed rejected the other
+    # export's checkpoint; flagged evals skip that check, so this cannot recur.
+    if (
+        CAMPAIGN is not None
+        and CAMPAIGN.get("checkpoints_from")
+        and "does not match" in reason
+        and "{'train sha256': (" in reason
+    ):
+        return True
     text = "\n".join(
         (
             reason,
@@ -683,6 +692,8 @@ def evaluation_args(
     ]
     if checkpoint:
         args += ["--checkpoint", checkpoint]
+        if CAMPAIGN is not None and CAMPAIGN.get("checkpoints_from"):
+            args.append("--cross-export-checkpoint")
     return args + data_args(region, "evaluation")
 
 

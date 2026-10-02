@@ -121,12 +121,14 @@ def calibration_eval(rows, T):
     return out
 
 
-def finetune_from_laya_manifest(m, arm, base, dataset):
-    """Map a laya_train.py manifest.json onto the pilot's finetune.json fields."""
-    checks = {
-        "init_from": (m["init_from"], f"{base['repo']}@{base['revision']}"),
-        "seed": (m["seed"], arm["ft_seed"]),
-        "upstream_commit": (m["upstream_commit"], arm["upstream_commit"]),
+def data_checks(m, dataset, cross_export):
+    """The checkpoint must have trained on this export's train split and fitted its
+    temperature on this calibration split, unless the campaign evaluates another
+    export's checkpoints (cross_export_checkpoint); metrics.py then fits the reported
+    temperature on this campaign's calibration split."""
+    if cross_export:
+        return {}
+    return {
         "train sha256": (
             m["input_data_sha256"].get("train"),
             dataset["export_train_sha256"],
@@ -135,6 +137,16 @@ def finetune_from_laya_manifest(m, arm, base, dataset):
             m["input_data_sha256"].get("calibration"),
             dataset["files"]["calibration"]["sha256"],
         ),
+    }
+
+
+def finetune_from_laya_manifest(m, arm, base, dataset, cross_export):
+    """Map a laya_train.py manifest.json onto the pilot's finetune.json fields."""
+    checks = {
+        "init_from": (m["init_from"], f"{base['repo']}@{base['revision']}"),
+        "seed": (m["seed"], arm["ft_seed"]),
+        "upstream_commit": (m["upstream_commit"], arm["upstream_commit"]),
+        **data_checks(m, dataset, cross_export),
     }
     wrong = {k: v for k, v in checks.items() if v[0] != v[1]}
     if wrong:
@@ -165,25 +177,18 @@ def finetune_from_laya_manifest(m, arm, base, dataset):
     }
 
 
-def finetune_from_training_manifest(run, arm, dataset):
+def finetune_from_training_manifest(run, arm, dataset, cross_export):
     """Map a `judge-sagemaker submit` job's manifest.json onto the pilot's finetune.json fields."""
     m = json.loads((run / "manifest.json").read_text())
     base = ARMS[arm["ft_base"]]
     if arm["family"] == "laya":
-        return finetune_from_laya_manifest(m, arm, base, dataset)
+        return finetune_from_laya_manifest(m, arm, base, dataset, cross_export)
     checks = {
         "init_from": (m["init_from"], f"{base['repo']}@{base['revision']}"),
         "base_revision": (m["base_revision"], base["base_revision"]),
         "seed": (m["seed"], arm["ft_seed"]),
         "kev_commit": (m["kev_commit"], arm["upstream_commit"]),
-        "train sha256": (
-            m["input_data_sha256"].get("train"),
-            dataset["export_train_sha256"],
-        ),
-        "calibration sha256": (
-            m["input_data_sha256"].get("calibration"),
-            dataset["files"]["calibration"]["sha256"],
-        ),
+        **data_checks(m, dataset, cross_export),
     }
     wrong = {k: v for k, v in checks.items() if v[0] != v[1]}
     if wrong:
@@ -293,7 +298,7 @@ def finetune_from_checkpoint_config(arm):
     }
 
 
-def stage_checkpoint(arm, source, dataset):
+def stage_checkpoint(arm, source, dataset, cross_export):
     """Unpack the checkpoint channel's one archive into the arm's ft_run directory."""
     archives = sorted((CHANNELS / "checkpoint").rglob("*.tar.gz"))
     if len(archives) != 1:
@@ -307,7 +312,7 @@ def stage_checkpoint(arm, source, dataset):
     # A successful training artifact has a full manifest; a calibration-context failure can
     # still retain the trained Kev checkpoint and its training_config.json.
     if (run / "manifest.json").is_file():
-        metadata = finetune_from_training_manifest(run, arm, dataset)
+        metadata = finetune_from_training_manifest(run, arm, dataset, cross_export)
     elif (
         arm["family"] == "kev"
         and (Path(arm["local"]) / "training_config.json").is_file()
@@ -408,6 +413,7 @@ def load_hyperparameters():
         "data_uri_test": hp.get("data_uri_test"),
         "data_uri_calibration": hp.get("data_uri_calibration"),
         "data_manifest_uri": hp.get("data_manifest_uri"),
+        "cross_export_checkpoint": hp.get("cross_export_checkpoint") == "1",
     }
 
 
@@ -423,7 +429,9 @@ def main():
     dataset, data_digests = stage_data()
     checkpoint = None
     if arm["local"]:
-        checkpoint = stage_checkpoint(arm, hp["checkpoint_source"], dataset)
+        checkpoint = stage_checkpoint(
+            arm, hp["checkpoint_source"], dataset, hp["cross_export_checkpoint"]
+        )
     py = family_python(arm)
     timings["download_s"] = run_logged([py, "download_models.py", name], "download.log")
     offline = {**os.environ, "HF_HUB_OFFLINE": "1"}
@@ -447,6 +455,7 @@ def main():
         "checkpoint_source": hp["checkpoint_source"],
         "checkpoint_ref": hp["checkpoint_ref"],
         "checkpoint": checkpoint,
+        "cross_export_checkpoint": hp["cross_export_checkpoint"],
         "upstream_commit": arm["upstream_commit"],
         "port": hp["port"],
         "dataset": {

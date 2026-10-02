@@ -160,7 +160,9 @@ def _package_local_checkpoint(run: str) -> str:
     return archive
 
 
-def _job_request(res, arm, source, checkpoint, name, instance, runtime, price, data):
+def _job_request(
+    res, arm, source, checkpoint, name, instance, runtime, price, data, cross_export
+):
     job_root = f"s3://{res['bucket']}/{res['s3_prefix']}/{name}"
     channels = ["code", "data"] + (["checkpoint"] if checkpoint else [])
     model_family = "laya" if arm.startswith("laya-") else "kev"
@@ -186,6 +188,8 @@ def _job_request(res, arm, source, checkpoint, name, instance, runtime, price, d
             "data_uri_test": data["test"],
             "data_uri_calibration": data["calibration"],
             "data_manifest_uri": data["manifest"],
+            # Set only for a campaign evaluating another export's checkpoints.
+            **({"cross_export_checkpoint": "1"} if cross_export else {}),
         },
         "InputDataConfig": [
             {
@@ -273,8 +277,21 @@ def cmd_evaluate(a):
             cli.parse_s3(value)
         elif not Path(value).expanduser().is_file():
             raise SystemExit(f"--{field}: no such file: {value}")
+    if a.cross_export_checkpoint and not checkpoint_uri:
+        raise SystemExit(
+            "--cross-export-checkpoint needs a fine-tuned arm's checkpoint"
+        )
     request = _job_request(
-        res, a.arm, source, checkpoint_uri, job, instance, runtime, price, data
+        res,
+        a.arm,
+        source,
+        checkpoint_uri,
+        job,
+        instance,
+        runtime,
+        price,
+        data,
+        a.cross_export_checkpoint,
     )
     plan = {
         "job_name": job,
@@ -445,6 +462,12 @@ def add_parsers(sub):
     p.add_argument(
         "--checkpoint",
         help="S3 model.tar.gz or local fine-tune run/checkpoint directory",
+    )
+    p.add_argument(
+        "--cross-export-checkpoint",
+        action="store_true",
+        help="accept a checkpoint trained on another export's train/calibration splits; "
+        "model, seed and commit identity are still checked",
     )
     p.add_argument(
         "--test", help="corpus test S3 URI or local JSONL; defaults to published export"
