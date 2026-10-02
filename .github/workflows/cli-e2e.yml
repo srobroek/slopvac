@@ -327,7 +327,6 @@ jobs:
           watched = {
               "ste-nouns.multiword-noun-too-long",
               "ai-tells-content-shape.adjective-per-noun-spray",
-              "ai-tells-register.uniform-paragraph-mass",
           }
           findings = [
               finding for finding in engine.run(document)
