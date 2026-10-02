@@ -33,7 +33,7 @@ from slopvac.engine import (
     _is_all_caps,
     count_clause_boundaries,
 )
-from slopvac.metrics import NATIVE_METRICS
+from slopvac.metrics import NATIVE_METRICS, paragraph_words_stdev
 from slopvac.model import Finding, Provenance, Rule, RuleKind, Scope, TextType, Tier
 from slopvac.rules import load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
@@ -1242,18 +1242,31 @@ def test_paragraph_words_is_evaluated_natively():
     its token counter sees it, so the metric stays native."""
     engine = _engine()
     rule = next(r for r in engine.rules if r.qualified_id == "prose-format.prose-block")
-    assert rule.metric == "paragraph_words"
-    assert "paragraph_words" not in engine.unimplemented_metrics()
+    assert rule.metric in NATIVE_METRICS
+    assert rule.metric not in engine.unimplemented_metrics()
     assert rule.qualified_id not in engine.unimplemented_metrics()
 
 
-def test_a_long_paragraph_fires_prose_block_once_at_its_first_line():
-    words = " ".join(["word"] * 81)
-    document = parse("t.md", f"# Title\n\nShort lead.\n\n{words}.\n")
-    findings = [
-        f for f in _engine().run(document) if f.rule_id == "prose-format.prose-block"
+def _prose_block_lines(paragraph: str) -> list[int]:
+    document = parse("t.md", f"# Title\n\nShort lead.\n\n{paragraph}\n")
+    return [
+        f.line
+        for f in _engine().run(document)
+        if f.rule_id == "prose-format.prose-block"
     ]
-    assert [f.line for f in findings] == [5]
+
+
+def test_a_long_enumerating_paragraph_fires_prose_block_once_at_its_first_line():
+    series = "It adds alpha, beta, and gamma. " * 3
+    assert _prose_block_lines(series + " ".join(["word"] * 90) + ".") == [5]
+
+
+def test_a_long_paragraph_without_enough_series_does_not_fire_prose_block():
+    """Length alone fired on cohesive argument a list cannot improve. Two series
+    sentences are not an enumeration, and a 100-word paragraph is not long."""
+    series = "It adds alpha, beta, and gamma. "
+    assert _prose_block_lines(series * 2 + " ".join(["word"] * 150) + ".") == []
+    assert _prose_block_lines(series * 3 + " ".join(["word"] * 82) + ".") == []
 
 
 # --- a profile must not override its own tiers --------------------------------
@@ -1416,32 +1429,12 @@ def test_a_bold_bullet_without_a_colon_is_not_a_pseudo_heading():
     assert not BOLD_COLON_BULLET.match("- plain bullet")
 
 
-def test_uniform_paragraph_mass_reports_low_dispersion_not_high():
-    """The one metric whose comparison is `lt`. It is the burstiness counter-signal, so
-    uniformity is the finding and variety is the pass."""
-    engine = _engine(profile=Profile.STRICT)
-    uniform = "\n\n".join(
-        [
-            "This paragraph has a deliberate uniform mass so the dispersion measure "
-            "has something to bite on here.",
-            "This paragraph also has a deliberate uniform mass so the dispersion "
-            "measure has something to bite too.",
-            "This paragraph likewise has a deliberate uniform mass so the dispersion "
-            "measure has something to bite.",
-        ]
-    )
-    ids = [f.rule_id for f in engine.run(parse("a.md", uniform + "\n"))]
-    assert "ai-tells-register.uniform-paragraph-mass" in ids
-
-
-def test_a_document_with_too_few_paragraphs_is_not_uniform():
-    """`stdev` returns 0.0 below two values, which is the WRONG answer for a rule that
-    compares with `lt`: every one-paragraph file would fire. The guard returns
-    infinity instead."""
-    engine = _engine(profile=Profile.STRICT)
+def test_a_document_with_too_few_paragraphs_has_no_paragraph_dispersion():
+    """`stdev` returns 0.0 below two values, which is the WRONG answer for a custom
+    rule that compares with `lt`: every one-paragraph file would fire. The guard
+    returns infinity instead."""
     document = parse("a.md", "One short paragraph and nothing else to compare it to.\n")
-    ids = [f.rule_id for f in engine.run(document)]
-    assert "ai-tells-register.uniform-paragraph-mass" not in ids
+    assert paragraph_words_stdev(document) == float("inf")
 
 
 def test_adjective_spray_is_reported():
@@ -1469,7 +1462,6 @@ def test_this_project_readme_does_not_trip_the_new_metrics():
         in {
             "ste-nouns.multiword-noun-too-long",
             "ai-tells-content-shape.adjective-per-noun-spray",
-            "ai-tells-register.uniform-paragraph-mass",
         }
     ]
     assert noisy == []

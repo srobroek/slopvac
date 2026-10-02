@@ -17,14 +17,14 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?\s+(becomes?|turns? into|grows? into|evolves? into)\b|\b(the )?(bet|decision|project|initiative|effort|strategy)s?\s+(lives? or dies?|takes? on a life|makes? itself)\b|\b(the )?(data|metrics?|numbers?|evidence|research|code)\s+(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\b|\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\s+(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\b|\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+(emerges?|arrives?|presents? itself|reveals? itself)\b|\bstops? being\b[^.!?]{1,40}\band starts? being\b|\b(?:allows?|enables?|permits?|empowers?)\s+(?:you|users?|the user|developers?|the developer|teams?|the reader|clients?|customers?|consumers?|callers?|the caller|agents?|the agent)\b'
+    pattern: '\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?\s+(becomes?\s+(?:a|an|the|our|your|their|its|part of)|turns? into|grows? into|evolves? into)\b|\b(the )?(bet|decision|project|initiative|effort|strategy)s?\s+(lives? or dies?|takes? on a life|makes? itself)\b|\b(the )?(data|metrics?|numbers?|evidence|research|code)\s+(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\b|\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\s+(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\b|\b(the )?(decision|consensus|answer|conclusion|solution)s?\s+(emerges?|arrives?|presents? itself|reveals? itself)\b|\bstops? being\b[^.!?]{1,40}\band starts? being\b'
     ignore_case: true
-    fix: Name the human, or use "you" and put the reader in the seat. For the product-agency half, say what the thing has or what the reader does.
+    fix: Name the human, or use "you" and put the reader in the seat.
     examples:
       - bad: The complaint becomes a fix.
         good: The team fixed it that week.
-      - bad: The tool allows you to filter by category.
-        good: The `--category` flag filters by category.
+      - bad: The suggestion turns into a policy.
+        good: The feedback becomes clearer after a second review.
       - bad: The data tells us the market rewards speed.
         good: Open rates fell from 31% to 22% over three weeks.
     ai_signal: none
@@ -36,14 +36,16 @@ rules:
         Enforced at every tier: a deleted actor is a defect in any register.
         Subject-anchored, not verb-anchored -- "the data tells us" is the tell,
         "tells" alone is not -- which keeps "the loader resolves paths" clean. The
-        `allows you to` band is anchored on the pronoun so "the config allows two
-        retries" stays clean. `lets you` and `helps you` were dropped from that band
-        in the 2026-09-12 audit: 9 of 11 hits on pre-2022 human prose were "lets
-        you"/"helps you" in ordinary instructions ("the flag lets you skip"), none
-        of the model corpus hits used them, and every bad example still fires.
-        Also the mechanised half of the register catalog's "False agency" entry
-        and of Splunk's UserFocus; see ai-tells-register.false-agency-remainder for
-        the judgement remainder. .vale.ini keeps it at error for source comments.
+        `allows you to` band (allows/enables/permits/empowers + you/users/
+        developers/teams/clients) was removed in human labelling, 2026-10: all
+        15 human-reviewed hits were false positives, because "the cache allows
+        you to", or even "this change enables teams to", names the subject that
+        acts, so no actor is deleted. The same labelling restricted `becomes` to
+        a following determiner ("becomes a fix"): "the feedback becomes clearer"
+        is a state change, not an abstraction acting. Also the
+        mechanised half of the register catalog's "False agency" entry; see
+        ai-tells-register.false-agency-remainder for the judgement remainder.
+        .vale.ini keeps it at error for source comments.
 
   - id: agentless-passive
     exceptions: [quotation]
@@ -56,7 +58,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: enforced
-    pattern: '\bit (?:is|was) (?:believed|thought|felt|assumed|expected|understood|considered|argued|reported|hoped|suggested|recognized|recognised)\s+that\b|\b(?:mistakes|errors|choices|assumptions|concessions|compromises)\s+were made\b|\bthe (?:decision|conclusion|agreement|consensus|determination)\s+was (?:reached|made|taken|arrived at)\b|\b(?:it|this|that) was (?:decided|agreed|determined|concluded|resolved)\b|\b(?:steps?|actions?|measures?)\s+(?:was|were) taken\b'
+    pattern: '\bit (?!is assumed\s+that\s+(?:the\s+)?(?:reader|readers|audience|you)\b)(?:is|was) (?:believed|thought|felt|assumed|expected|understood|considered|argued|reported|hoped|suggested|recognized|recognised)\s+that\b|\b(?:mistakes|errors|choices|assumptions|concessions|compromises)\s+were made\b|\bthe (?:decision|conclusion|agreement|consensus|determination)\s+was (?:reached|made|taken|arrived at)\b|\b(?:it|this) was (?:decided|agreed|determined|concluded|resolved)\b(?!\s+to be\b)|\b(?:steps?|actions?|measures?)\s+(?:was|were) taken\b'
     ignore_case: true
     fix: Put the actor in the subject slot.
     examples:
@@ -64,6 +66,10 @@ rules:
         good: The maintainers made the loader retry.
       - bad: Mistakes were made in the migration.
         good: The migration script dropped two rows.
+      - bad: It is assumed that the cache stays warm.
+        good: It is assumed that the reader knows SQL.
+      - bad: This was agreed in the planning call.
+        good: The vendor option was rejected, as it was determined to be too costly.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -75,7 +81,13 @@ rules:
         that name their agent ("the record was created by the importer") and state
         descriptions ("the rule is disabled") stay clean. Measures the SENTENCE;
         prose-density.passive-density measures the DOCUMENT, and neither subsumes
-        the other. .vale.ini keeps it at error for source comments.
+        the other. .vale.ini keeps it at error for source comments. Narrowed in
+        human labelling, 2026-10, which marked all three reviewed hits false
+        positives: "that was agreed" (dropped from the dummy-subject band: "that"
+        points at a named antecedent), the referential `to be` raising form ("it
+        was determined to be too costly", where "it" is the option under review),
+        and the audience prerequisite "it is assumed that the reader knows", a
+        stock scope statement.
 
   - id: anthropomorphism
     name: Name the mechanism, not a mind
@@ -149,12 +161,14 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\bit(?:\s+is|''s|\s+was)\s+(?:(?:not|highly|strongly|generally)\s+)?(?:recommended|advised|suggested|encouraged|considered good practice|best practice|preferable|advisable)\b|\b(?:is|are)\s+(?:not\s+)?recommended\b|\bthe recommended (?:approach|way|method|practice|option) is\b|\b(?:best|common) practice (?:is|dictates|suggests)\b'
+    pattern: '\bit(?:\s+is|''s|\s+was)\s+(?:(?:not|highly|strongly|generally)\s+)?(?:recommended|advised|suggested|encouraged|considered good practice|best practice|preferable|advisable)\b|\bthe recommended (?:approach|way|method|practice|option) is\b|\b(?:best|common) practice (?:is|dictates|suggests)\b'
     ignore_case: true
     fix: Name the recommender, or drop the frame and give the instruction.
     examples:
       - bad: It is recommended that you rotate keys.
         good: Rotate keys every 90 days.
+      - bad: The recommended approach is to pin every version.
+        good: The following defaults are recommended for production.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -167,3 +181,9 @@ rules:
         agentless form is the defect, which is the part that generalises.
         `we recommend` is deliberately absent: prose-craft.first-person-plural owns
         the first-person plural, and in an ADR or CONTRIBUTING it is correct voice.
+        The noun-subject band (`X is recommended`, `the following are
+        recommended`) was removed in human labelling, 2026-10: all four reviewed
+        hits were false positives, because the subject names what is recommended
+        and reference documentation uses that voice for defaults and options.
+        Only the dummy-subject `it is recommended` frame and the stock
+        `recommended approach` / `best practice` frames remain.

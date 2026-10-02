@@ -81,7 +81,6 @@ rules:
       relaxed: enforced
     match_all_caps: true
     substitutions:
-      '\ba FAQ\b': an FAQ
       '\ba FTP\b': an FTP
       '\ba HTML\b': an HTML
       '\ba HTTP\b': an HTTP
@@ -94,7 +93,6 @@ rules:
       '\ba RSS\b': an RSS
       '\ba RPC\b': an RPC
       '\ba SDK\b': an SDK
-      '\ba SQL\b': an SQL
       '\ba SSH\b': an SSH
       '\ba SSL\b': an SSL
       '\ba SVG\b': an SVG
@@ -125,6 +123,8 @@ rules:
         good: an HTML file
       - bad: an URL
         good: a URL
+      - bad: Open a SSH session.
+        good: Open an SSH session and run a SQL query.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -134,8 +134,12 @@ rules:
         Purely mechanical -- there is no house-style position to take -- and a
         reliable marker of text assembled rather than read aloud. Vale sets
         `ignorecase: false` explicitly, which is load-bearing: case-insensitive
-        matching would flag "A FAQ" at the start of a sentence with the wrong
-        replacement casing.
+        matching would flag "A HTML" at the start of a sentence with the wrong
+        replacement casing. Human labelling, 2026-10: `a SQL` and `a FAQ` were
+        removed because both initialisms have an accepted spoken word form
+        ("sequel", "fack") that takes "a", so either article is correct and
+        the rule cannot know which one the writer says. Only initialisms with
+        one common spoken form stay.
 
   - id: command-prompt
     name: Drop the shell prompt from a command
@@ -321,12 +325,20 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: excluded
-    pattern: '\b(?:will|shall)\s+(?:not\s+)?(?=[a-z])|\b(?:we|it|this|that|you|they)''ll\b|\b(?:is|are) going to\s+(?=[a-z])'
+    # The first negative lookahead skips `will be` inside a subordinate clause:
+    # directly after relative `that`, or up to two words after
+    # which/where/when/what ("where each buffer will be freed", "the files that
+    # will be visible"). There `will` places a later step of the process after
+    # the present-tense main verb, and is not a promise. Main-clause `will`,
+    # active `that will <verb>`, and complement `that the X will be` still fire.
+    pattern: '\b(?!(?:(?<=\bthat\s+)|(?<=\b(?:which|where|when|what)(?:\s+[\w-]+){0,2}\s+))(?:will|shall)\s+(?:not\s+)?be\b)(?:will|shall)\s+(?:not\s+)?(?=[a-z])|\b(?:we|it|this|that|you|they)''ll\b|\b(?:is|are) going to\s+(?=[a-z])'
     ignore_case: false
     fix: Put the verb in the present tense.
     examples:
       - bad: The loader will retry twice.
         good: The loader retries twice.
+      - bad: The flag will be removed.
+        good: The plan shows where each value will be dropped.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -341,7 +353,13 @@ rules:
         which is a tense choice rather than a status claim. From Openly's
         FutureTense, minus its `[\w][ll]` token, which matches any word containing
         "ll" including "will" itself, "all", and "install". Excluded at relaxed: a
-        spec or an RFC states future obligations by genre.
+        spec or an RFC states future obligations by genre. Human labelling,
+        2026-10: `will be` directly after relative `that`, or in a
+        which/where/when/what clause, no longer fires; both labelled false
+        positives described a later runtime step
+        ("lists where each buffer will be freed", "the files that will be
+        visible to the installer"), and rewriting them in the present tense
+        blurs when the step happens.
 
   - id: gerund-heading
     name: Use the imperative in a task heading

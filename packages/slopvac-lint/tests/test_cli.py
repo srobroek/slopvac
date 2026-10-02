@@ -52,6 +52,17 @@ meaning. This lowers the number of calls to the model.
 Apache-2.0.
 """
 
+# Trips a native rule under --no-vale: each sentence runs past the descriptive cap.
+LONG_SENTENCES = """\
+# Notes
+
+The cache keeps every response that the server returned for a prompt and then
+compares each new prompt against all of the stored prompts before it calls the
+model again. The index stores one vector for every prompt that the server has
+answered so far and drops the oldest vectors once the configured size limit for
+the cache is reached.
+"""
+
 
 @pytest.fixture
 def runner():
@@ -168,7 +179,7 @@ def test_no_lintable_files_exits_0(runner, tmp_path):
 
 
 def test_json_output_is_parseable_and_complete(runner, tmp_path):
-    path = _write(tmp_path, "slop.md", CLEAN)
+    path = _write(tmp_path, "slop.md", LONG_SENTENCES)
     result = runner.invoke(
         main, ["lint", str(path), "--no-vale", "--format", "json", "--profile", "strict"]
     )
@@ -191,7 +202,7 @@ def test_json_output_is_parseable_and_complete(runner, tmp_path):
 
 
 def test_github_format_emits_annotations(runner, tmp_path):
-    path = _write(tmp_path, "slop.md", CLEAN)
+    path = _write(tmp_path, "slop.md", LONG_SENTENCES)
     result = runner.invoke(
         main,
         ["lint", str(path), "--no-vale", "--format", "github", "--profile", "strict"],
@@ -201,7 +212,7 @@ def test_github_format_emits_annotations(runner, tmp_path):
 
 
 def test_sarif_output_is_valid_shape(runner, tmp_path):
-    path = _write(tmp_path, "slop.md", CLEAN)
+    path = _write(tmp_path, "slop.md", LONG_SENTENCES)
     result = runner.invoke(
         main, ["lint", str(path), "--no-vale", "--format", "sarif", "--profile", "strict"]
     )
@@ -225,7 +236,7 @@ def test_sarif_fingerprints_are_unique_and_line_independent(runner, tmp_path):
     ordinal instead. Without it, one rule firing twice for the same reason loses
     an alert silently.
     """
-    path = _write(tmp_path, "slop.md", SLOP)
+    path = _write(tmp_path, "slop.md", LONG_SENTENCES)
     result = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "sarif"])
     run = json.loads(result.output)["runs"][0]
     prints = [
@@ -236,7 +247,9 @@ def test_sarif_fingerprints_are_unique_and_line_independent(runner, tmp_path):
 
     # Prepend a paragraph: every finding shifts down, and every fingerprint must
     # survive it. Line-derived identity is what this asserts against.
-    shifted = _write(tmp_path, "shifted.md", "An unrelated opening line.\n\n" + SLOP)
+    shifted = _write(
+        tmp_path, "shifted.md", "An unrelated opening line.\n\n" + LONG_SENTENCES
+    )
     again = runner.invoke(main, ["lint", str(shifted), "--no-vale", "--format", "sarif"])
     moved = json.loads(again.output)["runs"][0]["results"]
     lines = {
@@ -313,7 +326,7 @@ def test_locale_flag(runner, tmp_path, locale, text, should_find):
 
 def test_unknown_locale_reports_unchecked_and_still_lints(runner, tmp_path):
     """A typo in the locale must not stop the other rules running."""
-    path = _write(tmp_path, "a.md", CLEAN)
+    path = _write(tmp_path, "a.md", LONG_SENTENCES)
     result = runner.invoke(
         main, ["lint", str(path), "--no-vale", "--locale", "en-XX", "--format", "json"]
     )
@@ -505,7 +518,7 @@ def test_excluded_path_is_not_linted(runner, tmp_path):
 
 
 def test_disable_flag_silences_a_rule(runner, tmp_path):
-    path = _write(tmp_path, "a.md", CLEAN)
+    path = _write(tmp_path, "a.md", LONG_SENTENCES)
 
     def ids(*extra):
         result = runner.invoke(
@@ -515,13 +528,10 @@ def test_disable_flag_silences_a_rule(runner, tmp_path):
             f["rule_id"] for f in json.loads(result.output)["documents"][0]["findings"]
         }
 
-    assert "ai-tells-register.uniform-paragraph-mass" in ids()
-    assert "ai-tells-register.uniform-paragraph-mass" not in ids(
-        "--disable", "ai-tells-register.uniform-paragraph-mass"
-    )
-    assert not ids("--disable", "ai-tells-register").intersection(
-        {"ai-tells-register.uniform-paragraph-mass"}
-    )
+    rule = "ste-descriptive.sentence-too-long-descriptive"
+    assert rule in ids()
+    assert rule not in ids("--disable", rule)
+    assert rule not in ids("--disable", "ste-descriptive")
 
 
 def test_no_vale_skips_vale_owned_rules(runner, tmp_path):
@@ -602,7 +612,7 @@ def test_every_reported_rule_can_be_explained(runner, tmp_path):
     Asserting over the gate's own output rather than a fixed list, so any future
     generated rule is covered without editing this test.
     """
-    path = _write(tmp_path, "slop.md", CLEAN)
+    path = _write(tmp_path, "slop.md", LONG_SENTENCES)
     lint = runner.invoke(main, ["lint", str(path), "--no-vale", "--format", "json"])
     reported = {
         finding["rule_id"]
