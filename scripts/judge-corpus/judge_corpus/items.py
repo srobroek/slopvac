@@ -19,7 +19,11 @@ from tokenizers import Tokenizer
 
 from .common import read_jsonl, sha256_text, shingles, write_jsonl
 
-CANONICAL = Path("/Users/sjors/personal/dev/slopvac")
+# The slopvac checkout whose lint rules label the corpus. Point
+# SLOPVAC_LINT_ROOT at a worktree of the commit the build must reflect.
+CANONICAL = Path(
+    os.environ.get("SLOPVAC_LINT_ROOT", "/Users/sjors/personal/dev/slopvac")
+)
 JUDGEMENT_REV = "49a91f2b^"
 SPLITS = ("train", "dev", "calibration", "test")
 GRANULARITY = (("sentence", 30), ("paragraph", 45), ("document", 25))

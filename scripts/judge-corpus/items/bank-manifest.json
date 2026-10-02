@@ -1,37 +1,37 @@
 {
-  "bank_sha256": "bc85a6890d2675638d8fbc189ae6d2620529d31cc552254361518b1f9d468c33",
-  "bank_uri": "s3://slopvac-judge-536697262379-84848969f6/bank/bank-bc85a6890d26.jsonl",
+  "bank_sha256": "3782298c16ab1d25ea303c67be94317da66b6b55e0e9a16f75489756f5260f30",
+  "bank_uri": "s3://slopvac-judge-536697262379-84848969f6/bank/bank-3782298c16ab.jsonl",
   "generator": "us.anthropic.claude-sonnet-5",
   "judges": {
     "anthropic": "us.anthropic.claude-sonnet-5",
     "openai": "openai.gpt-oss-120b-1:0"
   },
   "kept_by_kind": {
-    "finding-confirmation|bad": 2079,
-    "finding-confirmation|good": 3343,
-    "finding-confirmation|near": 1246,
-    "finding-confirmation|tricky": 634,
+    "finding-confirmation|bad": 2053,
+    "finding-confirmation|good": 3298,
+    "finding-confirmation|near": 1224,
+    "finding-confirmation|tricky": 603,
     "semantic-detection|bad": 1012,
     "semantic-detection|good": 476,
     "semantic-detection|near": 469
   },
   "kept_by_split": {
-    "finding-confirmation|bad|calibration": 276,
-    "finding-confirmation|bad|dev": 246,
-    "finding-confirmation|bad|test": 633,
-    "finding-confirmation|bad|train": 924,
-    "finding-confirmation|good|calibration": 412,
-    "finding-confirmation|good|dev": 384,
-    "finding-confirmation|good|test": 1089,
-    "finding-confirmation|good|train": 1458,
+    "finding-confirmation|bad|calibration": 272,
+    "finding-confirmation|bad|dev": 238,
+    "finding-confirmation|bad|test": 637,
+    "finding-confirmation|bad|train": 906,
+    "finding-confirmation|good|calibration": 403,
+    "finding-confirmation|good|dev": 380,
+    "finding-confirmation|good|test": 1073,
+    "finding-confirmation|good|train": 1442,
     "finding-confirmation|near|calibration": 145,
-    "finding-confirmation|near|dev": 143,
-    "finding-confirmation|near|test": 395,
-    "finding-confirmation|near|train": 563,
-    "finding-confirmation|tricky|calibration": 73,
-    "finding-confirmation|tricky|dev": 72,
-    "finding-confirmation|tricky|test": 226,
-    "finding-confirmation|tricky|train": 263,
+    "finding-confirmation|near|dev": 141,
+    "finding-confirmation|near|test": 391,
+    "finding-confirmation|near|train": 547,
+    "finding-confirmation|tricky|calibration": 65,
+    "finding-confirmation|tricky|dev": 65,
+    "finding-confirmation|tricky|test": 231,
+    "finding-confirmation|tricky|train": 242,
     "semantic-detection|bad|calibration": 137,
     "semantic-detection|bad|dev": 120,
     "semantic-detection|bad|test": 296,
@@ -45,7 +45,7 @@
     "semantic-detection|near|test": 148,
     "semantic-detection|near|train": 134
   },
-  "lint_source": "/Users/sjors/personal/dev/slopvac/packages/slopvac-lint",
+  "lint_source": "/Users/sjors/tmp/worktrees/slopvac/lint-main-7544c16/packages/slopvac-lint",
   "passed_lint_failed_teachers": {
     "ai-residue.chat-leakage|bad": 2,
     "ai-residue.chat-leakage|near": 1,
@@ -54,7 +54,7 @@
     "ai-tells-agentic.formulaic-universal-heading|near": 2,
     "ai-tells-content-shape.adjective-per-noun-spray|bad": 10,
     "ai-tells-content-shape.adjective-per-noun-spray|tricky": 4,
-    "ai-tells-content-shape.durable-vocabulary-habits|bad": 17,
+    "ai-tells-content-shape.durable-vocabulary-habits|bad": 14,
     "ai-tells-content-shape.durable-vocabulary-habits|good": 6,
     "ai-tells-content-shape.durable-vocabulary-habits|near": 4,
     "ai-tells-content-shape.durable-vocabulary-habits|tricky": 2,
@@ -111,8 +111,6 @@
     "ai-tells-formatting.cross-reference-signposting|bad": 4,
     "ai-tells-formatting.cross-reference-signposting|near": 1,
     "ai-tells-formatting.cross-reference-signposting|tricky": 4,
-    "ai-tells-formatting.curly-quotes|good": 6,
-    "ai-tells-formatting.curly-quotes|near": 1,
     "ai-tells-formatting.em-dash-density|tricky": 12,
     "ai-tells-formatting.emoji-list-markers|tricky": 5,
     "ai-tells-formatting.heading-hierarchy|tricky": 13,
@@ -143,7 +141,6 @@
     "ai-tells-register.sycophantic-meta-residue|bad": 1,
     "ai-tells-register.sycophantic-meta-residue|near": 6,
     "ai-tells-register.sycophantic-meta-residue|tricky": 7,
-    "ai-tells-register.uniform-paragraph-mass|good": 1,
     "ai-tells-register.urgency-inflation-core|bad": 1,
     "ai-tells-register.urgency-inflation-core|tricky": 7,
     "ai-tells-structure.absolute-assertion-core|bad": 6,
@@ -182,9 +179,8 @@
     "ai-tells-structure.think-of-it-as-core|bad": 2,
     "ai-tells-structure.think-of-it-as-core|near": 10,
     "ai-tells-structure.think-of-it-as-core|tricky": 10,
-    "ai-tells-structure.tricolon-abuse-core|bad": 11,
+    "ai-tells-structure.tricolon-abuse-core|bad": 1,
     "ai-tells-structure.tricolon-abuse-core|near": 3,
-    "ai-tells-structure.tricolon-abuse-core|tricky": 1,
     "ai-tells-structure.vague-attribution-core|good": 1,
     "ai-tells-structure.vague-attribution-core|near": 3,
     "docs-discipline.history-narration|bad": 6,
@@ -218,10 +214,10 @@
     "prose-agency.anthropomorphism|good": 4,
     "prose-agency.anthropomorphism|near": 2,
     "prose-agency.anthropomorphism|tricky": 10,
-    "prose-agency.false-agency|bad": 15,
+    "prose-agency.false-agency|bad": 5,
     "prose-agency.false-agency|good": 8,
     "prose-agency.false-agency|near": 2,
-    "prose-agency.false-agency|tricky": 7,
+    "prose-agency.false-agency|tricky": 3,
     "prose-agency.narrator-distance|bad": 19,
     "prose-agency.narrator-distance|good": 9,
     "prose-agency.narrator-distance|near": 5,
@@ -229,15 +225,14 @@
     "prose-agency.unattributed-recommendation|bad": 1,
     "prose-agency.unattributed-recommendation|good": 11,
     "prose-agency.unattributed-recommendation|near": 3,
-    "prose-agency.unattributed-recommendation|tricky": 4,
+    "prose-agency.unattributed-recommendation|tricky": 2,
     "prose-craft.acronym-periods|tricky": 15,
     "prose-craft.ambiguity|bad": 11,
     "prose-craft.ambiguity|near": 2,
     "prose-craft.ambiguity|tricky": 11,
-    "prose-craft.articles|bad": 1,
     "prose-craft.articles|good": 2,
     "prose-craft.articles|near": 3,
-    "prose-craft.articles|tricky": 12,
+    "prose-craft.articles|tricky": 10,
     "prose-craft.conflict-markers|tricky": 1,
     "prose-craft.dead-opener|good": 3,
     "prose-craft.dead-opener|near": 5,
@@ -303,7 +298,7 @@
     "prose-discipline.bidirectional-hedge|bad": 15,
     "prose-discipline.bidirectional-hedge|near": 2,
     "prose-discipline.bidirectional-hedge|tricky": 5,
-    "prose-discipline.frozen-verb|near": 8,
+    "prose-discipline.frozen-verb|near": 9,
     "prose-discipline.frozen-verb|tricky": 6,
     "prose-discipline.hedged-hedge|bad": 7,
     "prose-discipline.hedged-hedge|near": 1,
@@ -317,9 +312,7 @@
     "prose-discipline.run-on|tricky": 16,
     "prose-format.emoji-heading|tricky": 11,
     "prose-format.no-unicode-dash|tricky": 13,
-    "prose-format.prose-block|bad": 11,
     "prose-format.prose-block|near": 2,
-    "prose-format.prose-block|tricky": 15,
     "prose-inclusive.ableist|good": 2,
     "prose-inclusive.device-assumption|good": 7,
     "prose-inclusive.device-assumption|near": 6,
@@ -369,10 +362,10 @@
     "prose-promotion.promotional-adjective-noun|good": 4,
     "prose-promotion.promotional-adjective-noun|near": 2,
     "prose-promotion.promotional-adjective-noun|tricky": 5,
-    "prose-promotion.promotional-puffery|bad": 2,
+    "prose-promotion.promotional-puffery|bad": 1,
     "prose-promotion.promotional-puffery|good": 1,
     "prose-promotion.promotional-puffery|near": 2,
-    "prose-promotion.promotional-puffery|tricky": 12,
+    "prose-promotion.promotional-puffery|tricky": 10,
     "prose-promotion.promotional-verbs|good": 2,
     "prose-promotion.promotional-verbs|tricky": 4,
     "prose-promotion.strategy-buzzwords|bad": 5,
@@ -416,7 +409,7 @@
     "ste-practices.unclear-pronoun|good": 2,
     "ste-practices.unclear-pronoun|near": 3,
     "ste-procedural.condition-after-command|bad": 11,
-    "ste-procedural.condition-after-command|near": 3,
+    "ste-procedural.condition-after-command|near": 6,
     "ste-procedural.condition-after-command|tricky": 15,
     "ste-procedural.instruction-not-imperative|bad": 8,
     "ste-procedural.instruction-not-imperative|good": 1,
@@ -451,10 +444,6 @@
     "ste-sentences.missing-article-or-determiner|good": 1,
     "ste-sentences.missing-article-or-determiner|near": 3,
     "ste-sentences.missing-article-or-determiner|tricky": 9,
-    "ste-sentences.omitted-word-or-contraction|bad": 16,
-    "ste-sentences.omitted-word-or-contraction|good": 1,
-    "ste-sentences.omitted-word-or-contraction|near": 3,
-    "ste-sentences.omitted-word-or-contraction|tricky": 11,
     "ste-sentences.vertical-list-item-punctuation|good": 20,
     "ste-sentences.vertical-list-item-punctuation|near": 1,
     "ste-verbs.auxiliary-stacking|bad": 5,
@@ -616,11 +605,12 @@
         "generated": 22,
         "kept": 5,
         "rejected": {
-          "judge-disagree:anthropic+openai": 12,
-          "judge-disagree:openai": 5
+          "judge-disagree:anthropic+openai": 10,
+          "judge-disagree:openai": 4,
+          "lint-silent": 3
         }
       },
-      "description": "copula avoidance: use '\u2026' instead of '\u2026'",
+      "description": "indirect verb: use '\u2026' instead of '\u2026'",
       "fix": "Replace with the concrete verb or noun.",
       "good": {
         "generated": 22,
@@ -642,9 +632,10 @@
       "role": "finding-confirmation",
       "tricky": {
         "generated": 16,
-        "kept": 14,
+        "kept": 12,
         "rejected": {
-          "judge-disagree:anthropic": 2
+          "judge-disagree:anthropic": 2,
+          "lint-silent": 2
         }
       }
     },
@@ -1529,41 +1520,6 @@
         }
       }
     },
-    "ai-tells-formatting.curly-quotes": {
-      "bad": {
-        "generated": 22,
-        "kept": 3,
-        "rejected": {
-          "lint-silent": 19
-        }
-      },
-      "description": "curly quote: \u2026 -- normalise to a straight quote",
-      "fix": "Replace with the straight ASCII quote or apostrophe.",
-      "good": {
-        "generated": 20,
-        "kept": 14,
-        "rejected": {
-          "judge-disagree:anthropic": 6
-        }
-      },
-      "held_out": true,
-      "name": "Normalise curly quotes to straight ones",
-      "near": {
-        "generated": 9,
-        "kept": 8,
-        "rejected": {
-          "judge-disagree:anthropic": 1
-        }
-      },
-      "role": "finding-confirmation",
-      "tricky": {
-        "generated": 16,
-        "kept": 0,
-        "rejected": {
-          "lint-silent": 16
-        }
-      }
-    },
     "ai-tells-formatting.em-dash-density": {
       "bad": {
         "generated": 21,
@@ -1701,7 +1657,7 @@
         "kept": 20,
         "rejected": {}
       },
-      "held_out": false,
+      "held_out": true,
       "name": "Delete manufactured emphasis",
       "near": {
         "generated": 10,
@@ -2270,40 +2226,6 @@
         "rejected": {
           "judge-disagree:openai": 7,
           "lint-silent": 1
-        }
-      }
-    },
-    "ai-tells-register.uniform-paragraph-mass": {
-      "bad": {
-        "generated": 22,
-        "kept": 0,
-        "rejected": {
-          "lint-silent": 22
-        }
-      },
-      "description": "uniform paragraph mass: stdev of paragraph word count is \u2026 -- vary length deliberately",
-      "fix": "Let one point take three paragraphs and the next one clause.",
-      "good": {
-        "generated": 19,
-        "kept": 11,
-        "rejected": {
-          "judge-disagree:openai": 1,
-          "lint-fired": 7
-        }
-      },
-      "held_out": false,
-      "name": "Vary paragraph length deliberately",
-      "near": {
-        "generated": 10,
-        "kept": 10,
-        "rejected": {}
-      },
-      "role": "finding-confirmation",
-      "tricky": {
-        "generated": 15,
-        "kept": 4,
-        "rejected": {
-          "lint-silent": 11
         }
       }
     },
@@ -3292,12 +3214,10 @@
     "ai-tells-structure.tricolon-abuse-core": {
       "bad": {
         "generated": 22,
-        "kept": 9,
+        "kept": 3,
         "rejected": {
-          "judge-disagree:anthropic": 1,
-          "judge-disagree:anthropic+openai": 5,
-          "judge-disagree:openai": 5,
-          "lint-silent": 2
+          "judge-disagree:openai": 1,
+          "lint-silent": 18
         }
       },
       "description": "tricolon: \u2026 -- cut to the one or two that carry load; break the symmetry",
@@ -3311,19 +3231,17 @@
       "name": "Cut a three-item list to the items that carry load",
       "near": {
         "generated": 10,
-        "kept": 6,
+        "kept": 7,
         "rejected": {
-          "judge-disagree:openai": 3,
-          "lint-fired": 1
+          "judge-disagree:openai": 3
         }
       },
       "role": "finding-confirmation",
       "tricky": {
         "generated": 16,
-        "kept": 14,
+        "kept": 0,
         "rejected": {
-          "judge-disagree:openai": 1,
-          "lint-silent": 1
+          "lint-silent": 16
         }
       }
     },
@@ -3793,13 +3711,13 @@
         "generated": 22,
         "kept": 7,
         "rejected": {
-          "judge-disagree:anthropic": 8,
-          "judge-disagree:anthropic+openai": 4,
-          "judge-disagree:openai": 3
+          "judge-disagree:anthropic": 4,
+          "judge-disagree:anthropic+openai": 1,
+          "lint-silent": 10
         }
       },
       "description": "false agency: \u2026 -- name who acted",
-      "fix": "Name the human, or use \"you\" and put the reader in the seat. For the product-agency half, say what the thing has or what the reader does.",
+      "fix": "Name the human, or use \"you\" and put the reader in the seat.",
       "good": {
         "generated": 22,
         "kept": 14,
@@ -3819,11 +3737,11 @@
       "role": "finding-confirmation",
       "tricky": {
         "generated": 16,
-        "kept": 6,
+        "kept": 3,
         "rejected": {
           "judge-disagree:anthropic+openai": 2,
-          "judge-disagree:openai": 5,
-          "lint-silent": 3
+          "judge-disagree:openai": 1,
+          "lint-silent": 10
         }
       }
     },
@@ -3897,11 +3815,10 @@
       "role": "finding-confirmation",
       "tricky": {
         "generated": 16,
-        "kept": 8,
+        "kept": 1,
         "rejected": {
-          "judge-disagree:anthropic+openai": 1,
-          "judge-disagree:openai": 3,
-          "lint-silent": 4
+          "judge-disagree:openai": 2,
+          "lint-silent": 13
         }
       }
     },
@@ -3978,8 +3895,7 @@
         "generated": 22,
         "kept": 15,
         "rejected": {
-          "judge-disagree:anthropic": 1,
-          "lint-silent": 6
+          "lint-silent": 7
         }
       },
       "description": "article: use '\u2026' instead of '\u2026' (the article follows pronunciation)",
@@ -4008,8 +3924,7 @@
         "kept": 0,
         "rejected": {
           "judge-disagree:anthropic+openai": 10,
-          "judge-disagree:openai": 2,
-          "lint-silent": 4
+          "lint-silent": 6
         }
       }
     },
@@ -4980,8 +4895,7 @@
         "kept": 1,
         "rejected": {
           "judge-disagree:anthropic": 2,
-          "judge-disagree:anthropic+openai": 6,
-          "lint-fired": 1
+          "judge-disagree:anthropic+openai": 7
         }
       },
       "role": "finding-confirmation",
@@ -5281,14 +5195,12 @@
     "prose-format.prose-block": {
       "bad": {
         "generated": 20,
-        "kept": 9,
+        "kept": 0,
         "rejected": {
-          "judge-disagree:anthropic": 4,
-          "judge-disagree:anthropic+openai": 3,
-          "judge-disagree:openai": 4
+          "lint-silent": 20
         }
       },
-      "description": "prose block of \u2026 words > 80 -- convert to a list or table",
+      "description": "prose block of \u2026 words > \u2026 strings a series through three or more sentences -- convert to a list or table",
       "fix": "Split the paragraph, or turn the enumeration into a list or a table.",
       "good": {
         "generated": 22,
@@ -5310,8 +5222,7 @@
         "generated": 15,
         "kept": 0,
         "rejected": {
-          "judge-disagree:anthropic+openai": 5,
-          "judge-disagree:openai": 10
+          "lint-silent": 15
         }
       }
     },
@@ -5912,11 +5823,10 @@
     "prose-promotion.promotional-puffery": {
       "bad": {
         "generated": 22,
-        "kept": 17,
+        "kept": 15,
         "rejected": {
-          "judge-disagree:anthropic": 1,
           "judge-disagree:openai": 1,
-          "lint-silent": 3
+          "lint-silent": 6
         }
       },
       "description": "puffery: \u2026 -- replace with the fact that would justify it",
@@ -5941,12 +5851,12 @@
       "role": "finding-confirmation",
       "tricky": {
         "generated": 16,
-        "kept": 2,
+        "kept": 1,
         "rejected": {
-          "judge-disagree:anthropic": 3,
+          "judge-disagree:anthropic": 2,
           "judge-disagree:anthropic+openai": 5,
-          "judge-disagree:openai": 4,
-          "lint-silent": 2
+          "judge-disagree:openai": 3,
+          "lint-silent": 5
         }
       }
     },
@@ -6446,22 +6356,21 @@
       "fix": "Break the stack with a preposition, or define a short form.",
       "good": {
         "generated": 22,
-        "kept": 16,
+        "kept": 17,
         "rejected": {
-          "judge-disagree:openai": 5,
-          "lint-fired": 1
+          "judge-disagree:openai": 5
         }
       },
       "held_out": false,
       "name": "Keep a noun stack to three words",
       "near": {
         "generated": 10,
-        "kept": 2,
+        "kept": 3,
         "rejected": {
           "judge-disagree:anthropic": 1,
           "judge-disagree:anthropic+openai": 1,
           "judge-disagree:openai": 2,
-          "lint-fired": 4
+          "lint-fired": 3
         }
       },
       "role": "finding-confirmation",
@@ -6910,9 +6819,9 @@
         "generated": 10,
         "kept": 2,
         "rejected": {
-          "judge-disagree:anthropic+openai": 1,
-          "judge-disagree:openai": 2,
-          "lint-fired": 5
+          "judge-disagree:anthropic+openai": 3,
+          "judge-disagree:openai": 3,
+          "lint-fired": 2
         }
       },
       "role": "finding-confirmation",
@@ -7397,7 +7306,7 @@
           "lint-fired": 3
         }
       },
-      "held_out": true,
+      "held_out": false,
       "name": "Use an article or a demonstrative before a noun",
       "near": {
         "generated": 10,
@@ -7450,44 +7359,23 @@
       },
       "role": "semantic-detection"
     },
-    "ste-sentences.omitted-word-or-contraction": {
+    "ste-sentences.omitted-subject": {
       "bad": {
-        "generated": 22,
-        "kept": 6,
-        "rejected": {
-          "judge-disagree:anthropic": 1,
-          "judge-disagree:anthropic+openai": 4,
-          "judge-disagree:openai": 11
-        }
+        "generated": 0
       },
-      "description": "Omitted word or contraction \"\u2026\". Write the full form.",
-      "fix": "Write the full word, or restore the omitted subject or article.",
+      "description": "Omitted subject \"\u2026\". Name what is installed, configured, or ready.",
+      "fix": "Restore the omitted subject.",
       "good": {
-        "generated": 22,
-        "kept": 21,
-        "rejected": {
-          "judge-disagree:anthropic": 1
-        }
+        "generated": 0
       },
-      "held_out": false,
-      "name": "Do not omit words or use contractions",
+      "held_out": true,
+      "name": "Do not omit the subject after If, When, or Once",
       "near": {
-        "generated": 10,
-        "kept": 6,
-        "rejected": {
-          "judge-disagree:anthropic+openai": 3,
-          "lint-fired": 1
-        }
+        "generated": 0
       },
       "role": "finding-confirmation",
       "tricky": {
-        "generated": 16,
-        "kept": 0,
-        "rejected": {
-          "judge-disagree:anthropic": 6,
-          "judge-disagree:anthropic+openai": 5,
-          "lint-silent": 5
-        }
+        "generated": 0
       }
     },
     "ste-sentences.sentence-not-short-or-clear": {
@@ -8360,27 +8248,27 @@
   "seed": 17,
   "verify_jobs": {
     "anthropic": {
-      "completed_at": "2026-09-29T18:38:09Z",
+      "completed_at": "2026-10-02T11:21:39Z",
       "errors": 0,
-      "estimate_usd": 18.558802,
-      "input_tokens": 8456486,
+      "estimate_usd": 0.009584,
+      "input_tokens": 4407,
       "mode": "on-demand",
       "model_id": "us.anthropic.claude-sonnet-5",
-      "output_tokens": 164583,
-      "pre_run_estimate_usd": 24.560896,
-      "records": 13434,
+      "output_tokens": 77,
+      "pre_run_estimate_usd": 0.012962,
+      "records": 7,
       "stage": "bank-verify-anthropic"
     },
     "openai": {
-      "completed_at": "2026-09-29T18:53:14Z",
+      "completed_at": "2026-10-02T11:21:42Z",
       "errors": 0,
-      "estimate_usd": 1.561634,
-      "input_tokens": 6542371,
+      "estimate_usd": 0.000871,
+      "input_tokens": 3410,
       "mode": "on-demand",
       "model_id": "openai.gpt-oss-120b-1:0",
-      "output_tokens": 967130,
-      "pre_run_estimate_usd": 1.651645,
-      "records": 13434,
+      "output_tokens": 599,
+      "pre_run_estimate_usd": 0.000873,
+      "records": 7,
       "stage": "bank-verify-openai"
     }
   }
