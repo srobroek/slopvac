@@ -1,7 +1,10 @@
 """Render complete SageMaker corpus-evaluation arms as a Markdown report.
 
 The generator refuses to publish a partial, mixed-dataset, or untraceable
-report. It expects every registered arm's fetched evaluation artifacts.
+report. It expects every registered arm's fetched evaluation artifacts. The
+report leads with per-role headline scores, fine-tune-vs-base deltas, an
+optional comparison with a campaign that shares the test export, and every
+ledger job the campaign submitted, failed and stopped attempts included.
 """
 
 from __future__ import annotations
@@ -10,9 +13,10 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import statistics
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import thresholds
@@ -22,6 +26,19 @@ SPLITS = ("calibration", "test")
 KINDS = ("noul", "choice")
 RAW_KEYS = ("n", "accuracy", "balanced_accuracy", "auroc", "brier", "nll", "ece_15")
 CI_KEYS = ("balanced_accuracy", "ece_15")
+SEEDS = (17, 18, 19)
+# The judging role each metric kind answers.
+ROLES = {"choice": "finding-confirmation", "noul": "semantic-detection"}
+# metrics.py names per-slice class recalls by class index: good_recall is
+# index 0 and bad_recall index 1. Choice index 0 is real-defect and 1 is
+# no-defect (CHOICE_ORDER); yes/no index 1 is True.
+CLASS_RECALLS = {
+    "choice": (
+        ("real-defect recall", "good_recall"),
+        ("no-defect recall", "bad_recall"),
+    ),
+    "noul": (("True recall", "bad_recall"), ("False recall", "good_recall")),
+}
 
 
 def arms_registry():
@@ -245,6 +262,16 @@ def collect(results_root: Path, registry, ledger_path: Path, panel_path: Path):
                 errors.append(
                     f"{arm}/choice: order-swap n={metric.get('test_order_swap_n')!r}; expected {test_n}"
                 )
+            slices = metric.get("test_slices")
+            roles = slices.get("role") if isinstance(slices, dict) else None
+            if (
+                not isinstance(roles, dict)
+                or set(roles) != {ROLES[kind]}
+                or roles[ROLES[kind]].get("n") != test_n
+            ):
+                errors.append(
+                    f"{arm}/{kind}: test_slices.role must hold only {ROLES[kind]} with n={test_n}"
+                )
 
         job_name = run_manifest.get("job_name")
         ledger_job = ledger_jobs.get(job_name)
@@ -277,12 +304,19 @@ def collect(results_root: Path, registry, ledger_path: Path, panel_path: Path):
             errors.append(
                 f"{arm}: result hardware instance type disagrees with cost ledger"
             )
+        checkpoint_ref = run_manifest.get("checkpoint_ref") or ""
         result["_report"] = {
             "job_name": job_name,
             "region": region or "—",
             "instance_type": instance or "—",
             "cost_usd": ledger_job.get("cost_usd"),
             "billable_seconds": ledger_job.get("billable_seconds"),
+            # s3://<bucket>/training/<training job>/output/... for fine-tunes.
+            "training_job": (
+                checkpoint_ref.split("/training/", 1)[1].split("/", 1)[0]
+                if "/training/" in checkpoint_ref
+                else None
+            ),
         }
         results[arm] = result
 
@@ -407,15 +441,504 @@ def table(headers, rows):
     return "\n".join(lines)
 
 
-def render(results, signature, panel_values, ledger, panel_path, registry):
-    builder, splits = signature
+def families(registry):
+    """Base arm -> its fine-tuned arms in seed order, in registry order.
+
+    A campaign that trains without evaluating the base still yields the base
+    key, so fine-tunes group under their base either way."""
+    grouped = {}
+    for name, info in registry.items():
+        base = info["ft_base"] if info.get("ft_seed") else name
+        grouped.setdefault(base, [])
+        if info.get("ft_seed"):
+            grouped[base].append(name)
+    for names in grouped.values():
+        names.sort(key=lambda name: registry[name]["ft_seed"])
+    return grouped
+
+
+def role_score(result, kind):
+    """Headline test scores for the role a metric kind answers."""
+    metric = result["metrics"][kind]
+    sliced = metric["test_slices"]["role"][ROLES[kind]]
+    score = {
+        "balanced_accuracy": metric["test_raw"]["balanced_accuracy"],
+        "ece_raw": metric["test_raw"]["ece_15"],
+        "ece_cal": metric["test_cal"]["ece_15"],
+    }
+    for label, key in CLASS_RECALLS[kind]:
+        score[label] = sliced[key]
+    return score
+
+
+def delta_keys(kind):
+    return (
+        "balanced_accuracy",
+        *(label for label, _ in CLASS_RECALLS[kind]),
+        "ece_raw",
+        "ece_cal",
+    )
+
+
+def mean_of(scores, key):
+    values = [score[key] for score in scores]
+    return None if any(v is None for v in values) else statistics.mean(values)
+
+
+def spread_text(scores, key):
+    """Seed mean ± sample SD [min–max] of one score."""
+    values = [score[key] for score in scores]
+    if not values or any(v is None for v in values):
+        return "—"
+    sd = statistics.stdev(values) if len(values) > 1 else 0.0
+    return f"{statistics.mean(values):.3f} ± {sd:.3f} [{min(values):.3f}–{max(values):.3f}]"
+
+
+def delta_text(value, reference):
+    return "—" if value is None or reference is None else f"{value - reference:+.3f}"
+
+
+def complete_family(names, results):
+    return len(names) == len(SEEDS) and all(name in results for name in names)
+
+
+def class_counts_text(kind, choice_counts, noul_counts):
+    counts = choice_counts if kind == "choice" else noul_counts
+    labels = [label.removesuffix(" recall") for label, _ in CLASS_RECALLS[kind]]
+    return ", ".join(f"{label}={counts.get(label, 0)}" for label in labels)
+
+
+def headline_lines(results, registry, test_rows, results_dir):
+    _, choice_counts, noul_counts = composition(test_rows or [])
     lines = [
-        "# Corpus evaluation report",
+        "## Headline by role",
         "",
+        f"Each arm's numbers come from `results/{results_dir}/<arm>/results/<arm>.json`: balanced accuracy and its cluster-bootstrap 95% CI from `metrics.<kind>.test_raw` / `test_raw_ci95`, ECE-15 from `test_raw` (raw) and `test_cal` (temperature fit on calibration), class recalls from `metrics.<kind>.test_slices.role.<role>` (metrics.py names them by class index: `good_recall` is choice real-defect / yes-no False, `bad_recall` is choice no-defect / yes-no True). GPU, single-request p50 over all test items (`latency.single_request_all_test_ms`), and evaluation USD (cost ledger, matched by the arm's `manifest.json` job) are per arm. Fine-tune rows give the seed mean ± sample SD [min–max] over seeds {', '.join(map(str, SEEDS))}.",
+        "",
+    ]
+    grouped = families(registry)
+    for kind in ("choice", "noul"):
+        role = ROLES[kind]
+        recall_labels = [label for label, _ in CLASS_RECALLS[kind]]
+        n = next(iter(results.values()))["metrics"][kind]["test_raw"]["n"]
+        lines += [
+            f"### {role} (`{kind}`)",
+            "",
+            f"Test items: {n} ({class_counts_text(kind, choice_counts, noul_counts)}).",
+            "",
+        ]
+        absent = [
+            label
+            for label in recall_labels
+            if all(role_score(r, kind)[label] is None for r in results.values())
+        ]
+        if absent:
+            lines += [
+                f"No test item has the class behind {', '.join(absent)}, so that recall is undefined and balanced accuracy reduces to the recall of the class present.",
+                "",
+            ]
+        headers = [
+            "Arm",
+            "Bal. acc.",
+            "Bal. acc. 95% CI",
+            *recall_labels,
+            "ECE raw",
+            "ECE cal.",
+            "GPU",
+            "p50 ms",
+            "Eval USD",
+        ]
+        rows = []
+        family_means = []
+        for base, fine_tunes in grouped.items():
+            for name in (base, *fine_tunes):
+                if name not in results:
+                    continue
+                result = results[name]
+                score = role_score(result, kind)
+                latency = result.get("latency", {}).get(
+                    "single_request_all_test_ms", {}
+                )
+                rows.append(
+                    [
+                        name,
+                        fmt(score["balanced_accuracy"]),
+                        ci_text(
+                            result["metrics"][kind],
+                            ("test_raw_ci95", "balanced_accuracy"),
+                        ),
+                        *(fmt(score[label]) for label in recall_labels),
+                        fmt(score["ece_raw"]),
+                        fmt(score["ece_cal"]),
+                        result.get("hardware", {}).get("gpu", "—"),
+                        fmt(latency.get("p50")),
+                        f"${result['_report']['cost_usd']:.4f}",
+                    ]
+                )
+            if fine_tunes and complete_family(fine_tunes, results):
+                scores = [role_score(results[name], kind) for name in fine_tunes]
+                family_means.append(
+                    (mean_of(scores, "balanced_accuracy"), base, scores)
+                )
+                rows.append(
+                    [
+                        f"{base} FT mean ± SD [range]",
+                        spread_text(scores, "balanced_accuracy"),
+                        "—",
+                        *(spread_text(scores, label) for label in recall_labels),
+                        spread_text(scores, "ece_raw"),
+                        spread_text(scores, "ece_cal"),
+                        "—",
+                        "—",
+                        "—",
+                    ]
+                )
+        best_arm = max(
+            results,
+            key=lambda name: role_score(results[name], kind)["balanced_accuracy"],
+        )
+        lines += [
+            table(headers, rows),
+            "",
+            f"- Best single arm: `{best_arm}` (balanced accuracy {role_score(results[best_arm], kind)['balanced_accuracy']:.3f}).",
+        ]
+        if family_means:
+            _, base, scores = max(family_means, key=lambda entry: entry[0])
+            lines.append(
+                f"- Best fine-tuned family by seed mean: `{base}` ({spread_text(scores, 'balanced_accuracy')})."
+            )
+        lines.append("")
+    return lines
+
+
+def ft_vs_base_lines(results, registry, compare):
+    """Seed-mean fine-tune minus base, per role. A campaign that does not
+    evaluate the base borrows it from the comparison campaign, whose test
+    and calibration hashes collect() has already matched."""
+    pool = {}
+    if compare is not None:
+        pool.update({name: (compare[0], r) for name, r in compare[1].items()})
+    pool.update({name: ("this campaign", r) for name, r in results.items()})
+    trained = {base: names for base, names in families(registry).items() if names}
+    if not trained:
+        return []
+    lines = [
+        "## Fine-tune vs base",
+        "",
+        'Δ is the fine-tune seed mean minus the base arm on the same test items (positive balanced accuracy or recall is better; negative ECE is better). "Seeds > base" counts seeds whose balanced accuracy beats the base.',
+        "",
+    ]
+    for kind in ("choice", "noul"):
+        recall_labels = [label for label, _ in CLASS_RECALLS[kind]]
+        headers = [
+            "Family",
+            "Base from",
+            "Base bal. acc.",
+            "FT mean bal. acc.",
+            "Δ bal. acc.",
+            "Seeds > base",
+            *(f"Δ {label}" for label in recall_labels),
+            "Δ ECE raw",
+            "Δ ECE cal.",
+        ]
+        rows = []
+        for base, fine_tunes in trained.items():
+            if not complete_family(fine_tunes, results):
+                continue
+            scores = [role_score(results[name], kind) for name in fine_tunes]
+            if base not in pool:
+                rows.append(
+                    [
+                        base,
+                        "not evaluated",
+                        "—",
+                        fmt(mean_of(scores, "balanced_accuracy")),
+                    ]
+                    + ["—"] * (len(headers) - 4)
+                )
+                continue
+            source, base_result = pool[base]
+            reference = role_score(base_result, kind)
+            means = {key: mean_of(scores, key) for key in delta_keys(kind)}
+            wins = sum(
+                score["balanced_accuracy"] > reference["balanced_accuracy"]
+                for score in scores
+            )
+            rows.append(
+                [
+                    base,
+                    source,
+                    fmt(reference["balanced_accuracy"]),
+                    fmt(means["balanced_accuracy"]),
+                    delta_text(
+                        means["balanced_accuracy"], reference["balanced_accuracy"]
+                    ),
+                    f"{wins}/{len(scores)}",
+                    *(
+                        delta_text(means[label], reference[label])
+                        for label in recall_labels
+                    ),
+                    delta_text(means["ece_raw"], reference["ece_raw"]),
+                    delta_text(means["ece_cal"], reference["ece_cal"]),
+                ]
+            )
+        lines += [f"### {ROLES[kind]} (`{kind}`)", "", table(headers, rows), ""]
+    return lines
+
+
+def comparison_lines(results, registry, compare, results_dir):
+    """Seed means of the fine-tunes both campaigns trained, this minus other."""
+    other_dir, other = compare
+    shared = {
+        base: names
+        for base, names in families(registry).items()
+        if names and complete_family(names, results) and complete_family(names, other)
+    }
+    lines = [
+        f"## Comparison with `{other_dir}`",
+        "",
+        f'Both campaigns score the same test and calibration export (hashes verified). Δ is `{results_dir}` minus `{other_dir}` seed means for the same family and seeds; "Seeds better" counts seeds whose balanced accuracy is higher here than the same seed there.',
+        "",
+    ]
+    if not shared:
+        return lines + ["No fine-tuned family is complete in both campaigns.", ""]
+    for kind in ("choice", "noul"):
+        recall_labels = [label for label, _ in CLASS_RECALLS[kind]]
+        headers = [
+            "Family",
+            f"{results_dir} bal. acc.",
+            f"{other_dir} bal. acc.",
+            "Δ bal. acc.",
+            "Seeds better",
+            *(f"Δ {label}" for label in recall_labels),
+            "Δ ECE raw",
+            "Δ ECE cal.",
+        ]
+        rows = []
+        for base, names in shared.items():
+            mine = [role_score(results[name], kind) for name in names]
+            theirs = [role_score(other[name], kind) for name in names]
+            better = sum(
+                a["balanced_accuracy"] > b["balanced_accuracy"]
+                for a, b in zip(mine, theirs)
+            )
+            rows.append(
+                [
+                    base,
+                    spread_text(mine, "balanced_accuracy"),
+                    spread_text(theirs, "balanced_accuracy"),
+                    delta_text(
+                        mean_of(mine, "balanced_accuracy"),
+                        mean_of(theirs, "balanced_accuracy"),
+                    ),
+                    f"{better}/{len(names)}",
+                    *(
+                        delta_text(mean_of(mine, key), mean_of(theirs, key))
+                        for key in (*recall_labels, "ece_raw", "ece_cal")
+                    ),
+                ]
+            )
+        lines += [f"### {ROLES[kind]} (`{kind}`)", "", table(headers, rows), ""]
+    return lines
+
+
+def campaign_jobs(ledger, campaign, registry, unmarked_by_time):
+    """Ledger jobs this campaign submitted, as the scheduler attributes them:
+    training jobs whose train data is the campaign export, evaluation jobs
+    marked with its run id. With `unmarked_by_time` (round 1), unmarked
+    evaluations submitted after its first training job count too."""
+    source = f"/exports/{campaign['id']}/train.jsonl"
+    models = set(campaign["train_models"])
+    training = [
+        job
+        for job in ledger["jobs"]
+        if job.get("model") in models
+        and source in job.get("data", {}).get("train", {}).get("source", "")
+    ]
+    started = min(
+        (job["submitted_at"] for job in training if job.get("submitted_at")),
+        default=None,
+    )
+    run_id = f"corpus-{campaign['id']}"
+    evaluation = []
+    for job in ledger["jobs"]:
+        if job.get("kind") != "evaluation" or job.get("arm") not in registry:
+            continue
+        marked = job.get("scheduler", {}).get("campaign")
+        if marked == run_id or (
+            unmarked_by_time
+            and marked is None
+            and started
+            and job.get("submitted_at", "") >= started
+        ):
+            evaluation.append(job)
+    unsettled = [
+        job["job_name"]
+        for job in training + evaluation
+        if job.get("status") not in {"Completed", "Failed", "Stopped"}
+    ]
+    if unsettled:
+        raise ValueError(f"campaign has unsettled ledger jobs: {', '.join(unsettled)}")
+    return training, evaluation
+
+
+def job_target(job):
+    if job.get("kind") == "evaluation":
+        return job["arm"]
+    seed = job.get("hyperparameters", {}).get("seed")
+    return f"{job['model']}-ft-s{seed if seed is not None else '? (no seed)'}"
+
+
+def job_reason(job):
+    """One line saying why a job did not complete, from what the ledger kept."""
+    scheduler = job.get("scheduler", {})
+    marker = scheduler.get("implementation_defect") or scheduler.get(
+        "retry_implementation_defect"
+    )
+    reason = (job.get("failure_reason") or "").strip()
+    if reason:
+        reason = reason.splitlines()[0]
+    elif marker:
+        reason = f"scheduler marker `{marker}`"
+    elif scheduler.get("submission_errors"):
+        error = str(scheduler["submission_errors"][-1].get("error", "")).strip()
+        last = error.splitlines()[-1] if error else "?"
+        # botocore.errorfactory.X: An error occurred (X) when calling the Y operation: msg
+        last = re.sub(
+            r"^botocore\.errorfactory\.(\w+): An error occurred \(\w+\) when calling the \w+ operation: ",
+            r"\1: ",
+            last,
+        )
+        reason = "submission rejected: " + last
+    elif job.get("note") or scheduler.get("attempt_budget_exempt_reason"):
+        reason = job.get("note") or scheduler["attempt_budget_exempt_reason"]
+    elif job.get("secondary_status"):
+        reason = f"no failure reason; secondary status {job['secondary_status']}"
+    else:
+        reason = "no reason recorded"
+    return reason if len(reason) <= 120 else reason[:119] + "…"
+
+
+def status_counts(jobs):
+    counts = Counter(job["status"] for job in jobs)
+    return " / ".join(
+        f"{counts.get(status, 0)}" for status in ("Completed", "Failed", "Stopped")
+    )
+
+
+def cost(jobs):
+    return sum(float(job.get("cost_usd") or 0.0) for job in jobs)
+
+
+def jobs_lines(results, registry, training, evaluation):
+    by_target = defaultdict(lambda: {"training": [], "evaluation": []})
+    for job in training:
+        by_target[job_target(job)]["training"].append(job)
+    for job in evaluation:
+        by_target[job["arm"]]["evaluation"].append(job)
+    ledger_names = {job["job_name"]: job for job in training}
+    headers = [
+        "Arm",
+        "Training jobs C / F / S",
+        "Training USD (all)",
+        "Accepted training job",
+        "Accepted training USD",
+        "Eval jobs C / F / S",
+        "Eval USD (all)",
+        "Arm USD",
+    ]
+    rows = []
+    for name in registry:
+        jobs = by_target[name]
+        accepted = results[name]["_report"]["training_job"] if name in results else None
+        accepted_job = ledger_names.get(accepted) if accepted else None
+        rows.append(
+            [
+                name,
+                status_counts(jobs["training"])
+                if registry[name].get("ft_seed")
+                else "—",
+                f"${cost(jobs['training']):.2f}"
+                if registry[name].get("ft_seed")
+                else "—",
+                accepted or "—",
+                f"${float(accepted_job.get('cost_usd') or 0.0):.2f}"
+                if accepted_job
+                else ("not in ledger" if accepted else "—"),
+                status_counts(jobs["evaluation"]),
+                f"${cost(jobs['evaluation']):.2f}",
+                f"${cost(jobs['training']) + cost(jobs['evaluation']):.2f}",
+            ]
+        )
+    stray = sorted(set(by_target) - set(registry))
+    groups = defaultdict(list)
+    accepted_jobs = {r["_report"]["training_job"] for r in results.values()}
+    for job in training + evaluation:
+        if job["status"] != "Completed":
+            task = "evaluation" if job.get("kind") == "evaluation" else "training"
+            reason = job_reason(job)
+            if job["job_name"] in accepted_jobs:
+                reason = "ACCEPTED (checkpoint saved before the failure): " + reason
+            groups[(job_target(job), task, job["status"], reason)].append(job)
+    failure_rows = [
+        [target, task, status, len(jobs), f"${cost(jobs):.2f}", reason]
+        for (target, task, status, reason), jobs in sorted(groups.items())
+    ]
+    total = cost(training) + cost(evaluation)
+    lines = [
+        "## Campaign jobs, failures, and cost",
+        "",
+        "Every cost-ledger job attributed to this campaign the way the scheduler attributes them (training on this export; evaluations marked with this campaign). C / F / S counts Completed / Failed / Stopped. The accepted training job is the one whose `model.tar.gz` the arm's evaluation loaded (`manifest.json` `checkpoint_ref`); a failed job can be accepted when it saved a validated checkpoint before failing. Submissions that SageMaker rejected bill $0.",
+        "",
+        table(headers, rows),
+        "",
+        f"Campaign total: **${total:.2f} USD** (training ${cost(training):.2f}, evaluation ${cost(evaluation):.2f}) over {len(training)} training and {len(evaluation)} evaluation jobs.",
+        "",
+    ]
+    if stray:
+        lines += [
+            f"Ledger jobs for targets outside this campaign's arms: {', '.join(stray)}.",
+            "",
+        ]
+    lines += ["### Failed and stopped attempts", ""]
+    if failure_rows:
+        lines += [
+            table(["Target", "Task", "Status", "Jobs", "USD", "Reason"], failure_rows),
+            "",
+        ]
+    else:
+        lines += ["None.", ""]
+    return lines
+
+
+def render(
+    results,
+    signature,
+    panel_values,
+    ledger,
+    panel_path,
+    registry,
+    *,
+    campaign,
+    results_dir,
+    jobs,
+    compare=None,
+    notes=(),
+):
+    builder, splits = signature
+    training, evaluation = jobs
+    unfinished = [job for job in training + evaluation if job["status"] != "Completed"]
+    lines = [f"# Corpus evaluation report: `{results_dir}`", ""]
+    if notes:
+        lines += ["## Status", "", *(f"- {note}" for note in notes), ""]
+    lines += [
         "## Dataset and coverage",
         "",
+        f"- Campaign: `{campaign['id']}`."
+        + (f" {campaign['notes']}" if campaign.get("notes") else ""),
         f"- Dataset builder: `{builder}`; same calibration/test hashes are verified for all arms.",
-        f"- Evaluated arms: {len(results)} of {len(results)} required.",
+        f"- Evaluated arms: {len(results)} of {len(registry)} required ({', '.join(f'`{name}`' for name in registry)}). Missing arms: none; the generator refuses to render while any required arm lacks complete artifacts.",
+        f"- Failed or stopped SageMaker attempts: {len(unfinished)} of {len(training) + len(evaluation)} campaign jobs; each arm's accepted run and every unfinished attempt are listed under *Campaign jobs, failures, and cost*.",
     ]
     for split, digest, count in splits:
         lines.append(f"- {split.title()}: {count} examples; SHA-256 `{digest}`.")
@@ -431,8 +954,13 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
             + (", ".join(f"{k}={v}" for k, v in noul_counts.items()) or "none")
             + "."
         )
+    lines += [""]
+    lines += headline_lines(results, registry, test_rows, results_dir)
+    lines += ft_vs_base_lines(results, registry, compare)
+    if compare is not None:
+        lines += comparison_lines(results, registry, compare, results_dir)
+    lines += jobs_lines(results, registry, training, evaluation)
     lines += [
-        "",
         "## Panel agreement caveat",
         "",
         f"Independent corpus panel agreement (source: `{panel_path}`):",
@@ -529,17 +1057,7 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
         "Latency p50 ms",
         "Latency p95 ms",
     ]
-    for base, info in registry.items():
-        if info.get("ft_seed"):
-            continue
-        ft_names = sorted(
-            (
-                name
-                for name, arm_info in registry.items()
-                if arm_info.get("ft_base") == base
-            ),
-            key=lambda name: registry[name]["ft_seed"],
-        )
+    for base, ft_names in families(registry).items():
         members = [name for name in (base, *ft_names) if name in results]
         lines += [f"### {base}", ""]
         for kind in KINDS:
@@ -711,7 +1229,7 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
         "- Cluster-bootstrap intervals quantify only within-test-set uncertainty. They do not capture corpus construction, prompt, model-release, or deployment variation; overall intervals are not subgroup-specific.",
         "- Calibration temperature is fit on the calibration split and applied to test predictions; it does not turn test data into calibration data.",
         "- Latency is recorded single-request p50/p95, grouped by actual GPU class/instance/region; comparisons across different hardware are confounded by the hardware and are not concurrency/throughput comparisons.",
-        "- Billed USD is evaluation-job instance time from the completed SageMaker ledger entry, not a full lifecycle or inference cost estimate.",
+        "- Billed USD is evaluation-job instance time from the completed SageMaker ledger entry, not a full lifecycle or inference cost estimate. Campaign totals add every attributed training and evaluation attempt, failed and stopped ones included.",
         "- Fine-tune seed spread describes training-seed variation on one fixed corpus; it is not uncertainty across independent evaluation sets.",
         "",
     ]
@@ -719,9 +1237,8 @@ def render(results, signature, panel_values, ledger, panel_path, registry):
 
 
 def campaign_arms(campaign, registry):
-    seeds = (17, 18, 19)
     names = list(campaign["base_arms"]) + [
-        f"{model}-ft-s{seed}" for model in campaign["train_models"] for seed in seeds
+        f"{model}-ft-s{seed}" for model in campaign["train_models"] for seed in SEEDS
     ]
     missing = [n for n in names if n not in registry]
     if missing:
@@ -729,6 +1246,7 @@ def campaign_arms(campaign, registry):
     return {n: registry[n] for n in names}
 
 
+# The default campaign; its id is the corpus export named in resources.json.
 ROUND1 = {
     "results": "corpus",
     "panel_agreement": ".cache/items-v2/panel-agreement.json",
@@ -741,7 +1259,16 @@ ROUND1 = {
         "laya-typed-decisions",
     ],
     "train_models": ["kev-0.8b", "kev-4b", "kev-9b", "laya-typed-decisions"],
+    "notes": "Round 1 (default campaign) on the export named in resources.json: six base arms plus three-seed fine-tunes of Kev 0.8B, 4B, 9B and Laya typed-decisions.",
 }
+
+
+def load_campaign(path, script):
+    """A campaign JSON, or round 1 when path is None."""
+    if path is not None:
+        return load_json(path), False
+    resources = load_json(script.parents[1] / "resources.json")
+    return {**ROUND1, "id": resources["corpus_export"]["build_id"]}, True
 
 
 def main():
@@ -758,23 +1285,62 @@ def main():
         "--ledger", type=Path, default=script.parents[1] / "cost-ledger.json"
     )
     parser.add_argument("--panel-agreement", type=Path)
+    parser.add_argument(
+        "--compare",
+        type=Path,
+        help="campaign JSON sharing this campaign's test/calibration export: adds a "
+        "fine-tune comparison and supplies base arms this campaign does not evaluate",
+    )
+    parser.add_argument(
+        "--note",
+        action="append",
+        default=[],
+        help="status line printed at the top of the report (repeatable)",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        campaign = load_json(args.campaign) if args.campaign else ROUND1
+        campaign, is_round1 = load_campaign(args.campaign, script)
         registry = campaign_arms(campaign, arms_registry())
         results_root = (
             args.results_root or script.parents[1] / "results" / campaign["results"]
         )
         panel_path = args.panel_agreement or corpus / campaign["panel_agreement"]
-        output = args.output or results_root / "corpus-eval-report.md"
+        output = args.output or results_root / "REPORT.md"
         results, signature, panel_values, ledger = collect(
             results_root, registry, args.ledger, panel_path
         )
+        jobs = campaign_jobs(ledger, campaign, registry, unmarked_by_time=is_round1)
+        compare = None
+        if args.compare is not None:
+            other, _ = load_campaign(args.compare, script)
+            other_results, other_signature, _, _ = collect(
+                script.parents[1] / "results" / other["results"],
+                campaign_arms(other, arms_registry()),
+                args.ledger,
+                corpus / other["panel_agreement"],
+            )
+            if other_signature != signature:
+                raise ValueError(
+                    f"--compare {args.compare}: test/calibration export differs from this campaign's"
+                )
+            compare = (other["results"], other_results)
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
-    report = render(results, signature, panel_values, ledger, panel_path, registry)
+    report = render(
+        results,
+        signature,
+        panel_values,
+        ledger,
+        panel_path,
+        registry,
+        campaign=campaign,
+        results_dir=campaign["results"],
+        jobs=jobs,
+        compare=compare,
+        notes=args.note,
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(report, encoding="utf-8")
     print(f"Wrote {output} ({len(results)} arms)")

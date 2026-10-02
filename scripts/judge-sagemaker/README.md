@@ -63,6 +63,18 @@ JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm k
 
 Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`. The task account has AWS-published quotas for `ml.g6.xlarge`, `ml.g6.2xlarge`, and `ml.g6.4xlarge` in `us-east-1`, and for g6e instances in `us-west-2`. Their on-demand SageMaker Training prices are estimates in the resource files, not verified public Training SKU rates. Use the report manifest to identify the GPU used for each arm.
 
+### Campaign reports
+
+`scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` once every arm of a campaign has fetched results. It leads with per-role (finding-confirmation, semantic-detection) balanced accuracy, class recalls, ECE, GPU, latency and cost per arm and seed mean ± SD, then fine-tune-vs-base deltas, a comparison with `--compare` (a campaign on the same test export; it also supplies base arms the campaign does not evaluate), and every ledger job the campaign submitted with failed and stopped attempts. It refuses to render while an arm is missing. `--note` adds a status line. The committed reports were generated with:
+
+```sh
+V4="Pre-v4 baseline. v4 rebuilds the judge items against the merged lint rules (main 7544c168e0: curly-quotes and uniform-paragraph-mass retired, about 13 rules narrowed) and the human-labelled rows, then re-tests every arm on the rebuilt items; v4 scores are not comparable with this test export."
+V3="The v3 full and confident variants differ only in training data: confident drops teacher-panel labels below 0.85 posterior confidence (12,185 train rows vs 14,449; see each variant's export-manifest.json)."
+uv run --frozen python scripts/corpus_eval_report.py --note "$V4"
+uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v3-full.json --compare campaigns/v3-confident.json --note "$V4" --note "$V3"
+uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v3-confident.json --compare campaigns/v3-full.json --note "$V4" --note "$V3"
+```
+
 ### What `submit` does
 
 1. It validates the input. A local file is converted in full, so a malformed row fails before any

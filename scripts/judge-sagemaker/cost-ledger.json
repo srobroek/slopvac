@@ -1,6 +1,6 @@
 {
   "currency": "USD",
-  "cap_usd": 1200.0,
+  "cap_usd": 1500.0,
   "scope": "SageMaker training instance time for jobs submitted by judge-sagemaker. A job that has not been fetched in a final state counts at its maximum cost (hourly price x max runtime).",
   "jobs": [
     {
@@ -2463,6 +2463,656 @@
         {
           "task": "describe",
           "at": "2026-09-30T08:20:42.554511+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T08:43:01.722301+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T09:07:02.894563+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T11:26:20.697551+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T11:45:53.081681+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T11:56:40.892280+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T12:09:59.407360+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T12:22:56.193960+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T12:39:34.112108+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T12:50:20.822524+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T13:02:53.881199+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T13:29:18.169304+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T13:43:37.571004+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T13:54:49.286846+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-09-30T14:14:03.880689+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T10:50:33.342001+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T11:08:51.425333+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T11:18:15.230547+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T11:26:24.555816+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T11:33:55.870374+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T11:44:59.643216+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T11:54:36.565843+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T12:04:12.637354+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T12:14:51.943087+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T12:25:59.678633+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T12:35:54.833636+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T12:46:06.869958+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T12:57:29.193900+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T13:08:27.828521+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T13:19:43.921887+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T13:33:13.914364+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T13:47:50.007788+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T13:58:22.488921+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:15:55.344613+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:21:08.718120+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:25:57.858600+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:30:41.783997+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:35:26.784437+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:40:13.525169+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:45:00.430160+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:49:43.542732+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:54:35.417639+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T14:59:17.463368+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:04:05.001536+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:08:47.738445+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:13:33.093262+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:18:11.912857+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:22:59.746992+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:27:41.256630+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:32:21.526386+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:37:06.139224+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:41:56.594939+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:46:44.495113+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:51:30.589802+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T15:56:10.795653+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:00:59.806071+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:05:50.020880+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:10:46.490720+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:15:51.393072+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:20:37.358281+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:25:25.477766+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:30:11.406264+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:34:53.998217+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:39:42.335413+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:44:42.183483+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:49:27.715245+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:54:18.902133+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T16:59:04.125044+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:03:54.669530+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:08:42.991141+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:13:31.123921+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:18:27.179786+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:23:20.414277+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:28:38.163280+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:33:30.929863+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:38:21.912434+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:43:09.933994+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:47:57.308693+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:52:46.753923+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T17:57:35.814454+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:02:25.970599+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:07:23.470995+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:12:09.927837+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:16:58.587130+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:21:45.701227+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:26:28.700339+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:31:14.806335+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:36:12.456618+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:40:55.994991+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:45:42.394645+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:50:31.465111+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T18:55:24.715118+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:00:16.536042+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:05:03.884236+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:10:16.328228+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:15:29.376272+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:20:27.900568+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:25:14.790432+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:30:08.118409+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:35:16.034695+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:40:11.544875+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:45:00.398376+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:49:50.178265+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:54:38.530816+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T19:59:28.298814+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:04:24.257867+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:09:10.200086+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:13:54.778577+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:18:41.262815+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:23:30.000817+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:28:15.238368+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:34:08.152181+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:39:16.314855+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:44:03.913862+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:48:56.461354+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:53:39.432628+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T20:58:25.257361+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:03:20.743122+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:08:11.651297+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:12:55.306881+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:17:39.880708+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:22:24.517870+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:27:09.082639+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:32:06.767754+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:37:01.547817+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:41:47.431181+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:47:34.926823+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:52:25.807388+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T21:57:18.856747+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T22:02:12.475648+00:00",
+          "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
+        },
+        {
+          "task": "describe",
+          "at": "2026-10-01T22:07:04.279695+00:00",
           "error": "An error occurred (ValidationException) when calling the DescribeTrainingJob operation: 1 validation error detected: Value 'slopvac-judge-kev-0.8b-s17-20260929031846' at 'trainingJobName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}"
         }
       ],
@@ -6394,9 +7044,9 @@
       "hourly_usd": 4.0,
       "max_runtime_s": 3600,
       "max_cost_usd": 4.0,
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "submitted_at": "2026-09-29T10:48:55.662719+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-260929104843431604",
       "scheduler": {
@@ -6407,7 +7057,8 @@
         "region": "us-west-2",
         "instance_type": "ml.g6e.2xlarge",
         "implementation_defect": "capacity_rotation"
-      }
+      },
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-laya-english-260929104856918893",
@@ -6511,9 +7162,9 @@
       "hourly_usd": 4.0,
       "max_runtime_s": 3600,
       "max_cost_usd": 4.0,
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "submitted_at": "2026-09-29T10:50:23.817285+00:00",
       "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s17-260929105011594033",
       "scheduler": {
@@ -6524,7 +7175,8 @@
         "region": "us-east-1",
         "instance_type": "ml.g6e.2xlarge",
         "implementation_defect": "capacity_rotation"
-      }
+      },
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20260929113826",
@@ -7930,9 +8582,9 @@
       "max_runtime_s": 27618,
       "max_cost_usd": 53.7,
       "submitted_at": "2026-09-29T21:41:34.271348+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 14885,
+      "cost_usd": 28.9431,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -7981,7 +8633,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6e.8xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s19-20260929214135",
@@ -8054,9 +8708,9 @@
       "max_runtime_s": 29858,
       "max_cost_usd": 91.23,
       "submitted_at": "2026-09-29T21:41:55.335336+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 18699,
+      "cost_usd": 57.1358,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -8105,7 +8759,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6e.16xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-08b-260929214156506493",
@@ -8492,9 +9148,9 @@
       "max_runtime_s": 29271,
       "max_cost_usd": 20.33,
       "submitted_at": "2026-09-30T01:26:13.927488+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 13194,
+      "cost_usd": 9.1625,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -8543,7 +9199,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-08b-ft-s17-260930012615473600",
@@ -9646,9 +10304,9 @@
       "max_runtime_s": 23291,
       "max_cost_usd": 45.29,
       "submitted_at": "2026-09-30T02:26:30.808858+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 11622,
+      "cost_usd": 22.5983,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -9697,7 +10355,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.8xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-08b-s19-20260930023117",
@@ -9906,9 +10566,9 @@
       "max_runtime_s": 29271,
       "max_cost_usd": 16.26,
       "submitted_at": "2026-09-30T02:42:40.764215+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 13122,
+      "cost_usd": 7.29,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -9957,7 +10617,9 @@
         "attempt": 17,
         "region": "us-east-1",
         "instance_type": "ml.g6.xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-laya-typed-decisions-s19-20260930031120",
@@ -10033,9 +10695,9 @@
       "max_runtime_s": 36000,
       "max_cost_usd": 20.0,
       "submitted_at": "2026-09-30T08:31:40.410122+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 19794,
+      "cost_usd": 10.9967,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -10087,7 +10749,9 @@
         "attempt": 6,
         "region": "us-east-1",
         "instance_type": "ml.g5.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-laya-typed-decisions-s18-20260930083141",
@@ -10097,9 +10761,9 @@
       "max_runtime_s": 36000,
       "max_cost_usd": 20.0,
       "submitted_at": "2026-09-30T08:32:39.241089+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 20103,
+      "cost_usd": 11.1683,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -10151,7 +10815,9 @@
         "attempt": 8,
         "region": "us-west-2",
         "instance_type": "ml.g5.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-laya-typed-decisions-s19-20260930083241",
@@ -10161,9 +10827,9 @@
       "max_runtime_s": 36000,
       "max_cost_usd": 30.0,
       "submitted_at": "2026-09-30T08:33:01.795747+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 19670,
+      "cost_usd": 16.3917,
       "hyperparameters": {
         "model": "laya-typed-decisions",
         "family": "laya",
@@ -10215,7 +10881,9 @@
         "attempt": 7,
         "region": "us-east-1",
         "instance_type": "ml.g5.4xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-4b-ft-s18-260930083520945776",
@@ -10225,9 +10893,9 @@
       "hourly_usd": 3.0,
       "max_runtime_s": 3600,
       "max_cost_usd": 3.0,
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 510,
+      "cost_usd": 0.425,
       "submitted_at": "2026-09-30T08:35:47.351180+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-ft-s18-260930083520945776",
       "scheduler": {
@@ -10237,6 +10905,2232 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-260930085536780947",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-09-30T08:55:50.063276+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-260930085536780947",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-260930085553053424",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-09-30T08:56:20.304120+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-260930085553053424",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-260930085637289413",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-09-30T08:57:06.631969+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-260930085637289413",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s19-260930085708505137",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s19",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Completed",
+      "billable_seconds": 937,
+      "cost_usd": 1.3014,
+      "submitted_at": "2026-09-30T08:57:24.067122+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s19-260930085708505137",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20260930090318",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 23291,
+      "max_cost_usd": 45.29,
+      "submitted_at": "2026-09-30T09:03:30.857961+00:00",
+      "status": "Completed",
+      "billable_seconds": 11687,
+      "cost_usd": 22.7247,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s18-20260930090318",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20260930090332",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 23291,
+      "max_cost_usd": 71.17,
+      "submitted_at": "2026-09-30T09:03:45.734974+00:00",
+      "status": "Completed",
+      "billable_seconds": 11636,
+      "cost_usd": 35.5544,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20260930090332",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.16xlarge"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s18-260930090347579860",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s18",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "Completed",
+      "billable_seconds": 626,
+      "cost_usd": 0.6956,
+      "submitted_at": "2026-09-30T09:04:09.463645+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-08b-ft-s18-260930090347579860",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s19-260930090411728637",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s19",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "Completed",
+      "billable_seconds": 630,
+      "cost_usd": 0.7,
+      "submitted_at": "2026-09-30T09:04:40.527432+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-08b-ft-s19-260930090411728637",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s19",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.8xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s17-260930090442691447",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s17",
+      "instance_type": "ml.g5.12xlarge",
+      "hourly_usd": 9.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 18.0,
+      "status": "Completed",
+      "billable_seconds": 1053,
+      "cost_usd": 2.6325,
+      "submitted_at": "2026-09-30T09:05:00.729039+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s17-260930090442691447",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.12xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s18-260930113948720556",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s18",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "status": "Completed",
+      "billable_seconds": 1091,
+      "cost_usd": 0.9092,
+      "submitted_at": "2026-09-30T11:40:06.643742+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-ft-s18-260930113948720556",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/full",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-260930114008587751",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Completed",
+      "billable_seconds": 932,
+      "cost_usd": 1.2944,
+      "submitted_at": "2026-09-30T11:40:31.916515+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s17-260930114008587751",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260930114143",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:41:53.949892+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:41:55.004556+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260930114155",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:42:04.793475+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:42:05.924456+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260930114206",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:42:15.511028+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:42:16.532818+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20260930114216",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:42:29.469176+00:00",
+      "status": "Completed",
+      "billable_seconds": 14674,
+      "cost_usd": 28.5328,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20260930114216",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 4,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.8xlarge"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260930114231",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:42:40.555416+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:42:41.606306+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260930114241",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:42:51.967499+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:42:53.010396+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260930114253",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:43:02.581709+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:43:03.642078+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20260930114303",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 76.94,
+      "submitted_at": "2026-09-30T11:43:16.662391+00:00",
+      "status": "Completed",
+      "billable_seconds": 14952,
+      "cost_usd": 45.6867,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s18-20260930114303",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 4,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.16xlarge"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260930114318",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:43:27.934398+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:43:29.078136+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260930114329",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:43:38.485052+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 2,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:43:39.512016+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260930114339",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:43:49.087280+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:43:50.132805+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260930115428",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 48.96,
+      "submitted_at": "2026-09-30T11:54:38.809554+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 4,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge",
+        "submission_errors": [
+          {
+            "at": "2026-09-30T11:54:39.950267+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 533, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 309, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.8xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20260930120747",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 25179,
+      "max_cost_usd": 34.97,
+      "submitted_at": "2026-09-30T12:07:57.325217+00:00",
+      "status": "Completed",
+      "billable_seconds": 14755,
+      "cost_usd": 20.4931,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl",
+          "etag": "\"30ac01081cf1621ed6112224d4b0cfed-4\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl",
+          "etag": "\"4093e9c68ab80faeadcdaee6c553d0b1\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json",
+          "etag": "\"5cc9f424935f5ec2d018bd6da251f77b\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s19-20260930120747",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 5,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-260930121834382061",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-09-30T12:18:48.870187+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-260930121834382061",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 4,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-260930121851307804",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 4.0,
+      "status": "Completed",
+      "billable_seconds": 556,
+      "cost_usd": 0.6178,
+      "submitted_at": "2026-09-30T12:19:06.734763+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s17-260930121851307804",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-260930121927588463",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Completed",
+      "billable_seconds": 937,
+      "cost_usd": 1.3014,
+      "submitted_at": "2026-09-30T12:19:52.294692+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-260930121927588463",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s18-260930123650786198",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s18",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "status": "Completed",
+      "billable_seconds": 1092,
+      "cost_usd": 0.91,
+      "submitted_at": "2026-09-30T12:37:13.574138+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-ft-s18-260930123650786198",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-260930123715363227",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "Completed",
+      "billable_seconds": 1068,
+      "cost_usd": 1.1867,
+      "submitted_at": "2026-09-30T12:37:31.710718+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-260930123715363227",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-typed-decisions-ft-s17-261001105909364041",
+      "kind": "evaluation",
+      "arm": "laya-typed-decisions-ft-s17",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 2.0,
+      "status": "Completed",
+      "billable_seconds": 401,
+      "cost_usd": 0.2228,
+      "submitted_at": "2026-10-01T10:59:25.033191+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-typed-decisions-ft-s17-261001105909364041",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-typed-decisions-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-typed-decisions-ft-s18-261001105926563387",
+      "kind": "evaluation",
+      "arm": "laya-typed-decisions-ft-s18",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 2.0,
+      "status": "Completed",
+      "billable_seconds": 415,
+      "cost_usd": 0.2306,
+      "submitted_at": "2026-10-01T10:59:44.880583+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-typed-decisions-ft-s18-261001105926563387",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-typed-decisions-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-laya-typed-decisions-ft-s19-261001105946898827",
+      "kind": "evaluation",
+      "arm": "laya-typed-decisions-ft-s19",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 3.0,
+      "status": "Completed",
+      "billable_seconds": 400,
+      "cost_usd": 0.3333,
+      "submitted_at": "2026-10-01T11:00:02.195504+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-typed-decisions-ft-s19-261001105946898827",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "laya-typed-decisions-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-261001110558567089",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "Completed",
+      "billable_seconds": 998,
+      "cost_usd": 1.1089,
+      "submitted_at": "2026-10-01T11:06:19.106304+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s17-261001110558567089",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261001110620418972",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-10-01T11:06:35.673352+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-261001110620418972",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s19-261001110637467703",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s19",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Completed",
+      "billable_seconds": 927,
+      "cost_usd": 1.2875,
+      "submitted_at": "2026-10-01T11:06:49.871397+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s19-261001110637467703",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-261001111500613129",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 3600,
+      "max_cost_usd": 7.0,
+      "status": "Completed",
+      "billable_seconds": 460,
+      "cost_usd": 0.8944,
+      "submitted_at": "2026-10-01T11:15:13.897206+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-261001111500613129",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260929-s17-v2",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 5,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.8xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261001141851574107",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-10-01T14:19:06.971729+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-261001141851574107",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261001172615383647",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-10-01T17:26:36.568943+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s18-261001172615383647",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 3,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261001203654647432",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "status": "Completed",
+      "billable_seconds": 921,
+      "cost_usd": 1.2792,
+      "submitted_at": "2026-10-01T20:37:14.696736+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s18-261001203654647432",
+      "scheduler": {
+        "campaign": "corpus-corpus-20260930-s17-v3/confident",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 4,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-08b-s17-20261002115251",
+      "model": "kev-0.8b",
+      "instance_type": "ml.g6.xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 33801,
+      "max_cost_usd": 18.78,
+      "submitted_at": "2026-10-02T11:52:59.904322+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-0.8b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-0.8b",
+        "revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-08b-s17-20261002115251",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-0.8b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6.xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-08b-s18-20261002115301",
+      "model": "kev-0.8b",
+      "instance_type": "ml.g6.xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 33801,
+      "max_cost_usd": 18.78,
+      "submitted_at": "2026-10-02T11:53:11.620973+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-0.8b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-0.8b",
+        "revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-08b-s18-20261002115301",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-0.8b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6.xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-08b-s19-20261002115313",
+      "model": "kev-0.8b",
+      "instance_type": "ml.g6.2xlarge",
+      "hourly_usd": 2.5,
+      "max_runtime_s": 33801,
+      "max_cost_usd": 23.47,
+      "submitted_at": "2026-10-02T11:53:21.519810+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-0.8b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-0.8b@9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "base_revision": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-0.8b",
+        "revision": "9a45d25eb2ab761841196625383fa1dff0e56c1e",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-08b-s19-20261002115313",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-0.8b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s17-20261002115322",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 26895,
+      "max_cost_usd": 29.88,
+      "submitted_at": "2026-10-02T11:53:30.877889+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s17-20261002115322",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20261002115332",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 26895,
+      "max_cost_usd": 29.88,
+      "submitted_at": "2026-10-02T11:53:42.411449+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20261002115332",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20261002115343",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26895,
+      "max_cost_usd": 37.35,
+      "submitted_at": "2026-10-02T11:53:52.494834+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20261002115343",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20261002115353",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 29076,
+      "max_cost_usd": 40.38,
+      "submitted_at": "2026-10-02T11:54:03.842830+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20261002115353",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261002115405",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 29076,
+      "max_cost_usd": 56.54,
+      "submitted_at": "2026-10-02T11:54:13.621384+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s18-20261002115405",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.8xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261002115414",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 29076,
+      "max_cost_usd": 56.54,
+      "submitted_at": "2026-10-02T11:54:25.190753+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/train.jsonl",
+          "etag": "\"f02d38f47fbd5288dde0958edd3bd2f1-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+          "etag": "\"b787f4ff30eae78a7aad4a3fb92a423a\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/export-manifest.json",
+          "etag": "\"6c281d09e97f00c8d796de2a88b73126\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s19-20261002115414",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.8xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-08b-261002115426485898",
+      "kind": "evaluation",
+      "arm": "kev-0.8b",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T11:54:36.505123+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-08b-261002115426485898",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "evaluation",
+        "target": "kev-0.8b",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-261002115437505262",
+      "kind": "evaluation",
+      "arm": "kev-4b",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T11:54:49.602977+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-4b-261002115437505262",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "evaluation",
+        "target": "kev-4b",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-9b-261002115450824073",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 22.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T11:55:02.851076+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-261002115450824073",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.16xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-laya-english-261002115504115034",
+      "kind": "evaluation",
+      "arm": "laya-english",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T11:55:13.910958+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-english-261002115504115034",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "evaluation",
+        "target": "laya-english",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-laya-multilingual-261002115514949565",
+      "kind": "evaluation",
+      "arm": "laya-multilingual",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T11:55:26.996429+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-laya-multilingual-261002115514949565",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "evaluation",
+        "target": "laya-multilingual",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.4xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-laya-typed-decisions-261002115528348115",
+      "kind": "evaluation",
+      "arm": "laya-typed-decisions",
+      "instance_type": "ml.g5.8xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-02T11:55:38.025565+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-laya-typed-decisions-261002115528348115",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261002-s17-v4/full",
+        "task": "evaluation",
+        "target": "laya-typed-decisions",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.8xlarge"
       }
     }
   ]

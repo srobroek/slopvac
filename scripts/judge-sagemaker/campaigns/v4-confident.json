@@ -1,0 +1,32 @@
+{
+  "id": "corpus-20261002-s17-v4/confident",
+  "results": "corpus-v4-confident",
+  "train_models": [
+    "kev-0.8b",
+    "kev-4b",
+    "kev-9b"
+  ],
+  "base_arms": [],
+  "runtime_scale": 2.0756,
+  "eval_runtime": 7200,
+  "data": {
+    "us-east-1": {
+      "train": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/export-manifest.json"
+    },
+    "us-west-2": {
+      "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/confident/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/confident/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/confident/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/confident/export-manifest.json"
+    }
+  },
+  "expected": {
+    "test": "080f183aba8eb64e5cca4bb333fc8f3f59d8198964520a79d0030fb3a0d22c65",
+    "calibration": "842e8de6734b0d60330c2274359a0b19525b4c68263a60bc1d2d9d43ba4f60cf"
+  },
+  "notes": "Round 3 on the v4 export (confident, posterior >= 0.85). Held, not launched: the v4 Dawid-Skene fit put unanimous false-positive votes at 0.776, so only 93 teacher-panel FC no-defect items pass 0.85 (v3 kept 1,057). Base arms are evaluated in the full campaign only: both variants share test and calibration.",
+  "panel_agreement": "items/panel-agreement.json"
+}
