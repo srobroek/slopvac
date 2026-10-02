@@ -155,7 +155,7 @@ rules:
       strict: advisory
       normal: advisory
       relaxed: excluded
-    pattern: '\b(\w+(?:-\w+)*),\s+(\w+(?:-\w+)*),\s+and\s+(\w+(?:-\w+)*(?:\s+\w+(?:-\w+)*)*)\b(?=[\s.,;:]|$)'
+    pattern: '\b((?:fast|faster|quick|quicker|reliable|dependable|secure|safe|safer|robust|resilient|stable|scalable|seamless|smooth|streamlined|efficient|effective|clear|clearer|concise|simple|simpler|easy|easier|easy-to-use|intuitive|user-friendly|flexible|versatile|extensible|powerful|modern|elegant|polished|clean|cleaner|lightweight|performant|maintainable|readable|accessible|engaging|comprehensive|innovative|cutting-edge|consistent|transparent|predictable|responsive|affordable|cheap|cheaper|sustainable|inclusive|actionable|meaningful|impactful|insightful|practical|thoughtful|vibrant|dynamic|holistic|agile|battle-tested|production-ready|future-proof|best-in-class|world-class)),\s+((?:fast|faster|quick|quicker|reliable|dependable|secure|safe|safer|robust|resilient|stable|scalable|seamless|smooth|streamlined|efficient|effective|clear|clearer|concise|simple|simpler|easy|easier|easy-to-use|intuitive|user-friendly|flexible|versatile|extensible|powerful|modern|elegant|polished|clean|cleaner|lightweight|performant|maintainable|readable|accessible|engaging|comprehensive|innovative|cutting-edge|consistent|transparent|predictable|responsive|affordable|cheap|cheaper|sustainable|inclusive|actionable|meaningful|impactful|insightful|practical|thoughtful|vibrant|dynamic|holistic|agile|battle-tested|production-ready|future-proof|best-in-class|world-class)),\s+and\s+(\w+(?:-\w+)*(?:\s+\w+(?:-\w+)*)*)\b(?=[\s.,;:]|$)'
     ignore_case: true
     fix: Keep the one or two items that carry load and break the symmetry.
     examples:
@@ -164,21 +164,29 @@ rules:
       - bad: The system is fast, reliable, and battle-tested.
         good: The gate reports every finding with a line number.
         note: >-
-          A three-item technical enumeration ("create, update, and delete") is
-          legitimate and this pattern cannot tell it apart -- see the immutable historical record at
-          https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md
-          for ai-tells.VerbTricolon (149 hits). The last item may
-          be hyphenated or multiword so a rhetorical "battle-tested" still fires.
+          The last item may be hyphenated or multiword so a rhetorical
+          "battle-tested" or "easy to follow" still fires.
+      - bad: The guide is clear, concise, and easy to follow.
+        good: The release covers planning, implementation, and testing.
+        note: >-
+          A three-item enumeration of nouns or verbs ("create, update, and
+          delete"; "dates, times, and timezones") names distinct things and does
+          not fire. Only a triad that opens with two evaluative adjectives does.
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
       source: 'AI tells catalog — structure.md ("Rule of three / tricolon abuse")'
       url: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing
       note: >-
-        Mechanizable core, at warning for the same measured reason
-        ai-tells.VerbTricolon was demoted: 149 hits on the source corpus and the
-        rule cannot distinguish a rhetorical tricolon from a three-item technical
-        enumeration. Judgement remainder in
+        Mechanizable core, advisory for the same measured reason
+        ai-tells.VerbTricolon was demoted: 149 hits on the source corpus (see the
+        immutable historical record at
+        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/exclusions.md).
+        Human labelling, 2026-10: the any-three-words pattern fired mostly on
+        ordinary enumerations of nouns, verbs, places, and title-case section
+        names, which reviewers rejected; it now fires only when the first two
+        items are evaluative adjectives ("fast, reliable, and secure"), the
+        promotional triad that carried the true positives. Judgement remainder in
         ai-tells-structure.tricolon-abuse-remainder covers the bullet-symmetry and
         back-to-back-tricolon forms no single-sentence pattern reaches. Upstream
         ai-tells.VerbTricolon and VerbTricolonDensity stay enabled.
@@ -663,35 +671,6 @@ rules:
         The remainder was retired 2026-09-22 after adjudication showed 16 percent
         precision. Overlaps upstream ai-tells.EmptyPadding, ai-tells.EmptyPaddingStacked,
         ai-tells.FillerPhrases, and ai-tells.LabelAndExplain, all of which stay enabled.
-
-  - id: uniform-paragraph-mass
-    name: Vary paragraph length deliberately
-    kind: metric
-    severity: warning
-    message: "uniform paragraph mass: stdev of paragraph word count is {match} -- vary length deliberately"
-    scope: document
-    tiers:
-      strict: enforced
-      normal: advisory
-      relaxed: excluded
-    metric: paragraph_words_stdev
-    threshold: 12
-    comparison: lt
-    fix: Let one point take three paragraphs and the next one clause.
-    ai_signal: weak
-    ai_signal_source: catalog
-    provenance:
-      source: 'AI tells catalog — register.md ("Uniform paragraph mass")'
-      url: https://gptzero.me/news/perplexity-and-burstiness-what-is-it/
-      note: >-
-        The catalog states the shape numerically -- "every paragraph three sentences
-        of 15-20 words" -- which makes it the one register tell that mechanises as a
-        document metric. Threshold 12 is INFERRED from that range (a corpus of
-        45-60-word paragraphs has a stdev near zero) and is NOT measured; calibrate
-        before enforcing outside strict. This is the burstiness counter-signal, and
-        it is also proposed in the immutable historical record at
-        https://github.com/srobroek/slopvac/blob/18c37dcaf2d11ef43ab9cf4610cae0664e2644af/packages/slopvac-lint/docs/counter-signals.md
-        as paragraph-length-dispersion -- the two are the same measurement, so ship one.
 
   - id: sycophantic-meta-residue
     name: Delete the approval residue and audit the surrounding text
@@ -1263,7 +1242,7 @@ rules:
     name: Use the concrete verb
     kind: substitution
     severity: warning
-    message: "copula avoidance: use '{replacement}' instead of '{match}'"
+    message: "indirect verb: use '{replacement}' instead of '{match}'"
     scope: prose
     tiers:
       strict: enforced
@@ -1273,14 +1252,13 @@ rules:
     substitutions:
       '\bserves as\b': is
       '\bstands as\b': is
-      '\brepresents\b': is
-      '\bacts as\b': is
+      '\brepresents(?=\s+(?:a|an)\s+(?:\w+\s+)?(?:significant|substantial|major|important|pivotal|key|fundamental|dramatic|bold|huge|giant|big|step|shift|leap|milestone|turning|departure|evolution|breakthrough|commitment)\b)': is
+      '(?<!such )\bacts as\b': is
       '\bboasts\b': has
-      '\boffers(?=\s+(?:a|an|the|you|\d)\b)': has
+      '\boffers(?!\s+(?:you\s+)?(?:a|an|the)\s+(?:[\w-]+\s+)?(?:path|way|approach|means|route|balance|trade-?off|alternative|compromise|middle)\b)(?=\s+(?:a|an|the|you|\d)\b)': has
       '\bfeatures(?=\s+(?:a|an|the|\d)\b)': has
       '\bis designed to\b': (write what it does)
-      '\bplays a (?:vital|key|crucial|critical|central|pivotal) role\b': (name the effect)
-      '\ba testament to\b': (state the measurement)
+      '\bplays a (?:vital|key|crucial|critical|central|pivotal) role\b': (say what it does)
       '\bunderscores the importance of\b': (state the consequence)
     fix: Replace with the concrete verb or noun.
     examples:
@@ -1292,6 +1270,16 @@ rules:
         good: The crate has a typed header struct.
       - good: Supported features are listed below.
         bad: The CLI offers a dry-run mode.
+      - bad: This release represents a major shift in the scheduler.
+        good: The enum represents either an IPv4 or an IPv6 address.
+      - bad: The proxy acts as the cache.
+        good: The lineup featured such acts as the house band.
+      - bad: The monitor plays a key role in tracking memory.
+        good: The new strategy offers a way to reuse code without indirection.
+        note: >-
+          The fix for a role phrase is the verb it hides ("tracks memory"). An
+          abstract offer -- a way, path, or approach -- has no "has" rewrite and
+          does not fire.
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
@@ -1307,6 +1295,14 @@ rules:
         replacement values are parenthetical instructions rather than literal
         swaps, because the catalog's fix names an operation, not a word.
         Upstream ai-tells.ServesAsDodge overlaps the copula band and stays enabled.
+        Human labelling, 2026-10: `represents` fired on a type that literally
+        represents a value and now fires only before a significance claim ("a
+        major shift"); `acts as` skips the noun in "such acts as"; `offers` skips
+        an abstract way, path, or approach, which "has" cannot replace; `a
+        testament to` left this rule because its "(state the measurement)" fix
+        misfired on commemorative prose and ai-tells-figurative and orwell
+        already flag the phrase; and the role phrase now asks for the verb, since
+        its effect is usually named in the same sentence.
 ---
 id: ai-tells-agentic
 title: AI tells -- agentic slogan formulae

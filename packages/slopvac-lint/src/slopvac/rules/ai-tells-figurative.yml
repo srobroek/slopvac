@@ -351,13 +351,17 @@ rules:
       normal: enforced
       relaxed: enforced
     exceptions: [quotation, named-entity]
-    pattern: '\bnestled (?:in|between|among|alongside|within) (?:the|a)?\b|\b(?:in|at) the heart of\b|\brich cultural heritage\b|\brich (?:history and|and diverse|and vibrant)\b|\bvibrant (?:community|culture|ecosystem|atmosphere)\b|\bnatural beauty\b|\ba (?:hub for|hub of|dynamic hub|thriving hub|cultural hub)\b|\ba beacon (?:of|for)\b|\ba treasure trove (?:of|for)\b|\ba (?:shining|prime) example\b|\ba masterclass in\b|\ba testament to (?:the|its)\b|\brenowned for (?:its|their|her|his)\b|\bwidely (?:regarded as|recognized as|considered)\b|\bis home to\b|\bhas emerged as (?:a|the)\b|\bhas established itself as\b|\bcontinues to (?:evolve|thrive|grow|inspire)\b|\bleft an indelible (?:mark|impact)\b|\bleaving an indelible mark\b|\bleft a lasting (?:impact|impression)\b|\bleaving a lasting impact\b|\b(?:a lasting|enduring) legacy\b|\benduring impact\b'
+    pattern: '\bnestled (?:in|between|among|alongside|within) (?:the|a)?\b|\b(?:in|at) the heart of\b|\brich cultural heritage\b|\brich (?:history and|and diverse|and vibrant)\b|\bvibrant (?:community|culture|ecosystem|atmosphere)\b|\bnatural beauty\b|\ba (?:hub for|hub of|dynamic hub|thriving hub|cultural hub)\b|\ba beacon (?:of|for)\b|\ba treasure trove (?:of|for)\b|\ba (?:shining|prime) example\b|\ba masterclass in\b|\ba testament to (?:the|its)\b|\brenowned for (?:its|their)\b|\bwidely (?:regarded as|recognized as|considered)\b|\bhas emerged as (?:a|the)\b|\bhas established itself as\b|\bcontinues to (?:thrive|grow|inspire)\b|\bleft an indelible (?:mark|impact)\b|\bleaving an indelible mark\b|\bleft a lasting (?:impact|impression)\b|\bleaving a lasting impact\b|\b(?:a lasting|enduring) legacy\b|\benduring impact\b'
     fix: Delete the phrase, or replace it with the number or fact behind it.
     examples:
       - bad: The library has emerged as a hub for astronomy tooling.
         good: Four astronomy tools depend on the library.
       - bad: The rewrite left a lasting impact on latency.
         good: The rewrite cut p99 latency from 800 ms to 120 ms.
+      - bad: The city is renowned for its harbour.
+        good: The city is home to the country's largest harbour.
+      - bad: The file format continues to thrive.
+        good: The file format continues to evolve; version 3 adds streaming reads.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -368,7 +372,13 @@ rules:
         multi-word travel-and-biography CONSTRUCTIONS. Zero of 55 source
         tokens were matched by any owned rule, which is why it ships at error
         rather than warning -- unlike `AICompoundPhrases`, none of these
-        phrases has an ordinary technical use.
+        phrases has an ordinary technical use. Human labelling, 2026-10: three
+        phrases that read as neutral description were removed -- `is home to`
+        (a containment idiom; the puffery, when present, is in the words that
+        follow it), `continues to evolve` (states change, not merit), and
+        `renowned for his/her` (a person's reputation in a profile or tribute
+        is the subject, not a sales claim). `renowned for its/their` stays for
+        places and products.
 
   - id: strategy-buzzwords
     name: Describe the mechanism

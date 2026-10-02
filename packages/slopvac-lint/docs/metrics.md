@@ -79,6 +79,7 @@ rule.
 | `clause_boundaries` | heuristic count of clause joins in a sentence |
 | `lead_in_words` | words before a colon that terminates a list lead-in |
 | `paragraph_words` | canonical word count for one paragraph |
+| `enumerating_paragraph_words` | canonical word count for a paragraph in which three or more sentences carry a series of three or more items; other paragraphs are not measured |
 | `paragraph_sentences` | sentence count inside a paragraph block |
 | `multiword_noun_words` | longest noun-stack candidate in a sentence |
 | `coordinated_items` | longest comma/conjunction series in a sentence |

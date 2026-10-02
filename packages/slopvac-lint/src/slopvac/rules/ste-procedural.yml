@@ -134,7 +134,7 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: advisory
-    pattern: '^\s*[A-Z][a-z]+\b[^.!?]*?\s+(if|when|once|unless|after|before|while)\s+[^.!?]*[.!?]?\s*$'
+    pattern: '^\s*(?!(?:The|A|An|This|That|These|Those|Their|Its|Our|Your|His|Her|My|It|They|We|You|He|She|There|Each|Every|Any|Some|All|Both|No|Many|Most|Such|Other|One)\b)(?![A-Z][a-z]*[^e]ed\b)(?![A-Z][a-z]*[^su]s\b)(?!(?!Bring\b)[A-Z][a-z]+ing\b)[A-Z][a-z]+\b(?!-)[^.!?]*?\s+(if|when|once|unless|after|before|while(?!\s+[a-z]+ing\b))\s+[^.!?]*[.!?]?\s*$'
     ignore_case: false
     exceptions:
       - quotation
@@ -145,6 +145,8 @@ rules:
         good: If the queue depth is above one thousand, restart the worker.
       - bad: Clear the cache when the import completes.
         good: When the import completes, clear the cache.
+      - bad: Drain the queue before the worker shuts down.
+        good: The worker drains the queue before it shuts down.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -154,8 +156,14 @@ rules:
         Issue 9 makes condition-first an obligation and then adds the comma; Issue 7
         regulated only the comma, conditional on the writer's chosen order. A checker built
         from the older wording misses the ordering half, so this rule enforces the ordering
-        and comma-after-leading-condition is a separate punctuation rule. Tested: both bad
-        examples match, both good examples do not.
+        and comma-after-leading-condition is a separate punctuation rule. Tested: every bad
+        example matches, no good example does. Human labelling, 2026-10: every
+        sampled finding was a descriptive sentence the procedural classifier let through
+        ("The command requires confirmation before removing", "Fixed a crash when
+        using") or a manner phrase ("while preserving the meaning"), so the opening word
+        must now look like a command -- not a determiner or pronoun, not an -ed, -s, or
+        -ing form, not the first half of a hyphenated adjective -- and "while" followed
+        by a gerund no longer counts as a condition.
     fix: Move the condition clause to the front and follow it with a comma.
 
   - id: note-gives-instruction

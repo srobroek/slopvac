@@ -1602,6 +1602,30 @@ STACK_BREAKER = frozenset(
         "between",
         "through",
         "including",
+        # Prepositions a human labelling pass found inside reported stacks:
+        # `behavior across multiple environments`, `bout via unanimous decision`,
+        # `metadata provides information about`. `using` is here because it heads
+        # a manner phrase (`consider using parallel execution`), never a stack.
+        "across",
+        "about",
+        "via",
+        "inside",
+        "outside",
+        "within",
+        "among",
+        "against",
+        "toward",
+        "towards",
+        "upon",
+        "per",
+        "beyond",
+        "behind",
+        "around",
+        "along",
+        "versus",
+        "despite",
+        "throughout",
+        "using",
         "and",
         "or",
         "but",
@@ -1807,6 +1831,27 @@ STACK_BREAKER = frozenset(
         "might",
         "could",
         "cannot",
+        # Quantifiers and grading adjectives. They open a noun phrase the way a
+        # determiner does and are never part of a technical name: `multiple
+        # connection setup patterns` and `most significant language change` were
+        # reported as stacks.
+        "another",
+        "multiple",
+        "several",
+        "various",
+        "many",
+        "few",
+        "more",
+        "most",
+        "less",
+        "certain",
+        "specific",
+        "different",
+        "numerous",
+        "additional",
+        "particular",
+        "significant",
+        "important",
     }
 )
 
@@ -1859,6 +1904,77 @@ PARTICIPLE_NOUNS = frozenset(
     }
 )
 
+# An `-able`/`-ible` adjective, which like a past participle cannot be the HEAD of
+# a noun stack: `a highly capable young protagonist believable` is three words and
+# a predicate. Trimmed at the tail for the same reason PARTICIPLE is.
+PREDICATE_ADJECTIVE = re.compile(r"^[A-Za-z]{3,}(?:able|ible)$")
+
+# The `-able` words that are ordinary nouns and can head a real stack.
+ADJECTIVE_NOUNS = frozenset(
+    {
+        "variable",
+        "executable",
+        "deliverable",
+        "observable",
+        "callable",
+        "iterable",
+        "awaitable",
+        "consumable",
+        "disposable",
+        "renewable",
+        "receivable",
+        "payable",
+    }
+)
+
+# Singular words ending in a bare `s`, which `_ends_stack` would otherwise read as
+# a plural head or a third-person verb. `-ss`, `-us`, `-is`, and `-ics` are
+# handled by suffix.
+S_ENDING_SINGULARS = frozenset(
+    {"news", "series", "species", "alias", "canvas", "atlas", "bias", "lens", "chaos"}
+)
+
+
+def _ends_stack(token: str) -> bool:
+    """True when `token` must be the LAST word of any stack it sits in.
+
+    A word ending in a bare `s` is either a plural noun or a third-person verb.
+    Inside a real stack the modifiers are singular (`retry backoff jitter
+    factor`), so a plural is the head and ends the stack; a verb ends it too
+    (`test runner provides options`, `performance optimizations require specific
+    processor features`). Either way nothing after it belongs to the same stack.
+    Under-reports a stack with a plural attributive noun (`user accounts migration
+    plan`), the cheaper error for the reason `longest_noun_stack` gives. Applies to
+    lowercase words only: a capitalised one is usually a name (`Kubernetes`).
+    """
+    lower = token.lower()
+    return (
+        token[0].islower()
+        and len(lower) >= 4
+        and lower.endswith("s")
+        and not lower.endswith(("ss", "us", "is", "ics"))
+        and lower not in S_ENDING_SINGULARS
+    )
+
+
+def _stack_units(words: list[str]) -> int:
+    """Words in a stack, counting a run of capitalised words as one name.
+
+    Collapses only when the stack also holds a lowercase word, so `New Zealand
+    provincial unions` is three units while a title-case heading such as `Request
+    Retry Backoff Jitter Factor` still counts every word.
+    """
+    if all(word[0].isupper() for word in words):
+        return len(words)
+    units = 0
+    previous_capitalised = False
+    for word in words:
+        capitalised = word[0].isupper()
+        if not (capitalised and previous_capitalised):
+            units += 1
+        previous_capitalised = capitalised
+    return units
+
 
 def stdev(values: list[float]) -> float:
     """Population standard deviation. 0.0 for fewer than two values.
@@ -1875,8 +1991,9 @@ def stdev(values: list[float]) -> float:
 def longest_noun_stack(text: str) -> int:
     """Longest run of consecutive stackable words in a sentence.
 
-    A run ends at a `STACK_BREAKER`, at an `-ly` adverb, at punctuation, or at any
-    token that is not plain letters.
+    A run ends at a `STACK_BREAKER`, at an `-ly` adverb, at punctuation, at any
+    token that is not plain letters, and after a word `_ends_stack` reads as a
+    plural head or a verb. A run of capitalised words inside it counts as one name.
 
     A run counts ONLY IF at least one of its words carries a noun suffix. That
     condition is what makes the measure usable without a part-of-speech tagger.
@@ -1899,15 +2016,22 @@ def longest_noun_stack(text: str) -> int:
         # participle sits inside a real stack: `distributed cache invalidation
         # strategy` still counts 4. Measured on this project's own README:
         # `A failing document opens expanded` counted 4 with no noun stack in it.
+        # An `-able` adjective is trimmed the same way: it is a predicate there.
         trimmed = list(run)
-        while (
-            trimmed
-            and PARTICIPLE.match(trimmed[-1])
-            and trimmed[-1].lower() not in PARTICIPLE_NOUNS
+        while trimmed and (
+            (
+                PARTICIPLE.match(trimmed[-1])
+                and trimmed[-1].lower() not in PARTICIPLE_NOUNS
+            )
+            or (
+                PREDICATE_ADJECTIVE.match(trimmed[-1])
+                and trimmed[-1].lower() not in ADJECTIVE_NOUNS
+            )
         ):
             trimmed.pop()
-        if len(trimmed) > longest and any(NOUN_SUFFIX.match(w) for w in trimmed):
-            return len(trimmed)
+        units = _stack_units(trimmed) if trimmed else 0
+        if units > longest and any(NOUN_SUFFIX.match(w) for w in trimmed):
+            return units
         return longest
 
     # Walks tokens and inspects the GAP between them, rather than splitting. A
@@ -1921,30 +2045,24 @@ def longest_noun_stack(text: str) -> int:
         previous_end = match.end()
         token = match.group().strip("'")
         broken = bool(gap) and not gap.isspace()
-        if (
-            broken
-            or not token
-            or not STACK_WORD.match(token)
-            or token.lower() in STACK_BREAKER
-            or token.lower().endswith("ly")
-        ):
+        stackable = (
+            bool(token)
+            and bool(STACK_WORD.match(token))
+            and token.lower() not in STACK_BREAKER
+            and not token.lower().endswith("ly")
+        )
+        if broken or not stackable:
             longest = close(longest)
             run = []
-            if (
-                broken
-                and token
-                and STACK_WORD.match(token)
-                and (
-                    token.lower() not in STACK_BREAKER
-                    and not token.lower().endswith("ly")
-                )
-            ):
-                # The separator ended the previous run, but this token still opens
-                # the next one. Dropping it here lost the first word of every stack
-                # that followed any punctuation.
-                run.append(token)
+        if not stackable:
             continue
+        # A separator ended the previous run, but a stackable token still opens
+        # the next one. Dropping it there lost the first word of every stack that
+        # followed any punctuation.
         run.append(token)
+        if _ends_stack(token):
+            longest = close(longest)
+            run = []
     return close(longest)
 
 

@@ -26,8 +26,14 @@ rules:
       relaxed: advisory
     # A general-purpose verb followed by an optional article and a nominalized
     # action noun. The suffix list is what makes this precise: without it the
-    # pattern fires on every "make a copy" and "take a branch".
-    pattern: '(?<![\w-])(?:perform|conduct|carry out|undertake|execute|make|do|give|provide|effect|achieve|obtain|initiate|facilitate|implement)(?:s|ed|ing)?\s+(?:a|an|the)?\s*\w{4,}(?:tion|sion|ment|ance|ence|ysis|ision|ation)(?![\w-])'
+    # pattern fires on every "make a copy" and "take a branch". The trailing
+    # lookahead requires the noun to END its noun phrase (a preposition, a
+    # conjunction, a relative word, punctuation, or end of text): a noun followed
+    # by another word is a modifier ("provides migration notes", "obtains a
+    # revision number") or a causative object ("make the intention clear"), and
+    # promoting it to a verb changes the meaning. The noun lookahead
+    # skips nouns whose verb means something else or is not plain English.
+    pattern: '(?<![\w-])(?:perform|conduct|carry out|undertake|execute|make|do|give|provide|effect|achieve|obtain|initiate|implement)(?:s|ed|ing)?\s+(?:(?:a|an|the)\s+)?(?!(?:guidance|assistance|information|difference|condition)s?(?![\w-]))\w{4,}(?:tion|sion|ment|ance|ence|ysis|ision|ation)(?![\w-])(?=\s*(?:$|[^\w\s]|(?:of|on|for|to|about|into|onto|with|between|among|against|from|by|in|at|over|across|through|under|upon|per|via|within|without|during|until|and|or|but|nor|that|which|when|where|while|before|after|if|unless|because|so|as|than)(?![\w-])))'
     ignore_case: true
     exceptions:
       - identifier-fidelity
@@ -45,6 +51,10 @@ rules:
         good: Investigate the failing shard.
       - bad: The hook provides validation of the payload.
         good: The hook validates the payload.
+      - bad: The docs provide an explanation of each flag, with migration notes.
+        good: The docs explain each flag and provide migration notes.
+      - bad: Reviewers make a recommendation, then provide guidance on the fix.
+        good: Reviewers recommend a change, then provide guidance on the fix.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -57,6 +67,14 @@ rules:
         specification requires a verb for an action. Overlaps
         orwell-voice.passive-voice on sentences that are both passive and
         frozen, which is correct: they carry two defects and the fix differs.
+        Human labelling, 2026-10: narrowed after a review sample in which every
+        finding was a false positive. Three classes were removed: the noun as a
+        modifier of the real object ("provides location data"), the noun as a
+        causative object ("make the intention clear"), and idioms
+        with no faithful verb ("provide guidance", "provide assistance", "obtain
+        information", "make a difference", "provide a condition").
+        `facilitate` was dropped from the verb list because "facilitate X"
+        means letting someone else do X, so promoting the noun moves the actor.
     fix: >-
       Promote the noun to a finite verb and delete the general-purpose verb and
       its article.

@@ -340,11 +340,12 @@ def test_promotional_verbs_omit_navigate():
 
 
 def test_tricolon_core_matches_hyphenated_final_item():
-    """The mechanical core used to stop at `\\w+`, so `battle-tested` missed."""
+    """The mechanical core used to stop at `\\w+`, so `battle-tested` missed.
+    An ordinary technical list is not the tell: only evaluative pairs open it."""
     hyphenated = _native_ids("The system is fast, reliable, and battle-tested.\n")
     assert "ai-tells-structure.tricolon-abuse-core" in hyphenated
     technical = _native_ids("The API supports create, update, and delete operations.\n")
-    assert "ai-tells-structure.tricolon-abuse-core" in technical
+    assert "ai-tells-structure.tricolon-abuse-core" not in technical
 
 
 def test_complex_tense_accepts_status_report_suppression():

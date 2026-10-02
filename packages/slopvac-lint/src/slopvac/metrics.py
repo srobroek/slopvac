@@ -44,6 +44,7 @@ NATIVE_METRICS = frozenset(
         "sentence_words",
         "clause_boundaries",
         "paragraph_words",
+        "enumerating_paragraph_words",
         "lead_in_words",
         "paragraph_sentences",
         "syllables_per_word",

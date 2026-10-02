@@ -82,14 +82,14 @@ rules:
     name: Convert a long paragraph to a list or table
     kind: metric
     severity: warning
-    message: 'prose block of {match} words > 80 -- convert to a list or table'
+    message: 'prose block of {match} words > {replacement} strings a series through three or more sentences -- convert to a list or table'
     scope: paragraph
     tiers:
       strict: enforced
       normal: advisory
       relaxed: advisory
-    metric: paragraph_words
-    threshold: 80
+    metric: enumerating_paragraph_words
+    threshold: 100
     comparison: gt
     fix: Split the paragraph, or turn the enumeration into a list or a table.
     ai_signal: none
@@ -107,3 +107,9 @@ rules:
         verb, so the trap does not carry over. Advisory at relaxed: an essay or a
         spec legitimately carries a long paragraph.
         Complements prose-craft.sentence-length, which measures the sentence.
+        Human labelling, 2026-10: nearly every finding was cohesive argument,
+        narrative, or an overview a few words past 80, which a list cannot improve;
+        the defects were release-note paragraphs that strung series after series
+        into prose. The rule now measures only a paragraph in which three or more
+        sentences carry a series of three or more items, and raises the bound from
+        80 to 100 words.

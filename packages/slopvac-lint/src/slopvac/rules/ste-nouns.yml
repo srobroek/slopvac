@@ -33,6 +33,8 @@ rules:
         good: Set the jitter factor for retry backoff in the client config.
       - bad: The deployment pipeline artifact retention policy runs each night.
         good: The retention policy for pipeline artifacts runs each night.
+      - bad: The worker pool retry backoff limit applies across clusters.
+        good: The worker supports multiple retry backoff modes across clusters.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -44,4 +46,10 @@ rules:
         four-word stack a violation even though one of the four words is an adjective.
         Advisory rather than excluded at relaxed tier because a five-word stack is a real
         comprehension cost, but our detector depends on a tagger and can miscount.
+        Human labelling, 2026-10: nearly every reported stack was a run a suffix test
+        cannot tell from one -- a verb or plural head mid-run ("runner provides
+        options"), a preposition ("across", "via", "about"), or a quantifier
+        ("multiple", "certain", "specific"); the counter now ends a run after a
+        lowercase -s word, breaks on those words, trims a trailing -able adjective,
+        and counts a capitalised name inside a stack as one word.
     fix: Break the stack with a preposition, or define a short form.

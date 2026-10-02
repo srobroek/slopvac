@@ -910,15 +910,27 @@ class Engine:
                 if exceeds(count, threshold):
                     report(sentence.line, str(count), str(int(threshold)))
 
-        elif metric == "paragraph_words":
+        elif metric in {"paragraph_words", "enumerating_paragraph_words"}:
             # Native because Vale reported a different number here. An inline code
             # span is ONE word to `count_words` and zero to Vale, whose markdown
             # scoping drops the span before its token counter sees it -- measured on
             # this project's own README, paragraph line 37: 8 by Vale against 10 by
-            # `count_words`. The only shipped consumer is prose-format.prose-block
-            # (gt 80); the short-paragraph rule that needed list-stem and opaque-unit
-            # exclusions here was retired in the 2026-09-12 audit.
+            # `count_words`. The short-paragraph rule that needed list-stem and
+            # opaque-unit exclusions here was retired in the 2026-09-12 audit.
+            #
+            # `enumerating_paragraph_words` counts only a paragraph that carries
+            # lists in prose: three or more of its sentences hold a coordinated
+            # series of three or more items. Its consumer is prose-format.prose-block.
+            # Length alone fired on cohesive argument and narrative, which a list
+            # cannot improve; human labelling in 2026-10 found nearly every finding
+            # of the length-only version a false positive.
+            enumerating = metric == "enumerating_paragraph_words"
             for block in document.paragraphs:
+                if enumerating and (
+                    sum(1 for s in block.sentences if coordinated_items(s.text) >= 3)
+                    < 3
+                ):
+                    continue
                 count = count_words(block.text)
                 if exceeds(count, threshold):
                     report(block.lines[0], str(count), str(int(threshold)))
