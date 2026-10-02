@@ -192,7 +192,7 @@ jobs:
 
           # Reference, compiled routing, and cache are usable from the wheel.
           slopvac reference > /tmp/reference.md
-          grep -q '166 checked rules' /tmp/reference.md
+          grep -q '165 checked rules' /tmp/reference.md
           rm -rf /tmp/compiled-vale
           slopvac compile \
             --config /tmp/slopvac-project/slopvac.toml \

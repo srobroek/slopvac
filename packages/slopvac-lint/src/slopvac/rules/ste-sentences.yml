@@ -7,45 +7,41 @@ max_per_100_words:
   normal: 2.0
 recommended_for: [reference]
 rules:
-  - id: omitted-word-or-contraction
-    name: Do not omit words or use contractions
+  - id: omitted-subject
+    name: Do not omit the subject after If, When, or Once
     kind: pattern
     severity: warning
-    message: 'Omitted word or contraction "{match}". Write the full form.'
+    message: 'Omitted subject "{match}". Name what is installed, configured, or ready.'
     scope: sentence
     text_type: any
     tiers:
       strict: enforced
       normal: advisory
       relaxed: advisory
-    pattern: "\\b(?:do|does|did|is|are|was|were|has|have|had|can|could|will|would|should|must|ai)n['\u2019]t\\b|\\b(?:it|that|there|what|who|he|she|let)['\u2019]s\\b|\\b(?:I|you|we|they|it|that|there)['\u2019](?:re|ve|ll|d|m)\\b|^\\s*(?:If|When|Once)\\s+(?:installed|configured|enabled|disabled|set|present|missing|deleted|done|complete|completed|ready|needed|required|applicable)\\s*,"
+    pattern: "^\\s*(?:If|When|Once)\\s+(?:installed|configured|enabled|disabled|set|present|missing|deleted|done|complete|completed|ready|needed|required|applicable)\\s*,"
     ignore_case: true
     exceptions:
       - quotation
       - code-span
     allowlist: []
     examples:
-      - bad: If your token is expired, don't retry the request.
-        good: If your token is expired, do not retry the request.
       - bad: If configured, the proxy rewrites the Host header.
         good: If the proxy is configured, it rewrites the Host header.
-      - bad: It's the worker that drains the queue.
-        good: The worker drains the queue.
+      - bad: Once enabled, the cache serves stale reads.
+        good: Once the cache is enabled, it serves stale reads.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
       source: ASD-STE100
       ste_ref: '9:4.2'
       note: >-
-        Four alternates: negated contractions, "'s" contractions, other apostrophe
-        contractions, and the subject-elided conditional opener, which is the omission class
-        that actually recurs in runbooks. Both a straight apostrophe and a typographic one
-        are matched. The conditional-opener branch anchors on the line start rather than on
-        capitalization, so case folding is safe. Tested: all bad examples match (including
-        "Once enabled, ..."), all good examples do not, and the possessive "the worker's
-        queue" does not match, because the "'s" branch lists only pronouns and never reaches
-        a common noun. The first draft ran case-sensitively and missed "It's".
-    fix: Write the full word, or restore the omitted subject or article.
+        STE 9:4.2 also forbids contractions. That branch was removed after human
+        labelling judged every contraction finding a false positive ("I'll cover",
+        "I don't mention"): contractions are ordinary prose outside a controlled
+        language, and the defect that recurs in runbooks is the subject-elided
+        conditional opener. The branch anchors on the line start rather than on
+        capitalization, so case folding is safe.
+    fix: Restore the omitted subject.
 
   - id: complex-text-not-in-vertical-list
     name: Use a vertical list for complex content

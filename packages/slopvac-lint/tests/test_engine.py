@@ -532,6 +532,18 @@ def test_definitional_rule_accepted_fire_is_the_rhetorical_noun():
     assert _definitional_fires(ACCEPTED_DISTINCTION_FIRE)
 
 
+def test_contractions_and_curly_apostrophes_are_not_findings():
+    """Human labelling judged every contraction and curly-apostrophe finding a
+    false positive. The subject-elided opener is the omission that stays."""
+    text = (
+        "I’ll cover the loader’s cache first, and I don't repeat the brief.\n\n"
+        "If configured, the proxy rewrites the Host header.\n"
+    )
+    findings = _run(text, profile=Profile.STRICT)
+    assert not [f for f in findings if f.matched_text in {"I’ll", "’", "don't"}]
+    assert [f for f in findings if f.rule_id == "ste-sentences.omitted-subject"]
+
+
 def test_valid_suppression_is_honoured():
     findings = _run(
         "<!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->\n"
