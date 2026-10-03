@@ -229,7 +229,7 @@ jobs:
           python3 - <<'PY'
           import json
           payload = json.load(open("/tmp/rules.json"))
-          assert len(payload["rules"]) == 165
+          assert len(payload["rules"]) == 164
           assert all(rule["kind"] != "judgement" for rule in payload["rules"])
           PY
           slopvac explain orwell.stale-figure > /dev/null
