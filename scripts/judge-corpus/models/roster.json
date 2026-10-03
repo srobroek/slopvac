@@ -1,0 +1,659 @@
+{
+  "batch_support_method": [
+    "bedrock:list-foundation-models",
+    "bedrock:list-inference-profiles",
+    "AWS Bedrock batch inference documentation"
+  ],
+  "generated_at": "2026-09-28T14:31:44Z",
+  "models": [
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "anthropic.claude-haiku-4-5-20251001-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        1.0,
+        5.0
+      ],
+      "provider_name": "Anthropic",
+      "tier": "small",
+      "vendor": "anthropic"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "anthropic.claude-sonnet-5",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-sonnet-5",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-sonnet-5",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        2.0,
+        10.0
+      ],
+      "provider_name": "Anthropic",
+      "tier": "mid",
+      "vendor": "anthropic"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "anthropic.claude-opus-5-5",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-5-5",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.anthropic.claude-opus-5-5",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        4.0,
+        20.0
+      ],
+      "provider_name": "Anthropic",
+      "tier": "frontier",
+      "vendor": "anthropic"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "amazon.nova-micro-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-micro-v1:0",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-micro-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.035,
+        0.14
+      ],
+      "provider_name": "Amazon",
+      "tier": "small",
+      "vendor": "amazon"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "amazon.nova-lite-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-lite-v1:0",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-lite-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.06,
+        0.24
+      ],
+      "provider_name": "Amazon",
+      "tier": "mid",
+      "vendor": "amazon"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "amazon.nova-pro-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-pro-v1:0",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE",
+        "VIDEO"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.amazon.nova-pro-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.8,
+        3.2
+      ],
+      "provider_name": "Amazon",
+      "tier": "frontier",
+      "vendor": "amazon"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "meta.llama3-1-8b-instruct-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-1-8b-instruct-v1:0",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-1-8b-instruct-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.22,
+        0.22
+      ],
+      "provider_name": "Meta",
+      "tier": "small",
+      "vendor": "meta"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama4-maverick-17b-instruct-v1:0",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama4-maverick-17b-instruct-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.24,
+        0.97
+      ],
+      "provider_name": "Meta",
+      "tier": "mid",
+      "vendor": "meta"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "meta.llama3-3-70b-instruct-v1:0",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-3-70b-instruct-v1:0",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.meta.llama3-3-70b-instruct-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.72,
+        0.72
+      ],
+      "provider_name": "Meta",
+      "tier": "frontier",
+      "vendor": "meta"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "mistral.ministral-3-8b-instruct",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "mistral.ministral-3-8b-instruct",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.1,
+        0.3
+      ],
+      "provider_name": "Mistral AI",
+      "tier": "small",
+      "vendor": "mistral"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "mistral.ministral-3-14b-instruct",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "mistral.ministral-3-14b-instruct",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.1,
+        0.3
+      ],
+      "provider_name": "Mistral AI",
+      "tier": "mid",
+      "vendor": "mistral"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "mistral.mistral-large-3-675b-instruct",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        2.0,
+        6.0
+      ],
+      "provider_name": "Mistral AI",
+      "tier": "frontier",
+      "vendor": "mistral"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "openai.gpt-oss-20b-1:0",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "openai.gpt-oss-20b-1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.07,
+        0.3
+      ],
+      "provider_name": "OpenAI",
+      "tier": "small",
+      "vendor": "openai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "openai.gpt-6-luna",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-luna",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-luna",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.1,
+        0.5
+      ],
+      "provider_name": "OpenAI",
+      "tier": "small",
+      "vendor": "openai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "openai.gpt-6-sol",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-sol",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.openai.gpt-6-sol",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        2.0,
+        10.0
+      ],
+      "provider_name": "OpenAI",
+      "tier": "mid",
+      "vendor": "openai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "openai.gpt-6-astra",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.openai.gpt-6-astra",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/us.openai.gpt-6-astra",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        10.0,
+        50.0
+      ],
+      "provider_name": "OpenAI",
+      "tier": "frontier",
+      "vendor": "openai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "qwen.qwen3-32b-v1:0",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "qwen.qwen3-32b-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.2,
+        0.6
+      ],
+      "provider_name": "Qwen",
+      "tier": "mid",
+      "vendor": "qwen"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "qwen.qwen3-next-80b-a3b",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "qwen.qwen3-next-80b-a3b",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        2.0
+      ],
+      "provider_name": "Qwen",
+      "tier": "frontier",
+      "vendor": "qwen"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "deepseek.v3.2",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "deepseek.v3.2",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.14,
+        0.28
+      ],
+      "provider_name": "DeepSeek",
+      "tier": "frontier",
+      "vendor": "deepseek"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "google.gemma-3-4b-it",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "google.gemma-3-4b-it",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.1,
+        0.4
+      ],
+      "provider_name": "Google",
+      "tier": "small",
+      "vendor": "google"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "google.gemma-3-12b-it",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "google.gemma-3-12b-it",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.1,
+        0.4
+      ],
+      "provider_name": "Google",
+      "tier": "mid",
+      "vendor": "google"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "moonshotai.kimi-k3",
+      "inference_profile_arn": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.moonshotai.kimi-k3",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "arn:aws:bedrock:us-east-1:536697262379:inference-profile/global.moonshotai.kimi-k3",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        2.0
+      ],
+      "provider_name": "Moonshot AI",
+      "tier": "frontier",
+      "vendor": "moonshot"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "zai.glm-4.7-flash",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "zai.glm-4.7-flash",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        2.0
+      ],
+      "provider_name": "Z.AI",
+      "tier": "small",
+      "vendor": "zai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "zai.glm-4.7",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "zai.glm-4.7",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        2.0
+      ],
+      "provider_name": "Z.AI",
+      "tier": "frontier",
+      "vendor": "zai"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "minimax.minimax-m2.1",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "minimax.minimax-m2.1",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.3,
+        1.2
+      ],
+      "provider_name": "MiniMax",
+      "tier": "mid",
+      "vendor": "minimax"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "minimax.minimax-m2",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "minimax.minimax-m2",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.3,
+        1.2
+      ],
+      "provider_name": "MiniMax",
+      "tier": "frontier",
+      "vendor": "minimax"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "nvidia.nemotron-nano-12b-v2",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT",
+        "IMAGE"
+      ],
+      "model_id": "nvidia.nemotron-nano-12b-v2",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.2,
+        0.8
+      ],
+      "provider_name": "NVIDIA",
+      "tier": "small",
+      "vendor": "nvidia"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "nvidia.nemotron-super-3-120b",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "nvidia.nemotron-super-3-120b",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.2,
+        0.8
+      ],
+      "provider_name": "NVIDIA",
+      "tier": "frontier",
+      "vendor": "nvidia"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "ai21.jamba-1-5-mini-v1:0",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "ai21.jamba-1-5-mini-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        1.5
+      ],
+      "provider_name": "AI21 Labs",
+      "tier": "small",
+      "vendor": "ai21"
+    },
+    {
+      "batch_supported": true,
+      "batch_verification": "catalogue-candidate",
+      "foundation_model_id": "ai21.jamba-1-5-large-v1:0",
+      "inference_profile_arn": null,
+      "input_modalities": [
+        "TEXT"
+      ],
+      "model_id": "ai21.jamba-1-5-large-v1:0",
+      "output_modalities": [
+        "TEXT"
+      ],
+      "pricing_source": "https://aws.amazon.com/bedrock/pricing/",
+      "pricing_usd_per_million_on_demand": [
+        0.5,
+        1.5
+      ],
+      "provider_name": "AI21 Labs",
+      "tier": "mid",
+      "vendor": "ai21"
+    }
+  ],
+  "region": "us-east-1"
+}

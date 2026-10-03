@@ -1,0 +1,1415 @@
+{
+  "builds": {
+    "corpus-20260929-s17-v2": {
+      "build_id": "corpus-20260929-s17-v2",
+      "counts": {
+        "calibration": {
+          "finding-confirmation|construction|real-defect": 11,
+          "semantic-detection|construction|False": 14,
+          "semantic-detection|construction|True": 12
+        },
+        "dev": {
+          "finding-confirmation|construction|real-defect": 12,
+          "semantic-detection|construction|False": 13,
+          "semantic-detection|construction|True": 14
+        },
+        "test": {
+          "finding-confirmation|construction|real-defect": 18,
+          "semantic-detection|construction|False": 334,
+          "semantic-detection|construction|True": 132
+        },
+        "train": {
+          "finding-confirmation|construction|real-defect": 64,
+          "finding-confirmation|teacher-panel|insufficient-context": 44,
+          "finding-confirmation|teacher-panel|no-defect": 1504,
+          "finding-confirmation|teacher-panel|real-defect": 2002,
+          "semantic-detection|construction|False": 111,
+          "semantic-detection|construction|True": 108,
+          "semantic-detection|teacher-panel|False": 1428,
+          "semantic-detection|teacher-panel|True": 159
+        }
+      },
+      "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+      "frozen": true,
+      "held_out_judgement_rules": [
+        "ai-tells-content-shape.textbook-connector-runs",
+        "ai-tells-content-shape.unasked-for-rationale",
+        "ai-tells-register.intensifier-tics-remainder",
+        "ai-tells-register.urgency-inflation-remainder",
+        "ai-tells-structure.false-range",
+        "ai-tells-structure.invented-concept-label",
+        "ai-tells-structure.meta-narration-remainder",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-discipline.overloaded-sentence",
+        "ste-descriptive.information-not-gradual",
+        "ste-practices.word-swap-insufficient",
+        "ste-words.domain-noun-category-membership"
+      ],
+      "held_out_lint_rules": [
+        "ai-tells-content-shape.durable-vocabulary-habits",
+        "ai-tells-figurative.figurative-falls",
+        "ai-tells-figurative.figurative-rides",
+        "ai-tells-formatting.curly-quotes",
+        "ai-tells-formatting.emoji-list-markers",
+        "ai-tells-register.figurative-verb-verdict-core",
+        "ai-tells-register.sycophantic-meta-residue",
+        "ai-tells-structure.absolute-assertion-core",
+        "ai-tells-structure.cataphoric-lead-in-core",
+        "ai-tells-structure.definitional-negation-pair",
+        "docs-discipline.history-narration",
+        "orwell.compound-preposition",
+        "prose-agency.anthropomorphism",
+        "prose-craft.link-text",
+        "prose-craft.politeness",
+        "prose-craft.redundancy",
+        "prose-craft.relative-date",
+        "prose-craft.unclear-antecedent",
+        "prose-discipline.hedged-hedge",
+        "prose-format.no-unicode-dash",
+        "prose-inclusive.device-assumption",
+        "prose-inflation.intensifier",
+        "prose-inflation.nominalized-verb",
+        "prose-promotion.promotional-verbs",
+        "prose-scope.formulaic-subject-verb-slogan",
+        "ste-practices.gendered-or-exclusionary-language",
+        "ste-practices.phrasal-verb",
+        "ste-procedural.note-gives-instruction",
+        "ste-punctuation.colon-terminates-sentence-for-count",
+        "ste-sentences.missing-article-or-determiner",
+        "ste-verbs.verb-form-not-listed",
+        "ste-words.noun-used-as-verb",
+        "ste-words.word-used-in-wrong-part-of-speech"
+      ],
+      "item_split_digests": {
+        "calibration": "3e66881f8ba9c8f8ea7389da9a6c142e929940fbd89fa38b348f79d9b7af0c4f",
+        "dev": "3c9dd8a7213dd6d78c51fbc7c50cd87cc5d96c29769eacaaf6176116db95c97b",
+        "test": "421ec3382c8bbf94ab0c777e687fe54f15408ffe52c13471e0415d372d65a0f3",
+        "train": "6f229530fefee9d2d40726f7caf6a0fbd6ab90f15a48c004be3a324e099eb277"
+      },
+      "objects": [
+        {
+          "path": "train.jsonl",
+          "sha256": "43a6ec5f3660aa81051dd2ef3bcf91517bb0ab5d548b7a2b43dd2eafd5b8250b",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl"
+        },
+        {
+          "path": "dev.jsonl",
+          "sha256": "202bcdbfc8621408ad190b0c2370ce51575502a1a211ad198a0e73ec5823333c",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/dev.jsonl"
+        },
+        {
+          "path": "calibration.jsonl",
+          "sha256": "b78f4e52f4fdd09e4d76dab93e386337ee94a6b17a0d7c569dd9aa387503c452",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl"
+        },
+        {
+          "path": "test.jsonl",
+          "sha256": "794e0af7205c2d0b5495964cb4efa0d905e4f54a2ea9f287ada99952ba4a3436",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/test.jsonl"
+        },
+        {
+          "path": "export-manifest.json",
+          "sha256": "97ab1708c906e57e8a275d90375eb0cc2793b0e89abaf54e198bc33fa92d3615",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json"
+        },
+        {
+          "path": "adjudication/test-sheet.csv",
+          "sha256": "f47100cdaef11a37882ddedcb615e73f5e20567cd16e1567804461410473e872",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/test-sheet.csv"
+        },
+        {
+          "path": "adjudication/test-sheet.jsonl",
+          "sha256": "b0f85468fa0cffff9de67cad1981a94c8032fb6147f08dedd1292412d74bb1a0",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/test-sheet.jsonl"
+        },
+        {
+          "path": "adjudication/label-calibration.csv",
+          "sha256": "1ccc94f4352490b1193360250fb334e455a187b5c88500663441f1a3da8ca7ee",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/label-calibration.csv"
+        },
+        {
+          "path": "adjudication/label-test.csv",
+          "sha256": "7e172fb58a5900ab2c1401679fbfd27c03e037f62fb3b98375f40c8e9e6cea99",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/adjudication/label-test.csv"
+        }
+      ]
+    },
+    "corpus-20260930-s17-v3": {
+      "adjudication": [
+        {
+          "path": "adjudication/review-lint-findings-calibration.csv",
+          "sha256": "5cd2112b922b57776a51a3aa57c7fb98eb6ae5a4b2bea8e6bdc0cac2ca521110",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-lint-findings-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-lint-findings-disagreement.csv",
+          "sha256": "279223c1a75b2a4f743bdf104397153984218fbdfc8cf108146a2bab5d109062",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-lint-findings-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-lint-findings-test.csv",
+          "sha256": "c3892e5aab2d1ab197fa4a3eb971a9a5ec368aad29080cc49f11e5a58c0293bd",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-lint-findings-test.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-calibration.csv",
+          "sha256": "93ca4938a0f9266fd8179a60c1b50f55d0551bd3167515b6beb168e06a7d4eb4",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-semantic-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-disagreement.csv",
+          "sha256": "9628f27310c19a36a049dd4ad354bf26673508113f3c9d5d84bb6bbc95d2048d",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-semantic-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-test.csv",
+          "sha256": "8f4f6ec12f9b0ad794f10e9236da5b631adc0f0e0c067879bbcd9cec9128ec29",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/adjudication/review-semantic-test.csv"
+        }
+      ],
+      "build_id": "corpus-20260930-s17-v3",
+      "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+      "held_out_judgement_rules": [
+        "ai-tells-content-shape.textbook-connector-runs",
+        "ai-tells-content-shape.unasked-for-rationale",
+        "ai-tells-register.intensifier-tics-remainder",
+        "ai-tells-register.urgency-inflation-remainder",
+        "ai-tells-structure.false-range",
+        "ai-tells-structure.invented-concept-label",
+        "ai-tells-structure.meta-narration-remainder",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-discipline.overloaded-sentence",
+        "ste-descriptive.information-not-gradual",
+        "ste-practices.word-swap-insufficient",
+        "ste-words.domain-noun-category-membership"
+      ],
+      "held_out_lint_rules": [
+        "ai-tells-content-shape.durable-vocabulary-habits",
+        "ai-tells-figurative.figurative-falls",
+        "ai-tells-figurative.figurative-rides",
+        "ai-tells-formatting.curly-quotes",
+        "ai-tells-formatting.emoji-list-markers",
+        "ai-tells-register.figurative-verb-verdict-core",
+        "ai-tells-register.sycophantic-meta-residue",
+        "ai-tells-structure.absolute-assertion-core",
+        "ai-tells-structure.cataphoric-lead-in-core",
+        "ai-tells-structure.definitional-negation-pair",
+        "docs-discipline.history-narration",
+        "orwell.compound-preposition",
+        "prose-agency.anthropomorphism",
+        "prose-craft.link-text",
+        "prose-craft.politeness",
+        "prose-craft.redundancy",
+        "prose-craft.relative-date",
+        "prose-craft.unclear-antecedent",
+        "prose-discipline.hedged-hedge",
+        "prose-format.no-unicode-dash",
+        "prose-inclusive.device-assumption",
+        "prose-inflation.intensifier",
+        "prose-inflation.nominalized-verb",
+        "prose-promotion.promotional-verbs",
+        "prose-scope.formulaic-subject-verb-slogan",
+        "ste-practices.gendered-or-exclusionary-language",
+        "ste-practices.phrasal-verb",
+        "ste-procedural.note-gives-instruction",
+        "ste-punctuation.colon-terminates-sentence-for-count",
+        "ste-sentences.missing-article-or-determiner",
+        "ste-verbs.verb-form-not-listed",
+        "ste-words.noun-used-as-verb",
+        "ste-words.word-used-in-wrong-part-of-speech"
+      ],
+      "item_split_digests": {
+        "calibration": "d5faae5c77c19816185823c9146cebab0e9dde18eaa6ed6d8563793be80725af",
+        "dev": "8a30e7ebbf23dfa5bdfc67c03731d0c637bf47d73da9019ac5bec9b94ccf0335",
+        "test": "a6091dba4e9867efbc819c09566ec40dd9ee575fe017182a29fe078b5d014884",
+        "train": "05293fdd91981e46d2896e84e343a21cb7e6e94a5bbb587ccdb1c170e625650b"
+      },
+      "variants": {
+        "confident": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 278,
+              "finding-confirmation|construction|real-defect": 278,
+              "semantic-detection|construction|False": 559,
+              "semantic-detection|construction|True": 559
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 199,
+              "finding-confirmation|construction|real-defect": 199,
+              "semantic-detection|construction|False": 374,
+              "semantic-detection|construction|True": 374
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 643,
+              "finding-confirmation|construction|real-defect": 643,
+              "semantic-detection|construction|False": 1020,
+              "semantic-detection|construction|True": 1020
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1186,
+              "finding-confirmation|construction|real-defect": 1186,
+              "finding-confirmation|teacher-panel|insufficient-context": 768,
+              "finding-confirmation|teacher-panel|no-defect": 1348,
+              "finding-confirmation|teacher-panel|real-defect": 1348,
+              "semantic-detection|construction|False": 2356,
+              "semantic-detection|construction|True": 2356,
+              "semantic-detection|teacher-panel|False": 1541,
+              "semantic-detection|teacher-panel|True": 96
+            }
+          },
+          "min_confidence": 0.85,
+          "objects": [
+            {
+              "path": "confident/train.jsonl",
+              "sha256": "fced189b756d306742b870d0a63fb76456295bb7acde0151b17c8577d2e8442b",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/train.jsonl"
+            },
+            {
+              "path": "confident/dev.jsonl",
+              "sha256": "311ace7c1896629e3c04767309db8ade20a62ca1ef66a1098ce9e75264dd51e7",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/dev.jsonl"
+            },
+            {
+              "path": "confident/calibration.jsonl",
+              "sha256": "fca2452aa1e15bb80bc10514699e3495cbed42a690626cc5aaf4f7534293d8a9",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/calibration.jsonl"
+            },
+            {
+              "path": "confident/test.jsonl",
+              "sha256": "f973edaa3b5feda1ee549f8be3df661fdd49e25f8ed2c53db7b45cdbd4c892e7",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/test.jsonl"
+            },
+            {
+              "path": "confident/export-manifest.json",
+              "sha256": "c554dcec5c42330f7cc90f771eb1c2701dd5d53bde232296cdd333c966bd7aa4",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/confident/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 768,
+                "items": 96,
+                "teacher_panel_items": 96,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 2534,
+                "items": 2243,
+                "teacher_panel_items": 1057,
+                "weight": 1.1297
+              },
+              "\"real-defect\"": {
+                "exported": 2534,
+                "items": 2534,
+                "teacher_panel_items": 1348,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3897,
+                "items": 3897,
+                "teacher_panel_items": 1541,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2452,
+                "items": 2368,
+                "teacher_panel_items": 12,
+                "weight": 1.0355
+              }
+            }
+          }
+        },
+        "full": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 278,
+              "finding-confirmation|construction|real-defect": 278,
+              "semantic-detection|construction|False": 559,
+              "semantic-detection|construction|True": 559
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 199,
+              "finding-confirmation|construction|real-defect": 199,
+              "semantic-detection|construction|False": 374,
+              "semantic-detection|construction|True": 374
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 643,
+              "finding-confirmation|construction|real-defect": 643,
+              "semantic-detection|construction|False": 1020,
+              "semantic-detection|construction|True": 1020
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1186,
+              "finding-confirmation|construction|real-defect": 1186,
+              "finding-confirmation|teacher-panel|insufficient-context": 1032,
+              "finding-confirmation|teacher-panel|no-defect": 2240,
+              "finding-confirmation|teacher-panel|real-defect": 2240,
+              "semantic-detection|construction|False": 2356,
+              "semantic-detection|construction|True": 2356,
+              "semantic-detection|teacher-panel|False": 1549,
+              "semantic-detection|teacher-panel|True": 304
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "full/train.jsonl",
+              "sha256": "7debbfaf30fea50876ce89ad893db9dcb5da6b40f28f78df02f5daa54b75f52e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/full/train.jsonl"
+            },
+            {
+              "path": "full/dev.jsonl",
+              "sha256": "311ace7c1896629e3c04767309db8ade20a62ca1ef66a1098ce9e75264dd51e7",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/full/dev.jsonl"
+            },
+            {
+              "path": "full/calibration.jsonl",
+              "sha256": "fca2452aa1e15bb80bc10514699e3495cbed42a690626cc5aaf4f7534293d8a9",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/full/calibration.jsonl"
+            },
+            {
+              "path": "full/test.jsonl",
+              "sha256": "f973edaa3b5feda1ee549f8be3df661fdd49e25f8ed2c53db7b45cdbd4c892e7",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/full/test.jsonl"
+            },
+            {
+              "path": "full/export-manifest.json",
+              "sha256": "2317f7bf87b7b19d8806218ea8d935482d18638d3bcc50549f22550eb1f881fc",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260930-s17-v3/full/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 1032,
+                "items": 129,
+                "teacher_panel_items": 129,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3426,
+                "items": 2246,
+                "teacher_panel_items": 1060,
+                "weight": 1.5254
+              },
+              "\"real-defect\"": {
+                "exported": 3426,
+                "items": 3426,
+                "teacher_panel_items": 2240,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3905,
+                "items": 3905,
+                "teacher_panel_items": 1549,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2660,
+                "items": 2394,
+                "teacher_panel_items": 38,
+                "weight": 1.1111
+              }
+            }
+          }
+        }
+      }
+    },
+    "corpus-20261002-s17-v4": {
+      "adjudication": [
+        {
+          "path": "adjudication/review-lint-findings-calibration.csv",
+          "sha256": "40689083d69d2c12d2009ae3c66dee492c104b93cac862841c07b1a97b1e7b69",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/adjudication/review-lint-findings-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-lint-findings-disagreement.csv",
+          "sha256": "c2fc66a0b7d55b40739b7da878639cdde177d1b65dc706fbfb9bce6a7a7c1edc",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/adjudication/review-lint-findings-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-lint-findings-test.csv",
+          "sha256": "fa85f20ad2262656dc2b470de2c761344c8e3a67ba90b593e2efbc2c37d7d08a",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/adjudication/review-lint-findings-test.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-calibration.csv",
+          "sha256": "6b60cc16ae8ce0edd88142a959cd45d817c022d71bf7a368ec4d5acb42bc59cd",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/adjudication/review-semantic-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-disagreement.csv",
+          "sha256": "2111ec000f0f3e5ef8e6b434a5e0dfcd25b19e39b9fff84d3e213c72f8d7b103",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/adjudication/review-semantic-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-semantic-test.csv",
+          "sha256": "09df5a4d180fb5a90977e1aa289a13c42bea2d2d8110a2ca544faf8f52b09f37",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/adjudication/review-semantic-test.csv"
+        }
+      ],
+      "build_id": "corpus-20261002-s17-v4",
+      "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+      "held_out_judgement_rules": [
+        "ai-tells-content-shape.textbook-connector-runs",
+        "ai-tells-content-shape.unasked-for-rationale",
+        "ai-tells-register.intensifier-tics-remainder",
+        "ai-tells-register.urgency-inflation-remainder",
+        "ai-tells-structure.false-range",
+        "ai-tells-structure.invented-concept-label",
+        "ai-tells-structure.meta-narration-remainder",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-discipline.overloaded-sentence",
+        "ste-descriptive.information-not-gradual",
+        "ste-practices.word-swap-insufficient",
+        "ste-words.domain-noun-category-membership"
+      ],
+      "held_out_lint_rules": [
+        "ai-tells-content-shape.durable-vocabulary-habits",
+        "ai-tells-figurative.figurative-falls",
+        "ai-tells-figurative.figurative-rides",
+        "ai-tells-formatting.emoji-list-markers",
+        "ai-tells-formatting.italicised-copula",
+        "ai-tells-register.figurative-verb-verdict-core",
+        "ai-tells-register.sycophantic-meta-residue",
+        "ai-tells-structure.absolute-assertion-core",
+        "ai-tells-structure.cataphoric-lead-in-core",
+        "ai-tells-structure.definitional-negation-pair",
+        "docs-discipline.history-narration",
+        "orwell.compound-preposition",
+        "prose-agency.anthropomorphism",
+        "prose-craft.link-text",
+        "prose-craft.politeness",
+        "prose-craft.redundancy",
+        "prose-craft.relative-date",
+        "prose-craft.unclear-antecedent",
+        "prose-discipline.hedged-hedge",
+        "prose-format.no-unicode-dash",
+        "prose-inclusive.device-assumption",
+        "prose-inflation.intensifier",
+        "prose-inflation.nominalized-verb",
+        "prose-promotion.promotional-verbs",
+        "prose-scope.formulaic-subject-verb-slogan",
+        "ste-practices.gendered-or-exclusionary-language",
+        "ste-practices.phrasal-verb",
+        "ste-procedural.note-gives-instruction",
+        "ste-punctuation.colon-terminates-sentence-for-count",
+        "ste-sentences.omitted-subject",
+        "ste-verbs.verb-form-not-listed",
+        "ste-words.noun-used-as-verb",
+        "ste-words.word-used-in-wrong-part-of-speech"
+      ],
+      "item_split_digests": {
+        "calibration": "10f0e15579da22ffc347e25f7ddbb496e9b6fb15a22d69f276ea9bed6d48a7ba",
+        "dev": "5ee2e61d355f889d0174884dc76a695ad67ef58990540ebec3ada413f21b1372",
+        "test": "dea4764db4d01ab19be9f3af8452228bfe1abd1cb20a53c2ee494e74fb873028",
+        "train": "521d319a024490cb1fbf8e6add66028563242f22dafea27975aee3b46875de10"
+      },
+      "variants": {
+        "confident": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 247,
+              "finding-confirmation|construction|real-defect": 247,
+              "finding-confirmation|human-adjudication|no-defect": 11,
+              "finding-confirmation|human-adjudication|real-defect": 28,
+              "semantic-detection|construction|False": 559,
+              "semantic-detection|construction|True": 559,
+              "semantic-detection|human-adjudication|False": 2,
+              "semantic-detection|human-adjudication|True": 6
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 374,
+              "semantic-detection|construction|True": 374
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 661,
+              "finding-confirmation|construction|real-defect": 661,
+              "finding-confirmation|human-adjudication|no-defect": 23,
+              "finding-confirmation|human-adjudication|real-defect": 29,
+              "semantic-detection|construction|False": 1020,
+              "semantic-detection|construction|True": 1020,
+              "semantic-detection|human-adjudication|False": 5,
+              "semantic-detection|human-adjudication|True": 5
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1093,
+              "finding-confirmation|construction|real-defect": 1093,
+              "finding-confirmation|human-adjudication|insufficient-context": 40,
+              "finding-confirmation|human-adjudication|no-defect": 136,
+              "finding-confirmation|human-adjudication|real-defect": 18,
+              "finding-confirmation|teacher-panel|insufficient-context": 520,
+              "finding-confirmation|teacher-panel|no-defect": 608,
+              "finding-confirmation|teacher-panel|real-defect": 1371,
+              "semantic-detection|construction|False": 2356,
+              "semantic-detection|construction|True": 2356,
+              "semantic-detection|human-adjudication|False": 7,
+              "semantic-detection|human-adjudication|True": 24,
+              "semantic-detection|teacher-panel|False": 1532,
+              "semantic-detection|teacher-panel|True": 96
+            }
+          },
+          "min_confidence": 0.85,
+          "objects": [
+            {
+              "path": "confident/train.jsonl",
+              "sha256": "054e3361363c6b4a308193435fa1c98e57083119f9ad2eb45bf6d26d597ab59e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/train.jsonl"
+            },
+            {
+              "path": "confident/dev.jsonl",
+              "sha256": "b31895730c6ee6e98c6a577f5e20bcb85202fc3fce8fdf6806cd7ff62976f39e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/dev.jsonl"
+            },
+            {
+              "path": "confident/calibration.jsonl",
+              "sha256": "842e8de6734b0d60330c2274359a0b19525b4c68263a60bc1d2d9d43ba4f60cf",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/calibration.jsonl"
+            },
+            {
+              "path": "confident/test.jsonl",
+              "sha256": "080f183aba8eb64e5cca4bb333fc8f3f59d8198964520a79d0030fb3a0d22c65",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/test.jsonl"
+            },
+            {
+              "path": "confident/export-manifest.json",
+              "sha256": "e057ae2b057d1fb7096c3e437090df7134f9666f2053ebdad881ee2087961fad",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/confident/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 560,
+                "items": 70,
+                "teacher_panel_items": 70,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 1837,
+                "items": 1186,
+                "teacher_panel_items": 93,
+                "weight": 1.5489
+              },
+              "\"real-defect\"": {
+                "exported": 2482,
+                "items": 2482,
+                "teacher_panel_items": 1389,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3895,
+                "items": 3895,
+                "teacher_panel_items": 1539,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2476,
+                "items": 2371,
+                "teacher_panel_items": 15,
+                "weight": 1.0443
+              }
+            }
+          }
+        },
+        "full": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 247,
+              "finding-confirmation|construction|real-defect": 247,
+              "finding-confirmation|human-adjudication|no-defect": 11,
+              "finding-confirmation|human-adjudication|real-defect": 28,
+              "semantic-detection|construction|False": 559,
+              "semantic-detection|construction|True": 559,
+              "semantic-detection|human-adjudication|False": 2,
+              "semantic-detection|human-adjudication|True": 6
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 374,
+              "semantic-detection|construction|True": 374
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 661,
+              "finding-confirmation|construction|real-defect": 661,
+              "finding-confirmation|human-adjudication|no-defect": 23,
+              "finding-confirmation|human-adjudication|real-defect": 29,
+              "semantic-detection|construction|False": 1020,
+              "semantic-detection|construction|True": 1020,
+              "semantic-detection|human-adjudication|False": 5,
+              "semantic-detection|human-adjudication|True": 5
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1093,
+              "finding-confirmation|construction|real-defect": 1093,
+              "finding-confirmation|human-adjudication|insufficient-context": 40,
+              "finding-confirmation|human-adjudication|no-defect": 36,
+              "finding-confirmation|human-adjudication|real-defect": 18,
+              "finding-confirmation|teacher-panel|insufficient-context": 720,
+              "finding-confirmation|teacher-panel|no-defect": 2237,
+              "finding-confirmation|teacher-panel|real-defect": 2255,
+              "semantic-detection|construction|False": 2356,
+              "semantic-detection|construction|True": 2356,
+              "semantic-detection|human-adjudication|False": 7,
+              "semantic-detection|human-adjudication|True": 24,
+              "semantic-detection|teacher-panel|False": 1540,
+              "semantic-detection|teacher-panel|True": 296
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "full/train.jsonl",
+              "sha256": "5983902ef3c9dead138a2c14728ef3cfff3bf0842d2e12bfba813b254f074f39",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl"
+            },
+            {
+              "path": "full/dev.jsonl",
+              "sha256": "b31895730c6ee6e98c6a577f5e20bcb85202fc3fce8fdf6806cd7ff62976f39e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/dev.jsonl"
+            },
+            {
+              "path": "full/calibration.jsonl",
+              "sha256": "842e8de6734b0d60330c2274359a0b19525b4c68263a60bc1d2d9d43ba4f60cf",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl"
+            },
+            {
+              "path": "full/test.jsonl",
+              "sha256": "080f183aba8eb64e5cca4bb333fc8f3f59d8198964520a79d0030fb3a0d22c65",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/test.jsonl"
+            },
+            {
+              "path": "full/export-manifest.json",
+              "sha256": "0d9f78d390cd1b396346c4296cfbb556739bb4e8785bdd1f5624085a9343a7f1",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 760,
+                "items": 95,
+                "teacher_panel_items": 95,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3366,
+                "items": 2182,
+                "teacher_panel_items": 1089,
+                "weight": 1.5426
+              },
+              "\"real-defect\"": {
+                "exported": 3366,
+                "items": 3366,
+                "teacher_panel_items": 2273,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3903,
+                "items": 3903,
+                "teacher_panel_items": 1547,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2676,
+                "items": 2396,
+                "teacher_panel_items": 40,
+                "weight": 1.1169
+              }
+            }
+          }
+        }
+      }
+    },
+    "corpus-20261003-s17-v5": {
+      "adjudication": [
+        {
+          "path": "adjudication/review-v5-lint-findings-calibration.csv",
+          "sha256": "0ac51b94e5fba58b7ba4346249c819f883094c4771c1451b242b67aae101da0e",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/adjudication/review-v5-lint-findings-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-v5-lint-findings-disagreement.csv",
+          "sha256": "19bacaff5c77860fdad09b5ee099dd8a918ae28c468111a64e550621909ef02b",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/adjudication/review-v5-lint-findings-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-v5-lint-findings-test.csv",
+          "sha256": "f70ca89f81e8224acee40bdae9da3f07618359b8e65f208410a43037cd2eea7e",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/adjudication/review-v5-lint-findings-test.csv"
+        },
+        {
+          "path": "adjudication/review-v5-semantic-calibration.csv",
+          "sha256": "24f7737cd58e88f3a04bfaefe3568c826c9384e37c02897f2e1ab2eae2077d6b",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/adjudication/review-v5-semantic-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-v5-semantic-disagreement.csv",
+          "sha256": "f480e97dafd4a704162e89bf2ef69136df9ad25d271c8e7d5aaf7e052bd74a68",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/adjudication/review-v5-semantic-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-v5-semantic-test.csv",
+          "sha256": "3b0092374f67ee251ddd0a2b8b30178f8c0a72c0cd36e8e6025539a77e58907c",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/adjudication/review-v5-semantic-test.csv"
+        }
+      ],
+      "build_id": "corpus-20261003-s17-v5",
+      "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+      "held_out_judgement_rules": [
+        "ai-tells-content-shape.textbook-connector-runs",
+        "ai-tells-content-shape.unasked-for-rationale",
+        "ai-tells-register.intensifier-tics-remainder",
+        "ai-tells-register.urgency-inflation-remainder",
+        "ai-tells-structure.false-range",
+        "ai-tells-structure.invented-concept-label",
+        "ai-tells-structure.meta-narration-remainder",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-discipline.overloaded-sentence",
+        "ste-descriptive.information-not-gradual"
+      ],
+      "held_out_lint_rules": [
+        "ai-tells-content-shape.durable-vocabulary-habits",
+        "ai-tells-figurative.figurative-falls",
+        "ai-tells-figurative.figurative-rides",
+        "ai-tells-formatting.emoji-list-markers",
+        "ai-tells-formatting.italicised-copula",
+        "ai-tells-register.figurative-verb-verdict-core",
+        "ai-tells-register.sycophantic-meta-residue",
+        "ai-tells-structure.absolute-assertion-core",
+        "ai-tells-structure.cataphoric-lead-in-core",
+        "ai-tells-structure.definitional-negation-pair",
+        "docs-discipline.history-narration",
+        "orwell.compound-preposition",
+        "prose-agency.anthropomorphism",
+        "prose-craft.link-text",
+        "prose-craft.politeness",
+        "prose-craft.redundancy",
+        "prose-craft.relative-date",
+        "prose-craft.unclear-antecedent",
+        "prose-discipline.hedged-hedge",
+        "prose-format.no-unicode-dash",
+        "prose-inclusive.device-assumption",
+        "prose-inflation.intensifier",
+        "prose-inflation.nominalized-verb",
+        "prose-promotion.promotional-verbs",
+        "prose-scope.formulaic-subject-verb-slogan",
+        "ste-practices.gendered-or-exclusionary-language",
+        "ste-practices.phrasal-verb",
+        "ste-procedural.note-gives-instruction",
+        "ste-punctuation.colon-terminates-sentence-for-count",
+        "ste-sentences.omitted-subject",
+        "ste-verbs.verb-form-not-listed",
+        "ste-words.noun-used-as-verb",
+        "ste-words.word-used-in-wrong-part-of-speech"
+      ],
+      "item_split_digests": {
+        "calibration": "3591c1e6e649a32282559694de4fa73040eb0f330a02f9e57bbddace5e903548",
+        "dev": "a951d77ad343c3fffb823ae43dd768b3c3c0dc60564f89a53e59657547fb8282",
+        "test": "a4a4583b7a9d1944015277867663496f48daa848eeb086ca22f775ce11208f35",
+        "train": "b4ad99fe53d0562f484cc2a9707d1f7265fde3ddc60bdf2ab5baa035bd1d1fa8"
+      },
+      "variants": {
+        "full": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 247,
+              "finding-confirmation|construction|real-defect": 247,
+              "finding-confirmation|human-adjudication|no-defect": 11,
+              "finding-confirmation|human-adjudication|real-defect": 28,
+              "semantic-detection|construction|False": 475,
+              "semantic-detection|construction|True": 475
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 328,
+              "semantic-detection|construction|True": 328
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 661,
+              "finding-confirmation|construction|real-defect": 661,
+              "finding-confirmation|human-adjudication|no-defect": 23,
+              "finding-confirmation|human-adjudication|real-defect": 29,
+              "semantic-detection|construction|False": 892,
+              "semantic-detection|construction|True": 892
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1093,
+              "finding-confirmation|construction|real-defect": 1093,
+              "finding-confirmation|human-adjudication|insufficient-context": 40,
+              "finding-confirmation|human-adjudication|no-defect": 36,
+              "finding-confirmation|human-adjudication|real-defect": 18,
+              "finding-confirmation|teacher-panel|insufficient-context": 752,
+              "finding-confirmation|teacher-panel|no-defect": 2423,
+              "finding-confirmation|teacher-panel|real-defect": 2441,
+              "semantic-detection|construction|False": 1994,
+              "semantic-detection|construction|True": 1994,
+              "semantic-detection|teacher-panel|False": 1318,
+              "semantic-detection|teacher-panel|True": 232
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "full/train.jsonl",
+              "sha256": "bf49db9fd81ba6dfc1067b2fbdbccc7f5d90db1c467d4be99432cc9630a20002",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/full/train.jsonl"
+            },
+            {
+              "path": "full/dev.jsonl",
+              "sha256": "676c0cbc975686af1b0840488b016c661aec3ccef7aedd4c894c8cb370c9eb43",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/full/dev.jsonl"
+            },
+            {
+              "path": "full/calibration.jsonl",
+              "sha256": "46e8317cfc8c2a9fa58b511a685c13bfb03d23294ba64fa40f6c8d6be8696c19",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/full/calibration.jsonl"
+            },
+            {
+              "path": "full/test.jsonl",
+              "sha256": "d1d68a451d47d25c2ee76cded7c28d90162ab49027dea3087e6d0a98a35b7de5",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/full/test.jsonl"
+            },
+            {
+              "path": "full/export-manifest.json",
+              "sha256": "627791fface6a1d39b5f65ca28f982dab85646d78611ea09973e794174772b66",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5/full/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 792,
+                "items": 99,
+                "teacher_panel_items": 99,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3552,
+                "items": 2234,
+                "teacher_panel_items": 1141,
+                "weight": 1.59
+              },
+              "\"real-defect\"": {
+                "exported": 3552,
+                "items": 3552,
+                "teacher_panel_items": 2459,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3312,
+                "items": 3312,
+                "teacher_panel_items": 1318,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2226,
+                "items": 2023,
+                "teacher_panel_items": 29,
+                "weight": 1.1003
+              }
+            }
+          }
+        }
+      }
+    },
+    "corpus-20261003-s17-v5b": {
+      "adjudication": [
+        {
+          "path": "adjudication/review-v5-lint-findings-calibration.csv",
+          "sha256": "6628f6ec79488a6b533ae190783ae28c7a2d68f48abc6ed79c1c974db1ab66cf",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/adjudication/review-v5-lint-findings-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-v5-lint-findings-disagreement.csv",
+          "sha256": "d03cd478496c5628092cc78d9ce56d85c765faedb1906ac639785633ef1fd9a3",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/adjudication/review-v5-lint-findings-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-v5-lint-findings-test.csv",
+          "sha256": "f62968e9b9f441cbabbd0a3e04e36648c2d51debb00f549b78fec793eb40c54a",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/adjudication/review-v5-lint-findings-test.csv"
+        },
+        {
+          "path": "adjudication/review-v5-semantic-calibration.csv",
+          "sha256": "feaf7ab8a4f5a2efecabbea15ff49f34cc9c4b45b96f47c6fa841a3f98a2edff",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/adjudication/review-v5-semantic-calibration.csv"
+        },
+        {
+          "path": "adjudication/review-v5-semantic-disagreement.csv",
+          "sha256": "2b4def5cf559f89f321e5957fc3a21309fc45eba695d3716d1fedc94d7ca7f4e",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/adjudication/review-v5-semantic-disagreement.csv"
+        },
+        {
+          "path": "adjudication/review-v5-semantic-test.csv",
+          "sha256": "340e6c15b2d9dbb1959e207dcf7c68f4ffdc5e76e1ab3e300fe3d0fc7e31c1bc",
+          "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/adjudication/review-v5-semantic-test.csv"
+        }
+      ],
+      "build_id": "corpus-20261003-s17-v5b",
+      "format": "judge-pilot source items (scripts/judge-sagemaker convert.py)",
+      "held_out_judgement_rules": [
+        "ai-tells-content-shape.textbook-connector-runs",
+        "ai-tells-content-shape.unasked-for-rationale",
+        "ai-tells-register.intensifier-tics-remainder",
+        "ai-tells-register.urgency-inflation-remainder",
+        "ai-tells-structure.false-range",
+        "ai-tells-structure.invented-concept-label",
+        "ai-tells-structure.meta-narration-remainder",
+        "ai-tells-structure.negative-inventory-remainder",
+        "prose-discipline.overloaded-sentence",
+        "ste-descriptive.information-not-gradual"
+      ],
+      "held_out_lint_rules": [
+        "ai-tells-content-shape.durable-vocabulary-habits",
+        "ai-tells-figurative.figurative-falls",
+        "ai-tells-figurative.figurative-rides",
+        "ai-tells-formatting.emoji-list-markers",
+        "ai-tells-formatting.italicised-copula",
+        "ai-tells-register.figurative-verb-verdict-core",
+        "ai-tells-register.sycophantic-meta-residue",
+        "ai-tells-structure.absolute-assertion-core",
+        "ai-tells-structure.cataphoric-lead-in-core",
+        "ai-tells-structure.definitional-negation-pair",
+        "docs-discipline.history-narration",
+        "orwell.compound-preposition",
+        "prose-agency.anthropomorphism",
+        "prose-craft.link-text",
+        "prose-craft.politeness",
+        "prose-craft.redundancy",
+        "prose-craft.relative-date",
+        "prose-craft.unclear-antecedent",
+        "prose-discipline.hedged-hedge",
+        "prose-format.no-unicode-dash",
+        "prose-inclusive.device-assumption",
+        "prose-inflation.intensifier",
+        "prose-inflation.nominalized-verb",
+        "prose-promotion.promotional-verbs",
+        "prose-scope.formulaic-subject-verb-slogan",
+        "ste-practices.gendered-or-exclusionary-language",
+        "ste-practices.phrasal-verb",
+        "ste-procedural.note-gives-instruction",
+        "ste-punctuation.colon-terminates-sentence-for-count",
+        "ste-sentences.omitted-subject",
+        "ste-verbs.verb-form-not-listed",
+        "ste-words.noun-used-as-verb",
+        "ste-words.word-used-in-wrong-part-of-speech"
+      ],
+      "item_split_digests": {
+        "calibration": "0c0b4f09d09155cbe070b9cfab5ed58f58bb9977c86ef08de32307b408553735",
+        "dev": "69059f3e991454200bf5bff7b28b5ddfa145332bfe155627295556c3a036a1e0",
+        "test": "6ab71d54ef927a06143a511ddccdb69dc586897bcd7416acf09e7ade2d9a5461",
+        "train": "3ae8d6862c313841d3c92055c4ff77794364e6a4214cf3aabf7a0a4136171616"
+      },
+      "variants": {
+        "full": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 239,
+              "finding-confirmation|construction|real-defect": 239,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 41,
+              "finding-confirmation|human-adjudication|real-defect": 51,
+              "finding-confirmation|llm-review-consensus|no-defect": 36,
+              "finding-confirmation|llm-review-consensus|real-defect": 17,
+              "semantic-detection|construction|False": 475,
+              "semantic-detection|construction|True": 475,
+              "semantic-detection|human-adjudication|False": 25,
+              "semantic-detection|human-adjudication|True": 13,
+              "semantic-detection|llm-review-consensus|False": 105,
+              "semantic-detection|llm-review-consensus|True": 2
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 328,
+              "semantic-detection|construction|True": 328
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 655,
+              "finding-confirmation|construction|real-defect": 655,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 75,
+              "finding-confirmation|human-adjudication|real-defect": 96,
+              "finding-confirmation|llm-review-consensus|no-defect": 91,
+              "finding-confirmation|llm-review-consensus|real-defect": 23,
+              "semantic-detection|construction|False": 891,
+              "semantic-detection|construction|True": 891,
+              "semantic-detection|human-adjudication|False": 57,
+              "semantic-detection|human-adjudication|True": 28,
+              "semantic-detection|llm-review-consensus|False": 203,
+              "semantic-detection|llm-review-consensus|True": 4
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1067,
+              "finding-confirmation|construction|real-defect": 1067,
+              "finding-confirmation|human-adjudication|insufficient-context": 64,
+              "finding-confirmation|human-adjudication|no-defect": 89,
+              "finding-confirmation|human-adjudication|real-defect": 50,
+              "finding-confirmation|llm-review-consensus|no-defect": 143,
+              "finding-confirmation|llm-review-consensus|real-defect": 5,
+              "finding-confirmation|teacher-panel|insufficient-context": 752,
+              "finding-confirmation|teacher-panel|no-defect": 2155,
+              "finding-confirmation|teacher-panel|real-defect": 2332,
+              "semantic-detection|construction|False": 1994,
+              "semantic-detection|construction|True": 1994,
+              "semantic-detection|human-adjudication|False": 24,
+              "semantic-detection|human-adjudication|True": 184,
+              "semantic-detection|llm-review-consensus|False": 93,
+              "semantic-detection|llm-review-consensus|True": 8,
+              "semantic-detection|teacher-panel|False": 1177,
+              "semantic-detection|teacher-panel|True": 232
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "full/train.jsonl",
+              "sha256": "e42893b041b2a10b0ced370f77575f3517a916a651465cc18db9855580e21426",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/train.jsonl"
+            },
+            {
+              "path": "full/dev.jsonl",
+              "sha256": "669658dec6054fb7d1b681aa0cea1adc9845a63b7c446e7c945c0fde8673e37e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/dev.jsonl"
+            },
+            {
+              "path": "full/calibration.jsonl",
+              "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/calibration.jsonl"
+            },
+            {
+              "path": "full/test.jsonl",
+              "sha256": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/test.jsonl"
+            },
+            {
+              "path": "full/export-manifest.json",
+              "sha256": "a3952f7335aa220bf974bd5f5cf2b02872eee12f3e91c0f8a8b88b87082f0fd7",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 816,
+                "items": 102,
+                "teacher_panel_items": 102,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3454,
+                "items": 2275,
+                "teacher_panel_items": 1208,
+                "weight": 1.5182
+              },
+              "\"real-defect\"": {
+                "exported": 3454,
+                "items": 3454,
+                "teacher_panel_items": 2387,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3288,
+                "items": 3288,
+                "teacher_panel_items": 1294,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2418,
+                "items": 2047,
+                "teacher_panel_items": 53,
+                "weight": 1.1812
+              }
+            }
+          }
+        },
+        "human-only": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 239,
+              "finding-confirmation|construction|real-defect": 239,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 41,
+              "finding-confirmation|human-adjudication|real-defect": 51,
+              "finding-confirmation|llm-review-consensus|no-defect": 36,
+              "finding-confirmation|llm-review-consensus|real-defect": 17,
+              "semantic-detection|construction|False": 475,
+              "semantic-detection|construction|True": 475,
+              "semantic-detection|human-adjudication|False": 25,
+              "semantic-detection|human-adjudication|True": 13,
+              "semantic-detection|llm-review-consensus|False": 105,
+              "semantic-detection|llm-review-consensus|True": 2
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 328,
+              "semantic-detection|construction|True": 328
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 655,
+              "finding-confirmation|construction|real-defect": 655,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 75,
+              "finding-confirmation|human-adjudication|real-defect": 96,
+              "finding-confirmation|llm-review-consensus|no-defect": 91,
+              "finding-confirmation|llm-review-consensus|real-defect": 23,
+              "semantic-detection|construction|False": 891,
+              "semantic-detection|construction|True": 891,
+              "semantic-detection|human-adjudication|False": 57,
+              "semantic-detection|human-adjudication|True": 28,
+              "semantic-detection|llm-review-consensus|False": 203,
+              "semantic-detection|llm-review-consensus|True": 4
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1067,
+              "finding-confirmation|construction|real-defect": 1067,
+              "finding-confirmation|human-adjudication|insufficient-context": 64,
+              "finding-confirmation|human-adjudication|no-defect": 96,
+              "finding-confirmation|human-adjudication|real-defect": 50,
+              "finding-confirmation|teacher-panel|insufficient-context": 752,
+              "finding-confirmation|teacher-panel|no-defect": 2286,
+              "finding-confirmation|teacher-panel|real-defect": 2332,
+              "semantic-detection|construction|False": 1994,
+              "semantic-detection|construction|True": 1994,
+              "semantic-detection|human-adjudication|False": 24,
+              "semantic-detection|human-adjudication|True": 184,
+              "semantic-detection|teacher-panel|False": 1177,
+              "semantic-detection|teacher-panel|True": 232
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "human-only/train.jsonl",
+              "sha256": "a0e655791fb9d0ca97a393a9fdd1686b2ba7e37fd8947dfbdb592d4f1ef180ec",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/train.jsonl"
+            },
+            {
+              "path": "human-only/dev.jsonl",
+              "sha256": "669658dec6054fb7d1b681aa0cea1adc9845a63b7c446e7c945c0fde8673e37e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/dev.jsonl"
+            },
+            {
+              "path": "human-only/calibration.jsonl",
+              "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl"
+            },
+            {
+              "path": "human-only/test.jsonl",
+              "sha256": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/test.jsonl"
+            },
+            {
+              "path": "human-only/export-manifest.json",
+              "sha256": "4c5bee0c1bf48d0e6eafda3e51966be9c3b81bb5fd938e4cbed54cefddb676f9",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 816,
+                "items": 102,
+                "teacher_panel_items": 102,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3449,
+                "items": 2203,
+                "teacher_panel_items": 1136,
+                "weight": 1.5656
+              },
+              "\"real-defect\"": {
+                "exported": 3449,
+                "items": 3449,
+                "teacher_panel_items": 2382,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3195,
+                "items": 3195,
+                "teacher_panel_items": 1201,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2410,
+                "items": 2046,
+                "teacher_panel_items": 52,
+                "weight": 1.1779
+              }
+            }
+          },
+          "train_dropped_by_origin": {
+            "finding-confirmation|llm-review-consensus|no-defect": 72,
+            "finding-confirmation|llm-review-consensus|real-defect": 5,
+            "semantic-detection|llm-review-consensus|False": 93,
+            "semantic-detection|llm-review-consensus|True": 1
+          },
+          "train_dropped_origins": [
+            "llm-review-consensus"
+          ]
+        },
+        "llm-only": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 239,
+              "finding-confirmation|construction|real-defect": 239,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 41,
+              "finding-confirmation|human-adjudication|real-defect": 51,
+              "finding-confirmation|llm-review-consensus|no-defect": 36,
+              "finding-confirmation|llm-review-consensus|real-defect": 17,
+              "semantic-detection|construction|False": 475,
+              "semantic-detection|construction|True": 475,
+              "semantic-detection|human-adjudication|False": 25,
+              "semantic-detection|human-adjudication|True": 13,
+              "semantic-detection|llm-review-consensus|False": 105,
+              "semantic-detection|llm-review-consensus|True": 2
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 328,
+              "semantic-detection|construction|True": 328
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 655,
+              "finding-confirmation|construction|real-defect": 655,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 75,
+              "finding-confirmation|human-adjudication|real-defect": 96,
+              "finding-confirmation|llm-review-consensus|no-defect": 91,
+              "finding-confirmation|llm-review-consensus|real-defect": 23,
+              "semantic-detection|construction|False": 891,
+              "semantic-detection|construction|True": 891,
+              "semantic-detection|human-adjudication|False": 57,
+              "semantic-detection|human-adjudication|True": 28,
+              "semantic-detection|llm-review-consensus|False": 203,
+              "semantic-detection|llm-review-consensus|True": 4
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1067,
+              "finding-confirmation|construction|real-defect": 1067,
+              "finding-confirmation|llm-review-consensus|no-defect": 145,
+              "finding-confirmation|llm-review-consensus|real-defect": 5,
+              "finding-confirmation|teacher-panel|insufficient-context": 752,
+              "finding-confirmation|teacher-panel|no-defect": 2192,
+              "finding-confirmation|teacher-panel|real-defect": 2332,
+              "semantic-detection|construction|False": 1994,
+              "semantic-detection|construction|True": 1994,
+              "semantic-detection|llm-review-consensus|False": 93,
+              "semantic-detection|llm-review-consensus|True": 8,
+              "semantic-detection|teacher-panel|False": 1177,
+              "semantic-detection|teacher-panel|True": 232
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "llm-only/train.jsonl",
+              "sha256": "4a7688c0a07639cbeb876663bdfb1d073a8cebecebf179e48587a5a0d802a08f",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl"
+            },
+            {
+              "path": "llm-only/dev.jsonl",
+              "sha256": "669658dec6054fb7d1b681aa0cea1adc9845a63b7c446e7c945c0fde8673e37e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/dev.jsonl"
+            },
+            {
+              "path": "llm-only/calibration.jsonl",
+              "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl"
+            },
+            {
+              "path": "llm-only/test.jsonl",
+              "sha256": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/test.jsonl"
+            },
+            {
+              "path": "llm-only/export-manifest.json",
+              "sha256": "b6995b3aa8a9eab4547622ecaf2abbead6589f45da0a2145056f87ee4b29ef14",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 752,
+                "items": 94,
+                "teacher_panel_items": 94,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3404,
+                "items": 2230,
+                "teacher_panel_items": 1163,
+                "weight": 1.5265
+              },
+              "\"real-defect\"": {
+                "exported": 3404,
+                "items": 3404,
+                "teacher_panel_items": 2337,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3264,
+                "items": 3264,
+                "teacher_panel_items": 1270,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2234,
+                "items": 2024,
+                "teacher_panel_items": 30,
+                "weight": 1.1038
+              }
+            }
+          },
+          "train_dropped_by_origin": {
+            "finding-confirmation|human-adjudication|insufficient-context": 8,
+            "finding-confirmation|human-adjudication|no-defect": 45,
+            "finding-confirmation|human-adjudication|real-defect": 50,
+            "semantic-detection|human-adjudication|False": 24,
+            "semantic-detection|human-adjudication|True": 23
+          },
+          "train_dropped_origins": [
+            "human-adjudication"
+          ]
+        }
+      }
+    }
+  },
+  "schema_version": 2
+}
