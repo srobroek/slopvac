@@ -61,7 +61,9 @@ JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm k
 
 `evaluate` uploads the test and calibration splits, dataset manifest, pilot runner, pinned dependencies, and an optional checkpoint into a job-specific `training/<job>/` prefix. It checks the shared cost ledger before submission and sets `MaxRuntimeInSeconds` to at most 7200 seconds. `fetch-eval` records billed instance time and cost, then downloads metrics, predictions, server logs, inventory, manifest, and compatibility probe beneath `results/<arm>/`.
 
-Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`. The task account has AWS-published quotas for `ml.g6.xlarge`, `ml.g6.2xlarge`, and `ml.g6.4xlarge` in `us-east-1`, and for g6e instances in `us-west-2`. Their on-demand SageMaker Training prices are estimates in the resource files, not verified public Training SKU rates. Use the report manifest to identify the GPU used for each arm.
+Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`: `resources.json` (`us-east-1`), `resources-us-west-2.json`, or `resources-us-east-2.json`. Each region has its own private bucket holding mirrored exports and the Laya base model; the role, image tag and cost ledger are shared. Each region has a training quota of one job per `ml.g5`, `ml.g6` and `ml.g6e` size from `xlarge` to `16xlarge`, and a separate managed spot quota of one per `ml.g5` and `ml.g6e` size (`ml.g6` spot quotas are 0); `spot_instance_types` lists the spot-capable types. The on-demand SageMaker Training prices in the resource files are conservative estimates; see `price_source`. Use the report manifest to identify the GPU used for each arm.
+
+`submit --spot` and `evaluate --spot` request managed spot training: `EnableManagedSpotTraining`, `MaxWaitTimeInSeconds` from `--max-wait` (default twice `--max-runtime`) and a `CheckpointConfig` under the job's `training/<job>/checkpoints/` prefix. Neither entry point saves to or resumes from `/opt/ml/checkpoints`, and `kev.train` resumes only full-weight runs, so an interrupted spot job reruns from the start within `MaxWaitTimeInSeconds`. The ledger marks such jobs `"spot": true` and reserves the on-demand maximum cost until `fetch` bills `BillableTimeInSeconds`, which is the spot cost in on-demand seconds.
 
 ### Campaigns
 
@@ -77,6 +79,11 @@ only one scheduler runs at a time). A campaign names its export `id`, `results` 
 `v5b-full`: their exports drop the `llm-review-consensus` or the `human-adjudication` train labels
 (judge-corpus `items export --drop-train-origin`) and keep v5b full's test and calibration bytes, so
 they train Kev fine-tunes only and borrow v5b-full's base arms.
+
+A campaign runs only in the regions its `data` lists. `"spot": "fallback"` (set on the three v5b
+training campaigns) submits a managed spot job when every on-demand slot for a target is taken or
+rejected. A spot interruption, `MaxWaitTimeExceeded` or `MaxRuntimeExceeded` is a free retry, not a
+counted attempt; after three of them the target waits for on-demand capacity.
 
 ### Campaign reports
 
@@ -177,3 +184,5 @@ Then restore the provenance header and update the digest in `bootstrap.sh`.
 - **Network:** the job needs outbound access to GitHub, PyPI, and the Hugging Face Hub. Kev-9B
   downloads about 18 GB of base weights at start.
 - **Service quota:** the account needs `ml.g6e.2xlarge for training job usage` quota of at least 1.
+  The scheduler puts Kev-4B and Kev-9B on `ml.g6e.12xlarge` (4 L40S, one used) only after every
+  2xlarge–16xlarge slot, because it costs more per hour than the 16xlarge.

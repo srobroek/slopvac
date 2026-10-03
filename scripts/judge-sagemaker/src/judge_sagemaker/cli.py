@@ -46,6 +46,9 @@ CODE_FILES = (
     "pilot/requirements-laya.txt",
 )
 CODE_DIR = "/opt/ml/input/data/code"
+# Managed spot jobs name this local path in CheckpointConfig. No entry point writes or reads it
+# (kev.train resumes only full-weight runs), so an interrupted spot job reruns from the start.
+CHECKPOINT_DIR = "/opt/ml/checkpoints"
 FINAL = ("Completed", "Failed", "Stopped")
 RECIPE = {"epochs": 1, "seed": 17, "replay": 2000, "p_none_pair": 0.25}
 # The Kev commit requirements-kev.txt was exported from; bootstrap.sh checks out this commit and its uv.lock digest.
@@ -172,6 +175,37 @@ def job_request(res, a, job, model, instance_type, price, has_calibration):
     }
 
 
+def make_spot(request, job_root, max_wait=None):
+    """Turn a training-job request into a managed spot request.
+
+    MaxWaitTimeInSeconds (default twice the runtime: one full rerun, or as long a capacity
+    wait) covers Spot capacity waits plus reruns after interruptions. MaxRuntimeInSeconds still
+    caps training time, so the on-demand maximum cost stays an upper bound
+    (BillableTimeInSeconds is the Spot cost in on-demand seconds).
+    """
+    runtime = request["StoppingCondition"]["MaxRuntimeInSeconds"]
+    max_wait = max_wait or 2 * runtime
+    if max_wait < runtime:
+        raise SystemExit(f"--max-wait {max_wait} is below --max-runtime {runtime}")
+    request["EnableManagedSpotTraining"] = True
+    request["StoppingCondition"]["MaxWaitTimeInSeconds"] = max_wait
+    request["CheckpointConfig"] = {
+        "S3Uri": f"{job_root}/checkpoints/",
+        "LocalPath": CHECKPOINT_DIR,
+    }
+    return request
+
+
+def spot_ledger_fields(request):
+    """Ledger marks for a request: spot or on-demand, and a spot job's MaxWait."""
+    if not request.get("EnableManagedSpotTraining"):
+        return {"spot": False}
+    return {
+        "spot": True,
+        "max_wait_s": request["StoppingCondition"]["MaxWaitTimeInSeconds"],
+    }
+
+
 def describe_data(value, name):
     """Validate a local file by converting it (the job converts it again); an S3 object is checked in the job."""
     if value.startswith("s3://"):
@@ -241,11 +275,14 @@ def cmd_submit(a):
     ledger = load_json(LEDGER)
     spent = check_budget(ledger, max_cost)
     request = job_request(res, a, job, model, instance_type, price, True)
+    if a.spot:
+        make_spot(request, f"s3://{res['bucket']}/{res['s3_prefix']}/{job}", a.max_wait)
     plan = {
         "job_name": job,
         "data": data,
         "hourly_usd": price,
         "max_cost_usd": max_cost,
+        "spot": a.spot,
         "committed_usd": round(spent, 2),
         "cap_usd": ledger["cap_usd"],
     }
@@ -294,6 +331,7 @@ def cmd_submit(a):
         "hourly_usd": price,
         "max_runtime_s": a.max_runtime,
         "max_cost_usd": max_cost,
+        **spot_ledger_fields(request),
         "submitted_at": utcnow().isoformat(),
         "status": "Submitting",
         "billable_seconds": None,
@@ -422,6 +460,19 @@ def cmd_convert(a):
         raise SystemExit(str(e)) from None
 
 
+def add_spot_arguments(p):
+    p.add_argument(
+        "--spot",
+        action="store_true",
+        help="managed spot training; billed seconds at the on-demand rate are the cost bound",
+    )
+    p.add_argument(
+        "--max-wait",
+        type=int,
+        help="spot MaxWaitTimeInSeconds (default twice --max-runtime)",
+    )
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="judge-sagemaker", description=__doc__.split("\n\n")[0]
@@ -497,6 +548,7 @@ def main(argv=None):
         "--instance-type", help="override resources.json (needs a price there)"
     )
     p.add_argument("--profile", help="AWS profile; default from resources.json")
+    add_spot_arguments(p)
     p.add_argument(
         "--dry-run", action="store_true", help="print the request; no AWS calls"
     )

@@ -3,7 +3,9 @@
 The scheduler submits the 12 corpus fine-tunes, evaluates the six base arms and
 then each successful fine-tune, and fetches every terminal SageMaker job so the
 shared cost ledger records billed cost. Capacity-related create failures are
-retried up to three submissions per target. It is deliberately not a daemon.
+retried up to three submissions per target. A campaign with "spot": "fallback"
+submits a managed spot job when every on-demand slot for a target is taken or
+rejected. It is deliberately not a daemon.
 
 From this directory:
     uv run python schedule_evals.py --help
@@ -33,7 +35,11 @@ import boto3
 from botocore.exceptions import ClientError
 
 ROOT = Path(__file__).resolve().parent
-REGION_FILE = {"us-east-1": "resources.json", "us-west-2": "resources-us-west-2.json"}
+REGION_FILE = {
+    "us-east-1": "resources.json",
+    "us-west-2": "resources-us-west-2.json",
+    "us-east-2": "resources-us-east-2.json",
+}
 REGIONS = tuple(REGION_FILE)
 FINAL = {"Completed", "Failed", "Stopped"}
 MAX_ATTEMPTS = 3
@@ -58,11 +64,16 @@ TRAIN_CANDIDATES = {
     "kev-0.8b": (
         ("us-east-1", "ml.g6.xlarge"),
         ("us-west-2", "ml.g6.xlarge"),
+        ("us-east-2", "ml.g6.xlarge"),
         ("us-east-1", "ml.g6.2xlarge"),
         ("us-west-2", "ml.g6.2xlarge"),
+        ("us-east-2", "ml.g6.2xlarge"),
         ("us-east-1", "ml.g5.2xlarge"),
         ("us-west-2", "ml.g5.2xlarge"),
+        ("us-east-2", "ml.g5.2xlarge"),
     ),
+    # ml.g6e.12xlarge (4 L40S, one used, 384 GiB host) costs more per hour than
+    # the 16xlarge (1 L40S, 512 GiB host), so it is the last on-demand resort.
     "kev-4b": tuple(
         (region, instance)
         for instance in (
@@ -70,13 +81,19 @@ TRAIN_CANDIDATES = {
             "ml.g6e.4xlarge",
             "ml.g6e.8xlarge",
             "ml.g6e.16xlarge",
+            "ml.g6e.12xlarge",
         )
-        for region in ("us-east-1", "us-west-2")
+        for region in REGIONS
     ),
     "kev-9b": tuple(
         (region, instance)
-        for instance in ("ml.g6e.4xlarge", "ml.g6e.8xlarge", "ml.g6e.16xlarge")
-        for region in ("us-east-1", "us-west-2")
+        for instance in (
+            "ml.g6e.4xlarge",
+            "ml.g6e.8xlarge",
+            "ml.g6e.16xlarge",
+            "ml.g6e.12xlarge",
+        )
+        for region in REGIONS
     ),
     "laya-typed-decisions": tuple(
         (region, instance)
@@ -87,7 +104,7 @@ TRAIN_CANDIDATES = {
             "ml.g5.12xlarge",
             "ml.g5.16xlarge",
         )
-        for region in ("us-east-1", "us-west-2")
+        for region in REGIONS
     ),
 }
 EVAL_CANDIDATES = {
@@ -100,7 +117,7 @@ EVAL_CANDIDATES = {
             "ml.g5.12xlarge",
             "ml.g5.16xlarge",
         )
-        for region in ("us-east-1", "us-west-2")
+        for region in REGIONS
     ),
     "large": tuple(
         (region, instance)
@@ -110,9 +127,13 @@ EVAL_CANDIDATES = {
             "ml.g6e.8xlarge",
             "ml.g6e.16xlarge",
         )
-        for region in ("us-west-2", "us-east-1")
+        for region in ("us-west-2", "us-east-1", "us-east-2")
     ),
 }
+ON_DEMAND, SPOT = "on-demand", "spot"
+# A spot job that ended this way lost its capacity or ran out of time. It has no
+# resume and reran from the start, so the target is retried, not exhausted.
+SPOT_RETRY_STATUSES = {"Interrupted", "MaxWaitTimeExceeded", "MaxRuntimeExceeded"}
 CAPACITY_MARKERS = (
     "capacity",
     "resourcelimitexceeded",
@@ -175,20 +196,25 @@ CAMPAIGN: dict[str, Any] | None = None
 def load_campaign(path: Path) -> dict[str, Any]:
     """A campaign file: id (exports/<id>/train.jsonl identifies its training
     jobs), results (directory under results/), train_models, base_arms, seeds,
-    per-region data URIs (train, calibration, test, manifest), and the expected
-    test and calibration SHA-256 digests. An optional checkpoints_from names
-    another campaign id: the campaign then submits no training and evaluates
-    its fine-tune arms on that campaign's checkpoints."""
+    per-region data URIs (train, calibration, test, manifest; the campaign runs
+    only in the regions it lists), and the expected test and calibration SHA-256
+    digests. An optional checkpoints_from names another campaign id: the campaign
+    then submits no training and evaluates its fine-tune arms on that campaign's
+    checkpoints. An optional "spot": "fallback" submits a managed spot job when
+    every on-demand slot for a target is taken or rejected."""
     c = load_json(path)
     for key in ("id", "results", "train_models", "base_arms", "data", "expected"):
         if key not in c:
             raise SystemExit(f"{path}: campaign lacks {key}")
-    for region in REGIONS:
-        missing = {"train", "calibration", "test", "manifest"} - set(
-            c["data"].get(region, {})
-        )
+    regions = [region for region in REGIONS if region in c["data"]]
+    if not regions:
+        raise SystemExit(f"{path}: campaign has data for none of {list(REGIONS)}")
+    for region in regions:
+        missing = {"train", "calibration", "test", "manifest"} - set(c["data"][region])
         if missing:
             raise SystemExit(f"{path}: {region} data lacks {sorted(missing)}")
+    if c.get("spot", "fallback") != "fallback":
+        raise SystemExit(f'{path}: spot must be "fallback" when set')
     return c
 
 
@@ -440,6 +466,7 @@ def stamp_job(
     attempt: int,
     region: str,
     instance: str,
+    market: str = ON_DEMAND,
     error: str | None = None,
 ) -> None:
     value = ledger()
@@ -454,6 +481,7 @@ def stamp_job(
         attempt=attempt,
         region=region,
         instance_type=instance,
+        market=market,
     )
     if error:
         mark.setdefault("submission_errors", []).append(
@@ -485,7 +513,11 @@ FIXED_CODE_MARKERS = {
     "kev_container_post_training_ckpt_nameerror_artifact_ok",
     "laya_eval_identity_commit",
     "laya_eval_model_channel",
+    # A ledger entry left "Submitting" by a crash before CreateTrainingJob ran.
+    "orphaned_submission",
     "trainer_not_called",
+    # us-east-2 CreateTrainingJob refused before the role trusted us-east-2 jobs.
+    "use2_role_trust",
 }
 
 
@@ -498,10 +530,36 @@ FIXED_CODE_SIGNATURES = (
 )
 
 
+def spot_retry(job: dict[str, Any]) -> bool:
+    """A spot job that ended by interruption or timeout; it reran from the start."""
+    if not job.get("spot") or job.get("status") not in {"Failed", "Stopped"}:
+        return False
+    reason = str(job.get("failure_reason") or "").lower()
+    return (
+        job.get("secondary_status") in SPOT_RETRY_STATUSES
+        or "spot" in reason
+        or "interrupt" in reason
+    )
+
+
+def markets_for(entries: list[dict[str, Any]]) -> tuple[str, ...]:
+    """On-demand first, then spot in a "spot": "fallback" campaign. Spot
+    interruptions and timeouts are free retries, so a target that has had
+    MAX_ATTEMPTS of them waits for on-demand capacity instead."""
+    if CAMPAIGN is None or CAMPAIGN.get("spot") != "fallback":
+        return (ON_DEMAND,)
+    if sum(map(spot_retry, entries)) >= MAX_ATTEMPTS:
+        return (ON_DEMAND,)
+    return (ON_DEMAND, SPOT)
+
+
 def attempt_budget_exempt(job: dict[str, Any]) -> bool:
-    """Only fixed code failures and capacity/quota refusals are free retries."""
+    """Only fixed code failures, capacity/quota refusals and spot interruptions
+    or timeouts are free retries."""
     if job.get("status") in {"Completed", "InProgress", "Submitting", "Stopping"}:
         return False
+    if spot_retry(job):
+        return True
     scheduler = job.get("scheduler", {})
     marker = scheduler.get("implementation_defect") or scheduler.get(
         "retry_implementation_defect"
@@ -577,21 +635,43 @@ def live_entries(value: dict[str, Any]) -> list[dict[str, Any]]:
     return [job for job in value["jobs"] if job.get("status") not in FINAL]
 
 
-def occupied_from_ledger(value: dict[str, Any]) -> set[tuple[str, str]]:
-    return {
-        (region, str(job["instance_type"]))
-        for job in live_entries(value)
-        if (region := parse_region(job)) and job.get("instance_type")
-    }
+Slot = tuple[str, str, str]  # (region, instance type, ON_DEMAND or SPOT)
+
+
+def slot_of(job: dict[str, Any]) -> Slot | None:
+    """Spot and on-demand quotas are separate, so the market is part of a slot."""
+    if not (region := parse_region(job)) or not job.get("instance_type"):
+        return None
+    return region, str(job["instance_type"]), SPOT if job.get("spot") else ON_DEMAND
+
+
+def occupied_from_ledger(value: dict[str, Any]) -> set[Slot]:
+    return {slot for job in live_entries(value) if (slot := slot_of(job))}
+
+
+def campaign_regions() -> tuple[str, ...]:
+    if CAMPAIGN is None:
+        return REGIONS
+    return tuple(region for region in REGIONS if region in CAMPAIGN["data"])
 
 
 def priced_candidates(
-    options: tuple[tuple[str, str], ...], configs: dict[str, dict[str, Any]]
-) -> list[tuple[str, str]]:
+    options: tuple[tuple[str, str], ...],
+    configs: dict[str, dict[str, Any]],
+    markets: tuple[str, ...] = (ON_DEMAND,),
+) -> list[Slot]:
+    """Priced slots in the campaign's regions: every on-demand slot, then every
+    spot slot whose instance type has a spot quota in that region."""
     return [
-        (region, instance)
+        (region, instance, market)
+        for market in markets
         for region, instance in options
-        if instance in configs[region]["instance_prices_usd_per_hour"]
+        if region in campaign_regions()
+        and instance in configs[region]["instance_prices_usd_per_hour"]
+        and (
+            market == ON_DEMAND
+            or instance in configs[region].get("spot_instance_types", ())
+        )
     ]
 
 
@@ -601,11 +681,16 @@ def candidates_for_eval(arm: str) -> tuple[tuple[str, str], ...]:
 
 def first_free(
     options: tuple[tuple[str, str], ...],
-    occupied: set[tuple[str, str]],
+    occupied: set[Slot],
     configs: dict[str, dict[str, Any]],
-) -> tuple[str, str] | None:
+    markets: tuple[str, ...],
+) -> Slot | None:
     return next(
-        (slot for slot in priced_candidates(options, configs) if slot not in occupied),
+        (
+            slot
+            for slot in priced_candidates(options, configs, markets)
+            if slot not in occupied
+        ),
         None,
     )
 
@@ -876,15 +961,19 @@ def rotate_if_starved(
     return True
 
 
-def starved_slots(entries: list[dict[str, Any]]) -> set[tuple[str, str]]:
-    """Region/instance pairs a target already waited out; try elsewhere first."""
+def starved_slots(entries: list[dict[str, Any]]) -> set[Slot]:
+    """Slots a target already waited out; try elsewhere first."""
     return {
-        (region, str(job["instance_type"]))
+        slot
         for job in entries
         if job.get("scheduler", {}).get("implementation_defect") == "capacity_rotation"
-        and (region := parse_region(job))
-        and job.get("instance_type")
+        and (slot := slot_of(job))
     }
+
+
+def slot_order(slots: list[Slot], starved: set[Slot]) -> list[Slot]:
+    """On-demand before spot; within each, slots not yet waited out first."""
+    return sorted(slots, key=lambda slot: (slot[2] == SPOT, slot in starved))
 
 
 def fetch_terminal_jobs(
@@ -944,15 +1033,15 @@ def _new_ledger_jobs(before: set[str]) -> list[dict[str, Any]]:
 def submit_one(
     *,
     args: list[str],
-    region: str,
-    instance: str,
+    slot: Slot,
     target: str,
     task: str,
     attempt: int,
     campaign: str,
 ) -> tuple[bool, bool, dict[str, Any] | None, str]:
+    region, instance, market = slot
     before = {job.get("job_name") for job in ledger()["jobs"]}
-    result = cli_command(args, region)
+    result = cli_command(args + (["--spot"] if market == SPOT else []), region)
     exact = error_text(result)
     created = _new_ledger_jobs(before)
     entry = created[-1] if created else None
@@ -976,9 +1065,11 @@ def submit_one(
                 attempt=attempt,
                 region=region,
                 instance=instance,
+                market=market,
             )
         print(
-            f"submit {target} {region} {instance}:\n{result.stdout.strip()}", flush=True
+            f"submit {target} {region} {instance} {market}:\n{result.stdout.strip()}",
+            flush=True,
         )
         return True, False, entry, ""
     if entry:
@@ -990,10 +1081,11 @@ def submit_one(
             attempt=attempt,
             region=region,
             instance=instance,
+            market=market,
             error=exact,
         )
     print(
-        f"submit {target} {region} {instance} rc={result.returncode}:\n{exact}",
+        f"submit {target} {region} {instance} {market} rc={result.returncode}:\n{exact}",
         flush=True,
     )
     return False, is_capacity_error(exact), entry, exact
@@ -1003,7 +1095,7 @@ def schedule_training(
     value: dict[str, Any],
     configs: dict[str, dict[str, Any]],
     build_id: str,
-    occupied: set[tuple[str, str]],
+    occupied: set[Slot],
     campaign: str,
 ) -> None:
     for model in TRAIN_MODELS if trains(build_id) else ():
@@ -1016,11 +1108,13 @@ def schedule_training(
                 or attempt_count(entries) >= MAX_ATTEMPTS
             ):
                 continue
-            starved = starved_slots(entries)
-            options = priced_candidates(TRAIN_CANDIDATES[model], configs)
-            for region, instance in sorted(options, key=lambda o: o in starved):
-                if (region, instance) in occupied:
+            options = priced_candidates(
+                TRAIN_CANDIDATES[model], configs, markets_for(entries)
+            )
+            for slot in slot_order(options, starved_slots(entries)):
+                if slot in occupied:
                     continue
+                region, instance, _ = slot
                 while attempt_count(entries) < MAX_ATTEMPTS:
                     ok, capacity, created, error = submit_one(
                         args=training_args(
@@ -1030,15 +1124,14 @@ def schedule_training(
                             training_runtime(configs[region], model),
                             region,
                         ),
-                        region=region,
-                        instance=instance,
+                        slot=slot,
                         target=f"{model}-ft-s{seed}",
                         task="training",
                         attempt=len(entries) + 1,
                         campaign=campaign,
                     )
                     if ok:
-                        occupied.add((region, instance))
+                        occupied.add(slot)
                         break
                     value = ledger()
                     entries = train_entries(value, build_id, model, seed)
@@ -1055,7 +1148,7 @@ def schedule_evaluations(
     build_id: str,
     campaign_start: str | None,
     expected: dict[str, str],
-    occupied: set[tuple[str, str]],
+    occupied: set[Slot],
     campaign: str,
 ) -> None:
     value = ledger()
@@ -1077,23 +1170,24 @@ def schedule_evaluations(
             if not trained:
                 continue
             _, checkpoint = trained
-        starved = starved_slots(entries)
-        options = priced_candidates(candidates_for_eval(arm), configs)
-        for region, instance in sorted(options, key=lambda o: o in starved):
-            if (region, instance) in occupied:
+        options = priced_candidates(
+            candidates_for_eval(arm), configs, markets_for(entries)
+        )
+        for slot in slot_order(options, starved_slots(entries)):
+            if slot in occupied:
                 continue
+            region, instance, _ = slot
             while attempt_count(entries) < MAX_ATTEMPTS:
                 ok, capacity, created, error = submit_one(
                     args=evaluation_args(arm, instance, region, checkpoint),
-                    region=region,
-                    instance=instance,
+                    slot=slot,
                     target=arm,
                     task="evaluation",
                     attempt=len(entries) + 1,
                     campaign=campaign,
                 )
                 if ok:
-                    occupied.add((region, instance))
+                    occupied.add(slot)
                     value = ledger()
                     break
                 value = ledger()
@@ -1165,13 +1259,15 @@ def plan(
                 or not retryable(entries)
             ):
                 continue
-            slot = first_free(TRAIN_CANDIDATES[model], occupied, configs)
+            slot = first_free(
+                TRAIN_CANDIDATES[model], occupied, configs, markets_for(entries)
+            )
             cost_slot = slot or next(
                 iter(priced_candidates(TRAIN_CANDIDATES[model], configs)), None
             )
             if not cost_slot:
                 continue
-            region, instance = cost_slot
+            region, instance, market = cost_slot
             tasks.append(
                 {
                     "task": "training",
@@ -1180,6 +1276,7 @@ def plan(
                     "seed": seed,
                     "region": region,
                     "instance": instance,
+                    "market": market,
                     "max_cost_usd": max_cost(configs, region, instance, runtime),
                     "available_now": slot is not None,
                 }
@@ -1196,19 +1293,22 @@ def plan(
             or (entries and not retryable(entries))
         ):
             continue
-        slot = first_free(candidates_for_eval(arm), occupied, configs)
+        slot = first_free(
+            candidates_for_eval(arm), occupied, configs, markets_for(entries)
+        )
         cost_slot = slot or next(
             iter(priced_candidates(candidates_for_eval(arm), configs)), None
         )
         if not cost_slot:
             continue
-        region, instance = cost_slot
+        region, instance, market = cost_slot
         tasks.append(
             {
                 "task": "evaluation",
                 "target": arm,
                 "region": region,
                 "instance": instance,
+                "market": market,
                 "max_cost_usd": max_cost(configs, region, instance, eval_runtime()),
                 "available_now": slot is not None,
                 "waiting_for_training": bool(
@@ -1264,13 +1364,15 @@ def dry_run(
                 if ft_identity(item["target"])
                 else None,
             )
+        if item["market"] == SPOT:
+            args.append("--spot")
         result = cli_command([*args, "--dry-run"], item["region"])
         if result.returncode:
             failed += 1
             print(f"{item['target']}: {error_text(result)}", flush=True)
         else:
             print(
-                f"CLI dry-run OK {item['target']} {item['region']} {item['instance']}",
+                f"CLI dry-run OK {item['target']} {item['region']} {item['instance']} {item['market']}",
                 flush=True,
             )
     if projected > cap:
@@ -1290,15 +1392,13 @@ def one_pass(
     start = campaign_started(value, build_id)
     value = ledger()
     value, observed = fetch_terminal_jobs(sm, value, build_id, start, expected)
-    occupied = occupied_from_ledger(value)
-    for entry in campaign_jobs(value, build_id, start):
-        status = observed.get(entry["job_name"], entry.get("status", "Unknown"))
-        if (
-            status in FINAL
-            and (region := parse_region(entry))
-            and entry.get("instance_type")
-        ):
-            occupied.discard((region, entry["instance_type"]))
+    # A slot is taken by any job still live after this pass's fetch. A finished
+    # job of this campaign must not free a slot another live job now holds.
+    occupied = {
+        slot
+        for entry in live_entries(value)
+        if observed.get(entry["job_name"]) not in FINAL and (slot := slot_of(entry))
+    }
     tasks, projected = plan(value, configs, build_id, start, expected)
     if projected > float(value["cap_usd"]):
         print(

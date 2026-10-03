@@ -46,6 +46,13 @@ ARMS = (
 )
 
 
+RESOURCE_FILES = (
+    "resources.json",
+    "resources-us-west-2.json",
+    "resources-us-east-2.json",
+)
+
+
 def _resource_file_for_arm(arm: str) -> str:
     if arm in ("kev-9b", "kev-9b-ft-s17", "kev-9b-ft-s18", "kev-9b-ft-s19"):
         return "resources-us-west-2.json"
@@ -118,13 +125,12 @@ def _source(arm: str, checkpoint: str | None) -> tuple[str, str | None]:
             )
             os.close(fd)
             try:
-                source_res = cli.load_json(
-                    cli.ROOT
-                    / (
-                        "resources-us-west-2.json"
-                        if uri.startswith("s3://slopvac-judge-536697262379-usw2/")
-                        else "resources.json"
+                source_res = next(
+                    res
+                    for res in map(
+                        cli.load_json, map(cli.ROOT.joinpath, RESOURCE_FILES)
                     )
+                    if uri.startswith(f"s3://{res['bucket']}/")
                 )
                 cli.session(source_res, None).client("s3").download_file(
                     output_bucket, output_key, local_archive
@@ -293,6 +299,8 @@ def cmd_evaluate(a):
         data,
         a.cross_export_checkpoint,
     )
+    if a.spot:
+        cli.make_spot(request, job_root, a.max_wait)
     plan = {
         "job_name": job,
         "arm": a.arm,
@@ -300,6 +308,7 @@ def cmd_evaluate(a):
         "checkpoint": checkpoint_uri,
         "hourly_estimate_usd": price,
         "max_cost_usd": max_cost,
+        "spot": a.spot,
         "committed_usd": round(spent, 2),
         "cap_usd": ledger["cap_usd"],
         "input_root": f"{job_root}/input/",
@@ -385,6 +394,7 @@ def cmd_evaluate(a):
         "hourly_usd": price,
         "max_runtime_s": runtime,
         "max_cost_usd": max_cost,
+        **cli.spot_ledger_fields(request),
         "status": "Submitting",
         "billable_seconds": None,
         "cost_usd": None,
@@ -485,11 +495,10 @@ def add_parsers(sub):
         default=None,
         help="override auto-selected L4/A10G/L40S GPU class",
     )
-    p.add_argument(
-        "--resources", choices=["resources.json", "resources-us-west-2.json"]
-    )
+    p.add_argument("--resources", choices=RESOURCE_FILES)
     p.add_argument("--max-runtime", type=int, default=7200)
     p.add_argument("--profile")
+    cli.add_spot_arguments(p)
     p.add_argument("--dry-run", action="store_true")
     p.set_defaults(func=cmd_evaluate)
     p = sub.add_parser("fetch-eval", help="record evaluation status and fetch results")

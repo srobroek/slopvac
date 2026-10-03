@@ -20,6 +20,7 @@
   "ml.g6e.4xlarge": 5.0,
   "ml.g6e.8xlarge": 7.0,
   "ml.g6e.16xlarge": 11.0,
+  "ml.g6e.12xlarge": 16.0,
   "ml.g5.2xlarge": 2.0,
   "ml.g5.4xlarge": 3.0,
   "ml.g5.8xlarge": 4.0,
@@ -29,7 +30,21 @@
   "ml.g6.2xlarge": 2.5,
   "ml.g6.4xlarge": 3.5
  },
- "price_source": "Conservative estimates only, not verified standard SageMaker Training prices. AWS public SageMaker Price List (published 2026-09-27) did not expose the standard ml.g6e.2xlarge Training SKU; its distinct TrainingWarmPool SKU is $2.80/hour. Estimate ml.g6e.2xlarge at $4.00/hour; all other rates are unverified conservative estimates.",
+ "price_source": "Conservative estimates only, not verified standard SageMaker Training prices. AWS public SageMaker Price List (published 2026-09-27) did not expose the standard ml.g6e.2xlarge Training SKU; its distinct TrainingWarmPool SKU is $2.80/hour. Estimate ml.g6e.2xlarge at $4.00/hour; all other rates are unverified conservative estimates. ml.g6e.12xlarge is estimated at $16.00/hour against the $13.12/hour Training SKU the Price List showed on 2026-10-03 in us-east-1, us-east-2 and us-west-2.",
+ "spot_instance_types": [
+  "ml.g6e.xlarge",
+  "ml.g6e.2xlarge",
+  "ml.g6e.4xlarge",
+  "ml.g6e.8xlarge",
+  "ml.g6e.12xlarge",
+  "ml.g6e.16xlarge",
+  "ml.g5.2xlarge",
+  "ml.g5.4xlarge",
+  "ml.g5.8xlarge",
+  "ml.g5.12xlarge",
+  "ml.g5.16xlarge"
+ ],
+ "spot_source": "Instance types with a managed spot training quota of 1 in this region (Service Quotas, 2026-10-03); every ml.g6.* spot quota is 0. A spot job is billed BillableTimeInSeconds at the instance_prices_usd_per_hour rate.",
  "corpus_export": {
   "build_id": "corpus-20260929-s17-v2",
   "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20260929-s17-v2/train.jsonl",

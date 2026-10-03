@@ -1,12 +1,12 @@
 {
  "account_id": "536697262379",
  "profile": "sjors+ig-genai-Admin",
- "region": "us-east-1",
- "bucket": "slopvac-judge-536697262379-84848969f6",
+ "region": "us-east-2",
+ "bucket": "slopvac-judge-536697262379-use2",
  "s3_prefix": "training",
  "role_name": "slopvac-judge-sagemaker-training",
  "role_arn": "arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training",
- "image_uri": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker",
+ "image_uri": "763104351884.dkr.ecr.us-east-2.amazonaws.com/pytorch-training:2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker",
  "job_name_prefix": "slopvac-judge",
  "volume_size_gb": 200,
  "hf_home": "/tmp/hf",
@@ -47,12 +47,12 @@
  "spot_source": "Instance types with a managed spot training quota of 1 in this region (Service Quotas, 2026-10-03); every ml.g6.* spot quota is 0. A spot job is billed BillableTimeInSeconds at the instance_prices_usd_per_hour rate.",
  "corpus_export": {
   "build_id": "corpus-20260929-s17-v2",
-  "train": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/train.jsonl",
-  "calibration": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/calibration.jsonl",
-  "test": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/test.jsonl",
-  "manifest": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20260929-s17-v2/export-manifest.json"
+  "train": "s3://slopvac-judge-536697262379-use2/exports/corpus-20260929-s17-v2/train.jsonl",
+  "calibration": "s3://slopvac-judge-536697262379-use2/exports/corpus-20260929-s17-v2/calibration.jsonl",
+  "test": "s3://slopvac-judge-536697262379-use2/exports/corpus-20260929-s17-v2/test.jsonl",
+  "manifest": "s3://slopvac-judge-536697262379-use2/exports/corpus-20260929-s17-v2/export-manifest.json"
  },
- "laya_base_prefix": "s3://slopvac-judge-536697262379-84848969f6/training/sv-bootstrap-laya/input/model/",
+ "laya_base_prefix": "s3://slopvac-judge-536697262379-use2/training/sv-bootstrap-laya/input/model/",
  "models": {
   "kev-0.8b": {
    "family": "kev",

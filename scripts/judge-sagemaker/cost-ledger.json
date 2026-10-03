@@ -14265,9 +14265,9 @@
       "max_runtime_s": 25671,
       "max_cost_usd": 78.44,
       "submitted_at": "2026-10-03T09:31:06.067282+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 14356,
+      "cost_usd": 43.8656,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -14316,7 +14316,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.16xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-4b-ft-s17-261003093107487315",
@@ -14550,9 +14552,9 @@
       "max_runtime_s": 27752,
       "max_cost_usd": 84.8,
       "submitted_at": "2026-10-03T09:33:36.655277+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17677,
+      "cost_usd": 54.0131,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -14601,7 +14603,9 @@
         "attempt": 4,
         "region": "us-west-2",
         "instance_type": "ml.g6e.16xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20261003093337",
@@ -23568,9 +23572,13 @@
       "max_runtime_s": 27752,
       "max_cost_usd": 84.8,
       "submitted_at": "2026-10-03T11:29:07.380414+00:00",
-      "status": "Submitting",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "note": "create_training_job never called (no job in any region): DescribeTrainingJob returned not found in us-east-1, us-west-2 and us-east-2 on 2026-10-03; only the input/ upload exists in the usw2 bucket. The scheduler that wrote this entry crashed before CreateTrainingJob.",
+      "scheduler": {
+        "implementation_defect": "orphaned_submission"
+      },
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -24663,6 +24671,2007 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.2xlarge"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-261003133530114674",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "status": "Completed",
+      "billable_seconds": 1158,
+      "cost_usd": 0.965,
+      "submitted_at": "2026-10-03T13:35:42.666950+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-261003133530114674",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20261003133552",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 84.09,
+      "submitted_at": "2026-10-03T13:36:01.037630+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s17-20261003133552",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.16xlarge"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003142436",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27752,
+      "max_cost_usd": 38.54,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:24:45.122462+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+          "etag": "\"0cb8bb50b8e09159879dfbafa6d84b06-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/export-manifest.json",
+          "etag": "\"243523401c9572ecb9bdf3e2e1ee7383\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 68,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:24:46.063180+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003142455",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 38.23,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:25:04.223927+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:25:05.100111+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003142505",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 38.23,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:25:13.882591+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:25:14.747214+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20261003142517",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 27.73,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:25:27.943480+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:25:28.818228+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20261003142528",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 27.73,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:25:37.631181+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:25:38.526686+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20261003142538",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:25:47.326628+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:25:48.160937+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003142548",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:25:56.897112+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:25:57.776275+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003142557",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:26:06.471812+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "implementation_defect": "use2_role_trust",
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:26:07.335206+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.exceptions.ClientError: An error occurred (ValidationException) when calling the CreateTrainingJob operation: Could not assume role arn:aws:iam::536697262379:role/slopvac-judge-sagemaker-training. Please ensure that the role exists and allows principal 'sagemaker.amazonaws.com' to assume the role."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143225",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27752,
+      "max_cost_usd": 38.54,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:32:35.884210+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+          "etag": "\"0cb8bb50b8e09159879dfbafa6d84b06-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/export-manifest.json",
+          "etag": "\"243523401c9572ecb9bdf3e2e1ee7383\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/slopvac-judge-kev-9b-s19-20261003143225",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 69,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003143249",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 38.23,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:32:57.864607+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:32:58.639707+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003143258",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 38.23,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:33:07.319988+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 3,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:33:08.111720+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003143308",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 53.52,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:33:17.009188+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/slopvac-judge-kev-9b-s18-20261003143308",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 4,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.8xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143318",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 38.23,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:33:26.796421+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:33:27.620387+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143327",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 38.23,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:33:36.323760+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 3,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:33:37.106964+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143337",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 27522,
+      "max_cost_usd": 84.09,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:33:45.596157+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+          "etag": "\"fc7549ffc4d5fff28a32e6b6f9590f9a-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json",
+          "etag": "\"fc77532fca15e480c9fed0645d5e459f\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/slopvac-judge-kev-9b-s19-20261003143337",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 4,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.16xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s18-20261003143358",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 27.73,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:34:07.117146+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/slopvac-judge-kev-4b-s18-20261003143358",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s18",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20261003143408",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 34.67,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:34:16.841687+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:34:17.595252+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20261003143417",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 34.67,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:34:26.527141+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 3,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:34:27.295769+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20261003143427",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.12xlarge",
+      "hourly_usd": 16.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 110.93,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:34:35.995248+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20261003143427",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 4,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.12xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20261003143437",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:34:45.976702+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:34:46.748427+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20261003143446",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:34:55.410135+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 3,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:34:56.175439+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s17-20261003143456",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.12xlarge",
+      "hourly_usd": 16.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 119.92,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:35:07.613517+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "17",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/slopvac-judge-kev-9b-s17-20261003143456",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s17",
+        "attempt": 4,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.12xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003143508",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:35:17.269713+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:35:18.038687+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003143518",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:35:26.617784+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 3,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:35:27.391963+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s18-20261003143527",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.12xlarge",
+      "hourly_usd": 16.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 119.92,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:35:36.386717+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "18",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/slopvac-judge-kev-9b-s18-20261003143527",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s18",
+        "attempt": 4,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.12xlarge",
+        "market": "on-demand"
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143537",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:35:45.985896+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:35:46.764186+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143546",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": false,
+      "submitted_at": "2026-10-03T14:35:55.552340+00:00",
+      "status": "Failed",
+      "billable_seconds": 0,
+      "cost_usd": 0.0,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "note": "create_training_job raised",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 3,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand",
+        "submission_errors": [
+          {
+            "at": "2026-10-03T14:35:56.334467+00:00",
+            "error": "Traceback (most recent call last):\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/bin/judge-sagemaker\", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 585, in main\n    a.func(a)\n    ~~~~~~^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/src/judge_sagemaker/cli.py\", line 347, in cmd_submit\n    arn = sm.create_training_job(**request)[\"TrainingJobArn\"]\n          ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 606, in _api_call\n    return self._make_api_call(operation_name, kwargs)\n           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/context.py\", line 123, in wrapper\n    return func(*args, **kwargs)\n  File \"/Users/sjors/tmp/worktrees/slopvac/exp-judge-sagemaker/scripts/judge-sagemaker/.venv/lib/python3.13/site-packages/botocore/client.py\", line 1094, in _make_api_call\n    raise error_class(parsed_response, operation_name)\nbotocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit 'ml.g6e.4xlarge for training job usage' is 1 Instances, with current utilization of 1 Instances and a request delta of 1 Instances. Please use AWS Service Quotas to request an increase for this quota. If AWS Service Quotas is not available, contact AWS support to request an increase for this quota."
+          }
+        ]
+      }
+    },
+    {
+      "job_name": "slopvac-judge-kev-9b-s19-20261003143556",
+      "model": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 26983,
+      "max_cost_usd": 37.48,
+      "spot": true,
+      "max_wait_s": 53966,
+      "submitted_at": "2026-10-03T14:36:06.931616+00:00",
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "hyperparameters": {
+        "model": "kev-9b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-9b",
+        "revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "1",
+        "accum": "8",
+        "checkpointing": "1",
+        "dtype": "bf16",
+        "weights_dtype": "bf16"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-9b-s19-20261003143556",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-9b-ft-s19",
+        "attempt": 4,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "spot"
+      }
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-261003144255306136",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.16xlarge",
+      "hourly_usd": 11.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 22.0,
+      "spot": false,
+      "status": "InProgress",
+      "billable_seconds": null,
+      "cost_usd": null,
+      "submitted_at": "2026-10-03T14:43:11.929265+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-261003144255306136",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.16xlarge",
+        "market": "on-demand"
       }
     }
   ]
