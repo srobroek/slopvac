@@ -343,13 +343,24 @@ def _settled(record: dict, rounds: int) -> bool:
     )
 
 
-def write_label_queue(root: Path, rounds: int = 3, prefix: str = "review") -> dict:
+def write_label_queue(
+    root: Path,
+    rounds: int = 3,
+    prefix: str = "review",
+    retired_rules: frozenset[str] = frozenset(),
+) -> dict:
     """Write the rows of the PREFIX sheets that are neither settled nor
     answered by a person as label-queue.csv and label-queue.html.
 
     Both carry one y/n/u question per row, with the Yes and No examples for
     semantic rows. Model answers are left out so the reviewer is not anchored
-    on them."""
+    on them. Rows whose rule id is in `retired_rules` are left out too: the
+    rule no longer ships, so its findings need no label."""
+    rule_of = {}
+    if retired_rules:
+        for split in ("train", "dev", "calibration", "test"):
+            for item in read_jsonl(root / "items" / f"{split}.jsonl"):
+                rule_of[item["id"]] = (item.get("question") or {}).get("rule_id")
     queue = []
     for path in _sheets(root, prefix, llm=True):
         sheet = path.with_name(path.name.removeprefix("llm-"))
@@ -363,8 +374,12 @@ def write_label_queue(root: Path, rounds: int = 3, prefix: str = "review") -> di
                     row.get("answer", "").strip()
                     or row.get("second_answer", "").strip()
                 )
-                # Settled and person-answered rows stay out of the queue.
-                if answered or _settled(record, rounds):
+                # Settled, person-answered and retired-rule rows stay out.
+                if (
+                    answered
+                    or _settled(record, rounds)
+                    or rule_of.get(record["item_id"]) in retired_rules
+                ):
                     continue
                 question = re.sub(
                     r"\s*Answer 1 = .*$", "", row["question"], flags=re.DOTALL
