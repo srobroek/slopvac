@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.11.1](https://github.com/srobroek/slopvac/compare/v2.11.0...v2.11.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **rules:** bring back the Latin-abbreviation rules as opt-in ([#185](https://github.com/srobroek/slopvac/issues/185)) ([ca941af](https://github.com/srobroek/slopvac/commit/ca941af16a87d6e7c4c50348ac905ac10ceda92c))
+* **rules:** narrow false-positive hotspots found by human labelling ([#183](https://github.com/srobroek/slopvac/issues/183)) ([7544c16](https://github.com/srobroek/slopvac/commit/7544c168e09098372382e4a947d5e5dd2ce8aa57))
+* **rules:** retire curly-quotes and drop contractions from the STE omission rule ([#181](https://github.com/srobroek/slopvac/issues/181)) ([2b08548](https://github.com/srobroek/slopvac/commit/2b08548a0a31588b7af98cef23d8f228b9c942e7))
+* **rules:** stop flagging e.g. ([#184](https://github.com/srobroek/slopvac/issues/184)) ([b010234](https://github.com/srobroek/slopvac/commit/b01023410791a5ab815393e854f5228b52f678d9))
+
 ## [2.11.0](https://github.com/srobroek/slopvac/compare/v2.10.0...v2.11.0) (2026-09-25)
 
 
