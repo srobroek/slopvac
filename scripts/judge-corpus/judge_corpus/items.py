@@ -34,6 +34,10 @@ BANK_PATH = Path(".cache/bank/bank.jsonl")
 # region, with a one-line Yes example and No example (semantic_questions.py
 # drafts them; checked by hand; committed).
 QUESTIONS_PATH = Path(__file__).resolve().parents[1] / "items/semantic-questions.yml"
+# Plain-language guidance per rule (review_guide.py drafts it; committed). A
+# finding-confirmation question carries the two fields the review sheets show.
+GUIDE_PATH = Path(__file__).resolve().parents[1] / "items/review-guide.json"
+GUIDANCE_KEYS = ("what_the_rule_catches", "when_the_rule_is_wrong")
 # Judgement rules whose question needs context an item cannot carry. Their bank
 # passages stay (so bank splits and held-out rules do not move), but they get
 # no semantic-detection items.
@@ -442,6 +446,72 @@ def semantic_questions() -> dict[str, dict[str, str]]:
     return yaml.safe_load(QUESTIONS_PATH.read_text(encoding="utf-8")) or {}
 
 
+@lru_cache(maxsize=1)
+def review_guide() -> dict[str, dict[str, str]]:
+    return json.loads(GUIDE_PATH.read_text(encoding="utf-8"))
+
+
+def _guide_sentences(text: str) -> list[str]:
+    return [s for s in re.split(r"(?<=[.!?])\s+", text.strip()) if s]
+
+
+def guidance_variants(rule: dict) -> list[dict[str, str]]:
+    """A lint rule's reviewer guidance, longest first: the what_the_rule_catches
+    and when_the_rule_is_wrong text the review sheets show (label_sheets.lint_row),
+    then ever shorter versions. what_the_rule_catches is the guide's `catches`,
+    the rule's fix and up to three of its examples. Shorter versions drop the
+    examples from the last, then the fix, then the trailing sentences of
+    `catches` down to one, then those of when_the_rule_is_wrong, and last both.
+    An empty field is left out, so the last version is {}."""
+    entry = review_guide().get(rule["id"])
+    if entry is None:
+        raise KeyError(f"{GUIDE_PATH.name} has no guidance for {rule['id']}")
+    fix = f"Suggested fix: {rule['fix']}" if rule.get("fix") else ""
+    examples = [
+        f"Defect: \u201c{e['bad']}\u201d \u2192 fine: \u201c{e.get('good', '')}\u201d"
+        for e in (rule.get("examples") or [])[:3]
+        if e.get("bad")
+    ]
+    catches, wrong = entry["catches"], entry["fine_when"]
+    pairs = [
+        (" ".join(x for x in (catches, fix, " | ".join(examples[:n])) if x), wrong)
+        for n in range(len(examples), -1, -1)
+    ]
+    pairs.append((catches, wrong))
+    said, unless = _guide_sentences(catches), _guide_sentences(wrong)
+    pairs += [(" ".join(said[:n]), wrong) for n in range(len(said) - 1, 0, -1)]
+    pairs += [
+        (" ".join(said[:1]), " ".join(unless[:n]))
+        for n in range(len(unless) - 1, -1, -1)
+    ]
+    pairs.append(("", ""))
+    variants: list[dict[str, str]] = []
+    for pair in pairs:
+        variant = {k: v for k, v in zip(GUIDANCE_KEYS, pair) if v}
+        if not variants or variant != variants[-1]:
+            variants.append(variant)
+    return variants
+
+
+def fit_guidance(
+    state: dict,
+    question: dict,
+    rule: dict,
+    encoders: list[tuple[str, Tokenizer]],
+    limit: int,
+) -> bool:
+    """Give `question` the longest guidance under which state plus question stay
+    within `limit` tokens; -> True when it had to be trimmed. The span and its
+    context are chosen first, without guidance, so guidance never costs them."""
+    for n, variant in enumerate(guidance_variants(rule)):
+        for key in GUIDANCE_KEYS:
+            question.pop(key, None)
+        question.update(variant)
+        if _count(state, question, encoders) <= limit:
+            return n > 0
+    return True
+
+
 def held_out(rules: list[dict]) -> set[str]:
     cats = defaultdict(list)
     for r in rules:
@@ -464,6 +534,7 @@ def question_for(role: str, rule: dict, finding: dict | None = None) -> dict:
             "rule_message": finding.get("rule_message", ""),
             "lint_message": finding.get("message", ""),
             "matched_text": finding.get("matched_text", ""),
+            **guidance_variants(rule)[0],
             "options": {
                 "real-defect": "A real prose defect under this lint rule.",
                 "false-positive": "The rule fired on acceptable prose.",
@@ -749,6 +820,8 @@ def _make_item(
         if finding
         else None,
     )
+    # The span and context are picked without the guidance; it gets what is left.
+    guidance = {k: question.pop(k) for k in GUIDANCE_KEYS if k in question}
     value, context, a, b, truncated, title = span_for(
         text, g, anchor, question, encoders, source.get("genre", "unknown")
     )
@@ -775,8 +848,11 @@ def _make_item(
             "start": position,
             "end": position + len(flagged),
         }
+    limit = 4096 if g == "document" else 1024
+    if guidance:
+        fit_guidance(state, question, rule, encoders, limit)
     count = _count(state, question, encoders)
-    if count > (4096 if g == "document" else 1024):
+    if count > limit:
         return None
     item_id = digest(
         f"{role}|{source['id']}|{rule['id']}|{kind}|{g}|{anchor}".encode()
@@ -1385,6 +1461,12 @@ def _bank_items(
                     continue
                 for f in (item["finding"], item["question"]["finding"]):
                     f["start"], f["end"] = pos, pos + len(flagged)
+                # The new offsets can cost a token: refit the guidance.
+                limit = 4096 if item["granularity"] == "document" else 1024
+                fit_guidance(item["state"], item["question"], rule, encoders, limit)
+                item["state_question_tokens"] = _count(
+                    item["state"], item["question"], encoders
+                )
         if row["role"] == "semantic-detection":
             # The region is the inserted passage; a clean control gets a host
             # region of about the paired passage's length.

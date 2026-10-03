@@ -12,7 +12,9 @@ posteriors, see panel.py) and constructions; dev, calibration and test hold
 constructions and, once people have filled in the adjudication sheets, human
 labels. State is rendered as one string, since the pilot state is plain text.
 For finding confirmation, the corpus label false-positive becomes the pilot's
-no-defect slot, which has the same meaning. For semantic detection, the state
+no-defect slot, which has the same meaning, and the instructions add the rule
+guidance the review sheets show (what the rule catches, when the rule is
+wrong; items.guidance_variants). For semantic detection, the state
 marks the item's region [[like this]] and the instructions are the rule's
 plain yes/no question (items/semantic-questions.yml) with its Yes and No
 examples.
@@ -21,10 +23,14 @@ Each export is a variant under items/export/<variant>/. `min_confidence` drops
 teacher-panel labels below that posterior confidence. `train_drop_origins`
 leaves train rows of those label origins unlabelled, so they are not exported;
 dev, calibration and test keep them. `balance="oversample"`
-repeats minority-class teacher-panel rows in train until each role's classes
-are level (at most MAX_OVERSAMPLE copies of a row); copies get the id
-`<id>~<n>` and `oversample_of`. Constructions, which are built 50/50, and the
-dev, calibration and test splits keep their distributions.
+repeats minority-class labelled rows in train until each role's classes
+are level (at most MAX_OVERSAMPLE copies of a row); for finding confirmation,
+real-defect and no-defect are levelled within the teacher-panel rows, from
+teacher-panel rows only. Copies get the id `<id>~<n>` and `oversample_of`.
+`origin_weights` then repeats every train row of a label origin N times in
+all; the copies get the id `<id>~w<n>` and `weight_of`. Constructions, which
+are built 50/50, and the dev, calibration and test splits keep their
+distributions.
 """
 
 from __future__ import annotations
@@ -47,6 +53,9 @@ CHOICE_CRITERIA = {
     "insufficient-context": "The text and context do not decide the finding.",
 }
 MAX_OVERSAMPLE = 8
+# The finding-confirmation verdicts `balance="oversample"` levels within the
+# teacher-panel rows.
+PANEL_LEVELLED = ("real-defect", "no-defect")
 
 
 def render_state(state: dict, region: dict | None = None) -> str:
@@ -68,10 +77,17 @@ def _choice_instructions(question: dict) -> str:
     name = finding.get("rule_name") or question.get("rule_name") or question["rule_id"]
     message = finding.get("lint_message") or question.get("lint_message") or ""
     flagged = finding.get("matched_text") or question.get("matched_text") or ""
-    return (
-        f"Is this lint finding valid? Rule: {name}. Message: {message}. "
-        f'Flagged text: "{flagged}".'
-    )
+    lines = [
+        (
+            f"Is this lint finding valid? Rule: {name}. Message: {message}. "
+            f'Flagged text: "{flagged}".'
+        )
+    ]
+    if question.get("what_the_rule_catches"):
+        lines.append(f"What the rule catches: {question['what_the_rule_catches']}")
+    if question.get("when_the_rule_is_wrong"):
+        lines.append(f"When the rule is wrong: {question['when_the_rule_is_wrong']}")
+    return "\n".join(lines)
 
 
 def _noul_instructions(question: dict) -> str:
@@ -127,44 +143,83 @@ def export_item(root: Path, item: dict) -> dict | None:
     }
 
 
+def _copies(pool: list[dict], wanted: int) -> list[dict]:
+    """Up to `wanted` copies of `pool`'s rows in seeded order, at most
+    MAX_OVERSAMPLE - 1 of any row; copy n of a row gets the id `<id>~<n>`."""
+    pool = sorted(pool, key=lambda r: (seed(f"17:oversample:{r['id']}"), r["id"]))
+    extra = min(wanted, len(pool) * (MAX_OVERSAMPLE - 1)) if pool else 0
+    return [
+        {**src, "id": f"{src['id']}~{k // len(pool) + 1}", "oversample_of": src["id"]}
+        for k in range(extra)
+        for src in (pool[k % len(pool)],)
+    ]
+
+
 def _oversample(rows: list[dict]) -> tuple[list[dict], dict]:
-    """Level each role's classes in train by repeating teacher-panel rows of
-    the smaller classes; constructions count toward the totals but are never
-    repeated."""
+    """Level each role's classes in train by repeating labelled rows of the
+    smaller classes; constructions count toward the totals but are never
+    repeated. Finding confirmation's real-defect and no-defect are levelled
+    within the teacher-panel rows instead, by repeating teacher-panel rows
+    only, so the panel's two verdicts carry equal weight: constructions are
+    built 50/50, and human and LLM-review labels keep their mix."""
     out = list(rows)
     weights: dict = {}
     for role in sorted({r["role"] for r in rows}):
         mine = [r for r in rows if r["role"] == role]
+        panel = {
+            json.dumps(label): [
+                r
+                for r in mine
+                if r["label"] == label and r["label_origin"] == "teacher-panel"
+            ]
+            for label in (PANEL_LEVELLED if role == "finding-confirmation" else ())
+        }
+        panel_top = max((len(pool) for pool in panel.values()), default=0)
+        panel_copies = {
+            label: _copies(pool, panel_top - len(pool)) for label, pool in panel.items()
+        }
         counts = Counter(json.dumps(r["label"]) for r in mine)
-        top = max(counts.values())
+        top = max(n + len(panel_copies.get(label, [])) for label, n in counts.items())
         weights[role] = {}
         for label, n in sorted(counts.items()):
-            pool = sorted(
-                (
+            levelled = {}
+            if label in panel:
+                pool, extra = panel[label], panel_copies[label]
+                levelled = {
+                    "levelled_within": "teacher-panel",
+                    "teacher_panel_exported": len(pool) + len(extra),
+                }
+            else:
+                pool = [
                     r
                     for r in mine
                     if json.dumps(r["label"]) == label
                     and r["label_origin"] != "construction"
-                ),
-                key=lambda r: (seed(f"17:oversample:{r['id']}"), r["id"]),
-            )
-            extra = min(top - n, len(pool) * (MAX_OVERSAMPLE - 1)) if pool else 0
-            for k in range(extra):
-                src = pool[k % len(pool)]
-                out.append(
-                    {
-                        **src,
-                        "id": f"{src['id']}~{k // len(pool) + 1}",
-                        "oversample_of": src["id"],
-                    }
-                )
+                ]
+                extra = _copies(pool, top - n)
+            out += extra
             weights[role][label] = {
                 "items": n,
                 "teacher_panel_items": len(pool),
-                "exported": n + extra,
-                "weight": round((n + extra) / n, 4),
+                "exported": n + len(extra),
+                "weight": round((n + len(extra)) / n, 4),
+                **levelled,
             }
     return out, weights
+
+
+def _weight_origins(
+    rows: list[dict], origin_weights: dict[str, int]
+) -> tuple[list[dict], dict]:
+    """Repeat each train row of a weighted label origin N times in all: N - 1
+    copies with the ids `<id>~w1` ... `<id>~w<N-1>` and `weight_of`."""
+    copies = [
+        {**r, "id": f"{r['id']}~w{n}", "weight_of": r["id"]}
+        for r in rows
+        for n in range(1, origin_weights.get(r["label_origin"], 1))
+    ]
+    added = Counter(f"{r['role']}|{r['label_origin']}|{r['label']}" for r in copies)
+    return rows + copies, dict(added)
 
 
 def export_items(
@@ -174,7 +229,11 @@ def export_items(
     min_confidence: float | None = None,
     balance: str = "none",
     train_drop_origins: tuple[str, ...] = (),
+    origin_weights: dict[str, int] | None = None,
 ) -> dict:
+    origin_weights = {k: v for k, v in (origin_weights or {}).items() if v != 1}
+    if any(v < 1 for v in origin_weights.values()):
+        raise ValueError(f"origin weights must be at least 1: {origin_weights}")
     out = root / "items/export" / variant
     out.mkdir(parents=True, exist_ok=True)
     report: dict = {
@@ -188,6 +247,8 @@ def export_items(
     }
     if train_drop_origins:
         report["train_dropped_origins"] = sorted(train_drop_origins)
+    if origin_weights:
+        report["origin_weights"] = dict(sorted(origin_weights.items()))
     dropped_by_origin: Counter = Counter()
     for split in SPLITS:
         rows, dropped = [], Counter()
@@ -211,6 +272,8 @@ def export_items(
             report["per_rule"][row["rule_id"]][split][str(row["label"])] += 1
         if split == "train" and balance == "oversample":
             rows, report["sampling_weights"] = _oversample(rows)
+        if split == "train" and origin_weights:
+            rows, report["origin_weight_copies"] = _weight_origins(rows, origin_weights)
         path = out / f"{split}.jsonl"
         write_jsonl(path, rows)
         report["files"][split] = {

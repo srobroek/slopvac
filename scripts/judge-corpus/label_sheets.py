@@ -26,6 +26,14 @@ import-labels only.
 lint-findings sheets into lint rows with the same item id, so answers a person
 already gave are kept. Run it before import-labels: the sampler only offers
 items whose label is not yet a human one.
+
+`--unlabelled SPLIT:LINT:SEMANTIC...` writes one sheet per SPLIT instead
+(PREFIX-<task>-<split>.csv), mining more rows for the LLM review: up to LINT
+finding-confirmation and SEMANTIC semantic-detection items of that split with
+no label, round-robin over rules with the same sampler. Items whose rule is
+retired (not in the current rules), off by default (`effective_severity` off)
+or an excluded judgement rule are left out, and so are items already on
+another review sheet (items/adjudication/review-*.csv).
 """
 
 import argparse
@@ -33,12 +41,16 @@ import csv
 import json
 import random
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-from judge_corpus.items import _state_of, mark_span  # noqa: E402
+from judge_corpus.items import (  # noqa: E402
+    EXCLUDED_JUDGEMENT_RULES,
+    _state_of,
+    mark_span,
+)
 
 OUT = ROOT / "items/adjudication"
 FIRST_PASS = 120
@@ -282,13 +294,96 @@ def disagreement_items(low_confidence: float) -> tuple[list[dict], dict]:
     }
 
 
+def on_review_sheets(prefix: str) -> set[str]:
+    """Item ids on any review sheet (items/adjudication/review-*.csv) other
+    than the PREFIX sheets themselves, so a re-run draws the same rows."""
+    ids = set()
+    for path in OUT.glob("review-*.csv"):
+        rest = path.name.removeprefix(f"{prefix}-")
+        if rest != path.name and rest.startswith(
+            tuple(f"{task}-" for task in TASK_FILE.values())
+        ):
+            continue
+        with path.open(newline="", encoding="utf-8") as fh:
+            ids |= {row["item_id"] for row in csv.DictReader(fh)}
+    return ids
+
+
+def live_rule(rules: dict[str, dict], rule_id: str) -> bool:
+    """The rule still ships (it is in the current rules), is on by default,
+    and is not an excluded judgement rule."""
+    rule = rules.get(rule_id)
+    return (
+        rule is not None
+        and rule.get("effective_severity") != "off"
+        and rule_id not in EXCLUDED_JUDGEMENT_RULES
+    )
+
+
+def unlabelled_items(
+    split: str, counts: dict[str, int], rules: dict[str, dict], taken: set[str]
+) -> tuple[list[dict], dict]:
+    """Up to counts[role] unlabelled items of `split` per role, round-robin
+    over rules, leaving out retired and off-by-default rules and the item ids
+    in `taken`. Two passes over the split keep only ids in memory while
+    sampling."""
+    pool, dropped = [], Counter()
+    path = ROOT / f"items/{split}.jsonl"
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            item = json.loads(line)
+            if item.get("label") is not None or item["role"] not in counts:
+                continue
+            if item["id"] in taken:
+                dropped["on-a-review-sheet"] += 1
+            elif not live_rule(rules, item["rule_id"]):
+                dropped["rule-retired-or-off"] += 1
+            else:
+                pool.append(
+                    {"id": item["id"], "role": item["role"], "rule_id": item["rule_id"]}
+                )
+    chosen = set()
+    for role, n in counts.items():
+        mine = [x for x in pool if x["role"] == role]
+        chosen.update(stratified(mine, n, f"unlabelled-{split}"))
+    with path.open(encoding="utf-8") as fh:
+        items = [x for x in map(json.loads, fh) if x["id"] in chosen]
+    return items, {
+        "pool": dict(Counter(x["role"] for x in pool)),
+        "dropped": dict(dropped),
+        "rows": dict(Counter(x["role"] for x in items)),
+        "rules": {
+            role: len({x["rule_id"] for x in items if x["role"] == role})
+            for role in counts
+        },
+    }
+
+
+def unlabelled_spec(value: str) -> tuple[str, dict[str, int]]:
+    split, lint, semantic = value.split(":")
+    return split, {
+        "finding-confirmation": int(lint),
+        "semantic-detection": int(semantic),
+    }
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument(
         "--low-confidence",
         type=float,
-        required=True,
-        help="posterior confidence below which a panel label goes to the disagreement sheet",
+        help="posterior confidence below which a panel label goes to the "
+        "disagreement sheet (required unless --unlabelled)",
+    )
+    p.add_argument(
+        "--unlabelled",
+        nargs="+",
+        default=[],
+        type=unlabelled_spec,
+        metavar="SPLIT:LINT:SEMANTIC",
+        help="write one sheet per SPLIT with up to LINT lint-finding and SEMANTIC "
+        "semantic unlabelled items, instead of the test, calibration and "
+        "disagreement sheets",
     )
     p.add_argument(
         "--prefix",
@@ -303,15 +398,25 @@ if __name__ == "__main__":
         help="earlier lint-findings sheets whose answers carry over by item id",
     )
     args = p.parse_args()
+    if not args.unlabelled and args.low_confidence is None:
+        p.error("--low-confidence is required unless --unlabelled is given")
     rules = _rules()
     prefill = read_prefill(args.prefill)
     summary = {}
-    for split in ("test", "calibration"):
-        items = [x for x in read_split(split) if x.get("label") is None]
-        summary.update(write_sheet(split, items, rules, args.prefix, prefill))
-    items, composition = disagreement_items(args.low_confidence)
-    summary.update(write_sheet("disagreement", items, rules, args.prefix, prefill))
-    summary["disagreement_composition"] = composition
+    if args.unlabelled:
+        taken = on_review_sheets(args.prefix)
+        summary["items_on_other_review_sheets"] = len(taken)
+        for split, counts in args.unlabelled:
+            items, composition = unlabelled_items(split, counts, rules, taken)
+            summary.update(write_sheet(split, items, rules, args.prefix, prefill))
+            summary[f"{split}_composition"] = composition
+    else:
+        for split in ("test", "calibration"):
+            items = [x for x in read_split(split) if x.get("label") is None]
+            summary.update(write_sheet(split, items, rules, args.prefix, prefill))
+        items, composition = disagreement_items(args.low_confidence)
+        summary.update(write_sheet("disagreement", items, rules, args.prefix, prefill))
+        summary["disagreement_composition"] = composition
     summary["prefill_answers_offered"] = len(prefill)
     (OUT / f"{args.prefix}-summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"

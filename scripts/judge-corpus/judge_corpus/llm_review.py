@@ -21,18 +21,30 @@ the same prompt is refused again.
 
 These are LLM labels. They are kept apart from human labels: nothing here
 writes to the item splits.
+
+The label queues (write_label_queue, write_relabel_queue) are HTML pages for
+the rows a person answers, as items/adjudication/label-queue-NAME.html. Each
+row shows the full passage with the flagged span or the semantic region
+highlighted, the full surrounding text, and a rule card: what the rule
+catches and when it is wrong (lint) or the question with its Yes and No
+examples (semantic), plus one verified bank passage that is a real defect and
+one that is acceptable. No earlier answer, human or model, is shown.
+apply_label_queue copies the answers back into the sheets.
 """
 
 from __future__ import annotations
 
 import csv
+import html
 import json
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
+from .bank import _kept
 from .batch import model_body, parse_output
 from .common import read_jsonl, write_jsonl
+from .items import SPLITS, _state_of, seed, semantic_questions
 from .ondemand import run_ondemand
 
 MODELS = {
@@ -74,7 +86,7 @@ SEMANTIC_FIELDS = (
 )
 CODES = {"lint": {"1", "0", "-"}, "semantic": {"1", "0"}}
 TASKS = ("lint-findings", "semantic")
-SHEETS = ("test", "calibration", "disagreement")
+SHEETS = ("test", "calibration", "disagreement", "train", "dev")
 
 
 def _kind(sheet: Path) -> str:
@@ -157,10 +169,13 @@ def _drop_unparsed(path: Path, kinds: dict[str, str]) -> int:
     return len(records) - len(keep)
 
 
-def run_review(root: Path, rounds: int = 3, prefix: str = "review") -> dict:
+def run_review(
+    root: Path, rounds: int = 3, prefix: str = "review", concurrency: int = 4
+) -> dict:
     """Every model answers every row of the PREFIX sheets `rounds` times.
     Model x round jobs run concurrently in one process, so the cost ledger
-    has a single writer. Answers are cached under .cache/llm-PREFIX."""
+    has a single writer; each job sends `concurrency` requests at a time.
+    Answers are cached under .cache/llm-PREFIX."""
     from concurrent.futures import ThreadPoolExecutor
 
     rows: dict[str, tuple[Path, dict]] = {}
@@ -193,7 +208,7 @@ def run_review(root: Path, rounds: int = 3, prefix: str = "review") -> dict:
             MODELS[name],
             _output(work, name, round_no),
             stage=f"llm-review-{name}-r{round_no}",
-            concurrency=4,
+            concurrency=concurrency,
             expected_output_tokens=EXPECTED_OUTPUT_TOKENS,
         )
 
@@ -329,10 +344,23 @@ def _write(root: Path, rows: dict, answers: dict, rounds: int, prefix: str) -> d
 # len(MODELS) x rounds - SETTLE_MISSES votes give the same definite answer and
 # no run flagged it ambiguous (or answered "-").
 SETTLE_MISSES = 1
+# Queue keys and the sheet codes they write. q means the question itself is
+# unclear: a blank answer with a note, as is a semantic "unsure".
 QUEUE_CODES = {
-    "lint": {"y": "1", "n": "0", "u": "-"},
-    "semantic": {"y": "1", "n": "0", "u": ""},
+    "lint": {"y": "1", "n": "0", "u": "-", "q": ""},
+    "semantic": {"y": "1", "n": "0", "u": "", "q": ""},
 }
+QUEUE_NOTES = {
+    ("semantic", "u"): "unsure",
+    ("lint", "q"): "question-unclear",
+    ("semantic", "q"): "question-unclear",
+}
+# The relabel queue: rows a person answered on these sheets, by prefix and
+# kind, first source first. An item is queued once.
+RELABEL_SOURCES = (("review-v5", ("lint", "semantic")), ("review", ("lint",)))
+# Acceptable bank passages a rule card shows, best first. For lint, a known
+# false positive (tricky) shows when the rule is wrong.
+CARD_ACCEPTABLE = {"lint": ("tricky", "near", "good"), "semantic": ("near", "good")}
 
 
 def _settled(record: dict, rounds: int) -> bool:
@@ -343,202 +371,517 @@ def _settled(record: dict, rounds: int) -> bool:
     )
 
 
-def write_label_queue(
-    root: Path,
-    rounds: int = 3,
-    prefix: str = "review",
-    retired_rules: frozenset[str] = frozenset(),
-) -> dict:
-    """Write the rows of the PREFIX sheets that are neither settled nor
-    answered by a person as label-queue.csv and label-queue.html.
-
-    Both carry one y/n/u question per row, with the Yes and No examples for
-    semantic rows. Model answers are left out so the reviewer is not anchored
-    on them. Rows whose rule id is in `retired_rules` are left out too: the
-    rule no longer ships, so its findings need no label."""
-    rule_of = {}
-    if retired_rules:
-        for split in ("train", "dev", "calibration", "test"):
-            for item in read_jsonl(root / "items" / f"{split}.jsonl"):
-                rule_of[item["id"]] = (item.get("question") or {}).get("rule_id")
-    queue = []
-    for path in _sheets(root, prefix, llm=True):
-        sheet = path.with_name(path.name.removeprefix("llm-"))
-        kind = _kind(sheet)
-        with sheet.open(newline="", encoding="utf-8") as fh:
-            source = {r["item_id"]: r for r in csv.DictReader(fh)}
-        with path.open(newline="", encoding="utf-8") as fh:
-            for record in csv.DictReader(fh):
-                row = source[record["item_id"]]
-                answered = (
-                    row.get("answer", "").strip()
-                    or row.get("second_answer", "").strip()
-                )
-                # Settled, person-answered and retired-rule rows stay out.
-                if (
-                    answered
-                    or _settled(record, rounds)
-                    or rule_of.get(record["item_id"]) in retired_rules
-                ):
-                    continue
-                question = re.sub(
-                    r"\s*Answer 1 = .*$", "", row["question"], flags=re.DOTALL
-                )
-                if kind == "lint":
-                    legend = "y = real defect · n = rule misfired · u = can't tell"
-                else:
-                    legend = "y = yes · n = no · u = unsure"
-                guidance = "\n\n".join(
-                    f"{label}: {row[key]}"
-                    for key, label in (
-                        LINT_FIELDS if kind == "lint" else SEMANTIC_FIELDS
-                    )
-                    if key not in {"flagged_text", "highlighted_text", "passage"}
-                    and key not in {"yes_example", "no_example"}
-                    and row.get(key)
-                )
-                queue.append(
-                    {
-                        "key": f"{sheet.stem}|{row['item_id']}",
-                        "kind": kind,
-                        "split": sheet.stem.rsplit("-", 1)[1],
-                        "question": question,
-                        "legend": legend,
-                        "yes_example": row.get("yes_example", ""),
-                        "no_example": row.get("no_example", ""),
-                        "flag_label": "Flagged" if kind == "lint" else "Highlighted",
-                        "flagged": row.get("flagged_text")
-                        or row.get("highlighted_text", ""),
-                        "passage": row.get("passage", ""),
-                        "guidance": guidance,
-                    }
-                )
-    order = {"test": 0, "calibration": 1, "disagreement": 2}
-    queue.sort(
-        key=lambda q: (q["kind"], q["question"].split("(")[0][:80], order[q["split"]])
+def _human_answered(row: dict) -> bool:
+    """A person answered the row: a code in `answer` or `second_answer`, or a
+    blank answer with the note a queue answer leaves (semantic unsure, or the
+    question unclear)."""
+    notes = row.get("notes", "").split()
+    return bool(
+        row.get("answer", "").strip()
+        or row.get("second_answer", "").strip()
+        or "unsure" in notes
+        or "question-unclear" in notes
     )
-    out = root / SHEET_DIR
-    with (out / "label-queue.csv").open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.writer(fh)
-        writer.writerow(
-            ["n", "answer", "question", "yes_example", "no_example", "flagged"]
-            + ["passage", "key"]
+
+
+def _items(root: Path, ids: set[str]) -> dict[str, dict]:
+    """The items in items/*.jsonl with these ids."""
+    found = {}
+    for split in SPLITS:
+        for item in read_jsonl(root / "items" / f"{split}.jsonl"):
+            if item["id"] in ids:
+                found[item["id"]] = item
+    return found
+
+
+def _item_id(key: str) -> str:
+    return key.split("|", 1)[1]
+
+
+def _split_of(key: str) -> str:
+    return key.split("|", 1)[0].rsplit("-", 1)[1]
+
+
+def _parts(text: str, start: int, end: int) -> list[str]:
+    """`text` as [before, span, after]; all of it before when the offsets do
+    not fit. The page joins the three, so it shows every character."""
+    if 0 <= start < end <= len(text):
+        return [text[:start], text[start:end], text[end:]]
+    return [text, "", ""]
+
+
+def _queue_row(root: Path, key: str, item: dict) -> dict:
+    state = _state_of(root, item)
+    question = item["question"]
+    if item["role"] == "finding-confirmation":
+        finding = question["finding"]
+        start, end = finding["start"], finding["end"]
+        ask = (
+            f"The lint rule \u201c{finding['rule_name']}\u201d flagged the highlighted "
+            "text. Would following the rule's fix make this text better?"
         )
-        for n, q in enumerate(queue, 1):
-            writer.writerow(
-                [n, "", q["question"], q["yes_example"], q["no_example"]]
-                + [q["flagged"], q["passage"], q["key"]]
-            )
-    html = _QUEUE_HTML.replace(
-        "__DATA__", json.dumps(queue).replace("</", "<\\/")
-    ).replace("__STORE__", json.dumps(f"slopvac-label-queue:{prefix}"))
-    (out / "label-queue.html").write_text(html, encoding="utf-8")
+    else:
+        start, end = question["region"]["start"], question["region"]["end"]
+        ask = question["prompt"]
     return {
-        "rows": len(queue),
-        "by_kind": dict(Counter(q["kind"] for q in queue)),
-        "by_split": dict(Counter(f"{q['kind']}-{q['split']}" for q in queue)),
+        "key": key,
+        "kind": "lint" if item["role"] == "finding-confirmation" else "semantic",
+        "split": _split_of(key),
+        "rule_id": item["rule_id"],
+        "granularity": item.get("granularity", ""),
+        "question": ask,
+        "passage": _parts(state["text"], start, end),
+        "heading": state.get("heading") or "",
+        "context": state.get("context") or "",
     }
 
 
-def apply_label_queue(
-    root: Path, answers: Path, column: str = "answer", prefix: str = "review"
+def _bank_pick(bank: dict, rule_id: str, kinds: tuple[str, ...]) -> dict | None:
+    """One verified bank passage of the first kind the rule has, the same one
+    for every row of the rule: train-split passages first, then a seeded order."""
+    for kind in kinds:
+        rows = sorted(
+            bank.get(rule_id, {}).get(kind, []),
+            key=lambda r: (
+                r.get("split") != "train",
+                seed(f"17:card:{rule_id}:{r['id']}"),
+            ),
+        )
+        if rows:
+            finding = rows[0].get("finding") or {}
+            return {
+                "kind": kind,
+                "parts": _parts(
+                    rows[0]["text"], finding.get("start", 0), finding.get("end", 0)
+                ),
+            }
+    return None
+
+
+def _rule_card(item: dict, guide: dict, questions: dict, bank: dict) -> dict:
+    rule_id = item["rule_id"]
+    if item["role"] == "finding-confirmation":
+        kind = "lint"
+        card = {
+            "name": item["question"]["finding"]["rule_name"],
+            "catches": guide[rule_id]["catches"],
+            "fix": (item.get("finding") or {}).get("fix", ""),
+            "fine_when": guide[rule_id]["fine_when"],
+        }
+    else:
+        kind = "semantic"
+        asked = questions[rule_id]
+        card = {
+            "question": asked["question"],
+            "yes_example": asked["yes_example"],
+            "no_example": asked["no_example"],
+        }
+    return {
+        "kind": kind,
+        **card,
+        "defect": _bank_pick(bank, rule_id, ("bad",)),
+        "acceptable": _bank_pick(bank, rule_id, CARD_ACCEPTABLE[kind]),
+    }
+
+
+def _stratified(
+    keys: list[str], rule_of: dict[str, str], limit: int, salt: str
+) -> list[str]:
+    """Up to `limit` keys, round-robin over rules in a seeded order."""
+    pools: dict[str, list[str]] = defaultdict(list)
+    for key in sorted(keys, key=lambda k: seed(f"17:{salt}:{k}")):
+        pools[rule_of[key]].append(key)
+    rules = sorted(pools, key=lambda r: seed(f"17:{salt}:{r}"))
+    picked: list[str] = []
+    while len(picked) < limit and any(pools.values()):
+        for rule in rules:
+            if pools[rule] and len(picked) < limit:
+                picked.append(pools[rule].pop(0))
+    return picked
+
+
+def _script_json(value) -> str:
+    return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
+
+
+def _write_queue(
+    root: Path, name: str, keys: list[str], items: dict[str, dict]
 ) -> dict:
-    """Copy y/n/u answers (label-queue.csv, or the CSV the HTML page downloads)
-    into the `column` of the review sheets, as the sheet codes import-labels reads."""
+    """label-queue-NAME.csv and label-queue-NAME.html for these sheet keys,
+    grouped by kind and rule. The page keeps its answers in localStorage
+    under a key of its own."""
+    guide = json.loads((root / "items/review-guide.json").read_text(encoding="utf-8"))
+    questions, bank = semantic_questions(), _kept(root)
+    queue, cards = [], {}
+    for key in keys:
+        item = items[_item_id(key)]
+        queue.append(_queue_row(root, key, item))
+        if item["rule_id"] not in cards:
+            cards[item["rule_id"]] = _rule_card(item, guide, questions, bank)
+    queue.sort(
+        key=lambda q: (q["kind"], q["rule_id"], seed(f"17:queue:{name}:{q['key']}"))
+    )
+    out = root / SHEET_DIR
+    with (out / f"label-queue-{name}.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as fh:
+        writer = csv.writer(fh)
+        writer.writerow(
+            ["n", "answer", "kind", "split", "rule_id", "question", "flagged"]
+            + ["passage", "surrounding_text", "key"]
+        )
+        for n, q in enumerate(queue, 1):
+            before, span, after = q["passage"]
+            marked = f"{before}[[{span}]]{after}" if span else before
+            surrounding = "\n\n".join(
+                x
+                for x in (q["heading"] and f"Heading: {q['heading']}", q["context"])
+                if x
+            )
+            writer.writerow(
+                [n, "", q["kind"], q["split"], q["rule_id"], q["question"], span]
+                + [marked, surrounding, q["key"]]
+            )
+    values = {
+        "DATA": _script_json(queue),
+        "RULES": _script_json(cards),
+        "STORE": json.dumps(f"slopvac-label-queue-v2:{name}"),
+        "FILE": json.dumps(f"label-answers-{name}.csv"),
+        "NAME": html.escape(name),
+    }
+    # One pass, so placeholder text inside the data is never substituted.
+    page = re.sub(
+        r"__(DATA|RULES|STORE|FILE|NAME)__", lambda m: values[m[1]], _QUEUE_HTML
+    )
+    (out / f"label-queue-{name}.html").write_text(page, encoding="utf-8")
+    return {
+        "rows": len(queue),
+        "rules": len(cards),
+        "by_kind_split": dict(Counter(f"{q['kind']}-{q['split']}" for q in queue)),
+    }
+
+
+def write_label_queue(
+    root: Path,
+    name: str,
+    *,
+    rounds: int = 3,
+    prefix: str = "review",
+    retired_rules: frozenset[str] = frozenset(),
+    per_split: int | None = None,
+) -> dict:
+    """Write label-queue-NAME.csv and label-queue-NAME.html with the rows of
+    the PREFIX sheets that are neither settled nor answered by a person.
+
+    Model answers are left out so the reviewer is not anchored on them. Rows
+    whose rule id is in `retired_rules` are left out too: the rule no longer
+    ships, so its findings need no label. So are rows whose item is no longer
+    in items/*.jsonl. With `per_split`, at most that many rows per sheet split
+    (train, dev, test, ...), round-robin over rules."""
+    keys = []
+    for path in _sheets(root, prefix, llm=True):
+        sheet = path.with_name(path.name.removeprefix("llm-"))
+        with sheet.open(newline="", encoding="utf-8") as fh:
+            answered = {
+                r["item_id"]
+                for r in csv.DictReader(fh)
+                if r.get("answer", "").strip() or r.get("second_answer", "").strip()
+            }
+        with path.open(newline="", encoding="utf-8") as fh:
+            keys += [
+                f"{sheet.stem}|{record['item_id']}"
+                for record in csv.DictReader(fh)
+                if record["item_id"] not in answered and not _settled(record, rounds)
+            ]
+    items = _items(root, {_item_id(k) for k in keys})
+    open_rows = len(keys)
+    keys = [k for k in keys if _item_id(k) in items]
+    missing = open_rows - len(keys)
+    keys = [k for k in keys if items[_item_id(k)]["rule_id"] not in retired_rules]
+    by_split = Counter(_split_of(k) for k in keys)
+    if per_split is not None:
+        rule_of = {k: items[_item_id(k)]["rule_id"] for k in keys}
+        keys = [
+            k
+            for split in sorted(by_split)
+            for k in _stratified(
+                [k for k in keys if _split_of(k) == split],
+                rule_of,
+                per_split,
+                f"{name}:{split}",
+            )
+        ]
+    return {
+        "open_rows": open_rows,
+        "missing_items": missing,
+        "open_by_split": dict(by_split),
+        **_write_queue(root, name, keys, items),
+    }
+
+
+def write_relabel_queue(root: Path, name: str = "relabel") -> dict:
+    """Write label-queue-NAME.csv and label-queue-NAME.html for a blind
+    relabel: every review-v5 row a person answered, then every older review
+    lint-findings row a person answered whose item is not queued already.
+    Rows whose item is no longer in items/*.jsonl are left out. The page and
+    the CSV show no earlier answer; apply the answers with
+    apply_label_queue(column="relabel_answer")."""
+    keys, seen = [], set()
+    for prefix, kinds in RELABEL_SOURCES:
+        for sheet in _sheets(root, prefix):
+            if _kind(sheet) not in kinds:
+                continue
+            with sheet.open(newline="", encoding="utf-8") as fh:
+                for row in csv.DictReader(fh):
+                    if _human_answered(row) and row["item_id"] not in seen:
+                        seen.add(row["item_id"])
+                        keys.append(f"{sheet.stem}|{row['item_id']}")
+    items = _items(root, seen)
+    kept = [k for k in keys if _item_id(k) in items]
+    return {
+        "answered_rows": len(keys),
+        "missing_items": len(keys) - len(kept),
+        "by_sheet": dict(Counter(k.split("|", 1)[0] for k in kept)),
+        **_write_queue(root, name, kept, items),
+    }
+
+
+def apply_label_queue(root: Path, answers: Path, column: str = "answer") -> dict:
+    """Copy y/n/u/q answers (label-queue-NAME.csv, or the CSV the HTML page
+    downloads) into `column` of the sheet each key names, as the sheet codes
+    import-labels reads. A missing column is added before item_id.
+
+    q (question unclear) and a semantic u write a blank answer and a note,
+    `question-unclear` or `unsure`: appended to `notes` for column `answer`,
+    otherwise set in COLUMN_notes, so a relabel never touches the notes of the
+    first answer. Every key must name an existing sheet row."""
     with answers.open(newline="", encoding="utf-8") as fh:
         given = {r["key"]: r["answer"].strip().lower() for r in csv.DictReader(fh)}
     given = {k: v for k, v in given.items() if v}
-    bad = {k: v for k, v in given.items() if v not in {"y", "n", "u"}}
+    bad = {k: v for k, v in given.items() if v not in {"y", "n", "u", "q"}}
     if bad:
-        raise ValueError(f"answers must be y, n or u: {sorted(bad.items())[:5]}")
-    written = Counter()
-    for sheet in _sheets(root, prefix):
-        kind = _kind(sheet)
+        raise ValueError(f"answers must be y, n, u or q: {sorted(bad.items())[:5]}")
+    by_sheet: dict[str, dict[str, str]] = defaultdict(dict)
+    for key, value in given.items():
+        stem, item_id = key.split("|", 1)
+        by_sheet[stem][item_id] = value
+    notes_column = "notes" if column == "answer" else f"{column}_notes"
+    updates = []
+    for stem, values in sorted(by_sheet.items()):
+        sheet = root / SHEET_DIR / f"{stem}.csv"
+        if not sheet.is_file():
+            raise ValueError(
+                f"{len(values)} answers name {sheet.name}, which does not exist"
+            )
         with sheet.open(newline="", encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
             fields, rows = list(reader.fieldnames or []), list(reader)
-        changed = False
+        unknown = set(values) - {r["item_id"] for r in rows}
+        if unknown:
+            raise ValueError(f"{sheet.name} has no rows for {sorted(unknown)[:5]}")
+        for col in (column, notes_column):
+            if col not in fields:
+                fields.insert(fields.index("item_id"), col)
+        updates.append((sheet, _kind(sheet), fields, rows, values))
+    written: Counter = Counter()
+    for sheet, kind, fields, rows, values in updates:
         for row in rows:
-            value = given.get(f"{sheet.stem}|{row['item_id']}")
+            value = values.get(row["item_id"])
             if value is None:
                 continue
             row[column] = QUEUE_CODES[kind][value]
-            if kind == "semantic" and value == "u":
-                row["notes"] = (row.get("notes", "") + " unsure").strip()
+            note = QUEUE_NOTES.get((kind, value), "")
+            if notes_column != "notes":
+                row[notes_column] = note
+            elif note and note not in row.get("notes", "").split():
+                row["notes"] = f"{row.get('notes', '')} {note}".strip()
             written[sheet.name] += 1
-            changed = True
-        if changed:
-            with sheet.open("w", newline="", encoding="utf-8") as fh:
-                writer = csv.DictWriter(fh, fieldnames=fields)
-                writer.writeheader()
-                writer.writerows(rows)
-    return {"answers": len(given), "written": dict(written)}
+        with sheet.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+    return {
+        "answers": len(given),
+        "by_answer": dict(Counter(given.values())),
+        "written": dict(written),
+    }
 
 
 _QUEUE_HTML = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>slopvac label queue</title>
+<title>slopvac label queue: __NAME__</title>
 <style>
-body{font:16px/1.5 system-ui,sans-serif;max-width:52rem;margin:2rem auto;padding:0 1rem;color:#1a1a1a;background:#fafafa}
-header{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
-.meta{color:#555;font-size:.9rem}
-.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:1.25rem 1.5rem;margin:1rem 0}
-.q{font-weight:600;font-size:1.1rem}
-.legend{color:#444;margin:.5rem 0 1rem}
-.ex{margin:.25rem 0;color:#333}
-.flag{background:#fff3c4;padding:0 .2rem;border-radius:3px}
-pre{white-space:pre-wrap;font:15px/1.5 ui-monospace,monospace;background:#f4f4f4;padding:.75rem;border-radius:6px;max-height:24rem;overflow:auto}
-mark{background:#ffd54a}
-.buttons{display:flex;gap:.5rem;margin-top:1rem}
-button{font:inherit;padding:.5rem 1rem;border:1px solid #888;border-radius:6px;background:#fff;cursor:pointer}
-button.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-button:focus-visible{outline:3px solid #2a6ef0;outline-offset:2px}
-details{margin-top:.75rem;color:#333}
-</style></head><body>
-<header><h1>Label queue</h1>
-<div><span id="progress" class="meta"></span> <button id="dl">Download answers</button></div></header>
-<p class="meta">Keys: <b>y</b> / <b>n</b> / <b>u</b> answer and advance · <b>←</b>/<b>→</b> move · <b>j</b> jump to next unanswered. Answers are saved in this browser as you go.</p>
-<div class="card" id="card" aria-live="polite"></div>
+:root{--ink:#1b1b1b;--muted:#565656;--line:#d4d4d0;--paper:#f6f6f3;--card:#fff;--hl:#ffe066;--hl-edge:#9a7400;--focus:#1f5fd6;--bar:3.5rem}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+.bar{position:sticky;top:0;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1rem;padding:.6rem 1.25rem;background:var(--card);border-bottom:1px solid var(--line)}
+.bar h1{font-size:1rem;margin:0 auto 0 0}
+.answers,.nav{display:flex;flex-wrap:wrap;gap:.4rem}
+button{font:inherit;min-height:2.25rem;padding:.3rem .75rem;border:1px solid #8a8a8a;border-radius:6px;background:#fff;color:inherit;cursor:pointer}
+button:hover{background:#efefec}
+button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+kbd{font:600 .85em ui-monospace,SFMono-Regular,Menlo,monospace;padding:0 .3em;border:1px solid #b5b5b5;border-bottom-width:2px;border-radius:4px;background:#f7f7f7;color:var(--ink)}
+main{max-width:90rem;margin:0 auto;padding:1rem 1.25rem 4rem}
+.help,.meta{color:var(--muted)}
+.intro{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:.5rem 1.5rem;margin:0 0 1rem}
+.help{margin:0;max-width:80ch}
+.meta{font-size:.9rem;margin:0}
+.question{font-size:1.15rem;line-height:1.4;margin:.25rem 0 1rem;max-width:70ch}
+.question:focus{outline:none}
+.layout{display:grid;gap:1.25rem;grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:68rem){.layout{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:1rem 1.25rem}
+.panel h2{font-size:1rem;margin:1.25rem 0 .4rem}
+.panel h2:first-child{margin-top:0}
+.panel h3{font-size:.95rem;margin:1rem 0 .25rem}
+.panel p{margin:.25rem 0 .5rem;max-width:75ch}
+.text{white-space:pre-wrap;overflow-wrap:anywhere;max-width:80ch}
+.context{color:#333;border-left:3px solid var(--line);padding-left:.75rem}
+.example{margin:.25rem 0 .75rem;padding:.5rem .75rem;border:1px solid var(--line);border-radius:6px;background:#f8f8f6}
+mark{background:var(--hl);color:inherit;box-shadow:0 0 0 2px var(--hl-edge);border-radius:2px;scroll-margin:calc(var(--bar) + 2rem) 0 2rem}
+.none{color:var(--muted);font-style:italic}
+.rule.stick{position:sticky;top:calc(var(--bar) + 1rem)}
+#jump{margin:0 0 .5rem}
+@media (max-width:40rem){.bar{padding:.5rem .75rem}main{padding:.75rem .75rem 4rem}.panel{padding:.75rem}}
+</style></head>
+<body>
+<header class="bar">
+<h1>Label queue: __NAME__</h1>
+<span id="progress" class="meta" role="status"></span>
+<div class="answers" id="answers" role="group" aria-label="Answer"></div>
+<div class="nav"><button type="button" data-nav="-1" aria-label="Previous row"><kbd>\u2190</kbd></button><button type="button" data-nav="1" aria-label="Next row"><kbd>\u2192</kbd></button></div>
+</header>
+<main>
+<div class="intro">
+<p class="help">Press <kbd>y</kbd>, <kbd>n</kbd> or <kbd>u</kbd> to answer and go to the next row, or <kbd>q</kbd> when the question itself is unclear. <kbd>\u2190</kbd> and <kbd>\u2192</kbd> move between rows; <kbd>j</kbd> jumps to the next unanswered row. Answers are saved in this browser as you go. Download them when you finish.</p>
+<button type="button" id="dl">Download answers</button>
+</div>
+<article id="row" aria-labelledby="question"></article>
+</main>
 <script>
 const DATA = __DATA__;
+const RULES = __RULES__;
 const STORE = __STORE__;
-const answers = JSON.parse(localStorage.getItem(STORE) || "{}");
-let i = DATA.findIndex(q => !answers[q.key]); if (i < 0) i = 0;
-const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-function render(){
-  const q = DATA[i], a = answers[q.key] || "";
-  const passage = esc(q.passage).replace(/\\[\\[(.*?)\\]\\]/gs, "<mark>$1</mark>");
-  document.getElementById("card").innerHTML =
-    `<div class="meta">#${i+1} of ${DATA.length} · ${q.kind} · ${q.split}</div>
-     <p class="q">${esc(q.question)}</p>
-     ${q.yes_example ? `<p class="ex"><b>Yes example:</b> ${esc(q.yes_example)}</p>` : ""}
-     ${q.no_example ? `<p class="ex"><b>No example:</b> ${esc(q.no_example)}</p>` : ""}
-     <p class="legend">${esc(q.legend)}</p>
-     ${q.flagged ? `<p>${q.flag_label}: <span class="flag">${esc(q.flagged)}</span></p>` : ""}
-     ${q.passage ? `<pre id="passage">${passage}</pre>` : ""}
-     ${q.guidance ? `<details><summary>Rule guidance and surrounding text</summary><pre>${esc(q.guidance)}</pre></details>` : ""}
-     <div class="buttons">${["y","n","u"].map(k => `<button data-k="${k}" class="${a===k?"on":""}">${k}</button>`).join("")}
-     <button data-nav="-1">← back</button><button data-nav="1">next →</button></div>`;
-  const pre = document.getElementById("passage"), m = pre && pre.querySelector("mark");
-  if (m) pre.scrollTop = Math.max(0, m.offsetTop - pre.offsetTop - 48);
-  const done = DATA.filter(x => answers[x.key]).length;
-  document.getElementById("progress").textContent = `${done} / ${DATA.length} answered`;
-}
-function answer(k){ answers[DATA[i].key] = k; localStorage.setItem(STORE, JSON.stringify(answers)); if (i < DATA.length-1) i++; render(); }
-function move(d){ i = Math.max(0, Math.min(DATA.length-1, i+d)); render(); }
-document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.k) answer(b.dataset.k); else if (b.dataset.nav) move(+b.dataset.nav); });
-document.addEventListener("keydown", e => { if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if ("ynu".includes(e.key) && e.key.length === 1) answer(e.key);
-  else if (e.key === "ArrowLeft") move(-1); else if (e.key === "ArrowRight") move(1);
-  else if (e.key === "j") { const n = DATA.findIndex((q, k) => k > i && !answers[q.key]); if (n >= 0) { i = n; render(); } } });
-document.getElementById("dl").onclick = () => {
-  const rows = [["key","answer"], ...DATA.map(q => [q.key, answers[q.key] || ""])];
-  const csv = rows.map(r => r.map(v => `"${v.replace(/"/g,'""')}"`).join(",")).join("\\n") + "\\n";
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
-  a.download = "label-answers.csv"; a.click();
+const FILE = __FILE__;
+const KEYS = ["y", "n", "u", "q"];
+const LABELS = {
+  lint: {y: "Real defect", n: "Rule misfired", u: "Can't tell", q: "Question unclear"},
+  semantic: {y: "Yes", n: "No", u: "Unsure", q: "Question unclear"},
 };
-render();
+const EXAMPLE = {
+  lint: {
+    bad: "Real defect: the rule fires, and following its fix makes the text better.",
+    tricky: "Acceptable: the rule fires, but the text is fine as written.",
+    near: "Acceptable: close to what the rule catches; the rule does not fire.",
+    good: "Acceptable: the rule does not fire, and the text is fine.",
+  },
+  semantic: {
+    bad: "Yes: the passage has the defect.",
+    near: "No: close to the defect, but the passage is fine.",
+    good: "No: the passage is fine.",
+  },
+};
+const answers = JSON.parse(localStorage.getItem(STORE) || "{}");
+let i = Math.max(0, DATA.findIndex(q => !answers[q.key]));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const marked = (p, id) => p[1] ? `${esc(p[0])}<mark${id ? ` id="${id}"` : ""}>${esc(p[1])}</mark>${esc(p[2])}` : esc(p[0]);
+function example(kind, ex, what) {
+  if (!ex) return `<p class="none">The verified bank has no ${what} passage for this rule.</p>`;
+  return `<p>${esc(EXAMPLE[kind][ex.kind])}</p><div class="text example">${marked(ex.parts)}</div>`;
+}
+function card(q, r) {
+  if (r.kind === "lint") return `<h2>Rule: ${esc(r.name)}</h2><p class="meta">${esc(q.rule_id)}</p>
+<h3>What the rule catches</h3><p>${esc(r.catches)}</p>
+${r.fix ? `<h3>Suggested fix</h3><p>${esc(r.fix)}</p>` : ""}
+<h3>When the rule is wrong</h3>${r.fine_when ? `<p>${esc(r.fine_when)}</p>` : `<p class="none">The guide records no common misfire for this rule. Judge whether following the fix would make this text better.</p>`}
+<h3>Verified examples</h3>${example("lint", r.defect, "real-defect")}${example("lint", r.acceptable, "acceptable")}`;
+  return `<h2>Rule</h2><p class="meta">${esc(q.rule_id)}</p>
+<h3>Question</h3><p>${esc(r.question)}</p>
+<h3>Yes example</h3><div class="text example">${esc(r.yes_example)}</div>
+<h3>No example</h3><div class="text example">${esc(r.no_example)}</div>
+<h3>Verified passages</h3>${example("semantic", r.defect, "defect")}${example("semantic", r.acceptable, "acceptable")}`;
+}
+function render() {
+  const row = document.getElementById("row");
+  if (!DATA.length) { row.innerHTML = `<p id="question" tabindex="-1">This queue is empty.</p>`; return; }
+  const q = DATA[i], a = answers[q.key] || "";
+  const what = q.kind === "lint" ? "the flagged text is highlighted" : "the region the question asks about is highlighted";
+  row.innerHTML = `<p class="meta">Row ${i + 1} of ${DATA.length} \u00b7 ${q.kind === "lint" ? "Lint finding" : "Semantic question"} \u00b7 ${esc(q.split)} \u00b7 ${esc(q.granularity)}${a ? ` \u00b7 your answer: ${esc(LABELS[q.kind][a])}` : ""}</p>
+<h2 class="question" id="question" tabindex="-1">${esc(q.question)}</h2>
+<div class="layout">
+<section class="panel" aria-label="Text to judge">
+<h2>Passage${q.passage[1] ? ` (${what})` : ""}</h2>
+<button type="button" id="jump" hidden>Jump to the highlight</button>
+<div class="text" id="passage">${marked(q.passage, "hl")}</div>
+<h2>Surrounding text</h2>
+${q.heading ? `<p class="meta">Section heading: ${esc(q.heading)}</p>` : ""}
+${q.context ? `<div class="text context" id="context">${esc(q.context)}</div>` : `<p class="none">None: the passage stands on its own.</p>`}
+</section>
+<aside class="panel rule" id="rule" aria-label="Rule card">${card(q, RULES[q.rule_id])}</aside>
+</div>`;
+  document.getElementById("answers").innerHTML = KEYS.map(k =>
+    `<button type="button" data-k="${k}" aria-pressed="${a === k}"><kbd>${k}</kbd> ${esc(LABELS[q.kind][k])}</button>`).join("");
+  const done = DATA.filter(x => answers[x.key]).length;
+  document.getElementById("progress").textContent = `${done} of ${DATA.length} answered`;
+  layout();
+}
+function layout() {
+  const bar = document.querySelector(".bar").offsetHeight;
+  document.documentElement.style.setProperty("--bar", `${bar}px`);
+  const rule = document.getElementById("rule"), hl = document.getElementById("hl"), jump = document.getElementById("jump");
+  if (rule) {
+    rule.classList.remove("stick");
+    rule.classList.toggle("stick", matchMedia("(min-width: 68rem)").matches && rule.offsetHeight + bar + 32 <= innerHeight);
+  }
+  if (jump) jump.hidden = !hl || hl.getBoundingClientRect().top < innerHeight - 48;
+}
+function show() {
+  render();
+  window.scrollTo(0, 0);
+  layout();
+  document.getElementById("question").focus({preventScroll: true});
+}
+function answer(k) {
+  if (!DATA.length) return;
+  answers[DATA[i].key] = k;
+  localStorage.setItem(STORE, JSON.stringify(answers));
+  if (i < DATA.length - 1) i++;
+  show();
+}
+function move(d) { i = Math.max(0, Math.min(DATA.length - 1, i + d)); show(); }
+function nextOpen() {
+  const after = DATA.findIndex((x, j) => j > i && !answers[x.key]);
+  const n = after >= 0 ? after : DATA.findIndex(x => !answers[x.key]);
+  if (n >= 0) { i = n; show(); }
+}
+function download() {
+  const rows = [["key", "answer"], ...DATA.map(q => [q.key, answers[q.key] || ""])];
+  const text = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\\n") + "\\n";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type: "text/csv"}));
+  a.download = FILE;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.k) answer(b.dataset.k);
+  else if (b.dataset.nav) move(+b.dataset.nav);
+  else if (b.id === "jump") document.getElementById("hl").scrollIntoView({block: "center"});
+  else if (b.id === "dl") download();
+});
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (KEYS.includes(k)) { e.preventDefault(); answer(k); }
+  else if (k === "ArrowLeft") move(-1);
+  else if (k === "ArrowRight") move(1);
+  else if (k === "j") nextOpen();
+});
+window.addEventListener("resize", layout);
+show();
 </script></body></html>
 """

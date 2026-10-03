@@ -27,6 +27,9 @@ from .items import build_items, split_items
 from .panel import ANCHORS, MAX_SPEND, collect_panel, prepare_panel, submit_panel
 from .semantic_questions import draft_questions
 
+# Every item label_origin an export can weight.
+LABEL_ORIGINS = ("construction", "teacher-panel", *ORIGINS)
+
 
 def root_from_args(value: str | None) -> Path:
     return Path(value or Path(__file__).resolve().parents[1]).resolve()
@@ -388,10 +391,19 @@ def cmd_items_import_labels(args: argparse.Namespace) -> None:
     print(json.dumps(report, indent=2))
 
 
+def _origin_weight(value: str) -> tuple[str, int]:
+    origin, sep, n = value.partition("=")
+    if not sep or origin not in LABEL_ORIGINS or not n.isdigit() or int(n) < 1:
+        raise argparse.ArgumentTypeError(
+            f"expected ORIGIN=N with ORIGIN one of {', '.join(LABEL_ORIGINS)} and N >= 1"
+        )
+    return origin, int(n)
+
+
 def cmd_items_export(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
-    if args.drop_train_origin and not args.variant:
-        raise SystemExit("--drop-train-origin needs --variant")
+    if (args.drop_train_origin or args.origin_weight) and not args.variant:
+        raise SystemExit("--drop-train-origin and --origin-weight need --variant")
     variant = args.variant or ("full" if args.min_confidence is None else "confident")
     report = export_items(
         root,
@@ -399,6 +411,7 @@ def cmd_items_export(args: argparse.Namespace) -> None:
         min_confidence=args.min_confidence,
         balance=args.balance,
         train_drop_origins=tuple(args.drop_train_origin),
+        origin_weights=dict(args.origin_weight),
     )
     if args.publish:
         report = publish_export(root, args.publish, variant, args.sheets)
@@ -513,6 +526,16 @@ def parser() -> argparse.ArgumentParser:
         metavar="ORIGIN",
         help="leave train labels of this label_origin out (repeatable); dev, "
         "calibration and test keep them; needs --variant",
+    )
+    s.add_argument(
+        "--origin-weight",
+        action="append",
+        default=[],
+        type=_origin_weight,
+        metavar="ORIGIN=N",
+        help="repeat train rows of this label_origin N times in all, after "
+        "--balance (repeatable; copies get the id <id>~w<n>); dev, calibration "
+        "and test are unchanged; needs --variant",
     )
     s.add_argument(
         "--publish",

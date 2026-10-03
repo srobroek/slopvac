@@ -1,5 +1,5 @@
 {
-  "cap_usd": 500.0,
+  "cap_usd": 1500.0,
   "jobs": [
     {
       "batch_discount": 0.5,
@@ -2564,8 +2564,152 @@
       "pre_run_estimate_usd": 0.026368,
       "records": 1,
       "stage": "blind-generation-r2-us.anthropic.claude-opus-5-5"
+    },
+    {
+      "completed_at": "2026-10-03T18:58:18Z",
+      "errors": 0,
+      "estimate_usd": 0.504528,
+      "input_tokens": 3154554,
+      "mode": "on-demand",
+      "model_id": "deepseek.v3.2",
+      "output_tokens": 224607,
+      "pre_run_estimate_usd": 1.8185,
+      "records": 4500,
+      "stage": "llm-review-deepseek-r3"
+    },
+    {
+      "completed_at": "2026-10-03T18:58:37Z",
+      "errors": 0,
+      "estimate_usd": 0.504639,
+      "input_tokens": 3154554,
+      "mode": "on-demand",
+      "model_id": "deepseek.v3.2",
+      "output_tokens": 225005,
+      "pre_run_estimate_usd": 1.8185,
+      "records": 4500,
+      "stage": "llm-review-deepseek-r2"
+    },
+    {
+      "completed_at": "2026-10-03T18:58:55Z",
+      "errors": 0,
+      "estimate_usd": 0.504309,
+      "input_tokens": 3154554,
+      "mode": "on-demand",
+      "model_id": "deepseek.v3.2",
+      "output_tokens": 223827,
+      "pre_run_estimate_usd": 1.8185,
+      "records": 4500,
+      "stage": "llm-review-deepseek-r1"
+    },
+    {
+      "completed_at": "2026-10-03T19:27:15Z",
+      "errors": 0,
+      "estimate_usd": 38.557128,
+      "input_tokens": 4952577,
+      "mode": "on-demand",
+      "model_id": "global.anthropic.claude-opus-5-5",
+      "output_tokens": 937341,
+      "pre_run_estimate_usd": 106.515156,
+      "records": 4500,
+      "stage": "llm-review-opus-r3"
+    },
+    {
+      "completed_at": "2026-10-03T19:27:20Z",
+      "errors": 0,
+      "estimate_usd": 38.632548,
+      "input_tokens": 4952577,
+      "mode": "on-demand",
+      "model_id": "global.anthropic.claude-opus-5-5",
+      "output_tokens": 941112,
+      "pre_run_estimate_usd": 106.515156,
+      "records": 4500,
+      "stage": "llm-review-opus-r2"
+    },
+    {
+      "completed_at": "2026-10-03T19:27:38Z",
+      "errors": 0,
+      "estimate_usd": 38.592488,
+      "input_tokens": 4952622,
+      "mode": "on-demand",
+      "model_id": "global.anthropic.claude-opus-5-5",
+      "output_tokens": 939100,
+      "pre_run_estimate_usd": 106.515156,
+      "records": 4500,
+      "stage": "llm-review-opus-r1"
+    },
+    {
+      "completed_at": "2026-10-03T19:31:48Z",
+      "errors": 0,
+      "estimate_usd": 11.819638,
+      "input_tokens": 3140084,
+      "mode": "on-demand",
+      "model_id": "global.openai.gpt-6-sol",
+      "output_tokens": 553947,
+      "pre_run_estimate_usd": 53.028044,
+      "records": 4500,
+      "stage": "llm-review-sol-r1"
+    },
+    {
+      "completed_at": "2026-10-03T19:40:42Z",
+      "errors": 0,
+      "estimate_usd": 11.862658,
+      "input_tokens": 3140084,
+      "mode": "on-demand",
+      "model_id": "global.openai.gpt-6-sol",
+      "output_tokens": 558249,
+      "pre_run_estimate_usd": 53.028044,
+      "records": 4500,
+      "stage": "llm-review-sol-r2"
+    },
+    {
+      "completed_at": "2026-10-03T19:46:41Z",
+      "errors": 0,
+      "estimate_usd": 11.851258,
+      "input_tokens": 3140084,
+      "mode": "on-demand",
+      "model_id": "global.openai.gpt-6-sol",
+      "output_tokens": 557109,
+      "pre_run_estimate_usd": 53.028044,
+      "records": 4500,
+      "stage": "llm-review-sol-r3"
+    },
+    {
+      "completed_at": "2026-10-03T20:14:00Z",
+      "errors": 0,
+      "estimate_usd": 36.276148,
+      "input_tokens": 3188246,
+      "mode": "on-demand",
+      "model_id": "global.xai.grok-4.6",
+      "output_tokens": 4983276,
+      "pre_run_estimate_usd": 35.046044,
+      "records": 4500,
+      "stage": "llm-review-grok-r2"
+    },
+    {
+      "completed_at": "2026-10-03T20:18:09Z",
+      "errors": 0,
+      "estimate_usd": 36.42529,
+      "input_tokens": 3188246,
+      "mode": "on-demand",
+      "model_id": "global.xai.grok-4.6",
+      "output_tokens": 5008133,
+      "pre_run_estimate_usd": 35.046044,
+      "records": 4500,
+      "stage": "llm-review-grok-r3"
+    },
+    {
+      "completed_at": "2026-10-03T20:18:12Z",
+      "errors": 0,
+      "estimate_usd": 36.434218,
+      "input_tokens": 3188246,
+      "mode": "on-demand",
+      "model_id": "global.xai.grok-4.6",
+      "output_tokens": 5009621,
+      "pre_run_estimate_usd": 35.046044,
+      "records": 4500,
+      "stage": "llm-review-grok-r1"
     }
   ],
-  "total_estimate_usd": 369.804096,
-  "updated_at": "2026-10-03T12:25:56Z"
+  "total_estimate_usd": 631.768946,
+  "updated_at": "2026-10-03T20:18:12Z"
 }
