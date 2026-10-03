@@ -287,53 +287,6 @@ rules:
         wrong in English, only risky in translation.
     fix: Replace the word with the one that matches your intended sense.
 
-  - id: latin-abbreviation
-    name: Do not use a Latin abbreviation
-    kind: substitution
-    severity: warning
-    message: 'Use "{replacement}" rather than "{match}".'
-    scope: prose
-    text_type: any
-    tiers:
-      strict: enforced
-      normal: enforced
-      relaxed: advisory
-    substitutions:
-      e.g.: for example
-      i.e.: that is
-      etc.: and others
-      viz.: namely
-      cf.: compare
-      et al.: and others
-      N.B.: note
-      vs.: against
-      ibid.: in the same source
-    ignore_case: true
-    exceptions:
-      - quotation
-      - code-span
-      - api-name
-      - citation
-    allowlist: []
-    examples:
-      - bad: Discard the temporary files (e.g. lock files and partial downloads) after each run.
-        good: >-
-          Discard the temporary files after each run. These files include lock files and
-          partial downloads.
-      - bad: Set the retry limit, timeout, backoff, etc. in the client config.
-        good: Set the retry limit, the timeout, and the backoff in the client config.
-    ai_signal: none
-    ai_signal_source: unmeasured
-    provenance:
-      source: ASD-STE100
-      ste_ref: '9:GR-6'
-      note: >-
-        New in Issue 9, and the most mechanizable of the eight recommendations, which is why
-        it is enforced at normal tier despite being a recommendation. Note the specification's
-        own preferred handling of a trailing "etc." is often deletion rather than substitution,
-        because the list either matters or it does not; the fix text says so.
-    fix: Replace the abbreviation with the English words, or delete the trailing list.
-
   - id: gendered-or-exclusionary-language
     name: Use inclusive language
     kind: substitution

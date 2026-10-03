@@ -236,13 +236,13 @@ def test_rejected_pattern_stays_native(ruleset, tmp_path, vocabulary, monkeypatc
 @needs_vale
 def test_a_split_substitution_map_keeps_its_replacements(compiled, tmp_path):
     """`prose-craft.latinisms` mixes word keys (`via`) with punctuation-ending
-    keys (`e.g.`). One punctuation key used to degrade the whole map to an
+    keys (`i.e.`). One punctuation key used to degrade the whole map to an
     `existence` rule, so Vale said "a simpler word" for `via` too. The word keys
     now compile as a real substitution and keep their replacement; the
     punctuation keys ride in the aliased `--punct` companion."""
     alerts = _lint(
         compiled.config_path,
-        "Send it via the queue.\n\nUse the queue, e.g. for retries.\n",
+        "Send it via the queue.\n\nUse one queue, i.e. the retry queue.\n",
         tmp_path,
         name="latinisms.md",
     )
@@ -1010,10 +1010,49 @@ def test_relaxed_profile_compiles_fewer_rules(ruleset, vocabulary, tmp_path):
 
 
 # --- the substitution fallback ------------------------------------------------
+#
+# No shipped rule has a swap key ending in punctuation, so the fallback is driven
+# from a fixture category; custom rules loaded with --rules-dir still reach it.
+
+PUNCTUATION_KEYS_RULES = """\
+id: fixture
+title: Fixture
+description: One substitution rule whose keys end in punctuation.
+rules:
+  - id: punctuation-keys
+    name: Spell out the abbreviation
+    kind: substitution
+    severity: warning
+    message: 'Use "{replacement}" rather than "{match}".'
+    scope: prose
+    text_type: any
+    substitutions:
+      e.g.: for example
+      i.e.: that is
+    ignore_case: true
+    fix: Spell out the abbreviation.
+    provenance:
+      source: tests/test_compile_vale.py
+      note: Fixture rule for the existence fallback of punctuation-ending keys.
+"""
+
+
+@pytest.fixture(scope="module")
+def punctuation_compiled(vocabulary, tmp_path_factory):
+    rules_dir = tmp_path_factory.mktemp("punctuation-rules")
+    (rules_dir / "fixture.yml").write_text(PUNCTUATION_KEYS_RULES, encoding="utf-8")
+    return compile_ruleset(
+        load_ruleset(extra_dirs=[rules_dir], verify=False),
+        resolve_for(Config(), Path("README.md")),
+        outdir=tmp_path_factory.mktemp("punctuation-compiled"),
+        validate=VALE is not None,
+        vocabulary=vocabulary,
+        force=True,
+    )
 
 
 @needs_vale
-def test_trailing_punctuation_key_still_fires(compiled, tmp_path):
+def test_trailing_punctuation_key_still_fires(punctuation_compiled, tmp_path):
     """A swap key ending in punctuation needs the `existence` fallback.
 
     Vale wraps every `substitution` key in `\\b...\\b`, so `e\\.g\\.` can never
@@ -1021,13 +1060,15 @@ def test_trailing_punctuation_key_still_fires(compiled, tmp_path):
     reported nothing as a substitution and fires correctly as an `existence`.
     """
     checks = _checks(
-        compiled.config_path, "Discard the temporary files (e.g. lock files).\n", tmp_path
+        punctuation_compiled.config_path,
+        "Discard the temporary files (e.g. lock files).\n",
+        tmp_path,
     )
-    assert "ste-practices.latin-abbreviation" in checks
+    assert "fixture.punctuation-keys" in checks
 
 
 @needs_vale
-def test_the_fallback_does_not_match_inside_a_word(compiled, tmp_path):
+def test_the_fallback_does_not_match_inside_a_word(punctuation_compiled, tmp_path):
     """Regression: the fallback lost the boundaries `substitution` had supplied.
 
     A swap key like `e.g.` is a REGEX whose dots match any character, so a bare
@@ -1036,12 +1077,12 @@ def test_the_fallback_does_not_match_inside_a_word(compiled, tmp_path):
     itself.
     """
     alerts = _lint(
-        compiled.config_path,
+        punctuation_compiled.config_path,
         "The service reads the file and writes the merged output to the directory.\n",
         tmp_path,
     )
-    latin = [a for a in alerts if a["Check"] == "ste-practices.latin-abbreviation"]
-    assert not latin, f"matched inside a word: {[a['Match'] for a in latin]}"
+    hits = [a for a in alerts if a["Check"] == "fixture.punctuation-keys"]
+    assert not hits, f"matched inside a word: {[a['Match'] for a in hits]}"
 
 
 @needs_vale

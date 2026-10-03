@@ -80,7 +80,7 @@ covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
 
 ## What it checks
 
-The linter ships 164 checked rules across 26 categories.
+The linter ships 163 checked rules across 26 categories.
 
 | Coverage | Examples |
 | --- | --- |
