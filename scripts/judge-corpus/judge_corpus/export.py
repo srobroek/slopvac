@@ -18,7 +18,9 @@ plain yes/no question (items/semantic-questions.yml) with its Yes and No
 examples.
 
 Each export is a variant under items/export/<variant>/. `min_confidence` drops
-teacher-panel labels below that posterior confidence. `balance="oversample"`
+teacher-panel labels below that posterior confidence. `train_drop_origins`
+leaves train rows of those label origins unlabelled, so they are not exported;
+dev, calibration and test keep them. `balance="oversample"`
 repeats minority-class teacher-panel rows in train until each role's classes
 are level (at most MAX_OVERSAMPLE copies of a row); copies get the id
 `<id>~<n>` and `oversample_of`. Constructions, which are built 50/50, and the
@@ -171,6 +173,7 @@ def export_items(
     variant: str = "full",
     min_confidence: float | None = None,
     balance: str = "none",
+    train_drop_origins: tuple[str, ...] = (),
 ) -> dict:
     out = root / "items/export" / variant
     out.mkdir(parents=True, exist_ok=True)
@@ -183,11 +186,19 @@ def export_items(
         "dropped_below_confidence": {},
         "per_rule": defaultdict(lambda: defaultdict(Counter)),
     }
+    if train_drop_origins:
+        report["train_dropped_origins"] = sorted(train_drop_origins)
+    dropped_by_origin: Counter = Counter()
     for split in SPLITS:
         rows, dropped = [], Counter()
         for x in read_jsonl(root / f"items/{split}.jsonl"):
             row = export_item(root, x)
             if row is None:
+                continue
+            if split == "train" and row["label_origin"] in train_drop_origins:
+                dropped_by_origin[
+                    f"{row['role']}|{row['label_origin']}|{row['label']}"
+                ] += 1
                 continue
             if (
                 min_confidence is not None
@@ -211,6 +222,8 @@ def export_items(
             Counter(f"{r['role']}|{r['label_origin']}|{r['label']}" for r in rows)
         )
         report["dropped_below_confidence"][split] = dict(dropped)
+    if train_drop_origins:
+        report["train_dropped_by_origin"] = dict(dropped_by_origin)
     (out / "export-manifest.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -287,6 +300,13 @@ def publish_export(
         "sampling_weights": manifest.get("sampling_weights"),
         "objects": objects,
     }
+    if manifest.get("train_dropped_origins"):
+        entry["variants"][variant]["train_dropped_origins"] = manifest[
+            "train_dropped_origins"
+        ]
+        entry["variants"][variant]["train_dropped_by_origin"] = manifest[
+            "train_dropped_by_origin"
+        ]
     index_path.write_text(
         json.dumps(index, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

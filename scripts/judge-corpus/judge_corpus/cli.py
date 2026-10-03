@@ -21,6 +21,7 @@ from .roster import build_roster
 from .sources import build_sources
 from .adjudication import ORIGINS, import_labels
 from .bank import generate_bank, verify_bank
+from .blind import add_blind_parser
 from .export import export_items, publish_export
 from .items import build_items, split_items
 from .panel import ANCHORS, MAX_SPEND, collect_panel, prepare_panel, submit_panel
@@ -389,9 +390,15 @@ def cmd_items_import_labels(args: argparse.Namespace) -> None:
 
 def cmd_items_export(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
+    if args.drop_train_origin and not args.variant:
+        raise SystemExit("--drop-train-origin needs --variant")
     variant = args.variant or ("full" if args.min_confidence is None else "confident")
     report = export_items(
-        root, variant=variant, min_confidence=args.min_confidence, balance=args.balance
+        root,
+        variant=variant,
+        min_confidence=args.min_confidence,
+        balance=args.balance,
+        train_drop_origins=tuple(args.drop_train_origin),
     )
     if args.publish:
         report = publish_export(root, args.publish, variant, args.sheets)
@@ -499,6 +506,15 @@ def parser() -> argparse.ArgumentParser:
         help="export subdirectory (default: full, or confident with --min-confidence)",
     )
     s.add_argument(
+        "--drop-train-origin",
+        action="append",
+        default=[],
+        choices=ORIGINS,
+        metavar="ORIGIN",
+        help="leave train labels of this label_origin out (repeatable); dev, "
+        "calibration and test keep them; needs --variant",
+    )
+    s.add_argument(
         "--publish",
         metavar="BUILD_ID",
         help="upload the variant to s3://<corpus bucket>/exports/BUILD_ID/VARIANT/",
@@ -567,6 +583,7 @@ def parser() -> argparse.ArgumentParser:
                 "--prefix", action="append", default=[], metavar="VENDOR=OUTPUT_PREFIX"
             )
         s.set_defaults(func=cmd_panel)
+    add_blind_parser(sub)
     s = sub.add_parser("wait")
     s.add_argument("--job-arn", required=True)
     s.add_argument("--poll", type=float, default=30)

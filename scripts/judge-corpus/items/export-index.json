@@ -1147,6 +1147,266 @@
               }
             }
           }
+        },
+        "human-only": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 239,
+              "finding-confirmation|construction|real-defect": 239,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 41,
+              "finding-confirmation|human-adjudication|real-defect": 51,
+              "finding-confirmation|llm-review-consensus|no-defect": 36,
+              "finding-confirmation|llm-review-consensus|real-defect": 17,
+              "semantic-detection|construction|False": 475,
+              "semantic-detection|construction|True": 475,
+              "semantic-detection|human-adjudication|False": 25,
+              "semantic-detection|human-adjudication|True": 13,
+              "semantic-detection|llm-review-consensus|False": 105,
+              "semantic-detection|llm-review-consensus|True": 2
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 328,
+              "semantic-detection|construction|True": 328
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 655,
+              "finding-confirmation|construction|real-defect": 655,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 75,
+              "finding-confirmation|human-adjudication|real-defect": 96,
+              "finding-confirmation|llm-review-consensus|no-defect": 91,
+              "finding-confirmation|llm-review-consensus|real-defect": 23,
+              "semantic-detection|construction|False": 891,
+              "semantic-detection|construction|True": 891,
+              "semantic-detection|human-adjudication|False": 57,
+              "semantic-detection|human-adjudication|True": 28,
+              "semantic-detection|llm-review-consensus|False": 203,
+              "semantic-detection|llm-review-consensus|True": 4
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1067,
+              "finding-confirmation|construction|real-defect": 1067,
+              "finding-confirmation|human-adjudication|insufficient-context": 64,
+              "finding-confirmation|human-adjudication|no-defect": 96,
+              "finding-confirmation|human-adjudication|real-defect": 50,
+              "finding-confirmation|teacher-panel|insufficient-context": 752,
+              "finding-confirmation|teacher-panel|no-defect": 2286,
+              "finding-confirmation|teacher-panel|real-defect": 2332,
+              "semantic-detection|construction|False": 1994,
+              "semantic-detection|construction|True": 1994,
+              "semantic-detection|human-adjudication|False": 24,
+              "semantic-detection|human-adjudication|True": 184,
+              "semantic-detection|teacher-panel|False": 1177,
+              "semantic-detection|teacher-panel|True": 232
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "human-only/train.jsonl",
+              "sha256": "a0e655791fb9d0ca97a393a9fdd1686b2ba7e37fd8947dfbdb592d4f1ef180ec",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/train.jsonl"
+            },
+            {
+              "path": "human-only/dev.jsonl",
+              "sha256": "669658dec6054fb7d1b681aa0cea1adc9845a63b7c446e7c945c0fde8673e37e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/dev.jsonl"
+            },
+            {
+              "path": "human-only/calibration.jsonl",
+              "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl"
+            },
+            {
+              "path": "human-only/test.jsonl",
+              "sha256": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/test.jsonl"
+            },
+            {
+              "path": "human-only/export-manifest.json",
+              "sha256": "4c5bee0c1bf48d0e6eafda3e51966be9c3b81bb5fd938e4cbed54cefddb676f9",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 816,
+                "items": 102,
+                "teacher_panel_items": 102,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3449,
+                "items": 2203,
+                "teacher_panel_items": 1136,
+                "weight": 1.5656
+              },
+              "\"real-defect\"": {
+                "exported": 3449,
+                "items": 3449,
+                "teacher_panel_items": 2382,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3195,
+                "items": 3195,
+                "teacher_panel_items": 1201,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2410,
+                "items": 2046,
+                "teacher_panel_items": 52,
+                "weight": 1.1779
+              }
+            }
+          },
+          "train_dropped_by_origin": {
+            "finding-confirmation|llm-review-consensus|no-defect": 72,
+            "finding-confirmation|llm-review-consensus|real-defect": 5,
+            "semantic-detection|llm-review-consensus|False": 93,
+            "semantic-detection|llm-review-consensus|True": 1
+          },
+          "train_dropped_origins": [
+            "llm-review-consensus"
+          ]
+        },
+        "llm-only": {
+          "balance": "oversample",
+          "counts": {
+            "calibration": {
+              "finding-confirmation|construction|no-defect": 239,
+              "finding-confirmation|construction|real-defect": 239,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 41,
+              "finding-confirmation|human-adjudication|real-defect": 51,
+              "finding-confirmation|llm-review-consensus|no-defect": 36,
+              "finding-confirmation|llm-review-consensus|real-defect": 17,
+              "semantic-detection|construction|False": 475,
+              "semantic-detection|construction|True": 475,
+              "semantic-detection|human-adjudication|False": 25,
+              "semantic-detection|human-adjudication|True": 13,
+              "semantic-detection|llm-review-consensus|False": 105,
+              "semantic-detection|llm-review-consensus|True": 2
+            },
+            "dev": {
+              "finding-confirmation|construction|no-defect": 178,
+              "finding-confirmation|construction|real-defect": 178,
+              "semantic-detection|construction|False": 328,
+              "semantic-detection|construction|True": 328
+            },
+            "test": {
+              "finding-confirmation|construction|no-defect": 655,
+              "finding-confirmation|construction|real-defect": 655,
+              "finding-confirmation|human-adjudication|insufficient-context": 2,
+              "finding-confirmation|human-adjudication|no-defect": 75,
+              "finding-confirmation|human-adjudication|real-defect": 96,
+              "finding-confirmation|llm-review-consensus|no-defect": 91,
+              "finding-confirmation|llm-review-consensus|real-defect": 23,
+              "semantic-detection|construction|False": 891,
+              "semantic-detection|construction|True": 891,
+              "semantic-detection|human-adjudication|False": 57,
+              "semantic-detection|human-adjudication|True": 28,
+              "semantic-detection|llm-review-consensus|False": 203,
+              "semantic-detection|llm-review-consensus|True": 4
+            },
+            "train": {
+              "finding-confirmation|construction|no-defect": 1067,
+              "finding-confirmation|construction|real-defect": 1067,
+              "finding-confirmation|llm-review-consensus|no-defect": 145,
+              "finding-confirmation|llm-review-consensus|real-defect": 5,
+              "finding-confirmation|teacher-panel|insufficient-context": 752,
+              "finding-confirmation|teacher-panel|no-defect": 2192,
+              "finding-confirmation|teacher-panel|real-defect": 2332,
+              "semantic-detection|construction|False": 1994,
+              "semantic-detection|construction|True": 1994,
+              "semantic-detection|llm-review-consensus|False": 93,
+              "semantic-detection|llm-review-consensus|True": 8,
+              "semantic-detection|teacher-panel|False": 1177,
+              "semantic-detection|teacher-panel|True": 232
+            }
+          },
+          "min_confidence": null,
+          "objects": [
+            {
+              "path": "llm-only/train.jsonl",
+              "sha256": "4a7688c0a07639cbeb876663bdfb1d073a8cebecebf179e48587a5a0d802a08f",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl"
+            },
+            {
+              "path": "llm-only/dev.jsonl",
+              "sha256": "669658dec6054fb7d1b681aa0cea1adc9845a63b7c446e7c945c0fde8673e37e",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/dev.jsonl"
+            },
+            {
+              "path": "llm-only/calibration.jsonl",
+              "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl"
+            },
+            {
+              "path": "llm-only/test.jsonl",
+              "sha256": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/test.jsonl"
+            },
+            {
+              "path": "llm-only/export-manifest.json",
+              "sha256": "b6995b3aa8a9eab4547622ecaf2abbead6589f45da0a2145056f87ee4b29ef14",
+              "uri": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json"
+            }
+          ],
+          "sampling_weights": {
+            "finding-confirmation": {
+              "\"insufficient-context\"": {
+                "exported": 752,
+                "items": 94,
+                "teacher_panel_items": 94,
+                "weight": 8.0
+              },
+              "\"no-defect\"": {
+                "exported": 3404,
+                "items": 2230,
+                "teacher_panel_items": 1163,
+                "weight": 1.5265
+              },
+              "\"real-defect\"": {
+                "exported": 3404,
+                "items": 3404,
+                "teacher_panel_items": 2337,
+                "weight": 1.0
+              }
+            },
+            "semantic-detection": {
+              "false": {
+                "exported": 3264,
+                "items": 3264,
+                "teacher_panel_items": 1270,
+                "weight": 1.0
+              },
+              "true": {
+                "exported": 2234,
+                "items": 2024,
+                "teacher_panel_items": 30,
+                "weight": 1.1038
+              }
+            }
+          },
+          "train_dropped_by_origin": {
+            "finding-confirmation|human-adjudication|insufficient-context": 8,
+            "finding-confirmation|human-adjudication|no-defect": 45,
+            "finding-confirmation|human-adjudication|real-defect": 50,
+            "semantic-detection|human-adjudication|False": 24,
+            "semantic-detection|human-adjudication|True": 23
+          },
+          "train_dropped_origins": [
+            "human-adjudication"
+          ]
         }
       }
     }
