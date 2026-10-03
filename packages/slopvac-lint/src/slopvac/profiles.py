@@ -205,6 +205,11 @@ _OFF_BY_DEFAULT: dict[str, RuleSettings] = {
         severity=Severity.OFF
     ),
     "ste-practices.unclear-pronoun": RuleSettings(severity=Severity.OFF),
+    # Latin abbreviations ("e.g.", "i.e.", "etc.") are ordinary, readable usage in
+    # most prose; human labelling of the judge corpus (2026-10) rejected the
+    # findings. Kept for projects that follow a house style or ASD-STE100 9:GR-6.
+    "ste-practices.latin-abbreviation": RuleSettings(severity=Severity.OFF),
+    "prose-craft.latinisms": RuleSettings(severity=Severity.OFF),
 }
 
 _NORMAL_RULES: dict[str, RuleSettings] = {

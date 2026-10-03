@@ -55,7 +55,7 @@ def test_qualified_ids_are_unique(ruleset):
 
 def test_checked_rule_inventory_is_linter_only(ruleset):
     ids = {rule.qualified_id for rule in ruleset.rules}
-    assert len(ids) == 163
+    assert len(ids) == 164
     assert {
         "ai-tells-structure.negative-inventory-core",
         "ai-tells-agentic.formulaic-universal-heading",
