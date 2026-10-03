@@ -480,6 +480,7 @@ rules:
       relaxed: advisory
     ignore_case: true
     substitutions:
+      '\b(?:e\.g\.|eg\.|e\.g)(?=[\s,])': for example
       '\b(?:i\.e\.|ie\.|i\.e)(?=[\s,])': that is
       '\betc\.?(?=[\s,)]|$)': and so on
       '\bviz\.': namely
@@ -491,19 +492,20 @@ rules:
       '\bvia\b': through, using
     fix: Write the English phrase.
     examples:
-      - bad: 'Pass one glob, i.e. `*.md`.'
-        good: 'Pass one glob, that is `*.md`.'
+      - bad: 'Pass a glob, e.g. `*.md`.'
+        good: 'Pass a glob, for example `*.md`.'
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
       source: Retired Vale style — prose-craft/Latinisms.yml
       url: https://github.com/srobroek/slopvac/blob/75f3bf9182c3df40197e3c4ead2432d9da01ca7b/vale-styles/prose-craft/Latinisms.yml
       note: >-
-        "i.e." is routinely mistaken for "e.g.", and Google, Microsoft, IBM, and Elastic
-        all replace it. "e.g." is left alone: human labelling (2026-10) judged it
-        ordinary, readable usage. `etc.` is included on
+        "e.g." and "i.e." are routinely swapped for each other, and a screen reader
+        says "ee gee". Google, Microsoft, IBM, and Elastic all replace them, which is
+        as close to settled as documentation style gets. `etc.` is included on
         purpose: it means the writer had a list and stopped. Advisory at relaxed:
-        `via` and `ad hoc` are ordinary register in an essay.
+        `via` and `ad hoc` are ordinary register in an essay. Off by profile default (opt
+        in with a `[rules]` entry): human labelling in 2026-10 judged "e.g." ordinary usage.
 
   - id: link-text
     name: Name the destination in the link text

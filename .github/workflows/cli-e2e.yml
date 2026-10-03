@@ -55,7 +55,7 @@ jobs:
           python3 - <<'PY'
           import json
           rules = json.load(open('/tmp/rules.json'))
-          assert len(rules['rules']) == 164, len(rules['rules'])
+          assert len(rules['rules']) == 165, len(rules['rules'])
           assert len(rules['categories']) == 26, len(rules['categories'])
           PY
           slopvac explain orwell.stale-figure --format json > /tmp/explain.json
@@ -192,7 +192,7 @@ jobs:
 
           # Reference, compiled routing, and cache are usable from the wheel.
           slopvac reference > /tmp/reference.md
-          grep -q '163 checked rules' /tmp/reference.md
+          grep -q '164 checked rules' /tmp/reference.md
           rm -rf /tmp/compiled-vale
           slopvac compile \
             --config /tmp/slopvac-project/slopvac.toml \
@@ -350,7 +350,7 @@ jobs:
           python - <<'PY'
           import json
           rules = json.load(open("/tmp/rules.json"))
-          assert len(rules["rules"]) == 164
+          assert len(rules["rules"]) == 165
           assert len(rules["categories"]) == 26
           PY
 
