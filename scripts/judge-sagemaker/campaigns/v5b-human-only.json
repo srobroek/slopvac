@@ -1,0 +1,32 @@
+{
+  "id": "corpus-20261003-s17-v5b/human-only",
+  "results": "corpus-v5b-human-only",
+  "train_models": [
+    "kev-0.8b",
+    "kev-4b",
+    "kev-9b"
+  ],
+  "base_arms": [],
+  "runtime_scale": 2.4574,
+  "eval_runtime": 7200,
+  "data": {
+    "us-east-1": {
+      "train": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json"
+    },
+    "us-west-2": {
+      "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/human-only/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/human-only/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/human-only/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/human-only/export-manifest.json"
+    }
+  },
+  "expected": {
+    "test": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+    "calibration": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b"
+  },
+  "notes": "Label-source ablation on the v5b export: the full variant's train split without the settled LLM-review consensus labels (export --drop-train-origin llm-review-consensus; those rows are unlabelled in train, as if never reviewed), so human answers, teacher-panel labels and constructions remain. Test and calibration are byte-identical to v5b full. Base arms are not repeated: v5b-full evaluates them on the same splits. runtime_scale is 13,319 train rows / 5,420.",
+  "panel_agreement": "items/panel-agreement.json"
+}

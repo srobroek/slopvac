@@ -32,6 +32,18 @@ EPS = 1e-6
 BINS = 15
 SEED = 17
 TEMPS = np.exp(np.linspace(np.log(0.02), np.log(50.0), 1201))
+# Blind-set rows (judge-corpus blind items) carry placeholder labels so run_arm.py can
+# record them; they are never scored. A kind left without labelled test rows reports
+# every test metric as None.
+UNLABELLED = "blind-unlabelled"
+TEST_KEYS = {
+    "noul": ("test_bad_recall", "test_good_recall"),
+    "choice": (
+        "test_order_swap_agreement",
+        "test_order_swap_n",
+        "test_order_swap_mean_abs_shift_real_defect",
+    ),
+}
 
 VERSION_SNIPPETS = {
     "laya": "import json,laya,torch,transformers,fastapi,uvicorn;print(json.dumps({'laya':laya.__version__,"
@@ -236,6 +248,10 @@ def score_kind(records, kind):
             item_id: row["error"] for item_id, row in fwd.items() if item_id not in ok
         }
     }
+    unscored = {i for i, row in ok.items() if row.get("label_origin") == UNLABELLED}
+    if unscored:
+        res["test_unscored_unlabelled"] = len(unscored)
+        ok = {i: row for i, row in ok.items() if i not in unscored}
 
     def arrays(split):
         rows = [row for row in ok.values() if row["split"] == split]
@@ -250,9 +266,22 @@ def score_kind(records, kind):
     Pc, yc, _, _, _ = arrays("calibration")
     Pt, yt, ct, sources, test_rows = arrays("test")
     temperature = fit_temperature(Pc, yc)
-    Ptc = scale(Pt, temperature)
     res["temperature_fit_on_calibration"] = temperature
     res["calibration_raw"] = summarize(Pc, yc, kind)
+    if not test_rows:
+        for key in (
+            "test_raw",
+            "test_cal",
+            "test_raw_ci95",
+            "test_cal_ci95",
+            "test_slices",
+            "test_accuracy_by_source",
+            *TEST_KEYS[kind],
+        ):
+            res[key] = None
+        res["_test_ids"] = []
+        return res
+    Ptc = scale(Pt, temperature)
     res["test_raw"] = summarize(Pt, yt, kind)
     res["test_cal"] = summarize(Ptc, yt, kind)
     res["test_raw_ci95"] = bootstrap(Pt, yt, ct, kind)
@@ -407,6 +436,11 @@ def main(names):
             json.dumps(result, indent=2, default=str) + "\n"
         )
         n, c = noul["test_raw"], choice["test_raw"]
+        if n is None or c is None:
+            print(
+                f"{name}: test metrics absent (noul unscored={noul.get('test_unscored_unlabelled', 0)}, choice unscored={choice.get('test_unscored_unlabelled', 0)}) | T noul={noul['temperature_fit_on_calibration']:.2f} choice={choice['temperature_fit_on_calibration']:.2f}"
+            )
+            continue
         print(
             f"{name}: noul acc={n['accuracy']:.3f} bal={n['balanced_accuracy']:.3f} auroc={n['auroc']} ece raw={n['ece_15']:.3f} cal={noul['test_cal']['ece_15']:.3f} T={noul['temperature_fit_on_calibration']:.2f} | choice acc={c['accuracy']:.3f} bal={c['balanced_accuracy']:.3f} swap={choice['test_order_swap_agreement']:.3f} abstain={c['abstain_rate']:.3f} | p50={result['latency']['single_request_all_test_ms']['p50']:.1f}ms"
         )

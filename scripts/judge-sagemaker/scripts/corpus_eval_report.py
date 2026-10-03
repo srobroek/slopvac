@@ -2,8 +2,10 @@
 
 The generator refuses to publish a partial, mixed-dataset, or untraceable
 report. It expects every registered arm's fetched evaluation artifacts. The
-report leads with per-role headline scores, fine-tune-vs-base deltas, an
-optional comparison with a campaign that shares the test export, and every
+report leads with per-role headline scores and the same balanced accuracy
+sliced by test label origin, then fine-tune-vs-base deltas, an optional
+comparison with a campaign that shares the test export, an optional
+label-source ablation that sets several such campaigns side by side, and every
 ledger job the campaign submitted, failed and stopped attempts included.
 """
 
@@ -39,6 +41,14 @@ CLASS_RECALLS = {
     ),
     "noul": (("True recall", "bad_recall"), ("False recall", "good_recall")),
 }
+# Test label origins in the order the per-origin tables list them; any other
+# origin a test split holds follows, sorted.
+ORIGIN_ORDER = ("human-adjudication", "llm-review-consensus", "construction")
+# metrics.py scores no test row of this origin (blind items carry no label).
+UNSCORED_ORIGINS = ("blind-unlabelled",)
+# metrics.py CHOICE_ORDER: the class index of each choice label.
+CHOICE_ORDER = ("real-defect", "no-defect", "insufficient-context")
+CLASS_NAMES = {"choice": CHOICE_ORDER, "noul": ("False", "True")}
 
 
 def arms_registry():
@@ -81,6 +91,105 @@ def file_sha256(path: Path):
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def predicted_index(prediction):
+    """metrics.py's argmax of the served distribution; the first maximum wins."""
+    answer = prediction["answer"]
+    if prediction["kind"] == "noul":
+        p = float(answer["noul"])
+        return 1 if p > 1 - p else 0
+    probs = [float(answer["probabilities"][label]) for label in CHOICE_ORDER]
+    return max(range(len(probs)), key=probs.__getitem__)
+
+
+def truth_index(kind, label):
+    return int(bool(label)) if kind == "noul" else CHOICE_ORDER.index(label)
+
+
+def slice_score(pairs):
+    """n, class counts and balanced accuracy of (predicted, true) index pairs.
+
+    Balanced accuracy is the headline's (metrics.py summarize() test_raw): the
+    mean recall of classes 0 and 1 that occur, so a choice item labelled
+    insufficient-context counts in n but in no recall."""
+    recalls = []
+    for c in (0, 1):
+        predicted = [p for p, y in pairs if y == c]
+        if predicted:
+            recalls.append(sum(p == c for p in predicted) / len(predicted))
+    return {
+        "n": len(pairs),
+        "counts": Counter(y for _, y in pairs),
+        "balanced_accuracy": statistics.mean(recalls) if recalls else None,
+    }
+
+
+def origin_scores(arm, predictions_path, test_rows, metrics, errors):
+    """Per kind, the all-origin score and one score per test label_origin.
+
+    Forward-order test predictions are joined by id to the arm's test split,
+    whose label and label_origin are authoritative. The all-origin balanced
+    accuracy must reproduce metrics.<kind>.test_raw, which ties the slices to
+    the container's scoring."""
+    by_id = {row["id"]: row for row in test_rows}
+    pairs = {kind: defaultdict(list) for kind in KINDS}
+    seen = set()
+    try:
+        predictions = load_jsonl(predictions_path)
+    except (OSError, json.JSONDecodeError) as exc:
+        errors.append(f"{arm}: invalid predictions {predictions_path} ({exc})")
+        return None
+    for prediction in predictions:
+        if prediction.get("split") != "test" or prediction.get("order") != "forward":
+            continue
+        row = by_id.get(prediction.get("id"))
+        if row is None or row.get("kind") != prediction.get("kind"):
+            errors.append(
+                f"{arm}: prediction {prediction.get('id')!r} is not a {prediction.get('kind')} item of the test split"
+            )
+            continue
+        if row["id"] in seen or prediction.get("label") != row.get("label"):
+            errors.append(
+                f"{arm}: prediction {row['id']} is repeated or disagrees with the test label"
+            )
+            continue
+        seen.add(row["id"])
+        origin = str(row.get("label_origin"))
+        if (
+            origin in UNSCORED_ORIGINS
+            or prediction.get("status") != 200
+            or not prediction.get("answer")
+        ):
+            continue
+        pairs[row["kind"]][origin].append(
+            (predicted_index(prediction), truth_index(row["kind"], row["label"]))
+        )
+    if by_id.keys() - seen:
+        errors.append(
+            f"{arm}: {len(by_id.keys() - seen)} test items have no forward-order prediction"
+        )
+    out = {}
+    for kind in KINDS:
+        overall = slice_score(
+            [pair for group in pairs[kind].values() for pair in group]
+        )
+        expected = metrics.get(kind, {}).get("test_raw", {}).get("balanced_accuracy")
+        if (
+            overall["balanced_accuracy"] is None
+            or not isinstance(expected, (int, float))
+            or abs(overall["balanced_accuracy"] - expected) > 1e-9
+        ):
+            errors.append(
+                f"{arm}/{kind}: balanced accuracy from predictions ({overall['balanced_accuracy']}) does not reproduce metrics test_raw ({expected})"
+            )
+        out[kind] = {
+            "all": overall,
+            "origins": {
+                origin: slice_score(group) for origin, group in pairs[kind].items()
+            },
+        }
+    return out
 
 
 def validate_metric(metric, label, expected_cal_n, expected_test_n, errors):
@@ -272,6 +381,12 @@ def collect(results_root: Path, registry, ledger_path: Path, panel_path: Path):
                 errors.append(
                     f"{arm}/{kind}: test_slices.role must hold only {ROLES[kind]} with n={test_n}"
                 )
+        if not predictions.is_file():
+            errors.append(f"{arm}: missing {predictions}")
+        elif "test" in split_data:
+            result["_origins"] = origin_scores(
+                arm, predictions, split_data["test"]["rows"], metrics, errors
+            )
 
         job_name = run_manifest.get("job_name")
         ledger_job = ledger_jobs.get(job_name)
@@ -742,6 +857,157 @@ def comparison_lines(results, registry, compare, results_dir):
     return lines
 
 
+def mean_sd_text(values):
+    """Seed mean ± sample SD."""
+    if not values or any(v is None for v in values):
+        return "—"
+    sd = statistics.stdev(values) if len(values) > 1 else 0.0
+    return f"{statistics.mean(values):.3f} ± {sd:.3f}"
+
+
+def origin_ba(result, kind, origin=None):
+    """Balanced accuracy over all test items of a kind, or one label origin's."""
+    scores = result["_origins"][kind]
+    score = scores["all"] if origin is None else scores["origins"].get(origin)
+    return None if score is None else score["balanced_accuracy"]
+
+
+def origin_columns(result_sets, kind):
+    """The test label origins of a kind: ORIGIN_ORDER first, then any other."""
+    present = {
+        origin
+        for results in result_sets
+        for result in results.values()
+        for origin in result["_origins"][kind]["origins"]
+    }
+    return [o for o in ORIGIN_ORDER if o in present] + sorted(
+        present - set(ORIGIN_ORDER)
+    )
+
+
+def origin_cells(names, results, kind, origins):
+    """All-test and per-origin balanced accuracy: one arm's values, or the seed
+    mean ± SD of a fine-tune family."""
+    columns = (None, *origins)
+    if len(names) == 1:
+        return [fmt(origin_ba(results[names[0]], kind, o)) for o in columns]
+    return [
+        mean_sd_text([origin_ba(results[name], kind, o) for name in names])
+        for o in columns
+    ]
+
+
+def origin_counts_text(result, kind, origins):
+    classes = CLASS_NAMES[kind]
+    parts = []
+    for origin in origins:
+        score = result["_origins"][kind]["origins"][origin]
+        counts = ", ".join(
+            f"{classes[c]}={score['counts'][c]}" for c in sorted(score["counts"])
+        )
+        parts.append(f"`{origin}` {score['n']} ({counts})")
+    return "; ".join(parts)
+
+
+def origin_lines(results, registry, results_dir):
+    lines = [
+        "## Balanced accuracy by test label origin",
+        "",
+        f"Computed by this generator from each arm's forward-order test predictions (`results/{results_dir}/<arm>/results/predictions/<arm>.jsonl`) joined by item id to the arm's hash-checked test split (`<arm>/data/test.jsonl`), which supplies `label` and `label_origin`. Balanced accuracy is the headline's (`test_raw`): the mean recall of real-defect and no-defect for finding confirmation, where insufficient-context items count in n only, and of True and False for semantic detection. The *All* column reproduces each arm's headline; the generator refuses to render when it does not. A slice that holds one class reduces to that class's recall, and small slices are noisy. Fine-tune family rows give the seed mean ± sample SD over seeds {', '.join(map(str, SEEDS))}.",
+        "",
+    ]
+    grouped = families(registry)
+    first = next(iter(results.values()))
+    for kind in ("choice", "noul"):
+        origins = origin_columns([results], kind)
+        absent = [o for o in ORIGIN_ORDER if o not in origins]
+        lines += [
+            f"### {ROLES[kind]} (`{kind}`)",
+            "",
+            f"Test items by origin: {origin_counts_text(first, kind, origins)}."
+            + (
+                f" No test item has origin {', '.join(f'`{o}`' for o in absent)}."
+                if absent
+                else ""
+            ),
+            "",
+        ]
+        rows = []
+        for base, fine_tunes in grouped.items():
+            for name in (base, *fine_tunes):
+                if name in results:
+                    rows.append([name, *origin_cells([name], results, kind, origins)])
+            if fine_tunes and complete_family(fine_tunes, results):
+                rows.append(
+                    [
+                        f"{base} FT mean ± SD",
+                        *origin_cells(fine_tunes, results, kind, origins),
+                    ]
+                )
+        lines += [table(["Arm", "All", *origins], rows), ""]
+    return lines
+
+
+def ablation_lines(results, registry, campaign, peers):
+    """This campaign and each --ablation campaign side by side: per role and
+    test label origin, the seed mean ± SD of every complete fine-tune family,
+    and each base arm from the first campaign that evaluates it."""
+    campaigns = [(campaign, results, registry), *peers]
+    order = []
+    for _, _, other_registry in campaigns:
+        order += [base for base in families(other_registry) if base not in order]
+    described = "; ".join(
+        f"`{other['results']}` (`{other['id']}`"
+        + (
+            f", checkpoints from `{other['checkpoints_from']}`"
+            if other.get("checkpoints_from")
+            else ""
+        )
+        + ")"
+        for other, _, _ in campaigns
+    )
+    lines = [
+        "## Label-source ablation",
+        "",
+        f"Campaigns on this campaign's test and calibration export (hashes verified): {described}. Each campaign's notes say what its fine-tunes trained on.",
+        "",
+        "Cells are balanced accuracy as defined under *Balanced accuracy by test label origin*: the seed mean ± sample SD of a complete fine-tune family, or a single base-arm run taken from the first listed campaign that evaluates it. A gap between two families reflects more than training-seed variation only when it is well beyond both SDs.",
+        "",
+    ]
+    for kind in ("choice", "noul"):
+        origins = origin_columns([r for _, r, _ in campaigns], kind)
+        rows = []
+        for base in order:
+            source = next((c for c in campaigns if base in c[1]), None)
+            if source is not None:
+                rows.append(
+                    [
+                        base,
+                        f"base, `{source[0]['results']}`",
+                        "1",
+                        *origin_cells([base], source[1], kind, origins),
+                    ]
+                )
+            for other, other_results, other_registry in campaigns:
+                fine_tunes = families(other_registry).get(base, [])
+                if fine_tunes and complete_family(fine_tunes, other_results):
+                    rows.append(
+                        [
+                            f"{base} FT",
+                            f"`{other['results']}`",
+                            str(len(fine_tunes)),
+                            *origin_cells(fine_tunes, other_results, kind, origins),
+                        ]
+                    )
+        lines += [
+            f"### {ROLES[kind]} (`{kind}`)",
+            "",
+            table(["Family", "Arms from", "Seeds", "All", *origins], rows),
+            "",
+        ]
+    return lines
+
+
 def campaign_jobs(ledger, campaign, registry, unmarked_by_time):
     """Ledger jobs this campaign submitted, as the scheduler attributes them:
     training jobs whose train data is the campaign export, evaluation jobs
@@ -923,6 +1189,7 @@ def render(
     results_dir,
     jobs,
     compare=None,
+    ablation=(),
     notes=(),
 ):
     builder, splits = signature
@@ -956,9 +1223,12 @@ def render(
         )
     lines += [""]
     lines += headline_lines(results, registry, test_rows, results_dir)
+    lines += origin_lines(results, registry, results_dir)
     lines += ft_vs_base_lines(results, registry, compare)
     if compare is not None:
         lines += comparison_lines(results, registry, compare, results_dir)
+    if ablation:
+        lines += ablation_lines(results, registry, campaign, ablation)
     lines += jobs_lines(results, registry, training, evaluation)
     lines += [
         "## Panel agreement caveat",
@@ -1292,6 +1562,14 @@ def main():
         "fine-tune comparison and supplies base arms this campaign does not evaluate",
     )
     parser.add_argument(
+        "--ablation",
+        type=Path,
+        action="append",
+        default=[],
+        help="campaign JSON sharing this campaign's test/calibration export, set side "
+        "by side with it in a label-source ablation section (repeatable)",
+    )
+    parser.add_argument(
         "--note",
         action="append",
         default=[],
@@ -1311,20 +1589,28 @@ def main():
             results_root, registry, args.ledger, panel_path
         )
         jobs = campaign_jobs(ledger, campaign, registry, unmarked_by_time=is_round1)
-        compare = None
-        if args.compare is not None:
-            other, _ = load_campaign(args.compare, script)
+
+        def load_other(path, flag):
+            """A complete campaign on this campaign's test/calibration export."""
+            other, _ = load_campaign(path, script)
+            other_registry = campaign_arms(other, arms_registry())
             other_results, other_signature, _, _ = collect(
                 script.parents[1] / "results" / other["results"],
-                campaign_arms(other, arms_registry()),
+                other_registry,
                 args.ledger,
                 corpus / other["panel_agreement"],
             )
             if other_signature != signature:
                 raise ValueError(
-                    f"--compare {args.compare}: test/calibration export differs from this campaign's"
+                    f"{flag} {path}: test/calibration export differs from this campaign's"
                 )
+            return other, other_results, other_registry
+
+        compare = None
+        if args.compare is not None:
+            other, other_results, _ = load_other(args.compare, "--compare")
             compare = (other["results"], other_results)
+        ablation = [load_other(path, "--ablation") for path in args.ablation]
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -1339,6 +1625,7 @@ def main():
         results_dir=campaign["results"],
         jobs=jobs,
         compare=compare,
+        ablation=ablation,
         notes=args.note,
     )
     output.parent.mkdir(parents=True, exist_ok=True)

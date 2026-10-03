@@ -73,10 +73,14 @@ only one scheduler runs at a time). A campaign names its export `id`, `results` 
 `train_models` × seed fine-tune arms on the usable checkpoints of the named campaign id, passing
 `--cross-export-checkpoint`.
 `campaigns/v3-on-v4.json` uses it to test the v3-full fine-tunes on the v4 full test export.
+`campaigns/v5b-human-only.json` and `campaigns/v5b-llm-only.json` are a label-source ablation of
+`v5b-full`: their exports drop the `llm-review-consensus` or the `human-adjudication` train labels
+(judge-corpus `items export --drop-train-origin`) and keep v5b full's test and calibration bytes, so
+they train Kev fine-tunes only and borrow v5b-full's base arms.
 
 ### Campaign reports
 
-`scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` once every arm of a campaign has fetched results. It leads with per-role (finding-confirmation, semantic-detection) balanced accuracy, class recalls, ECE, GPU, latency and cost per arm and seed mean ± SD, then fine-tune-vs-base deltas, a comparison with `--compare` (a campaign on the same test export; it also supplies base arms the campaign does not evaluate), and every ledger job the campaign submitted with failed and stopped attempts. It refuses to render while an arm is missing. `--note` adds a status line. The committed reports were generated with:
+`scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` once every arm of a campaign has fetched results. It leads with per-role (finding-confirmation, semantic-detection) balanced accuracy, class recalls, ECE, GPU, latency and cost per arm and seed mean ± SD, then the same balanced accuracy per role sliced by test `label_origin` (computed from each arm's predictions joined to its test split; the all-origin value must reproduce the headline), fine-tune-vs-base deltas, a comparison with `--compare` (a campaign on the same test export; it also supplies base arms the campaign does not evaluate), a label-source ablation with `--ablation` (repeatable; campaigns on the same test export side by side, seed mean ± SD per role and origin slice), and every ledger job the campaign submitted with failed and stopped attempts. It refuses to render while an arm of any named campaign is missing. `--note` adds a status line. The committed reports were generated with:
 
 ```sh
 V4="Pre-v4 baseline. v4 rebuilds the judge items against the merged lint rules (main 7544c168e0: curly-quotes and uniform-paragraph-mass retired, about 13 rules narrowed) and the human-labelled rows, then re-tests every arm on the rebuilt items; v4 scores are not comparable with this test export."
@@ -84,6 +88,12 @@ V3="The v3 full and confident variants differ only in training data: confident d
 uv run --frozen python scripts/corpus_eval_report.py --note "$V4"
 uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v3-full.json --compare campaigns/v3-confident.json --note "$V4" --note "$V3"
 uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v3-confident.json --compare campaigns/v3-full.json --note "$V4" --note "$V3"
+```
+
+Once the ablation campaigns finish, the ablation section renders with:
+
+```sh
+uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v5b-full.json --ablation campaigns/v5b-human-only.json --ablation campaigns/v5b-llm-only.json --ablation campaigns/v3-on-v5b.json
 ```
 
 ### What `submit` does
