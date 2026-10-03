@@ -514,7 +514,8 @@ def _fenced_spans(text: str) -> list[tuple[int, int]]:
 
 def prose_words(text: str) -> int:
     """Words of prose in `text`. Fenced and indented code, headings, rules,
-    table separators, directives, prompts, inline code, HTML tags, URLs, list
+    table separators, directives, prompts, markdown link-reference
+    definitions, lines that are only a URL, inline code, HTML tags, URLs, list
     markers and emphasis marks do not count; table cell text does."""
     lines = text.splitlines()
     kept, fenced = [], False
@@ -533,6 +534,8 @@ def prose_words(text: str) -> int:
             or re.match(r"#{1,6}(\s|$)", s)
             or re.fullmatch(r"[\s|:=~^`*_+-]+", s)
             or s.startswith(("..", ">>>", "$ "))
+            or re.match(r"\[[^\]]+\]:\s", s)
+            or re.fullmatch(r"<?(?:[A-Za-z][A-Za-z0-9+.-]*://|www\.)\S+>?", s)
         ):
             continue
         s = re.sub(r"`[^`]*`", " ", s)

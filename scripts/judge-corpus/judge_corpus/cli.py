@@ -19,7 +19,7 @@ from .bedrock import download_outputs, provision, submit, upload, upload_text, w
 from .common import read_jsonl, token_estimate, write_jsonl
 from .roster import build_roster
 from .sources import build_sources
-from .adjudication import import_labels
+from .adjudication import ORIGINS, import_labels
 from .bank import generate_bank, verify_bank
 from .export import export_items, publish_export
 from .items import build_items, split_items
@@ -383,7 +383,8 @@ def cmd_items_split(args: argparse.Namespace) -> None:
 
 def cmd_items_import_labels(args: argparse.Namespace) -> None:
     root = root_from_args(args.root)
-    print(json.dumps(import_labels(root, [Path(p) for p in args.sheets]), indent=2))
+    report = import_labels(root, [Path(p) for p in args.sheets], origin=args.origin)
+    print(json.dumps(report, indent=2))
 
 
 def cmd_items_export(args: argparse.Namespace) -> None:
@@ -514,6 +515,12 @@ def parser() -> argparse.ArgumentParser:
         help="merge human labels from label-*.csv sheets into the item splits",
     )
     s.add_argument("sheets", nargs="+", help="filled-in label sheet CSV files")
+    s.add_argument(
+        "--origin",
+        choices=ORIGINS,
+        default=ORIGINS[0],
+        help="label_origin to record; llm-review-consensus never replaces a human label",
+    )
     s.set_defaults(func=cmd_items_import_labels)
     s = item_actions.add_parser(
         "draft-questions",

@@ -1,25 +1,25 @@
 {
-  "bank_sha256": "3782298c16ab1d25ea303c67be94317da66b6b55e0e9a16f75489756f5260f30",
-  "bank_uri": "s3://slopvac-judge-536697262379-84848969f6/bank/bank-3782298c16ab.jsonl",
+  "bank_sha256": "d5b6f2071053b088cf951d6e158ff1dbe4778089b9792bfbe352687808e2e10b",
+  "bank_uri": "s3://slopvac-judge-536697262379-84848969f6/bank/bank-d5b6f2071053.jsonl",
   "generator": "us.anthropic.claude-sonnet-5",
   "judges": {
     "anthropic": "us.anthropic.claude-sonnet-5",
     "openai": "openai.gpt-oss-120b-1:0"
   },
   "kept_by_kind": {
-    "finding-confirmation|bad": 2053,
+    "finding-confirmation|bad": 2018,
     "finding-confirmation|good": 3298,
     "finding-confirmation|near": 1224,
-    "finding-confirmation|tricky": 603,
+    "finding-confirmation|tricky": 593,
     "semantic-detection|bad": 1012,
     "semantic-detection|good": 476,
     "semantic-detection|near": 469
   },
   "kept_by_split": {
-    "finding-confirmation|bad|calibration": 272,
-    "finding-confirmation|bad|dev": 238,
-    "finding-confirmation|bad|test": 637,
-    "finding-confirmation|bad|train": 906,
+    "finding-confirmation|bad|calibration": 267,
+    "finding-confirmation|bad|dev": 227,
+    "finding-confirmation|bad|test": 631,
+    "finding-confirmation|bad|train": 893,
     "finding-confirmation|good|calibration": 403,
     "finding-confirmation|good|dev": 380,
     "finding-confirmation|good|test": 1073,
@@ -28,10 +28,10 @@
     "finding-confirmation|near|dev": 141,
     "finding-confirmation|near|test": 391,
     "finding-confirmation|near|train": 547,
-    "finding-confirmation|tricky|calibration": 65,
+    "finding-confirmation|tricky|calibration": 63,
     "finding-confirmation|tricky|dev": 65,
-    "finding-confirmation|tricky|test": 231,
-    "finding-confirmation|tricky|train": 242,
+    "finding-confirmation|tricky|test": 229,
+    "finding-confirmation|tricky|train": 236,
     "semantic-detection|bad|calibration": 137,
     "semantic-detection|bad|dev": 120,
     "semantic-detection|bad|test": 296,
@@ -45,7 +45,7 @@
     "semantic-detection|near|test": 148,
     "semantic-detection|near|train": 134
   },
-  "lint_source": "/Users/sjors/tmp/worktrees/slopvac/lint-main-7544c16/packages/slopvac-lint",
+  "lint_source": "/Users/sjors/tmp/worktrees/slopvac/lint-main-ca941af/packages/slopvac-lint",
   "passed_lint_failed_teachers": {
     "ai-residue.chat-leakage|bad": 2,
     "ai-residue.chat-leakage|near": 1,
@@ -251,9 +251,7 @@
     "prose-craft.hyphens|bad": 5,
     "prose-craft.hyphens|good": 1,
     "prose-craft.hyphens|tricky": 1,
-    "prose-craft.latinisms|bad": 7,
     "prose-craft.latinisms|near": 1,
-    "prose-craft.latinisms|tricky": 6,
     "prose-craft.link-text|good": 1,
     "prose-craft.link-text|near": 1,
     "prose-craft.link-text|tricky": 12,
@@ -395,8 +393,7 @@
     "ste-practices.gendered-or-exclusionary-language|good": 2,
     "ste-practices.gendered-or-exclusionary-language|near": 3,
     "ste-practices.inconsistent-wording-for-same-step|good": 3,
-    "ste-practices.latin-abbreviation|bad": 2,
-    "ste-practices.latin-abbreviation|tricky": 16,
+    "ste-practices.latin-abbreviation|near": 1,
     "ste-practices.omitted-conjunction-that|bad": 17,
     "ste-practices.omitted-conjunction-that|near": 1,
     "ste-practices.omitted-conjunction-that|tricky": 5,
@@ -4204,11 +4201,9 @@
     "prose-craft.latinisms": {
       "bad": {
         "generated": 22,
-        "kept": 15,
+        "kept": 0,
         "rejected": {
-          "judge-disagree:anthropic": 2,
-          "judge-disagree:anthropic+openai": 4,
-          "judge-disagree:openai": 1
+          "lint-silent": 22
         }
       },
       "description": "Latin abbreviation: use '\u2026' instead of '\u2026'",
@@ -4230,11 +4225,9 @@
       "role": "finding-confirmation",
       "tricky": {
         "generated": 16,
-        "kept": 10,
+        "kept": 0,
         "rejected": {
-          "judge-disagree:anthropic": 2,
-          "judge-disagree:anthropic+openai": 3,
-          "judge-disagree:openai": 1
+          "lint-silent": 16
         }
       }
     },
@@ -6524,10 +6517,9 @@
     "ste-practices.latin-abbreviation": {
       "bad": {
         "generated": 22,
-        "kept": 20,
+        "kept": 0,
         "rejected": {
-          "judge-disagree:anthropic+openai": 1,
-          "judge-disagree:openai": 1
+          "lint-silent": 22
         }
       },
       "description": "Use \"\u2026\" rather than \"\u2026\".",
@@ -6543,7 +6535,7 @@
         "generated": 10,
         "kept": 9,
         "rejected": {
-          "lint-fired": 1
+          "judge-disagree:anthropic+openai": 1
         }
       },
       "role": "finding-confirmation",
@@ -6551,9 +6543,7 @@
         "generated": 16,
         "kept": 0,
         "rejected": {
-          "judge-disagree:anthropic": 2,
-          "judge-disagree:anthropic+openai": 13,
-          "judge-disagree:openai": 1
+          "lint-silent": 16
         }
       }
     },
@@ -8248,27 +8238,27 @@
   "seed": 17,
   "verify_jobs": {
     "anthropic": {
-      "completed_at": "2026-10-02T13:14:33Z",
+      "completed_at": "2026-10-03T05:02:09Z",
       "errors": 0,
-      "estimate_usd": 0.0,
-      "input_tokens": 0,
+      "estimate_usd": 0.001256,
+      "input_tokens": 573,
       "mode": "on-demand",
       "model_id": "us.anthropic.claude-sonnet-5",
-      "output_tokens": 0,
-      "pre_run_estimate_usd": 0.0,
-      "records": 0,
+      "output_tokens": 11,
+      "pre_run_estimate_usd": 0.001742,
+      "records": 1,
       "stage": "bank-verify-anthropic"
     },
     "openai": {
-      "completed_at": "2026-10-02T13:14:34Z",
+      "completed_at": "2026-10-03T05:02:11Z",
       "errors": 0,
-      "estimate_usd": 0.0,
-      "input_tokens": 0,
+      "estimate_usd": 9.5e-05,
+      "input_tokens": 450,
       "mode": "on-demand",
       "model_id": "openai.gpt-oss-120b-1:0",
-      "output_tokens": 0,
-      "pre_run_estimate_usd": 0.0,
-      "records": 0,
+      "output_tokens": 46,
+      "pre_run_estimate_usd": 0.000116,
+      "records": 1,
       "stage": "bank-verify-openai"
     }
   }

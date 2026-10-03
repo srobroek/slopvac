@@ -2048,8 +2048,80 @@
       "pre_run_estimate_usd": 14.266478,
       "records": 1200,
       "stage": "llm-review-sol-r3"
+    },
+    {
+      "completed_at": "2026-10-03T05:02:09Z",
+      "errors": 0,
+      "estimate_usd": 0.001256,
+      "input_tokens": 573,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 11,
+      "pre_run_estimate_usd": 0.001742,
+      "records": 1,
+      "stage": "bank-verify-anthropic"
+    },
+    {
+      "completed_at": "2026-10-03T05:02:11Z",
+      "errors": 0,
+      "estimate_usd": 9.5e-05,
+      "input_tokens": 450,
+      "mode": "on-demand",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_tokens": 46,
+      "pre_run_estimate_usd": 0.000116,
+      "records": 1,
+      "stage": "bank-verify-openai"
+    },
+    {
+      "completed_at": "2026-10-03T05:21:25Z",
+      "errors": 0,
+      "estimate_usd": 0.42903,
+      "input_tokens": 206335,
+      "mode": "on-demand",
+      "model_id": "us.anthropic.claude-sonnet-5",
+      "output_tokens": 1636,
+      "pre_run_estimate_usd": 0.399758,
+      "records": 102,
+      "stage": "panel-anthropic"
+    },
+    {
+      "completed_at": "2026-10-03T05:21:29Z",
+      "errors": 0,
+      "estimate_usd": 0.001795,
+      "input_tokens": 12649,
+      "mode": "on-demand",
+      "model_id": "deepseek.v3.2",
+      "output_tokens": 85,
+      "pre_run_estimate_usd": 0.002407,
+      "records": 10,
+      "stage": "panel-deepseek"
+    },
+    {
+      "completed_at": "2026-10-03T05:21:42Z",
+      "errors": 0,
+      "estimate_usd": 0.286796,
+      "input_tokens": 139456,
+      "mode": "on-demand",
+      "model_id": "mistral.mistral-large-3-675b-instruct",
+      "output_tokens": 1314,
+      "pre_run_estimate_usd": 0.367834,
+      "records": 104,
+      "stage": "panel-mistral"
+    },
+    {
+      "completed_at": "2026-10-03T05:22:01Z",
+      "errors": 0,
+      "estimate_usd": 0.026401,
+      "input_tokens": 146447,
+      "mode": "on-demand",
+      "model_id": "openai.gpt-oss-120b-1:0",
+      "output_tokens": 7390,
+      "pre_run_estimate_usd": 0.030153,
+      "records": 108,
+      "stage": "panel-openai"
     }
   ],
-  "total_estimate_usd": 366.839878,
-  "updated_at": "2026-10-02T14:47:26Z"
+  "total_estimate_usd": 367.585251,
+  "updated_at": "2026-10-03T05:22:01Z"
 }

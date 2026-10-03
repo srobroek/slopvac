@@ -16,6 +16,12 @@ finding takes 1 (real-defect), 0 (false-positive) or - (insufficient-context);
 a yes/no question takes 1 or 0, written as JSON booleans. The spelled-out
 labels are accepted too. An invalid label stops the import and lists the
 offending rows; nothing is written.
+
+With `origin=llm-review-consensus` the sheet holds the settled consensus of
+the LLM review (llm_review.py) in its `answer` column. Those items get
+`label_origin=llm-review-consensus`, `label_confidence=1.0` and
+`llm_review_labels` instead. Such a label replaces a teacher-panel label but
+never a human one: items that already carry a human label are skipped.
 """
 
 from __future__ import annotations
@@ -68,7 +74,14 @@ def _cohen_kappa(pairs: list[tuple]) -> float | None:
     return 1.0 if expected == 1 else (observed - expected) / (1 - expected)
 
 
-def import_labels(root: Path, sheets: list[Path]) -> dict:
+HUMAN = "human-adjudication"
+LLM_CONSENSUS = "llm-review-consensus"
+ORIGINS = (HUMAN, LLM_CONSENSUS)
+
+
+def import_labels(root: Path, sheets: list[Path], origin: str = HUMAN) -> dict:
+    if origin not in ORIGINS:
+        raise ValueError(f"origin must be one of {ORIGINS}, not {origin!r}")
     items = {s: list(read_jsonl(root / f"items/{s}.jsonl")) for s in SPLITS}
     by_id = {x["id"]: (s, x) for s, rows in items.items() for x in rows}
     decided, disagreements, errors = {}, [], []
@@ -113,18 +126,29 @@ def import_labels(root: Path, sheets: list[Path]) -> dict:
     if errors:
         raise ValueError("labels not imported:\n- " + "\n- ".join(errors))
     changed = Counter()
+    kept_human = []
+    labels_key = "human_labels" if origin == HUMAN else "llm_review_labels"
     for item_id, (label, given, notes) in decided.items():
         split, item = by_id[item_id]
+        if (
+            origin != HUMAN
+            and item.get("label_origin") == HUMAN
+            and item.get("label") is not None
+        ):
+            kept_human.append(item_id)
+            continue
         item["label"] = label
-        item["label_origin"] = "human-adjudication"
+        item["label_origin"] = origin
         item["label_confidence"] = 1.0
-        item["human_labels"] = {**given, **({"notes": notes} if notes else {})}
+        item[labels_key] = {**given, **({"notes": notes} if notes else {})}
         changed[(split, item["role"], str(label))] += 1
     for split in {by_id[i][0] for i in decided}:
         write_jsonl(root / f"items/{split}.jsonl", items[split])
     return {
+        "origin": origin,
         "rows_read": rows_read,
-        "labelled_items": len(decided),
+        "labelled_items": sum(changed.values()),
+        "kept_human_label": len(kept_human),
         "rater_disagreements": len(disagreements),
         "cohen_kappa_double_labelled": {
             role: _cohen_kappa(p) for role, p in pairs.items()
