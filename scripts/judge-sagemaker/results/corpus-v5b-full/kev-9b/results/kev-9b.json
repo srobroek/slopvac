@@ -1,0 +1,750 @@
+{
+  "arm": "kev-9b",
+  "family": "kev",
+  "model_repo": "jaredpalmer/kev-9b",
+  "model_revision": "2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+  "base_model": "Qwen/Qwen3.5-9B-Base",
+  "base_revision": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+  "local_weights": null,
+  "upstream_repo_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+  "served_model_field_sent": "kev-latest",
+  "served_model_field_returned": [
+    "kev-latest"
+  ],
+  "served_checkpoint_routed": [],
+  "runtime": {
+    "torch": "2.8.0+cu129",
+    "transformers": "5.17.0",
+    "peft": "0.21.0",
+    "mlx": null,
+    "mlx-lm": null,
+    "fastapi": "0.141.1",
+    "uvicorn": "0.53.0",
+    "numpy": "2.5.3",
+    "fla-core": "0.5.2",
+    "python": "3.12.10"
+  },
+  "device": "cuda/torch/bfloat16",
+  "health": {
+    "models": [
+      {
+        "name": "kev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-9B-Base, serving jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c at temperature 2.30",
+        "release_date": "2026-10-03",
+        "run": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base": "Qwen/Qwen3.5-9B-Base",
+        "lora": 16,
+        "device": "cuda",
+        "backend": "torch",
+        "dtype": "bfloat16",
+        "temperature": 2.2973967099940698,
+        "cuda_graphs": {
+          "captured": 0,
+          "kept": 0,
+          "pending": 0,
+          "failed": 0
+        },
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      },
+      {
+        "name": "jev-latest",
+        "description": "Kev pointer head on Qwen/Qwen3.5-9B-Base, serving jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c at temperature 2.30",
+        "release_date": "2026-10-03",
+        "run": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+        "base": "Qwen/Qwen3.5-9B-Base",
+        "lora": 16,
+        "device": "cuda",
+        "backend": "torch",
+        "dtype": "bfloat16",
+        "temperature": 2.2973967099940698,
+        "cuda_graphs": {
+          "captured": 0,
+          "kept": 0,
+          "pending": 0,
+          "failed": 0
+        },
+        "prefix_cache": {
+          "size": 4,
+          "min_state_tokens": 0,
+          "max_tokens": 65536,
+          "hits": 0,
+          "misses": 0,
+          "cached_states": 0,
+          "oom_retries": 0
+        },
+        "batches": {
+          "count": 0,
+          "requests": 0,
+          "queued": 0
+        }
+      }
+    ]
+  },
+  "hardware": {
+    "cpu": "AMD EPYC 7R13 Processor",
+    "cpu_count": 16,
+    "memory_bytes": 133268533248,
+    "linux": "6.12.103-127.188.amzn2023.x86_64",
+    "machine": "x86_64",
+    "gpu": "NVIDIA L40S",
+    "gpu_memory_bytes": 47667740672,
+    "gpu_count": 1,
+    "compute_capability": "8.9",
+    "torch_cuda": "12.9",
+    "nvidia_driver": "595.91.07",
+    "instance_type": "ml.g6e.4xlarge"
+  },
+  "dataset": {
+    "test": {
+      "sha256": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+      "items": 3671
+    },
+    "calibration": {
+      "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+      "items": 1720
+    }
+  },
+  "inventory": {
+    "disk_bytes": 19530970823,
+    "disk_bytes_adapter": 201659847,
+    "disk_bytes_base": 19329310976,
+    "params_language_model": 7936684544,
+    "params_lora": 43278336,
+    "params_head": 2097664,
+    "params_total_served": 7982060544,
+    "params_base_unused": {
+      "lm_head": 1017118720,
+      "mtp": 243290624,
+      "visual": 456010480
+    }
+  },
+  "load_time_s": 88.9,
+  "warmup_latency_ms": [
+    10731.9,
+    141.6,
+    138.7
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 9679843328,
+    "peak_gpu_memory_bytes_sampled": 43939528704,
+    "phys_footprint_bytes": 9679843328,
+    "lifetime_max_phys_footprint_bytes": 20421840896,
+    "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 5268,
+      "p50": 62.516000000000005,
+      "p95": 131.35719999999998
+    },
+    "single_request_noul_test_ms": {
+      "n": 2074,
+      "p50": 61.671499999999995,
+      "p95": 114.57569999999993
+    }
+  },
+  "throughput": null,
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.0813826568002938,
+      "calibration_raw": {
+        "n": 1095,
+        "accuracy": 0.6703196347031963,
+        "balanced_accuracy": 0.6492831843481194,
+        "auroc": 0.7527188396019565,
+        "brier": 0.20249633413698628,
+        "nll": 0.5906023273968423,
+        "ece_15": 0.04730210045662095
+      },
+      "test_raw": {
+        "n": 2074,
+        "accuracy": 0.6986499517839923,
+        "balanced_accuracy": 0.6794576857657338,
+        "auroc": 0.801227534961826,
+        "brier": 0.1845343856653809,
+        "nll": 0.5457183542026484,
+        "ece_15": 0.044598023143683725
+      },
+      "test_cal": {
+        "n": 2074,
+        "accuracy": 0.6986499517839923,
+        "balanced_accuracy": 0.6794576857657338,
+        "auroc": 0.801227534961826,
+        "brier": 0.18496187403254094,
+        "nll": 0.547602702452988,
+        "ece_15": 0.04852150550764143
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.6308079885406346,
+          0.7264056025301371
+        ],
+        "ece_15": [
+          0.027522084630306386,
+          0.0807250231327088
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.033681487321929944,
+          0.08402772186988612
+        ]
+      },
+      "test_bad_recall": 0.504875406283857,
+      "test_good_recall": 0.8540399652476107,
+      "test_slices": {
+        "role": {
+          "semantic-detection": {
+            "n": 2074,
+            "accuracy": 0.6986499517839923,
+            "balanced_accuracy": 0.6794576857657338,
+            "ece_15": 0.044598023143683725,
+            "bad_recall": 0.504875406283857,
+            "good_recall": 0.8540399652476107
+          }
+        },
+        "rule_held_out": {
+          "False": {
+            "n": 1314,
+            "accuracy": 0.723744292237443,
+            "balanced_accuracy": 0.642407807949289,
+            "ece_15": 0.04570220700152204,
+            "bad_recall": 0.4206730769230769,
+            "good_recall": 0.8641425389755011
+          },
+          "True": {
+            "n": 760,
+            "accuracy": 0.6552631578947369,
+            "balanced_accuracy": 0.6960731576116193,
+            "ece_15": 0.06303763157894735,
+            "bad_recall": 0.5739644970414202,
+            "good_recall": 0.8181818181818182
+          }
+        },
+        "granularity": {
+          "document": {
+            "n": 943,
+            "accuracy": 0.6744432661717922,
+            "balanced_accuracy": 0.6584148117328895,
+            "ece_15": 0.051255249204665974,
+            "bad_recall": 0.43935926773455375,
+            "good_recall": 0.8774703557312253
+          },
+          "paragraph": {
+            "n": 754,
+            "accuracy": 0.6750663129973474,
+            "balanced_accuracy": 0.6578947368421053,
+            "ece_15": 0.06861578249336873,
+            "bad_recall": 0.5,
+            "good_recall": 0.8157894736842105
+          },
+          "sentence": {
+            "n": 377,
+            "accuracy": 0.8063660477453581,
+            "balanced_accuracy": 0.7894566813509545,
+            "ece_15": 0.0799519893899204,
+            "bad_recall": 0.7066666666666667,
+            "good_recall": 0.8722466960352423
+          }
+        },
+        "provenance": {
+          "generated": {
+            "n": 201,
+            "accuracy": 0.7611940298507462,
+            "balanced_accuracy": 0.5719318181818182,
+            "ece_15": 0.05973134328358201,
+            "bad_recall": 0.32,
+            "good_recall": 0.8238636363636364
+          },
+          "human": {
+            "n": 1873,
+            "accuracy": 0.6919380672717566,
+            "balanced_accuracy": 0.6847547256010508,
+            "ece_15": 0.05105739455419112,
+            "bad_recall": 0.5100222717149221,
+            "good_recall": 0.8594871794871795
+          }
+        }
+      },
+      "test_accuracy_by_source": {
+        "generated": {
+          "n": 201,
+          "accuracy": 0.7611940298507462
+        },
+        "human": {
+          "n": 1873,
+          "accuracy": 0.6919380672717566
+        }
+      }
+    },
+    "choice": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.1693884504284613,
+      "calibration_raw": {
+        "n": 625,
+        "accuracy": 0.568,
+        "balanced_accuracy": 0.5728415041438173,
+        "auroc": 0.6342931186364288,
+        "brier": 0.585425121552,
+        "nll": 0.9727983017639239,
+        "ece_15": 0.10250287999999999,
+        "abstain_rate": 0.0304
+      },
+      "test_raw": {
+        "n": 1597,
+        "accuracy": 0.4940513462742642,
+        "balanced_accuracy": 0.5032181715749685,
+        "auroc": 0.5693286677278878,
+        "brier": 0.629340039229806,
+        "nll": 1.0326677658054209,
+        "ece_15": 0.1014510958046337,
+        "abstain_rate": 0.031934877896055106
+      },
+      "test_cal": {
+        "n": 1597,
+        "accuracy": 0.4940513462742642,
+        "balanced_accuracy": 0.5032181715749685,
+        "auroc": 0.5694487615423499,
+        "brier": 0.6197846507259539,
+        "nll": 1.0179092075416791,
+        "ece_15": 0.08364514968554321,
+        "abstain_rate": 0.031934877896055106
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.47460379857134477,
+          0.5350876026203967
+        ],
+        "ece_15": [
+          0.06602193603446993,
+          0.15827410563991884
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.051018494154537,
+          0.13585505841023207
+        ]
+      },
+      "test_slices": {
+        "role": {
+          "finding-confirmation": {
+            "n": 1597,
+            "accuracy": 0.4940513462742642,
+            "balanced_accuracy": 0.335478781049979,
+            "ece_15": 0.1014510958046337,
+            "bad_recall": 0.21315468940316687,
+            "good_recall": 0.7932816537467701
+          }
+        },
+        "rule_held_out": {
+          "False": {
+            "n": 907,
+            "accuracy": 0.6030871003307607,
+            "balanced_accuracy": 0.3468761384335155,
+            "ece_15": 0.06504211686879827,
+            "bad_recall": 0.26229508196721313,
+            "good_recall": 0.7783333333333333
+          },
+          "True": {
+            "n": 690,
+            "accuracy": 0.3507246376811594,
+            "balanced_accuracy": 0.5144680566693398,
+            "ece_15": 0.2574991304347827,
+            "bad_recall": 0.18410852713178294,
+            "good_recall": 0.8448275862068966
+          }
+        },
+        "granularity": {
+          "document": {
+            "n": 735,
+            "accuracy": 0.5047619047619047,
+            "balanced_accuracy": 0.5065901517956313,
+            "ece_15": 0.0878608163265306,
+            "bad_recall": 0.23783783783783785,
+            "good_recall": 0.7753424657534247
+          },
+          "paragraph": {
+            "n": 547,
+            "accuracy": 0.5155393053016454,
+            "balanced_accuracy": 0.3240650406504065,
+            "ece_15": 0.07443638025594151,
+            "bad_recall": 0.17886178861788618,
+            "good_recall": 0.7933333333333333
+          },
+          "sentence": {
+            "n": 315,
+            "accuracy": 0.43174603174603177,
+            "balanced_accuracy": 0.3543223689117625,
+            "ece_15": 0.2008901587301587,
+            "bad_recall": 0.2097560975609756,
+            "good_recall": 0.8532110091743119
+          }
+        },
+        "provenance": {
+          "generated": {
+            "n": 217,
+            "accuracy": 0.5253456221198156,
+            "balanced_accuracy": 0.5524193548387097,
+            "ece_15": 0.14067096774193547,
+            "bad_recall": 0.3629032258064516,
+            "good_recall": 0.7419354838709677
+          },
+          "human": {
+            "n": 1380,
+            "accuracy": 0.4891304347826087,
+            "balanced_accuracy": 0.32893577186614054,
+            "ece_15": 0.10254681159420294,
+            "bad_recall": 0.18651362984218078,
+            "good_recall": 0.8002936857562408
+          }
+        }
+      },
+      "test_accuracy_by_source": {
+        "generated": {
+          "n": 217,
+          "accuracy": 0.5253456221198156
+        },
+        "human": {
+          "n": 1380,
+          "accuracy": 0.4891304347826087
+        }
+      },
+      "test_order_swap_agreement": 0.8346900438321854,
+      "test_order_swap_n": 1597,
+      "test_order_swap_mean_abs_shift_real_defect": 0.0629377582968065
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "no-defect",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "kev-latest",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": true,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "kev-latest",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.1033
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "no-defect",
+            "confidence": 0.6236,
+            "probabilities": {
+              "real-defect": 0.084,
+              "no-defect": 0.7491,
+              "insufficient-context": 0.167
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 0.9511,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.258,
+              "1": 0.5329,
+              "2": 0.2091
+            },
+            "confidence": 0.2994
+          }
+        },
+        "usage": {
+          "input_tokens": 118,
+          "output_tokens": 185
+        },
+        "latency_ms": 671.3
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "jev-1.13.0",
+      "routing": null,
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "slopvac-judge-pilot-v1",
+      "routing": null,
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Field required",
+            "input": {
+              "instructions": "no type"
+            }
+          }
+        ]
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": [
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Noul",
+              "type"
+            ],
+            "msg": "Input should be 'noul'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'noul'"
+            }
+          },
+          {
+            "type": "value_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "function-after[_check(), Choice]"
+            ],
+            "msg": "Value error, criteria must have 1..255 options",
+            "input": {
+              "type": "choice",
+              "instructions": "?",
+              "criteria": {}
+            },
+            "ctx": {
+              "error": {}
+            }
+          },
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "type"
+            ],
+            "msg": "Input should be 'score'",
+            "input": "choice",
+            "ctx": {
+              "expected": "'score'"
+            }
+          },
+          {
+            "type": "list_type",
+            "loc": [
+              "body",
+              "questions",
+              "q",
+              "Score",
+              "criteria"
+            ],
+            "msg": "Input should be a valid list",
+            "input": {}
+          }
+        ]
+      }
+    },
+    "malformed_json": {
+      "status": 422
+    },
+    "oversized_state_300k_chars": {
+      "status": 200,
+      "truncated_and_answered": true,
+      "error": null
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 200,
+      "payload": {
+        "models": [
+          {
+            "name": "kev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-9B-Base, serving jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c at temperature 2.30",
+            "release_date": "2026-10-03",
+            "run": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+            "base": "Qwen/Qwen3.5-9B-Base",
+            "lora": 16,
+            "device": "cuda",
+            "backend": "torch",
+            "dtype": "bfloat16",
+            "temperature": 2.2973967099940698,
+            "cuda_graphs": {
+              "captured": 1,
+              "kept": 1,
+              "pending": 7,
+              "failed": 0
+            },
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 7,
+              "misses": 5,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 12,
+              "requests": 12,
+              "queued": 0
+            }
+          },
+          {
+            "name": "jev-latest",
+            "description": "Kev pointer head on Qwen/Qwen3.5-9B-Base, serving jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c at temperature 2.30",
+            "release_date": "2026-10-03",
+            "run": "jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c",
+            "base": "Qwen/Qwen3.5-9B-Base",
+            "lora": 16,
+            "device": "cuda",
+            "backend": "torch",
+            "dtype": "bfloat16",
+            "temperature": 2.2973967099940698,
+            "cuda_graphs": {
+              "captured": 1,
+              "kept": 1,
+              "pending": 7,
+              "failed": 0
+            },
+            "prefix_cache": {
+              "size": 4,
+              "min_state_tokens": 0,
+              "max_tokens": 65536,
+              "hits": 7,
+              "misses": 5,
+              "cached_states": 4,
+              "oom_retries": 0
+            },
+            "batches": {
+              "count": 12,
+              "requests": 12,
+              "queued": 0
+            }
+          }
+        ]
+      }
+    }
+  },
+  "host_contention": {
+    "evaluation_run": [
+      {
+        "at": 1791053605.1222696,
+        "swap_used_bytes": 0,
+        "swap_total_bytes": 0,
+        "memory_available_bytes": 127112642560,
+        "other_processes_over_1gib": []
+      },
+      {
+        "at": 1791054189.5342891,
+        "swap_used_bytes": 0,
+        "swap_total_bytes": 0,
+        "memory_available_bytes": 126553190400,
+        "other_processes_over_1gib": []
+      }
+    ]
+  }
+}

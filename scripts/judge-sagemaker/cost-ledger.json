@@ -1,6 +1,6 @@
 {
   "currency": "USD",
-  "cap_usd": 2500.0,
+  "cap_usd": 8500.0,
   "scope": "SageMaker training instance time for jobs submitted by judge-sagemaker. A job that has not been fetched in a final state counts at its maximum cost (hourly price x max runtime).",
   "jobs": [
     {
@@ -23762,9 +23762,9 @@
       "max_runtime_s": 31995,
       "max_cost_usd": 22.22,
       "submitted_at": "2026-10-03T11:33:10.419334+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 16874,
+      "cost_usd": 11.7181,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -23813,7 +23813,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20261003113722",
@@ -23957,9 +23959,9 @@
       "max_runtime_s": 27752,
       "max_cost_usd": 38.54,
       "submitted_at": "2026-10-03T11:45:33.344640+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17174,
+      "cost_usd": 23.8528,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -24008,7 +24010,9 @@
         "attempt": 72,
         "region": "us-east-1",
         "instance_type": "ml.g6e.4xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-9b-261003114534446452",
@@ -24018,9 +24022,9 @@
       "hourly_usd": 4.0,
       "max_runtime_s": 7200,
       "max_cost_usd": 8.0,
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "submitted_at": "2026-10-03T11:45:46.643036+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-261003114534446452",
       "scheduler": {
@@ -24029,8 +24033,10 @@
         "target": "kev-9b",
         "attempt": 1,
         "region": "us-west-2",
-        "instance_type": "ml.g6e.2xlarge"
-      }
+        "instance_type": "ml.g6e.2xlarge",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-9b-ft-s17-261003114551271482",
@@ -24109,9 +24115,9 @@
       "max_runtime_s": 31995,
       "max_cost_usd": 17.77,
       "submitted_at": "2026-10-03T11:47:10.105983+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 16870,
+      "cost_usd": 9.3722,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -24160,7 +24166,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6.xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-08b-s19-20261003114711",
@@ -24170,9 +24178,9 @@
       "max_runtime_s": 31995,
       "max_cost_usd": 17.77,
       "submitted_at": "2026-10-03T11:47:21.919713+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17073,
+      "cost_usd": 9.485,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -24221,7 +24229,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6.xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s17-20261003114723",
@@ -24231,9 +24241,9 @@
       "max_runtime_s": 25458,
       "max_cost_usd": 49.5,
       "submitted_at": "2026-10-03T11:47:31.622719+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 14205,
+      "cost_usd": 27.6208,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -24282,7 +24292,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.8xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-08b-s17-20261003114732",
@@ -24292,9 +24304,9 @@
       "max_runtime_s": 31367,
       "max_cost_usd": 21.78,
       "submitted_at": "2026-10-03T11:47:41.152084+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 16536,
+      "cost_usd": 11.4833,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -24343,7 +24355,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-08b-s18-20261003114742",
@@ -24353,9 +24367,9 @@
       "max_runtime_s": 31367,
       "max_cost_usd": 17.43,
       "submitted_at": "2026-10-03T11:47:50.411228+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 11796,
+      "cost_usd": 6.5533,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -24404,7 +24418,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g5.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s18-20261003120537",
@@ -24414,9 +24430,9 @@
       "max_runtime_s": 25458,
       "max_cost_usd": 35.36,
       "submitted_at": "2026-10-03T12:05:47.672283+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 14175,
+      "cost_usd": 19.6875,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -24465,7 +24481,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6e.4xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s19-20261003120548",
@@ -24475,9 +24493,9 @@
       "max_runtime_s": 25458,
       "max_cost_usd": 49.5,
       "submitted_at": "2026-10-03T12:05:59.365911+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 14206,
+      "cost_usd": 27.6228,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -24526,7 +24544,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g6e.8xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-08b-ft-s19-261003122339569616",
@@ -24559,9 +24579,9 @@
       "max_runtime_s": 31367,
       "max_cost_usd": 17.43,
       "submitted_at": "2026-10-03T12:37:38.598709+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 11676,
+      "cost_usd": 6.4867,
       "hyperparameters": {
         "model": "kev-0.8b",
         "family": "kev",
@@ -24610,7 +24630,9 @@
         "attempt": 1,
         "region": "us-west-2",
         "instance_type": "ml.g5.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s17-20261003124209",
@@ -24620,9 +24642,9 @@
       "max_runtime_s": 24959,
       "max_cost_usd": 27.73,
       "submitted_at": "2026-10-03T12:42:18.010079+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 13839,
+      "cost_usd": 15.3767,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -24671,7 +24693,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.2xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-4b-ft-s19-261003133530114674",
@@ -24704,9 +24728,9 @@
       "max_runtime_s": 27522,
       "max_cost_usd": 84.09,
       "submitted_at": "2026-10-03T13:36:01.037630+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17079,
+      "cost_usd": 52.1858,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -24755,7 +24779,9 @@
         "attempt": 1,
         "region": "us-east-1",
         "instance_type": "ml.g6e.16xlarge"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s19-20261003142436",
@@ -25326,9 +25352,9 @@
       "max_cost_usd": 38.54,
       "spot": false,
       "submitted_at": "2026-10-03T14:32:35.884210+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17236,
+      "cost_usd": 23.9389,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -25378,7 +25404,9 @@
         "region": "us-east-2",
         "instance_type": "ml.g6e.4xlarge",
         "market": "on-demand"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20261003143249",
@@ -25527,9 +25555,9 @@
       "max_cost_usd": 53.52,
       "spot": false,
       "submitted_at": "2026-10-03T14:33:17.009188+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 16975,
+      "cost_usd": 33.0069,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -25579,7 +25607,9 @@
         "region": "us-east-2",
         "instance_type": "ml.g6e.8xlarge",
         "market": "on-demand"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s19-20261003143318",
@@ -25728,9 +25758,9 @@
       "max_cost_usd": 84.09,
       "spot": false,
       "submitted_at": "2026-10-03T14:33:45.596157+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17169,
+      "cost_usd": 52.4608,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -25780,7 +25810,9 @@
         "region": "us-east-2",
         "instance_type": "ml.g6e.16xlarge",
         "market": "on-demand"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s18-20261003143358",
@@ -25791,9 +25823,9 @@
       "max_cost_usd": 27.73,
       "spot": false,
       "submitted_at": "2026-10-03T14:34:07.117146+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 14049,
+      "cost_usd": 15.61,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -25843,7 +25875,9 @@
         "region": "us-east-2",
         "instance_type": "ml.g6e.2xlarge",
         "market": "on-demand"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-4b-s19-20261003143408",
@@ -25992,9 +26026,9 @@
       "max_cost_usd": 110.93,
       "spot": false,
       "submitted_at": "2026-10-03T14:34:35.995248+00:00",
-      "status": "InProgress",
+      "status": "Stopped",
       "billable_seconds": null,
-      "cost_usd": null,
+      "cost_usd": 0.0,
       "hyperparameters": {
         "model": "kev-4b",
         "family": "kev",
@@ -26043,8 +26077,11 @@
         "attempt": 4,
         "region": "us-east-1",
         "instance_type": "ml.g6e.12xlarge",
-        "market": "on-demand"
-      }
+        "market": "on-demand",
+        "implementation_defect": "capacity_rotation"
+      },
+      "secondary_status": "Stopped",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s17-20261003143437",
@@ -26193,9 +26230,9 @@
       "max_cost_usd": 119.92,
       "spot": false,
       "submitted_at": "2026-10-03T14:35:07.613517+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17105,
+      "cost_usd": 76.0222,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -26245,7 +26282,9 @@
         "region": "us-west-2",
         "instance_type": "ml.g6e.12xlarge",
         "market": "on-demand"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s18-20261003143508",
@@ -26394,9 +26433,9 @@
       "max_cost_usd": 119.92,
       "spot": false,
       "submitted_at": "2026-10-03T14:35:36.386717+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 17213,
+      "cost_usd": 76.5022,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -26446,7 +26485,9 @@
         "region": "us-east-2",
         "instance_type": "ml.g6e.12xlarge",
         "market": "on-demand"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "slopvac-judge-kev-9b-s19-20261003143537",
@@ -26596,9 +26637,9 @@
       "spot": true,
       "max_wait_s": 53966,
       "submitted_at": "2026-10-03T14:36:06.931616+00:00",
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 12030,
+      "cost_usd": 16.7083,
       "hyperparameters": {
         "model": "kev-9b",
         "family": "kev",
@@ -26648,7 +26689,9 @@
         "region": "us-east-1",
         "instance_type": "ml.g6e.4xlarge",
         "market": "spot"
-      }
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
     },
     {
       "job_name": "sv-eval-kev-9b-ft-s17-261003144255306136",
@@ -26659,9 +26702,9 @@
       "max_runtime_s": 7200,
       "max_cost_usd": 22.0,
       "spot": false,
-      "status": "InProgress",
-      "billable_seconds": null,
-      "cost_usd": null,
+      "status": "Completed",
+      "billable_seconds": 1001,
+      "cost_usd": 3.0586,
       "submitted_at": "2026-10-03T14:43:11.929265+00:00",
       "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-261003144255306136",
       "scheduler": {
@@ -26672,7 +26715,650 @@
         "region": "us-west-2",
         "instance_type": "ml.g6e.16xlarge",
         "market": "on-demand"
-      }
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-261003145649358063",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "spot": false,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-10-03T14:57:01.731134+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-261003145649358063",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 2,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s18-261003151151302617",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s18",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 661,
+      "cost_usd": 0.3672,
+      "submitted_at": "2026-10-03T15:12:03.028089+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-08b-ft-s18-261003151151302617",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s17-261003155236955862",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s17",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1200,
+      "cost_usd": 0.6667,
+      "submitted_at": "2026-10-03T15:52:49.018074+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s17-261003155236955862",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s19-261003160020669729",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s19",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 671,
+      "cost_usd": 0.3728,
+      "submitted_at": "2026-10-03T16:00:34.993150+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-08b-ft-s19-261003160020669729",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s19",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s18-261003160822387548",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s18",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1207,
+      "cost_usd": 0.6706,
+      "submitted_at": "2026-10-03T16:08:40.263856+00:00",
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/sv-eval-kev-4b-ft-s18-261003160822387548",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-261003160841564809",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.4xlarge",
+      "hourly_usd": 3.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 6.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1164,
+      "cost_usd": 0.97,
+      "submitted_at": "2026-10-03T16:09:09.078166+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-261003160841564809",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.4xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s17-261003161715345786",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s17",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 661,
+      "cost_usd": 0.3672,
+      "submitted_at": "2026-10-03T16:17:34.167971+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-08b-ft-s17-261003161715345786",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s17-261003163212526066",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s17",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 661,
+      "cost_usd": 0.3672,
+      "submitted_at": "2026-10-03T16:32:29.803865+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-08b-ft-s17-261003163212526066",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261003163836187324",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 996,
+      "cost_usd": 1.3833,
+      "submitted_at": "2026-10-03T16:38:57.087323+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-261003163836187324",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s18-261003163945971997",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s18",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 662,
+      "cost_usd": 0.3678,
+      "submitted_at": "2026-10-03T16:39:57.395885+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-08b-ft-s18-261003163945971997",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-08b-ft-s19-261003163959303594",
+      "kind": "evaluation",
+      "arm": "kev-0.8b-ft-s19",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 666,
+      "cost_usd": 0.37,
+      "submitted_at": "2026-10-03T16:40:16.185286+00:00",
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/sv-eval-kev-08b-ft-s19-261003163959303594",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-0.8b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s17-261003173603791961",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s17",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1200,
+      "cost_usd": 0.6667,
+      "submitted_at": "2026-10-03T17:36:17.727962+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s17-261003173603791961",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s17",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "slopvac-judge-kev-4b-s19-20261003174314",
+      "model": "kev-4b",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 24959,
+      "max_cost_usd": 27.73,
+      "spot": false,
+      "submitted_at": "2026-10-03T17:43:22.830755+00:00",
+      "status": "Completed",
+      "billable_seconds": 13928,
+      "cost_usd": 15.4756,
+      "hyperparameters": {
+        "model": "kev-4b",
+        "family": "kev",
+        "init_from": "jaredpalmer/kev-4b@139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "base_revision": "1001bb4d826a52d1f399e183466143f4da7b741b",
+        "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "laya_commit": "",
+        "repo": "jaredpalmer/kev-4b",
+        "revision": "139fdd94f1b6a6ad80cc15e08fcb99cac885a101",
+        "upstream_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
+        "epochs": "2",
+        "seed": "19",
+        "lr": "0.0",
+        "replay": "0",
+        "p_none_pair": "0.25",
+        "max_state": "4096",
+        "max_len": "4096",
+        "batch": "0",
+        "accum": "0",
+        "checkpointing": "-1",
+        "dtype": "bf16",
+        "weights_dtype": "fp32"
+      },
+      "data": {
+        "train": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/train.jsonl",
+          "etag": "\"aae36c9b96387585aaa5cccbe02a2710-5\"",
+          "version_id": null
+        },
+        "calibration": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/calibration.jsonl",
+          "etag": "\"ad95f1d8027f3813405d5c2097d6bdf9\"",
+          "version_id": null
+        },
+        "manifest": {
+          "source": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/llm-only/export-manifest.json",
+          "etag": "\"cb0fb4273a526c4874d71577b443fb97\"",
+          "version_id": null
+        }
+      },
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/slopvac-judge-kev-4b-s19-20261003174314",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "training",
+        "target": "kev-4b-ft-s19",
+        "attempt": 5,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand"
+      },
+      "secondary_status": "Completed",
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-261003181452376298",
+      "kind": "evaluation",
+      "arm": "kev-9b",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1016,
+      "cost_usd": 1.4111,
+      "submitted_at": "2026-10-03T18:15:04.663832+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-261003181452376298",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "evaluation",
+        "target": "kev-9b",
+        "attempt": 3,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-261003182927855337",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "spot": false,
+      "status": "Stopped",
+      "billable_seconds": null,
+      "cost_usd": 0.0,
+      "submitted_at": "2026-10-03T18:29:49.323260+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-261003182927855337",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand",
+        "implementation_defect": "capacity_rotation"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s18-261003183037069126",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s18",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1209,
+      "cost_usd": 0.6717,
+      "submitted_at": "2026-10-03T18:30:54.185814+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s18-261003183037069126",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s19-261003191306099634",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s19",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1067,
+      "cost_usd": 1.1856,
+      "submitted_at": "2026-10-03T19:13:26.244470+00:00",
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/sv-eval-kev-9b-ft-s19-261003191306099634",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261003191957660397",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 991,
+      "cost_usd": 1.3764,
+      "submitted_at": "2026-10-03T19:20:18.920004+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-261003191957660397",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s19-261003192655746258",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s19",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 990,
+      "cost_usd": 1.375,
+      "submitted_at": "2026-10-03T19:27:14.776179+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-9b-ft-s19-261003192655746258",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/full",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s19-261003192800972029",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s19",
+      "instance_type": "ml.g6e.4xlarge",
+      "hourly_usd": 5.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 10.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 992,
+      "cost_usd": 1.3778,
+      "submitted_at": "2026-10-03T19:28:13.509429+00:00",
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/sv-eval-kev-9b-ft-s19-261003192800972029",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.4xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-261003192905316559",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.8xlarge",
+      "hourly_usd": 7.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 14.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 976,
+      "cost_usd": 1.8978,
+      "submitted_at": "2026-10-03T19:29:19.950296+00:00",
+      "arn": "arn:aws:sagemaker:us-west-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-261003192905316559",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 1,
+        "region": "us-west-2",
+        "instance_type": "ml.g6e.8xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s18-261003200413906370",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s18",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1066,
+      "cost_usd": 1.1844,
+      "submitted_at": "2026-10-03T20:04:26.449500+00:00",
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/sv-eval-kev-9b-ft-s18-261003200413906370",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s18",
+        "attempt": 1,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-9b-ft-s17-261003214228829649",
+      "kind": "evaluation",
+      "arm": "kev-9b-ft-s17",
+      "instance_type": "ml.g6e.2xlarge",
+      "hourly_usd": 4.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 8.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1051,
+      "cost_usd": 1.1678,
+      "submitted_at": "2026-10-03T21:42:47.408997+00:00",
+      "arn": "arn:aws:sagemaker:us-east-2:536697262379:training-job/sv-eval-kev-9b-ft-s17-261003214228829649",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/human-only",
+        "task": "evaluation",
+        "target": "kev-9b-ft-s17",
+        "attempt": 2,
+        "region": "us-east-2",
+        "instance_type": "ml.g6e.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
+    },
+    {
+      "job_name": "sv-eval-kev-4b-ft-s19-261004002631414261",
+      "kind": "evaluation",
+      "arm": "kev-4b-ft-s19",
+      "instance_type": "ml.g5.2xlarge",
+      "hourly_usd": 2.0,
+      "max_runtime_s": 7200,
+      "max_cost_usd": 4.0,
+      "spot": false,
+      "status": "Completed",
+      "billable_seconds": 1209,
+      "cost_usd": 0.6717,
+      "submitted_at": "2026-10-04T00:26:43.771101+00:00",
+      "arn": "arn:aws:sagemaker:us-east-1:536697262379:training-job/sv-eval-kev-4b-ft-s19-261004002631414261",
+      "scheduler": {
+        "campaign": "corpus-corpus-20261003-s17-v5b/llm-only",
+        "task": "evaluation",
+        "target": "kev-4b-ft-s19",
+        "attempt": 1,
+        "region": "us-east-1",
+        "instance_type": "ml.g5.2xlarge",
+        "market": "on-demand"
+      },
+      "failure_reason": null
     }
   ]
 }

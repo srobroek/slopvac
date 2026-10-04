@@ -1,0 +1,15 @@
+{
+  "kev-4b-ft-s18": {
+    "disk_bytes": 9498042225,
+    "disk_bytes_adapter": 155217474,
+    "disk_bytes_base": 9342824751,
+    "params_language_model": 4205751296,
+    "params_lora": 32464896,
+    "params_head": 1311232,
+    "params_total_served": 4239527424,
+    "params_base_unused": {
+      "mtp": 120599552,
+      "visual": 333514240
+    }
+  }
+}
