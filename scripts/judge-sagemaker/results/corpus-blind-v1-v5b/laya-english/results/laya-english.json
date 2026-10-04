@@ -1,0 +1,332 @@
+{
+  "arm": "laya-english",
+  "family": "laya",
+  "model_repo": "convaiinnovations/laya",
+  "model_revision": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+  "base_model": null,
+  "base_revision": null,
+  "local_weights": null,
+  "upstream_repo_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+  "served_model_field_sent": "english",
+  "served_model_field_returned": [
+    "laya-rl-agent"
+  ],
+  "served_checkpoint_routed": [
+    "english"
+  ],
+  "runtime": {
+    "laya": "0.3.21",
+    "torch": "2.14.0+cu126",
+    "transformers": "5.17.0",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.54.0",
+    "python": "3.12.10"
+  },
+  "device": "cuda",
+  "health": {
+    "status": "ok",
+    "loaded": [
+      "english"
+    ],
+    "revisions": {
+      "english": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851"
+    },
+    "device": "cuda",
+    "device_is_preference": false,
+    "checkpoint_devices": {
+      "english": "cuda"
+    },
+    "cpu_fallbacks": {
+      "english": {
+        "count": 0,
+        "last_reason": null
+      }
+    }
+  },
+  "hardware": {
+    "cpu": "AMD EPYC 7R32",
+    "cpu_count": 8,
+    "memory_bytes": 33261813760,
+    "linux": "6.12.103-127.188.amzn2023.x86_64",
+    "machine": "x86_64",
+    "gpu": "NVIDIA A10G",
+    "gpu_memory_bytes": 23686938624,
+    "gpu_count": 1,
+    "compute_capability": "8.6",
+    "torch_cuda": "12.6",
+    "nvidia_driver": "595.91.07",
+    "instance_type": "ml.g5.2xlarge"
+  },
+  "dataset": {
+    "test": {
+      "sha256": "0d0f8524e265680419e8e400a04f22d1336b507eab016c6050ec941699095554",
+      "items": 109267
+    },
+    "calibration": {
+      "sha256": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+      "items": 1720
+    }
+  },
+  "inventory": {
+    "disk_bytes": 846195574,
+    "params_total": 421293830,
+    "params_by_part": {
+      "temperature": 3,
+      "act_head": 263938,
+      "encoder": 394781696,
+      "head": 25192448,
+      "scorer": 1052673,
+      "type_emb": 3072
+    }
+  },
+  "load_time_s": 5.94,
+  "warmup_latency_ms": [
+    3179.1,
+    148.8,
+    28.9
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 1743712256,
+    "peak_gpu_memory_bytes_sampled": 2965372928,
+    "phys_footprint_bytes": 1743712256,
+    "lifetime_max_phys_footprint_bytes": 3378368512,
+    "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 131139,
+      "p50": 28.969,
+      "p95": 33.00709999999999
+    },
+    "single_request_noul_test_ms": {
+      "n": 87395,
+      "p50": 28.932,
+      "p95": 31.956
+    }
+  },
+  "throughput": null,
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "test_unscored_unlabelled": 87395,
+      "temperature_fit_on_calibration": 49.99999999999999,
+      "calibration_raw": {
+        "n": 1095,
+        "accuracy": 0.4611872146118721,
+        "balanced_accuracy": 0.4604149097655591,
+        "auroc": 0.4418704671951425,
+        "brier": 0.322917884803653,
+        "nll": 0.8904310438996659,
+        "ece_15": 0.2282993607305936
+      },
+      "test_raw": null,
+      "test_cal": null,
+      "test_raw_ci95": null,
+      "test_cal_ci95": null,
+      "test_slices": null,
+      "test_accuracy_by_source": null,
+      "test_bad_recall": null,
+      "test_good_recall": null
+    },
+    "choice": {
+      "errors": {},
+      "test_unscored_unlabelled": 21872,
+      "temperature_fit_on_calibration": 1.7292421012560373,
+      "calibration_raw": {
+        "n": 625,
+        "accuracy": 0.4608,
+        "balanced_accuracy": 0.46084505009689525,
+        "auroc": 0.5513490258742548,
+        "brier": 0.6534510094560001,
+        "nll": 1.0864132951281615,
+        "ece_15": 0.03104992000000002,
+        "abstain_rate": 0.144
+      },
+      "test_raw": null,
+      "test_cal": null,
+      "test_raw_ci95": null,
+      "test_cal_ci95": null,
+      "test_slices": null,
+      "test_accuracy_by_source": null,
+      "test_order_swap_agreement": null,
+      "test_order_swap_n": null,
+      "test_order_swap_mean_abs_shift_real_defect": null
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "insufficient-context",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "laya-rl-agent",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": false,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.0741,
+            "confidence": 0.9259,
+            "answer_confidence": 0.9259,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "insufficient-context",
+            "probabilities": {
+              "real-defect": 0.244,
+              "no-defect": 0.3495,
+              "insufficient-context": 0.4065
+            },
+            "confidence": 0.0192,
+            "answer_confidence": 0.4065,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 1.3375,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.0415,
+              "1": 0.5795,
+              "2": 0.379
+            },
+            "confidence": 0.2573,
+            "answer_confidence": 0.5795,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 214,
+          "output_tokens": 0
+        },
+        "routing": {
+          "model": "english",
+          "repo": "convaiinnovations/laya",
+          "reason": "explicit model='english'",
+          "detection": null,
+          "workflow": null
+        }
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': unknown type None; use one of ['choice', 'noul', 'score']"
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': a choice question needs at least one criterion"
+      }
+    },
+    "malformed_json": {
+      "status": 400
+    },
+    "oversized_state_300k_chars": {
+      "status": 413,
+      "truncated_and_answered": false,
+      "error": {
+        "detail": "state too large (312000 > 50000 chars)"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 404,
+      "payload": {
+        "detail": "Not Found"
+      }
+    }
+  },
+  "host_contention": {
+    "evaluation_run": [
+      {
+        "at": 1791076148.3957233,
+        "swap_used_bytes": 0,
+        "swap_total_bytes": 0,
+        "memory_available_bytes": 29597618176,
+        "other_processes_over_1gib": []
+      },
+      {
+        "at": 1791080079.2620244,
+        "swap_used_bytes": 0,
+        "swap_total_bytes": 0,
+        "memory_available_bytes": 28100341760,
+        "other_processes_over_1gib": []
+      }
+    ]
+  }
+}
