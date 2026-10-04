@@ -1,0 +1,532 @@
+{
+  "arm": "laya-english",
+  "family": "laya",
+  "model_repo": "convaiinnovations/laya",
+  "model_revision": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+  "base_model": null,
+  "base_revision": null,
+  "local_weights": null,
+  "upstream_repo_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+  "served_model_field_sent": "english",
+  "served_model_field_returned": [
+    "laya-rl-agent"
+  ],
+  "served_checkpoint_routed": [
+    "english"
+  ],
+  "runtime": {
+    "laya": "0.3.21",
+    "torch": "2.14.0+cu126",
+    "transformers": "5.17.0",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.54.0",
+    "python": "3.12.10"
+  },
+  "device": "cuda",
+  "health": {
+    "status": "ok",
+    "loaded": [
+      "english"
+    ],
+    "revisions": {
+      "english": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851"
+    },
+    "device": "cuda",
+    "device_is_preference": false,
+    "checkpoint_devices": {
+      "english": "cuda"
+    },
+    "cpu_fallbacks": {
+      "english": {
+        "count": 0,
+        "last_reason": null
+      }
+    }
+  },
+  "hardware": {
+    "cpu": "AMD EPYC 7R32",
+    "cpu_count": 32,
+    "memory_bytes": 133616480256,
+    "linux": "6.12.103-127.188.amzn2023.x86_64",
+    "machine": "x86_64",
+    "gpu": "NVIDIA A10G",
+    "gpu_memory_bytes": 23686938624,
+    "gpu_count": 1,
+    "compute_capability": "8.6",
+    "torch_cuda": "12.6",
+    "nvidia_driver": "595.91.07",
+    "instance_type": "ml.g5.8xlarge"
+  },
+  "dataset": {
+    "test": {
+      "sha256": "f973edaa3b5feda1ee549f8be3df661fdd49e25f8ed2c53db7b45cdbd4c892e7",
+      "items": 3326
+    },
+    "calibration": {
+      "sha256": "fca2452aa1e15bb80bc10514699e3495cbed42a690626cc5aaf4f7534293d8a9",
+      "items": 1674
+    }
+  },
+  "inventory": {
+    "disk_bytes": 846195574,
+    "params_total": 421293830,
+    "params_by_part": {
+      "temperature": 3,
+      "act_head": 263938,
+      "encoder": 394781696,
+      "head": 25192448,
+      "scorer": 1052673,
+      "type_emb": 3072
+    }
+  },
+  "load_time_s": 5.43,
+  "warmup_latency_ms": [
+    1736.9,
+    34.2,
+    40.0
+  ],
+  "memory": {
+    "peak_rss_bytes_sampled": 1750007808,
+    "peak_gpu_memory_bytes_sampled": 2965372928,
+    "phys_footprint_bytes": 1750007808,
+    "lifetime_max_phys_footprint_bytes": 3382509568,
+    "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+  },
+  "latency": {
+    "single_request_all_test_ms": {
+      "n": 4612,
+      "p50": 28.069499999999998,
+      "p95": 29.830849999999998
+    },
+    "single_request_noul_test_ms": {
+      "n": 2040,
+      "p50": 28.0425,
+      "p95": 29.87005
+    }
+  },
+  "throughput": null,
+  "metrics": {
+    "noul": {
+      "errors": {},
+      "temperature_fit_on_calibration": 49.99999999999999,
+      "calibration_raw": {
+        "n": 1118,
+        "accuracy": 0.4660107334525939,
+        "balanced_accuracy": 0.4660107334525939,
+        "auroc": 0.46550350261295886,
+        "brier": 0.3335020007155635,
+        "nll": 0.9415035577396754,
+        "ece_15": 0.26393524150268344
+      },
+      "test_raw": {
+        "n": 2040,
+        "accuracy": 0.5009803921568627,
+        "balanced_accuracy": 0.5009803921568627,
+        "auroc": 0.5069545367166475,
+        "brier": 0.31551187854901963,
+        "nll": 0.8803704746302271,
+        "ece_15": 0.23250754901960788
+      },
+      "test_cal": {
+        "n": 2040,
+        "accuracy": 0.5009803921568627,
+        "balanced_accuracy": 0.5009803921568627,
+        "auroc": 0.5069545367166475,
+        "brier": 0.24987678185796247,
+        "nll": 0.6929001104755671,
+        "ece_15": 0.005998377730358506
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.45168233941226327,
+          0.5476134530126947
+        ],
+        "ece_15": [
+          0.1845050157248988,
+          0.285881089777217
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.0014996791502743776,
+          0.05758683954343879
+        ]
+      },
+      "test_bad_recall": 0.515686274509804,
+      "test_good_recall": 0.48627450980392156,
+      "test_slices": {
+        "role": {
+          "semantic-detection": {
+            "n": 2040,
+            "accuracy": 0.5009803921568627,
+            "balanced_accuracy": 0.5009803921568627,
+            "ece_15": 0.23250754901960788,
+            "bad_recall": 0.515686274509804,
+            "good_recall": 0.48627450980392156
+          }
+        },
+        "rule_held_out": {
+          "False": {
+            "n": 1208,
+            "accuracy": 0.49834437086092714,
+            "balanced_accuracy": 0.5058520089413653,
+            "ece_15": 0.22631092715231793,
+            "bad_recall": 0.5418410041841004,
+            "good_recall": 0.46986301369863015
+          },
+          "True": {
+            "n": 832,
+            "accuracy": 0.5048076923076923,
+            "balanced_accuracy": 0.5101030665479069,
+            "ece_15": 0.24150456730769235,
+            "bad_recall": 0.492619926199262,
+            "good_recall": 0.5275862068965518
+          }
+        },
+        "granularity": {
+          "document": {
+            "n": 990,
+            "accuracy": 0.49797979797979797,
+            "balanced_accuracy": 0.4984201566780018,
+            "ece_15": 0.2290035353535353,
+            "bad_recall": 0.5256673511293635,
+            "good_recall": 0.4711729622266402
+          },
+          "paragraph": {
+            "n": 733,
+            "accuracy": 0.5102319236016372,
+            "balanced_accuracy": 0.5098875735239372,
+            "ece_15": 0.22882005457025928,
+            "bad_recall": 0.5459459459459459,
+            "good_recall": 0.4738292011019284
+          },
+          "sentence": {
+            "n": 317,
+            "accuracy": 0.4889589905362776,
+            "balanced_accuracy": 0.49105648952274716,
+            "ece_15": 0.2584517350157729,
+            "bad_recall": 0.4171779141104294,
+            "good_recall": 0.564935064935065
+          }
+        },
+        "provenance": {
+          "human": {
+            "n": 2040,
+            "accuracy": 0.5009803921568627,
+            "balanced_accuracy": 0.5009803921568627,
+            "ece_15": 0.23250754901960788,
+            "bad_recall": 0.515686274509804,
+            "good_recall": 0.48627450980392156
+          }
+        }
+      },
+      "test_accuracy_by_source": {
+        "human": {
+          "n": 2040,
+          "accuracy": 0.5009803921568627
+        }
+      }
+    },
+    "choice": {
+      "errors": {},
+      "temperature_fit_on_calibration": 1.5377534161012034,
+      "calibration_raw": {
+        "n": 556,
+        "accuracy": 0.4712230215827338,
+        "balanced_accuracy": 0.4712230215827338,
+        "auroc": 0.5642370995290099,
+        "brier": 0.6463414729496403,
+        "nll": 1.0764801741435186,
+        "ece_15": 0.02981492805755397,
+        "abstain_rate": 0.13309352517985612
+      },
+      "test_raw": {
+        "n": 1286,
+        "accuracy": 0.44090202177293936,
+        "balanced_accuracy": 0.44090202177293936,
+        "auroc": 0.5296227587924992,
+        "brier": 0.6593323953421462,
+        "nll": 1.0966170308111274,
+        "ece_15": 0.03046181959564543,
+        "abstain_rate": 0.14385692068429237
+      },
+      "test_cal": {
+        "n": 1286,
+        "accuracy": 0.44090202177293936,
+        "balanced_accuracy": 0.44090202177293936,
+        "auroc": 0.5289781811057712,
+        "brier": 0.653139968497733,
+        "nll": 1.0823319642828526,
+        "ece_15": 0.029368622646357548,
+        "abstain_rate": 0.14385692068429237
+      },
+      "test_raw_ci95": {
+        "balanced_accuracy": [
+          0.4088586613202844,
+          0.47136303794813356
+        ],
+        "ece_15": [
+          0.02370145288066065,
+          0.07455114358840295
+        ]
+      },
+      "test_cal_ci95": {
+        "ece_15": [
+          0.016320525173952313,
+          0.06823770217064391
+        ]
+      },
+      "test_slices": {
+        "role": {
+          "finding-confirmation": {
+            "n": 1286,
+            "accuracy": 0.44090202177293936,
+            "balanced_accuracy": 0.44090202177293936,
+            "ece_15": 0.03046181959564543,
+            "bad_recall": 0.5925349922239502,
+            "good_recall": 0.2892690513219285
+          }
+        },
+        "rule_held_out": {
+          "False": {
+            "n": 693,
+            "accuracy": 0.3578643578643579,
+            "balanced_accuracy": 0.4153103929318763,
+            "ece_15": 0.11173578643578651,
+            "bad_recall": 0.5401069518716578,
+            "good_recall": 0.29051383399209485
+          },
+          "True": {
+            "n": 593,
+            "accuracy": 0.5379426644182125,
+            "balanced_accuracy": 0.4493533102830068,
+            "ece_15": 0.10454165261382799,
+            "bad_recall": 0.6140350877192983,
+            "good_recall": 0.2846715328467153
+          }
+        },
+        "granularity": {
+          "document": {
+            "n": 615,
+            "accuracy": 0.4292682926829268,
+            "balanced_accuracy": 0.4404306220095694,
+            "ece_15": 0.04839154471544716,
+            "bad_recall": 0.5929824561403508,
+            "good_recall": 0.2878787878787879
+          },
+          "paragraph": {
+            "n": 451,
+            "accuracy": 0.44124168514412415,
+            "balanced_accuracy": 0.45673667525262535,
+            "ece_15": 0.038981152993348145,
+            "bad_recall": 0.6359223300970874,
+            "good_recall": 0.27755102040816326
+          },
+          "sentence": {
+            "n": 220,
+            "accuracy": 0.4727272727272727,
+            "balanced_accuracy": 0.4355650154798762,
+            "ece_15": 0.08579999999999999,
+            "bad_recall": 0.5328947368421053,
+            "good_recall": 0.3382352941176471
+          }
+        },
+        "provenance": {
+          "human": {
+            "n": 1286,
+            "accuracy": 0.44090202177293936,
+            "balanced_accuracy": 0.44090202177293936,
+            "ece_15": 0.03046181959564543,
+            "bad_recall": 0.5925349922239502,
+            "good_recall": 0.2892690513219285
+          }
+        }
+      },
+      "test_accuracy_by_source": {
+        "human": {
+          "n": 1286,
+          "accuracy": 0.44090202177293936
+        }
+      },
+      "test_order_swap_agreement": 0.7122861586314152,
+      "test_order_swap_n": 1286,
+      "test_order_swap_mean_abs_shift_real_defect": 0.06218157076205287
+    }
+  },
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "insufficient-context",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "laya-rl-agent",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": false,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.0741,
+            "confidence": 0.9259,
+            "answer_confidence": 0.9259,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "insufficient-context",
+            "probabilities": {
+              "real-defect": 0.244,
+              "no-defect": 0.3495,
+              "insufficient-context": 0.4065
+            },
+            "confidence": 0.0192,
+            "answer_confidence": 0.4065,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 1.3375,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.0415,
+              "1": 0.5795,
+              "2": 0.379
+            },
+            "confidence": 0.2573,
+            "answer_confidence": 0.5795,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 214,
+          "output_tokens": 0
+        },
+        "routing": {
+          "model": "english",
+          "repo": "convaiinnovations/laya",
+          "reason": "explicit model='english'",
+          "detection": null,
+          "workflow": null
+        }
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': unknown type None; use one of ['choice', 'noul', 'score']"
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': a choice question needs at least one criterion"
+      }
+    },
+    "malformed_json": {
+      "status": 400
+    },
+    "oversized_state_300k_chars": {
+      "status": 413,
+      "truncated_and_answered": false,
+      "error": {
+        "detail": "state too large (312000 > 50000 chars)"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 404,
+      "payload": {
+        "detail": "Not Found"
+      }
+    }
+  },
+  "host_contention": {
+    "evaluation_run": [
+      {
+        "at": 1790718807.0036745,
+        "swap_used_bytes": 0,
+        "swap_total_bytes": 0,
+        "memory_available_bytes": 120575541248,
+        "other_processes_over_1gib": []
+      },
+      {
+        "at": 1790719002.582449,
+        "swap_used_bytes": 0,
+        "swap_total_bytes": 0,
+        "memory_available_bytes": 120756662272,
+        "other_processes_over_1gib": []
+      }
+    ]
+  }
+}

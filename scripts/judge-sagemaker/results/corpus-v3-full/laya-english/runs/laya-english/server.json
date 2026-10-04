@@ -1,0 +1,14 @@
+{
+  "arm": "laya-english",
+  "started_at": 1790718801.4787316,
+  "argv": [
+    "/opt/laya-venv/bin/python",
+    "/opt/ml/input/data/code/judge_sagemaker/pilot/laya_server.py",
+    "laya-english",
+    "8100"
+  ],
+  "port": 8100,
+  "pid": 279,
+  "ready_at": 1790718806.9083183,
+  "load_time_s": 5.43
+}

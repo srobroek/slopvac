@@ -1,0 +1,244 @@
+{
+  "arm": "laya-english",
+  "arm_config": {
+    "family": "laya",
+    "model": "english",
+    "repo": "convaiinnovations/laya",
+    "revision": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851",
+    "checkpoint": "english",
+    "local": null,
+    "upstream_commit": "9d955671415fc19f069b9cc998928075c1f255ec"
+  },
+  "server": {
+    "arm": "laya-english",
+    "started_at": 1790684600.8310113,
+    "argv": [
+      "/opt/laya-venv/bin/python",
+      "/opt/ml/input/data/code/judge_sagemaker/pilot/laya_server.py",
+      "laya-english",
+      "8100"
+    ],
+    "port": 8100,
+    "pid": 224,
+    "ready_at": 1790684606.2620363,
+    "load_time_s": 5.43
+  },
+  "health": {
+    "status": "ok",
+    "loaded": [
+      "english"
+    ],
+    "revisions": {
+      "english": "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851"
+    },
+    "device": "cuda",
+    "device_is_preference": false,
+    "checkpoint_devices": {
+      "english": "cuda"
+    },
+    "cpu_fallbacks": {
+      "english": {
+        "count": 0,
+        "last_reason": null
+      }
+    }
+  },
+  "load_time_s": 5.43,
+  "warmup_latency_ms": [
+    1733.9,
+    38.8,
+    29.5
+  ],
+  "sequential": {
+    "requests": 550,
+    "wall_s": 15.83
+  },
+  "throughput": null,
+  "memory": {
+    "peak_rss_bytes_sampled": 1744449536,
+    "peak_gpu_memory_bytes_sampled": 2965372928,
+    "phys_footprint_bytes": 1744449536,
+    "lifetime_max_phys_footprint_bytes": 3381342208,
+    "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+  },
+  "server_cmdline": [
+    "/opt/laya-venv/bin/python",
+    "/opt/ml/input/data/code/judge_sagemaker/pilot/laya_server.py",
+    "laya-english",
+    "8100"
+  ],
+  "compat": {
+    "mixed_request": {
+      "status": 200,
+      "ids_returned_exactly": true,
+      "noul_scalar_in_unit_interval": true,
+      "noul_has_probabilities_map": false,
+      "choice_distribution_ok": true,
+      "choice_selected": "insufficient-context",
+      "score_distribution_ok": true,
+      "score_legend_ok": true,
+      "model_field": "laya-rl-agent",
+      "usage_present": true,
+      "answer_type_fields": [
+        "choice",
+        "noul",
+        "score"
+      ],
+      "x_typesafe_request_id": false,
+      "x_slopvac_model_revision": false,
+      "raw": {
+        "model": "laya-rl-agent",
+        "answers": {
+          "defect": {
+            "type": "noul",
+            "noul": 0.0741,
+            "confidence": 0.9259,
+            "answer_confidence": 0.9259,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "verdict": {
+            "type": "choice",
+            "choice": "insufficient-context",
+            "probabilities": {
+              "real-defect": 0.244,
+              "no-defect": 0.3495,
+              "insufficient-context": 0.4065
+            },
+            "confidence": 0.0192,
+            "answer_confidence": 0.4065,
+            "action": {
+              "act_probability": 1.0
+            }
+          },
+          "severity": {
+            "type": "score",
+            "score": 1.3375,
+            "legend": {
+              "0": "No defect.",
+              "1": "Minor defect.",
+              "2": "Major defect."
+            },
+            "probabilities": {
+              "0": 0.0415,
+              "1": 0.5795,
+              "2": 0.379
+            },
+            "confidence": 0.2573,
+            "answer_confidence": 0.5795,
+            "action": {
+              "act_probability": 1.0
+            }
+          }
+        },
+        "usage": {
+          "input_tokens": 214,
+          "output_tokens": 0
+        },
+        "routing": {
+          "model": "english",
+          "repo": "convaiinnovations/laya",
+          "reason": "explicit model='english'",
+          "detection": null,
+          "workflow": null
+        }
+      }
+    },
+    "model_id:jev-1.13.0": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "model_id:slopvac-judge-pilot-v1": {
+      "status": 200,
+      "response_model": "laya-rl-agent",
+      "routing": {
+        "model": "english",
+        "repo": "convaiinnovations/laya",
+        "reason": "English Latin text",
+        "detection": {
+          "script": "latin",
+          "script_profile": {
+            "latin": 1.0
+          },
+          "language": "en",
+          "is_english": true,
+          "language_undecided": false,
+          "diacritic_rate": 0.0,
+          "non_latin_fraction": 0.0,
+          "mixed_segment": null
+        },
+        "workflow": null
+      },
+      "error": null
+    },
+    "malformed_missing_type": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': unknown type None; use one of ['choice', 'noul', 'score']"
+      }
+    },
+    "malformed_empty_criteria": {
+      "status": 422,
+      "error": {
+        "detail": "question 'q': a choice question needs at least one criterion"
+      }
+    },
+    "malformed_json": {
+      "status": 400
+    },
+    "oversized_state_300k_chars": {
+      "status": 413,
+      "truncated_and_answered": false,
+      "error": {
+        "detail": "state too large (312000 > 50000 chars)"
+      }
+    },
+    "determinism_5x": {
+      "ok_responses": 5,
+      "max_abs_diff": 0.0,
+      "within_1e-4": true
+    },
+    "get_v1_models": {
+      "status": 404,
+      "payload": {
+        "detail": "Not Found"
+      }
+    }
+  },
+  "host_contention": [
+    {
+      "at": 1790684606.3564656,
+      "swap_used_bytes": 0,
+      "swap_total_bytes": 0,
+      "memory_available_bytes": 62659448832,
+      "other_processes_over_1gib": []
+    },
+    {
+      "at": 1790684624.2480626,
+      "swap_used_bytes": 0,
+      "swap_total_bytes": 0,
+      "memory_available_bytes": 62132125696,
+      "other_processes_over_1gib": []
+    }
+  ]
+}

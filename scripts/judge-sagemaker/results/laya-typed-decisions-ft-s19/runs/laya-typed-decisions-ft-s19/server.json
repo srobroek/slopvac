@@ -1,0 +1,14 @@
+{
+  "arm": "laya-typed-decisions-ft-s19",
+  "started_at": 1790622864.8811162,
+  "argv": [
+    "/opt/laya-venv/bin/python",
+    "/opt/ml/input/data/code/judge_sagemaker/pilot/laya_server.py",
+    "laya-typed-decisions-ft-s19",
+    "8100"
+  ],
+  "port": 8100,
+  "pid": 136,
+  "ready_at": 1790622870.4125617,
+  "load_time_s": 5.53
+}

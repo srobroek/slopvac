@@ -1,0 +1,44 @@
+{
+  "base_arms": [
+    "kev-0.8b",
+    "kev-4b",
+    "kev-9b",
+    "laya-english",
+    "laya-multilingual",
+    "laya-typed-decisions"
+  ],
+  "checkpoints_from": "corpus-20261003-s17-v5b/full",
+  "data": {
+    "us-east-1": {
+      "calibration": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-84848969f6/blind/blind-20261003-v1/export-manifest.json",
+      "test": "s3://slopvac-judge-536697262379-84848969f6/blind/blind-20261003-v1/test.jsonl",
+      "train": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/train.jsonl"
+    },
+    "us-west-2": {
+      "calibration": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-usw2/blind/blind-20261003-v1/export-manifest.json",
+      "test": "s3://slopvac-judge-536697262379-usw2/blind/blind-20261003-v1/test.jsonl",
+      "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/full/train.jsonl"
+    },
+    "us-east-2": {
+      "calibration": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-use2/blind/blind-20261003-v1/export-manifest.json",
+      "test": "s3://slopvac-judge-536697262379-use2/blind/blind-20261003-v1/test.jsonl",
+      "train": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/train.jsonl"
+    }
+  },
+  "eval_runtime": 14400,
+  "expected": {
+    "calibration": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b",
+    "test": "0d0f8524e265680419e8e400a04f22d1336b507eab016c6050ec941699095554"
+  },
+  "id": "corpus-20261003-s17-v5b/blind-v1",
+  "notes": "Blind set blind-20261003-v1 (judge_corpus/blind.py): human documents the judges never trained on and LLM documents generated from their briefs. Test rows are unlabelled (label_origin blind-unlabelled, placeholder labels) and never scored; the v5b calibration split fits the temperature. Analyse the predictions with `judge-corpus blind report`.",
+  "results": "corpus-blind-v1-v5b",
+  "train_models": [
+    "kev-0.8b",
+    "kev-4b",
+    "kev-9b"
+  ]
+}

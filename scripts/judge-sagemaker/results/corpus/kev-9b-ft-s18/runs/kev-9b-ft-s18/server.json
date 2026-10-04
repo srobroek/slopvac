@@ -1,0 +1,17 @@
+{
+  "arm": "kev-9b-ft-s18",
+  "started_at": 1790727175.4290423,
+  "argv": [
+    "/usr/local/bin/python",
+    "-m",
+    "kev.serve",
+    "--run",
+    "/opt/judge/ft/ft-kev-9b-s18/checkpoint",
+    "--port",
+    "8100"
+  ],
+  "port": 8100,
+  "pid": 220,
+  "ready_at": 1790727264.6445158,
+  "load_time_s": 89.22
+}

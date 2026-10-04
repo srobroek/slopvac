@@ -1,0 +1,9 @@
+# flash-linear-attention at the version Kev's Modal images pin (kev/fused_qwen35.py FLA_VERSION).
+# transformers uses its gated-delta-rule kernels for the Qwen3.5 DeltaNet layers when it is importable.
+# fla-core needs triton>=3.3; the DLC's triton (torch 2.8.0 pins 3.4.0) satisfies that on L40S.
+einops==0.8.2 \
+    --hash=sha256:54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193
+fla-core==0.5.2 \
+    --hash=sha256:5e830c85bad3d0d34677f98ac7074d08687a3756f0f0499d95ceb96eb6920761
+flash-linear-attention==0.5.2 \
+    --hash=sha256:dcf405d81f5426393b59037097aa700d0f4a841465d5028d5aa543f4502f2400

@@ -1,0 +1,14 @@
+{
+  "laya-english": {
+    "disk_bytes": 846195574,
+    "params_total": 421293830,
+    "params_by_part": {
+      "temperature": 3,
+      "act_head": 263938,
+      "encoder": 394781696,
+      "head": 25192448,
+      "scorer": 1052673,
+      "type_emb": 3072
+    }
+  }
+}

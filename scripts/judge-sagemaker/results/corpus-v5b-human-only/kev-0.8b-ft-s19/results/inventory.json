@@ -1,0 +1,15 @@
+{
+  "kev-0.8b-ft-s19": {
+    "disk_bytes": 1835400029,
+    "disk_bytes_adapter": 65486280,
+    "disk_bytes_base": 1769913749,
+    "params_language_model": 752393024,
+    "params_lora": 10822656,
+    "params_head": 524800,
+    "params_total_served": 763740480,
+    "params_base_unused": {
+      "visual": 100592896,
+      "mtp": 20452864
+    }
+  }
+}

@@ -1,0 +1,1 @@
+laya-typed-decisions-ft-s19: noul acc=0.686 bal=0.620 auroc=0.6855177483721907 ece raw=0.213 cal=0.083 T=3.15 | choice acc=0.667 bal=0.667 swap=0.913 abstain=0.000 | p50=27.4ms

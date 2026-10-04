@@ -1,0 +1,6 @@
+.cache/
+.venv/
+# Evaluation inputs and the eval output archive carry corpus item text, which
+# stays in the private S3 bucket. Results keep metrics, manifests and predictions.
+results/**/data/
+results/**/model.tar.gz

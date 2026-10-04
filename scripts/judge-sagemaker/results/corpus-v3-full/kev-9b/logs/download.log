@@ -1,0 +1,3 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+kev-9b: jaredpalmer/kev-9b@2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c -> /tmp/hf/hub/models--jaredpalmer--kev-9b/snapshots/2629c06a5aeb0feb3b9783bafed17ed8f39ecf5c
+kev-9b: Qwen/Qwen3.5-9B-Base@68c46c4b3498877f3ef123c856ecfde50c39f404 -> /tmp/hf/hub/models--Qwen--Qwen3.5-9B-Base/snapshots/68c46c4b3498877f3ef123c856ecfde50c39f404
