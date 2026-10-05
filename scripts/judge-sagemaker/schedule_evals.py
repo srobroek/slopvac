@@ -698,10 +698,10 @@ def candidates_for_eval(arm: str) -> tuple[tuple[str, str], ...]:
     if arm == "clef":
         return EVAL_CANDIDATES["multi-gpu"]
     if arm == "clef-flash":
-        # Every g6e size sat waiting for capacity on 2026-10-05 (EC2 spot placement
-        # score 1 in all US regions) while 24 GB L4/A10G scored 9 in us-east-2. Clef-Flash
-        # fits one 24 GB GPU (bf16 weights ~19 GB, one forward pass without a KV cache),
-        # so try g6.2xlarge and g5.2xlarge first, us-east-2 first, then the g6e sizes.
+        # On 2026-10-05 Clef-Flash waited for capacity on g6e.2xlarge (us-east-1, us-west-2,
+        # eu-central-1, eu-north-1), g6e.4xlarge, g6e.12xlarge and g6e.xlarge (us-west-2);
+        # EC2 spot placement scores (a proxy) were 1 for g6e and 9 for g6/g5 2xlarge in
+        # us-east-2, where g6.2xlarge then started at once and held the model on one 24 GB L4.
         regions = ("us-east-2",) + tuple(
             r for r in LARGE_EVAL_REGIONS if r != "us-east-2"
         )

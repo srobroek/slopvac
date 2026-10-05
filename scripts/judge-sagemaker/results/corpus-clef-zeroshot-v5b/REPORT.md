@@ -2,7 +2,7 @@
 
 ## Dataset and coverage
 
-- Campaign: `corpus-20261003-s17-v5b/clef-zeroshot`. Zero-shot Cloudflare Clef decision models (Apache-2.0) on the v5b full test and calibration splits, the same bytes as v5b-full: clef-flash (Cloudflare/clef-flash, 9B, Qwen3.5-9B backbone, one L40S) and clef (Cloudflare/clef, 27B, Qwen3.8-27B backbone, bf16 sharded over the four L40S of ml.g6e.12xlarge). No training; each item becomes one System One record (state plus the question's type, instructions and criteria) answered by the release's joint_schema_model.systemone under transformers 5.10.2 on the DLC's torch 2.8.0. Kev and Laya base arms and the Kev fine-tunes are in v5b-full.
+- Campaign: `corpus-20261003-s17-v5b/clef-zeroshot`. Zero-shot Cloudflare Clef decision models (Apache-2.0) on the v5b full test and calibration splits, the same bytes as v5b-full: clef-flash (Cloudflare/clef-flash, 9B, Qwen3.5-9B backbone, one 24 GB L4 on ml.g6.2xlarge) and clef (Cloudflare/clef, 27B, Qwen3.8-27B backbone, bf16 sharded over the four L40S of ml.g6e.12xlarge). No training; each item becomes one System One record (state plus the question's type, instructions and criteria) answered by the release's joint_schema_model.systemone under transformers 5.10.2 on the DLC's torch 2.8.0. Kev and Laya base arms and the Kev fine-tunes are in v5b-full.
 - Dataset builder: `corpus-export`; same calibration/test hashes are verified for all arms.
 - Evaluated arms: 2 of 2 required (`clef-flash`, `clef`). Missing arms: none; the generator refuses to render while any required arm lacks complete artifacts.
 - Failed or stopped SageMaker attempts: 7 of 9 campaign jobs; each arm's accepted run and every unfinished attempt are listed under *Campaign jobs, failures, and cost*.
