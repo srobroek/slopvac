@@ -9,6 +9,8 @@ job's layout, which eval_bootstrap.sh and eval_entry.py create:
   JUDGE_FT_ROOT    fine-tuned runs, ft-<base>-s<seed>/{checkpoint|model, finetune.json}
   KEV_ROOT         Kev checkout at KEV_COMMIT; KEV_PY is the DLC Python with Kev's locked closure
   LAYA_ROOT        Laya checkout at LAYA_COMMIT; LAYA_PY is the Laya venv's Python
+  CLEF_PY          the DLC Python with requirements-clef.txt; a Clef arm needs no checkout, because
+                   its modeling code (joint_schema_model.py) ships in the pinned Hub revision
 
 Post-trained arms: laya-typed-decisions and kev-0.8b fine-tunes were trained locally by the pilot
 and are uploaded by `judge-sagemaker evaluate`; kev-4b and kev-9b fine-tunes are the
@@ -28,6 +30,7 @@ KEV_SRC = Path(os.environ.get("KEV_ROOT", "/opt/kev"))
 LAYA_SRC = Path(os.environ.get("LAYA_ROOT", "/opt/laya"))
 KEV_PY = Path(os.environ.get("KEV_PY", "/opt/conda/bin/python"))
 LAYA_PY = Path(os.environ.get("LAYA_PY", "/opt/laya-venv/bin/python"))
+CLEF_PY = Path(os.environ.get("CLEF_PY", "/opt/conda/bin/python"))
 
 KEV_COMMIT = "3e1cd3bb588a388a06827443380befece23e68c7"
 LAYA_COMMIT = "9d955671415fc19f069b9cc998928075c1f255ec"
@@ -47,6 +50,13 @@ QWEN_REVS = {
     "Qwen/Qwen3.5-0.8B-Base": "dc7cdfe2ee4154fa7e30f5b51ca41bfa40174e68",
     "Qwen/Qwen3.5-4B-Base": "1001bb4d826a52d1f399e183466143f4da7b741b",
     "Qwen/Qwen3.5-9B-Base": "68c46c4b3498877f3ef123c856ecfde50c39f404",
+}
+# Cloudflare Clef releases (Apache-2.0), observed on the Hub on 2026-10-05. Each revision pins the
+# backbone, the joint schema head and joint_schema_model.py together, so it is also the upstream
+# commit. Clef-Flash is post-trained from Qwen/Qwen3.5-9B, Clef from Qwen/Qwen3.8-27B.
+CLEF_REVS = {
+    "Cloudflare/clef-flash": "17f0b0ad64efb65d273590632833508766b2aae6",
+    "Cloudflare/clef": "2f3de3dd85f379784083b0814d997ab627200f0c",
 }
 
 
@@ -77,6 +87,21 @@ def _kev(repo, base, local=None):
     }
 
 
+def _clef(repo, model, placement):
+    return {
+        "family": "clef",
+        "model": model,  # echoed by systemone; Clef serves one checkpoint per process
+        "repo": repo,
+        "revision": CLEF_REVS[repo],
+        # single: the release's load_release_model on cuda:0; sharded: the same bf16 load with
+        # device_map="auto" over every visible GPU (clef_server.py)
+        "placement": placement,
+        "local": None,
+        "downloads": [(repo, CLEF_REVS[repo])],
+        "upstream_commit": CLEF_REVS[repo],
+    }
+
+
 ARMS = {
     "laya-english": _laya("convaiinnovations/laya", "english"),
     "laya-multilingual": _laya("convaiinnovations/laya-multilingual", "multilingual"),
@@ -86,6 +111,8 @@ ARMS = {
     "kev-0.8b": _kev("jaredpalmer/kev-0.8b", "Qwen/Qwen3.5-0.8B-Base"),
     "kev-4b": _kev("jaredpalmer/kev-4b", "Qwen/Qwen3.5-4B-Base"),
     "kev-9b": _kev("jaredpalmer/kev-9b", "Qwen/Qwen3.5-9B-Base"),
+    "clef-flash": _clef("Cloudflare/clef-flash", "clef-flash", "single"),
+    "clef": _clef("Cloudflare/clef", "clef", "sharded"),
 }
 # Post-trained arms: one per (base arm, training seed), served from FT_ROOT/ft-<base>-s<seed>/ with
 # the servable weights in model/ (Laya) or checkpoint/ (Kev) and the run record in finetune.json.

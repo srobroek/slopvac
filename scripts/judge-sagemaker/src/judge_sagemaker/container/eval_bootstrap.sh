@@ -9,6 +9,10 @@
 #         torch is 2.14.0 as the pilot locked, from the CUDA 12.6 wheel index: download.pytorch.org
 #         has no 2.14.0+cu129 build (cu129 stops at 2.13.0), and the cu126 runtime runs on the
 #         driver the cu12.9 DLC needs.
+#   Clef: no checkout (joint_schema_model.py ships in the pinned Hub revision); transformers 5.10.2,
+#         the release's tested version, with requirements-clef.txt (--require-hashes) and
+#         flash-linear-attention on the DLC's torch 2.8.0. The model card tested torch 2.11;
+#         transformers 5.10.2 needs torch>=2.4, so the job keeps the image's torch.
 #   Harness: its own venv with the pilot's requirements-harness.txt (run_arm.py, metrics.py).
 set -euo pipefail
 
@@ -25,6 +29,7 @@ LAYA_TORCH_INDEX=https://download.pytorch.org/whl/cu126
 export JUDGE_EVAL_OUT=/opt/ml/model JUDGE_FT_ROOT=/opt/judge/ft
 export KEV_ROOT=/opt/kev LAYA_ROOT=/opt/laya
 export KEV_PY="$(command -v python)" LAYA_PY=/opt/laya-venv/bin/python HARNESS_PY=/opt/harness-venv/bin/python
+export CLEF_PY="$(command -v python)"
 export JUDGE_LAYA_TORCH="$LAYA_TORCH" JUDGE_LAYA_TORCH_INDEX="$LAYA_TORCH_INDEX"
 export HF_HOME="${HF_HOME:-/tmp/hf}"
 export TRITON_CACHE_DIR="$HF_HOME/triton-cache"
@@ -77,6 +82,30 @@ import torch
 if not torch.cuda.is_available():
     raise SystemExit(f"torch {torch.__version__} in the Laya venv sees no CUDA device")
 print(f"eval-bootstrap: laya venv torch {torch.__version__}, cuda {torch.version.cuda}", flush=True)
+EOF
+  ;;
+clef)
+  python - <<'EOF'
+import sys, torch, torchvision, PIL
+if sys.version_info[:2] != (3, 12):
+    raise SystemExit(f"requirements-clef.txt targets Python 3.12; the image has {sys.version.split()[0]}")
+if torch.__version__.split("+")[0] != "2.8.0":
+    raise SystemExit(f"requirements-clef.txt resolves against torch 2.8.0; the image has {torch.__version__}")
+if not torch.cuda.is_available():
+    raise SystemExit("no CUDA device visible to the DLC torch")
+EOF
+  python -m pip install --quiet --no-deps --require-hashes --only-binary=:all: \
+    -r "$CODE/judge_sagemaker/container/requirements-clef.txt" \
+    -r "$CODE/judge_sagemaker/container/requirements-fla.txt"
+  python - <<'EOF'
+import accelerate, torch, torchvision, transformers
+from transformers.utils.import_utils import is_flash_linear_attention_available
+if transformers.__version__ != "5.10.2":
+    raise SystemExit(f"Clef needs transformers 5.10.2; installed {transformers.__version__}")
+print(f"eval-bootstrap: clef on torch {torch.__version__} (cuda {torch.version.cuda}), "
+      f"torchvision {torchvision.__version__}, transformers {transformers.__version__}, "
+      f"accelerate {accelerate.__version__}, {torch.cuda.device_count()} GPU(s), "
+      f"fla kernels {is_flash_linear_attention_available()}", flush=True)
 EOF
   ;;
 *)

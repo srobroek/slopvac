@@ -14,7 +14,8 @@ Sequence, one server at a time:
   5. score with `metrics.py <arm>` and write manifest.json.
 Outputs in /opt/ml/model (uploaded as model.tar.gz): data/, results/{<arm>.json, predictions/,
 dataset-manifest.json, inventory.json}, runs/<arm>/ (server.json, run.json, finetune.json for a
-fine-tuned arm), logs/ and manifest.json. A failure writes /opt/ml/output/failure.
+fine-tuned arm; placement.json for a Clef arm), logs/ and manifest.json. A failure writes
+/opt/ml/output/failure.
 """
 
 import json
@@ -38,7 +39,7 @@ FAILURE = ML / "output/failure"
 PILOT = Path(__file__).resolve().parents[1] / "pilot"
 sys.path.insert(0, str(PILOT))
 
-from arms import ARMS, DATA, KEV_PY, LAYA_PY, OUT, RESULTS, RUNS
+from arms import ARMS, CLEF_PY, DATA, KEV_PY, LAYA_PY, OUT, RESULTS, RUNS
 
 HARNESS_PY = Path(os.environ.get("HARNESS_PY", sys.executable))
 LOGS = OUT / "logs"
@@ -48,7 +49,32 @@ CHOICE_ORDER = ["real-defect", "no-defect", "insufficient-context"]
 
 
 def family_python(arm):
-    return LAYA_PY if arm["family"] == "laya" else KEV_PY
+    return {"laya": LAYA_PY, "clef": CLEF_PY}.get(arm["family"], KEV_PY)
+
+
+def clef_runtime(name):
+    """A Clef arm's pinned closure, release code digest and GPU placement."""
+    placement = json.loads((RUNS / name / "placement.json").read_text())
+    here = Path(__file__).resolve().parent
+    return {
+        "requirements": "requirements-clef.txt and requirements-fla.txt, installed with "
+        "--no-deps --require-hashes into the DLC Python on its torch",
+        "requirements_sha256": {
+            f: sha256_file(here / f)
+            for f in (
+                "requirements-clef.in",
+                "requirements-clef.txt",
+                "requirements-fla.txt",
+            )
+        },
+        "pins": {"transformers": "5.10.2", "accelerate": "1.15.0", "fla-core": "0.5.2"},
+        "note": "the model card was tested with torch 2.11 and transformers 5.10.2 on one H200; "
+        "the job keeps the DLC's torch 2.8.0+cu129 (transformers 5.10.2 needs torch>=2.4)",
+        "release_code_sha256": sha256_file(
+            Path(placement["release_dir"]) / "joint_schema_model.py"
+        ),
+        "placement": placement,
+    }
 
 
 def run_logged(cmd, log_name, cwd=PILOT, env=None):
@@ -410,6 +436,7 @@ def load_hyperparameters():
         "port": int(hp["port"]),
         "kev_commit": hp.get("kev_commit"),
         "laya_commit": hp.get("laya_commit"),
+        "clef_commit": hp.get("clef_commit"),
         "data_uri_test": hp.get("data_uri_test"),
         "data_uri_calibration": hp.get("data_uri_calibration"),
         "data_manifest_uri": hp.get("data_manifest_uri"),
@@ -470,6 +497,7 @@ def main():
         }
         if arm["family"] == "laya"
         else None,
+        "clef_runtime": clef_runtime(name) if arm["family"] == "clef" else None,
         "hardware": result["hardware"],
         "runtime": result["runtime"],
         "python": platform.python_version(),

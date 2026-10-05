@@ -43,6 +43,8 @@ ARMS = (
     "laya-typed-decisions-ft-s17",
     "laya-typed-decisions-ft-s18",
     "laya-typed-decisions-ft-s19",
+    "clef-flash",
+    "clef",
 )
 
 
@@ -50,6 +52,8 @@ RESOURCE_FILES = (
     "resources.json",
     "resources-us-west-2.json",
     "resources-us-east-2.json",
+    "resources-eu-central-1.json",
+    "resources-eu-north-1.json",
 )
 
 
@@ -171,7 +175,9 @@ def _job_request(
 ):
     job_root = f"s3://{res['bucket']}/{res['s3_prefix']}/{name}"
     channels = ["code", "data"] + (["checkpoint"] if checkpoint else [])
-    model_family = "laya" if arm.startswith("laya-") else "kev"
+    from judge_sagemaker.pilot.arms import ARMS as pilot_arms
+
+    model_family = pilot_arms[arm]["family"]
     return {
         "TrainingJobName": name,
         "RoleArn": res["role_arn"],
@@ -190,6 +196,11 @@ def _job_request(
             "checkpoint_ref": checkpoint or "",
             "kev_commit": "3e1cd3bb588a388a06827443380befece23e68c7",
             "laya_commit": "9d955671415fc19f069b9cc998928075c1f255ec",
+            **(
+                {"clef_commit": pilot_arms[arm]["upstream_commit"]}
+                if model_family == "clef"
+                else {}
+            ),
             "port": "8100",
             "data_uri_test": data["test"],
             "data_uri_calibration": data["calibration"],
@@ -256,7 +267,10 @@ def cmd_evaluate(a):
     checkpoint_uri = checkpoint
     if a.instance_type:
         instance = a.instance_type
-    elif a.arm.startswith("kev-9b"):
+    elif a.arm == "clef":
+        # 27B in bf16 (~55 GB) does not fit one 48 GB L40S; 4 L40S, sharded.
+        instance = "ml.g6e.12xlarge"
+    elif a.arm.startswith("kev-9b") or a.arm == "clef-flash":
         instance = "ml.g6e.2xlarge"
     elif a.arm.startswith("laya-") or a.arm.startswith("kev-4b"):
         instance = "ml.g5.4xlarge"
@@ -334,6 +348,7 @@ def cmd_evaluate(a):
                 "compat.py",
                 "download_models.py",
                 "inventory.py",
+                "clef_server.py",
                 "laya_server.py",
                 "memory.py",
                 "metrics.py",
@@ -348,6 +363,8 @@ def cmd_evaluate(a):
                 "eval_entry.py",
                 "requirements-kev-serve.txt",
                 "requirements-fla.txt",
+                "requirements-clef.in",
+                "requirements-clef.txt",
             )
         ],
         *[f"pilot/{x}" for x in ("requirements-harness.txt", "requirements-laya.txt")],

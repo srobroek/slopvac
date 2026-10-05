@@ -7,7 +7,8 @@ one) and writes results/inventory.json under arms.RESULTS. Run it after download
 HF_HUB_OFFLINE=1 so snapshot_download resolves the pinned revisions from the cache.
 Parameter counts come from safetensors headers (shapes, no weights loaded) and head.pt tensors.
 Kev counts split the Qwen3.5 base into the language model that Kev runs and the unused vision
-tower / MTP head that ship in the same checkpoint.
+tower / MTP head that ship in the same checkpoint. Clef counts split its release the same way and
+count the joint schema head (joint_head.safetensors) separately.
 """
 
 import json
@@ -45,16 +46,26 @@ def dir_bytes(path, laya=False):
     return sum(p.stat().st_size for p in files_of(path, laya))
 
 
-def safetensors_params(path, laya=False):
+def header_params(f):
+    """{part: parameter count} from one safetensors file's header."""
+    counts = {}
+    with open(f, "rb") as fh:
+        n = struct.unpack("<Q", fh.read(8))[0]
+        header = json.loads(fh.read(n))
+    header.pop("__metadata__", None)
+    for key, meta in header.items():
+        part = key.split(".")[1] if key.startswith("model.") else key.split(".")[0]
+        counts[part] = counts.get(part, 0) + math.prod(meta["shape"])
+    return counts
+
+
+def safetensors_params(path, laya=False, exclude=()):
     counts = {}
     for f in sorted(p for p in files_of(path, laya) if p.suffix == ".safetensors"):
-        with open(f, "rb") as fh:
-            n = struct.unpack("<Q", fh.read(8))[0]
-            header = json.loads(fh.read(n))
-        header.pop("__metadata__", None)
-        for key, meta in header.items():
-            part = key.split(".")[1] if key.startswith("model.") else key.split(".")[0]
-            counts[part] = counts.get(part, 0) + math.prod(meta["shape"])
+        if f.name in exclude:
+            continue
+        for part, n in header_params(f).items():
+            counts[part] = counts.get(part, 0) + n
     return counts
 
 
@@ -79,6 +90,24 @@ def main(names):
                 "disk_bytes": dir_bytes(path, laya=True),
                 "params_total": sum(counts.values()),
                 "params_by_part": counts,
+            }
+        elif arm["family"] == "clef":
+            path = Path(snapshot_download(arm["repo"], revision=arm["revision"]))
+            counts = safetensors_params(path, exclude=("joint_head.safetensors",))
+            head = sum(header_params(path / "joint_head.safetensors").values())
+            # Text records run the language model; the head reads lm_head rows as option embeddings.
+            served = counts.get("language_model", 0) + counts.get("lm_head", 0)
+            inv[name] = {
+                "disk_bytes": dir_bytes(path),
+                "params_language_model": counts.get("language_model", 0),
+                "params_lm_head": counts.get("lm_head", 0),
+                "params_head": head,
+                "params_total_served": served + head,
+                "params_unused": {
+                    k: v
+                    for k, v in counts.items()
+                    if k not in ("language_model", "lm_head")
+                },
             }
         else:
             adapter = arm["local"] or snapshot_download(

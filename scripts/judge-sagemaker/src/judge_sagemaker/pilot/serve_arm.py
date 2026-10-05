@@ -8,6 +8,7 @@ route every 0.1 s, and adds `ready_at` and `load_time_s` (process start -> first
 answers. SIGTERM/SIGINT are forwarded to the child; the launcher exits with the child's status.
 Laya: laya.serve.create_app over a single-checkpoint Router (laya_server.py).
 Kev: `python -m kev.serve --run <repo>@<revision>` (or the local fine-tuned run) from the pinned checkout.
+Clef: the release's joint_schema_model.systemone behind FastAPI (clef_server.py).
 """
 
 import json
@@ -17,7 +18,7 @@ import sys
 import time
 import urllib.request
 
-from arms import ARMS, KEV_PY, KEV_SRC, LAYA_PY, PILOT, RUNS
+from arms import ARMS, CLEF_PY, KEV_PY, KEV_SRC, LAYA_PY, PILOT, RUNS
 
 
 def main():
@@ -28,6 +29,9 @@ def main():
     if arm["family"] == "laya":
         argv = [str(LAYA_PY), str(PILOT / "laya_server.py"), name, port]
         cwd, health = PILOT, "/health"
+    elif arm["family"] == "clef":
+        argv = [str(CLEF_PY), str(PILOT / "clef_server.py"), name, port]
+        cwd, health = PILOT, "/v1/models"
     else:
         run = arm["local"] or f"{arm['repo']}@{arm['revision']}"
         argv = [str(KEV_PY), "-m", "kev.serve", "--run", run, "--port", port]

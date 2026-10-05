@@ -1,0 +1,16 @@
+{
+  "placement": "single",
+  "dtype": "bfloat16",
+  "release_dir": "/tmp/hf/hub/models--Cloudflare--clef-flash/snapshots/17f0b0ad64efb65d273590632833508766b2aae6",
+  "backbone_modules_per_device": {},
+  "head_device": "cuda:0",
+  "gpus": [
+    {
+      "index": 0,
+      "name": "NVIDIA L4",
+      "total_bytes": 23661248512,
+      "allocated_bytes_after_load": 19063236096
+    }
+  ],
+  "load_s": 27.5
+}

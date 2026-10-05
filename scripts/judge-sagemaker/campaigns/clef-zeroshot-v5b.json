@@ -1,21 +1,12 @@
 {
-  "id": "corpus-20261003-s17-v5b/full",
-  "results": "corpus-v5b-full",
-  "train_models": [
-    "kev-0.8b",
-    "kev-4b",
-    "kev-9b"
-  ],
+  "id": "corpus-20261003-s17-v5b/clef-zeroshot",
+  "results": "corpus-clef-zeroshot-v5b",
+  "train_models": [],
   "base_arms": [
-    "kev-0.8b",
-    "kev-4b",
-    "kev-9b",
-    "laya-english",
-    "laya-multilingual",
-    "laya-typed-decisions"
+    "clef-flash",
+    "clef"
   ],
-  "runtime_scale": 2.4779,
-  "eval_runtime": 7200,
+  "eval_runtime": 10800,
   "spot": "fallback",
   "data": {
     "us-east-1": {
@@ -53,6 +44,6 @@
     "test": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
     "calibration": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b"
   },
-  "notes": "Round 4 on the v5b export (full): lint rules at main ca941af16a87 (latin-abbreviation and latinisms off by profile default), semantic regions without link-reference definitions or bare URLs, and labels from the v5 human queue, the earlier human lint sheets and the settled LLM-review consensus (label_origin llm-review-consensus). runtime_scale is 13,430 train rows / 5,420. Laya fine-tunes are left out until round 1 shows Laya fine-tuning beats its base.",
+  "notes": "Zero-shot Cloudflare Clef decision models (Apache-2.0) on the v5b full test and calibration splits, the same bytes as v5b-full: clef-flash (Cloudflare/clef-flash, 9B, Qwen3.5-9B backbone, one L40S) and clef (Cloudflare/clef, 27B, Qwen3.8-27B backbone, bf16 sharded over the four L40S of ml.g6e.12xlarge). No training; each item becomes one System One record (state plus the question's type, instructions and criteria) answered by the release's joint_schema_model.systemone under transformers 5.10.2 on the DLC's torch 2.8.0. Kev and Laya base arms and the Kev fine-tunes are in v5b-full.",
   "panel_agreement": "items/panel-agreement.json"
 }

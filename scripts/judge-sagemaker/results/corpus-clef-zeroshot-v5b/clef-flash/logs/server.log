@@ -1,0 +1,3 @@
+[transformers] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+clef_server: clef-flash loaded {"placement": "single", "dtype": "bfloat16", "release_dir": "/tmp/hf/hub/models--Cloudflare--clef-flash/snapshots/17f0b0ad64efb65d273590632833508766b2aae6", "backbone_modules_per_device": {}, "head_device": "cuda:0", "gpus": [{"index": 0, "name": "NVIDIA L4", "total_bytes": 23661248512, "allocated_bytes_after_load": 19063236096}], "load_s": 27.5}
+serve_arm: clef-flash ready in 29.24 s

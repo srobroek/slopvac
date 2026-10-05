@@ -1,0 +1,12 @@
+{
+  "clef-flash": {
+    "disk_bytes": 19083377402,
+    "params_language_model": 7936684544,
+    "params_lm_head": 1017118720,
+    "params_head": 121762820,
+    "params_total_served": 9075566084,
+    "params_unused": {
+      "visual": 456010480
+    }
+  }
+}

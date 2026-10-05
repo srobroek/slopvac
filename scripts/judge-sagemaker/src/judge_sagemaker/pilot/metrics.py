@@ -25,7 +25,7 @@ from pathlib import Path
 import numpy as np
 import psutil
 
-from arms import ARMS, KEV_PY, LAYA_PY, RESULTS, RUNS
+from arms import ARMS, CLEF_PY, KEV_PY, LAYA_PY, RESULTS, RUNS
 
 CHOICE_ORDER = ["real-defect", "no-defect", "insufficient-context"]
 EPS = 1e-6
@@ -58,6 +58,16 @@ VERSION_SNIPPETS = {
     "print(json.dumps({p:v(p) for p in "
     "['torch','transformers','peft','mlx','mlx-lm','fastapi','uvicorn','numpy','fla-core']}|"
     "{'python':__import__('sys').version.split()[0]}))",
+    "clef": "import json,importlib.metadata as m\n"
+    "def v(p):\n"
+    "    try:\n"
+    "        return m.version(p)\n"
+    "    except m.PackageNotFoundError:\n"
+    "        return None\n"
+    "print(json.dumps({p:v(p) for p in "
+    "['torch','transformers','accelerate','tokenizers','safetensors','huggingface-hub',"
+    "'torchvision','pillow','fla-core','flash-linear-attention','triton','fastapi','uvicorn','numpy']}|"
+    "{'python':__import__('sys').version.split()[0]}))",
 }
 GPU_SNIPPET = (
     "import json,torch;p=torch.cuda.get_device_properties(0);print(json.dumps({"
@@ -68,7 +78,7 @@ GPU_SNIPPET = (
 
 
 def family_python(family):
-    return LAYA_PY if family == "laya" else KEV_PY
+    return {"laya": LAYA_PY, "clef": CLEF_PY}.get(family, KEV_PY)
 
 
 def runtime_versions(family):

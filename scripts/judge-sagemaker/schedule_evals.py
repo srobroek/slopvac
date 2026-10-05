@@ -39,6 +39,8 @@ REGION_FILE = {
     "us-east-1": "resources.json",
     "us-west-2": "resources-us-west-2.json",
     "us-east-2": "resources-us-east-2.json",
+    "eu-central-1": "resources-eu-central-1.json",
+    "eu-north-1": "resources-eu-north-1.json",
 }
 REGIONS = tuple(REGION_FILE)
 FINAL = {"Completed", "Failed", "Stopped"}
@@ -65,12 +67,18 @@ TRAIN_CANDIDATES = {
         ("us-east-1", "ml.g6.xlarge"),
         ("us-west-2", "ml.g6.xlarge"),
         ("us-east-2", "ml.g6.xlarge"),
+        ("eu-central-1", "ml.g6.xlarge"),
+        ("eu-north-1", "ml.g6.xlarge"),
         ("us-east-1", "ml.g6.2xlarge"),
         ("us-west-2", "ml.g6.2xlarge"),
         ("us-east-2", "ml.g6.2xlarge"),
+        ("eu-central-1", "ml.g6.2xlarge"),
+        ("eu-north-1", "ml.g6.2xlarge"),
         ("us-east-1", "ml.g5.2xlarge"),
         ("us-west-2", "ml.g5.2xlarge"),
         ("us-east-2", "ml.g5.2xlarge"),
+        ("eu-central-1", "ml.g5.2xlarge"),
+        ("eu-north-1", "ml.g5.2xlarge"),
     ),
     # ml.g6e.12xlarge (4 L40S, one used, 384 GiB host) costs more per hour than
     # the 16xlarge (1 L40S, 512 GiB host), so it is the last on-demand resort.
@@ -107,6 +115,13 @@ TRAIN_CANDIDATES = {
         for region in REGIONS
     ),
 }
+LARGE_EVAL_REGIONS = (
+    "us-west-2",
+    "us-east-1",
+    "us-east-2",
+    "eu-central-1",
+    "eu-north-1",
+)
 EVAL_CANDIDATES = {
     "small": tuple(
         (region, instance)
@@ -119,6 +134,7 @@ EVAL_CANDIDATES = {
         )
         for region in REGIONS
     ),
+    # One L40S holds Kev-9B or Clef-Flash (9B, ~19 GB in bf16).
     "large": tuple(
         (region, instance)
         for instance in (
@@ -127,8 +143,11 @@ EVAL_CANDIDATES = {
             "ml.g6e.8xlarge",
             "ml.g6e.16xlarge",
         )
-        for region in ("us-west-2", "us-east-1", "us-east-2")
+        for region in LARGE_EVAL_REGIONS
     ),
+    # Clef (27B, ~55 GB in bf16) shards over the four L40S of a 12xlarge; the account has no
+    # p4d, p4de, p5, g5.48xlarge or g6e.24xlarge/48xlarge training quota.
+    "multi-gpu": tuple((region, "ml.g6e.12xlarge") for region in LARGE_EVAL_REGIONS),
 }
 ON_DEMAND, SPOT = "on-demand", "spot"
 # A spot job that ended this way lost its capacity or ran out of time. It has no
@@ -422,7 +441,7 @@ def ft_identity(arm: str) -> tuple[str, int] | None:
 
 
 def is_large(arm: str) -> bool:
-    return arm.startswith("kev-9b")
+    return arm.startswith("kev-9b") or arm == "clef-flash"
 
 
 def parse_region(job: dict[str, Any]) -> str | None:
@@ -676,6 +695,25 @@ def priced_candidates(
 
 
 def candidates_for_eval(arm: str) -> tuple[tuple[str, str], ...]:
+    if arm == "clef":
+        return EVAL_CANDIDATES["multi-gpu"]
+    if arm == "clef-flash":
+        # Every g6e size sat waiting for capacity on 2026-10-05 (EC2 spot placement
+        # score 1 in all US regions) while 24 GB L4/A10G scored 9 in us-east-2. Clef-Flash
+        # fits one 24 GB GPU (bf16 weights ~19 GB, one forward pass without a KV cache),
+        # so try g6.2xlarge and g5.2xlarge first, us-east-2 first, then the g6e sizes.
+        regions = ("us-east-2",) + tuple(
+            r for r in LARGE_EVAL_REGIONS if r != "us-east-2"
+        )
+        small = tuple(
+            (region, instance)
+            for instance in ("ml.g6.2xlarge", "ml.g5.2xlarge")
+            for region in regions
+        )
+        g6e_xlarge = tuple((region, "ml.g6e.xlarge") for region in LARGE_EVAL_REGIONS)
+        return (
+            small + g6e_xlarge + EVAL_CANDIDATES["large"] + EVAL_CANDIDATES["multi-gpu"]
+        )
     return EVAL_CANDIDATES["large" if is_large(arm) else "small"]
 
 

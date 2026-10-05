@@ -1,0 +1,14 @@
+{
+  "arm": "clef-flash",
+  "started_at": 1791186368.2496583,
+  "argv": [
+    "/usr/local/bin/python",
+    "/opt/ml/input/data/code/judge_sagemaker/pilot/clef_server.py",
+    "clef-flash",
+    "8100"
+  ],
+  "port": 8100,
+  "pid": 212,
+  "ready_at": 1791186397.4939342,
+  "load_time_s": 29.24
+}
