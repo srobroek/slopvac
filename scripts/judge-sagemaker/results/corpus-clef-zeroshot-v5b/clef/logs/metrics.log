@@ -1,1 +1,0 @@
-clef: noul acc=0.813 bal=0.808 auroc=0.9026457750714674 ece raw=0.074 cal=0.040 T=1.52 | choice acc=0.648 bal=0.656 swap=0.997 abstain=0.056 | p50=171.0ms
