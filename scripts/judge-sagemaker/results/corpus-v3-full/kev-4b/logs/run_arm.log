@@ -1,0 +1,86 @@
+kev-4b: ready after 104.0s
+kev-4b: compat probe done
+kev-4b: 0 requests
+kev-4b: 100 requests
+kev-4b: 200 requests
+kev-4b: 300 requests
+kev-4b: 400 requests
+kev-4b: 500 requests
+kev-4b: 600 requests
+kev-4b: 700 requests
+kev-4b: 800 requests
+kev-4b: 900 requests
+kev-4b: 1000 requests
+kev-4b: 1100 requests
+kev-4b: 1200 requests
+kev-4b: 1300 requests
+kev-4b: 1400 requests
+kev-4b: 1500 requests
+kev-4b: 1600 requests
+kev-4b: 1700 requests
+kev-4b: 1800 requests
+kev-4b: 1900 requests
+kev-4b: 2000 requests
+kev-4b: 2100 requests
+kev-4b: 2200 requests
+kev-4b: 2300 requests
+kev-4b: 2400 requests
+kev-4b: 2500 requests
+kev-4b: 2600 requests
+kev-4b: 2700 requests
+kev-4b: 2800 requests
+kev-4b: 2900 requests
+kev-4b: 3000 requests
+kev-4b: 3100 requests
+kev-4b: 3200 requests
+kev-4b: 3300 requests
+kev-4b: 3400 requests
+kev-4b: 3500 requests
+kev-4b: 3600 requests
+kev-4b: 3700 requests
+kev-4b: 3800 requests
+kev-4b: 3900 requests
+kev-4b: 4000 requests
+kev-4b: 4100 requests
+kev-4b: 4200 requests
+kev-4b: 4300 requests
+kev-4b: 4400 requests
+kev-4b: 4500 requests
+kev-4b: 4600 requests
+kev-4b: 4700 requests
+kev-4b: 4800 requests
+kev-4b: 4900 requests
+kev-4b: 5000 requests
+kev-4b: 5100 requests
+kev-4b: 5200 requests
+kev-4b: 5300 requests
+kev-4b: 5400 requests
+kev-4b: 5500 requests
+kev-4b: 5600 requests
+kev-4b: 5700 requests
+kev-4b: 5800 requests
+kev-4b: 5900 requests
+kev-4b: 6000 requests
+kev-4b: 6100 requests
+kev-4b: 6200 requests
+kev-4b: 6300 requests
+kev-4b: 6400 requests
+kev-4b: 6500 requests
+kev-4b: 6600 requests
+kev-4b: 6700 requests
+kev-4b: 6800 requests
+{
+ "load_time_s": 104.01,
+ "sequential": {
+  "requests": 6842,
+  "wall_s": 592.85
+ },
+ "throughput": null,
+ "memory": {
+  "peak_rss_bytes_sampled": 15252881408,
+  "peak_gpu_memory_bytes_sampled": 20560478208,
+  "phys_footprint_bytes": 15968903168,
+  "lifetime_max_phys_footprint_bytes": 22697132032,
+  "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+ }
+}

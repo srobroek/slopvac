@@ -1,0 +1,14 @@
+{
+  "builder": "corpus-export",
+  "files": {
+    "test": {
+      "sha256": "080f183aba8eb64e5cca4bb333fc8f3f59d8198964520a79d0030fb3a0d22c65",
+      "items": 3424
+    },
+    "calibration": {
+      "sha256": "842e8de6734b0d60330c2274359a0b19525b4c68263a60bc1d2d9d43ba4f60cf",
+      "items": 1659
+    }
+  },
+  "export_train_sha256": "5983902ef3c9dead138a2c14728ef3cfff3bf0842d2e12bfba813b254f074f39"
+}

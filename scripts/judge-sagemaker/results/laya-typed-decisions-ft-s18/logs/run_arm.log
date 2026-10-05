@@ -1,0 +1,25 @@
+laya-typed-decisions-ft-s18: ready after 4.8s
+laya-typed-decisions-ft-s18: compat probe done
+laya-typed-decisions-ft-s18: 0 requests
+laya-typed-decisions-ft-s18: 100 requests
+laya-typed-decisions-ft-s18: 200 requests
+laya-typed-decisions-ft-s18: 300 requests
+laya-typed-decisions-ft-s18: 400 requests
+laya-typed-decisions-ft-s18: 500 requests
+laya-typed-decisions-ft-s18: 600 requests
+laya-typed-decisions-ft-s18: 700 requests
+{
+ "load_time_s": 4.83,
+ "sequential": {
+  "requests": 735,
+  "wall_s": 17.6
+ },
+ "throughput": null,
+ "memory": {
+  "peak_rss_bytes_sampled": 1730457600,
+  "peak_gpu_memory_bytes_sampled": 2881486848,
+  "phys_footprint_bytes": 1730457600,
+  "lifetime_max_phys_footprint_bytes": 3376353280,
+  "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+ }
+}

@@ -1,0 +1,1 @@
+laya-typed-decisions-ft-s17 {"disk_bytes": 846195409, "params_total": 421293830, "params_by_part": {"act_head": 263938, "encoder": 394781696, "head": 25192448, "scorer": 1052673, "temperature": 3, "type_emb": 3072}}

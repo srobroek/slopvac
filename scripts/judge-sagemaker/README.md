@@ -1,0 +1,196 @@
+# judge-sagemaker: Kev 4B and 9B fine-tunes as SageMaker training jobs
+
+This package submits one Kev delta fine-tune at a time as a SageMaker training job and fetches
+its outputs. It implements the Compute section of
+`packages/slopvac-lint/docs/design/local-judging.md` for Kev 4B and 9B: `ml.g6e` with one
+48 GB L40S, `us-east-1`, a maximum runtime per job, outputs in the corpus bucket, and one job at
+a time. It creates training jobs only: no endpoints, notebooks, or EC2 instances. Nothing trains
+or runs inference on the local machine.
+
+The training recipe is judge-pilot's `finetune_kev.py`, itself a port of `run_train` in Kev's
+`skills/kev-finetune/scripts/kev_modal.py` at Kev commit
+`3e1cd3bb588a388a06827443380befece23e68c7`. The job builds the same `kev.train` command from the
+init checkpoint's recorded arguments, with `--device cuda --dtype bf16` as Kev's GPU recipe runs it.
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `src/judge_sagemaker/cli.py` | `judge-sagemaker` command: `submit`, `fetch`, `stop`, `convert` |
+| `src/judge_sagemaker/convert.py` | Deterministic JSONL conversion (the pilot's `to_kev`); runs locally and in the job |
+| `src/judge_sagemaker/container/bootstrap.sh` | Container start: checks out Kev, installs its locked dependencies, runs `entry.py` |
+| `src/judge_sagemaker/container/entry.py` | Converts the data, runs `kev.train`, fits the calibration temperature, writes `manifest.json` |
+| `src/judge_sagemaker/container/requirements-kev.txt` | Kev's `uv.lock` closure with hashes, minus the torch stack the image provides |
+| `src/judge_sagemaker/container/requirements-fla.txt` | `flash-linear-attention` 0.5.2, the version Kev's Modal images pin |
+| `src/judge_sagemaker/container/requirements-clef.in`, `requirements-clef.txt` | The Clef arms' closure with hashes (transformers 5.10.2), minus the torch stack the image provides |
+| `src/judge_sagemaker/pilot/clef_server.py` | Serves a Clef release's own `joint_schema_model.systemone` on the Jev wire protocol |
+| `resources.json` | Account, profile, region, bucket, role, image, instance types, prices, runtimes, tags |
+| `cost-ledger.json` | Every submitted job and its maximum and billed cost against the USD cap |
+| `pyproject.toml`, `uv.lock` | The local CLI's pinned dependencies (`boto3`) |
+
+## Commands
+
+Run from this directory. `uv run` installs the pinned CLI environment.
+
+```bash
+uv run judge-sagemaker submit --model kev-4b --data ../../path/to/train.jsonl --epochs 1 --seed 17 --dry-run
+uv run judge-sagemaker submit --model kev-4b --data s3://<bucket>/<key>.jsonl --epochs 1 --seed 17
+uv run judge-sagemaker fetch <job> [--logs 200]
+uv run judge-sagemaker stop <job>
+uv run judge-sagemaker convert --data train.jsonl --out train.kev.jsonl
+```
+
+`submit` options: `--calibration <s3 uri | local jsonl>` fits the temperature on that split in
+the job and writes it into `head.pt`. `--lr` (0 uses the checkpoint's rate capped at 5e-5),
+`--replay` (default 2000 records of Kev's decision-v7 training partition; 0 disables it),
+`--p-none-pair` (default 0.25), `--max-state` (passes `kev.train --max_state`), and
+`--batch`, `--accum`, `--checkpointing`, `--dtype`, and `--weights-dtype` override the saved
+checkpoint training recipe; omit these to keep its batch and precision settings. `--max-runtime`
+seconds (default from `resources.json`), `--instance-type`, and `--profile` select the job
+resources. `--dry-run` prints the plan and `CreateTrainingJob` request without AWS calls.
+### GPU evaluation
+
+`evaluate` runs the judge-pilot harness on a SageMaker training GPU. It starts one Jev-compatible server inside the job, probes the local API, runs single-client sequential calibration/test requests, then stops the server. It skips concurrent throughput.
+
+```sh
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-0.8b --dry-run
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-0.8b
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker fetch-eval <job>
+JUDGE_SAGEMAKER_RESOURCES=resources.json uv run judge-sagemaker evaluate --arm kev-9b
+```
+
+`--checkpoint` selects a local fine-tuned pilot run directory or an S3 `model.tar.gz` for an `*-ft-sN` arm. Fine-tuned Kev 4B/9B arms otherwise use a completed SageMaker training job recorded in the shared cost ledger. Laya and Kev 0.8B fine-tuned arms use local pilot caches and upload dereferenced checkpoint contents to S3. A training-job checkpoint must match the arm's base model, seed and commit, and must have trained on the evaluated export's train and calibration splits. `--cross-export-checkpoint` drops only the split check, for a checkpoint from another export; the reported calibrated (`test_cal`) temperature is still fit on the evaluated calibration split.
+
+`evaluate` uploads the test and calibration splits, dataset manifest, pilot runner, pinned dependencies, and an optional checkpoint into a job-specific `training/<job>/` prefix. It checks the shared cost ledger before submission and sets `MaxRuntimeInSeconds` to at most 7200 seconds. `fetch-eval` records billed instance time and cost, then downloads metrics, predictions, server logs, inventory, manifest, and compatibility probe beneath `results/<arm>/`.
+
+`clef-flash` (`Cloudflare/clef-flash`, 9B, Qwen3.5-9B backbone) and `clef` (`Cloudflare/clef`, 27B, Qwen3.8-27B backbone) are zero-shot base arms. Each is pinned to a Hub revision that holds the weights, the joint schema head and `joint_schema_model.py` together, so the job checks out no repository. `clef_server.py` imports that file from the snapshot and answers each `/v1/systemone` request with its `systemone` (`encode_record`, `collate_records`, one bf16 forward, then a softmax per question), so `run_arm.py` and `metrics.py` run unchanged: one System One record per item, the noul and choice answer shapes of every other arm, and the calibration temperature fit on the calibration split. The release's tested pair is torch 2.11 with transformers 5.10.2. The job installs transformers 5.10.2 (`requirements-clef.txt` with `requirements-fla.txt`, `--no-deps --require-hashes`) on the DLC's torch 2.8.0, because transformers 5.10.2 requires only torch>=2.4; `manifest.json` records the pins under `clef_runtime`. `clef-flash` loads with the release's `load_release_model` on one L40S (`ml.g6e.2xlarge` to `16xlarge`). `load_release_model` pins the whole model to one device, and `clef` needs about 55 GB in bf16, more than one 48 GB L40S. The `clef` arm therefore loads the same way with `device_map="auto"` across the four L40S of `ml.g6e.12xlarge`, with the head on the GPU that holds the final norm (`runs/clef/placement.json`). The account has no p4d, p4de, p5, g5.48xlarge or g6e.24xlarge/48xlarge training quota.
+
+Choose resources by region with `JUDGE_SAGEMAKER_RESOURCES`: `resources.json` (`us-east-1`), `resources-us-west-2.json`, `resources-us-east-2.json`, `resources-eu-central-1.json` or `resources-eu-north-1.json`. Each region has its own private bucket holding mirrored exports and the Laya base model; the role, image tag and cost ledger are shared. Each region has a training quota of one job per `ml.g5`, `ml.g6` and `ml.g6e` size from `xlarge` to `16xlarge`, and a separate managed spot quota of one per `ml.g5` and `ml.g6e` size (`ml.g6` spot quotas are 0); `spot_instance_types` lists the spot-capable types. The on-demand SageMaker Training prices in the resource files are conservative estimates; see `price_source`. Use the report manifest to identify the GPU used for each arm.
+
+`submit --spot` and `evaluate --spot` request managed spot training: `EnableManagedSpotTraining`, `MaxWaitTimeInSeconds` from `--max-wait` (default twice `--max-runtime`) and a `CheckpointConfig` under the job's `training/<job>/checkpoints/` prefix. Neither entry point saves to or resumes from `/opt/ml/checkpoints`, and `kev.train` resumes only full-weight runs, so an interrupted spot job reruns from the start within `MaxWaitTimeInSeconds`. The ledger marks such jobs `"spot": true` and reserves the on-demand maximum cost until `fetch` bills `BillableTimeInSeconds`, which is the spot cost in on-demand seconds.
+
+### Campaigns
+
+`schedule_evals.py` trains and evaluates every arm of one or more campaign files under `campaigns/`
+(`uv run python schedule_evals.py --dry-run|--once|--run --campaign campaigns/<file>.json`, repeatable;
+only one scheduler runs at a time). A campaign names its export `id`, `results` directory,
+`train_models`, `base_arms`, per-region `data` URIs and `expected` test/calibration SHA-256 digests.
+`checkpoints_from` makes a campaign eval-only: it submits no training and evaluates its
+`train_models` × seed fine-tune arms on the usable checkpoints of the named campaign id, passing
+`--cross-export-checkpoint`.
+`campaigns/v3-on-v4.json` uses it to test the v3-full fine-tunes on the v4 full test export.
+`campaigns/v5b-human-only.json` and `campaigns/v5b-llm-only.json` are a label-source ablation of
+`v5b-full`: their exports drop the `llm-review-consensus` or the `human-adjudication` train labels
+(judge-corpus `items export --drop-train-origin`) and keep v5b full's test and calibration bytes, so
+they train Kev fine-tunes only and borrow v5b-full's base arms.
+`campaigns/clef-zeroshot-v5b.json` is eval-only: the two Clef base arms on v5b full's test and
+calibration bytes, reported next to v5b-full with
+`--compare campaigns/v5b-full.json --ablation campaigns/v5b-full.json` (the ablation section sets
+the Kev and Laya arms beside the Clef arms per role and origin slice).
+
+A campaign runs only in the regions its `data` lists. `"spot": "fallback"` (set on the three v5b
+training campaigns) submits a managed spot job when every on-demand slot for a target is taken or
+rejected. A spot interruption, `MaxWaitTimeExceeded` or `MaxRuntimeExceeded` is a free retry, not a
+counted attempt; after three of them the target waits for on-demand capacity.
+
+### Campaign reports
+
+`scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` once every arm of a campaign has fetched results. It leads with per-role (finding-confirmation, semantic-detection) balanced accuracy, class recalls, ECE, GPU, latency and cost per arm and seed mean ± SD, then the same balanced accuracy per role sliced by test `label_origin` (computed from each arm's predictions joined to its test split; the all-origin value must reproduce the headline), fine-tune-vs-base deltas, a comparison with `--compare` (a campaign on the same test export; it also supplies base arms the campaign does not evaluate), a label-source ablation with `--ablation` (repeatable; campaigns on the same test export side by side, seed mean ± SD per role and origin slice), and every ledger job the campaign submitted with failed and stopped attempts. It refuses to render while an arm of any named campaign is missing. `--note` adds a status line. The committed reports were generated with:
+
+```sh
+V4="Pre-v4 baseline. v4 rebuilds the judge items against the merged lint rules (main 7544c168e0: curly-quotes and uniform-paragraph-mass retired, about 13 rules narrowed) and the human-labelled rows, then re-tests every arm on the rebuilt items; v4 scores are not comparable with this test export."
+V3="The v3 full and confident variants differ only in training data: confident drops teacher-panel labels below 0.85 posterior confidence (12,185 train rows vs 14,449; see each variant's export-manifest.json)."
+uv run --frozen python scripts/corpus_eval_report.py --note "$V4"
+uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v3-full.json --compare campaigns/v3-confident.json --note "$V4" --note "$V3"
+uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v3-confident.json --compare campaigns/v3-full.json --note "$V4" --note "$V3"
+```
+
+Once the ablation campaigns finish, the ablation section renders with:
+
+```sh
+uv run --frozen python scripts/corpus_eval_report.py --campaign campaigns/v5b-full.json --ablation campaigns/v5b-human-only.json --ablation campaigns/v5b-llm-only.json --ablation campaigns/v3-on-v5b.json
+```
+
+### What `submit` does
+
+1. It validates the input. A local file is converted in full, so a malformed row fails before any
+   spend. An S3 object is checked in the job.
+2. It checks the budget. The job's maximum cost is the hourly price times the maximum runtime. The
+   ledger must hold no job that has not been fetched in a final state. The committed spend plus
+   this job's maximum must stay within `cap_usd`.
+3. It checks that the profile resolves to the account in `resources.json`. It checks that no
+   `slopvac-judge` job is `InProgress` or `Stopping`.
+4. It uploads the code files to `s3://<bucket>/training/<job>/input/code/`. It uploads or copies
+   the data (server-side copy for S3) to `input/train/` and `input/calibration/`.
+5. It records the job in `cost-ledger.json` and then calls `CreateTrainingJob`. The call uses the
+   stock DLC image, `ContainerEntrypoint` `bash .../bootstrap.sh`, `MaxRuntimeInSeconds`, and
+   network isolation off, because the job fetches Kev, PyPI wheels, and Hugging Face weights.
+
+`fetch` records the status, `BillableTimeInSeconds`, and billed cost (billable seconds times the
+same hourly price) in the ledger. When the job has completed, it downloads `model.tar.gz` to
+`.cache/jobs/<job>/` and extracts it there.
+
+## Data
+
+`--data` and `--calibration` each name one JSONL file in one of two formats:
+
+- **source:** judge-pilot items from `build_dataset.py`, with `id`, `kind` (`noul` or `choice`),
+  `state`, `label`, and `question`. Each item becomes one Kev request through the pilot's
+  `to_kev`: choice criteria are kept in the order `real-defect`, `no-defect`,
+  `insufficient-context`.
+- **kev:** rows already in Kev's labelled request schema (`state` and `questions`). They pass
+  through unchanged.
+
+A file that mixes formats, holds an unknown row, or lacks a choice criterion is rejected. The
+output is written in input order with `json.dumps` defaults. A pilot split converts to the same
+bytes the pilot's `write_kev_data` wrote.
+
+## Job outputs
+
+`model.tar.gz` holds:
+
+- `checkpoint/`: the servable Kev run, with `adapter_model.safetensors`, `adapter_config.json`,
+  `head.pt`, tokenizer files, `training_config.json`, and `training_metrics.json`
+- `data/`: the converted splits
+- `train.log`
+- `calibration-eval/`: raw-logit predictions on the calibration split, when one was given
+- `manifest.json`: job name and ARN, model, Kev commit, `init_from`, base and base revision,
+  hyperparameters, seed, the `kev.train` command, input and converted data digests, fitted
+  temperature, Kev's training metrics, GPU, CUDA, Python and package versions, wall times, a cost
+  estimate (container wall time times the hourly price), and the SHA-256 of every output file
+
+When the job fails, `/opt/ml/output/failure` carries the error, which appears as the
+`FailureReason` that `fetch` prints.
+
+## Container dependencies
+
+`bootstrap.sh` fetches Kev at the pinned commit from GitHub. It checks the `uv.lock` digest and
+that the image's torch is Kev's locked 2.8.0. It then installs both requirement files with
+`pip --no-deps --require-hashes --only-binary=:all:`. Kev requires torch `<2.9`, so the image
+stays on the PyTorch 2.8 DLC. To regenerate `requirements-kev.txt` from a Kev checkout at the
+pinned commit, run:
+
+```bash
+uv export --frozen --no-dev --no-emit-project --no-header --format requirements-txt \
+  --project <kev checkout> --no-emit-package torch --no-emit-package triton \
+  $(for p in cublas cuda-cupti cuda-nvrtc cuda-runtime cudnn cufft cufile curand cusolver cusparse \
+    cusparselt nccl nvjitlink nvtx; do printf -- '--no-emit-package nvidia-%s-cu12 ' "$p"; done) \
+  -o src/judge_sagemaker/container/requirements-kev.txt
+```
+
+Then restore the provenance header and update the digest in `bootstrap.sh`.
+
+## Limits
+
+- **Hourly price:** the `resources.json` price is an estimate. See its `price_source`.
+  Reconcile the ledger against Cost Explorer. Only SageMaker instance time is tracked; S3 and
+  CloudWatch costs are not.
+- **GPU memory:** Kev-4B's released training run peaked at 47.7 GB on an 80 GB GPU with long
+  replay records. That is at the L40S limit. For a first run, use `--replay 0` or `--max-state`.
+  Kev-9B's run peaked at 38 GB of GPU memory and 60.5 GB of host memory, against 64 GiB on
+  `ml.g6e.2xlarge`.
+- **Network:** the job needs outbound access to GitHub, PyPI, and the Hugging Face Hub. Kev-9B
+  downloads about 18 GB of base weights at start.
+- **Service quota:** the account needs `ml.g6e.2xlarge for training job usage` quota of at least 1.
+  The scheduler puts Kev-4B and Kev-9B on `ml.g6e.12xlarge` (4 L40S, one used) only after every
+  2xlarge–16xlarge slot, because it costs more per hour than the 16xlarge.

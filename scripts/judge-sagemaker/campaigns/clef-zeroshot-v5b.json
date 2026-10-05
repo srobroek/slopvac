@@ -1,0 +1,49 @@
+{
+  "id": "corpus-20261003-s17-v5b/clef-zeroshot",
+  "results": "corpus-clef-zeroshot-v5b",
+  "train_models": [],
+  "base_arms": [
+    "clef-flash",
+    "clef"
+  ],
+  "eval_runtime": 10800,
+  "spot": "fallback",
+  "data": {
+    "us-east-1": {
+      "train": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261003-s17-v5b/full/export-manifest.json"
+    },
+    "us-west-2": {
+      "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261003-s17-v5b/full/export-manifest.json"
+    },
+    "us-east-2": {
+      "train": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-use2/exports/corpus-20261003-s17-v5b/full/export-manifest.json"
+    },
+    "eu-central-1": {
+      "train": "s3://slopvac-judge-536697262379-euc1/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-euc1/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-euc1/exports/corpus-20261003-s17-v5b/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-euc1/exports/corpus-20261003-s17-v5b/full/export-manifest.json"
+    },
+    "eu-north-1": {
+      "train": "s3://slopvac-judge-536697262379-eun1/exports/corpus-20261003-s17-v5b/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-eun1/exports/corpus-20261003-s17-v5b/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-eun1/exports/corpus-20261003-s17-v5b/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-eun1/exports/corpus-20261003-s17-v5b/full/export-manifest.json"
+    }
+  },
+  "expected": {
+    "test": "a77f6f64b85b81a13330df57b8cd3973edd2b295ae30efdf4ddc12a4a8bb0b31",
+    "calibration": "8534bee7b935ae80b47d35e1e96a4a288ab3ba86c6bfe851ff01e8dcf3300b1b"
+  },
+  "notes": "Zero-shot Cloudflare Clef decision models (Apache-2.0) on the v5b full test and calibration splits, the same bytes as v5b-full: clef-flash (Cloudflare/clef-flash, 9B, Qwen3.5-9B backbone, one 24 GB L4 on ml.g6.2xlarge) and clef (Cloudflare/clef, 27B, Qwen3.8-27B backbone, bf16 sharded over the four L40S of ml.g6e.12xlarge). No training; each item becomes one System One record (state plus the question's type, instructions and criteria) answered by the release's joint_schema_model.systemone under transformers 5.10.2 on the DLC's torch 2.8.0. Kev and Laya base arms and the Kev fine-tunes are in v5b-full.",
+  "panel_agreement": "items/panel-agreement.json"
+}

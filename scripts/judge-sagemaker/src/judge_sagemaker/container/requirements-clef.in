@@ -1,0 +1,10 @@
+# Clef arms (Cloudflare/clef-flash, Cloudflare/clef): the release's tested transformers on the DLC's
+# torch 2.8.0 (transformers 5.10.2 needs torch>=2.4). torch is pinned here so the closure resolves
+# against the DLC build; it, triton, setuptools and the nvidia wheels are not emitted
+# (requirements-clef.txt), so the job keeps the image's torch 2.8.0+cu129, torchvision and pillow.
+transformers==5.10.2
+# device_map dispatch for the sharded (multi-GPU) placement
+accelerate==1.15.0
+fastapi==0.141.1
+uvicorn==0.53.0
+torch==2.8.0

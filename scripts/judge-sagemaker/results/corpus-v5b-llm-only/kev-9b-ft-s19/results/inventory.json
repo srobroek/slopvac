@@ -1,0 +1,16 @@
+{
+  "kev-9b-ft-s19": {
+    "disk_bytes": 19530927222,
+    "disk_bytes_adapter": 201616246,
+    "disk_bytes_base": 19329310976,
+    "params_language_model": 7936684544,
+    "params_lora": 43278336,
+    "params_head": 2097664,
+    "params_total_served": 7982060544,
+    "params_base_unused": {
+      "lm_head": 1017118720,
+      "mtp": 243290624,
+      "visual": 456010480
+    }
+  }
+}

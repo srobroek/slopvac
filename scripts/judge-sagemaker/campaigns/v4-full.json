@@ -1,0 +1,39 @@
+{
+  "id": "corpus-20261002-s17-v4/full",
+  "results": "corpus-v4-full",
+  "train_models": [
+    "kev-0.8b",
+    "kev-4b",
+    "kev-9b"
+  ],
+  "base_arms": [
+    "kev-0.8b",
+    "kev-4b",
+    "kev-9b",
+    "laya-english",
+    "laya-multilingual",
+    "laya-typed-decisions"
+  ],
+  "runtime_scale": 2.5961,
+  "eval_runtime": 7200,
+  "data": {
+    "us-east-1": {
+      "train": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-84848969f6/exports/corpus-20261002-s17-v4/full/export-manifest.json"
+    },
+    "us-west-2": {
+      "train": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/train.jsonl",
+      "calibration": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/calibration.jsonl",
+      "test": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/test.jsonl",
+      "manifest": "s3://slopvac-judge-536697262379-usw2/exports/corpus-20261002-s17-v4/full/export-manifest.json"
+    }
+  },
+  "expected": {
+    "test": "080f183aba8eb64e5cca4bb333fc8f3f59d8198964520a79d0030fb3a0d22c65",
+    "calibration": "842e8de6734b0d60330c2274359a0b19525b4c68263a60bc1d2d9d43ba4f60cf"
+  },
+  "notes": "Round 3 on the v4 export (full): lint rules at main 7544c168e0 and the human labels imported. Base arms are evaluated in the full campaign only: both variants share test and calibration. Laya fine-tunes are left out until round 1 shows Laya fine-tuning beats its base.",
+  "panel_agreement": "items/panel-agreement.json"
+}

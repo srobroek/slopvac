@@ -1,0 +1,86 @@
+laya-english: ready after 5.4s
+laya-english: compat probe done
+laya-english: 0 requests
+laya-english: 100 requests
+laya-english: 200 requests
+laya-english: 300 requests
+laya-english: 400 requests
+laya-english: 500 requests
+laya-english: 600 requests
+laya-english: 700 requests
+laya-english: 800 requests
+laya-english: 900 requests
+laya-english: 1000 requests
+laya-english: 1100 requests
+laya-english: 1200 requests
+laya-english: 1300 requests
+laya-english: 1400 requests
+laya-english: 1500 requests
+laya-english: 1600 requests
+laya-english: 1700 requests
+laya-english: 1800 requests
+laya-english: 1900 requests
+laya-english: 2000 requests
+laya-english: 2100 requests
+laya-english: 2200 requests
+laya-english: 2300 requests
+laya-english: 2400 requests
+laya-english: 2500 requests
+laya-english: 2600 requests
+laya-english: 2700 requests
+laya-english: 2800 requests
+laya-english: 2900 requests
+laya-english: 3000 requests
+laya-english: 3100 requests
+laya-english: 3200 requests
+laya-english: 3300 requests
+laya-english: 3400 requests
+laya-english: 3500 requests
+laya-english: 3600 requests
+laya-english: 3700 requests
+laya-english: 3800 requests
+laya-english: 3900 requests
+laya-english: 4000 requests
+laya-english: 4100 requests
+laya-english: 4200 requests
+laya-english: 4300 requests
+laya-english: 4400 requests
+laya-english: 4500 requests
+laya-english: 4600 requests
+laya-english: 4700 requests
+laya-english: 4800 requests
+laya-english: 4900 requests
+laya-english: 5000 requests
+laya-english: 5100 requests
+laya-english: 5200 requests
+laya-english: 5300 requests
+laya-english: 5400 requests
+laya-english: 5500 requests
+laya-english: 5600 requests
+laya-english: 5700 requests
+laya-english: 5800 requests
+laya-english: 5900 requests
+laya-english: 6000 requests
+laya-english: 6100 requests
+laya-english: 6200 requests
+laya-english: 6300 requests
+laya-english: 6400 requests
+laya-english: 6500 requests
+laya-english: 6600 requests
+laya-english: 6700 requests
+laya-english: 6800 requests
+{
+ "load_time_s": 5.43,
+ "sequential": {
+  "requests": 6842,
+  "wall_s": 193.39
+ },
+ "throughput": null,
+ "memory": {
+  "peak_rss_bytes_sampled": 1750007808,
+  "peak_gpu_memory_bytes_sampled": 2965372928,
+  "phys_footprint_bytes": 1750007808,
+  "lifetime_max_phys_footprint_bytes": 3382509568,
+  "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+ }
+}

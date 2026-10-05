@@ -1,0 +1,2 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+kev-4b-ft-s18: Qwen/Qwen3.5-4B-Base@1001bb4d826a52d1f399e183466143f4da7b741b -> /tmp/hf/hub/models--Qwen--Qwen3.5-4B-Base/snapshots/1001bb4d826a52d1f399e183466143f4da7b741b

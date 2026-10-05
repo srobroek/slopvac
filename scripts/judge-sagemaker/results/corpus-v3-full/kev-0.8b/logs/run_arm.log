@@ -1,0 +1,86 @@
+kev-0.8b: ready after 103.3s
+kev-0.8b: compat probe done
+kev-0.8b: 0 requests
+kev-0.8b: 100 requests
+kev-0.8b: 200 requests
+kev-0.8b: 300 requests
+kev-0.8b: 400 requests
+kev-0.8b: 500 requests
+kev-0.8b: 600 requests
+kev-0.8b: 700 requests
+kev-0.8b: 800 requests
+kev-0.8b: 900 requests
+kev-0.8b: 1000 requests
+kev-0.8b: 1100 requests
+kev-0.8b: 1200 requests
+kev-0.8b: 1300 requests
+kev-0.8b: 1400 requests
+kev-0.8b: 1500 requests
+kev-0.8b: 1600 requests
+kev-0.8b: 1700 requests
+kev-0.8b: 1800 requests
+kev-0.8b: 1900 requests
+kev-0.8b: 2000 requests
+kev-0.8b: 2100 requests
+kev-0.8b: 2200 requests
+kev-0.8b: 2300 requests
+kev-0.8b: 2400 requests
+kev-0.8b: 2500 requests
+kev-0.8b: 2600 requests
+kev-0.8b: 2700 requests
+kev-0.8b: 2800 requests
+kev-0.8b: 2900 requests
+kev-0.8b: 3000 requests
+kev-0.8b: 3100 requests
+kev-0.8b: 3200 requests
+kev-0.8b: 3300 requests
+kev-0.8b: 3400 requests
+kev-0.8b: 3500 requests
+kev-0.8b: 3600 requests
+kev-0.8b: 3700 requests
+kev-0.8b: 3800 requests
+kev-0.8b: 3900 requests
+kev-0.8b: 4000 requests
+kev-0.8b: 4100 requests
+kev-0.8b: 4200 requests
+kev-0.8b: 4300 requests
+kev-0.8b: 4400 requests
+kev-0.8b: 4500 requests
+kev-0.8b: 4600 requests
+kev-0.8b: 4700 requests
+kev-0.8b: 4800 requests
+kev-0.8b: 4900 requests
+kev-0.8b: 5000 requests
+kev-0.8b: 5100 requests
+kev-0.8b: 5200 requests
+kev-0.8b: 5300 requests
+kev-0.8b: 5400 requests
+kev-0.8b: 5500 requests
+kev-0.8b: 5600 requests
+kev-0.8b: 5700 requests
+kev-0.8b: 5800 requests
+kev-0.8b: 5900 requests
+kev-0.8b: 6000 requests
+kev-0.8b: 6100 requests
+kev-0.8b: 6200 requests
+kev-0.8b: 6300 requests
+kev-0.8b: 6400 requests
+kev-0.8b: 6500 requests
+kev-0.8b: 6600 requests
+kev-0.8b: 6700 requests
+kev-0.8b: 6800 requests
+{
+ "load_time_s": 103.26,
+ "sequential": {
+  "requests": 6842,
+  "wall_s": 170.86
+ },
+ "throughput": null,
+ "memory": {
+  "peak_rss_bytes_sampled": 9707560960,
+  "peak_gpu_memory_bytes_sampled": 12540968960,
+  "phys_footprint_bytes": 9712640000,
+  "lifetime_max_phys_footprint_bytes": 9713741824,
+  "footprint_source": "linux: lifetime_max_phys_footprint_bytes and phys_footprint_bytes are the sums of VmHWM and VmRSS (/proc/<pid>/status) over the server process tree; GPU memory is peak_gpu_memory_bytes_sampled (nvidia-smi per-process used memory, summed over the tree)"
+ }
+}
