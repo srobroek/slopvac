@@ -17,6 +17,22 @@ from click.testing import CliRunner
 from slopvac.cli import main
 from slopvac.pipeline import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
 
+
+def test_machine_formats_skip_update_check(runner, tmp_path, monkeypatch):
+    path = _write(tmp_path, "CHANGELOG.md", "Plain text.\n")
+    config = _write(tmp_path, "slopvac.toml", 'exclude = ["CHANGELOG.md"]\n')
+    monkeypatch.setattr(
+        "slopvac.cli.start_refresh",
+        lambda: pytest.fail("update check started for machine-readable output"),
+    )
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--config", str(config), "--format", "json"],
+    )
+
+    assert result.exit_code == EXIT_OK, result.output
+    json.loads(result.output[result.output.index("{") :])
+
 SLOP = """\
 # Getting Started
 

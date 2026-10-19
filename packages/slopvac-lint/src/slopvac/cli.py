@@ -54,6 +54,7 @@ from .pipeline import (
 from .reference import render_reference
 from .rules import RuleLoadError, inject_locale_rule, load_ruleset
 from .steering import harnesses
+from .update_notice import show_update_notice, start_refresh
 from .vale_cache import CACHE_KEEP, cache_root, prune_cache
 from .vale_probe import ValeUnavailable
 from .vocabulary import VocabularyError, load_blocklist
@@ -88,9 +89,14 @@ class _DefaultGroup(click.Group):
         explicit `lint` passed. An advertised invocation that fails is worse than
         no default subcommand at all.
         """
-        if args and not any(a in self.commands for a in args):
-            if not all(a in self._GROUP_OPTIONS for a in args if a.startswith("-")):
-                args = ["lint", *args]
+        if ctx.parent is None:
+            ctx.meta["slopvac_update_arguments"] = tuple(args)
+        if (
+            args
+            and not any(a in self.commands for a in args)
+            and not all(a in self._GROUP_OPTIONS for a in args if a.startswith("-"))
+        ):
+            args = ["lint", *args]
         return super().parse_args(ctx, args)
 
     def resolve_command(self, ctx: click.Context, args: list[str]):
@@ -109,6 +115,44 @@ def main(context: click.Context) -> None:
     """
     if context.invoked_subcommand is None:
         click.echo(context.get_help())
+        return
+
+    if context.invoked_subcommand == "prime":
+        return
+    arguments = context.meta.get("slopvac_update_arguments", ())
+    output_format = next(
+        (
+            arguments[index + 1]
+            for index, value in enumerate(arguments[:-1])
+            if value == "--format"
+        ),
+        None,
+    )
+    output_format = next(
+        (
+            value.partition("=")[2]
+            for value in arguments
+            if value.startswith("--format=")
+        ),
+        output_format,
+    )
+    output_to_file = any(
+        value == "--out" or value.startswith("--out=") for value in arguments
+    ) or "--open" in arguments
+    if (output_format is not None and output_format != "text") or output_to_file:
+        return
+    refresh = start_refresh(stderr_isatty=None)
+
+    def notice() -> None:
+        meta = context.find_root().meta
+        show_update_notice(
+            refresh,
+            command=context.invoked_subcommand,
+            output_format=meta.get("slopvac_update_format"),
+            output_to_file=meta.get("slopvac_update_to_file", False),
+        )
+
+    context.call_on_close(notice)
 
 
 @main.command()
@@ -234,6 +278,10 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
+    context = click.get_current_context()
+    root_meta = context.find_root().meta
+    root_meta["slopvac_update_format"] = output_format
+    root_meta["slopvac_update_to_file"] = bool(out_path or open_report)
     console = _console(no_color)
     scope = None
     if diff_base is not None or diff_working_tree:
@@ -412,6 +460,8 @@ def list_rules(
     rules_dir: tuple[Path, ...],
 ) -> None:
     """List the rules and whether each is on at a profile."""
+    context = click.get_current_context()
+    context.find_root().meta["slopvac_update_format"] = output_format
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -521,6 +571,8 @@ def explain(
     rules_dir: tuple[Path, ...],
 ) -> None:
     """Show one rule in full."""
+    context = click.get_current_context()
+    context.find_root().meta["slopvac_update_format"] = output_format
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -877,6 +929,8 @@ def compile_styles(
 
     To run Vale by hand: `vale --config=<outdir>/.vale.ini docs/`.
     """
+    context = click.get_current_context()
+    context.find_root().meta["slopvac_update_format"] = output_format
     console = _console(False)
     discovered = config_path or find_config(Path.cwd())
     try:
