@@ -125,4 +125,3 @@ empty. Other files in that directory stay.
 The skill carries a `slopvac:managed` marker. Setup refuses to overwrite or
 delete a skill without that marker, refuses a skill directory that resolves
 outside the project, and writes each file atomically.
-
