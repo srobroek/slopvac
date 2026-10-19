@@ -48,9 +48,24 @@ _SKILL_DIRS = {
     "claude": ".claude/skills",
 }
 
-# Identifies the stub as ours, so setup and prime never overwrite or delete a
-# hand-written skill that happens to share the path.
-SKILL_MARKER = "<!-- slopvac:managed; slopvac setup or slopvac prime rewrites this file -->"
+# Identifies the stub as ours, so init and setup never overwrite or delete a
+# hand-written skill that happens to share the path. Ownership is an exact marker
+# line; when the wording changes, keep the old line in _KNOWN_SKILL_MARKERS so
+# installed stubs stay manageable.
+SKILL_MARKER = "<!-- slopvac:managed; slopvac init or slopvac setup rewrites this file -->"
+_KNOWN_SKILL_MARKERS = frozenset({SKILL_MARKER})
+
+
+def _has_skill_marker(text: str) -> bool:
+    """True when the line right after the frontmatter is a known marker."""
+    lines = [line.rstrip("\r") for line in text.split("\n")]
+    if not lines or lines[0] != "---":
+        return False
+    try:
+        close = lines.index("---", 1)
+    except ValueError:
+        return False
+    return close + 1 < len(lines) and lines[close + 1] in _KNOWN_SKILL_MARKERS
 
 # Every harness above matches a skill to a request by its `description`, and each
 # documents the same recipe: front-load the use case and the words a request
@@ -249,7 +264,7 @@ def skill_state(path: Path, wanted: bool = True) -> str:
         text = path.read_bytes().decode("utf-8")
     except UnicodeDecodeError:
         return "malformed"
-    if SKILL_MARKER not in text:
+    if not _has_skill_marker(text):
         return "malformed"
     if not wanted:
         return "stale"
@@ -262,7 +277,11 @@ def _owned_skill(path: Path) -> bytes | None:
     if not path.exists():
         return None
     before = path.read_bytes()
-    if SKILL_MARKER.encode("utf-8") not in before:
+    try:
+        owned = _has_skill_marker(before.decode("utf-8"))
+    except UnicodeDecodeError:
+        owned = False
+    if not owned:
         raise SteeringError(
             f"{path} is not a slopvac-managed skill; move it aside to install the stub"
         )

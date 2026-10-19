@@ -338,6 +338,44 @@ def test_setup_refuses_a_hand_written_skill_at_the_stub_path():
         assert stub.read_text(encoding="utf-8") == "---\nname: slopvac-prose\n---\nmine\n"
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        # A skill that documents slopvac and quotes the marker in its body.
+        f"---\nname: slopvac-prose\n---\n# Notes\n\nOurs carry `{SKILL_MARKER}`.\n",
+        # The marker line, but not directly after the frontmatter.
+        f"---\nname: slopvac-prose\n---\n\n{SKILL_MARKER}\n",
+        # No frontmatter at all.
+        f"{SKILL_MARKER}\n",
+    ],
+)
+def test_a_skill_that_only_mentions_the_marker_is_not_owned(text):
+    runner = CliRunner()
+    stub = Path(".omp/skills") / SKILL_NAME / "SKILL.md"
+    with runner.isolated_filesystem():
+        stub.parent.mkdir(parents=True)
+        stub.write_text(text, encoding="utf-8")
+
+        installed = runner.invoke(main, ["setup", "omp"])
+        assert installed.exit_code == 1
+        assert "not a slopvac-managed skill" in installed.output
+        assert runner.invoke(main, ["setup", "omp", "--check"]).exit_code == 2
+        assert runner.invoke(main, ["setup", "omp", "--remove"]).exit_code == 1
+        assert stub.read_text(encoding="utf-8") == text
+
+
+def test_a_skill_with_invalid_utf8_is_not_owned():
+    runner = CliRunner()
+    stub = Path(".claude/skills") / SKILL_NAME / "SKILL.md"
+    with runner.isolated_filesystem():
+        stub.parent.mkdir(parents=True)
+        data = SKILL_STUB.encode("utf-8") + b"\xff\xfe"
+        stub.write_bytes(data)
+        installed = runner.invoke(main, ["setup", "claude"])
+        assert installed.exit_code == 1
+        assert stub.read_bytes() == data
+
+
 def test_setup_refuses_a_skill_directory_symlinked_outside_the_project(tmp_path):
     root = tmp_path / "project"
     outside = tmp_path / "outside"
