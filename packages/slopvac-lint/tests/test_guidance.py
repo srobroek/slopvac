@@ -8,7 +8,6 @@ text, because the contract is that the guidance is generated from it.
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 import pytest
@@ -51,9 +50,9 @@ def _tree(root: Path) -> dict[str, bytes]:
 @pytest.mark.parametrize(
     ("depth", "expected", "unexpected"),
     [
-        ("self", 'Report the reviewer as "self".', "fresh-context subagent"),
-        ("subagent", "one fresh-context subagent", "Repeat until"),
-        ("adversary", "Repeat until the reviewer confirms no findings", "only when the user asks"),
+        ("self", "self (review_depth = self)", "fresh-context subagent"),
+        ("subagent", "give one fresh-context subagent one pass", "Give each new round"),
+        ("adversary", "Give each new round the findings you rebutted", "When the user asks"),
     ],
 )
 def test_review_depth_renders_its_reviewer_workflow(depth, expected, unexpected):
@@ -84,22 +83,31 @@ def test_base_prime_handoff_names_reviewer_pass():
     assert "including the adversary loop" in adversary
 
 
-@pytest.mark.skipif(shutil.which("vale") is None, reason="Vale is unavailable")
-def test_lint_accepts_all_prime_outputs_without_findings(tmp_path):
+def test_lint_accepts_five_prime_outputs_at_strict_profile(tmp_path):
     runner = CliRunner()
     outputs = {}
     with runner.isolated_filesystem():
-        for topic in (None, "write", "review"):
+        for topic in (None, "write"):
             args = ["prime"] + ([topic] if topic else [])
             result = runner.invoke(main, args)
             assert result.exit_code == 0, result.output
-            name = f"prime-{topic or 'base'}.md"
-            path = tmp_path / name
+            path = tmp_path / f"prime-{topic or 'base'}.md"
             path.write_text(result.output, encoding="utf-8")
             outputs[path] = result.output
 
+        for depth in ("subagent", "adversary", "self"):
+            _guidance(review_depth=depth)
+            review = runner.invoke(main, ["prime", "review"])
+            assert review.exit_code == 0, review.output
+            path = tmp_path / f"prime-review-{depth}.md"
+            path.write_text(review.output, encoding="utf-8")
+            outputs[path] = review.output
+
+    assert len(outputs) == 5
     for path in outputs:
-        result = runner.invoke(main, ["lint", str(path), "--format", "json"])
+        result = runner.invoke(
+            main, ["lint", str(path), "--profile", "strict", "--format", "json"]
+        )
         assert result.exit_code == 0, result.output
         payload = json.loads(result.output)
         assert payload["summary"]["errors"] == 0, path.name

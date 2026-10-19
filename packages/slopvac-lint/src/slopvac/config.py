@@ -292,8 +292,8 @@ class GuidanceSettings(BaseModel):
     review_depth: Literal["self", "subagent", "adversary"] = Field(
         default="subagent",
         description="Review pass owner and repetition: `self` uses the author, "
-        "`subagent` uses one fresh-context pass, and `adversary` repeats rounds "
-        "until no confirmed findings remain.",
+        "`subagent` uses one read-only fresh-context pass, and `adversary` "
+        "repeats rounds until no finding the author accepts remains.",
     )
 
     @property
