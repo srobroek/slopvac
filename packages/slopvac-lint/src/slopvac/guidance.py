@@ -200,6 +200,9 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         "- Verify every present-tense claim against the code. Delete claims "
         "about behavior the artifact does not implement; deleting only "
         '"coming soon" makes the document assert that the feature ships.',
+        "- Keep each claim exactly as strong as its source. When rewording, "
+        'do not turn "not equivalent" into "cannot", "some" into "all", or a '
+        "reported result into a verified one.",
         "- Name the actor, action, condition, command, path, or version. Use "
         "decisive normative language.",
         "- Apply the deletion test to every sentence, list item, table row, and "
@@ -295,7 +298,8 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "paragraph, ask which reader action or current-contract fact it "
             "changes, and revise when the answer is none.",
             "5. Verify every factual claim against the code: commands, paths, "
-            "flags, defaults, versions, and behavior.",
+            "flags, defaults, versions, and behavior. Flag a claim stated more "
+            "strongly than its source supports.",
             "6. Adversary review. Hand the document and this output to a "
             "separate reviewer with fresh context: a subagent or a second "
             "person. Instruct it to find failures only and to cite each as the "
