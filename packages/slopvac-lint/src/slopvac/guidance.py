@@ -303,6 +303,8 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Quote failures. Propose rewrites.",
             "4. Mark wording that changes no reader action or contract fact.",
             "The author removes marked wording.",
+            "Never mark a fact or an evidence block for removal. Code blocks, logs, "
+            "and diffstats are evidence.",
             "List facts in the received document. Confirm each survived or was wrong.",
             "5. Check each claim against code or an authoritative source.",
             "Flag claims stronger than their source.",
