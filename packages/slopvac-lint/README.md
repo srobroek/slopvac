@@ -19,18 +19,30 @@ See the [project overview](../../README.md) for agent setup and CI integration.
 ## Install
 
 The package needs Python 3.11 or later. Choose a persistent installation or run
-it through `uvx`:
+it through `uvx`.
 
 ```sh
+# Persistent installation.
 uv tool install slopvac
 slopvac --help
+uv tool upgrade slopvac
 
-# Run without a persistent installation.
+# One-off run; uvx reuses its cached environment.
 uvx slopvac README.md
 
-# Alternative installer.
+# Force uvx to use the latest release.
+uvx slopvac@latest README.md
+
+# Alternative persistent installation.
 pipx install slopvac
+pipx upgrade slopvac
 ```
+
+After an eligible command finishes, Slopvac prints a notice only if its cache
+contains a newer stable PyPI release. It refreshes the cache in the background.
+Set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`
+to disable the check. Slopvac skips `prime`, non-text output formats, reports
+written to a file or opened in a browser, non-terminal stderr, or when `CI` is set.
 
 [Vale](https://vale.sh) is optional.
 
