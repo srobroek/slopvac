@@ -12,9 +12,11 @@ from pathlib import Path
 
 import pytest
 import regex as re
+from pydantic import ValidationError
 
+from slopvac.config import Severity
 from slopvac.engine import build_substitution_pattern
-from slopvac.model import RuleKind, Tier
+from slopvac.model import Rule, RuleKind, Tier
 from slopvac.rules import RuleLoadError, inject_locale_rule, load_ruleset
 
 
@@ -31,14 +33,14 @@ def test_ruleset_loads_and_verifies(ruleset):
 
 def test_every_rule_has_provenance(ruleset):
     """A rule nobody can trace is a rule nobody can argue with."""
-    for rule in ruleset.rules:
+    for rule in ruleset.all_rules:
         assert rule.provenance.source, f"{rule.qualified_id} has no source"
 
 
 def test_ste_refs_are_issue_qualified(ruleset):
     """Rule numbers are not portable across issues: Issue 7 rule 2.3 became
     Issue 9 rule 4.5. An unqualified reference is therefore ambiguous."""
-    for rule in ruleset.rules:
+    for rule in ruleset.all_rules:
         ref = rule.provenance.ste_ref
         if ref is None:
             continue
@@ -48,22 +50,87 @@ def test_ste_refs_are_issue_qualified(ruleset):
 
 
 def test_qualified_ids_are_unique(ruleset):
-    ids = [r.qualified_id for r in ruleset.rules]
+    ids = [r.qualified_id for r in ruleset.all_rules]
     duplicates = {i for i in ids if ids.count(i) > 1}
     assert not duplicates, f"duplicate rule ids: {duplicates}"
 
 
-def test_checked_rule_inventory_is_linter_only(ruleset):
-    ids = {rule.qualified_id for rule in ruleset.rules}
-    assert len(ids) == 164
+def test_checked_and_judgement_rules_partition_the_catalogue(ruleset):
+    """`rules` is the lint surface; judgement rules reach only the guidance."""
+    checked = {rule.qualified_id for rule in ruleset.rules}
+    judgement = {rule.qualified_id for rule in ruleset.judgement_rules}
+    assert len(checked) == 164
+    assert len(judgement) == 65
+    assert not checked & judgement
+    assert checked | judgement == {rule.qualified_id for rule in ruleset.all_rules}
     assert {
         "ai-tells-structure.negative-inventory-core",
         "ai-tells-agentic.formulaic-universal-heading",
         "prose-scope.formulaic-subject-verb-slogan",
         "ai-tells-structure.contrastive-inversion-frames",
-    } <= ids
-    assert "ai-tells-structure.negative-inventory-remainder" not in ids
-    assert "prose-scope.code-change-prose-scope" not in ids
+    } <= checked
+    assert {
+        "ai-tells-structure.negative-inventory-remainder",
+        "ai-tells-content-shape.unasked-for-rationale",
+        "ai-tells-structure.contrastive-inversion-remainder",
+        "prose-scope.code-change-prose-scope",
+    } <= judgement
+    assert all(rule.kind is RuleKind.JUDGEMENT for rule in ruleset.judgement_rules)
+    assert ruleset.by_id("orwell.concrete-floor") is not None
+
+
+def test_every_judgement_rule_is_askable(ruleset):
+    """A judgement rule exists to be asked: it needs a question, and it can never
+    be suppressed, because it never emits a finding to suppress."""
+    for rule in ruleset.judgement_rules:
+        assert rule.judgement_question, rule.qualified_id
+        assert not rule.exceptions, rule.qualified_id
+        assert rule.severity is Severity.SUGGESTION, rule.qualified_id
+
+
+def test_remainder_rules_name_a_partner_that_exists(ruleset):
+    """A `-remainder` question covers only what its mechanical partner cannot
+    name, so the partner it cites must still be in the catalogue."""
+    known = {rule.qualified_id for rule in ruleset.rules}
+    for rule in ruleset.judgement_rules:
+        note = " ".join((rule.provenance.note or "").split())
+        match = re.search(r"Judgement remainder of ([a-z-]+\.[a-z0-9-]+)", note)
+        if match:
+            assert match.group(1) in known, f"{rule.qualified_id} cites {match.group(1)}"
+
+
+def _judgement_record(**fields) -> dict:
+    record = {
+        "id": "probe",
+        "name": "probe",
+        "kind": "judgement",
+        "message": "probe",
+        "judgement_question": "Does the sentence add a fact?",
+        "provenance": {"source": "test"},
+    }
+    record.update(fields)
+    return {k: v for k, v in record.items() if v is not None}
+
+
+@pytest.mark.parametrize(
+    ("fields", "error"),
+    [
+        ({"judgement_question": None}, "requires `judgement_question`"),
+        ({"exceptions": ["quotation"]}, "cannot declare `exceptions`"),
+        (
+            {"kind": "pattern", "pattern": "x", "examples": [{"bad": "x"}]},
+            "`judgement_question` is not valid for kind=pattern",
+        ),
+    ],
+)
+def test_judgement_validation(fields, error):
+    with pytest.raises(ValidationError, match=re.escape(error)):
+        Rule.model_validate(_judgement_record(**fields))
+
+
+def test_a_judgement_rule_never_ships_a_real_severity():
+    rule = Rule.model_validate(_judgement_record(severity="error"))
+    assert rule.severity is Severity.SUGGESTION
 
 
 def test_reads_better_is_never_an_exception(ruleset):
@@ -269,6 +336,8 @@ def test_uncommented_starter_examples_load(tmp_path):
         "# enabled =",
         "# binary =",
         "# config =",
+        "# write =",
+        "# review =",
     )
     for line in STARTER_CONFIG.format(profile="normal").splitlines():
         stripped = line.lstrip()

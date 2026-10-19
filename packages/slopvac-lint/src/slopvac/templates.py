@@ -128,9 +128,9 @@ default = "en-US"        # en-US | en-GB | und
 # severity = "off"
 
 # --- Agent guidance ----------------------------------------------------------
-# What `slopvac prime` tells an agent to run around prose work. Project-wide, so
-# [[overrides]] cannot set it. With both modes off, `slopvac init --harness` and
-# `slopvac setup` install no slopvac-prose skill.
+# What `slopvac prime` tells an agent to run around prose work. It is
+# project-wide, so an [[overrides]] block cannot set it. With both modes off,
+# `slopvac init --harness` and `slopvac setup` install no slopvac-prose skill.
 # [guidance]
 # write = "auto"       # auto | off: `slopvac prime write` before drafting
 # review = "auto"      # auto | ask | off: `slopvac prime review` before hand-off

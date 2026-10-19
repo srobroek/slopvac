@@ -177,6 +177,28 @@ def test_each_kind_routes_to_the_expected_engine(compiled, ruleset):
         assert ids <= vale, f"{kind.value} rules did not all compile: {ids - vale}"
 
 
+def test_judgement_rules_compile_to_no_engine(compiled, ruleset):
+    """A rule no linter can check has no Vale style and no native slot, so it can
+    never surface as a finding, a disabled entry, or an unchecked one."""
+    judgement = {rule.qualified_id for rule in ruleset.judgement_rules}
+    assert judgement, "no judgement rules ship; the test proves nothing"
+    routed = (
+        set(compiled.vale_rules)
+        | set(compiled.aliases.values())
+        | {n.rule_id for n in compiled.native_rules}
+        | set(compiled.disabled_rules)
+        | set(compiled.excluded_rules)
+    )
+    assert not routed & judgement
+    tree = "\n".join(
+        path.read_text(encoding="utf-8", errors="ignore")
+        for path in Path(compiled.outdir).rglob("*")
+        if path.is_file()
+    )
+    leaked = sorted(rule_id for rule_id in judgement if rule_id in tree)
+    assert not leaked, f"judgement rules in the compiled tree: {leaked}"
+
+
 def test_sentence_words_metric_compiles_to_vale(compiled, ruleset):
     """The correction that reversed the original design, now with its own limit.
 

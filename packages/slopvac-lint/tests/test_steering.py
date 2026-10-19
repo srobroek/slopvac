@@ -96,12 +96,14 @@ def test_setup_claude_and_remove_preserves_existing_text():
         assert Path("CLAUDE.md").read_text(encoding="utf-8") == "# Local\n"
 
 
-def test_prime_contains_lint_guidance_only():
+def test_prime_points_to_the_write_and_review_topics():
     runner = CliRunner()
-    result = runner.invoke(main, ["prime"])
+    with runner.isolated_filesystem():
+        result = runner.invoke(main, ["prime"])
     assert result.exit_code == 0
     assert "slopvac lint" in result.output
-    assert "judgement" not in result.output.lower()
+    assert "slopvac prime write" in result.output
+    assert "slopvac prime review" in result.output
 
     extra = runner.invoke(main, ["prime", "judgement"])
     assert extra.exit_code == 2
@@ -134,8 +136,9 @@ def test_setup_check_reports_current_missing_stale_and_does_not_mutate():
     with runner.isolated_filesystem():
         missing = runner.invoke(main, ["setup", "codex", "--check"])
         assert missing.exit_code == 1
-        assert "missing " in missing.output
-        assert missing.output.rstrip().endswith("AGENTS.md")
+        block, skill = missing.output.splitlines()
+        assert block.startswith("missing ") and block.endswith("AGENTS.md")
+        assert skill.startswith("missing ") and skill.endswith("SKILL.md")
         assert not Path("AGENTS.md").exists()
 
         installed = runner.invoke(main, ["setup", "codex"])
@@ -144,15 +147,16 @@ def test_setup_check_reports_current_missing_stale_and_does_not_mutate():
 
         current = runner.invoke(main, ["setup", "codex", "--check"])
         assert current.exit_code == 0
-        assert "current " in current.output
-        assert current.output.rstrip().endswith("AGENTS.md")
+        block, skill = current.output.splitlines()
+        assert block.startswith("current ") and block.endswith("AGENTS.md")
+        assert skill.startswith("current ")
         assert Path("AGENTS.md").read_text(encoding="utf-8") == before
 
         Path("AGENTS.md").write_text(before.replace("slopvac prime", "slopvac old-prime"), encoding="utf-8")
         stale = runner.invoke(main, ["setup", "codex", "--check"])
         assert stale.exit_code == 1
-        assert "stale " in stale.output
-        assert stale.output.rstrip().endswith("AGENTS.md")
+        block = stale.output.splitlines()[0]
+        assert block.startswith("stale ") and block.endswith("AGENTS.md")
 
 
 def test_duplicate_managed_markers_are_malformed(tmp_path):
@@ -209,20 +213,25 @@ def test_retired_integration_names_do_not_survive_in_live_sources():
         for needle in needles:
             assert needle not in text, f"{needle!r} remains in {path.relative_to(root)}"
 
-def test_judgement_is_not_in_public_cli_surface():
+
+def test_judgement_rules_are_inspectable_but_have_no_command_group():
+    """The model-backed judgement harness stays out; its rules are catalogue data
+    reached through `rules`, `explain`, and `prime review`."""
     runner = CliRunner()
 
     assert "judgement" not in main.commands
+    assert "judgement" not in runner.invoke(main, ["--help"]).output
 
     result = runner.invoke(main, ["rules", "--judgement"])
     assert result.exit_code == 2
 
-    result = runner.invoke(main, ["rules", "--kind", "judgement"])
-    assert result.exit_code == 2
+    result = runner.invoke(main, ["rules", "--kind", "judgement", "--format", "json"])
+    assert result.exit_code == 0
+    assert "orwell.concrete-floor" in result.output
 
     result = runner.invoke(main, ["explain", "orwell.concrete-floor"])
-    assert result.exit_code == 2
-    assert "unknown rule" in result.output
+    assert result.exit_code == 0
+    assert "Decide by asking" in result.output
 
 
 def test_removed_agent_packaging_has_no_live_paths_or_install_commands():

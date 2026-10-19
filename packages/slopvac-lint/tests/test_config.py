@@ -230,3 +230,33 @@ def test_a_default_thresholds_table_written_out_is_still_the_profile():
     """Writing the default explicitly changes nothing, so it credits nothing."""
     written = _config(thresholds=Thresholds().model_dump(exclude_none=True))
     assert "thresholds" not in _resolve(written, "x.md").provenance
+
+
+# --- guidance -----------------------------------------------------------------
+
+
+def test_guidance_defaults_to_auto_and_accepts_each_mode():
+    assert Config().guidance.write == "auto"
+    assert Config().guidance.review == "auto"
+    config = Config.model_validate({"guidance": {"write": "off", "review": "ask"}})
+    assert (config.guidance.write, config.guidance.review) == ("off", "ask")
+    assert config.guidance.enabled
+    both_off = Config.model_validate({"guidance": {"write": "off", "review": "off"}})
+    assert not both_off.guidance.enabled
+
+
+@pytest.mark.parametrize(
+    "guidance",
+    [{"write": "ask"}, {"review": "always"}, {"reviews": "auto"}],
+)
+def test_guidance_rejects_unknown_modes_and_keys(guidance):
+    with pytest.raises(ValidationError):
+        Config.model_validate({"guidance": guidance})
+
+
+def test_guidance_cannot_be_set_per_path():
+    """Guidance steers the agent, not a file's lint, so no override may scope it."""
+    with pytest.raises(ValidationError, match="project-wide"):
+        Config.model_validate(
+            {"overrides": [{"files": ["docs/**"], "guidance": {"review": "off"}}]}
+        )
