@@ -1,6 +1,6 @@
 # Writing guidance and semantic review
 
-Lint checks the rules a pattern can decide. The 65 judgement rules in the
+Lint checks the rules a pattern can decide. The 66 judgement rules in the
 catalogue need a reader. One asks whether a negative statement changes what the
 reader can do; another asks whether a rationale defends an implementation
 nobody asked about. Lint never reports these rules.

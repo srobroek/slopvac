@@ -59,8 +59,8 @@ def test_checked_and_judgement_rules_partition_the_catalogue(ruleset):
     """`rules` is the lint surface; judgement rules reach only the guidance."""
     checked = {rule.qualified_id for rule in ruleset.rules}
     judgement = {rule.qualified_id for rule in ruleset.judgement_rules}
-    assert len(checked) == 164
-    assert len(judgement) == 65
+    assert len(checked) == 165
+    assert len(judgement) == 66
     assert not checked & judgement
     assert checked | judgement == {rule.qualified_id for rule in ruleset.all_rules}
     assert {

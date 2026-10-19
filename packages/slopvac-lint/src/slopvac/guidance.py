@@ -333,7 +333,9 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "## Checklist",
             "",
             "Generated from the rule catalogue. Each line is the rule id, the "
-            "scope the question is asked over, and the question.",
+            "scope the question is asked over, and the question. For the same "
+            "checklist as JSON, with each rule's category, fix, and examples, "
+            "run `slopvac rules --kind judgement --format json`.",
             "",
             *review_checklist(ruleset),
         ]

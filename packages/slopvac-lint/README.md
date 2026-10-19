@@ -4,9 +4,9 @@
 and general prose. The
 rules include constraints derived from Simplified Technical English and Orwell.
 
-The linter ships 164 checked rules across 26 categories. The CLI reports
+The linter ships 165 checked rules across 26 categories. The CLI reports
 findings, scores, and incomplete coverage when selected checks cannot run. The
-catalogue also carries 65 judgement rules that lint never reports; agents apply
+catalogue also carries 66 judgement rules that lint never reports; agents apply
 them through [writing guidance and semantic review](docs/semantic-guidance.md).
 
 See the [project overview](../../README.md) for agent setup and CI integration.
@@ -432,7 +432,7 @@ See [metrics](docs/metrics.md) for counting and text-type classification details
 ## Rules
 
 In the [generated rule reference](docs/rules.md), you can find all 26 categories
-and profile tiers for the 164 checked rules, followed by the 65 judgement rules
+and profile tiers for the 165 checked rules, followed by the 66 judgement rules
 with their review questions and examples.
 
 | Family | Categories |

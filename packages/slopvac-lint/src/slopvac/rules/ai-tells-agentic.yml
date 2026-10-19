@@ -1610,7 +1610,9 @@ rules:
         finishes the job. The catalog distinguishes it from the two entries around
         it: those grant a component desert ("earns its keep",
         ai-tells-register.anthropomorphised-justification-core) or self-causation
-        ("falls out naturally", ai-tells-register.organic-consequence-core).
+        ("falls out naturally", ai-tells-register.organic-consequence-core). An
+        artifact that disclaims a claim ("this change makes no claim about...") is
+        ai-tells-register.disclaimed-claim-core, not this rule.
 
   - id: anthropomorphised-justification-core
     exceptions: [quotation]
@@ -1673,6 +1675,80 @@ rules:
     provenance:
       source: 'AI tells catalog — register.md ("Anthropomorphised justification")'
       note: Judgement remainder of ai-tells-register.anthropomorphised-justification-core.
+
+  - id: disclaimed-claim-core
+    name: Say what was checked, not what the artifact claims
+    kind: pattern
+    severity: warning
+    message: "disclaimed claim: {match} -- say who checked what, or that nobody did"
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    pattern: '\bmakes?\s+no\s+(?:claims?|representations?)\b|\b(?:does|do|did)\s+not\s+(?:establish|demonstrate)\s+that\b|\bwithout\s+(?:claiming|implying|asserting)\b|\bcannot\s+independently\s+(?:verify|confirm|substantiate)\b'
+    ignore_case: true
+    exceptions: [quotation, legal-force]
+    fix: Name the check and its result, such as "This branch does not test X", or delete the sentence.
+    examples:
+      - bad: This configuration change makes no claim about endpoint health.
+        good: This branch does not check endpoint health.
+      - bad: Publication does not establish that the server launches on every host.
+        good: This branch does not test whether the server launches.
+      - bad: Keep the IaC server configured without claiming it manages the same resources.
+        good: Keep the IaC server configured. It cannot delete stacks directly.
+      - bad: The brief has no links, so this description cannot independently verify the results.
+        good: The brief has no links, and nobody reran these checks.
+    ai_signal: weak
+    ai_signal_source: unmeasured
+    provenance:
+      source: Slopvac adversarial review of a change-communication draft (2026-10)
+      note: >-
+        Mechanizable core. An artifact -- a change, a publication, registry
+        metadata, the description itself -- is made the subject of an epistemic
+        verb in a negated disclaimer, so the sentence reports what the artifact
+        does not claim instead of what anybody checked. All four bad examples
+        come from one model-written merge-request draft and its blind rewrite;
+        the review that missed them filed the first under
+        ai-tells-register.false-agency-remainder. The verb list is the
+        epistemic one only. `makes no guarantee` and `does not guarantee that`
+        state a component contract ("the queue does not guarantee that jobs run
+        in order"), and `does not prove that` and `does not imply that` state
+        what a signal means ("lint does not prove that a statement is correct",
+        "a 200 response does not imply that the write committed"); the
+        remainder judges those. Judgement remainder in
+        ai-tells-register.disclaimed-claim-remainder.
+
+  - id: disclaimed-claim-remainder
+    name: Judge whether an artifact disclaims instead of a check being named
+    kind: judgement
+    severity: suggestion
+    message: "disclaimed claim: say who checked what, or that nobody did"
+    scope: sentence
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this sentence make an artifact disclaim a claim or a proof, instead of
+      naming who did or did not check what?
+    fix: Name the check and its result, such as "This branch does not test X", or delete the sentence.
+    examples:
+      - bad: The registry metadata is not evidence that the package installs.
+        good: Nobody has installed the package from the registry yet.
+      - bad: These results should not be read as confirming browser support.
+        good: This branch runs no browser tests.
+      - bad: The queue does not guarantee that jobs run in order.
+        good: null
+        note: "preserve: a component contract, not an artifact disclaiming a claim"
+    ai_signal: weak
+    ai_signal_source: unmeasured
+    provenance:
+      source: Slopvac adversarial review of a change-communication draft (2026-10)
+      note: >-
+        Judgement remainder of ai-tells-register.disclaimed-claim-core. It covers
+        the paraphrases no fixed verb list reaches, such as "is not evidence that"
+        or "should not be read as confirming".
 ---
 id: ai-tells-formatting
 title: AI tells -- formatting and punctuation
@@ -2170,7 +2246,11 @@ rules:
       normal: enforced
       relaxed: advisory
     judgement_question: >-
-      Should the reviewer flag a later passage only when it recasts the same point without adding a current fact, constraint, reproduction step, decision, time-bounded change, required change-note, decision, plan, specification, or historical purpose, or a bounded, scoped recommendation or condition in the author's voice when it names a concrete action, antecedent, comparison, timing, or rationale?
+      Does a later passage restate a point the document already made without
+      adding a fact, constraint, reproduction step, decision, or dated change?
+      Keep it when it has its own job: a required change note, a plan or
+      specification entry, a historical record, or a scoped recommendation that
+      names a concrete action or condition.
     fix: Delete each restatement after the first unless it carries a distinct required fact or purpose.
     examples:
       - bad: Determinism matters. Put another way, the same input gives the same output. Think of it as a pure function.
