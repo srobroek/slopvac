@@ -43,6 +43,42 @@ rules:
         capitalization, so case folding is safe.
     fix: Restore the omitted subject.
 
+  - id: sentence-not-short-or-clear
+    name: Write short and clear sentences
+    kind: judgement
+    severity: suggestion
+    message: Check that this sentence carries one instruction or one topic.
+    scope: sentence
+    text_type: any
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: advisory
+    judgement_question: >-
+      Does this sentence give exactly one instruction (in a procedure) or carry exactly one
+      topic (in description)? If it carries more, split it.
+    allowlist: []
+    examples:
+      - bad: >-
+          To rotate the signing key, first revoke the old key in the console, then generate a
+          replacement and update every service that reads it, and finally delete the old
+          secret.
+        good: >-
+          Rotate the signing key as follows: 1. Revoke the old key in the console.
+          2. Generate a replacement key. 3. Update every service that reads the key.
+          4. Delete the old secret.
+    ai_signal: none
+    ai_signal_source: unmeasured
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.1'
+      note: >-
+        This rule carries no number of its own; the word counts live in the procedural and
+        descriptive chapters and are mechanized there as sentence-too-long-procedural and
+        sentence-too-long-descriptive. What is left here is the one-topic test, which is
+        judgement. Enforced at normal tier as a reviewer question, not as a finding.
+    fix: Split the sentence into one instruction or topic per sentence.
+
   - id: complex-text-not-in-vertical-list
     name: Use a vertical list for complex content
     kind: metric
@@ -159,6 +195,35 @@ rules:
         fix list punctuation differently, and a conflicting checker gets switched off.
         Advisory at normal tier for that reason.
     fix: Capitalize each item, remove commas and semicolons, and end the last item with a period.
+
+  - id: missing-connector-between-related-sentences
+    name: Connect related sentences
+    kind: judgement
+    severity: suggestion
+    message: Check whether these two sentences need a connecting word.
+    scope: paragraph
+    text_type: descriptive
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does the second sentence add a result, a contrast, or a next step to the first? If
+      yes, does a connecting word or phrase make that relation explicit?
+    allowlist: []
+    examples:
+      - bad: The runner rejects the manifest. The image tag is missing.
+        good: The runner rejects the manifest, because the image tag is missing.
+    ai_signal: none
+    ai_signal_source: unmeasured
+    provenance:
+      source: ASD-STE100
+      ste_ref: '9:4.4'
+      note: >-
+        Not mechanizable in either direction: a checker cannot detect a missing logical
+        relation, and an "add more connectors" heuristic degrades prose. Kept as a reviewer
+        question so the reviewer has one source of truth rather than inventing the rule.
+    fix: Add a connecting word or phrase that names the relation.
 
   - id: missing-article-or-determiner
     name: Use an article or a demonstrative before a noun
