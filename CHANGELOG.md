@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.13.0](https://github.com/srobroek/slopvac/compare/v2.12.0...v2.13.0) (2026-10-19)
+
+
+### Features
+
+* **cli:** add a PyPI update notice ([#197](https://github.com/srobroek/slopvac/issues/197)) ([1ed19ec](https://github.com/srobroek/slopvac/commit/1ed19ec873429487e0669bdbd1d64e620c69924b))
+
+
+### Bug Fixes
+
+* **ci:** give the publish smoke probe a stable native finding ([#195](https://github.com/srobroek/slopvac/issues/195)) ([206d4f2](https://github.com/srobroek/slopvac/commit/206d4f2e48ac0d3d7f4124e17c356be1af998ddf))
+
 ## [2.12.0](https://github.com/srobroek/slopvac/compare/v2.11.0...v2.12.0) (2026-10-19)
 
 
