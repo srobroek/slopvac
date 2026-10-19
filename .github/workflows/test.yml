@@ -106,14 +106,16 @@ jobs:
             echo "ok $f"
           done
 
-      # These two tests inspect repository-wide documentation and configuration.
-      # Keep them in the small always-on job so those invariants cannot be bypassed
-      # without making every docs-only change pay for the complete pytest suite.
+      # These tests inspect repository-wide documentation, configuration, and the
+      # public command surface. Keep them in the small always-on job so those
+      # invariants cannot be bypassed without making every docs-only change pay for
+      # the complete pytest suite.
       - name: Repository-wide invariants
         env:
           INVARIANTS: >-
             retired_integration_names_do_not_survive_in_live_sources or
-            removed_agent_packaging_has_no_live_paths_or_install_commands
+            removed_agent_packaging_has_no_live_paths_or_install_commands or
+            judgement_rules_are_inspectable_but_have_no_command_group
         run: |
           uv run --project packages/slopvac-lint --extra dev python -m pytest -q \
             packages/slopvac-lint/tests/test_steering.py -k "$INVARIANTS"
@@ -229,10 +231,19 @@ jobs:
           python3 - <<'PY'
           import json
           payload = json.load(open("/tmp/rules.json"))
-          assert len(payload["rules"]) == 165
-          assert all(rule["kind"] != "judgement" for rule in payload["rules"])
+          kinds = [rule["kind"] for rule in payload["rules"]]
+          assert len(kinds) == 232
+          assert kinds.count("judgement") == 66
+          assert all(
+              rule["judgement_question"]
+              for rule in payload["rules"]
+              if rule["kind"] == "judgement"
+          )
           PY
           slopvac explain orwell.stale-figure > /dev/null
+          slopvac explain ai-tells-structure.negative-inventory-remainder > /dev/null
+          slopvac prime write > /dev/null
+          slopvac prime review > /dev/null
           slopvac init --path /tmp/slopvac.toml --skip-agents
           slopvac /tmp/probe.md --config /tmp/slopvac.toml || test $? -eq 1
 

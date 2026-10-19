@@ -40,6 +40,23 @@ class RuleSet:
 
     @property
     def rules(self) -> list[Rule]:
+        """The checked rules: everything lint, compile, scoring, and reports see.
+
+        Judgement rules are excluded HERE, once, rather than in each consumer, so
+        no engine, Vale style, score, SARIF descriptor, or `--fix` pass can pick
+        one up by forgetting a filter.
+        """
+        return [r for r in self.all_rules if r.kind is not RuleKind.JUDGEMENT]
+
+    @property
+    def judgement_rules(self) -> list[Rule]:
+        """Rules no linter can check, carried so writing and review guidance read
+        one source of truth rather than a parallel prose catalogue."""
+        return [r for r in self.all_rules if r.kind is RuleKind.JUDGEMENT]
+
+    @property
+    def all_rules(self) -> list[Rule]:
+        """Checked and judgement rules, for inspection commands only."""
         return [r for c in self.categories.values() for r in c.rules]
 
     @property
@@ -47,7 +64,7 @@ class RuleSet:
         return {name: c.weight for name, c in self.categories.items()}
 
     def by_id(self, qualified_id: str) -> Rule | None:
-        for rule in self.rules:
+        for rule in self.all_rules:
             if rule.qualified_id == qualified_id:
                 return rule
         return None

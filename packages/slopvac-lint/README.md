@@ -4,15 +4,17 @@
 and general prose. The
 rules include constraints derived from Simplified Technical English and Orwell.
 
-The linter ships 164 checked rules across 26 categories. The CLI reports
-findings, scores, and incomplete coverage when selected checks cannot run.
+The linter ships 165 checked rules across 26 categories. The CLI reports
+findings, scores, and incomplete coverage when selected checks cannot run. The
+catalogue also carries 66 judgement rules that lint never reports; agents apply
+them through [writing guidance and semantic review](docs/semantic-guidance.md).
 
 See the [project overview](../../README.md) for agent setup and CI integration.
 
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
-[Rule coverage](#rules)
+[Semantic guidance](docs/semantic-guidance.md) · [Rule coverage](#rules)
 
 ## Install
 
@@ -49,13 +51,28 @@ remain in the report, but this is an incomplete check.
 
 `slopvac init` writes project configuration and, unless `--skip-agents` is
 used, maintains a small Slopvac block in `AGENTS.md`. Detailed instructions stay
-in the installed CLI:
+in the installed CLI, which only prints them:
 
 ```sh
 slopvac prime
+slopvac prime write
+slopvac prime review
 ```
 
-Use a harness-specific steering target when needed:
+`slopvac prime` prints the lint workflow and says when to run the `write` and
+`review` topics. Both topics are described in
+[semantic guidance](docs/semantic-guidance.md).
+
+Name harnesses to write their steering and the `slopvac-prose` skill:
+
+```sh
+slopvac init --harness claude --harness omp
+slopvac init --harness codex --no-skills
+```
+
+Without `--harness`, init writes only the generic `AGENTS.md` block and no
+skill. `--no-skills` writes the steering blocks without skills. To install one
+harness into an existing project:
 
 ```sh
 slopvac setup codex
@@ -67,11 +84,15 @@ slopvac setup kiro
 Codex uses a non-empty `AGENTS.override.md` when one already exists, otherwise
 `AGENTS.md`. Claude Code uses `CLAUDE.md`, and Oh My Pi uses `.omp/AGENTS.md`.
 Kiro uses `.kiro/steering/slopvac.md`; new files include `inclusion: always`.
-The generic `agents` target also manages `AGENTS.md`.
+The generic `agents` target also manages `AGENTS.md` and installs no skill. The
+skill lands in `.agents/skills/` for Codex, `.claude/skills/` for Claude Code,
+`.omp/skills/` for Oh My Pi, and `.kiro/skills/` for Kiro, each under
+`slopvac-prose/SKILL.md`.
 
-`slopvac setup <harness> --check` reports whether the managed block is current
-without modifying files. `--remove` removes only the managed block. Use
-`slopvac setup --list` for the supported targets and paths.
+`slopvac setup <harness> --check` reports whether the managed block and the
+skill are current without modifying files. `--remove` removes only the managed
+block and the skill. Use `slopvac setup --list` for the supported targets and
+paths.
 
 ## Lint documents
 
@@ -213,6 +234,21 @@ profile = "strict"
 | `[locale]` | Spelling target and allowed spellings |
 | `[vocabulary]` | Path to a project word blocklist |
 | `[vale]` | Vale enablement, binary, configuration, and styles |
+| `[guidance]` | Whether `slopvac prime` points agents at writing guidance and semantic review |
+
+### Agent guidance
+
+```toml
+[guidance]
+write = "auto"   # auto | off
+review = "auto"  # auto | ask | off
+```
+
+`write = "off"` drops the `slopvac prime write` step. `review = "ask"` has the
+agent ask the user before the semantic review, and `review = "off"` drops it. A
+disabled topic prints one line naming the config file and exits 0. With both
+off, `init --harness` and `setup` install no skill. `[guidance]` cannot appear
+in `[[overrides]]`. See [semantic guidance](docs/semantic-guidance.md#configuration).
 
 ### Precedence
 
@@ -396,7 +432,8 @@ See [metrics](docs/metrics.md) for counting and text-type classification details
 ## Rules
 
 In the [generated rule reference](docs/rules.md), you can find all 26 categories
-and profile tiers for the 164 checked rules.
+and profile tiers for the 165 checked rules, followed by the 66 judgement rules
+with their review questions and examples.
 
 | Family | Categories |
 | --- | --- |
@@ -459,7 +496,9 @@ A passing score does not verify factual correctness or establish authorship.
 
 ## In development
 
-Slopvac is evaluating a separate semantic layer with typed decisions. It would
+Slopvac is evaluating a separate semantic layer with typed decisions; the
+current [semantic review](docs/semantic-guidance.md) is a checklist an agent
+applies, with no model calls from Slopvac. The typed layer would
 run after the current parser has produced exact spans and deterministic
 candidates. A provider such as Jev, Laya, Nimble, Kev, or a SemIf-compatible
 backend would answer bounded questions while Slopvac code keeps ownership of the

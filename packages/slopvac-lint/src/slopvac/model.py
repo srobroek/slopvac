@@ -38,6 +38,8 @@ class RuleKind(str, Enum):
     METRIC       -- a counted measurement against a threshold (sentence length,
                     passive ratio, syllables per word).
     STRUCTURE    -- block-level shape (paragraph sentence count, list form).
+    JUDGEMENT    -- not mechanizable; carried so writing and review guidance
+                    read one source of truth. Never produces a finding.
     """
 
     TOKENS = "tokens"
@@ -46,6 +48,7 @@ class RuleKind(str, Enum):
     VOCABULARY = "vocabulary"
     METRIC = "metric"
     STRUCTURE = "structure"
+    JUDGEMENT = "judgement"
 
 
 class Scope(str, Enum):
@@ -78,8 +81,10 @@ class TextType(str, Enum):
     SAFETY = "safety"
 
 
-# Genre labels are rule metadata for documentation and inspection. Code comments
-# use their own source-language scopes rather than this document vocabulary.
+# Genre labels are rule metadata for documentation, inspection, and the review
+# checklist: `slopvac prime review` selects judgement categories whose
+# `recommended_for` names the document's genre. Code comments use their own
+# source-language scopes rather than this document vocabulary.
 Genre = Literal["consumer", "internal", "change-comms", "reference", "informal"]
 AiSignal = Literal["strong", "weak", "none"]
 AiSignalSource = Literal["measured", "catalog", "unmeasured"]
@@ -211,6 +216,11 @@ class Rule(BaseModel):
     ai_signal: AiSignal = "none"
     ai_signal_source: AiSignalSource = "unmeasured"
     fix: str | None = Field(default=None, description="The rewrite operation.")
+    judgement_question: str | None = Field(
+        default=None,
+        description="Required for kind=judgement: the question the reviewer must "
+        "answer. Must be decidable, not a matter of taste.",
+    )
 
     # Set by the loader.
     category: str = Field(default="", description="Owning category; set on load.")
@@ -234,6 +244,7 @@ class Rule(BaseModel):
             "substitutions": RuleKind.SUBSTITUTION,
             "metric": RuleKind.METRIC,
             "threshold": RuleKind.METRIC,
+            "judgement_question": RuleKind.JUDGEMENT,
         }
         for name, owner in owners.items():
             if getattr(self, name) is not None and self.kind is not owner:
@@ -245,7 +256,17 @@ class Rule(BaseModel):
             raise ValueError(f"kind={self.kind.value} requires `{field}`")
         if self.kind is RuleKind.METRIC and self.threshold is None:
             raise ValueError("kind=metric requires `threshold`")
-
+        if self.kind is RuleKind.JUDGEMENT:
+            if not self.judgement_question:
+                raise ValueError("kind=judgement requires `judgement_question`")
+            if self.exceptions:
+                raise ValueError(
+                    f"{self.id}: kind=judgement cannot declare `exceptions`; "
+                    "judgement rules never emit findings to suppress"
+                )
+            # A judgement rule cannot fire mechanically; letting it carry a real
+            # severity would imply the linter checks it.
+            object.__setattr__(self, "severity", Severity.SUGGESTION)
         return self
 
     def tier_for(self, profile: str) -> Tier:

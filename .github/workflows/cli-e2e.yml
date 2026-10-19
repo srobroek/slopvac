@@ -55,7 +55,9 @@ jobs:
           python3 - <<'PY'
           import json
           rules = json.load(open('/tmp/rules.json'))
-          assert len(rules['rules']) == 165, len(rules['rules'])
+          kinds = [rule['kind'] for rule in rules['rules']]
+          assert len(rules['rules']) == 232, len(rules['rules'])
+          assert kinds.count('judgement') == 66, kinds.count('judgement')
           assert len(rules['categories']) == 26, len(rules['categories'])
           PY
           slopvac explain orwell.stale-figure --format json > /tmp/explain.json
@@ -117,7 +119,7 @@ jobs:
           grep -q 'slopvac lint' /tmp/prime.md
           grep -q 'slopvac setup --list' /tmp/onboard.md
 
-          # Judgement is deliberately not part of this branch's CLI surface.
+          # Judgement rules are catalogue data; the model-backed command group stays out.
           slopvac --help > /tmp/help.txt
           if grep -q 'judgement' /tmp/help.txt; then
             echo "judgement unexpectedly appears in top-level help"
@@ -126,17 +128,73 @@ jobs:
           set +e
           slopvac rules --judgement > /tmp/no-judgement-option.txt 2>&1
           rules_judgement_status=$?
-          slopvac rules --kind judgement > /tmp/no-judgement-kind.txt 2>&1
-          kind_judgement_status=$?
           slopvac prime judgement > /tmp/no-prime-judgement.txt 2>&1
           prime_judgement_status=$?
-          slopvac explain orwell.concrete-floor > /tmp/no-judgement-rule.txt 2>&1
-          explain_judgement_status=$?
           set -e
           test "$rules_judgement_status" -eq 2
-          test "$kind_judgement_status" -eq 2
           test "$prime_judgement_status" -eq 2
-          test "$explain_judgement_status" -eq 2
+          slopvac rules --kind judgement --format json > /tmp/judgement-rules.json
+          slopvac explain ai-tells-structure.negative-inventory-remainder --format json \
+            > /tmp/judgement-explain.json
+          python3 - <<'PY'
+          import json
+          rules = json.load(open('/tmp/judgement-rules.json'))['rules']
+          assert len(rules) == 66 and all(r['kind'] == 'judgement' for r in rules)
+          explained = json.load(open('/tmp/judgement-explain.json'))
+          assert explained['judgement_question'] and explained['fix']
+          assert explained['examples']
+          PY
+
+          # Writing and review guidance, with the checklist generated from the catalogue.
+          slopvac prime write > /tmp/prime-write.md
+          slopvac prime review > /tmp/prime-review.md
+          grep -q 'slopvac prime write' /tmp/prime.md
+          grep -q 'slopvac prime review' /tmp/prime.md
+          grep -q '^## Judgement rules' /tmp/prime-write.md
+          grep -q '^## Checklist' /tmp/prime-review.md
+          python3 - <<'PY'
+          import json
+          ids = {r['rule_id'] for r in json.load(open('/tmp/judgement-rules.json'))['rules']}
+          for path in ('/tmp/prime-write.md', '/tmp/prime-review.md'):
+              listed = {
+                  line.split('`')[1]
+                  for line in open(path, encoding='utf-8')
+                  if line.startswith('- `')
+              }
+              assert ids <= listed, (path, sorted(ids - listed))
+          PY
+
+          # Flag-off path: [guidance] off disables each topic and installs no skill.
+          rm -rf /tmp/guidance-off
+          mkdir -p /tmp/guidance-off
+          printf '[guidance]\nwrite = "off"\nreview = "off"\n' \
+            > /tmp/guidance-off/slopvac.toml
+          (
+            cd /tmp/guidance-off
+            slopvac prime > /tmp/prime-off.md
+            slopvac prime write > /tmp/prime-write-off.md
+            slopvac prime review > /tmp/prime-review-off.md
+          )
+          if grep -q 'slopvac prime write' /tmp/prime-off.md; then
+            echo "write guidance still announced with [guidance] write = off"
+            exit 1
+          fi
+          grep -q 'disabled by \[guidance\]' /tmp/prime-write-off.md
+          grep -q 'disabled by \[guidance\]' /tmp/prime-review-off.md
+          test "$(wc -l < /tmp/prime-review-off.md)" -eq 1
+          slopvac setup omp --root /tmp/guidance-off
+          test -s /tmp/guidance-off/.omp/AGENTS.md
+          test ! -e /tmp/guidance-off/.omp/skills/slopvac-prose/SKILL.md
+
+          # Init writes skill stubs only for harnesses named with --harness.
+          rm -rf /tmp/init-harness /tmp/init-no-skills
+          mkdir -p /tmp/init-harness/.claude /tmp/init-no-skills
+          (cd /tmp/init-harness && slopvac init --harness omp)
+          test -s /tmp/init-harness/.omp/skills/slopvac-prose/SKILL.md
+          test ! -e /tmp/init-harness/.claude/skills
+          (cd /tmp/init-no-skills && slopvac init --harness claude --no-skills)
+          test -s /tmp/init-no-skills/CLAUDE.md
+          test ! -e /tmp/init-no-skills/.claude/skills
 
           # Harness-specific install/check paths.
           for harness in agents claude omp kiro; do
@@ -149,6 +207,10 @@ jobs:
           grep -q 'inclusion: always' /tmp/harness-kiro/.kiro/steering/slopvac.md
           test -s /tmp/harness-omp/.omp/AGENTS.md
           test -s /tmp/harness-claude/CLAUDE.md
+          test -s /tmp/harness-claude/.claude/skills/slopvac-prose/SKILL.md
+          test -s /tmp/harness-omp/.omp/skills/slopvac-prose/SKILL.md
+          test -s /tmp/harness-kiro/.kiro/skills/slopvac-prose/SKILL.md
+          test ! -e /tmp/harness-agents/.agents
 
           rm -rf /tmp/harness-codex
           mkdir -p /tmp/harness-codex
@@ -156,8 +218,10 @@ jobs:
           slopvac setup codex --root /tmp/harness-codex
           grep -q '<!-- slopvac:begin -->' /tmp/harness-codex/AGENTS.override.md
           test ! -e /tmp/harness-codex/AGENTS.md
+          test -s /tmp/harness-codex/.agents/skills/slopvac-prose/SKILL.md
           slopvac setup codex --root /tmp/harness-codex --remove
           test "$(cat /tmp/harness-codex/AGENTS.override.md)" = '# Existing override'
+          test ! -e /tmp/harness-codex/.agents/skills/slopvac-prose
 
           # Vale-backed lint succeeds; explicitly disabling Vale is incomplete.
           printf '%s\n' \
@@ -192,7 +256,7 @@ jobs:
 
           # Reference, compiled routing, and cache are usable from the wheel.
           slopvac reference > /tmp/reference.md
-          grep -q '164 checked rules' /tmp/reference.md
+          grep -q '165 checked rules' /tmp/reference.md
           rm -rf /tmp/compiled-vale
           slopvac compile \
             --config /tmp/slopvac-project/slopvac.toml \
@@ -201,11 +265,22 @@ jobs:
             > /tmp/compile.json
           python3 - <<'PY'
           import json
+          from pathlib import Path
           compiled = json.load(open('/tmp/compile.json'))
           assert len(compiled['vale']) > 100
           assert compiled['native']
           assert 'judgement' not in compiled
           assert compiled['vale_version'] == '3.15.2'
+          judgement = {
+              r['rule_id'] for r in json.load(open('/tmp/judgement-rules.json'))['rules']
+          }
+          routed = set(compiled['vale']) | {n['rule_id'] for n in compiled['native']}
+          assert not routed & judgement, sorted(routed & judgement)
+          tree = '\n'.join(
+              p.read_text(encoding='utf-8', errors='ignore')
+              for p in Path('/tmp/compiled-vale').rglob('*') if p.is_file()
+          )
+          assert not [rule_id for rule_id in judgement if rule_id in tree]
           PY
           test -s /tmp/compiled-vale/.vale.ini
           slopvac cache > /tmp/cache.txt
@@ -225,6 +300,11 @@ jobs:
           sarif = json.load(open('/tmp/probe.sarif'))
           assert sarif['version'] == '2.1.0'
           assert sarif['runs']
+          judgement = {
+              r['rule_id'] for r in json.load(open('/tmp/judgement-rules.json'))['rules']
+          }
+          descriptors = {r['id'] for r in sarif['runs'][0]['tool']['driver']['rules']}
+          assert descriptors and not descriptors & judgement
           PY
 
           set +e
@@ -337,7 +417,7 @@ jobs:
           assert findings == []
           PY
 
-      - name: Check linter-only CLI surface
+      - name: Check CLI surface
         shell: bash
         run: |
           set -euo pipefail
@@ -350,7 +430,8 @@ jobs:
           python - <<'PY'
           import json
           rules = json.load(open("/tmp/rules.json"))
-          assert len(rules["rules"]) == 165
+          assert len(rules["rules"]) == 232
+          assert sum(r["kind"] == "judgement" for r in rules["rules"]) == 66
           assert len(rules["categories"]) == 26
           PY
 

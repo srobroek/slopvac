@@ -10,8 +10,13 @@ the file a build artifact that happens to be committed -- committed because it
 must be readable on the forge without running anything, checked because a
 committed artifact with no check is just a stale file with extra steps.
 
-ONLY CHECKED RULES ARE PUBLISHED HERE. Contextual rule work lives on a separate
-development branch and is not part of the current linter surface.
+THE DETERMINISTIC SPLIT IS THE ORGANISING PRINCIPLE, not a column. A rule that a
+checker executes and a rule that only a reader can settle are different kinds of
+promise, and mixing them produces the two failures this tool exists to avoid: a
+reader who thinks a judgement rule gates their build, and an agent that thinks a
+mechanical rule is a matter of opinion. `RuleKind.JUDGEMENT` is the whole of the
+non-deterministic set, so the partition is `RuleSet.rules` against
+`RuleSet.judgement_rules` and needs no heuristic.
 
 REDISTRIBUTION IS SCOPED. Rules derived from ASD-STE100 cite a rule NUMBER and
 nothing else: no rule prose, no worked examples from the specification, and no
@@ -28,7 +33,10 @@ from .model import Rule, RuleKind
 from .profiles import profile_rule_defaults
 from .rules import RuleSet
 
-CHECKED_KINDS = tuple(RuleKind)
+#: Every kind except JUDGEMENT. Derived rather than listed, so a new kind added to
+#: the enum lands on the checked side by default -- which is correct, since a new
+#: kind exists because something became checkable.
+CHECKED_KINDS = tuple(k for k in RuleKind if k is not RuleKind.JUDGEMENT)
 
 _KIND_BLURB = {
     RuleKind.TOKENS: "literal phrases, matched on word boundaries",
@@ -37,6 +45,7 @@ _KIND_BLURB = {
     RuleKind.VOCABULARY: "a lookup in the project blocklist, keyed by part of speech",
     RuleKind.METRIC: "a counted measurement against a threshold",
     RuleKind.STRUCTURE: "block-level shape",
+    RuleKind.JUDGEMENT: "not mechanizable; a reader or a reviewing agent settles it",
 }
 
 _TIER_ORDER = ("strict", "normal", "relaxed")
@@ -126,6 +135,8 @@ def _rule_section(rule: Rule) -> list[str]:
             f"- **Suppressible with.** {named} — any other reason is reported "
             f"rather than honoured"
         )
+    if rule.judgement_question:
+        facts.append(f"- **Question.** {rule.judgement_question}")
     reference = _reference_line(rule)
     if reference:
         facts.append(f"- **Reference.** {reference}")
@@ -134,6 +145,26 @@ def _rule_section(rule: Rule) -> list[str]:
     )
     lines.extend(facts)
 
+    # Examples are shown for judgement rules and withheld for the rest. A
+    # mechanical rule's example adds nothing a reader cannot get from `explain`,
+    # and 150 of them triples the document; a judgement rule's example is the only
+    # thing that makes it applicable at all, because there is no pattern to read.
+    if rule.kind is RuleKind.JUDGEMENT and rule.examples:
+        lines.extend(["", "<!-- slopvac-disable -->"])
+        for example in rule.examples[:2]:
+            lines.append(f"  > **Not this.** {example.bad}")
+            lines.append("  >")
+            # An empty `good` is meaningful here: for a whole class of these rules
+            # the fix IS deletion, rendered as words rather than a bare label.
+            good = (example.good or "").strip()
+            lines.append(
+                f"  > **This.** {good}" if good else "  > **This.** *(delete it)*"
+            )
+            if example.note:
+                lines.append("  >")
+                lines.append(f"  > {example.note}")
+            lines.append("")
+        lines.append("<!-- slopvac-enable -->")
     lines.append("")
     return lines
 
@@ -154,10 +185,6 @@ def _category_block(ruleset: RuleSet, category_id: str, rules: list[Rule]) -> li
     return lines
 
 
-def _checked(rules: list[Rule]) -> list[Rule]:
-    return list(rules)
-
-
 def _by_category(rules: list[Rule]) -> dict[str, list[Rule]]:
     buckets: dict[str, list[Rule]] = defaultdict(list)
     for rule in rules:
@@ -165,14 +192,15 @@ def _by_category(rules: list[Rule]) -> dict[str, list[Rule]]:
     return dict(sorted(buckets.items()))
 
 
-def _summary_table(ruleset: RuleSet, rules: list[Rule]) -> list[str]:
-    checked_by_category = _by_category(rules)
+def _summary_table(ruleset: RuleSet) -> list[str]:
+    checked_by_category = _by_category(ruleset.rules)
+    judgement_by_category = _by_category(ruleset.judgement_rules)
 
     lines = [
-        "| Category | Checked | Weight | Recommended for |",
-        "| --- | --: | --: | --- |",
+        "| Category | Checked | Judgement | Weight | Recommended for |",
+        "| --- | --: | --: | --: | --- |",
     ]
-    for category_id, category_rules in checked_by_category.items():
+    for category_id in sorted(set(checked_by_category) | set(judgement_by_category)):
         category = ruleset.categories.get(category_id)
         title = category.title if category else category_id
         genres = (
@@ -183,14 +211,21 @@ def _summary_table(ruleset: RuleSet, rules: list[Rule]) -> list[str]:
         weight = category.weight if category else "—"
         lines.append(
             f"| [{title}](#{_anchor(f'{title} {category_id}')}) "
-            f"| {len(category_rules)} | {weight} | {genres} |"
+            f"| {len(checked_by_category.get(category_id, []))} "
+            f"| {len(judgement_by_category.get(category_id, []))} "
+            f"| {weight} | {genres} |"
         )
-    lines.append(f"| **Total** | **{len(rules)}** | | |")
+    lines.append(
+        f"| **Total** | **{len(ruleset.rules)}** "
+        f"| **{len(ruleset.judgement_rules)}** | | |"
+    )
     return lines
 
+
 def render_reference(ruleset: RuleSet) -> str:
-    """Render the checked linter rules as stable Markdown."""
-    checked = _checked(ruleset.rules)
+    """Render the rules reference, checked rules first, as stable Markdown."""
+    checked = ruleset.rules
+    judgement = ruleset.judgement_rules
     checked_categories = {rule.category for rule in checked}
     kind_counts = sorted(
         (
@@ -207,10 +242,13 @@ def render_reference(ruleset: RuleSet) -> str:
         "`slopvac reference --write docs/rules.md`. -->",
         "",
         f"slopvac ships **{len(checked)} checked rules** across "
-        f"**{len(checked_categories)} categories**.",
+        f"**{len(checked_categories)} categories**, plus "
+        f"**{len(judgement)} judgement rules**.",
         "",
-        "These rules run through Vale or the native engine and can contribute to "
-        "the lint result.",
+        "Checked rules run through Vale or the native engine and can contribute "
+        "to the lint result. Judgement rules need a reader: lint never reports "
+        "them, and `slopvac prime write` and `slopvac prime review` turn them "
+        "into writing guidance and a review checklist.",
         "",
         "Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, "
         "worked example, or wordlist entry from that specification is reproduced "
@@ -219,7 +257,7 @@ def render_reference(ruleset: RuleSet) -> str:
         "## Categories",
         "",
     ]
-    lines.extend(_summary_table(ruleset, checked))
+    lines.extend(_summary_table(ruleset))
     lines.extend(
         [
             "",
@@ -254,6 +292,18 @@ def render_reference(ruleset: RuleSet) -> str:
         ]
     )
     for category_id, rules in _by_category(checked).items():
+        lines.extend(_category_block(ruleset, category_id, rules))
+
+    lines.extend(
+        [
+            "## Judgement rules",
+            "",
+            "These rules need contextual review and never produce lint findings. "
+            "Each shows its review question and an example.",
+            "",
+        ]
+    )
+    for category_id, rules in _by_category(judgement).items():
         lines.extend(_category_block(ruleset, category_id, rules))
 
     return "\n".join(lines).rstrip("\n") + "\n"

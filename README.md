@@ -19,7 +19,8 @@
 [Metrics](packages/slopvac-lint/docs/metrics.md) ·
 [Triage](packages/slopvac-lint/docs/triage.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
-[Agent setup](#agent-setup) · [CI](#ci-integration) · [Roadmap](#roadmap)
+[Agent setup](#agent-setup) · [Writing guidance](#writing-guidance) ·
+[Semantic review](#semantic-review) · [CI](#ci-integration) · [Roadmap](#roadmap)
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
@@ -58,6 +59,18 @@ file unchanged. Replace `README.md` with the file or directory you need to check
 A passing run exits 0; findings above a threshold exit 1. An incomplete check
 exits 2, including when selected Vale-backed checks cannot run.
 
+To steer a coding agent, name its harness when you initialize, then have the
+agent read the writing guide before it drafts:
+
+```sh
+slopvac init --harness claude
+slopvac prime write
+```
+
+`--harness` accepts `agents`, `codex`, `claude`, `omp`, or `kiro` and can be
+repeated. In an existing project, `slopvac setup <harness>` installs the same
+files. See [Agent setup](#agent-setup).
+
 For a one-off check without installing slopvac persistently:
 
 ```sh
@@ -80,7 +93,10 @@ covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
 
 ## What it checks
 
-The linter ships 164 checked rules across 26 categories.
+The linter ships 165 checked rules across 26 categories. The catalogue also
+carries 66 judgement rules that lint never reports; the
+[writing guidance](#writing-guidance) and [semantic review](#semantic-review)
+apply them.
 
 | Coverage | Examples |
 | --- | --- |
@@ -109,26 +125,31 @@ Native findings remain available, but the run returns exit 2.
 
 ## Agent setup
 
-Slopvac uses project-local steering instead of harness marketplaces or copied
-skills. The managed block tells the agent to ask the installed CLI for the
-current lint workflow instead of duplicating rule policy.
+Slopvac installs small project-local files instead of harness marketplaces.
+The managed steering block tells the agent to run `slopvac prime`, and a
+`slopvac-prose` skill tells harnesses that load project skills to run
+`slopvac prime write` and `slopvac prime review` around prose work. Neither
+copies rule policy; the installed CLI prints it.
 
-`slopvac init` adds the generic `AGENTS.md` block by default. Use
-`--skip-agents` when only configuration should be created.
+`slopvac init` adds only the generic `AGENTS.md` block by default. Each
+`--harness <name>` writes that harness's steering block and skill instead;
+`--no-skills` keeps the blocks and skips the skills. Use `--skip-agents` when
+only configuration should be created.
 
 For harness-specific setup:
 
-| Harness | Command | Managed file |
-| --- | --- | --- |
-| Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` |
-| Codex | `slopvac setup codex` | non-empty `AGENTS.override.md`, otherwise `AGENTS.md` |
-| Claude Code | `slopvac setup claude` | `CLAUDE.md` |
-| Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` |
-| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) |
+| Harness | Command | Managed steering | Skill |
+| --- | --- | --- | --- |
+| Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` | none |
+| Codex | `slopvac setup codex` | non-empty `AGENTS.override.md`, otherwise `AGENTS.md` | `.agents/skills/slopvac-prose/SKILL.md` |
+| Claude Code | `slopvac setup claude` | `CLAUDE.md` | `.claude/skills/slopvac-prose/SKILL.md` |
+| Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` | `.omp/skills/slopvac-prose/SKILL.md` |
+| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) | `.kiro/skills/slopvac-prose/SKILL.md` |
 
-`setup` preserves content outside Slopvac's managed markers. Use
-`slopvac setup <harness> --check` to report `current`, `missing`, `stale`,
-or `malformed` without changing the file. Remove only the managed block with
+`setup` preserves content outside Slopvac's managed markers and never touches a
+skill file it did not write. Use `slopvac setup <harness> --check` to report
+`current`, `missing`, `stale`, or `malformed` for the block and the skill
+without changing files. Remove only Slopvac's block and skill with
 `slopvac setup <harness> --remove`. Run `slopvac setup --list` to inspect
 supported targets.
 
@@ -139,8 +160,39 @@ slopvac prime
 ```
 
 `prime` covers linting, exit-code semantics, Vale coverage, rule explanation,
-named exceptions, and factual-claim verification. `slopvac onboard` prints a short setup handoff that points the agent to
-`prime` for the detailed workflow.
+named exceptions, factual-claim verification, and when to run the writing and
+review topics. It only prints. `slopvac onboard` prints a short setup handoff
+that points the agent to `prime` for the detailed workflow.
+
+## Writing guidance
+
+`slopvac prime write` prints a writing guide for READMEs, docs, PR or MR
+descriptions, commit and release text, and specifications. The guide holds a
+genre table, a documentation contract, and one rewrite instruction per
+judgement rule, generated from the rule catalogue. `slopvac prime` tells the
+agent to run it before drafting or editing that prose.
+
+Disable it with `[guidance] write = "off"` in `slopvac.toml`. The
+[semantic guidance reference](packages/slopvac-lint/docs/semantic-guidance.md)
+lists every mode.
+
+## Semantic review
+
+`slopvac prime review` prints a review workflow. The agent runs `slopvac lint`
+first, then answers the judgement checklist for the document's genre, quotes
+each failing passage with a proposed rewrite, and verifies factual claims
+against the code. `slopvac prime` tells the agent to run it before handing
+prose off.
+
+The workflow ends with an adversary review. The author hands the document and
+the `slopvac prime review` output to a separate reviewer with fresh context,
+such as a subagent, which reports failures only as rule id, quoted text, and
+proposed rewrite. The author fixes or rebuts each finding, and the loop repeats
+until the reviewer confirms none.
+
+Set `[guidance] review = "ask"` to have the agent ask the user before it
+reviews, or `"off"` to drop the step. Slopvac makes no model calls; the agent
+reading the output does the review.
 
 ## CI integration
 
@@ -200,7 +252,8 @@ evidence without changing the gate.
 
 ## Agentic judgement
 
-The current release is a deterministic linter. A separate development track is
+Lint is deterministic, and the [semantic review](#semantic-review) is a
+checklist that an agent applies. A separate development track is
 evaluating an optional semantic decision layer built around **typed judge
 models** rather than free-form text generation. Candidate backends include
 hosted [Jev](https://www.typesafeai.org/jev) and local/open models such as

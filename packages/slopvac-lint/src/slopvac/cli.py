@@ -22,6 +22,7 @@ from pathlib import Path
 
 import click
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
 
 from . import __version__
@@ -29,6 +30,7 @@ from .compile_vale import compile_ruleset
 from .config import (
     Config,
     ConfigError,
+    GuidanceSettings,
     Mode,
     Profile,
     Severity,
@@ -51,6 +53,7 @@ from .pipeline import (
 )
 from .reference import render_reference
 from .rules import RuleLoadError, inject_locale_rule, load_ruleset
+from .steering import harnesses
 from .vale_cache import CACHE_KEEP, cache_root, prune_cache
 from .vale_probe import ValeUnavailable
 from .vocabulary import VocabularyError, load_blocklist
@@ -385,7 +388,7 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
 @click.option(
     "--kind",
     type=click.Choice([k.value for k in RuleKind]),
-    help="Filter by checked rule kind.",
+    help="Filter by rule kind; `judgement` lists the rules lint never checks.",
 )
 @click.option(
     "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
@@ -408,7 +411,7 @@ def list_rules(
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
 ) -> None:
-    """List checked linter rules and whether each is on at a profile."""
+    """List the rules and whether each is on at a profile."""
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -420,7 +423,7 @@ def list_rules(
 
     selected = [
         rule
-        for rule in ruleset.rules
+        for rule in ruleset.all_rules
         if (not only or rule.category in only)
         and (not kind or rule.kind.value == kind)
     ]
@@ -439,6 +442,9 @@ def list_rules(
     active = {rule.qualified_id for rule in engine.rules}
 
     def effective(rule) -> str:
+        if rule.kind is RuleKind.JUDGEMENT:
+            # Never fires mechanically; the reviewer reads it at its shipped level.
+            return rule.severity.value
         if rule.qualified_id not in active:
             return Severity.OFF.value
         return engine.severity_for(rule).value
@@ -559,6 +565,11 @@ def explain(
     # 'Use the en-US spelling "<replacement>".' and then 'Fix: Use the en-US spelling.'
     if rule.fix and rule.fix.rstrip(".").lower() not in rule.message.rstrip(".").lower():
         console.print(f"\n[bold]Fix[/]: {rule.fix}")
+    if rule.judgement_question:
+        console.print(f"\n[bold]Decide by asking[/]: {rule.judgement_question}")
+        console.print(
+            "Lint never reports this rule; `slopvac prime review` applies it."
+        )
     if rule.exceptions:
         console.print("\n[bold]Named exceptions[/] (a suppression must cite one):")
         for name in rule.exceptions:
@@ -595,13 +606,37 @@ def explain(
 @click.option(
     "--skip-agents",
     is_flag=True,
-    help="Write configuration only; do not add the managed AGENTS.md block.",
+    help="Write configuration only: no steering block and no skill.",
 )
-def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> None:
+@click.option(
+    "--harness",
+    "selected",
+    multiple=True,
+    type=click.Choice(harnesses()),
+    help="Write this harness's steering block and slopvac-prose skill. Repeat for "
+    "several. Default: the generic AGENTS.md block only.",
+)
+@click.option(
+    "--no-skills",
+    is_flag=True,
+    help="Write the steering blocks but no slopvac-prose skill.",
+)
+def init_config(
+    profile: str,
+    force: bool,
+    path: Path,
+    skip_agents: bool,
+    selected: tuple[str, ...],
+    no_skills: bool,
+) -> None:
     """Initialize project configuration and agent steering."""
     console = _console(False)
-    from .steering import harness_path, update_managed_block
     from .templates import STARTER_CONFIG
+
+    if skip_agents and (selected or no_skills):
+        raise click.UsageError(
+            "--skip-agents writes no steering; drop --harness and --no-skills."
+        )
 
     if path.exists() and not force:
         console.print(f"[yellow]{path} exists[/]; keeping it.")
@@ -611,25 +646,99 @@ def init_config(profile: str, force: bool, path: Path, skip_agents: bool) -> Non
         console.print(f"wrote {path}")
 
     if not skip_agents:
-        try:
-            agents_path = harness_path(path.parent, "agents")
-            changed = update_managed_block(agents_path)
-        except ValueError as exc:
-            raise click.ClickException(str(exc)) from exc
-        console.print(
-            f"{'updated' if changed else 'kept'} {agents_path} "
-            "with slopvac steering"
-        )
+        chosen = tuple(dict.fromkeys(selected)) or ("agents",)
+        guidance = _guidance_of(console, path)[0]
+        console.print(f"harnesses: {', '.join(chosen)}")
+        for name in chosen:
+            _install_harness(
+                console, path.parent, name, skills=not no_skills, guidance=guidance
+            )
 
     console.print("next: slopvac prime")
 
 
+def _guidance_of(
+    console: Console, config_path: Path | None
+) -> tuple[GuidanceSettings, Path | None]:
+    """The `[guidance]` settings and the config file they came from.
+
+    A broken config fails the command rather than falling back to defaults, which
+    would tell an agent to run a step the project switched off.
+    """
+    if config_path is None:
+        return GuidanceSettings(), None
+    try:
+        return load_config(config_path).guidance, config_path
+    except ConfigError as exc:
+        console.print(f"[red]config error[/]: {escape(str(exc))}")
+        raise SystemExit(EXIT_ERROR) from None
+
+
+def _install_harness(
+    console: Console,
+    root: Path,
+    harness: str,
+    *,
+    skills: bool,
+    guidance: GuidanceSettings,
+) -> None:
+    """Write one harness's steering block and, unless skipped, its skill stub."""
+    from .steering import install_steering, skill_path, sync_skill
+
+    try:
+        target, changed = install_steering(root, harness)
+        console.print(f"{'updated' if changed else 'kept'} {target} with slopvac steering")
+        stub = skill_path(root, harness) if skills else None
+        if stub is None:
+            return
+        changed = sync_skill(stub, wanted=guidance.enabled)
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
+    if guidance.enabled:
+        console.print(f"{'updated' if changed else 'kept'} {stub}")
+    else:
+        verb = "removed" if changed else "skipped"
+        console.print(f"{verb} {stub} (\\[guidance] write and review are off)")
+
+
 @main.command("prime")
-def prime() -> None:
-    """Print current linter guidance for agents."""
+@click.argument("topic", required=False, type=click.Choice(["write", "review"]))
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Read [guidance] from this file. Default: the nearest slopvac config.",
+)
+@click.option(
+    "--rules-dir",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
+def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ...]) -> None:
+    """Print current guidance for agents.
+
+    With no TOPIC, print the lint workflow and when to run the topics. `write`
+    prints the writing guide and `review` the review workflow and checklist, both
+    generated from the rule catalogue. Prime only prints; it never writes files.
+    """
+    from .guidance import disabled_notice, render_review, render_write
     from .steering import prime_text
 
-    click.echo(prime_text())
+    console = _console(False)
+    settings, source = _guidance_of(console, config_path or find_config(Path.cwd()))
+    if topic is None:
+        click.echo(prime_text(settings))
+        return
+    if getattr(settings, topic) == "off":
+        click.echo(disabled_notice(topic, source))
+        return
+    try:
+        ruleset = load_ruleset(list(rules_dir) or None)
+    except RuleLoadError as exc:
+        console.print(f"[red]ruleset error[/]: {exc}")
+        raise SystemExit(EXIT_ERROR) from None
+    render = render_write if topic == "write" else render_review
+    click.echo(render(ruleset, settings), nl=False)
 
 
 @main.command("onboard")
@@ -643,11 +752,14 @@ def onboard() -> None:
 @main.command("setup")
 @click.argument("harness", required=False)
 @click.option("--list", "list_harnesses", is_flag=True, help="List supported harnesses.")
-@click.option("--remove", is_flag=True, help="Remove the managed slopvac block.")
+@click.option(
+    "--remove", is_flag=True, help="Remove the managed slopvac block and skill."
+)
 @click.option(
     "--check",
     is_flag=True,
-    help="Report whether the managed block is current without changing files.",
+    help="Report whether the managed block and skill are current without "
+    "changing files.",
 )
 @click.option(
     "--root",
@@ -665,17 +777,21 @@ def setup_agent(
     """Install or remove project-local steering for a harness."""
     from .steering import (
         harness_path,
-        harnesses,
         managed_block_state,
         remove_managed_block,
-        update_managed_block,
+        skill_path,
+        skill_state,
+        sync_skill,
     )
 
     console = _console(False)
     if list_harnesses:
         try:
             for name in harnesses():
-                console.print(f"{name:8} {harness_path(root, name)}")
+                stub = skill_path(root, name)
+                console.print(
+                    f"{name:8} {harness_path(root, name)}" + (f"  {stub}" if stub else "")
+                )
         except ValueError as exc:
             raise click.ClickException(str(exc)) from exc
         raise SystemExit(EXIT_OK)
@@ -686,42 +802,42 @@ def setup_agent(
         raise click.UsageError(
             f"unknown harness {harness!r}; choose from: {', '.join(harnesses())}"
         )
+    if check and remove:
+        raise click.UsageError("--check and --remove cannot be used together.")
 
     try:
         target = harness_path(root, harness)
+        stub = skill_path(root, harness)
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
+
     if check:
-        if remove:
-            raise click.UsageError("--check and --remove cannot be used together.")
-        state = managed_block_state(target)
-        console.print(f"{state} {target}")
-        if state == "current":
-            raise SystemExit(EXIT_OK)
-        if state == "malformed":
+        guidance = _guidance_of(console, find_config(root))[0]
+        states = [(managed_block_state(target), target)]
+        if stub is not None:
+            states.append((skill_state(stub, wanted=guidance.enabled), stub))
+        for state, path in states:
+            console.print(f"{state} {path}")
+        found = {state for state, _ in states}
+        if "malformed" in found:
             raise SystemExit(EXIT_ERROR)
+        if found <= {"current", "disabled"}:
+            raise SystemExit(EXIT_OK)
         raise SystemExit(EXIT_FINDINGS)
 
+    if not remove:
+        guidance = _guidance_of(console, find_config(root))[0]
+        _install_harness(console, root, harness, skills=True, guidance=guidance)
+        return
+
     try:
-        changed = (
-            remove_managed_block(target)
-            if remove
-            else update_managed_block(
-                target,
-                preamble=(
-                    "---\ninclusion: always\n---"
-                    if harness == "kiro" and not target.exists()
-                    else ""
-                ),
-            )
-        )
+        removed = [(remove_managed_block(target), target)]
+        if stub is not None:
+            removed.append((sync_skill(stub, wanted=False), stub))
     except ValueError as exc:
         raise click.ClickException(str(exc)) from exc
-
-    action = "removed from" if remove else "updated"
-    if not changed:
-        action = "unchanged"
-    console.print(f"{action} {target}")
+    for changed, path in removed:
+        console.print(f"{'removed from' if changed else 'unchanged'} {path}")
 
 
 @main.command("compile")

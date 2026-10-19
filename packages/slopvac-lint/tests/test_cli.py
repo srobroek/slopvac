@@ -584,8 +584,46 @@ def test_rules_json_carries_categories_and_tiers(runner):
     assert payload["categories"]
     assert payload["rules"]
     assert all("tier" in rule for rule in payload["rules"])
-    # The skill reads recommended_for to recommend a selection.
+    # The review checklist reads recommended_for to select categories by genre.
     assert any(c["recommended_for"] for c in payload["categories"])
+
+
+def test_judgement_filter_returns_only_unmechanizable_rules(runner):
+    """The review checklist's input, so it must be selectable on its own."""
+    result = runner.invoke(main, ["rules", "--kind", "judgement", "--format", "json"])
+    assert result.exit_code == EXIT_OK
+    rules = json.loads(result.output)["rules"]
+    assert rules
+    assert all(rule["kind"] == "judgement" for rule in rules)
+    assert all(rule["judgement_question"] for rule in rules)
+
+
+def test_explain_shows_a_judgement_question(runner):
+    rule_id = "ai-tells-structure.negative-inventory-remainder"
+    result = runner.invoke(main, ["explain", rule_id, "--format", "json"])
+    assert result.exit_code == EXIT_OK
+    payload = json.loads(result.output)
+    assert payload["kind"] == "judgement"
+    assert payload["judgement_question"]
+    assert payload["fix"]
+    assert payload["examples"]
+    assert "suppression" not in payload
+
+
+def test_a_judgement_rule_in_config_is_named_as_unlintable(runner, tmp_path):
+    """`slopvac rules` lists it, so "unknown rule" would be a wrong answer."""
+    config = tmp_path / "slopvac.toml"
+    config.write_text(
+        '[rules."orwell.concrete-floor"]\nseverity = "error"\n', encoding="utf-8"
+    )
+    doc = tmp_path / "doc.md"
+    doc.write_text("The parser rejects nested depth over 64.\n", encoding="utf-8")
+    result = runner.invoke(
+        main, ["lint", str(doc), "--config", str(config), "--no-vale"]
+    )
+    assert result.exit_code == EXIT_ERROR
+    assert "judgement rule" in result.output
+    assert "unknown rule" not in result.output
 
 
 def test_explain_shows_exceptions_and_the_annotation(runner):

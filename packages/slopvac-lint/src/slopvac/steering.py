@@ -3,6 +3,10 @@
 The managed block stays small. Detailed lint guidance comes from the installed
 CLI through slopvac prime, so harness instructions do not duplicate the rule
 catalogue or drift with the implementation.
+
+Harnesses that load project skills also get one thin `slopvac-prose` skill. It
+carries triggers only and points at `slopvac prime write|review`, for the same
+reason: the guidance itself is generated from the installed catalogue.
 """
 
 from __future__ import annotations
@@ -14,6 +18,9 @@ from pathlib import Path
 
 from markdown_it import MarkdownIt
 
+from .config import GuidanceSettings
+from .guidance import prime_section
+
 BEGIN = "<!-- slopvac:begin -->"
 END = "<!-- slopvac:end -->"
 
@@ -24,6 +31,65 @@ _HARNESS_PATHS = {
     "kiro": ".kiro/steering/slopvac.md",
     "claude": "CLAUDE.md",
 }
+
+SKILL_NAME = "slopvac-prose"
+
+# Project skill directories, each from the harness's own documentation:
+#   claude  https://code.claude.com/docs/en/skills  (.claude/skills/<name>/SKILL.md)
+#   codex   https://developers.openai.com/codex/skills  (.agents/skills, scanned
+#           from the working directory up to the repository root)
+#   kiro    https://kiro.dev/docs/skills  (.kiro/skills; name must match the folder)
+#   omp     https://github.com/can1357/oh-my-pi/blob/main/docs/skills.md
+# The generic `agents` target has no skill convention, so it gets none.
+_SKILL_DIRS = {
+    "codex": ".agents/skills",
+    "omp": ".omp/skills",
+    "kiro": ".kiro/skills",
+    "claude": ".claude/skills",
+}
+
+# Identifies the stub as ours, so init and setup never overwrite or delete a
+# hand-written skill that happens to share the path. Ownership is an exact marker
+# line; when the wording changes, keep the old line in _KNOWN_SKILL_MARKERS so
+# installed stubs stay manageable.
+SKILL_MARKER = "<!-- slopvac:managed; slopvac init or slopvac setup rewrites this file -->"
+_KNOWN_SKILL_MARKERS = frozenset({SKILL_MARKER})
+
+
+def _has_skill_marker(text: str) -> bool:
+    """True when the line right after the frontmatter is a known marker."""
+    lines = [line.rstrip("\r") for line in text.split("\n")]
+    if not lines or lines[0] != "---":
+        return False
+    try:
+        close = lines.index("---", 1)
+    except ValueError:
+        return False
+    return close + 1 < len(lines) and lines[close + 1] in _KNOWN_SKILL_MARKERS
+
+# Every harness above matches a skill to a request by its `description`, and each
+# documents the same recipe: front-load the use case and the words a request
+# would contain, under the Agent Skills 1024-character limit. Nothing here sets
+# `disable-model-invocation`, `hide`, or `enabled`, which would stop automatic use.
+SKILL_STUB = f"""\
+---
+name: {SKILL_NAME}
+description: >-
+  Use when writing, editing, or reviewing prose: README files, documentation,
+  Markdown pages, PR or MR descriptions, commit messages, release notes, and
+  specifications. Run before drafting such text and again before handing it
+  off, even when the user does not mention slopvac.
+---
+{SKILL_MARKER}
+
+# Slopvac prose
+
+Before drafting or editing a README, documentation, a Markdown page, a PR or
+MR description, a commit message, release notes, or a specification, run
+`slopvac prime write` and follow it.
+
+Before handing that prose off, run `slopvac prime review` and follow it.
+"""
 
 STEERING_BLOCK = """\
 <!-- slopvac:begin -->
@@ -162,6 +228,87 @@ def harnesses() -> tuple[str, ...]:
     return tuple(_HARNESS_PATHS)
 
 
+def install_steering(root: Path, harness: str) -> tuple[Path, bool]:
+    """Write one harness's managed block. Returns the target and whether it changed.
+
+    Kiro loads a steering file only when its front matter says how; a new file
+    gets `inclusion: always` so the block is read on every request.
+    """
+    target = harness_path(root, harness)
+    preamble = (
+        "---\ninclusion: always\n---" if harness == "kiro" and not target.exists() else ""
+    )
+    return target, update_managed_block(target, preamble=preamble)
+
+
+def skill_path(root: Path, harness: str) -> Path | None:
+    """The `slopvac-prose` skill file for a harness, or None when it has none."""
+    if harness not in _HARNESS_PATHS:
+        raise ValueError(f"unknown harness: {harness}")
+    directory = _SKILL_DIRS.get(harness)
+    if directory is None:
+        return None
+    return _safe_target(root, f"{directory}/{SKILL_NAME}/SKILL.md")
+
+
+def skill_state(path: Path, wanted: bool = True) -> str:
+    """Return missing, current, stale, malformed, or disabled for the skill stub.
+
+    `wanted` is False when `[guidance]` turns both modes off: an absent stub is
+    then `disabled`, and a present one is `stale` because setup would remove it.
+    A file without the managed marker is `malformed`: it is not ours to touch.
+    """
+    if not path.exists():
+        return "missing" if wanted else "disabled"
+    try:
+        text = path.read_bytes().decode("utf-8")
+    except UnicodeDecodeError:
+        return "malformed"
+    if not _has_skill_marker(text):
+        return "malformed"
+    if not wanted:
+        return "stale"
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    return "current" if normalized == SKILL_STUB else "stale"
+
+
+def _owned_skill(path: Path) -> bytes | None:
+    """The stub's bytes, or None when absent. Refuses a file slopvac did not write."""
+    if not path.exists():
+        return None
+    before = path.read_bytes()
+    try:
+        owned = _has_skill_marker(before.decode("utf-8"))
+    except UnicodeDecodeError:
+        owned = False
+    if not owned:
+        raise SteeringError(
+            f"{path} is not a slopvac-managed skill; move it aside to install the stub"
+        )
+    return before
+
+
+def sync_skill(path: Path, wanted: bool = True) -> bool:
+    """Write the stub when wanted, remove it when not. Returns whether it changed.
+
+    Removal deletes only the stub file, then its `slopvac-prose` directory when
+    nothing else is left in it.
+    """
+    before = _owned_skill(path)
+    if wanted:
+        return _atomic_write(path, before, SKILL_STUB.encode("utf-8"))
+    if before is None:
+        return False
+    if path.read_bytes() != before:
+        raise SteeringError(f"file changed during setup; retry: {path}")
+    path.unlink()
+    try:
+        path.parent.rmdir()
+    except OSError:
+        pass  # not empty: the directory holds files slopvac did not write
+    return True
+
+
 def managed_block_state(path: Path, block: str = STEERING_BLOCK) -> str:
     """Return missing, current, stale, or malformed for one managed block."""
     if not path.exists():
@@ -236,12 +383,16 @@ def remove_managed_block(path: Path) -> bool:
 ONBOARD_TEXT = """\
 # Slopvac agent setup
 
-Run `slopvac init` for generic `AGENTS.md` steering, or
-`slopvac setup --list` and `slopvac setup <harness>` for a harness-specific
-target. The managed block stays intentionally small.
+Run `slopvac init` for generic `AGENTS.md` steering. Add `--harness <name>`,
+once per harness, to write that harness's steering and its `slopvac-prose`
+skill instead. `slopvac setup --list` names the harnesses, and
+`slopvac setup <harness>` installs one into an existing project. The managed
+block stays intentionally small.
 
 Run `slopvac prime` whenever you need the current detailed lint workflow.
 """
 
-def prime_text() -> str:
-    return LINT_PRIME
+
+def prime_text(settings: GuidanceSettings) -> str:
+    """Base prime: the lint workflow plus the configured writing and review steps."""
+    return LINT_PRIME + prime_section(settings)

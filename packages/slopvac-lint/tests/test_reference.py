@@ -2,8 +2,50 @@
 
 from __future__ import annotations
 
+from slopvac.model import Category, Example, Provenance, Rule, RuleKind
 from slopvac.reference import render_reference
-from slopvac.rules import load_ruleset
+from slopvac.rules import RuleSet, load_ruleset
+
+
+def test_judgement_rules_render_apart_from_checked_rules():
+    """A reader must never take a judgement rule for one that gates the build."""
+    ruleset = load_ruleset()
+    rendered = render_reference(ruleset)
+    checked_part, judgement_part = rendered.split("\n## Judgement rules\n")
+
+    assert f"**{len(ruleset.rules)} checked rules**" in checked_part
+    assert f"**{len(ruleset.judgement_rules)} judgement rules**" in checked_part
+    for rule in ruleset.judgement_rules:
+        heading = f"#### `{rule.qualified_id}`"
+        assert heading in judgement_part
+        assert heading not in checked_part
+    for rule in ruleset.rules:
+        assert f"#### `{rule.qualified_id}`" not in judgement_part
+
+
+def test_judgement_example_without_good_renders_as_deletion():
+    """A judgement fix is often deletion, so an example may omit `good`."""
+    rule = Rule(
+        id="omit-good",
+        name="Delete the filler",
+        kind=RuleKind.JUDGEMENT,
+        message="delete it",
+        judgement_question="Does this sentence add a fact?",
+        examples=[Example(bad="In conclusion, the cache is cold.")],
+        provenance=Provenance(source="test"),
+    )
+    object.__setattr__(rule, "category", "probe")
+    ruleset = RuleSet(
+        categories={
+            "probe": Category(
+                id="probe", title="Probe", description="Fixture.", rules=[rule]
+            )
+        }
+    )
+    rendered = render_reference(ruleset)
+    assert "In conclusion, the cache is cold." in rendered
+    assert "*(delete it)*" in rendered
+    assert "Does this sentence add a fact?" in rendered
 
 
 def test_profile_default_off_is_reported_apart_from_the_tier_row():
