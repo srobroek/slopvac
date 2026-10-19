@@ -18,6 +18,7 @@ import json
 import sys
 import tempfile
 from datetime import datetime
+from itertools import pairwise
 from pathlib import Path
 
 import click
@@ -105,6 +106,26 @@ class _DefaultGroup(click.Group):
         return super().resolve_command(ctx, args)
 
 
+def _note_output(output_format: str | None, *report_targets: object) -> None:
+    """Record what the command emits, so the update notice stays out of machine output."""
+    meta = click.get_current_context().find_root().meta
+    meta["slopvac_update_format"] = output_format
+    meta["slopvac_update_to_file"] = any(report_targets)
+
+
+def _machine_output(arguments: tuple[str, ...] | list[str]) -> bool:
+    """True when raw arguments ask for non-text or file output.
+
+    Read before the subcommand parses, so a machine-output run never starts a
+    network check. `_note_output` still guards the notice after parsing.
+    """
+    formats = [nxt for cur, nxt in pairwise(arguments) if cur == "--format"]
+    formats += [arg.partition("=")[2] for arg in arguments if arg.startswith("--format=")]
+    to_file = any(arg in ("--out", "--open") or arg.startswith("--out=") for arg in arguments)
+    return to_file or any(fmt != "text" for fmt in formats)
+
+
+
 @click.group(cls=_DefaultGroup, invoke_without_command=True)
 @click.version_option(__version__, prog_name="slopvac")
 @click.pass_context
@@ -117,31 +138,11 @@ def main(context: click.Context) -> None:
         click.echo(context.get_help())
         return
 
-    if context.invoked_subcommand == "prime":
+    if context.invoked_subcommand == "prime" or _machine_output(
+        context.meta.get("slopvac_update_arguments", ())
+    ):
         return
-    arguments = context.meta.get("slopvac_update_arguments", ())
-    output_format = next(
-        (
-            arguments[index + 1]
-            for index, value in enumerate(arguments[:-1])
-            if value == "--format"
-        ),
-        None,
-    )
-    output_format = next(
-        (
-            value.partition("=")[2]
-            for value in arguments
-            if value.startswith("--format=")
-        ),
-        output_format,
-    )
-    output_to_file = any(
-        value == "--out" or value.startswith("--out=") for value in arguments
-    ) or "--open" in arguments
-    if (output_format is not None and output_format != "text") or output_to_file:
-        return
-    refresh = start_refresh(stderr_isatty=None)
+    refresh = start_refresh()
 
     def notice() -> None:
         meta = context.find_root().meta
@@ -278,10 +279,7 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
-    context = click.get_current_context()
-    root_meta = context.find_root().meta
-    root_meta["slopvac_update_format"] = output_format
-    root_meta["slopvac_update_to_file"] = bool(out_path or open_report)
+    _note_output(output_format, out_path, open_report)
     console = _console(no_color)
     scope = None
     if diff_base is not None or diff_working_tree:
@@ -460,8 +458,7 @@ def list_rules(
     rules_dir: tuple[Path, ...],
 ) -> None:
     """List the rules and whether each is on at a profile."""
-    context = click.get_current_context()
-    context.find_root().meta["slopvac_update_format"] = output_format
+    _note_output(output_format)
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -571,8 +568,7 @@ def explain(
     rules_dir: tuple[Path, ...],
 ) -> None:
     """Show one rule in full."""
-    context = click.get_current_context()
-    context.find_root().meta["slopvac_update_format"] = output_format
+    _note_output(output_format)
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -929,8 +925,7 @@ def compile_styles(
 
     To run Vale by hand: `vale --config=<outdir>/.vale.ini docs/`.
     """
-    context = click.get_current_context()
-    context.find_root().meta["slopvac_update_format"] = output_format
+    _note_output(output_format)
     console = _console(False)
     discovered = config_path or find_config(Path.cwd())
     try:
