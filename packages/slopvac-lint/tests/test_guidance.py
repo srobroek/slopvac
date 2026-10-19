@@ -47,6 +47,71 @@ def _tree(root: Path) -> dict[str, bytes]:
     }
 
 
+@pytest.mark.parametrize(
+    ("depth", "expected", "unexpected"),
+    [
+        ("self", "self (review_depth = self)", "fresh-context subagent"),
+        ("subagent", "give one fresh-context subagent one pass", "Give each new round"),
+        ("adversary", "Give each new round the findings you rebutted", "When the user asks"),
+    ],
+)
+def test_review_depth_renders_its_reviewer_workflow(depth, expected, unexpected):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        _guidance(review_depth=depth)
+        review = _prime(runner, "review")
+    assert expected in review
+    assert unexpected not in review
+    assert "<!-- slopvac-disable -->" in review
+    assert "Reviewer:  " in review
+
+
+def test_subagent_review_describes_no_subagent_fallback():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        review = _prime(runner, "review")
+    assert '"self (no subagent available)"' in review
+
+
+def test_base_prime_handoff_names_reviewer_pass():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        base = _prime(runner)
+        _guidance(review_depth="adversary")
+        adversary = _prime(runner)
+    assert "including the reviewer pass" in base
+    assert "including the adversary loop" in adversary
+
+
+def test_lint_accepts_five_prime_outputs_at_strict_profile(tmp_path):
+    runner = CliRunner()
+    outputs = {}
+    with runner.isolated_filesystem():
+        for topic in (None, "write"):
+            args = ["prime"] + ([topic] if topic else [])
+            result = runner.invoke(main, args)
+            assert result.exit_code == 0, result.output
+            path = tmp_path / f"prime-{topic or 'base'}.md"
+            path.write_text(result.output, encoding="utf-8")
+            outputs[path] = result.output
+
+        for depth in ("subagent", "adversary", "self"):
+            _guidance(review_depth=depth)
+            review = runner.invoke(main, ["prime", "review"])
+            assert review.exit_code == 0, review.output
+            path = tmp_path / f"prime-review-{depth}.md"
+            path.write_text(review.output, encoding="utf-8")
+            outputs[path] = review.output
+
+    assert len(outputs) == 5
+    for path in outputs:
+        result = runner.invoke(
+            main, ["lint", str(path), "--profile", "strict", "--format", "json"]
+        )
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.output)
+        assert payload["summary"]["errors"] == 0, path.name
+        assert payload["summary"]["warnings"] == 0, path.name
 # --- generated checklists -----------------------------------------------------
 
 
@@ -69,7 +134,7 @@ def test_write_checklist_gives_every_judgement_fix_once(ruleset):
     runner = CliRunner()
     with runner.isolated_filesystem():
         output = _prime(runner, "write")
-    checklist = output.split("\n## Judgement rules\n", 1)[1]
+    checklist = output.split("\n## Rules lint cannot check\n", 1)[1]
     lines = [line for line in checklist.splitlines() if line.startswith("- `")]
 
     assert [line.split("`")[1] for line in lines] == sorted(

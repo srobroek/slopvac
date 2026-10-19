@@ -150,7 +150,7 @@ jobs:
           slopvac prime review > /tmp/prime-review.md
           grep -q 'slopvac prime write' /tmp/prime.md
           grep -q 'slopvac prime review' /tmp/prime.md
-          grep -q '^## Judgement rules' /tmp/prime-write.md
+          grep -q '^## Rules lint cannot check' /tmp/prime-write.md
           grep -q '^## Checklist' /tmp/prime-review.md
           python3 - <<'PY'
           import json

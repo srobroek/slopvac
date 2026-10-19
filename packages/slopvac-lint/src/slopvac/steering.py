@@ -103,44 +103,34 @@ Treat lint exit 2 as incomplete. Vale 3.15 or later is optional but highly
 recommended for full deterministic coverage.
 <!-- slopvac:end -->
 """
-
 LINT_PRIME = """\
-# Slopvac lint guidance
+## Lint
 
-- Run `slopvac lint <paths> --format json` against the project configuration.
-- Treat exit 0 as a completed pass, exit 1 as a threshold failure, and exit 2 as
-  an incomplete or invalid run. Do not report exit 2 as clean.
-- Vale 3.15 or later is optional but highly recommended because most checked
-  rules route through Vale. Inspect `documents[].unchecked` in JSON output.
-- Use `slopvac rules` to inspect the active catalogue and
-  `slopvac explain <rule_id>` for rationale, examples, fixes, and named
-  suppression reasons.
-- Fix prose before changing policy. Use only suppression reasons listed by
-  `slopvac explain`; report unexplained false positives instead of inventing
-  exceptions.
-- `slopvac --fix <paths>` applies only deterministic, unambiguous
-  replacements. Review the resulting diff.
-- Linting does not prove factual correctness. Verify commands, paths, defaults,
-  versions, and behavioral claims against the implementation or another
-  authoritative source.
-- For consumer documentation, describe shipped behavior and reader actions.
-  Remove superseded features, implementation chronology, repository archaeology,
-  rejected alternatives, and internal tradeoffs unless the reader needs one to
-  operate or verify the artifact. Keep deltas in change communications and
-  rationale in decision records.
-- Apply a deletion test before polishing: if a paragraph, list item, table row,
-  or sentence changes no reader action or understanding of the current contract,
-  remove it.
-- Use `strict` for reference/procedural material, `normal` for READMEs,
-  guides, internal docs, and change communications, and `relaxed` for informal
-  prose. These profiles do not replace factual verification.
+- Run `slopvac lint <paths> --profile <profile> --format json`.
+- Reference docs and agent guidance use `strict`.
+- READMEs and guides use `normal`.
+- Use `normal` for internal docs and change communications.
+- Informal text uses `relaxed`.
+- Exit 0 is a pass. Exit 1 is a gate failure.
+- Exit 2 is incomplete. Do not report it as clean.
+- Vale 3.15 or later is optional but recommended.
+- Without Vale, lint reports unchecked rules and exits 2.
+- On exit 2, report unchecked entries or the error text.
+- Fix the cause and rerun lint.
+- Config and rule errors print text, not JSON.
+- Run `slopvac rules` to inspect rules.
+- Run `slopvac explain <rule_id>` for details.
+- Use exceptions to suppress matching findings.
+- `slopvac explain <rule_id>` prints the suppression annotation.
+- Check factual claims against code or a source.
+- Consumer docs describe shipped behavior.
+- Put history in change communications.
+- Put plans in specifications or decisions.
 """
 
 
 class SteeringError(ValueError):
     """Unsafe target or ambiguous managed steering."""
-
-
 def _safe_target(root: Path, relative: str) -> Path:
     """Resolve a harness target and refuse aliases that escape the project."""
     project = root.resolve()
@@ -394,5 +384,5 @@ Run `slopvac prime` whenever you need the current detailed lint workflow.
 
 
 def prime_text(settings: GuidanceSettings) -> str:
-    """Base prime: the lint workflow plus the configured writing and review steps."""
-    return LINT_PRIME + prime_section(settings)
+    """Base prime: the configured writing and review steps, then the lint workflow."""
+    return "# Slopvac lint guidance\n" + prime_section(settings) + "\n" + LINT_PRIME

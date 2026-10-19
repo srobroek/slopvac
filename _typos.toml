@@ -27,6 +27,7 @@ ned = "ned"
 fter = "fter"
 struc = "struc"
 utiliz = "utiliz"
+retrie = "retrie"
 
 # A real word with two accepted spellings, and this one is the spelling used
 # throughout. Not a typo to correct.
