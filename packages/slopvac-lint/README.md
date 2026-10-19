@@ -252,15 +252,25 @@ profile = "strict"
 
 ```toml
 [guidance]
-write = "auto"   # auto | off
-review = "auto"  # auto | ask | off
+write = "auto"             # auto | off
+review = "auto"            # auto | ask | off
+review_depth = "subagent"  # self | subagent | adversary
 ```
 
-`write = "off"` drops the `slopvac prime write` step. `review = "ask"` has the
-agent ask the user before the semantic review, and `review = "off"` drops it. A
-disabled topic prints one line naming the config file and exits 0. With both
-off, `init --harness` and `setup` install no skill. `[guidance]` cannot appear
-in `[[overrides]]`. See [semantic guidance](docs/semantic-guidance.md#configuration).
+`write = "off"` drops the writing step. `review = "ask"` prompts before review;
+`review = "off"` disables review. The default `review_depth = "subagent"` uses
+one fresh-context reviewer pass. The author gives the subagent the draft, the
+original when revising, source or brief when available, and review output. It
+runs lint, the semantic checklist, and a fact check, then reports findings once
+with rule id, quoted text, proposed rewrite, lost facts, and claims stronger
+than the source. The author fixes or rebuts each finding.
+
+Set `review_depth = "self"` for an author-run pass, or `"adversary"` to repeat
+reviewer rounds until no confirmed findings remain. If no subagent is available,
+the author does the pass and states `self-review (no subagent available)`.
+`review = "off"` still disables review. Guidance keys cannot appear in
+`[[overrides]]`. With both modes off, `init --harness` and `setup` install no
+skill. See [semantic guidance](docs/semantic-guidance.md#configuration).
 
 ### Precedence
 

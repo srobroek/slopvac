@@ -289,6 +289,12 @@ class GuidanceSettings(BaseModel):
         description="`auto` runs the `slopvac prime review` workflow before a "
         "hand-off, `ask` asks the user first, and `off` drops the step.",
     )
+    review_depth: Literal["self", "subagent", "adversary"] = Field(
+        default="subagent",
+        description="Review pass owner and repetition: `self` uses the author, "
+        "`subagent` uses one fresh-context pass, and `adversary` repeats rounds "
+        "until no confirmed findings remain.",
+    )
 
     @property
     def enabled(self) -> bool:

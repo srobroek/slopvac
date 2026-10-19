@@ -107,33 +107,22 @@ recommended for full deterministic coverage.
 LINT_PRIME = """\
 # Slopvac lint guidance
 
-- Run `slopvac lint <paths> --format json` against the project configuration.
-- Treat exit 0 as a completed pass, exit 1 as a threshold failure, and exit 2 as
-  an incomplete or invalid run. Do not report exit 2 as clean.
-- Vale 3.15 or later is optional but highly recommended because most checked
-  rules route through Vale. Inspect `documents[].unchecked` in JSON output.
-- Use `slopvac rules` to inspect the active catalogue and
-  `slopvac explain <rule_id>` for rationale, examples, fixes, and named
-  suppression reasons.
-- Fix prose before changing policy. Use only suppression reasons listed by
-  `slopvac explain`; report unexplained false positives instead of inventing
-  exceptions.
-- `slopvac --fix <paths>` applies only deterministic, unambiguous
-  replacements. Review the resulting diff.
-- Linting does not prove factual correctness. Verify commands, paths, defaults,
-  versions, and behavioral claims against the implementation or another
-  authoritative source.
-- For consumer documentation, describe shipped behavior and reader actions.
-  Remove superseded features, implementation chronology, repository archaeology,
-  rejected alternatives, and internal tradeoffs unless the reader needs one to
-  operate or verify the artifact. Keep deltas in change communications and
-  rationale in decision records.
-- Apply a deletion test before polishing: if a paragraph, list item, table row,
-  or sentence changes no reader action or understanding of the current contract,
-  remove it.
-- Use `strict` for reference/procedural material, `normal` for READMEs,
-  guides, internal docs, and change communications, and `relaxed` for informal
-  prose. These profiles do not replace factual verification.
+- Run `slopvac lint <paths> --format json` with project configuration.
+- Exit 0 means pass. Exit 1 means a threshold failed. Exit 2 means the run is
+  incomplete or invalid. Never report exit 2 as clean.
+- Vale 3.15 or later adds rules. Read `documents[].unchecked` in JSON.
+- Use `slopvac rules` to inspect the catalog. Use `slopvac explain <rule_id>`
+  for rule details and allowed suppressions.
+- Fix prose before policy. Use an allowed suppression reason.
+- `slopvac --fix <paths>` applies deterministic replacements. Review its diff.
+- Lint does not prove facts. Check claims against code or an authoritative source.
+- Consumer docs describe shipped behavior and reader actions. Put other content
+  in change communications or decisions unless readers need it to use or verify.
+- Remove wording that changes no reader action or contract. Keep needed facts.
+- Use `strict` for reference and procedure docs.
+- Use `normal` for READMEs, guides, and internal docs. Change communications
+  also use `normal`.
+- Use `relaxed` for informal prose. Check facts in every profile.
 """
 
 

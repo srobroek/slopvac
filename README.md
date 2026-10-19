@@ -173,20 +173,19 @@ lists every mode.
 ## Semantic review
 
 `slopvac prime review` prints a review workflow. The agent runs `slopvac lint`
-first, then answers the judgement checklist for the document's genre, quotes
-each failing passage with a proposed rewrite, and verifies factual claims
-against the code. `slopvac prime` tells the agent to run it before handing
-prose off.
+first, answers the judgement checklist for the document's genre, and checks
+factual claims against the code. The default reviewer pass uses one
+fresh-context subagent. The author gives it the draft, original if revised,
+source or brief if available, and review output. It runs lint, the checklist,
+and fact check, then reports findings once with rule id, quoted text, proposed
+rewrite, lost facts, and claims stronger than the source. The author fixes or
+rebuts each finding. No loop follows unless requested.
 
-The workflow ends with an adversary review. The author hands the document and
-the `slopvac prime review` output to a separate reviewer with fresh context,
-such as a subagent, which reports failures only as rule id, quoted text, and
-proposed rewrite. The author fixes or rebuts each finding, and the loop repeats
-until the reviewer confirms none.
-
-Set `[guidance] review = "ask"` to have the agent ask the user before it
-reviews, or `"off"` to drop the step. Slopvac makes no model calls; the agent
-reading the output does the review.
+Set `[guidance] review_depth = "self"` when the author should run the pass, or
+`"adversary"` to repeat rounds until no confirmed findings remain. If no
+subagent is available, the author runs the pass and records
+`self-review (no subagent available)`. `review = "ask"` asks before the review;
+`review = "off"` disables it. Slopvac makes no model calls.
 
 ## CI integration
 

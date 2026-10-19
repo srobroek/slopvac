@@ -127,13 +127,13 @@ default = "en-US"        # en-US | en-GB | und
 # [overrides.categories.ai-residue]
 # severity = "off"
 
-# --- Agent guidance ----------------------------------------------------------
 # What `slopvac prime` tells an agent to run around prose work. It is
 # project-wide, so an [[overrides]] block cannot set it. With both modes off,
 # `slopvac init --harness` and `slopvac setup` install no slopvac-prose skill.
 # [guidance]
 # write = "auto"       # auto | off: `slopvac prime write` before drafting
 # review = "auto"      # auto | ask | off: `slopvac prime review` before hand-off
+# review_depth = "subagent" # self | subagent | adversary; adversary repeats rounds
 
 # --- Vale sub-gate -----------------------------------------------------------
 # Vale runs the upstream tbhb/vale-ai-tells package, which we do not fork. Our

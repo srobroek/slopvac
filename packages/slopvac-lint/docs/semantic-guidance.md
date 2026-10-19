@@ -1,14 +1,10 @@
 # Writing guidance and semantic review
 
-Lint checks the rules a pattern can decide. The 66 judgement rules in the
-catalogue need a reader. One asks whether a negative statement changes what the
-reader can do; another asks whether a rationale defends an implementation
-nobody asked about. Lint never reports these rules.
-`slopvac prime write` and `slopvac prime review` turn them into instructions an
-agent follows while it writes and before it hands prose off.
+Lint checks rules decided by patterns. Readers judge other rules. Prime topics
+turn those judgement rules into instructions for writing and review.
 
 Slopvac makes no model calls. The agent that reads the guidance does the
-semantic work.
+semantic review.
 
 ## Commands
 
@@ -30,71 +26,71 @@ all.
 
 ## When an agent runs them
 
-The base `slopvac prime` output tells the agent:
+The base `slopvac prime` output directs the agent to run `slopvac prime write`
+before drafting and `slopvac prime review` before hand-off. When
+`[guidance] review = "ask"`, it asks the user before the review.
 
-- Before drafting or editing a README, docs, a PR or MR description, commit or
-  release text, or a specification, run `slopvac prime write`.
-- Before handing that prose off, run `slopvac prime review`, or ask the user
-  first when `[guidance] review = "ask"`.
-
-The managed steering block in `AGENTS.md` (or the harness file) already tells
-agents to run `slopvac prime`, so a harness without skill support still reaches
-both topics. Harnesses that load project skills also get the `slopvac-prose`
-skill, described below.
+The managed steering block in `AGENTS.md` or a harness file points agents to
+`slopvac prime`. Harnesses with project skill support also get the thin
+`slopvac-prose` skill.
 
 ## Review workflow
 
 `slopvac prime review` prints these steps:
 
-1. Classify the document by genre: `consumer`, `reference`, `change-comms`,
-   `internal`, or `informal`. The genre sets the lint profile and selects the
-   checklist categories whose `recommended_for` names it.
-2. Run `slopvac lint` first and act on its findings. Exit 2 means the run is
-   incomplete.
-3. Answer each selected checklist question against the text. Quote the
-   offending text and propose a rewrite for every failure.
-4. Apply the deletion test to every sentence, list item, table row, and
-   paragraph.
-5. Verify every factual claim against the code: commands, paths, flags,
-   defaults, versions, and behavior.
-6. Run the adversary review.
-7. Report a `PASS` or `REVISE` verdict in the printed format.
+1. Classify the document by genre. Note its profile and checklist categories.
+2. Run `slopvac lint` first. Fix errors, triage warnings, and report unchecked
+   rules. Exit 2 means incomplete.
+3. Answer each checklist question. Quote each failure and propose a rewrite.
+4. Apply the deletion test to prose. Keep the original facts and confirm each
+   fact survived or was wrong.
+5. Check claims against the code. Flag claims stronger than their source.
+6. Complete the configured reviewer pass. Report `PASS` or `REVISE`.
 
-### Adversary review
+The default pass uses one fresh-context subagent. Give it the draft, the
+original when revising, the source or brief when available, and the review
+output. The subagent runs lint, the semantic checklist, and a fact check. It
+reports each finding once: rule id, quoted text, proposed rewrite, lost facts,
+and claims stronger than the source. It lists original facts and marks each as
+preserved or wrong. The author fixes or rebuts every finding. The pass does not
+repeat by default.
 
-The author hands the document and the `slopvac prime review` output to a
-separate reviewer with fresh context: a subagent, or a second person. The
-reviewer looks for failures only and cites each as a rule id, the quoted text,
-and a proposed rewrite. The author fixes each confirmed finding or rebuts it
-with evidence. The loop repeats until the reviewer reports no confirmed
-findings, and the verdict records the rounds and their outcome.
+Set `review_depth = "self"` for an author-run pass. If subagents are unavailable,
+the author runs it and reports `self-review (no subagent available)`. Set
+`review_depth = "adversary"` to repeat subagent rounds until none has a confirmed
+finding. A user can request the loop without changing the default.
 
 ## Configuration
 
 ```toml
 [guidance]
-write = "auto"   # auto | off
-review = "auto"  # auto | ask | off
+write = "auto"             # auto | off
+review = "auto"            # auto | ask | off
+review_depth = "subagent"  # self | subagent | adversary
 ```
 
 | Key | Value | Effect |
 | --- | --- | --- |
-| `write` | `auto` (default) | `slopvac prime` tells the agent to run `slopvac prime write` |
-| `write` | `off` | The line is omitted; `slopvac prime write` prints a one-line notice and exits 0 |
-| `review` | `auto` (default) | `slopvac prime` and `slopvac prime write` tell the agent to run `slopvac prime review` before a hand-off |
-| `review` | `ask` | The agent asks the user before it runs the review |
-| `review` | `off` | The step is omitted; `slopvac prime review` prints a one-line notice and exits 0 |
+| `write` | `auto` (default) | `slopvac prime` directs the agent to run `slopvac prime write` |
+| `write` | `off` | Omits the base step; `slopvac prime write` prints a notice and exits 0 |
+| `review` | `auto` (default) | `slopvac prime` and `slopvac prime write` direct the agent to review before hand-off |
+| `review` | `ask` | The agent asks the user before review |
+| `review` | `off` | Omits the step; `slopvac prime review` prints a notice and exits 0 |
+| `review_depth` | `subagent` (default) | One fresh-context reviewer pass |
+| `review_depth` | `self` | The author applies the reviewer pass |
+| `review_depth` | `adversary` | Repeat reviewer rounds until no confirmed findings remain |
 
-`[guidance]` is project-wide: a `[[overrides]]` block that sets it fails to
-load. With both keys `off`, `slopvac init --harness` and `slopvac setup`
-install no `slopvac-prose` skill and remove one they installed earlier.
+`review = "off"` disables review regardless of `review_depth`. Guidance is
+project-wide; `[[overrides]]` cannot set it. When both `write` and `review` are
+`off`, `slopvac init --harness` and `slopvac setup` install no skill and remove
+one they installed earlier.
 
 ## The `slopvac-prose` skill
 
 The skill holds only its triggers and the two commands. Its `description`
-starts with the use case, writing or reviewing READMEs, docs, Markdown, PR or MR
-text, commit or release text, and specifications, so each harness can load it
-without the user naming it.
+starts with writing and reviewing READMEs, docs, Markdown, PR or MR text, commit
+or release text, and specifications, so each harness can load it without the
+user naming it.
 
 | Harness | Skill file |
 | --- | --- |
@@ -104,24 +100,24 @@ without the user naming it.
 | Kiro | `.kiro/skills/slopvac-prose/SKILL.md` |
 | Generic `agents` | none |
 
-Install it with the harness steering:
+Install it with harness steering:
 
 ```sh
 slopvac init --harness claude --harness omp
 slopvac setup codex
 ```
 
-`slopvac init` without `--harness` writes only the generic `AGENTS.md` block
-and no skill. Each `--harness` writes that harness's steering block and its
-skill; `--no-skills` writes the blocks only. `--skip-agents` writes neither and
-cannot be combined with `--harness`.
+`slopvac init` without `--harness` writes generic `AGENTS.md` steering and no
+skill. Each `--harness` writes that harness's steering and skill;
+`--no-skills` writes steering only. `--skip-agents` writes neither and cannot
+be combined with `--harness`.
 
-`slopvac setup <harness> --check` reports the skill on its own line as
-`current`, `missing`, `stale`, `malformed`, or `disabled` (both guidance modes
-off and no skill present). `--remove` deletes the skill file and its
-`slopvac-prose` directory when that directory is left empty. Files beside it
-stay.
+`slopvac setup <harness> --check` reports the skill as `current`, `missing`,
+`stale`, `malformed`, or `disabled`. Disabled means both guidance modes are off
+and no skill is present. `--remove` deletes the skill and its directory when
+empty. Other files in that directory stay.
 
 The skill carries a `slopvac:managed` marker. Setup refuses to overwrite or
-delete a `slopvac-prose/SKILL.md` without the marker, refuses a skill
-directory that resolves outside the project, and writes each file atomically.
+delete a skill without that marker, refuses a skill directory that resolves
+outside the project, and writes each file atomically.
+

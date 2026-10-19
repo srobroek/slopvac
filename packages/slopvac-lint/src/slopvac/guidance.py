@@ -29,51 +29,18 @@ class Genre(NamedTuple):
 
 
 GENRES = (
-    Genre(
-        "consumer",
-        "README, docs, guides, anything a user of the artifact reads",
-        "normal",
-        "Current shipped behavior and reader use only",
-    ),
-    Genre(
-        "reference",
-        "API and reference docs, runbooks, procedures, safety text",
-        "strict",
-        "Exact operation, plus dated facts needed to operate or verify it",
-    ),
-    Genre(
-        "change-comms",
-        "PR or MR descriptions, commit messages, release notes, migration guides",
-        "normal",
-        "Delta, past tense, rationale, and verification; never a roadmap",
-    ),
-    Genre(
-        "internal",
-        "Specifications, decision records, CONTRIBUTING, contributor docs",
-        "normal",
-        "Requirements and constraints; decision records keep rationale and "
-        "alternatives; specs state future intent only with acceptance criteria",
-    ),
-    Genre(
-        "informal",
-        "Issue comments, discussion replies, blog posts, drafts",
-        "relaxed",
-        "Immediate context; no project history or promises",
-    ),
+    Genre("consumer", "README, docs, guides", "normal", "Shipped behavior and reader use"),
+    Genre("reference", "API docs, runbooks, procedures, safety text", "strict", "Exact operations and dated facts for use or verification"),
+    Genre("change-comms", "PR or MR descriptions, commits, release notes, migration guides", "normal", "Delta, past tense, rationale, verification"),
+    Genre("internal", "Specifications, decision records, contributor docs", "normal", "Requirements and constraints; decisions include rationale and alternatives"),
+    Genre("informal", "Issue comments, discussions, blogs, drafts", "relaxed", "Immediate context"),
 )
 
+_SURFACES = "a README, docs, commit or release text, or a specification"
 _ROUTING = (
-    "Route by document purpose, not passage wording: migration guides and "
-    "explicit before/after tracking are `change-comms`; decision records, "
-    "release plans, specifications, and explicitly historical reports are "
-    "`internal`; procedures are `reference`."
+    "Choose the genre by document purpose. Migration guides use `change-comms`; "
+    "decision records and specifications use `internal`; procedures use `reference`."
 )
-
-_SURFACES = (
-    "a README, docs, a PR or MR description, commit or release text, or a "
-    "specification"
-)
-
 
 def _clean(text: str) -> str:
     return " ".join(text.split())
@@ -131,12 +98,14 @@ def _genre_categories(ruleset: RuleSet, genre: str) -> str:
     return ", ".join(f"`{c}`" for c in categories) or "none"
 
 
+
 def review_step(settings: GuidanceSettings) -> str | None:
     """The hand-off instruction for the configured review mode, or None when off."""
     if settings.review == "auto":
+        pass_name = "adversary loop" if settings.review_depth == "adversary" else "reviewer pass"
         return (
-            f"Before handing off {_SURFACES}, run `slopvac prime review` and "
-            "complete its workflow, including the adversary review."
+            "Before hand-off, run `slopvac prime review` and complete its workflow, "
+            f"including the {pass_name}."
         )
     if settings.review == "ask":
         return (
@@ -150,10 +119,7 @@ def prime_section(settings: GuidanceSettings) -> str:
     """The lines base `slopvac prime` adds for the configured guidance modes."""
     lines: list[str] = []
     if settings.write != "off":
-        lines.append(
-            f"- Before drafting or editing {_SURFACES}, run `slopvac prime write` "
-            "and follow it."
-        )
+        lines.append("- Before drafting docs, run `slopvac prime write`.")
     step = review_step(settings)
     if step:
         lines.append(f"- {step}")
@@ -172,14 +138,12 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
     lines = [
         "# Slopvac writing guidance",
         "",
-        "Use this before drafting or editing documentation and change text. "
-        "Lint checks the mechanical rules; the contract and the generated list "
-        "below cover what lint cannot check.",
+        "Use this guide before changing docs or release text. Lint checks mechanics. "
+        "The contract and the rule list below add checks that need a reader.",
         "",
         "## Genres",
         "",
-        "Classify the document first. The genre sets the lint profile and what "
-        "the body may contain.",
+        "Classify each document. Its genre sets the lint profile and allowed content.",
         "",
         "| Genre | Surfaces | Profile | What the body may contain |",
         "| --- | --- | --- | --- |",
@@ -189,66 +153,51 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         "",
         "## Documentation contract",
         "",
-        "- Describe the current artifact: behavior, interface, configuration, "
-        "constraints, and the reader actions needed to use, verify, or "
-        "reproduce it.",
-        "- Write for a technically capable reader. Omit primers, remedial "
-        "definitions, hand-holding, and repeated rationale.",
-        "- Keep an explanation only when the reader needs it to act, meet a "
-        "prerequisite, observe a safety constraint, or apply an implicit "
-        "invariant.",
-        "- Verify every present-tense claim against the code. Delete claims "
-        "about behavior the artifact does not implement; deleting only "
-        '"coming soon" makes the document assert that the feature ships.',
-        "- Keep each claim exactly as strong as its source. When rewording, "
-        'do not turn "not equivalent" into "cannot", "some" into "all", or a '
-        "reported result into a verified one.",
-        "- Name the actor, action, condition, command, path, or version. Use "
-        "decisive normative language.",
-        "- Apply the deletion test to every sentence, list item, table row, and "
-        "paragraph: if removing it changes no reader action or understanding "
-        "of the current contract, delete it. The test removes wording, never "
-        "facts: keep every name, version, path, command, number, and evidence "
-        "block the reader needs.",
-        "- Keep process narration, author effort, chronology, job IDs, "
-        "superseded behavior, rejected alternatives, and future promises out "
-        "of `consumer`, `reference`, and `informal` text. Change communications "
-        "and decision records hold them.",
-        "- State a measurement only when it supports a current threshold, "
-        "capacity, cost, or reader decision, and give its baseline and method.",
-        "- Make every example run as written against a fresh install, and run "
-        "it before shipping.",
+        "- Describe what the artifact does, how to configure it, and its limits. "
+        "Name the reader actions needed to use or verify it.",
+        "- Write for a technically capable reader. Omit primers and repeated rationale.",
+        "- Keep an explanation when the reader needs it to act or to stay safe. "
+        "Keep prerequisites and invariants the reader must know.",
+        "- Check present-tense claims against the code. Remove claims about behavior "
+        "the artifact lacks.",
+        "- Match each claim's strength to its source. Do not turn \"not equivalent\" "
+        "into \"cannot\", or \"some\" into \"all\".",
+        "- Name the actor and the action. Give the exact command, path, or version.",
+        "- Keep every fact the reader needs, including versions and paths. Keep "
+        "evidence blocks. Remove wording that changes no reader action or contract.",
+        "- Put process narration, superseded behavior, and future promises in change "
+        "communications or decision records, not consumer or reference docs.",
+        "- State a measurement only when it supports a threshold, a capacity, or a "
+        "cost. A measurement that supports a reader decision also stays. Include "
+        "the baseline and method.",
+        "- Test each example against a fresh install before shipping.",
         "",
         "## Sentences",
         "",
-        "- One idea per sentence, active voice with the actor named, one term "
-        "for each concept.",
-        "- Put a condition before the command it governs. Keep instructions "
-        "near 20 words and descriptive sentences near 25.",
-        "- Delete adjectives without a number, benchmark, or feature list. "
-        "Delete hedges that name no real uncertainty. Give every comparative "
-        "its baseline.",
-        "- In ordinary docs, give a date or version instead of `recently`, "
-        "`currently`, or `in the future`.",
+        "- Write one idea per sentence. Name the actor and use one term for each concept.",
+        "- Put each condition before its command. Limit instructions to 20 words and "
+        "descriptions to 25.",
+        "- Remove unmeasured adjectives and unsupported hedges. Give comparisons a baseline.",
+        "- Give a date or a version instead of a relative time word.",
         "",
         "## Change communications",
         "",
-        "- PR or MR description: what changed, why, and how it was verified. "
-        "Map every claim to a hunk in the diff.",
-        "- Commit message: a conventional-commit subject in the imperative that "
-        "names the behavior change, not `improve` or `update`.",
-        "- Never hand-edit a changelog that release tooling generates; its "
-        "quality comes from commit subjects and PR titles.",
+        "- PR or MR descriptions state the change, reason, and verification. Map each "
+        "claim to a diff hunk.",
+        "- Commit messages use an imperative conventional-commit subject that names "
+        "the behavior change.",
+        "- Do not edit a changelog generated by release tooling. Commit subjects and "
+        "PR titles supply its content.",
         "",
         "## Workflow",
         "",
-        "1. Classify the document and note its genre and profile.",
-        "2. Draft the smallest current-contract document, then apply the "
-        "deletion test.",
-        "3. Verify every claim, command, path, flag, default, and version "
-        "against the code.",
-        "4. Run `slopvac lint <file>... --profile <profile> --format json`. Fix "
-        "every error, and fix or justify every warning. Exit 2 means the run "
+        "1. Classify the document and record its genre and profile.",
+        "2. Write the current contract. Remove words that change no reader action; "
+        "keep needed facts.",
+        "3. Check each claim against the code. Check every command, path, and flag. "
+        "Check every default, version, and described behavior.",
+        "4. Run `slopvac lint <file>... --profile <profile> --format json`. Fix errors "
+        "and triage warnings with `slopvac explain <rule_id>`. Exit 2 means the run "
         "is incomplete.",
     ]
     step = review_step(settings)
@@ -257,20 +206,60 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
     lines.extend(
         [
             "",
-            "## Judgement rules",
+            "## Rules lint cannot check",
             "",
-            "Lint never reports these. Apply each rewrite while drafting; "
-            "`slopvac explain <rule_id>` shows the question and examples. Apply "
-            "a category when its recommended genres include the document's.",
+            "Lint does not report these rules. Apply each rewrite while drafting. "
+            "Run `slopvac explain <rule_id>` for examples. Apply categories listed "
+            "for the document's genre.",
             "",
+            "<!-- slopvac-disable -->",
             *write_checklist(ruleset),
+            "<!-- slopvac-enable -->",
         ]
     )
     return "\n".join(lines).rstrip("\n") + "\n"
 
 
+_REVIEWER_PASS = [
+    "   - Give it the document and this review output.",
+    "   - Add the original if you revised one, and any source or brief.",
+    "   - It runs lint, the checklist, and a fact check.",
+    "   - It reports each finding as the rule id, the quoted text, and a rewrite.",
+    "   - It lists the original's facts and marks each one kept or wrong.",
+    "   - It flags claims stronger than their source.",
+    "   - You fix or rebut each finding.",
+]
+_NO_SUBAGENT = (
+    '   - If no subagent is available, review the document yourself. Report the '
+    'reviewer as "self (no subagent available)".'
+)
+
+
+def _review_workflow(settings: GuidanceSettings) -> list[str]:
+    """The reviewer pass selected by project guidance."""
+    if settings.review_depth == "self":
+        step = ['6. Reviewer pass. Review the document yourself. Report the reviewer as "self".']
+    elif settings.review_depth == "adversary":
+        step = [
+            "6. Reviewer pass. Run rounds with a fresh-context subagent each time.",
+            *_REVIEWER_PASS,
+            "   - Repeat until the reviewer confirms no findings.",
+            _NO_SUBAGENT,
+        ]
+    else:
+        step = [
+            "6. Reviewer pass. Hand the document to one fresh-context subagent for "
+            "one pass.",
+            *_REVIEWER_PASS,
+            "   - Run the adversary loop instead only when the user asks for it.",
+            _NO_SUBAGENT,
+        ]
+    return [*step, "7. Report the verdict."]
+
+
+
 def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
-    """The review guide: lint, semantic checklist, claims, adversary loop."""
+    """The review guide: lint, semantic checklist, claims, and reviewer pass."""
     lines = ["# Slopvac review guidance", ""]
     if settings.review == "ask":
         lines.extend(
@@ -284,38 +273,21 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         [
             "## Workflow",
             "",
-            "1. Classify the document with the genre table below and note its "
-            "profile.",
-            "2. Run `slopvac lint <file>... --profile <profile> --format json` "
-            "first. Fix every error and triage every warning with `slopvac "
-            "explain <rule_id>`. Exit 2 is incomplete: act on the native "
-            "findings and report each `documents[].unchecked` entry.",
-            "3. Semantic pass. Take the checklist categories recommended for the "
-            "genre. Ask `document` questions once over the whole document and "
-            "the others per paragraph or sentence. Ask every `-remainder` "
-            "question even where its mechanical partner fired: the partner "
-            "matches fixed wording, and the remainder covers every other phrasing. "
-            "For every failure, quote the offending text and propose a rewrite; "
-            "`slopvac explain <rule_id>` shows worked examples.",
-            "4. Read adversarially. For every sentence, list item, table row, and "
-            "paragraph, ask which reader action or current-contract fact it "
-            "changes, and revise when the answer is none. Cut wording, never "
-            "facts: keep every name, version, path, command, number, finding, and "
-            "evidence block the reader needs. Before handing off a revision, list "
-            "the facts in the original and confirm each one survives or was wrong.",
-            "5. Verify every factual claim against the code: commands, paths, "
-            "flags, defaults, versions, and behavior. Flag a claim stated more "
-            "strongly than its source supports.",
-            "6. Adversary review. This step is required, also when you review "
-            "your own revision: a self-check does not count. Hand the document, "
-            "the original if you revised one, and this output to a separate "
-            "reviewer with fresh context: a subagent or a second person. Instruct "
-            "it to find failures only, to cite each as the rule id, the quoted "
-            "text, and a proposed rewrite, and to report any fact the revision "
-            "lost. Fix each confirmed finding, or rebut it with evidence. Repeat "
-            "until the adversary reports no confirmed findings. If no separate "
-            "reviewer is available, say so in the verdict.",
-            "7. Report the verdict.",
+            "1. Classify the document with the genre table. Record the profile.",
+            "2. Run `slopvac lint <file>... --profile <profile> --format json`. Fix "
+            "errors and triage warnings with `slopvac explain <rule_id>`. Exit 2 "
+            "means incomplete. Report each `documents[].unchecked` entry.",
+            "3. Semantic pass. Use categories recommended for the genre. Ask "
+            "document questions over the whole document. Ask other questions "
+            "per paragraph or sentence. Ask each remainder question even when "
+            "its mechanical partner fires. The partner matches fixed wording. "
+            "The remainder covers other wording. Quote failures and propose "
+            "rewrites. Run `slopvac explain <rule_id>` for examples.",
+            "4. Apply the deletion test to every section. Remove wording that "
+            "changes no reader action or contract fact. List original facts. "
+            "Confirm each fact survived or was wrong.",
+            "5. Check claims against the code. Flag claims stronger than their source.",
+            *_review_workflow(settings),
             "",
             "```text",
             "VERDICT: PASS | REVISE",
@@ -323,14 +295,19 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Semantic:  <failed rule ids with quoted text, or none>",
             "Claims:    <verified, or the claim that does not hold>",
             "Facts:     <all kept, or the facts the revision lost>",
-            "Adversary: <reviewer used, rounds, findings fixed, findings rebutted>",
+            "Reviewer:  <subagent, one pass | adversary, <n> rounds | self (reason)>; "
+            "findings fixed, findings rebutted",
             "Action:    <the single highest-value change, or none>",
             "```",
             "",
-            "REVISE when the gate reports an error or an unchecked entry, a claim "
-            "fails, a fact was lost, a semantic question fails, a section fails "
-            "the deletion test, no separate adversary ran, or the adversary still "
-            "holds a confirmed finding. PASS needs all of these clear.",
+            "Report REVISE when any of these holds:",
+            "",
+            "- the gate reports an error or an unchecked entry;",
+            "- a claim fails, or a fact was lost;",
+            "- a semantic question or the deletion test fails;",
+            "- a reviewer finding is still open.",
+            "",
+            "Otherwise report PASS.",
             "",
             "## Genres",
             "",
@@ -342,16 +319,13 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
                 for g in GENRES
             ),
             "",
-            _ROUTING,
-            "",
             "## Checklist",
             "",
-            "Generated from the rule catalogue. Each line is the rule id, the "
-            "scope the question is asked over, and the question. For the same "
-            "checklist as JSON, with each rule's category, fix, and examples, "
-            "run `slopvac rules --kind judgement --format json`.",
+            "Run `slopvac rules --kind judgement --format json` for checklist metadata.",
             "",
+            "<!-- slopvac-disable -->",
             *review_checklist(ruleset),
+            "<!-- slopvac-enable -->",
         ]
     )
     return "\n".join(lines).rstrip("\n") + "\n"
