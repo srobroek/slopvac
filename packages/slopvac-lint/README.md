@@ -259,15 +259,17 @@ review_depth = "subagent"  # self | subagent | adversary
 
 `write = "off"` drops the writing step. `review = "ask"` prompts before review;
 `review = "off"` disables review. The default `review_depth = "subagent"` uses
-one fresh-context reviewer pass. The author gives the subagent the draft, the
-original when revising, source or brief when available, and review output. It
-runs lint, the semantic checklist, and a fact check, then reports findings once
-with rule id, quoted text, proposed rewrite, lost facts, and claims stronger
-than the source. The author fixes or rebuts each finding.
+one fresh-context reviewer pass. The author gives the subagent the document and
+the `slopvac prime review` output, plus the original and any source or brief.
+The subagent runs lint, the semantic checklist, and a fact check, and edits
+nothing. It reports each finding once with rule id, quoted text, and proposed
+rewrite, and it lists lost facts and claims stronger than the source. The author
+fixes or rebuts each finding.
 
-Set `review_depth = "self"` for an author-run pass, or `"adversary"` to repeat
-reviewer rounds until no confirmed findings remain. If no subagent is available,
-the author does the pass and states `self-review (no subagent available)`.
+Set `review_depth = "self"` for an author-run pass, or `"adversary"` for
+repeated rounds. Each round gets the earlier rebuttals, and the loop stops when
+a round reports no finding the author accepts. If no subagent is available, the
+author runs the pass and reports `self (no subagent available)`.
 `review = "off"` still disables review. Guidance keys cannot appear in
 `[[overrides]]`. With both modes off, `init --harness` and `setup` install no
 skill. See [semantic guidance](docs/semantic-guidance.md#configuration).

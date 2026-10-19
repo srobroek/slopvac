@@ -39,26 +39,31 @@ The managed steering block in `AGENTS.md` or a harness file points agents to
 `slopvac prime review` prints these steps:
 
 1. Classify the document by genre. Note its profile and checklist categories.
-2. Run `slopvac lint` first. Fix errors, triage warnings, and report unchecked
-   rules. Exit 2 means incomplete.
-3. Answer each checklist question. Quote each failure and propose a rewrite.
-4. Apply the deletion test to prose. Keep the original facts and confirm each
-   fact survived or was wrong.
+2. Run `slopvac lint --profile <profile>` first. Fix errors, triage warnings,
+   and report unchecked rules. Exit 1 means a gate failed; exit 2 means the run
+   is incomplete.
+3. Ask the enforced and advisory checklist questions for the profile, and skip
+   excluded ones. Quote each failure and propose a rewrite.
+4. Mark wording that changes no reader action or contract fact. List the
+   original facts and confirm each one survived or was wrong.
 5. Check claims against the code. Flag claims stronger than their source.
-6. Complete the configured reviewer pass. Report `PASS` or `REVISE`.
+6. Run the configured reviewer pass.
+7. Fix or rebut each finding, lint again after edits, and report `PASS` or
+   `REVISE`.
 
-The default pass uses one fresh-context subagent. Give it the draft, the
-original when revising, the source or brief when available, and the review
-output. The subagent runs lint, the semantic checklist, and a fact check. It
-reports each finding once: rule id, quoted text, proposed rewrite, lost facts,
-and claims stronger than the source. It lists original facts and marks each as
-preserved or wrong. The author fixes or rebuts every finding. The pass does not
-repeat by default.
+The default pass uses one fresh-context subagent. Give it the document and the
+`slopvac prime review` output, plus the original and any source or brief. The
+subagent runs steps 1 to 5, edits nothing, and does not start another reviewer.
+It reports each finding once: rule id, quoted text, proposed rewrite, lost facts,
+and claims stronger than the source. The author fixes or rebuts every finding.
+The pass does not repeat by default.
 
-Set `review_depth = "self"` for an author-run pass. If subagents are unavailable,
-the author runs it and reports `self-review (no subagent available)`. Set
-`review_depth = "adversary"` to repeat subagent rounds until none has a confirmed
-finding. A user can request the loop without changing the default.
+Set `review_depth = "self"` for an author-run pass; steps 3 to 5 are the review.
+If subagents are unavailable, the author runs the pass and reports
+`self (no subagent available)`. Set `review_depth = "adversary"` for repeated
+rounds: each round gets the earlier rebuttals, and the loop stops when a round
+reports no finding the author accepts. A user can request the loop without
+changing the default.
 
 ## Configuration
 
@@ -78,7 +83,7 @@ review_depth = "subagent"  # self | subagent | adversary
 | `review` | `off` | Omits the step; `slopvac prime review` prints a notice and exits 0 |
 | `review_depth` | `subagent` (default) | One fresh-context reviewer pass |
 | `review_depth` | `self` | The author applies the reviewer pass |
-| `review_depth` | `adversary` | Repeat reviewer rounds until no confirmed findings remain |
+| `review_depth` | `adversary` | Repeated reviewer rounds until a round reports no finding the author accepts |
 
 `review = "off"` disables review regardless of `review_depth`. Guidance is
 project-wide; `[[overrides]]` cannot set it. When both `write` and `review` are

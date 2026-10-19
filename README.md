@@ -182,9 +182,10 @@ rewrite, lost facts, and claims stronger than the source. The author fixes or
 rebuts each finding. No loop follows unless requested.
 
 Set `[guidance] review_depth = "self"` when the author should run the pass, or
-`"adversary"` to repeat rounds until no confirmed findings remain. If no
-subagent is available, the author runs the pass and records
-`self-review (no subagent available)`. `review = "ask"` asks before the review;
+`"adversary"` to run repeated reviewer rounds. Each round gets the findings the
+author rebutted earlier, and the loop stops when a round reports no finding the
+author accepts. If no subagent is available, the author runs the pass and
+records `self (no subagent available)`. `review = "ask"` asks before the review;
 `review = "off"` disables it. Slopvac makes no model calls.
 
 ## CI integration
