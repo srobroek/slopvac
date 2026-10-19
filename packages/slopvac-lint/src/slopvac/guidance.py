@@ -290,8 +290,9 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "findings and report each `documents[].unchecked` entry.",
             "3. Semantic pass. Take the checklist categories recommended for the "
             "genre. Ask `document` questions once over the whole document and "
-            "the others per paragraph or sentence. Skip a `-remainder` question "
-            "where its mechanical partner already fired on the same passage. "
+            "the others per paragraph or sentence. Ask every `-remainder` "
+            "question even where its mechanical partner fired: the partner "
+            "matches fixed wording, and the remainder covers every other phrasing. "
             "For every failure, quote the offending text and propose a rewrite; "
             "`slopvac explain <rule_id>` shows worked examples.",
             "4. Read adversarially. For every sentence, list item, table row, and "
