@@ -207,7 +207,9 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         "decisive normative language.",
         "- Apply the deletion test to every sentence, list item, table row, and "
         "paragraph: if removing it changes no reader action or understanding "
-        "of the current contract, delete it.",
+        "of the current contract, delete it. The test removes wording, never "
+        "facts: keep every name, version, path, command, number, and evidence "
+        "block the reader needs.",
         "- Keep process narration, author effort, chronology, job IDs, "
         "superseded behavior, rejected alternatives, and future promises out "
         "of `consumer`, `reference`, and `informal` text. Change communications "
@@ -297,16 +299,22 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "`slopvac explain <rule_id>` shows worked examples.",
             "4. Read adversarially. For every sentence, list item, table row, and "
             "paragraph, ask which reader action or current-contract fact it "
-            "changes, and revise when the answer is none.",
+            "changes, and revise when the answer is none. Cut wording, never "
+            "facts: keep every name, version, path, command, number, finding, and "
+            "evidence block the reader needs. Before handing off a revision, list "
+            "the facts in the original and confirm each one survives or was wrong.",
             "5. Verify every factual claim against the code: commands, paths, "
             "flags, defaults, versions, and behavior. Flag a claim stated more "
             "strongly than its source supports.",
-            "6. Adversary review. Hand the document and this output to a "
-            "separate reviewer with fresh context: a subagent or a second "
-            "person. Instruct it to find failures only and to cite each as the "
-            "rule id, the quoted text, and a proposed rewrite. Fix each "
-            "confirmed finding, or rebut it with evidence. Repeat until the "
-            "adversary reports no confirmed findings.",
+            "6. Adversary review. This step is required, also when you review "
+            "your own revision: a self-check does not count. Hand the document, "
+            "the original if you revised one, and this output to a separate "
+            "reviewer with fresh context: a subagent or a second person. Instruct "
+            "it to find failures only, to cite each as the rule id, the quoted "
+            "text, and a proposed rewrite, and to report any fact the revision "
+            "lost. Fix each confirmed finding, or rebut it with evidence. Repeat "
+            "until the adversary reports no confirmed findings. If no separate "
+            "reviewer is available, say so in the verdict.",
             "7. Report the verdict.",
             "",
             "```text",
@@ -314,14 +322,15 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Gate:      score <n>/100, <n> errors, <n> warnings (exit <code>)",
             "Semantic:  <failed rule ids with quoted text, or none>",
             "Claims:    <verified, or the claim that does not hold>",
-            "Adversary: <rounds, findings fixed, findings rebutted>",
+            "Facts:     <all kept, or the facts the revision lost>",
+            "Adversary: <reviewer used, rounds, findings fixed, findings rebutted>",
             "Action:    <the single highest-value change, or none>",
             "```",
             "",
             "REVISE when the gate reports an error or an unchecked entry, a claim "
-            "fails, a semantic question fails, a section fails the deletion "
-            "test, or the adversary still holds a confirmed finding. PASS needs "
-            "all of these clear.",
+            "fails, a fact was lost, a semantic question fails, a section fails "
+            "the deletion test, no separate adversary ran, or the adversary still "
+            "holds a confirmed finding. PASS needs all of these clear.",
             "",
             "## Genres",
             "",
