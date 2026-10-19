@@ -18,6 +18,7 @@ import json
 import sys
 import tempfile
 from datetime import datetime
+from itertools import pairwise
 from pathlib import Path
 
 import click
@@ -54,6 +55,7 @@ from .pipeline import (
 from .reference import render_reference
 from .rules import RuleLoadError, inject_locale_rule, load_ruleset
 from .steering import harnesses
+from .update_notice import show_update_notice, start_refresh
 from .vale_cache import CACHE_KEEP, cache_root, prune_cache
 from .vale_probe import ValeUnavailable
 from .vocabulary import VocabularyError, load_blocklist
@@ -88,15 +90,40 @@ class _DefaultGroup(click.Group):
         explicit `lint` passed. An advertised invocation that fails is worse than
         no default subcommand at all.
         """
-        if args and not any(a in self.commands for a in args):
-            if not all(a in self._GROUP_OPTIONS for a in args if a.startswith("-")):
-                args = ["lint", *args]
+        if ctx.parent is None:
+            ctx.meta["slopvac_update_arguments"] = tuple(args)
+        if (
+            args
+            and not any(a in self.commands for a in args)
+            and not all(a in self._GROUP_OPTIONS for a in args if a.startswith("-"))
+        ):
+            args = ["lint", *args]
         return super().parse_args(ctx, args)
 
     def resolve_command(self, ctx: click.Context, args: list[str]):
         if args and args[0] not in self.commands and not args[0].startswith("-"):
             args = ["lint", *args]
         return super().resolve_command(ctx, args)
+
+
+def _note_output(output_format: str | None, *report_targets: object) -> None:
+    """Record what the command emits, so the update notice stays out of machine output."""
+    meta = click.get_current_context().find_root().meta
+    meta["slopvac_update_format"] = output_format
+    meta["slopvac_update_to_file"] = any(report_targets)
+
+
+def _machine_output(arguments: tuple[str, ...] | list[str]) -> bool:
+    """True when raw arguments ask for non-text or file output.
+
+    Read before the subcommand parses, so a machine-output run never starts a
+    network check. `_note_output` still guards the notice after parsing.
+    """
+    formats = [nxt for cur, nxt in pairwise(arguments) if cur == "--format"]
+    formats += [arg.partition("=")[2] for arg in arguments if arg.startswith("--format=")]
+    to_file = any(arg in ("--out", "--open") or arg.startswith("--out=") for arg in arguments)
+    return to_file or any(fmt != "text" for fmt in formats)
+
 
 
 @click.group(cls=_DefaultGroup, invoke_without_command=True)
@@ -109,6 +136,24 @@ def main(context: click.Context) -> None:
     """
     if context.invoked_subcommand is None:
         click.echo(context.get_help())
+        return
+
+    if context.invoked_subcommand == "prime" or _machine_output(
+        context.meta.get("slopvac_update_arguments", ())
+    ):
+        return
+    refresh = start_refresh()
+
+    def notice() -> None:
+        meta = context.find_root().meta
+        show_update_notice(
+            refresh,
+            command=context.invoked_subcommand,
+            output_format=meta.get("slopvac_update_format"),
+            output_to_file=meta.get("slopvac_update_to_file", False),
+        )
+
+    context.call_on_close(notice)
 
 
 @main.command()
@@ -234,6 +279,7 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
+    _note_output(output_format, out_path, open_report)
     console = _console(no_color)
     scope = None
     if diff_base is not None or diff_working_tree:
@@ -412,6 +458,7 @@ def list_rules(
     rules_dir: tuple[Path, ...],
 ) -> None:
     """List the rules and whether each is on at a profile."""
+    _note_output(output_format)
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -521,6 +568,7 @@ def explain(
     rules_dir: tuple[Path, ...],
 ) -> None:
     """Show one rule in full."""
+    _note_output(output_format)
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
@@ -877,6 +925,7 @@ def compile_styles(
 
     To run Vale by hand: `vale --config=<outdir>/.vale.ini docs/`.
     """
+    _note_output(output_format)
     console = _console(False)
     discovered = config_path or find_config(Path.cwd())
     try:

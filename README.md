@@ -46,7 +46,7 @@ vale --version
 
 Other platforms can use the [Vale installation instructions](https://vale.sh).
 
-From your project's root directory:
+Install slopvac for persistent use with uv:
 
 ```sh
 uv tool install slopvac
@@ -54,28 +54,22 @@ slopvac init
 slopvac README.md
 ```
 
-`init` creates `slopvac.toml` with the `normal` profile and leaves an existing
-file unchanged. Replace `README.md` with the file or directory you need to check.
-A passing run exits 0; findings above a threshold exit 1. An incomplete check
-exits 2, including when selected Vale-backed checks cannot run.
+Upgrade the installation with `uv tool upgrade slopvac`. To run slopvac without
+a persistent install, use `uvx slopvac README.md`. uvx reuses its cached
+environment; use `uvx slopvac@latest README.md` to force the latest release.
 
-To steer a coding agent, name its harness when you initialize, then have the
-agent read the writing guide before it drafts:
+`init` creates `slopvac.toml` with the `normal` profile and leaves existing
+files unchanged. Replace `README.md` with the file or directory to check. A
+passing run exits 0; findings above a threshold exit 1; an incomplete check exits 2.
 
-```sh
-slopvac init --harness claude
-slopvac prime write
-```
+### Update notice
 
-`--harness` accepts `agents`, `codex`, `claude`, `omp`, or `kiro` and can be
-repeated. In an existing project, `slopvac setup <harness>` installs the same
-files. See [Agent setup](#agent-setup).
-
-For a one-off check without installing slopvac persistently:
-
-```sh
-uvx slopvac README.md
-```
+Slopvac shows an update notice after an eligible command only when its cache
+contains a newer stable PyPI release. It refreshes the cache in the background,
+so a newly discovered release can appear on a later run. Slopvac skips the check
+for `prime`, any non-text output format, reports written to a file or opened,
+when `CI` is set, or when stderr is not a terminal. Set `NO_UPDATE_NOTIFIER=1`,
+`SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1` to disable the check.
 
 ### Use the results
 
