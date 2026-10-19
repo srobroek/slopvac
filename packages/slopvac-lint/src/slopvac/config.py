@@ -24,7 +24,7 @@ from __future__ import annotations
 import tomllib
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import pathspec
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
@@ -268,6 +268,34 @@ class ValeSettings(BaseModel):
     styles: list[str] | None = None
 
 
+class GuidanceSettings(BaseModel):
+    """Agent steering for writing and semantic review: what `slopvac prime`
+    tells an agent to run, and whether it installs the `slopvac-prose` skill.
+
+    Project-wide by design. This decides what an agent is told to do, not how a
+    file is linted, so `[[overrides]]` rejects it rather than resolving it per
+    path.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    write: Literal["auto", "off"] = Field(
+        default="auto",
+        description="`auto` points agents at `slopvac prime write` before they "
+        "draft prose; `off` drops that step.",
+    )
+    review: Literal["auto", "ask", "off"] = Field(
+        default="auto",
+        description="`auto` runs the `slopvac prime review` workflow before a "
+        "hand-off, `ask` asks the user first, and `off` drops the step.",
+    )
+
+    @property
+    def enabled(self) -> bool:
+        """Whether any guidance is on; with both off no skill stub is installed."""
+        return self.write != "off" or self.review != "off"
+
+
 class ThresholdPatch(BaseModel):
     """A threshold override with no defaults for fields it does not name."""
 
@@ -334,6 +362,18 @@ class Override(BaseModel):
     vocabulary: VocabularySettings | None = None
     _spec: pathspec.PathSpec = PrivateAttr()
 
+    @model_validator(mode="before")
+    @classmethod
+    def _reject_guidance(cls, data: object) -> object:
+        # `extra="forbid"` would reject it too, with a message that reads like a
+        # typo. Say why instead: guidance steers the agent, not a file's lint.
+        if isinstance(data, dict) and "guidance" in data:
+            raise ValueError(
+                "[guidance] is project-wide agent steering and cannot be set in "
+                "[[overrides]]; move it to the top level of the config"
+            )
+        return data
+
     @model_validator(mode="after")
     def _compile_spec(self) -> Override:
         # Compiled once at load; matching runs per file.
@@ -367,6 +407,7 @@ class Config(BaseModel):
     vale: ValeSettings = Field(default_factory=ValeSettings)
     locale: LocaleSettings = Field(default_factory=LocaleSettings)
     vocabulary: VocabularySettings = Field(default_factory=VocabularySettings)
+    guidance: GuidanceSettings = Field(default_factory=GuidanceSettings)
     overrides: list[Override] = Field(default_factory=list)
 
     exclude: list[str] = Field(

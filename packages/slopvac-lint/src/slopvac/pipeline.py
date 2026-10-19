@@ -487,6 +487,7 @@ def validate_names(config: Config, ruleset: RuleSet) -> list[str]:
     """
     known_categories = set(ruleset.categories)
     known_rules = {rule.qualified_id for rule in ruleset.rules}
+    judgement_rules = {rule.qualified_id for rule in ruleset.judgement_rules}
     errors: list[str] = []
 
     def check(categories: dict, rules: dict, where: str) -> None:
@@ -498,6 +499,13 @@ def validate_names(config: Config, ruleset: RuleSet) -> list[str]:
                 )
         for name in sorted(rules):
             if name in known_rules:
+                continue
+            if name in judgement_rules:
+                errors.append(
+                    f"{where}: `{name}` is a judgement rule; lint never checks it, "
+                    "so a [rules] setting has no effect. `slopvac prime review` "
+                    "applies it."
+                )
                 continue
             # A bare rule name is the likeliest mistake, so name the qualified form
             # rather than only rejecting it.
