@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.1](https://github.com/srobroek/slopvac/compare/v2.13.0...v2.13.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* **guidance:** keep facts, default to one subagent review pass ([#198](https://github.com/srobroek/slopvac/issues/198)) ([99e54d2](https://github.com/srobroek/slopvac/commit/99e54d2aaea89fa50b85344d9b8a7dce3bda9542))
+
 ## [2.13.0](https://github.com/srobroek/slopvac/compare/v2.12.0...v2.13.0) (2026-10-19)
 
 
