@@ -42,6 +42,7 @@ import unicodedata
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import cache
 from html import unescape
 from html.parser import HTMLParser
 
@@ -266,42 +267,46 @@ _IMPERATIVE_VERB_ALTERNATION = "|".join(
 # engine flags and locale settings.
 _UNICODE_WORD_END = r"(?![\p{L}\p{Nd}_])"
 
-IMPERATIVE_MARKERS = re.compile(
-    rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
-    re.I,
-)
-PHRASAL_IMPERATIVE = re.compile(
-    rf"^(?:please\s+)?(?:"
-    rf"(?:{_IMPERATIVE_VERB_ALTERNATION})\s+"
-    r"(?:up|down|off|on|out|in|over|back|away)|"
-    r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
-    r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
-    r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))"
-    rf"{_UNICODE_WORD_END}",
-    re.I,
-)
-NEGATIVE_IMPERATIVE = re.compile(
-    rf"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+{_UNICODE_WORD_END}",
-    re.I,
-)
-TO_VERB = re.compile(
-    rf"^to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
-    re.I,
-)
-REMEMBER_TO = re.compile(
-    rf"^(?:remember|make\s+sure)\s+to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
-    re.I,
-)
-SAFETY_MARKER = re.compile(
-    rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT){_UNICODE_WORD_END}"
-    r"(?:\*{0,2})?\s*[:.!]?",
-    re.I,
-)
-NOTE_MARKER = re.compile(
-    rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?:NOTE(?:\*{{0,2}})?\s*:\s*|(?:TIP|HINT|INFO){_UNICODE_WORD_END}"
-    r"(?:\*{0,2})?\s*[:.!]?)",
-    re.I,
-)
+@cache
+def _text_type_patterns() -> tuple[re.Pattern[str], ...]:
+    """Compile classifier-only patterns on the first text-type check."""
+    return (
+        re.compile(
+            rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^(?:please\s+)?(?:"
+            rf"(?:{_IMPERATIVE_VERB_ALTERNATION})\s+"
+            r"(?:up|down|off|on|out|in|over|back|away)|"
+            r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
+            r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
+            r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))"
+            rf"{_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+{_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}", re.I
+        ),
+        re.compile(
+            rf"^(?:remember|make\s+sure)\s+to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT){_UNICODE_WORD_END}"
+            r"(?:\*{0,2})?\s*[:.!]?",
+            re.I,
+        ),
+        re.compile(
+            rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?:NOTE(?:\*{{0,2}})?\s*:\s*|(?:TIP|HINT|INFO){_UNICODE_WORD_END}"
+            r"(?:\*{0,2})?\s*[:.!]?)",
+            re.I,
+        ),
+    )
 
 
 def _identity_id(
@@ -456,7 +461,9 @@ class Document:
 _ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]+);?")
 
 
-def _raw_cp_bytes(raw: str) -> list[int]:
+def _raw_cp_bytes(raw: str) -> list[int] | range:
+    if raw.isascii():
+        return range(len(raw) + 1)
     offsets = [0]
     for char in raw:
         offsets.append(offsets[-1] + len(char.encode("utf-8")))
@@ -471,11 +478,16 @@ def _line_cp_starts(raw: str) -> list[int]:
     return starts
 
 
-def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionMap:
+def _align_block_text(
+    text: str,
+    raw: str,
+    first: int,
+    last: int,
+    offsets: list[int] | range,
+    starts: list[int],
+    raw_bytes: bytes,
+) -> ProjectionMap:
     """Align parser-rendered block text with its source line span."""
-
-    offsets = _raw_cp_bytes(raw)
-    starts = _line_cp_starts(raw)
     start_cp = starts[max(0, min(first - 1, len(starts) - 1))]
     end_line = max(first, min(last, len(starts)))
     end_cp = starts[end_line] if end_line < len(starts) else len(raw)
@@ -513,7 +525,7 @@ def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionM
         segments.append(
             Segment(position, position + 1, offsets[raw_start_cp], offsets[raw_end_cp])
         )
-    return ProjectionMap(tuple(segments), raw.encode("utf-8"))
+    return ProjectionMap(tuple(segments), raw_bytes)
 
 
 def _block_projected_base(
@@ -569,10 +581,12 @@ def _is_table_row(line: str) -> bool:
     return bool(stripped and "|" in stripped)
 
 
-def _finalize_document(document: Document) -> Document:
-    """Attach maps, origins, stable identities, and document ranges."""
-
-    raw_bytes = document.raw.encode("utf-8")
+def _finalize_document(
+    document: Document,
+    offsets: list[int] | range,
+    starts: list[int],
+    raw_bytes: bytes,
+) -> Document:
     projected_text, document.projection = project(document.raw)
     document.origin = classify_origin(document.path, document.raw)
     document.source_sha256 = source_sha256(raw_bytes)
@@ -600,7 +614,13 @@ def _finalize_document(document: Document) -> Document:
             last = max(block.lines[0], last)
         if block.projection is None:
             block.projection = _align_block_text(
-                block.text, document.raw, block.lines[0], last
+                block.text,
+                document.raw,
+                block.lines[0],
+                last,
+                offsets,
+                starts,
+                raw_bytes,
             )
         block_base = projected_text.find(block.text, projected_cursor)
         if block_base < 0:
@@ -785,21 +805,30 @@ def classify_text_type(text: str) -> TextType:
     list use the fallback and may be classified wrongly either way.
     """
     stripped = text.strip()
-    safety_match = SAFETY_MARKER.match(stripped)
+    (
+        imperative_markers,
+        phrasal_imperative,
+        negative_imperative,
+        to_verb,
+        remember_to,
+        safety_marker,
+        note_marker,
+    ) = _text_type_patterns()
+    safety_match = safety_marker.match(stripped)
     if safety_match:
         marker = safety_match.group("marker").upper()
         marker_body = stripped[safety_match.end() :].lstrip(" :.!?*-+")
         if (
-            IMPERATIVE_MARKERS.match(marker_body)
-            or PHRASAL_IMPERATIVE.match(marker_body)
-            or NEGATIVE_IMPERATIVE.match(marker_body)
-            or TO_VERB.match(marker_body)
-            or REMEMBER_TO.match(marker_body)
+            imperative_markers.match(marker_body)
+            or phrasal_imperative.match(marker_body)
+            or negative_imperative.match(marker_body)
+            or to_verb.match(marker_body)
+            or remember_to.match(marker_body)
             or re.match(r"^you\s+(?:should|must|need\s+to)\b", marker_body, re.I)
         ):
             return TextType.PROCEDURAL
         return TextType.DESCRIPTIVE if marker == "IMPORTANT" else TextType.SAFETY
-    if NOTE_MARKER.match(stripped):
+    if note_marker.match(stripped):
         return TextType.DESCRIPTIVE
     body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
     tokens = _ste_tokens(body)
@@ -821,10 +850,10 @@ def classify_text_type(text: str) -> TextType:
     ):
         return TextType.DESCRIPTIVE
     if (
-        IMPERATIVE_MARKERS.match(body)
-        or NEGATIVE_IMPERATIVE.match(body)
-        or TO_VERB.match(body)
-        or REMEMBER_TO.match(body)
+        imperative_markers.match(body)
+        or negative_imperative.match(body)
+        or to_verb.match(body)
+        or remember_to.match(body)
         or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I)
     ):
         return TextType.PROCEDURAL
@@ -1041,11 +1070,16 @@ class _HtmlTextExtractor(HTMLParser):
         content: str,
         raw: str,
         raw_offset_cp: int = 0,
+        content_line_starts: list[int] | None = None,
     ) -> None:
         super().__init__(convert_charrefs=False)
         self.prose_lines = ["" for _ in range(line_count)]
         self.text_spans: list[list[tuple[int, int]]] = [[] for _ in range(line_count)]
-        self._content_line_starts = _line_cp_starts(content)
+        self._content_line_starts = (
+            content_line_starts
+            if content_line_starts is not None
+            else _line_cp_starts(content)
+        )
         self._raw = raw
         self._raw_offset_cp = raw_offset_cp
         self._skip = 0
@@ -1123,7 +1157,10 @@ class _HtmlTextExtractor(HTMLParser):
 
 
 def _html_line_projection(
-    extractor: _HtmlTextExtractor, line_index: int, raw: str
+    extractor: _HtmlTextExtractor,
+    line_index: int,
+    offsets: list[int] | range,
+    raw_bytes: bytes,
 ) -> tuple[str, ProjectionMap]:
     """Return one trimmed HTML line and its text-node-only source map."""
 
@@ -1131,7 +1168,6 @@ def _html_line_projection(
     start = len(piece) - len(piece.lstrip())
     end = len(piece.rstrip())
     clean = piece[start:end]
-    offsets = _raw_cp_bytes(raw)
     segments = tuple(
         Segment(
             index,
@@ -1143,7 +1179,7 @@ def _html_line_projection(
             extractor.text_spans[line_index][start:end]
         )
     )
-    return clean, ProjectionMap(segments, raw.encode("utf-8"))
+    return clean, ProjectionMap(segments, raw_bytes)
 
 
 _FENCE_START = re.compile(r"^\s{0,3}(?P<marker>(?P<char>`|~){3,})")
@@ -1176,6 +1212,9 @@ def _project_html_block(
     last: int,
     prose_lines: list[str],
     raw: str,
+    offsets: list[int] | range,
+    starts: list[int],
+    raw_bytes: bytes,
 ) -> tuple[
     str,
     list[tuple[int, int]],
@@ -1185,7 +1224,7 @@ def _project_html_block(
 ]:
     """Extract visible HTML text while retaining text-node source spans."""
     line_count = max(last - first + 1, 1)
-    raw_offset_cp = _line_cp_starts(raw)[max(0, first - 1)]
+    raw_offset_cp = starts[max(0, first - 1)]
     extractor = _HtmlTextExtractor(line_count, content, raw, raw_offset_cp)
     extractor.feed(content)
     extractor.close()
@@ -1198,10 +1237,12 @@ def _project_html_block(
     visible_lines: list[int] = []
     for local in range(len(extractor.prose_lines)):
         source_line = first + local
-        clean, line_projection = _html_line_projection(extractor, local, raw)
+        clean, line_projection = _html_line_projection(
+            extractor, local, offsets, raw_bytes
+        )
         if local in fence_lines:
             clean = ""
-            line_projection = ProjectionMap((), raw.encode("utf-8"))
+            line_projection = ProjectionMap((), raw_bytes)
         if 0 < source_line <= len(prose_lines):
             prose_lines[source_line - 1] = clean
         if not clean:
@@ -1244,7 +1285,7 @@ def _project_html_block(
         line_starts,
         paragraph_lines,
         code_blocks,
-        ProjectionMap(tuple(projection_segments), raw.encode("utf-8")),
+        ProjectionMap(tuple(projection_segments), raw_bytes),
     )
 
 
@@ -1257,13 +1298,18 @@ def _parse_html(path: str, raw: str) -> Document:
     stdlib `html.parser` and keeps `prose_lines` index-aligned with the source.
     """
     raw_lines = raw.split("\n")
-    extractor = _HtmlTextExtractor(len(raw_lines), raw, raw)
+    offsets = _raw_cp_bytes(raw)
+    starts = _line_cp_starts(raw)
+    raw_bytes = raw.encode("utf-8")
+    extractor = _HtmlTextExtractor(
+        len(raw_lines), raw, raw, content_line_starts=starts
+    )
     extractor.feed(raw)
     extractor.close()
     html_lines: list[str] = []
     html_projections: list[ProjectionMap] = []
     for index in range(len(raw_lines)):
-        line, projection = _html_line_projection(extractor, index, raw)
+        line, projection = _html_line_projection(extractor, index, offsets, raw_bytes)
         html_lines.append(line)
         html_projections.append(projection)
     prose_lines = html_lines
@@ -1293,7 +1339,10 @@ def _parse_html(path: str, raw: str) -> Document:
             raw_lines=raw_lines,
             prose_lines=prose_lines,
             blocks=blocks,
-        )
+        ),
+        offsets,
+        starts,
+        raw_bytes,
     )
 
 
@@ -1315,6 +1364,9 @@ def parse(path: str, raw: str) -> Document:
     if path.lower().endswith((".html", ".htm")):
         return _parse_html(path, raw)
     raw_lines = raw.split("\n")
+    offsets = _raw_cp_bytes(raw)
+    starts = _line_cp_starts(raw)
+    raw_bytes = raw.encode("utf-8")
     prose_lines = [""] * len(raw_lines)
     blocks: list[Block] = []
     front_matter: dict[str, str] = {}
@@ -1373,7 +1425,16 @@ def parse(path: str, raw: str) -> Document:
             first = token.map[0] + 1 + offset
             last = token.map[1] + offset
             text, line_starts, paragraph_lines, code_blocks, html_projection = (
-                _project_html_block(token.content, first, last, prose_lines, raw)
+                _project_html_block(
+                    token.content,
+                    first,
+                    last,
+                    prose_lines,
+                    raw,
+                    offsets,
+                    starts,
+                    raw_bytes,
+                )
             )
             if paragraph_lines is not None:
                 record(
@@ -1517,7 +1578,10 @@ def parse(path: str, raw: str) -> Document:
             prose_lines=prose_lines,
             blocks=blocks,
             front_matter=front_matter,
-        )
+        ),
+        offsets,
+        starts,
+        raw_bytes,
     )
 
 

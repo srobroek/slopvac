@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
+from slopvac import analyze
 from slopvac.analyze import BlockKind, Document, parse
 from slopvac.projection import ProjectionMap, classify_origin, classify_region, project
 
@@ -27,6 +31,65 @@ def test_projection_maps_unicode_entities_crlf_markup_and_code() -> None:
         if segment.raw_start < segment.raw_end:
             projected = text[segment.proj_start : segment.proj_end]
             assert mapping.slice_raw(segment.proj_start, segment.proj_end).decode() == projected
+
+
+def test_raw_codepoint_byte_offsets_match_original_algorithm() -> None:
+    alphabet = ("a", "é", "e\u0301", "😊", "\r\n")
+    samples = [
+        "".join(chars)
+        for length in range(1, 5)
+        for chars in product(alphabet, repeat=length)
+    ]
+
+    for raw in samples:
+        expected = [0]
+        for char in raw:
+            expected.append(expected[-1] + len(char.encode("utf-8")))
+        assert list(analyze._raw_cp_bytes(raw)) == expected
+
+
+@pytest.mark.parametrize(
+    ("path", "raw"),
+    [
+        (
+            "fixture.md",
+            "# First\n\nSecond paragraph.\n\n# Third\n\nFourth paragraph.\n",
+        ),
+        (
+            "fixture.md",
+            "# Café\r\n\r\nSecond 😊 paragraph.\r\n\r\nThird e\u0301.",
+        ),
+        (
+            "fixture.md",
+            "before\n\n<div>café 😊</div>\n\n<div>第二段</div>\n\nafter\n",
+        ),
+        ("fixture.html", "<p>Café 😊</p>\n<p>第二段</p>\n"),
+    ],
+)
+def test_document_offset_tables_are_built_once(
+    monkeypatch, path: str, raw: str
+) -> None:
+    byte_offsets = analyze._raw_cp_bytes
+    line_starts = analyze._line_cp_starts
+    byte_calls: list[str] = []
+    line_calls: list[str] = []
+
+    def count_byte_offsets(text: str):
+        byte_calls.append(text)
+        return byte_offsets(text)
+
+    def count_line_starts(text: str):
+        line_calls.append(text)
+        return line_starts(text)
+
+    monkeypatch.setattr(analyze, "_raw_cp_bytes", count_byte_offsets)
+    monkeypatch.setattr(analyze, "_line_cp_starts", count_line_starts)
+    document = parse(path, raw)
+
+    assert len(document.blocks) > 1
+    assert len(byte_calls) == 1
+    assert byte_calls == [raw]
+    assert line_calls.count(raw) == 1
 
 
 def test_projection_line_join_is_a_zero_width_raw_segment() -> None:
