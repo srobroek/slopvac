@@ -241,7 +241,14 @@ def genres_and_profiles(ruleset: RuleSet | None = None) -> list[str]:
 def _handoff_step(settings: GuidanceSettings) -> str | None:
     """The base-prime step before a hand-off, or None when review is off."""
     if settings.review == "auto":
-        pass_name = "adversary loop" if settings.review_depth == "adversary" else "reviewer pass"
+        if settings.review_depth == "self":
+            return (
+                "Before you hand that text off, run `slopvac prime review`. "
+                "Complete its workflow and put its verdict block in the hand-off."
+            )
+        pass_name = (
+            "adversary loop" if settings.review_depth == "adversary" else "reviewer pass"
+        )
         return (
             "Before you hand that text off, run `slopvac prime review`. Complete its "
             f"workflow, including the {pass_name}. Put its verdict block in the hand-off."

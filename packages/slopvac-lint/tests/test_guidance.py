@@ -82,13 +82,18 @@ def test_subagent_review_describes_no_subagent_fallback():
     assert '"self (no subagent available)"' in review
 
 
-def test_base_prime_handoff_names_reviewer_pass():
+def test_base_prime_handoff_matches_configured_review_depth():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        base = _prime(runner)
+        _guidance(review_depth="self")
+        self_review = _prime(runner)
+        _guidance(review_depth="subagent")
+        subagent_review = _prime(runner)
         _guidance(review_depth="adversary")
         adversary = _prime(runner)
-    assert "including the reviewer pass" in base
+    assert "reviewer pass" not in self_review
+    assert "verdict block" in self_review
+    assert "including the reviewer pass" in subagent_review
     assert "including the adversary loop" in adversary
 
 
