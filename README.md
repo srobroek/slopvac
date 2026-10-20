@@ -125,27 +125,27 @@ The managed steering block tells the agent to run `slopvac prime`, and a
 `slopvac prime write` and `slopvac prime review` around prose work. Neither
 copies rule policy; the installed CLI prints it.
 
-`slopvac init` adds only the generic `AGENTS.md` block by default. Each
-`--harness <name>` writes that harness's steering block and skill instead;
-`--no-skills` keeps the blocks and skips the skills. Use `--skip-agents` when
-only configuration should be created.
+Two commands write these files:
 
-For harness-specific setup:
+- `slopvac init` creates `slopvac.toml` and writes steering for each harness
+  named with `--harness <name>`; repeat the option for several harnesses.
+  Without `--harness`, it writes only the generic `AGENTS.md` block. Naming a
+  harness replaces that default, so add `--harness agents` to keep it.
+  `--no-skills` writes the steering without skills. `--skip-agents` writes only
+  `slopvac.toml`.
+- `slopvac setup <harness>` writes, checks, or removes one harness's steering
+  and, for harnesses that have one, its skill. It never creates `slopvac.toml`;
+  without one it uses the default `[guidance]` settings. It works with or
+  without a prior `init`; use it to add, check, or repair one harness.
 
-| Harness | Command | Managed steering | Skill |
-| --- | --- | --- | --- |
-| Generic AGENTS.md consumers | `slopvac setup agents` | `AGENTS.md` | none |
-| Codex | `slopvac setup codex` | non-empty `AGENTS.override.md`, otherwise `AGENTS.md` | `.agents/skills/slopvac-prose/SKILL.md` |
-| Claude Code | `slopvac setup claude` | `CLAUDE.md` | `.claude/skills/slopvac-prose/SKILL.md` |
-| Oh My Pi | `slopvac setup omp` | `.omp/AGENTS.md` | `.omp/skills/slopvac-prose/SKILL.md` |
-| Kiro | `slopvac setup kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) | `.kiro/skills/slopvac-prose/SKILL.md` |
+```sh
+slopvac init --harness claude --harness omp   # config plus Claude Code and Oh My Pi
+slopvac setup codex                           # one harness; reads config, never writes it
+```
 
-`setup` preserves content outside Slopvac's managed markers and never touches a
-skill file it did not write. Use `slopvac setup <harness> --check` to report
-`current`, `missing`, `stale`, or `malformed` for the block and the skill
-without changing files. Remove only Slopvac's block and skill with
-`slopvac setup <harness> --remove`. Run `slopvac setup --list` to inspect
-supported targets.
+`slopvac setup --list` prints each harness with its steering and skill paths.
+The [CLI reference](packages/slopvac-lint/README.md#agent-steering) lists the
+paths per harness and the `setup --check` and `--remove` behavior.
 
 Agents get detailed guidance on demand:
 
@@ -195,7 +195,7 @@ records `self (no subagent available)`. `review = "ask"` asks before the review;
 ```yaml
 repos:
   - repo: https://github.com/srobroek/slopvac
-    rev: v2.10.0
+    rev: v2.13.1 # x-release-please-version
     hooks:
       - id: slopvac
 ```
@@ -210,7 +210,7 @@ Add these steps to a workflow job:
 
 ```yaml
 - uses: actions/checkout@v7
-- uses: srobroek/slopvac@v2.10.0
+- uses: srobroek/slopvac@v2.13.1 # x-release-please-version
   with:
     paths: README.md docs/
     profile: normal

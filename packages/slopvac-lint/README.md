@@ -61,9 +61,10 @@ remain in the report, but this is an incomplete check.
 
 ## Agent steering
 
-`slopvac init` writes project configuration and, unless `--skip-agents` is
-used, maintains a small Slopvac block in `AGENTS.md`. Detailed instructions stay
-in the installed CLI, which only prints them:
+Slopvac installs a managed steering block that tells the agent to run
+`slopvac prime`, and a thin `slopvac-prose` skill for harnesses that load
+project skills. Detailed instructions stay in the installed CLI, which only
+prints them:
 
 ```sh
 slopvac prime
@@ -75,36 +76,41 @@ slopvac prime review
 `review` topics. Both topics are described in
 [semantic guidance](docs/semantic-guidance.md).
 
-Name harnesses to write their steering and the `slopvac-prose` skill:
+Two commands write the steering files:
+
+- `slopvac init` creates `slopvac.toml` and writes steering for each harness
+  named with `--harness <name>`; repeat the option for several harnesses.
+  Without `--harness`, it writes only the generic `AGENTS.md` block. Naming a
+  harness replaces that default, so add `--harness agents` to keep it.
+  `--no-skills` writes the steering without skills. `--skip-agents` writes only
+  `slopvac.toml` and cannot be combined with `--harness` or `--no-skills`.
+- `slopvac setup <harness>` writes, checks, or removes one harness's steering
+  and, for harnesses that have one, its skill. It never creates `slopvac.toml`;
+  without one it uses the default `[guidance]` settings. It works with or
+  without a prior `init`; use it to add, check, or repair one harness.
 
 ```sh
-slopvac init --harness claude --harness omp
-slopvac init --harness codex --no-skills
+slopvac init --harness claude --harness omp   # config plus Claude Code and Oh My Pi
+slopvac init --harness codex --no-skills      # config plus Codex steering, no skill
+slopvac setup kiro                            # one harness; reads config, never writes it
 ```
 
-Without `--harness`, init writes only the generic `AGENTS.md` block and no
-skill. `--no-skills` writes the steering blocks without skills. To install one
-harness into an existing project:
+| Harness | `<name>` | Managed steering | Skill |
+| --- | --- | --- | --- |
+| Generic AGENTS.md consumers | `agents` | `AGENTS.md` | none |
+| Codex | `codex` | non-empty `AGENTS.override.md`, otherwise `AGENTS.md` | `.agents/skills/slopvac-prose/SKILL.md` |
+| Claude Code | `claude` | `CLAUDE.md` | `.claude/skills/slopvac-prose/SKILL.md` |
+| Oh My Pi | `omp` | `.omp/AGENTS.md` | `.omp/skills/slopvac-prose/SKILL.md` |
+| Kiro | `kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) | `.kiro/skills/slopvac-prose/SKILL.md` |
 
-```sh
-slopvac setup codex
-slopvac setup claude
-slopvac setup omp
-slopvac setup kiro
-```
-
-Codex uses a non-empty `AGENTS.override.md` when one already exists, otherwise
-`AGENTS.md`. Claude Code uses `CLAUDE.md`, and Oh My Pi uses `.omp/AGENTS.md`.
-Kiro uses `.kiro/steering/slopvac.md`; new files include `inclusion: always`.
-The generic `agents` target also manages `AGENTS.md` and installs no skill. The
-skill lands in `.agents/skills/` for Codex, `.claude/skills/` for Claude Code,
-`.omp/skills/` for Oh My Pi, and `.kiro/skills/` for Kiro, each under
-`slopvac-prose/SKILL.md`.
-
-`slopvac setup <harness> --check` reports whether the managed block and the
-skill are current without modifying files. `--remove` removes only the managed
-block and the skill. Use `slopvac setup --list` for the supported targets and
-paths.
+In steering files, both commands keep content outside Slopvac's managed
+markers. Neither touches a skill file that Slopvac did not write.
+`slopvac setup <harness> --check` reports the block as `current`, `missing`,
+`stale`, or `malformed`, and the skill as one of those or `disabled`, without
+changing files. It exits 0 when everything is `current` or `disabled`, 1 when
+something is `missing` or `stale`, and 2 when a file is `malformed`.
+`slopvac setup <harness> --remove` removes only Slopvac's block and skill.
+`slopvac setup --list` prints each harness with its steering and skill paths.
 
 ## Lint documents
 
