@@ -499,7 +499,10 @@ def run_scalene(scenario_name: str | None) -> None:
     env = os.environ.copy()
     env["NO_UPDATE_NOTIFIER"] = "1"
     try:
-        run_profiled(["scalene", "run", "-o", str(directory / "scalene.json"), str(target), "---", *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
+        # Scalene attributes samples only to code under the target's directory by
+        # default, which here is the stub `target.py`; point it at the package.
+        source = ROOT / "packages/slopvac-lint/src/slopvac"
+        run_profiled(["scalene", "run", "--program-path", str(source), "-o", str(directory / "scalene.json"), str(target), "---", *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
         with (directory / "scalene.txt").open("w", encoding="utf-8") as output:
             subprocess.run(["scalene", "view", "--cli", str(directory / "scalene.json")], check=True, stdout=output, stderr=subprocess.STDOUT)
     finally:
