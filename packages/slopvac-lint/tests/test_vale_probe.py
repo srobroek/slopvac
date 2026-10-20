@@ -22,6 +22,7 @@ from slopvac.rules import load_ruleset
 from slopvac.vale_probe import ValeUnavailable, probe_payloads
 from slopvac.vocabulary import load_blocklist
 
+
 @pytest.mark.parametrize(
     ("version", "expected"),
     [
