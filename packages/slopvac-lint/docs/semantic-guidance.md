@@ -53,7 +53,7 @@ The managed steering block in `AGENTS.md` or a harness file points agents to
 The command reference comes from the installed command tree. The genre table
 comes from `genres.py`. The profile gates and the categories each profile turns
 off come from the profile defaults in `config.py` and `profiles.py`. Report keys
-and exit codes come from the report models and the pipeline.
+come from the report models. Exit codes come from `contract.py`.
 
 `slopvac prime write` and `slopvac prime review` open with the same genre and
 profile tables. Their genre table adds the checklist categories for each genre.

@@ -28,10 +28,10 @@ from slopvac.config import (
     Thresholds,
     profile_thresholds,
 )
+from slopvac.contract import SKIP_SOURCE_DIRS
 from slopvac.genres import GENRES
 from slopvac.guidance import RULES_COMMAND
 from slopvac.model import Tier
-from slopvac.pipeline import SKIP_SOURCE_DIRS
 from slopvac.prime import (
     COMMAND_GROUPS,
     RULES_OUTPUT_DOC,
