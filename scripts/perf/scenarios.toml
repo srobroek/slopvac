@@ -1,0 +1,117 @@
+[[scenario]]
+name = "startup --version"
+kind = "cli"
+args = ["--version"]
+
+[[scenario]]
+name = "startup setup --list"
+kind = "cli"
+args = ["setup", "--list"]
+
+[[scenario]]
+name = "startup setup claude"
+kind = "cli"
+args = ["setup", "claude"]
+
+[[scenario]]
+name = "startup init claude"
+kind = "init"
+args = ["init", "--harness", "claude", "--force"]
+
+[[scenario]]
+name = "startup prime"
+kind = "cli"
+args = ["prime"]
+
+[[scenario]]
+name = "startup prime review"
+kind = "cli"
+args = ["prime", "review"]
+
+[[scenario]]
+name = "startup rules judgement json"
+kind = "cli"
+args = ["rules", "--kind", "judgement", "--format", "json"]
+
+[[scenario]]
+name = "startup explain"
+kind = "cli"
+args = ["explain", "ste-practices.gendered-or-exclusionary-language"]
+
+[[scenario]]
+name = "lint fixture no vale"
+kind = "lint"
+path = "scripts/perf/fixtures/clean.md"
+args = ["--no-vale"]
+
+[[scenario]]
+name = "lint fixture vale"
+kind = "lint"
+path = "scripts/perf/fixtures/clean.md"
+args = []
+requires_vale = true
+
+[[scenario]]
+name = "lint README no vale"
+kind = "lint"
+path = "packages/slopvac-lint/README.md"
+args = ["--no-vale"]
+
+[[scenario]]
+name = "lint README vale"
+kind = "lint"
+path = "packages/slopvac-lint/README.md"
+args = []
+requires_vale = true
+
+[[scenario]]
+name = "lint docs no vale"
+kind = "lint"
+path = "packages/slopvac-lint/docs"
+args = ["--no-vale"]
+
+[[scenario]]
+name = "lint docs vale"
+kind = "lint"
+path = "packages/slopvac-lint/docs"
+args = []
+requires_vale = true
+
+[[scenario]]
+name = "lint fixture json"
+kind = "lint"
+path = "scripts/perf/fixtures/clean.md"
+args = ["--no-vale", "--format", "json"]
+
+[[scenario]]
+name = "lint fixture sarif"
+kind = "lint"
+path = "scripts/perf/fixtures/clean.md"
+args = ["--no-vale", "--format", "sarif"]
+
+[[scenario]]
+name = "cache cold"
+kind = "cache"
+path = "scripts/perf/fixtures/clean.md"
+cache = "cold"
+args = ["--no-vale"]
+
+[[scenario]]
+name = "cache warm"
+kind = "cache"
+path = "scripts/perf/fixtures/clean.md"
+cache = "warm"
+args = ["--no-vale"]
+
+[[scenario]]
+name = "comments source"
+kind = "comments"
+path = "scripts/perf/fixtures/comments"
+args = ["--no-vale", "--mode", "code-comments"]
+
+[[scenario]]
+name = "notifier enabled"
+kind = "lint"
+path = "scripts/perf/fixtures/clean.md"
+args = ["--no-vale"]
+notifier = true

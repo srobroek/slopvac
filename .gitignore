@@ -22,3 +22,6 @@ __pycache__/
 # and a stale wheel that installs is worse than no wheel.
 dist/
 *.gate.lock*
+
+# Local profiling and benchmark output.
+perf-results/

@@ -21,3 +21,13 @@ members = ["packages/slopvac-lint"]
 testpaths = ["packages/slopvac-lint/tests", "tests"]
 addopts = "-q"
 pythonpath = ["."]
+
+[dependency-groups]
+profile = [
+  "memray>=1.20.0",
+  "py-spy>=0.4.2",
+  "pyinstrument>=5.1.3",
+  "scalene>=2.3.0",
+  "tuna>=0.5.15",
+  "viztracer>=1.1.1",
+]
