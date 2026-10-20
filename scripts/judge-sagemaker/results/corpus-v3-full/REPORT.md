@@ -148,6 +148,7 @@ Campaign total: **$290.20 USD** (training $273.80, evaluation $16.40) over 9 tra
 ## Panel agreement caveat
 
 Independent corpus panel agreement (source: `/Users/sjors/tmp/worktrees/slopvac/exp-judge-corpus/scripts/judge-corpus/items/panel-agreement.json`):
+
 - finding-confirmation: Fleiss κ=0.32 (3829 three-vote items).
 - semantic-detection: Fleiss κ=0.42 (1987 three-vote items).
 - Scores on panel-labelled rows measure agreement with the panel. Only constructions and human-adjudicated rows have independent ground truth.
