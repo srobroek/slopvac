@@ -1,4 +1,7 @@
 [tools]
+python = "3.14.8"
+uv = "0.13.3"
+vale = "3.24.0"
 "github:sharkdp/hyperfine" = "2.0.0"
 just = "1.59.0"                      # available via mise registry aqua:casey/just
 typos = "1.50.2"
