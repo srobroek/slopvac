@@ -1,22 +1,26 @@
-"""Non-blocking, best-effort PyPI release notices for interactive CLI runs."""
+"""Best-effort PyPI release notices for interactive CLI runs.
+
+The notice reads one cached file and never touches the network. When that file is
+older than the check interval, `start_refresh` spawns a detached process that asks
+PyPI and rewrites it, so a newer release shows on a later run. The command never
+waits for PyPI, and never imports an HTTP client.
+"""
 
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import re
 import sys
-import tempfile
-import threading
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 from . import __version__
-from .vale_cache import cache_root
 
 _CHECK_INTERVAL = timedelta(hours=24)
+# Nobody waits for the detached refresh, so it bounds itself. `urlopen`'s timeout
+# covers each socket operation but not name resolution.
+_REFRESH_TIMEOUT_SECONDS = 10
 _CACHE_NAME = "update-check.json"
 _PYPI_URL = "https://pypi.org/pypi/slopvac/json"
 _VERSION_RE = re.compile(r"v?([0-9]+(?:\.[0-9]+)*)(?:(a|b|rc)([0-9]*))?", re.IGNORECASE)
@@ -76,6 +80,8 @@ def _latest_stable_version(releases: object) -> str:
 
 
 def _fetch_latest_version() -> str:
+    from urllib.request import Request, urlopen
+
     request = Request(_PYPI_URL, headers={"Accept": "application/json"})
     with urlopen(request, timeout=2) as response:
         payload = json.load(response)
@@ -85,6 +91,8 @@ def _fetch_latest_version() -> str:
 
 
 def _cache_path() -> Path:
+    from .vale_cache import cache_root
+
     return cache_root() / _CACHE_NAME
 
 
@@ -118,6 +126,9 @@ def _is_fresh(cache: dict[str, object] | None, now: datetime) -> bool:
 
 
 def _write_cache(path: Path, cache: dict[str, object]) -> None:
+    """Replace the cache in one step, so a reader sees the old file or the new one."""
+    import tempfile
+
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: str | None = None
     try:
@@ -139,33 +150,70 @@ def _write_cache(path: Path, cache: dict[str, object]) -> None:
                 pass
 
 
-def _refresh_cache(path: Path) -> None:
-    """Fetch under a non-blocking cross-process lock; all errors stay silent."""
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with (path.parent / ".update-check.lock").open("a+") as lock:
-            try:
-                fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:
-                return
+def _claim_refresh(path: Path, now: datetime) -> bool:
+    """Record this interval's check once, however many invocations start together.
 
-            now = datetime.now(UTC)
-            cache = _read_cache(path)
-            if _is_fresh(cache, now):
-                return
-            previous = cache.get("latest_version") if cache else None
-            previous = previous if isinstance(previous, str) else None
-            # Record the attempt first: if the process exits mid-request, the next
-            # run waits a full interval instead of retrying on every command.
-            _write_cache(path, {"checked_at": now.isoformat(), "latest_version": previous})
-            try:
-                latest = _fetch_latest_version()
-            except Exception:
-                return
-            _write_cache(
-                path,
-                {"checked_at": datetime.now(UTC).isoformat(), "latest_version": latest},
-            )
+    The claim moves `checked_at` to now and keeps the last known version, so every
+    later invocation finds a fresh cache and spawns nothing, and a refresh that
+    dies mid-request waits a full interval instead of retrying on every command.
+    The lock makes the read and the record one step, so concurrent invocations
+    spawn one refresh between them. Windows has no `fcntl`: there the notice keeps
+    reading the cache and no refresh is spawned.
+    """
+    try:
+        import fcntl
+    except ImportError:
+        return False
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with (path.parent / ".update-check.lock").open("a+") as lock:
+        try:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return False
+        cache = _read_cache(path)
+        if _is_fresh(cache, now):
+            return False
+        previous = cache.get("latest_version") if cache else None
+        _write_cache(
+            path,
+            {
+                "checked_at": now.isoformat(),
+                "latest_version": previous if isinstance(previous, str) else None,
+            },
+        )
+    return True
+
+
+def _spawn_refresh(path: Path) -> None:
+    """Start `refresh_cache` in a process of its own session that outlives this one.
+
+    `-P` keeps the working directory off its `sys.path`, so a `slopvac` directory
+    in the project being linted is never imported in place of the installed one.
+    """
+    import subprocess
+
+    subprocess.Popen(
+        [sys.executable, "-P", "-m", "slopvac.update_notice", str(path)],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
+def refresh_cache(path: Path) -> None:
+    """Ask PyPI for the latest release and cache it; all errors stay silent.
+
+    Runs in the detached process. A failed fetch leaves the attempt that
+    `_claim_refresh` recorded, so the next check waits a full interval.
+    """
+    try:
+        latest = _fetch_latest_version()
+        _write_cache(
+            path,
+            {"checked_at": datetime.now(UTC).isoformat(), "latest_version": latest},
+        )
     except Exception:
         return
 
@@ -201,40 +249,33 @@ def _enabled(stderr_isatty: bool | None) -> bool:
     return bool(stderr_isatty) and not _disabled_by_environment()
 
 
-def start_refresh(*, stderr_isatty: bool | None = None) -> threading.Thread | None:
-    """Refresh a stale cache in a daemon thread that runs alongside the command.
+def start_refresh(*, stderr_isatty: bool | None = None) -> bool:
+    """Spawn a detached PyPI check when the cached one is stale; return whether it did.
 
-    Started before the command so a slow network overlaps with its work instead
-    of delaying exit; `show_update_notice` waits for it only briefly.
+    Never raises and never waits: the command runs and exits at its own pace.
     """
     try:
-        if not _enabled(stderr_isatty):
-            return None
+        if not _enabled(stderr_isatty) or not sys.executable:
+            return False
         path = _cache_path()
-        if _is_fresh(_read_cache(path), datetime.now(UTC)):
-            return None
-        thread = threading.Thread(
-            target=_refresh_cache, args=(path,), name="slopvac-update-check", daemon=True
-        )
-        thread.start()
-        return thread
+        now = datetime.now(UTC)
+        if _is_fresh(_read_cache(path), now) or not _claim_refresh(path, now):
+            return False
+        _spawn_refresh(path)
+        return True
     except Exception:
-        return None
+        return False
 
 
 def show_update_notice(
-    refresh: threading.Thread | None = None,
     *,
     stderr_isatty: bool | None = None,
     command: str | None = None,
     output_format: str | None = None,
     output_to_file: bool = False,
-    wait_seconds: float = 1.0,
 ) -> None:
     """Print one stderr line when the cached latest release is newer."""
     try:
-        if refresh is not None:
-            refresh.join(timeout=wait_seconds)
         if (
             not _enabled(stderr_isatty)
             or command == "prime"
@@ -252,3 +293,10 @@ def show_update_notice(
             )
     except Exception:
         return
+
+
+if __name__ == "__main__":
+    import signal
+
+    signal.alarm(_REFRESH_TIMEOUT_SECONDS)
+    refresh_cache(Path(sys.argv[1]))

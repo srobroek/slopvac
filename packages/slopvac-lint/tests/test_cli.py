@@ -8,21 +8,24 @@ partial findings remain available but cannot establish a pass.
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
 
 from slopvac.cli import main
-from slopvac.pipeline import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
+from slopvac.contract import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
 
 
 def test_machine_formats_skip_update_check(runner, tmp_path, monkeypatch):
     path = _write(tmp_path, "CHANGELOG.md", "Plain text.\n")
     config = _write(tmp_path, "slopvac.toml", 'exclude = ["CHANGELOG.md"]\n')
     monkeypatch.setattr(
-        "slopvac.cli.start_refresh",
+        "slopvac.update_notice.start_refresh",
         lambda: pytest.fail("update check started for machine-readable output"),
     )
     result = runner.invoke(
@@ -32,6 +35,42 @@ def test_machine_formats_skip_update_check(runner, tmp_path, monkeypatch):
 
     assert result.exit_code == EXIT_OK, result.output
     json.loads(result.output[result.output.index("{") :])
+
+
+# What `lint` needs and the commands an agent runs at every session start do not.
+_LINT_MACHINERY = frozenset(
+    {
+        "markdown_it",
+        "rich",
+        "slopvac.analyze",
+        "slopvac.compile_vale",
+        "slopvac.engine",
+        "slopvac.pipeline",
+        "slopvac.rules",
+        "urllib.request",
+    }
+)
+
+
+@pytest.mark.parametrize("args", [["--version"], ["prime"]])
+def test_startup_commands_skip_the_lint_machinery(args, tmp_path):
+    script = (
+        "import sys\n"
+        "from slopvac.cli import main\n"
+        f"main({args!r}, standalone_mode=False)\n"
+        "print(' '.join(sys.modules), file=sys.stderr)\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=tmp_path,
+        env={**os.environ, "NO_UPDATE_NOTIFIER": "1"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert not set(result.stderr.split()) & _LINT_MACHINERY
+
 
 SLOP = """\
 # Getting Started

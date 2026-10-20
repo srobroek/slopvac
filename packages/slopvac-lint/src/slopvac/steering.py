@@ -13,10 +13,7 @@ from __future__ import annotations
 
 import os
 import re
-import tempfile
 from pathlib import Path
-
-from markdown_it import MarkdownIt
 
 BEGIN = "<!-- slopvac:begin -->"
 END = "<!-- slopvac:end -->"
@@ -123,6 +120,9 @@ def _safe_target(root: Path, relative: str) -> Path:
 
 def _section(text: str) -> tuple[int, int] | None:
     """Locate managed markers while ignoring copies shown in fenced code."""
+    # Imported here: `setup --list` and `--version` never parse a steering file.
+    from markdown_it import MarkdownIt
+
     fenced: set[int] = set()
     for token in MarkdownIt().parse(text):
         if token.type in {"fence", "code_block"} and token.map:
@@ -163,6 +163,8 @@ def _atomic_write(path: Path, before: bytes | None, after: bytes) -> bool:
         raise SteeringError(f"file changed during setup; retry: {path}")
     path.parent.mkdir(parents=True, exist_ok=True)
     mode = path.stat().st_mode & 0o777 if before is not None else 0o644
+    import tempfile
+
     fd, name = tempfile.mkstemp(prefix=".slopvac-", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as stream:

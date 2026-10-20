@@ -11,75 +11,11 @@ substitution rule needs no Python; only a genuinely new detection strategy does.
 
 from __future__ import annotations
 
-from enum import Enum
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .config import Severity
-
-
-class Tier(str, Enum):
-    """How a rule behaves per profile. Mirrors config.Profile but describes the
-    rule's own shipped disposition rather than the project's choice."""
-
-    ENFORCED = "enforced"
-    ADVISORY = "advisory"
-    EXCLUDED = "excluded"
-
-
-class RuleKind(str, Enum):
-    """The checker that executes this rule.
-
-    TOKENS       -- literal phrases, word-boundary matched.
-    PATTERN      -- a regex with named-group support.
-    SUBSTITUTION -- a from -> to map; the message names the replacement.
-    VOCABULARY   -- POS-keyed controlled-vocabulary lookup (STE rule 1.2).
-    METRIC       -- a counted measurement against a threshold (sentence length,
-                    passive ratio, syllables per word).
-    STRUCTURE    -- block-level shape (paragraph sentence count, list form).
-    JUDGEMENT    -- not mechanizable; carried so writing and review guidance
-                    read one source of truth. Never produces a finding.
-    """
-
-    TOKENS = "tokens"
-    PATTERN = "pattern"
-    SUBSTITUTION = "substitution"
-    VOCABULARY = "vocabulary"
-    METRIC = "metric"
-    STRUCTURE = "structure"
-    JUDGEMENT = "judgement"
-
-
-class Scope(str, Enum):
-    """Where in the parsed document the rule applies.
-
-    Prose excludes code fences, inline code, URLs, and front matter. `raw` reaches
-    everything, which only formatting rules should want.
-    """
-
-    PROSE = "prose"
-    HEADING = "heading"
-    SENTENCE = "sentence"
-    PARAGRAPH = "paragraph"
-    DOCUMENT = "document"
-    RAW = "raw"
-
-
-class TextType(str, Enum):
-    """STE's procedural/descriptive split, which selects the word cap: 20 words
-    for an instruction, 25 for descriptive text (rules 5.1 and 6.3).
-
-    The spec gives no mechanical test for the distinction, so the detector uses
-    imperative mood plus note/warning/caution markers. ANY means the rule does
-    not care.
-    """
-
-    ANY = "any"
-    PROCEDURAL = "procedural"
-    DESCRIPTIVE = "descriptive"
-    SAFETY = "safety"
-
+from .enums import RuleKind, Scope, Severity, TextType, Tier
 
 # Genre labels are rule metadata for documentation, inspection, and the review
 # checklist: `slopvac rules --genre` selects the categories whose
