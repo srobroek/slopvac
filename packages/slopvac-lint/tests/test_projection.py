@@ -49,13 +49,26 @@ def test_raw_codepoint_byte_offsets_match_original_algorithm() -> None:
 
 
 @pytest.mark.parametrize(
-    "raw",
+    ("path", "raw"),
     [
-        "# First\n\nSecond paragraph.\n\n# Third\n\nFourth paragraph.\n",
-        "# Café\r\n\r\nSecond 😊 paragraph.\r\n\r\nThird e\u0301.",
+        (
+            "fixture.md",
+            "# First\n\nSecond paragraph.\n\n# Third\n\nFourth paragraph.\n",
+        ),
+        (
+            "fixture.md",
+            "# Café\r\n\r\nSecond 😊 paragraph.\r\n\r\nThird e\u0301.",
+        ),
+        (
+            "fixture.md",
+            "before\n\n<div>café 😊</div>\n\n<div>第二段</div>\n\nafter\n",
+        ),
+        ("fixture.html", "<p>Café 😊</p>\n<p>第二段</p>\n"),
     ],
 )
-def test_document_offset_tables_are_built_once(monkeypatch, raw: str) -> None:
+def test_document_offset_tables_are_built_once(
+    monkeypatch, path: str, raw: str
+) -> None:
     byte_offsets = analyze._raw_cp_bytes
     line_starts = analyze._line_cp_starts
     byte_calls: list[str] = []
@@ -71,11 +84,12 @@ def test_document_offset_tables_are_built_once(monkeypatch, raw: str) -> None:
 
     monkeypatch.setattr(analyze, "_raw_cp_bytes", count_byte_offsets)
     monkeypatch.setattr(analyze, "_line_cp_starts", count_line_starts)
-    document = parse("fixture.md", raw)
+    document = parse(path, raw)
 
     assert len(document.blocks) > 1
+    assert len(byte_calls) == 1
     assert byte_calls == [raw]
-    assert line_calls == [raw]
+    assert line_calls.count(raw) == 1
 
 
 def test_projection_line_join_is_a_zero_width_raw_segment() -> None:

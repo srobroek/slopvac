@@ -581,18 +581,18 @@ def _is_table_row(line: str) -> bool:
     return bool(stripped and "|" in stripped)
 
 
-def _finalize_document(document: Document) -> Document:
-    """Attach maps, origins, stable identities, and document ranges."""
-
-    raw_bytes = document.raw.encode("utf-8")
+def _finalize_document(
+    document: Document,
+    offsets: list[int] | range,
+    starts: list[int],
+    raw_bytes: bytes,
+) -> Document:
     projected_text, document.projection = project(document.raw)
     document.origin = classify_origin(document.path, document.raw)
     document.source_sha256 = source_sha256(raw_bytes)
 
     examples_heading = False
     projected_cursor = 0
-    offsets = _raw_cp_bytes(document.raw)
-    starts = _line_cp_starts(document.raw)
     block_occurrences: dict[tuple[str, str], int] = {}
     sentence_occurrences: dict[str, int] = {}
     for block in document.blocks:
@@ -1070,11 +1070,16 @@ class _HtmlTextExtractor(HTMLParser):
         content: str,
         raw: str,
         raw_offset_cp: int = 0,
+        content_line_starts: list[int] | None = None,
     ) -> None:
         super().__init__(convert_charrefs=False)
         self.prose_lines = ["" for _ in range(line_count)]
         self.text_spans: list[list[tuple[int, int]]] = [[] for _ in range(line_count)]
-        self._content_line_starts = _line_cp_starts(content)
+        self._content_line_starts = (
+            content_line_starts
+            if content_line_starts is not None
+            else _line_cp_starts(content)
+        )
         self._raw = raw
         self._raw_offset_cp = raw_offset_cp
         self._skip = 0
@@ -1152,7 +1157,10 @@ class _HtmlTextExtractor(HTMLParser):
 
 
 def _html_line_projection(
-    extractor: _HtmlTextExtractor, line_index: int, raw: str
+    extractor: _HtmlTextExtractor,
+    line_index: int,
+    offsets: list[int] | range,
+    raw_bytes: bytes,
 ) -> tuple[str, ProjectionMap]:
     """Return one trimmed HTML line and its text-node-only source map."""
 
@@ -1160,7 +1168,6 @@ def _html_line_projection(
     start = len(piece) - len(piece.lstrip())
     end = len(piece.rstrip())
     clean = piece[start:end]
-    offsets = _raw_cp_bytes(raw)
     segments = tuple(
         Segment(
             index,
@@ -1172,7 +1179,7 @@ def _html_line_projection(
             extractor.text_spans[line_index][start:end]
         )
     )
-    return clean, ProjectionMap(segments, raw.encode("utf-8"))
+    return clean, ProjectionMap(segments, raw_bytes)
 
 
 _FENCE_START = re.compile(r"^\s{0,3}(?P<marker>(?P<char>`|~){3,})")
@@ -1205,6 +1212,9 @@ def _project_html_block(
     last: int,
     prose_lines: list[str],
     raw: str,
+    offsets: list[int] | range,
+    starts: list[int],
+    raw_bytes: bytes,
 ) -> tuple[
     str,
     list[tuple[int, int]],
@@ -1214,7 +1224,7 @@ def _project_html_block(
 ]:
     """Extract visible HTML text while retaining text-node source spans."""
     line_count = max(last - first + 1, 1)
-    raw_offset_cp = _line_cp_starts(raw)[max(0, first - 1)]
+    raw_offset_cp = starts[max(0, first - 1)]
     extractor = _HtmlTextExtractor(line_count, content, raw, raw_offset_cp)
     extractor.feed(content)
     extractor.close()
@@ -1227,10 +1237,12 @@ def _project_html_block(
     visible_lines: list[int] = []
     for local in range(len(extractor.prose_lines)):
         source_line = first + local
-        clean, line_projection = _html_line_projection(extractor, local, raw)
+        clean, line_projection = _html_line_projection(
+            extractor, local, offsets, raw_bytes
+        )
         if local in fence_lines:
             clean = ""
-            line_projection = ProjectionMap((), raw.encode("utf-8"))
+            line_projection = ProjectionMap((), raw_bytes)
         if 0 < source_line <= len(prose_lines):
             prose_lines[source_line - 1] = clean
         if not clean:
@@ -1273,7 +1285,7 @@ def _project_html_block(
         line_starts,
         paragraph_lines,
         code_blocks,
-        ProjectionMap(tuple(projection_segments), raw.encode("utf-8")),
+        ProjectionMap(tuple(projection_segments), raw_bytes),
     )
 
 
@@ -1286,13 +1298,18 @@ def _parse_html(path: str, raw: str) -> Document:
     stdlib `html.parser` and keeps `prose_lines` index-aligned with the source.
     """
     raw_lines = raw.split("\n")
-    extractor = _HtmlTextExtractor(len(raw_lines), raw, raw)
+    offsets = _raw_cp_bytes(raw)
+    starts = _line_cp_starts(raw)
+    raw_bytes = raw.encode("utf-8")
+    extractor = _HtmlTextExtractor(
+        len(raw_lines), raw, raw, content_line_starts=starts
+    )
     extractor.feed(raw)
     extractor.close()
     html_lines: list[str] = []
     html_projections: list[ProjectionMap] = []
     for index in range(len(raw_lines)):
-        line, projection = _html_line_projection(extractor, index, raw)
+        line, projection = _html_line_projection(extractor, index, offsets, raw_bytes)
         html_lines.append(line)
         html_projections.append(projection)
     prose_lines = html_lines
@@ -1322,7 +1339,10 @@ def _parse_html(path: str, raw: str) -> Document:
             raw_lines=raw_lines,
             prose_lines=prose_lines,
             blocks=blocks,
-        )
+        ),
+        offsets,
+        starts,
+        raw_bytes,
     )
 
 
@@ -1344,6 +1364,9 @@ def parse(path: str, raw: str) -> Document:
     if path.lower().endswith((".html", ".htm")):
         return _parse_html(path, raw)
     raw_lines = raw.split("\n")
+    offsets = _raw_cp_bytes(raw)
+    starts = _line_cp_starts(raw)
+    raw_bytes = raw.encode("utf-8")
     prose_lines = [""] * len(raw_lines)
     blocks: list[Block] = []
     front_matter: dict[str, str] = {}
@@ -1402,7 +1425,16 @@ def parse(path: str, raw: str) -> Document:
             first = token.map[0] + 1 + offset
             last = token.map[1] + offset
             text, line_starts, paragraph_lines, code_blocks, html_projection = (
-                _project_html_block(token.content, first, last, prose_lines, raw)
+                _project_html_block(
+                    token.content,
+                    first,
+                    last,
+                    prose_lines,
+                    raw,
+                    offsets,
+                    starts,
+                    raw_bytes,
+                )
             )
             if paragraph_lines is not None:
                 record(
@@ -1546,7 +1578,10 @@ def parse(path: str, raw: str) -> Document:
             prose_lines=prose_lines,
             blocks=blocks,
             front_matter=front_matter,
-        )
+        ),
+        offsets,
+        starts,
+        raw_bytes,
     )
 
 
