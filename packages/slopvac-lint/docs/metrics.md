@@ -34,8 +34,7 @@ Examples:
 | `read-only` | one word |
 
 Titles and Markdown emphasis do not receive a separate one-word exemption.
-Unquoted title text is counted by the same identifier, proper-name, and lexical
-rules as other prose.
+The counter applies the same identifier, proper-name, and lexical rules to unquoted titles and other prose.
 
 ## Sentence boundaries
 
@@ -51,12 +50,12 @@ separate Markdown blocks, so they do not increase the
 
 Dotted initialisms use a conservative boundary heuristic. A following
 closed-class opener such as `The`, `This`, `If`, or `We` can start a new
-sentence; a following proper-name-like continuation remains attached.
+sentence. A following proper-name-like continuation remains attached.
 
 ## Text type
 
 Sentence caps depend on the text type. Slopvac classifies text with lexical
-rules; it does not use a dependency parser or general part-of-speech model.
+rules. It does not use a dependency parser or general part-of-speech model.
 
 - `WARNING`, `CAUTION`, and `DANGER` produce safety text unless the following
   text is an instruction. `NOTICE` and `ATTENTION` also produce safety text
@@ -72,8 +71,7 @@ for descriptive text.
 
 ## Native metrics
 
-These metrics are evaluated by the native engine when an active rule uses a
-metric that Vale cannot handle. Other metric rules may run in Vale.
+The native engine evaluates these metrics when an active rule needs a measurement that Vale cannot handle. Other metric rules may run in Vale.
 
 | Metric | Measurement |
 | --- | --- |
@@ -96,25 +94,29 @@ metric that Vale cannot handle. Other metric rules may run in Vale.
 | `bold_spans_per_1000_words` | bold spans per 1,000 prose words |
 | `dash_per_1000_words` | aside-style dash matches per 1,000 prose words |
 
-The noun-stack, passive-voice, adjective, abstraction, hedge, and concrete
-referent metrics are lexical heuristics. Their names describe the signal being
-approximated, not a claim that Slopvac performed full grammatical parsing.
+The following metrics use lexical heuristics:
+
+- noun stacks
+- passive voice
+- adjectives
+- abstraction
+- hedges
+- concrete referents
+
+Their names describe approximate signals. Slopvac does not perform full grammatical parsing.
 
 ## Source mapping
 
-Markdown code blocks and front matter are kept out of the prose projection.
+The parser excludes Markdown code blocks and front matter from the prose projection.
 Inline code and other protected spans remain available to the word counter so
 they can count as opaque units. Findings retain source locations mapped back to
 the original document.
 
 ## Limits
 
-The analysis is deterministic, but several classifications are intentionally
-heuristic. Proper-name detection relies on capitalization, imperative detection
+The analysis uses deterministic heuristics. Proper-name detection relies on capitalization, imperative detection
 uses a closed verb set, and noun-stack detection uses lexical and suffix
-patterns. A sentence outside those patterns can be classified differently from
-a human grammatical analysis.
+patterns. The classifier can disagree with a human analysis when a sentence falls outside those patterns.
 
 Use `slopvac explain <rule-id>` to inspect the rule that consumes a metric.
-Use the [triage guide](triage.md) when a deterministic match is valid text in its
-specific context.
+When a deterministic match is valid in its context, use the [triage guide](triage.md).

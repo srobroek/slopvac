@@ -49,12 +49,18 @@ Slopvac skips the check in these cases:
 - The environment contains `CI`.
 - Standard error is not a terminal.
 
-To disable the check, set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`.
+To disable the check, set one of these environment variables:
+
+- `NO_UPDATE_NOTIFIER=1`
+- `SLOPVAC_NO_UPDATE_CHECK=1`
+- `DO_NOT_TRACK=1`
 
 **[Vale](https://vale.sh) 3.18 or later is required for complete linting.**
 Install Vale separately and add its executable to `PATH` (`brew install vale`
 on macOS). Run `slopvac doctor` to check that Vale meets the required version.
-SlopVac generates Vale's configuration and styles. Contributors can run
+Slopvac generates Vale's configuration and styles.
+
+Contributors can run
 `mise install` to install the pinned Python, uv, and Vale tools.
 Users of uvx, uv, or pipx do not need mise. They install Vale separately.
 
@@ -81,17 +87,16 @@ slopvac prime review
 ```
 
 `slopvac prime` prints the lint workflow and says when to run the `write` and
-`review` topics. Both topics are described in
-[semantic guidance](docs/semantic-guidance.md).
+`review` topics. [Semantic guidance](docs/semantic-guidance.md) describes both topics.
 
 Two commands write the steering files:
 
 - `slopvac init` creates `slopvac.toml` when absent and keeps an existing file
   unless you pass `--force`. Repeat `--harness <name>` to write steering for
-  several harnesses. Without `--harness`, it writes generic `AGENTS.md` steering;
-  naming a harness replaces that default, so add `--harness agents` to keep it.
+  multiple harnesses. Without `--harness`, it writes generic `AGENTS.md` steering.
+  Naming a harness replaces that default, so add `--harness agents` to keep it.
   `--no-skills` writes steering without skills. `--skip-agents` writes only the
-  config and cannot be combined with `--harness` or `--no-skills`.
+  config and rejects `--harness` and `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
   and its skill when available. It writes only those files and reads
   `[guidance]` from `slopvac.toml`. Without a config it uses the defaults. It
@@ -114,15 +119,22 @@ slopvac setup kiro                            # one harness; reads config, never
 | Oh My Pi | `omp` | `.omp/AGENTS.md` | `.omp/skills/slopvac-prose/SKILL.md` |
 | Kiro | `kiro` | `.kiro/steering/slopvac.md` (`inclusion: always` for a new file) | `.kiro/skills/slopvac-prose/SKILL.md` |
 
-In steering files, both commands keep content outside Slopvac's managed
-markers. Neither touches a skill file that Slopvac did not write.
-`slopvac setup <harness> --check` reports the block as `current`, `missing`,
-`stale`, or `malformed`, and the skill as one of those or `disabled`, without
-changing files. It exits 0 when everything is `current` or `disabled`, 1 when
-something is `missing` or `stale`, and 2 when a file is `malformed`.
-`slopvac setup <harness> --remove` removes its managed steering block and skill.
-The skill directory is deleted only when empty. `slopvac setup --list` lists each
-harness and its steering and skill paths.
+Both commands preserve content outside Slopvac's managed markers.
+They also preserve skill files that Slopvac did not write.
+
+`slopvac setup <harness> --check` reports each steering block's status.
+A block can be `current`, `missing`, `stale`, or `malformed`.
+A skill can also be `disabled`. The check leaves files unchanged.
+
+| Exit code | Condition |
+| --- | --- |
+| 0 | Every item is current or disabled |
+| 1 | An item is missing or stale |
+| 2 | A file is malformed |
+
+`slopvac setup <harness> --remove` removes Slopvac's managed block and skill.
+It deletes the skill directory only when empty.
+`slopvac setup --list` prints harness names and their steering and skill paths.
 
 ## Lint documents
 
@@ -147,8 +159,8 @@ slopvac --fix README.md
 ```
 
 `--diff-base REV` limits findings to added lines in the committed `REV...HEAD`
-diff. `--diff-working-tree` uses the index and working tree relative to `HEAD`;
-untracked files are included with all lines in scope.
+diff. `--diff-working-tree` uses the index and working tree relative to `HEAD`.
+All lines of an untracked file fall within the scope.
 
 `--fix` edits source files using deterministic replacements with a single
 alternative. It preserves match case and skips replacements that offer multiple
@@ -205,7 +217,7 @@ also apply, including in `relaxed`. All profiles default to
 | --- | --- |
 | `enforced` | Uses its effective severity and can fail a gate |
 | `advisory` | Reports at suggestion level under profile defaults |
-| `excluded` | Does not run in that profile; configuration cannot re-enable it |
+| `excluded` | Does not run in that profile. Configuration cannot re-enable it |
 
 A tier is separate from configured severity. `severity = "off"` disables an
 otherwise admitted category or rule. A project setting can override a
@@ -268,7 +280,7 @@ profile = "strict"
 | `[[overrides]]` | Path-specific configuration patches |
 | `[locale]` | Spelling target and allowed spellings |
 | `[vocabulary]` | Path to a project word blocklist |
-| `[vale]` | Vale enablement and binary; `config` and `styles` are accepted but currently have no effect |
+| `[vale]` | Vale enablement and binary. `config` and `styles` are accepted but currently have no effect |
 | `[guidance]` | Whether `slopvac prime` points agents at writing guidance and semantic review |
 
 ### Agent guidance
@@ -280,7 +292,7 @@ review = "auto"            # auto | ask | off
 review_depth = "subagent"  # self | subagent | adversary
 ```
 
-`write = "off"` drops the writing step. `review = "ask"` prompts before review;
+`write = "off"` drops the writing step. `review = "ask"` prompts before review.
 `review = "off"` disables review. The default `review_depth = "subagent"` uses
 one fresh-context reviewer pass. The author gives the subagent the document and
 the `slopvac prime review` output, plus the original and any source or brief.
@@ -483,9 +495,8 @@ See [metrics](docs/metrics.md) for counting and text-type classification details
 
 ## Rules
 
-In the [generated rule reference](docs/rules.md), you can find all 26 categories
-and profile tiers for the 166 checked rules, followed by the 67 judgment rules
-with their review questions and examples.
+The [generated rule reference](docs/rules.md) lists all 26 categories and profile tiers for the 166 checked rules.
+It then lists the 67 judgment rules with their review questions and examples.
 
 | Family | Categories |
 | --- | --- |
@@ -502,13 +513,12 @@ slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
 
-`slopvac rules --format md` prints each selected rule in full for an agent to
-read: the question or message, the fix, the examples, the tiers, and the
-source. `--format json` prints the same rules as data for tools.
+`slopvac rules --format md` prints each selected rule in full.
+Each block contains its question or message, fix, examples, tiers, and source. `--format json` prints the same rules as data for tools.
 `--genre <genre>` keeps the categories whose `recommended_for` lists that
 genre. The filters `--kind`, `--category`, and `--genre` combine, so a rule
 appears only when it passes each one. With `--profile`, md output omits the
-rules that the profile excludes; `--include-excluded` keeps them.
+rules that the profile excludes. `--include-excluded` keeps them.
 `slopvac explain <rule_id> --format md` prints the same block for one rule.
 The [rules output reference](docs/rules-output.md) lists every JSON key and
 the layout of each md block.
@@ -520,7 +530,7 @@ lint.
 
 `--rules-dir` adds project categories over packaged YAML and is repeatable. A
 project category with the same id replaces the packaged category. Each directory
-must exist; it can be empty if the packaged rules provide files. Rule files that
+must exist. It can be empty if the packaged rules provide files. Rule files that
 it contains must be valid.
 
 `slopvac rules` also includes the spelling rule generated for the configured
@@ -528,7 +538,7 @@ locale. The YAML rule count excludes that generated rule.
 
 ## The compiled-rule cache
 
-Compiled Vale styles are cached between runs. Use these commands to inspect
+Slopvac caches compiled Vale styles between runs. Use these commands to inspect
 or reclaim the cache:
 
 ```sh
@@ -571,22 +581,23 @@ A passing score does not verify factual correctness or establish authorship.
 
 ## In development
 
-Slopvac is evaluating a separate semantic layer with typed decisions; the
+Slopvac is evaluating a separate semantic layer with typed decisions. The
 current [semantic review](docs/semantic-guidance.md) is a checklist an agent
 applies, with no model calls from Slopvac. The typed layer would
 run after the current parser has produced exact spans and deterministic
 candidates. A provider such as Jev, Laya, Nimble, Kev, or a SemIf-compatible
 backend would answer bounded questions while Slopvac code keeps ownership of the
-final policy. The same provider interface would support two jobs: detect semantic-only
-cases the linter cannot express reliably, and check a finding from the linter
-against the rule's intended meaning.
+final policy. The same provider interface would support two jobs:
+
+- Detect semantic-only cases that deterministic rules cannot express reliably.
+- Check a linter finding against the rule's intended meaning.
 
 A local reranker such as Qwen3-Reranker-0.6B may be tested before the typed
 provider when candidate volume is high. It is a recall-first prefilter, never
 the final judge, and filtered candidates must remain visible in coverage
-measurement. This work lives on the separate `feat/judgement-rewrite` branch;
-it is not part of the current CLI or deterministic exit status. See the
-[project overview](../../README.md#agentic-judgement)
+measurement. This work lives on the separate `feat/judgement-rewrite` branch.
+It is not part of the current CLI or deterministic exit status. See the
+[project overview](../../README.md#agentic-judgment)
 and [issue #162](https://github.com/srobroek/slopvac/issues/162).
 
 ## Sources
