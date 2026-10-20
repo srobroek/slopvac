@@ -58,21 +58,26 @@ slopvac README.md
 
 Upgrade the installation with `uv tool upgrade slopvac`. To run slopvac without
 a persistent install, use `uvx slopvac README.md`. uvx reuses its cached
-environment; use `uvx slopvac@latest README.md` to force the latest release.
+environment. Use `uvx slopvac@latest README.md` to force the latest release.
 
 `init` creates `slopvac.toml` with the `normal` profile when absent and keeps an
 existing config unless you pass `--force`. Replace `README.md` with the file or
-directory to check. A passing run exits 0; findings above a threshold exit 1;
-an incomplete check exits 2.
+directory to check. A passing run exits 0. Findings above a threshold exit 1.
+An incomplete check exits 2.
 
 ### Update notice
 
-Slopvac shows an update notice after an eligible command only when its cache
-contains a newer stable PyPI release. It refreshes the cache in the background,
-so a newly discovered release can appear on a later run. Slopvac skips the check
-for `prime`, any non-text output format, reports written to a file or opened,
-when `CI` is set, or when stderr is not a terminal. Set `NO_UPDATE_NOTIFIER=1`,
-`SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1` to disable the check.
+If the cache contains a newer stable PyPI release, Slopvac prints an update notice after an eligible command.
+Slopvac refreshes that cache in the background. A newly discovered release can appear on a later run.
+Slopvac skips the check in these cases:
+
+- The command is `prime`.
+- The output format is non-text.
+- The report goes to a file or opens in a browser.
+- The environment contains `CI`.
+- Standard error is not a terminal.
+
+To disable the check, set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`.
 
 ### Use the results
 
@@ -90,8 +95,8 @@ covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
 
 ## What it checks
 
-The linter ships 166 checked rules across 26 categories. The catalogue also
-carries 67 judgement rules that lint never reports; the
+The linter ships 166 checked rules across 26 categories. The catalog also
+carries 67 judgment rules that lint never reports. The
 [writing guidance](#writing-guidance) and [semantic review](#semantic-review)
 apply them.
 

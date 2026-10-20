@@ -53,7 +53,7 @@ from pathlib import Path
 
 from .config import Mode, ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType, Tier
-from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
+from .vale_cache import cache_lock, fingerprint, private_compile_root, prune_cache
 from .vale_probe import ValeUnavailable, probe_payloads, rule_yaml, vale_version
 
 COMMENT_SAFE_KINDS = frozenset({RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION})
@@ -1038,7 +1038,7 @@ def compile_ruleset(
                 "because a tree that was never probed may contain a rule Vale "
                 "refuses to load, and one such rule makes Vale lint nothing at all"
             )
-        outdir = cache_root() / key
+        outdir = private_compile_root() / key
     outdir = Path(outdir)
     manifest_path = outdir / "manifest.json"
 

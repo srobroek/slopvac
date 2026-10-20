@@ -16,8 +16,8 @@ that share a cache directory take turns overwriting the slot. Each load is then
 a miss and costs one uncached load.
 
 A DAMAGED ENTRY IS A MISS. The entry carries a checksum of its documents, so a
-truncated, edited, or otherwise corrupt file never yields rules that differ from
-a fresh load. Writing is atomic and never raises.
+truncated or accidentally damaged file is a miss. A checksum is not authentication:
+ownership and permissions establish trust before a read. Writing is atomic and never raises.
 
 THE GENERATED SPELLING RULE HAS ITS OWN SLOT, one per locale, in the same format.
 `rules.inject_locale_rule` builds it from the locale table and the project's
@@ -37,7 +37,7 @@ import tempfile
 from contextlib import suppress
 from pathlib import Path
 
-from .vale_cache import cache_root, source_digest
+from .vale_cache import cache_root, source_digest, trusted_cache_path
 
 # The loader, the entry format, the schema the documents validate against, and
 # the substitution-pattern builder that verification compiles. A change to any
@@ -51,7 +51,7 @@ def entry_path(extra_dirs: list[Path]) -> Path:
     """The slot for this set of rule directories."""
     slot = hashlib.sha256(b"rulesets")
     for directory in extra_dirs:
-        slot.update(b"\0" + str(directory.resolve()).encode())
+        slot.update(b"\0" + os.fsencode(directory.resolve()))
     return cache_root() / "rulesets" / f"{slot.hexdigest()[:16]}.json"
 
 
@@ -87,13 +87,31 @@ def generated_key(origin: str, document: dict) -> str | None:
 def content_key(sources: list[tuple[str, str]]) -> str:
     """Hash of everything a verified load depends on: the package version, the
     loader's source, and each rule file's name and text, in load order."""
+    import platform
+
+    import regex
+    import yaml
+
     from . import __version__
 
     digest = hashlib.sha256()
     digest.update(__version__.encode() + b"\0")
     digest.update(source_digest(_LOADER_SOURCES).encode())
+    digest.update(
+        repr(
+            (
+                platform.python_implementation(),
+                platform.python_version(),
+                regex.__version__,
+                yaml.__version__,
+                getattr(yaml, "__with_libyaml__", False),
+                yaml._yaml.get_version_string() if getattr(yaml, "__with_libyaml__", False) else None,
+            )
+        ).encode()
+    )
     for origin, text in sources:
-        digest.update(b"\0" + origin.encode() + b"\0")
+        identity = str(Path(origin).resolve()) if Path(origin).is_file() else origin
+        digest.update(b"\0" + os.fsencode(identity) + b"\0")
         digest.update(hashlib.sha256(text.encode("utf-8")).digest())
     return digest.hexdigest()
 
@@ -102,6 +120,8 @@ def read(path: Path, key: str) -> Documents | None:
     """The documents stored under `key`, or None when the entry is absent, holds
     another key, or fails its checksum or shape check."""
     try:
+        if not trusted_cache_path(path):
+            return None
         raw = path.read_bytes()
     except OSError:
         return None
@@ -150,7 +170,10 @@ def write(path: Path, key: str, documents: Documents) -> None:
     encoded = body.encode("ascii")
     header = json.dumps({"key": key, "sha256": hashlib.sha256(encoded).hexdigest()})
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
+        if not trusted_cache_path(path.parent, create=True):
+            return
+        if path.exists() and not trusted_cache_path(path):
+            return
         handle, temporary = tempfile.mkstemp(
             dir=path.parent, prefix=f".{path.stem}.", suffix=".tmp"
         )

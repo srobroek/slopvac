@@ -425,7 +425,7 @@ rules:
       ste_ref: '9:GR-6'
       note: >-
         New in Issue 9, and the most mechanizable of the eight recommendations. Off by
-        profile default (opt in with a `[rules]` entry): human labelling in 2026-10 judged
+        profile default (opt in with a `[rules]` entry, and enable the `ste-practices` category if it is off): human labelling in 2026-10 judged
         "e.g." and its siblings ordinary, readable usage outside a controlled language. Note the specification's
         own preferred handling of a trailing "etc." is often deletion rather than substitution,
         because the list either matters or it does not; the fix text says so.

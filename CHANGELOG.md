@@ -80,7 +80,7 @@
 * **rules:** `slopvac rules` gains `--genre <genre>` and `--format md` ([#202](https://github.com/srobroek/slopvac/issues/202)). `--include-excluded` keeps excluded rules in the output. Each Markdown block gives:
   - the category, scope, and kind
   - the severity and tier at the profile, and all tiers
-  - the question or message, and the fix
+  - the question or message, and the fix when defined
   - every bad and good example with its note
   - the exceptions and the provenance
 * **explain:** `slopvac explain` renders through the same code and gains `--profile` and `--format md`. Its JSON gains `tier` and `effective_severity`.
@@ -97,7 +97,7 @@
   2. Comment mode applies directives with and without Vale. A directive inside a source comment covers the next comment block.
   3. Diff mode keeps `meta.invalid-suppression` when the directive is on an added line.
   4. Vale's own comments (`<!-- vale off -->`, `<!-- vale X = NO -->`, `.. vale off`) no longer hide findings.
-  5. Vale findings in front matter are dropped, matching the native engine.
+  5. Non-raw Vale findings in front matter and HTML comments are dropped, matching the native engine.
 * **vale:** the minimum Vale version is 3.18.0, up from 3.15. Earlier releases need the external `mdx2vast` to read MDX. Vale 3.15 also reported lines one late after an empty comment line in comment mode, so a finding could land inside a suppression. An older Vale gets the "upgrade Vale" incomplete note.
 * **ci:** CI and the GitHub Action install Vale 3.24.0. The pin lives in `scripts/install_vale.py`, where Renovate updates it. The Action's `vale-version` input defaults to that pin.
 
@@ -133,7 +133,7 @@
 ### Features
 
 * **rules:** re-release the judgement rules removed in 2.11.0 ([26beea3](https://github.com/srobroek/slopvac/commit/26beea3feba9daaa4c0c7e752116ae2034876af0)). The ruleset grows from 166 to 231 rules: 165 checked rules and 66 judgement rules. Judgement rules are questions for a reviewer, so lint does not run them. They reach the reviewer through `slopvac prime review`, `slopvac rules --kind judgement`, and the Judgement rules section of the rules reference. They stay out of compiled Vale styles and SARIF output.
-  - 65 of them come back unchanged from before 2.11.0. `ai-tells-register.disclaimed-claim-remainder` is new (see below).
+  - 65 of them return from before 2.11.0. The question for `ai-tells-content-shape.one-point-dilution` now includes a shorter test and an explicit keep condition. `ai-tells-register.disclaimed-claim-remainder` is new (see below).
   - The 66 judgement rules, by category:
     - `ai-tells-content-shape` (9): `elegant-variation`, `epigram-closer-remainder`, `fabricated-citations-remainder`, `one-point-dilution`, `over-writing-remainder`, `padded-symmetry`, `textbook-connector-runs`, `unasked-for-rationale`, `vaporware-description`
     - `ai-tells-formatting` (1): `table-wrapping-one-sentence`
@@ -152,8 +152,8 @@
     - `ste-words` (6): `domain-noun-category-membership`, `domain-noun-not-organization-approved`, `domain-noun-too-long-or-unclear`, `domain-verb-category-membership`, `unapproved-word-not-a-domain-noun`, `word-used-outside-permitted-sense`
   - `one-point-dilution` asks one decidable question with a keep condition.
 * **rules:** new pattern rule `ai-tells-register.disclaimed-claim-core` (warning, on at `normal`), with the judgement rule `ai-tells-register.disclaimed-claim-remainder`. Both flag an artifact that disclaims a claim instead of naming the check that was run, such as "This change makes no claim about endpoint health".
-* **guidance:** `slopvac prime write` prints a writing guide. `slopvac prime review` prints a review workflow with a checklist generated from the judgement rules. It asks a remainder question even when its pattern partner already fired. A `[guidance]` config table sets each step to `auto`, `ask`, or `off`. Reworded claims must stay as strong as their source.
-* **setup:** `slopvac init --harness` and `slopvac setup` install a thin `slopvac-prose` skill for harnesses that load project skills, and `--no-skills` skips it. Setup treats a `SKILL.md` as slopvac-managed only when its exact marker line is present. It refuses to overwrite or remove a hand-written one.
+* **guidance:** `slopvac prime write` prints a writing guide. `slopvac prime review` prints a review workflow with a checklist generated from the judgement rules. It asks a remainder question even when its pattern partner already fired. A `[guidance]` config table accepts `auto` or `off` for `write`, and `auto`, `ask`, or `off` for `review`. Reworded claims must stay as strong as their source.
+* **setup:** `slopvac init --harness` and `slopvac setup` install a thin `slopvac-prose` skill for harnesses that load project skills, and `slopvac init --no-skills` skips it during initialization. Setup treats a `SKILL.md` as slopvac-managed only when its exact marker line is present. It refuses to overwrite or remove a hand-written one.
 
 
 ### Bug Fixes
@@ -162,8 +162,8 @@
   - removed `ai-tells-formatting.curly-quotes` (every curly-apostrophe finding was a false positive)
   - removed `ai-tells-register.uniform-paragraph-mass` (no actionable true positive)
   - `ste-sentences.omitted-word-or-contraction` is now `ste-sentences.omitted-subject`. It checks only the subject-elided conditional opener ("If, When, or Once" with no subject) and no longer flags contractions.
-* **rules:** narrow false-positive hotspots found by human labelling of 199 disputed findings. Rule ids are unchanged ([#183](https://github.com/srobroek/slopvac/issues/183)). Affected: `prose-agency.false-agency`, `prose-agency.unattributed-recommendation`, `prose-agency.agentless-passive`, `ai-tells-structure.tricolon-abuse-core` (evaluative triads only), `ai-tells-content-shape.durable-vocabulary-habits`, `prose-promotion.promotional-puffery`, `prose-discipline.frozen-verb`, `prose-craft.articles`, `prose-craft.future-tense`, `ste-nouns.multiword-noun-too-long`, `ste-procedural.condition-after-command`.
-* **rules:** `ste-practices.latin-abbreviation` and the `e.g.` key of `prose-craft.latinisms` are off by default. A `[rules."<id>"]` entry with a severity turns either one on. `i.e.`, `etc.`, `viz.`, `vs.`, `cf.` and `N.B.` still fire in `prose-craft.latinisms` ([#184](https://github.com/srobroek/slopvac/issues/184), [#185](https://github.com/srobroek/slopvac/issues/185)).
+* **rules:** narrow false-positive hotspots found by human labelling of 199 disputed findings. Rule ids are unchanged ([#183](https://github.com/srobroek/slopvac/issues/183)). Affected: `prose-agency.false-agency`, `prose-agency.unattributed-recommendation`, `prose-agency.agentless-passive`, `ai-tells-structure.tricolon-abuse-core` (evaluative triads only), `ai-tells-content-shape.durable-vocabulary-habits`, `prose-promotion.promotional-puffery`, `prose-discipline.frozen-verb`, `prose-craft.articles`, `prose-craft.future-tense`, `ste-nouns.multiword-noun-too-long`, `ste-procedural.condition-after-command`, and `prose-format.prose-block` (a series-based `enumerating_paragraph_words` check above 100 words, replacing `paragraph_words` above 80).
+* **rules:** `ste-practices.latin-abbreviation` and all of `prose-craft.latinisms` are off by default. A `[rules."<id>"]` entry with a severity turns either one on when its category is enabled. At `relaxed`, enable the category too. Enabling `prose-craft.latinisms` enables its substitutions for `e.g.`, `i.e.`, `etc.`, `viz.`, `vs.`, `cf.` and `N.B.` ([#184](https://github.com/srobroek/slopvac/issues/184), [#185](https://github.com/srobroek/slopvac/issues/185)).
 
 ## [2.11.0](https://github.com/srobroek/slopvac/compare/v2.10.0...v2.11.0) (2026-09-25)
 

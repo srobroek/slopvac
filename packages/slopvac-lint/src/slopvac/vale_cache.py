@@ -13,10 +13,11 @@ so the config and model types stay annotation-only.
 
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import os
 import shutil
+import stat
+import sys
 import tempfile
 from contextlib import contextmanager
 from functools import cache
@@ -57,17 +58,75 @@ _COMPILER_SOURCES = ("compile_vale.py", "vale_cache.py", "vale_probe.py")
 def cache_root() -> Path:
     """Where compiled styles live.
 
-    Overridable through `SLOPVAC_CACHE_DIR`, then `XDG_CACHE_HOME`, then the
-    platform temp dir. A user-writable location matters because the compile runs
-    on every lint and a read-only cache would recompile every time.
+    Use the platform's per-user cache. Never reuse the old shared temp cache.
+    Ruleset reads and writes separately validate the directory's trust boundary.
     """
     override = os.environ.get("SLOPVAC_CACHE_DIR")
     if override:
         return Path(override)
+    if sys.platform == "win32":
+        return (
+            Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData/Local")
+            / "slopvac/Cache"
+        )
+    if sys.platform == "darwin":
+        return Path.home() / "Library/Caches/slopvac"
     xdg = os.environ.get("XDG_CACHE_HOME")
     if xdg:
         return Path(xdg) / "slopvac"
-    return Path(tempfile.gettempdir()) / "slopvac-cache"
+    return Path.home() / ".cache/slopvac"
+
+
+def trusted_cache_path(path: Path, *, create: bool = False) -> bool:
+    """Fail closed unless POSIX ownership and permissions prove a private path.
+
+    Ancestors must be owned by this user or root and not writable by others.
+    A root-owned sticky directory (such as /tmp) may contain a private user
+    directory. Links and non-regular entries are never proof of verified rules.
+    On platforms without these checks, loading simply parses and proves afresh.
+    Existing permissions are never repaired, and shared entries are never copied.
+    """
+    if os.name != "posix" or not path.is_absolute() or ".." in path.parts:
+        return False
+    uid = os.getuid()
+    try:
+        for component in reversed((path, *path.parents)):
+            try:
+                info = component.lstat()
+            except FileNotFoundError:
+                if not create:
+                    return False
+                component.mkdir(mode=0o700)
+                info = component.lstat()
+            if stat.S_ISLNK(info.st_mode) or info.st_uid not in {0, uid}:
+                return False
+            if component == path:
+                if info.st_uid != uid or info.st_mode & 0o077:
+                    return False
+                if not (stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode)):
+                    return False
+            elif not stat.S_ISDIR(info.st_mode):
+                return False
+            elif info.st_mode & 0o022 and not (
+                info.st_uid == 0 and info.st_mode & stat.S_ISVTX
+            ):
+                return False
+        return True
+    except OSError:
+        return False
+
+
+@cache
+def _temporary_cache() -> tempfile.TemporaryDirectory:
+    """Keep transient compiled output alive until this process exits."""
+    return tempfile.TemporaryDirectory(prefix="slopvac-private-")
+
+
+def private_compile_root() -> Path:
+    root = cache_root()
+    if trusted_cache_path(root, create=True):
+        return root
+    return Path(_temporary_cache().name)
 
 
 @contextmanager
@@ -75,11 +134,25 @@ def cache_lock(root: Path):
     """Serialize publication and pruning for one shared cache root."""
     root.mkdir(parents=True, exist_ok=True)
     with (root / ".slopvac.lock").open("a+") as handle:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        if os.name == "nt":
+            import msvcrt
+
+            handle.write("\0")
+            handle.flush()
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
         try:
             yield
         finally:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            if os.name == "nt":
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
 
 
 # How many compiled trees to keep. Each is ~400KB, so 16 is a few megabytes and
@@ -108,14 +181,23 @@ def prune_cache(root: Path | None = None, keep: int = CACHE_KEEP) -> list[Path]:
         entries = [p for p in root.iterdir() if (p / "manifest.json").is_file()]
     except OSError:
         return removed
-    if len(entries) <= keep:
-        return removed
-
     def recency(path: Path) -> tuple[float, str]:
         try:
             return (path.stat().st_mtime, path.name)
         except OSError:
             return (0.0, path.name)
+
+    # Ruleset slots have their own recency budget, including generated locales.
+    rulesets = root / "rulesets"
+    if trusted_cache_path(rulesets):
+        slots = list(rulesets.glob("*.json"))
+        for stale in sorted(slots, key=recency, reverse=True)[keep:]:
+            try:
+                stale.unlink()
+                removed.append(stale)
+            except OSError:
+                pass
+
 
     for stale in sorted(entries, key=recency, reverse=True)[keep:]:
         try:

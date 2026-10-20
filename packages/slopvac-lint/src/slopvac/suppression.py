@@ -128,7 +128,12 @@ def _expand_block_targets(
 # comment line, and a comment line that holds only directives end a run, as a blank
 # line or an HTML comment ends a paragraph.
 _INLINE_HTML_COMMENT = re.compile(r"<!--.*?-->")
-_WORD = re.compile(r"\w")
+
+
+def _comment_text(line: str) -> str:
+    """Remove source comment delimiters without dropping authored punctuation."""
+    line = re.sub(r"^\s*(?://[/!]?|#+|/\*+|\*+/|[*]|--)\s?", "", line)
+    return re.sub(r"\*/\s*$", "", line).strip()
 
 
 def comment_blocks(raw_lines: list[str]) -> list[tuple[int, int]]:
@@ -136,7 +141,7 @@ def comment_blocks(raw_lines: list[str]) -> list[tuple[int, int]]:
     blocks: list[tuple[int, int]] = []
     first: int | None = None
     for number, line in enumerate(raw_lines, 1):
-        if _WORD.search(_INLINE_HTML_COMMENT.sub("", line)):
+        if _INLINE_HTML_COMMENT.sub("", _comment_text(line)).strip():
             if first is None:
                 first = number
         elif first is not None:
@@ -206,6 +211,16 @@ def scan_suppressions(
     quoted_lines: set[int] = set()
     if comments:
         blocks = comment_blocks(document.raw_lines)
+        # Projection preserves indentation for source coordinates. Strip that
+        # indentation before parsing Markdown examples, keeping physical lines.
+        from .analyze import parse
+
+        projected = parse(
+            "comments.md", "\n".join(_comment_text(line) for line in document.raw_lines)
+        )
+        for block in projected.blocks:
+            if block.kind.value in ("code", "front_matter"):
+                quoted_lines.update(range(block.lines[0], block.lines[1] + 1))
 
         def targets_for(number: int) -> list[int]:
             return _comment_block_targets(blocks, number)
