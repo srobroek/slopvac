@@ -14,6 +14,7 @@ See the [project overview](../../README.md) for agent setup and CI integration.
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
+[Suppressions](docs/suppressions.md) ·
 [Semantic guidance](docs/semantic-guidance.md) · [Rule coverage](#rules)
 
 ## Install
@@ -46,7 +47,7 @@ written to a file or opened in a browser, non-terminal stderr, or when `CI` is s
 
 [Vale](https://vale.sh) is optional.
 
-For full deterministic coverage, install Vale 3.15 or later and put it on
+For full deterministic coverage, install Vale 3.18 or later and put it on
 `PATH`. We **highly recommend** doing so because Vale executes most deterministic
 rules. `slopvac` generates the Vale configuration and styles.
 
@@ -370,13 +371,15 @@ Use a reason from the rule's exception list:
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-`slopvac explain orwell.stale-figure` lists the accepted reasons. An unknown
-reason or malformed directive produces `meta.invalid-suppression`.
+`slopvac explain orwell.stale-figure` lists the accepted reasons. The directive
+covers the next block, such as a paragraph, list item, or table.
+`<!-- slopvac-disable-next-line -->` suppresses all rules in that block. Use
+`<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` around a region.
+A directive quoted in inline code or a code block has no effect.
 
-The annotation covers the following block, such as a paragraph, list entry, or
-table. `<!-- slopvac-disable-next-line -->` suppresses all rules in that block.
-Use `<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` around a region.
-Directives quoted in inline code or fenced blocks do not suppress findings.
+[Suppressions and exclusions](docs/suppressions.md) gives the full grammar and
+each `meta.invalid-suppression` message. It also covers directives in source
+comments, Vale's own comments, and the config controls that exclude files.
 
 ## Output formats
 
@@ -486,9 +489,26 @@ with their review questions and examples.
 
 ```sh
 slopvac rules --profile strict
+slopvac rules --kind judgement --genre consumer --profile normal --format md
 slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
+
+`slopvac rules --format md` prints each selected rule in full for an agent to
+read: the question or message, the fix, the examples, the tiers, and the
+source. `--format json` prints the same rules as data for tools.
+`--genre <genre>` keeps the categories whose `recommended_for` lists that
+genre. The filters `--kind`, `--category`, and `--genre` combine, so a rule
+appears only when it passes each one. With `--profile`, md output omits the
+rules that the profile excludes; `--include-excluded` keeps them.
+`slopvac explain <rule_id> --format md` prints the same block for one rule.
+The [rules output reference](docs/rules-output.md) lists every JSON key and
+the layout of each md block.
+
+`slopvac prime write` and `slopvac prime review` list no rules. Each prints the
+`slopvac rules --kind judgement --genre <genre> --profile <profile> --format md`
+command for the document, and the agent passes it the same `--rules-dir` as
+lint.
 
 `--rules-dir` adds project categories over packaged YAML and is repeatable. A
 project category with the same id replaces the packaged category. Each directory

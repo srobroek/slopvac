@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 import typing
 from pathlib import Path
 
@@ -17,28 +18,56 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from slopvac import model
+from slopvac import __version__, model
 from slopvac.cli import main
-from slopvac.config import Profile, Severity, Thresholds, profile_thresholds
+from slopvac.config import (
+    Config,
+    Override,
+    Profile,
+    Severity,
+    Thresholds,
+    profile_thresholds,
+)
 from slopvac.genres import GENRES
+from slopvac.guidance import RULES_COMMAND
 from slopvac.model import Tier
-from slopvac.prime import COMMAND_GROUPS
+from slopvac.pipeline import SKIP_SOURCE_DIRS
+from slopvac.prime import (
+    COMMAND_GROUPS,
+    RULES_OUTPUT_DOC,
+    RULES_OUTPUT_URL,
+    SUPPRESSIONS_DOC,
+    SUPPRESSIONS_URL,
+)
 from slopvac.profiles import profile_defaults
+from slopvac.rules import load_ruleset
 from slopvac.suppression import (
+    DISABLE_COMMENT,
     DISABLE_END,
     DISABLE_LINE,
     DISABLE_START,
+    ENABLE_COMMENT,
     SUPPRESSION,
+    SUPPRESSION_ATTEMPT,
     allow_comment,
 )
 
 FLAG = re.compile(r"(?<![\w-])--[a-z][a-z0-9-]*")
 SPAN = re.compile(r"`([^`\n]+)`")
-# Extracts the comment examples shown in code spans. DOTALL keeps a multi-line
-# comment whole instead of skipping it.
-DIRECTIVE = re.compile(r"<!--.*?-->", re.DOTALL)
-# One checklist entry: `<category>.<rule-id>` (<scope>): <fix or question>.
-ENTRY = re.compile(r"^- `(?P<id>[a-z0-9-]+\.[a-z0-9-]+)` \((?P<scope>[a-z]+)\): .+$")
+# A slopvac directive as a guide or a doc shows it. Placeholders such as
+# `<rule_id>` hold `>` but never `-->`, so the first `-->` closes the directive.
+SLOPVAC_DIRECTIVE = re.compile(r"<!--\s*slopvac-.*?-->")
+ROOT = Path(__file__).resolve().parents[3]
+DIRECTIVE_DOCS = tuple(
+    ROOT / path
+    for path in (
+        SUPPRESSIONS_DOC,
+        "packages/slopvac-lint/docs/triage.md",
+        "packages/slopvac-lint/docs/semantic-guidance.md",
+        "packages/slopvac-lint/README.md",
+        "README.md",
+    )
+)
 
 _MODES = {
     "default": "",
@@ -135,20 +164,26 @@ def test_every_command_and_flag_a_guide_names_exists_in_click(outputs):
     assert commands_seen == set(main.commands), "the check must reach every command"
 
 
+def _reference_sections(base: str) -> dict[str, tuple[str, str]]:
+    """Each command's usage heading and the lines under it, keyed by command name."""
+    reference = base.split("\n## Command reference\n", 1)[1]
+    return {
+        name: (usage, body)
+        for name, usage, body in re.findall(
+            r"^### `slopvac (\S+)([^`]*)`\n(.*?)(?=^### |\Z)",
+            reference,
+            re.MULTILINE | re.DOTALL,
+        )
+    }
+
+
 def test_the_base_prime_lists_every_click_command_and_option(outputs):
     base = outputs["base-default"]
     grouped = [name for _, names in COMMAND_GROUPS for name in names]
     assert sorted(grouped) == sorted(main.commands), "each command in exactly one group"
 
     essentials = base.split("\n## Essential commands\n", 1)[1].split("\n## ", 1)[0]
-    reference = base.split("\n## Command reference\n", 1)[1]
-    sections = dict(
-        re.findall(
-            r"^### `slopvac (\S+)`\n(.*?)(?=^### |\Z)",
-            reference,
-            re.MULTILINE | re.DOTALL,
-        )
-    )
+    sections = {name: body for name, (_, body) in _reference_sections(base).items()}
     for name, command in main.commands.items():
         assert f"`slopvac {name}" in essentials, name
         assert name in sections, name
@@ -159,6 +194,44 @@ def test_the_base_prime_lists_every_click_command_and_option(outputs):
     root, _ = _contexts()
     for flag in _flags(main, root):
         assert f"{flag}`" in base, flag
+
+
+def test_the_command_reference_gives_every_argument_of_every_command(outputs):
+    """The usage heading shows each argument as click's usage line does, and one
+    line per argument says whether it is required, repeatable, and its choices."""
+    sections = _reference_sections(outputs["base-default"])
+    _, contexts = _contexts()
+    arguments = 0
+    for name, command in main.commands.items():
+        usage, body = sections[name]
+        for param in command.params:
+            if not isinstance(param, click.Argument):
+                continue
+            arguments += 1
+            assert param.make_metavar(contexts[name]) in usage.split(), (name, usage)
+            line = next(
+                (
+                    line
+                    for line in body.splitlines()
+                    if line.startswith(f"- `{param.human_readable_name}`: ")
+                ),
+                None,
+            )
+            assert line is not None, (name, param.human_readable_name)
+            facts = line.split(": ", 1)[1].split(", ")
+            assert facts[0] == ("required" if param.required else "optional"), line
+            assert ("repeatable" in facts) is (param.nargs == -1), line
+            if isinstance(param.type, click.Choice):
+                assert f"one of `{'|'.join(param.type.choices)}`" in facts, line
+    assert arguments, "the check must reach an argument"
+
+
+def test_setup_states_when_its_harness_argument_is_required(outputs):
+    """The rule lives in the command's help, so `--help` and prime both carry it."""
+    _, body = _reference_sections(outputs["base-default"])["setup"]
+    summary = body.splitlines()[0]
+    assert "HARNESS" in summary and "--list" in summary
+    assert "HARNESS" in main.commands["setup"].help
 
 
 # --- one source for genres and profiles -------------------------------------------
@@ -227,31 +300,39 @@ def test_topics_define_genres_and_profiles_before_the_workflow(outputs, topic):
     assert "`slopvac rules --profile <profile>`" in head
 
 
-# --- checklist entries and where to read more ---------------------------------------
+# --- the rules command the topics print, and where to read more ---------------------
 
 
 @pytest.mark.parametrize("topic", ["write", "review"])
-def test_topics_explain_the_entry_format_before_the_first_entry(outputs, topic):
-    lines = outputs[f"{topic}-default"].splitlines()
-    first = next(i for i, line in enumerate(lines) if ENTRY.match(line))
-    before = "\n".join(lines[:first])
-    assert "`<category>.<rule-id>` (<scope>)" in before
-    assert "`slopvac explain <rule_id>`" in before
-    assert "`slopvac rules --kind judgement --profile <profile> --format json`" in before
-    for scope in {m["scope"] for line in lines if (m := ENTRY.match(line))}:
-        assert f"- `{scope}`: " in before, scope
+def test_topics_explain_the_blocks_the_rules_command_prints(outputs, topic):
+    text = outputs[f"{topic}-default"]
+    assert f"\n```bash\n{RULES_COMMAND}\n```\n" in text
+    after = text.split(RULES_COMMAND, 1)[1]
+    assert "`slopvac explain <rule_id> --format md`" in after
+    scopes = {rule.scope.value for rule in load_ruleset().judgement_rules}
+    for scope in scopes:
+        assert f"- `{scope}`: " in after, scope
     for tier in Tier:
-        assert f"- `{tier.value}`: " in before, tier
+        assert f"- `{tier.value}`: " in after, tier
 
 
-def test_the_tier_key_the_topics_name_is_in_the_rules_json(outputs):
-    assert "`rules[].tier`" in outputs["write-default"]
-    assert "`rules[].tier`" in outputs["review-default"]
-    result = CliRunner().invoke(
-        main, ["rules", "--kind", "judgement", "--profile", "strict", "--format", "json"]
+@pytest.mark.parametrize("genre", GENRES, ids=lambda genre: genre.name)
+def test_the_rules_command_runs_for_each_genre_at_its_profile(genre):
+    command = RULES_COMMAND.replace("<genre>", genre.name).replace(
+        "<profile>", genre.profile.value
     )
-    rules = json.loads(result.output)["rules"]
-    assert rules and {rule["tier"] for rule in rules} <= {tier.value for tier in Tier}
+    result = CliRunner().invoke(main, command.split()[1:])
+    assert result.exit_code == 0, result.output
+    assert result.output.startswith("# "), "md output"
+
+
+def test_the_base_prime_routes_rule_lookup_to_md_and_json(outputs):
+    base = outputs["base-default"]
+    spans = _spans(base)
+    assert "slopvac rules --format md" in spans and "slopvac rules --format json" in spans
+    assert f"`{RULES_OUTPUT_URL}`" in base
+    assert RULES_OUTPUT_URL.endswith(f"/v{__version__}/{RULES_OUTPUT_DOC}")
+    assert (ROOT / RULES_OUTPUT_DOC).is_file()
 
 
 # --- report keys and annotations ----------------------------------------------------
@@ -276,22 +357,173 @@ def test_report_keys_the_base_prime_names_are_in_a_lint_report(outputs, tmp_path
         assert keys and set(keys) <= set(payload), (path, set(keys) - set(payload))
 
 
-def test_the_annotations_the_base_prime_shows_are_the_ones_lint_parses(outputs):
-    shown = [
-        directive
-        for span in SPAN.findall(outputs["base-default"])
-        for directive in DIRECTIVE.findall(span)
-    ]
-    assert len(shown) >= 4
-    patterns = (SUPPRESSION, DISABLE_LINE, DISABLE_START, DISABLE_END)
-    for directive in shown:
-        concrete = directive.replace("<rule_id>", "prose-format.no-unicode-dash").replace(
-            "<exception>", "quotation"
-        )
-        assert any(p.fullmatch(concrete) for p in patterns), directive
+def _guides_and_docs(outputs: dict[str, str]) -> dict[str, str]:
+    """Every prime output, and each doc that shows directives or config controls."""
+    return {
+        **outputs,
+        **{
+            str(path.relative_to(ROOT)): path.read_text(encoding="utf-8")
+            for path in DIRECTIVE_DOCS
+        },
+    }
 
-    allow = SUPPRESSION.fullmatch(
-        allow_comment("prose-format.no-unicode-dash", "quotation")
+
+def test_every_directive_a_guide_or_doc_shows_parses_with_its_pattern(outputs):
+    """A shown form with placeholders parses once they are filled with a real rule
+    and one of its exceptions. A concrete allow names a real rule and exception."""
+    ruleset = load_ruleset()
+    rule = next(rule for rule in ruleset.rules if rule.exceptions)
+    placeholders = {
+        "<rule_id>": rule.qualified_id,
+        "<rule-id>": rule.qualified_id,
+        "<exception>": rule.exceptions[0],
+        "<reason>": rule.exceptions[0],
+    }
+    patterns = (SUPPRESSION, DISABLE_LINE, DISABLE_START, DISABLE_END)
+    for name, text in _guides_and_docs(outputs).items():
+        matched = set()
+        for snippet in _snippets(text):
+            for directive in SLOPVAC_DIRECTIVE.findall(snippet):
+                concrete = directive
+                for placeholder, value in placeholders.items():
+                    concrete = concrete.replace(placeholder, value)
+                parsed = [p for p in patterns if p.fullmatch(concrete)]
+                assert parsed, (name, directive)
+                matched.update(parsed)
+                allow = SUPPRESSION.fullmatch(directive)
+                if allow:
+                    real = ruleset.by_id(allow["rule"])
+                    assert real is not None, (name, directive)
+                    assert allow["reason"] in real.exceptions, (name, directive)
+        if name.startswith("base-"):
+            assert matched == set(patterns), name
+    assert SUPPRESSION.fullmatch(allow_comment(rule.qualified_id, rule.exceptions[0]))
+
+
+def test_the_reference_quotes_each_directive_pattern_and_prime_links_it(outputs):
+    reference = (ROOT / SUPPRESSIONS_DOC).read_text(encoding="utf-8")
+    for pattern in (SUPPRESSION, SUPPRESSION_ATTEMPT, DISABLE_LINE, DISABLE_START, DISABLE_END):
+        assert pattern.pattern in reference, pattern.pattern
+    assert f"`{SUPPRESSIONS_URL}`" in outputs["base-default"]
+    assert SUPPRESSIONS_URL.endswith(f"/v{__version__}/{SUPPRESSIONS_DOC}")
+
+
+def _spans(text: str) -> set[str]:
+    return set(SPAN.findall(text))
+
+
+def _line_after(text: str, prefix: str) -> str:
+    return next(line for line in text.splitlines() if line.startswith(prefix))[len(prefix) :]
+
+
+def _words_in_span(line: str) -> list[str]:
+    """The space-separated values of the one code span on a rendered line."""
+    (span,) = SPAN.findall(line)
+    return span.split()
+
+
+def test_the_config_keys_prime_lists_are_the_config_models(outputs):
+    base = outputs["base-default"]
+    override_keys = set(Override.model_fields) - {"files"}
+    patches = _line_after(base, "- An `[[overrides]]` block takes ").split("keys are ", 1)[1]
+    assert set(_words_in_span(patches)) == override_keys
+
+    top_only = {span.strip("[]") for span in _spans(_line_after(base, "- Only the top level sets "))}
+    assert top_only and top_only <= set(Config.model_fields)
+    assert not top_only & set(Override.model_fields)
+    assert top_only == set(Config.model_fields) - set(Override.model_fields) - {
+        "overrides",
+        "source",
+        "root",
+    }
+
+    excluded = _line_after(base, "- A config that sets `exclude` replaces the default list ")
+    assert _words_in_span(excluded) == Config().exclude
+    skipped = _line_after(base, "  It skips the directories ")
+    assert set(_words_in_span(skipped)) == SKIP_SOURCE_DIRS
+
+
+def test_the_config_keys_the_reference_lists_are_the_config_models():
+    reference = (ROOT / SUPPRESSIONS_DOC).read_text(encoding="utf-8")
+    controls = reference.split("\n## File controls\n", 1)[1].split("\n## ", 1)[0]
+
+    def sentence(start: str) -> str:
+        match = re.search(rf"{start} (.*?)\.\s", controls, re.DOTALL)
+        assert match, start
+        return match[1]
+
+    assert _spans(sentence("also set")) == set(Override.model_fields) - {"files"}
+    assert "`files`" in controls
+
+    top_only = {span.strip("[]") for span in _spans(sentence("Only the top level sets"))}
+    assert top_only <= set(Config.model_fields)
+    assert not top_only & set(Override.model_fields)
+
+    block = re.search(r"```toml\n(\s*exclude = .*?)```", controls, re.DOTALL)
+    assert block, "the reference shows the default exclude list as TOML"
+    assert tomllib.loads(block[1])["exclude"] == Config().exclude
+    assert _spans(sentence("skips subdirectories named")) == SKIP_SOURCE_DIRS
+
+
+# --- how to exclude content, and how a review audits it ------------------------------
+
+
+def test_write_orders_the_ways_to_exclude_content(outputs):
+    section = outputs["write-default"].split("\n## Excluding content\n", 1)[1]
+    steps = re.findall(r"^\d+\. (.+)$", section.split("\n## ", 1)[0], re.MULTILINE)
+    markers = [
+        "code span",
+        "`quotation`",
+        allow_comment("<rule_id>", "<exception>"),
+        DISABLE_COMMENT,
+        "`exclude`",
+    ]
+    assert len(steps) == len(markers)
+    for step, marker in zip(steps, markers, strict=True):
+        assert marker in step, (marker, step)
+    assert ENABLE_COMMENT in steps[3] and "`[[overrides]]`" in steps[4]
+
+
+_REVIEWS = ("review-default", "review-ask", "review-adversary", "review-self")
+
+
+@pytest.mark.parametrize("name", _REVIEWS)
+def test_the_review_audits_each_directive_inside_the_review_steps(outputs, name):
+    workflow = outputs[name].split("\n## Workflow\n", 1)[1].split("\n```text\n", 1)[0]
+    numbers = [int(n) for n in re.findall(r"^(\d+)\. ", workflow, re.MULTILINE)]
+    assert numbers == list(range(1, len(numbers) + 1)), numbers
+    for first, last in re.findall(r"[Ss]teps (\d+) to (\d+)", workflow):
+        assert 1 <= int(first) < int(last) <= numbers[-1], (first, last)
+
+    audit = next(
+        int(n) for n, text in re.findall(r"^(\d+)\. (.+)$", workflow, re.MULTILINE)
+        if "directive" in text
     )
-    assert allow and allow["rule"] == "prose-format.no-unicode-dash"
-    assert allow["reason"] == "quotation"
+    review = re.search(r"runs steps (\d+) to (\d+)|Steps (\d+) to (\d+) are the review", workflow)
+    low, high = (int(n) for n in review.groups() if n)
+    assert low <= audit <= high
+
+    checklist = outputs[name].split("\n## Checklist\n", 1)[1]
+    checks = checklist.split(RULES_COMMAND, 1)[0]
+    assert DISABLE_COMMENT in checks and ENABLE_COMMENT in checks
+    assert "`slopvac explain <rule_id>`" in checks
+
+
+@pytest.mark.parametrize("name", _REVIEWS)
+def test_the_verdict_reports_suppressions_and_an_unjustified_one_is_revise(outputs, name):
+    review = outputs[name]
+    verdict = review.split("\n```text\n", 1)[1].split("\n```", 1)[0].splitlines()
+    assert verdict[0].startswith("VERDICT: ")
+    assert "Suppressions" in [line.split(":", 1)[0] for line in verdict[1:]]
+    revise = [line for line in review.splitlines() if "REVISE for" in line]
+    assert any("suppression" in line for line in revise), revise
+
+
+@pytest.mark.parametrize("name", _REVIEWS)
+def test_the_verdict_lists_the_rules_asked_and_a_skipped_fetch_is_revise(outputs, name):
+    """The `Checked` line makes a review that never ran the rules command visible."""
+    review = outputs[name]
+    verdict = review.split("\n```text\n", 1)[1].split("\n```", 1)[0].splitlines()
+    assert "Checked" in [line.split(":", 1)[0] for line in verdict[1:]]
+    after = review.split("\n```\n", 1)[1].split("\n## ", 1)[0]
+    assert any("`Checked`" in line and "REVISE" in line for line in after.splitlines())

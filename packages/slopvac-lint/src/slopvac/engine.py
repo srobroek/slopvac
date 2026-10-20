@@ -46,6 +46,7 @@ from typing import Any
 import regex as re
 
 from .analyze import (
+    HTML_COMMENT,
     Block,
     BlockKind,
     Document,
@@ -53,7 +54,7 @@ from .analyze import (
     count_words,
     longest_noun_stack,
 )
-from .config import ResolvedConfig, Severity
+from .config import Mode, ResolvedConfig, Severity
 from .metrics import NATIVE_METRICS, WORD_CAPS, document_metric
 from .model import Finding, Rule, RuleKind, Scope, TextType, Tier
 from .suppression import Suppression, is_suppressed, scan_suppressions
@@ -190,6 +191,60 @@ def drop_quoted_illustrations(
             # here would delete their whole purpose.
             if rule.scope is not Scope.RAW and _inside_code_span(line, start, end):
                 continue
+        kept.append(finding)
+    return kept
+
+
+def drop_hidden_text(
+    findings: list[Finding], document: Document, ruleset: Any
+) -> list[Finding]:
+    """Drop findings in text that the native engine shows only to `raw` rules.
+
+    The native parser keeps front matter and HTML comments out of the text that
+    every other scope matches. Vale reads front matter values, and in a `.txt` file
+    or a source comment it reads the words of each HTML comment, which is where a
+    directive is written. So a front matter value failed only the Vale half of the
+    ruleset, and a directive in a text file or a code comment drew findings on its
+    own words.
+
+    A `raw` finding survives, as it does in the native engine. A finding with no
+    `matched_text` can only be placed by its line, so only the front matter check
+    applies to it.
+    """
+    front_matter = {
+        line
+        for block in document.blocks
+        if block.kind is BlockKind.FRONT_MATTER
+        for line in range(block.lines[0], block.lines[1] + 1)
+    }
+    text = "\n".join(document.raw_lines)
+    comments = [match.span() for match in HTML_COMMENT.finditer(text)]
+    starts = [0]
+    for line in document.raw_lines:
+        starts.append(starts[-1] + len(line) + 1)
+
+    def in_comment(finding: Finding) -> bool:
+        index = finding.line - 1
+        if not comments or not finding.matched_text:
+            return False
+        if not 0 <= index < len(document.raw_lines):
+            return False
+        line = document.raw_lines[index]
+        column = finding.column - 1
+        if not line.startswith(finding.matched_text, column):
+            column = line.find(finding.matched_text)
+        if column < 0:
+            return False
+        offset = starts[index] + column
+        return any(start <= offset < end for start, end in comments)
+
+    kept: list[Finding] = []
+    for finding in findings:
+        rule = ruleset.by_id(finding.rule_id)
+        if rule is not None and rule.scope is not Scope.RAW and (
+            finding.line in front_matter or in_comment(finding)
+        ):
+            continue
         kept.append(finding)
     return kept
 
@@ -398,10 +453,14 @@ class Engine:
         the ruleset instead of both running everything -- which reported every
         finding twice. Left as None the engine runs everything it selects, which is
         what `severity_for` callers and the tests want.
+
+        `only` does not narrow the directive check: a bad reason for a rule that
+        Vale runs is reported here, since Vale reads no directive.
         """
         self.config = config
         self._catalog = {r.qualified_id: r for r in rules}
         self.rules = [r for r in rules if self.is_active(r)]
+        self._active = {r.qualified_id for r in self.rules}
         if only is not None:
             self.rules = [r for r in self.rules if r.qualified_id in only]
         self._compiled: dict[str, re.Pattern[str]] = {}
@@ -530,12 +589,15 @@ class Engine:
         """Collect annotations from the RAW lines.
 
         Raw, not prose: the parser blanks HTML comments so they are not linted,
-        which means the annotations are only visible here.
+        which means the annotations are only visible here. In code-comment mode
+        the document is the comment projection, so directives scope to its
+        comment blocks.
         """
         return scan_suppressions(
             document,
             self._catalog,
-            {r.qualified_id for r in self.rules},
+            self._active,
+            comments=self.config.mode is Mode.CODE_COMMENTS,
         )
 
     def _suppressed(

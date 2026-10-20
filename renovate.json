@@ -2,5 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Vale pin in scripts/install_vale.py, used by CI and the GitHub Action",
+      "managerFilePatterns": [
+        "/^scripts/install_vale\\.py$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\w+ = \"(?<currentValue>[^\"]+)\""
+      ],
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
   ]
 }

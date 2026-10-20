@@ -248,8 +248,9 @@ def render_reference(ruleset: RuleSet) -> str:
         "",
         "Checked rules run through Vale or the native engine and can contribute "
         "to the lint result. Judgement rules need a reader: lint never reports "
-        "them, and `slopvac prime write` and `slopvac prime review` turn them "
-        "into writing guidance and a review checklist.",
+        "them. `slopvac rules --kind judgement --format md` prints each one in "
+        "full, and `slopvac prime write` and `slopvac prime review` tell an agent "
+        "when to apply them.",
         "",
         "Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, "
         "worked example, or wordlist entry from that specification is reproduced "

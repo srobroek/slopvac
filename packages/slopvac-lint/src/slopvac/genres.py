@@ -1,8 +1,9 @@
 """Document genres: the one place that names them and maps each to a profile.
 
 A genre is a document's purpose class. `slopvac prime` and its topics read this
-table to tell an agent which `--profile` to lint with, and `prime review` pairs
-it with each category's `recommended_for` to pick the checklist categories.
+table to tell an agent which `--profile` to lint with, and `slopvac rules
+--genre` pairs it with each category's `recommended_for` to pick the checklist
+categories.
 Before this module the same mapping was typed into the steering prose and into a
 helper in `profiles.py` that nothing called, so the three could disagree.
 

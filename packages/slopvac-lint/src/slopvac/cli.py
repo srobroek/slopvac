@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
+from collections.abc import Callable
 from datetime import datetime
 from itertools import pairwise
 from pathlib import Path
@@ -42,7 +43,8 @@ from .config import (
 )
 from .diff_scope import DiffScopeError, apply_replacements, changed_scope
 from .engine import Engine
-from .model import RuleKind
+from .genres import GENRES
+from .model import Rule, RuleKind, Tier
 from .pipeline import (
     EXIT_ERROR,
     EXIT_FINDINGS,
@@ -53,7 +55,8 @@ from .pipeline import (
     run_lint,
 )
 from .reference import render_reference
-from .rules import RuleLoadError, inject_locale_rule, load_ruleset
+from .rule_markdown import message_text, render_explain, render_rules
+from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .steering import harnesses
 from .suppression import allow_comment
 from .update_notice import show_update_notice, start_refresh
@@ -139,6 +142,19 @@ _text_or_json_option = click.option(
     type=click.Choice(["text", "json"]),
     default="text",
     help="text for humans, json for tooling.",
+)
+_rule_format_option = click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["text", "json", "md"]),
+    default="text",
+    help="text for humans, json for tooling, md for agents to read.",
+)
+_rule_profile_option = click.option(
+    "--profile",
+    type=click.Choice([p.value for p in Profile]),
+    default="normal",
+    help="Show the tier and severity at this profile.",
 )
 
 
@@ -441,20 +457,55 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
     return config.locale.default, config.locale.allow
 
 
+def _severity_at(
+    console: Console, ruleset: RuleSet, profile: str, config_path: Path | None
+) -> Callable[[Rule], str]:
+    """The level each rule REPORTS at, resolved the way `lint` resolves it.
+
+    That is the profile's category severity, the profile's own per-rule dials,
+    and the config file's authored overrides. The shipped `severity` field alone
+    told a reader `warning` for a rule that `lint` reported as an error.
+    """
+    try:
+        config = load_config(config_path) if config_path else Config()
+    except ConfigError as exc:
+        console.print(f"[red]config error[/]: {exc}")
+        raise SystemExit(EXIT_ERROR) from None
+    config = config.model_copy(update={"profile": Profile(profile)})
+    engine = Engine(ruleset.rules, resolve_for(config, Path("README.md")))
+    active = {rule.qualified_id for rule in engine.rules}
+
+    def effective(rule: Rule) -> str:
+        if rule.kind is RuleKind.JUDGEMENT:
+            # Never fires mechanically; the reviewer reads it at its shipped level.
+            return rule.severity.value
+        if rule.qualified_id not in active:
+            return Severity.OFF.value
+        return engine.severity_for(rule).value
+
+    return effective
+
+
 @main.command("rules")
-@click.option(
-    "--profile",
-    type=click.Choice([p.value for p in Profile]),
-    default="normal",
-    help="Show each rule's tier and severity at this profile.",
-)
+@_rule_profile_option
 @click.option("--category", "only", multiple=True, help="Limit to these categories.")
 @click.option(
     "--kind",
     type=click.Choice([k.value for k in RuleKind]),
     help="Filter by rule kind; `judgement` lists the rules lint never checks.",
 )
-@_text_or_json_option
+@click.option(
+    "--genre",
+    type=click.Choice([genre.name for genre in GENRES]),
+    help="Limit to the categories recommended for this genre.",
+)
+@_rule_format_option
+@click.option(
+    "--include-excluded",
+    is_flag=True,
+    help="With --profile, md output omits the rules that the profile excludes. "
+    "This flag keeps them.",
+)
 @click.option(
     "--config",
     "config_path",
@@ -467,11 +518,17 @@ def list_rules(
     profile: str,
     only: tuple[str, ...],
     kind: str | None,
+    genre: str | None,
     output_format: str,
+    include_excluded: bool,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
 ) -> None:
-    """List the rules and whether each is on at a profile."""
+    """List the rules and whether each is on at a profile.
+
+    `--format md` prints each rule in full, grouped by category, for an agent to
+    read. The filters combine: a rule must pass every one given.
+    """
     _note_output(output_format)
     console = _console(False)
     try:
@@ -487,28 +544,24 @@ def list_rules(
         for rule in ruleset.all_rules
         if (not only or rule.category in only)
         and (not kind or rule.kind.value == kind)
+        and (not genre or genre in ruleset.categories[rule.category].recommended_for)
     ]
+    effective = _severity_at(console, ruleset, profile, config_path)
 
-    # The level a rule REPORTS at, resolved the way `lint` resolves it: the profile's
-    # category severity, the profile's own per-rule dials, and the config file's
-    # authored overrides. The shipped `severity` field alone told a reader `warning`
-    # for a rule that `lint` reported as an error.
-    try:
-        config = load_config(config_path) if config_path else Config()
-    except ConfigError as exc:
-        console.print(f"[red]config error[/]: {exc}")
-        raise SystemExit(EXIT_ERROR) from None
-    config = config.model_copy(update={"profile": Profile(profile)})
-    engine = Engine(ruleset.rules, resolve_for(config, Path("README.md")))
-    active = {rule.qualified_id for rule in engine.rules}
-
-    def effective(rule) -> str:
-        if rule.kind is RuleKind.JUDGEMENT:
-            # Never fires mechanically; the reviewer reads it at its shipped level.
-            return rule.severity.value
-        if rule.qualified_id not in active:
-            return Severity.OFF.value
-        return engine.severity_for(rule).value
+    if output_format == "md":
+        # Only a profile the caller chose drops rules: without `--profile`, md lists
+        # every rule and shows the default profile's tiers.
+        omit = not include_excluded and (
+            click.get_current_context().get_parameter_source("profile")
+            is not click.core.ParameterSource.DEFAULT
+        )
+        shown = [
+            rule
+            for rule in selected
+            if not (omit and rule.tier_for(profile) is Tier.EXCLUDED)
+        ]
+        click.echo(render_rules(ruleset, shown, profile, effective, omit), nl=False)
+        raise SystemExit(EXIT_OK)
 
     if output_format == "json":
         click.echo(
@@ -562,21 +615,28 @@ def list_rules(
 
 @main.command()
 @click.argument("rule_id")
-@_text_or_json_option
+@_rule_format_option
+@_rule_profile_option
 @click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Read the spelling locale from this file. Default: the nearest slopvac config.",
+    help="Read the spelling locale from this file, and resolve severities with its "
+    "settings. Default: the nearest slopvac config's locale and the profile's own "
+    "settings.",
 )
 @_rules_dir_option
 def explain(
     rule_id: str,
     output_format: str,
+    profile: str,
     config_path: Path | None,
     rules_dir: tuple[Path, ...],
 ) -> None:
-    """Show one rule in full."""
+    """Show one rule in full.
+
+    `--format md` prints the block that `slopvac rules --format md` prints.
+    """
     _note_output(output_format)
     console = _console(False)
     try:
@@ -591,6 +651,12 @@ def explain(
     if rule is None:
         console.print(f"[red]unknown rule[/]: {rule_id}")
         raise SystemExit(EXIT_ERROR) from None
+    profile_tier = rule.tier_for(profile).value
+    severity = _severity_at(console, ruleset, profile, config_path)(rule)
+
+    if output_format == "md":
+        click.echo(render_explain(rule, profile, severity), nl=False)
+        raise SystemExit(EXIT_OK)
 
     # Agents and tooling read the exception list to choose a suppression reason, and
     # scraping it out of Rich-rendered text is what this avoids. `suppression` is
@@ -601,6 +667,8 @@ def explain(
             **rule.model_dump(mode="json"),
             "id": rule.qualified_id,
             "tiers": {name: tier.value for name, tier in rule.tiers.items()},
+            "tier": profile_tier,
+            "effective_severity": severity,
         }
         if rule.exceptions:
             payload["suppression"] = allow_comment(rule.qualified_id, rule.exceptions[0])
@@ -612,9 +680,8 @@ def explain(
         f"kind: {rule.kind.value}   severity: {rule.severity.value}   scope: {rule.scope.value}"
     )
     console.print("tiers: " + "  ".join(f"{k}={v.value}" for k, v in rule.tiers.items()))
-    # `message` is a template. Printed raw it shows `{replacement}`, which reads as a
-    # bug; the slots are shown as `<name>` so it is clear they are filled per finding.
-    console.print("\n" + rule.message.replace("{", "<").replace("}", ">"))
+    console.print(f"at {profile}: tier {profile_tier}, severity {severity}")
+    console.print("\n" + escape(message_text(rule)))
     # A `fix` that only restates the message is noise. `ste-words.spelling` printed
     # 'Use the en-US spelling "<replacement>".' and then 'Fix: Use the en-US spelling.'
     if rule.fix and rule.fix.rstrip(".").lower() not in rule.message.rstrip(".").lower():
@@ -635,11 +702,17 @@ def explain(
             console.print(f"  [red]-[/] {example.bad}")
             if example.good:
                 console.print(f"  [green]+[/] {example.good}")
+            if example.note:
+                console.print(f"    {escape(example.note)}")
     console.print(f"\n[bold]Source[/]: {rule.provenance.source}")
     if rule.provenance.ste_ref:
         console.print(
             f"  ASD-STE100 rule {rule.provenance.ste_ref.split(':', 1)[1]} (Issue {rule.provenance.ste_ref.split(':', 1)[0]})"
         )
+    if rule.provenance.orwell_ref:
+        console.print(f"  Orwell rule {escape(rule.provenance.orwell_ref)}")
+    if rule.provenance.url:
+        console.print(f"  {escape(rule.provenance.url)}")
     if rule.provenance.note:
         console.print(f"  {rule.provenance.note}")
 
@@ -771,8 +844,8 @@ def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ..
 
     With no TOPIC, print how to use every command, the genres and profiles, and
     when to run the topics. `write` prints the writing guide and `review` the
-    review workflow and checklist, both generated from the rule catalogue. Prime
-    only prints; it never writes files.
+    review workflow. Both print the `slopvac rules` command that lists the
+    judgement rules for a genre. Prime only prints; it never writes files.
     """
     from .guidance import disabled_notice, render_review, render_write
     from .prime import render_prime
@@ -828,7 +901,8 @@ def setup_agent(
     check: bool,
     root: Path,
 ) -> None:
-    """Install or remove project-local steering for a harness."""
+    """Install or remove project-local steering for a harness. HARNESS is
+    required unless --list is used."""
     from .steering import (
         harness_path,
         managed_block_state,

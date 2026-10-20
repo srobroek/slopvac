@@ -1,14 +1,14 @@
 """The base `slopvac prime` guide: how an agent uses the CLI from this text alone.
 
-Every command, option, choice, and default it names is rendered from the click
-command tree it is given, and every profile, genre, config key, report field,
-and exit code from the module that owns it. The hand-written parts are the
-grouping of commands, the rules, and the workflows; a test holds each command
-and flag they mention to the click tree, so a renamed flag fails the suite
-instead of leaving the guide wrong.
+Every command, argument, option, choice, and default it names is rendered from
+the click command tree it is given, and every profile, genre, config key,
+directive form, skipped directory, report field, and exit code from the module
+that owns it. The hand-written parts are the grouping of commands, the rules,
+and the workflows; a test holds each command and flag they mention to the click
+tree, so a renamed flag fails the suite instead of leaving the guide wrong.
 
-The judgement checklists stay in `slopvac prime write|review`; this guide only
-routes to them.
+The judgement rules are not listed here or in `slopvac prime write|review`:
+`slopvac rules --format md` prints them, and this guide only routes to it.
 """
 
 from __future__ import annotations
@@ -19,10 +19,17 @@ import click
 from pydantic import BaseModel
 
 from . import __version__
-from .config import CONFIG_NAMES, PYPROJECT, Config, GuidanceSettings, Override
+from .config import (
+    CONFIG_NAMES,
+    PYPROJECT,
+    Config,
+    GuidanceSettings,
+    Override,
+    Severity,
+)
 from .guidance import genres_and_profiles, prime_section, unlinted
 from .model import DocumentScore, Finding
-from .pipeline import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK, LINTABLE
+from .pipeline import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK, LINTABLE, SKIP_SOURCE_DIRS
 from .report import LintReport, RunSummary
 from .steering import harnesses
 from .suppression import (
@@ -41,6 +48,19 @@ COMMAND_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Read agent guidance", ("prime", "onboard")),
     ("Configure a project", ("init", "setup")),
     ("Inspect Vale styles", ("compile", "cache")),
+)
+
+# The complete directive and exclusion reference, at the tag of this version. A
+# test holds the path to a file in the repository.
+SUPPRESSIONS_DOC = "packages/slopvac-lint/docs/suppressions.md"
+SUPPRESSIONS_URL = (
+    f"https://github.com/srobroek/slopvac/blob/v{__version__}/{SUPPRESSIONS_DOC}"
+)
+# The reference for both `slopvac rules` output formats. A test holds the path to
+# a file in the repository and the documented JSON keys to the command's output.
+RULES_OUTPUT_DOC = "packages/slopvac-lint/docs/rules-output.md"
+RULES_OUTPUT_URL = (
+    f"https://github.com/srobroek/slopvac/blob/v{__version__}/{RULES_OUTPUT_DOC}"
 )
 
 # The report keys an agent reads, checked against the models that serialise
@@ -81,6 +101,10 @@ _WORKFLOWS: tuple[tuple[str, tuple[str, ...]], ...] = (
             "slopvac lint docs/api.md --explain-config",
             "slopvac rules --profile strict --kind judgement --format json",
         ),
+    ),
+    (
+        "Read the rules that a reviewer applies to one genre",
+        ("slopvac rules --kind judgement --genre reference --profile strict --format md",),
     ),
     (
         "Install steering for one harness and check it",
@@ -137,6 +161,16 @@ def _usage(name: str, command: click.Command, context: click.Context) -> str:
     return " ".join(["slopvac", name, *pieces])
 
 
+def _argument(param: click.Argument) -> str:
+    """One positional argument: its name, whether it is required, and its values."""
+    facts = ["required" if param.required else "optional"]
+    if param.nargs == -1:
+        facts.append("repeatable")
+    if isinstance(param.type, click.Choice):
+        facts.append(f"one of {_one_of(param.type.choices)}")
+    return f"- `{param.human_readable_name}`: {', '.join(facts)}"
+
+
 def _commands(cli: click.Group) -> list[str]:
     contexts = _contexts(cli)
     lines = []
@@ -151,13 +185,14 @@ def _commands(cli: click.Group) -> list[str]:
         *lines,
         "",
         "Every command accepts `--help`. `slopvac --version` prints the version.",
-        "The command reference at the end lists each option.",
+        "The command reference at the end lists each argument and option.",
         "",
     ]
 
 
 def _reference(cli: click.Group) -> list[str]:
-    """Every option of every command, as `--help` renders it."""
+    """The usage, every argument, and every option of each command, as `--help`
+    renders them."""
     contexts = _contexts(cli)
     lines: list[str] = []
     for _, names in COMMAND_GROUPS:
@@ -168,7 +203,12 @@ def _reference(cli: click.Group) -> list[str]:
                 for param in command.params
                 if isinstance(param, click.Option)
             ]
-            lines.extend([f"### `slopvac {name}`", _summary(command)])
+            lines.extend([f"### `{_usage(name, command, context)}`", _summary(command)])
+            lines.extend(
+                _argument(param)
+                for param in command.params
+                if isinstance(param, click.Argument)
+            )
             lines.extend(
                 f"- `{flags}`: {' '.join(text.split())}"
                 for flags, text in filter(None, records)
@@ -177,7 +217,9 @@ def _reference(cli: click.Group) -> list[str]:
     return [
         "## Command reference",
         "",
-        "Each line gives one option, its value, and the help text that `--help` prints.",
+        "Each heading gives the usage of one command.",
+        "An argument line says if the argument is required and lists its values.",
+        "An option line gives its value and the help text that `--help` prints.",
         "",
         *unlinted(lines[:-1]),
     ]
@@ -219,10 +261,84 @@ def _workflows() -> list[str]:
     return [*lines, "```", ""]
 
 
+def _suppressions() -> list[str]:
+    """The directives, their scope, and how lint treats a bad one or a quoted one."""
+    return [
+        "## Fixes and suppressions",
+        "",
+        "- `slopvac explain <rule_id>` prints the fix, the examples, and the named "
+        "exceptions of a rule.",
+        "- `--fix` applies safe replacements and lints again. "
+        "With a diff option, it edits only added lines.",
+        "  It does not edit text that a directive suppresses.",
+        "- A rule with the `quotation` exception skips a match inside quotation marks "
+        "on one line.",
+        "  Other named exceptions apply only through an allow directive.",
+        "- A rule whose scope is not `raw` skips these parts of a file:",
+        "  - code spans and code blocks",
+        "  - HTML comments",
+        "  - front matter",
+        "- A directive is an HTML comment. Write it in one of these case-sensitive forms:",
+        f"  - `{allow_comment('<rule_id>', '<exception>')}` skips one rule "
+        "in the next block.",
+        f"  - `{DISABLE_NEXT_LINE_COMMENT}` skips all rules in the next block.",
+        f"  - `{DISABLE_COMMENT}` skips all rules up to the next `{ENABLE_COMMENT}`.",
+        "- The next block is the first one of these after the directive:",
+        "  - a paragraph or a heading",
+        "  - a list item",
+        "  - a table",
+        "  - a quote",
+        "- The directive skips blank lines and other HTML comments before the block.",
+        "  A directive at the start of a block applies to that block.",
+        "- Use a named exception of the rule as the reason. "
+        "A rule without named exceptions takes no allow directive.",
+        "- Lint reports `meta.invalid-suppression` for a malformed allow directive.",
+        "  It also reports one for an unknown rule id, or for a missing or unlisted reason.",
+        "  That directive suppresses nothing. A directive for a rule that the config "
+        "turns off is silent.",
+        "- The check is the same for the rules that Vale runs, and with `--no-vale`.",
+        "- Regions do not nest. The first enable comment ends a region. "
+        "A region without one runs to the end of the file.",
+        "- A directive in a code span, a code block, or front matter is text. "
+        "It has no effect.",
+        "- With `--mode code-comments`, write the directive in a source comment. "
+        "It covers the next comment block.",
+        "- Use a disable directive only around generated or quoted text.",
+        "- Lint hides Vale's own comments, such as `<!-- vale off -->`, from Vale. "
+        "They have no effect.",
+        f"- The full reference is `{SUPPRESSIONS_URL}`.",
+        "",
+    ]
+
+
+def _rule_lookup(cli: click.Group) -> list[str]:
+    """Which `slopvac rules` format to read, and how its filters combine."""
+    return [
+        "## Rule lookup",
+        "",
+        "- `slopvac rules --format md` prints each rule in full, for an agent to read.",
+        "- `slopvac rules --format json` prints the same rules as data, for tools.",
+        "- `--kind`, `--category`, and `--genre` select rules. "
+        "The list keeps the rules that match each filter that you give.",
+        f"- `--genre` takes one of {_choices(cli, 'rules', '--genre')}. "
+        "It keeps the categories that list that genre.",
+        "- With `--profile`, md output omits the rules that the profile excludes. "
+        "`--include-excluded` keeps them.",
+        "- `slopvac explain <rule_id> --format md` prints the block of one rule.",
+        "- Give these commands the `--rules-dir` that lint uses. "
+        "Then they include the house rules.",
+        f"- The output reference is `{RULES_OUTPUT_URL}`.",
+        "",
+    ]
+
+
 def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
     """The base guide for an agent, for the given `[guidance]` and command tree."""
     keys, tables = _config_keys()
     patches = [name for name in Override.model_fields if name != "files"]
+    shared = {*Override.model_fields, "overrides"}
+    top_only = [name for name in (*keys, *tables) if name.strip("[]") not in shared]
+    default_exclude = Config().exclude
     vale = ".".join(str(part) for part in MIN_VALE_VERSION)
     schema = LintReport.model_fields["schema_version"].default
     lines = [
@@ -247,11 +363,14 @@ def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
         *prime_section(settings),
         *_commands(cli),
         *genres_and_profiles(),
+        *_rule_lookup(cli),
         "## Inputs",
         "",
         "- `TARGETS` are files, directories, or globs.",
         f"- A directory expands to the files that match `{' '.join(LINTABLE)}`.",
-        "- The `exclude` globs in the config remove files from the run.",
+        f"  It skips the directories `{' '.join(sorted(SKIP_SOURCE_DIRS))}`.",
+        "- The `exclude` globs in the config remove files from the run, "
+        "named files too.",
         "- `--mode code-comments` or `--comments` lints the comments in source files.",
         "- `--diff-base <rev>` keeps the findings on lines that `<rev>...HEAD` adds.",
         "- `--diff-working-tree` keeps the findings on lines that uncommitted changes add.",
@@ -288,20 +407,7 @@ def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
         f"- Without Vale, its rules go into `unchecked` and lint exits {EXIT_ERROR}.",
         f"- `--no-vale` skips Vale on purpose. That run also exits {EXIT_ERROR}.",
         "",
-        "## Fixes and suppressions",
-        "",
-        "- `slopvac explain <rule_id>` prints the fix, the examples, and the named "
-        "exceptions of a rule.",
-        "- `--fix` applies safe replacements and lints again. "
-        "With a diff option, it edits only added lines.",
-        "- To suppress a finding, write "
-        f"`{allow_comment('<rule_id>', '<exception>')}` on the line above its block.",
-        "- Use a named exception of the rule as the reason. "
-        "Otherwise lint reports `meta.invalid-suppression`.",
-        f"- `{DISABLE_NEXT_LINE_COMMENT}` skips the next line. "
-        f"`{DISABLE_COMMENT}` and `{ENABLE_COMMENT}` skip a region.",
-        "  Use them only around generated or quoted text.",
-        "",
+        *_suppressions(),
         "## Configuration",
         "",
         f"- Lint reads the nearest {_code_list(CONFIG_NAMES)}, or a `{PYPROJECT}` "
@@ -314,6 +420,18 @@ def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
         f"Its other keys are `{' '.join(patches)}`.",
         "- Each matching block applies in file order. "
         "A later block wins for each field that it sets.",
+        f"- Only the top level sets {_code_list(top_only, 'and')}.",
+        "- To stop one rule for some files, give a block `files` and "
+        f'`rules = {{ "<rule_id>" = "{Severity.OFF.value}" }}`.',
+        "- Command-line settings, such as `--profile` and `--disable`, act as a last "
+        "block for each file.",
+        "- A config that sets `exclude` replaces the default list "
+        f"`{' '.join(default_exclude)}`.",
+        "- These parts of a file change no finding:",
+        "  - a comment on line 1 that starts with `<!-- generated`",
+        "  - a heading named `Examples`",
+        "  - front matter keys",
+        "- Exclude a generated file with `exclude`.",
         "- `[guidance]` applies to the whole project. Its keys are:",
         *_guidance_keys(),
         "- `slopvac lint --explain-config <file>` prints the source of each setting.",

@@ -33,24 +33,19 @@ rewriting correct prose to satisfy a pattern.
 
 ## Suppress only documented exceptions
 
-A suppression must use a reason returned by `slopvac explain`:
+A suppression must use a named exception of the rule. `slopvac explain
+<rule_id>` lists them:
 
 ```markdown
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-An unknown reason is reported as `meta.invalid-suppression` only when its rule is
-active. An unknown rule id is reported regardless of whether any rule with that
-id is active.
-
-For intentional specimen text, including examples whose purpose is to show a bad
-pattern, disable linting around the specimen rather than weakening the rule:
-
-```markdown
-<!-- slopvac-disable -->
-This example intentionally contains text that a rule should reject.
-<!-- slopvac-enable -->
-```
+Before you suppress, keep specimens and commands in code and quotations in
+quotation marks. `slopvac prime write` gives that order. `slopvac prime`
+summarizes the scope of each directive and what lint reports for a bad one.
+`slopvac prime review` gives the audit for each directive. The
+[suppressions and exclusions reference](suppressions.md) holds the full
+grammar, the edge cases, and the config controls.
 
 Do not use a suppression to hide an unexplained false positive.
 

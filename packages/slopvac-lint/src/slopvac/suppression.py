@@ -117,17 +117,64 @@ def _expand_block_targets(
     return sorted(expanded)
 
 
+# In code-comment mode the document is a projection that keeps only the comments,
+# and its markdown blocks are not what a reader sees: a `#` comment parses as a
+# heading and an indented comment as a code block, so a directive covered its own
+# line, or was read as quoted text. A directive there scopes to comment blocks: runs
+# of consecutive lines that carry comment text. A blank line, a code line, an empty
+# comment line, and a comment line that holds only directives end a run, as a blank
+# line or an HTML comment ends a paragraph.
+_INLINE_HTML_COMMENT = re.compile(r"<!--.*?-->")
+_WORD = re.compile(r"\w")
+
+
+def comment_blocks(raw_lines: list[str]) -> list[tuple[int, int]]:
+    """The first and last line number of each comment block in a comment projection."""
+    blocks: list[tuple[int, int]] = []
+    first: int | None = None
+    for number, line in enumerate(raw_lines, 1):
+        if _WORD.search(_INLINE_HTML_COMMENT.sub("", line)):
+            if first is None:
+                first = number
+        elif first is not None:
+            blocks.append((first, number - 1))
+            first = None
+    if first is not None:
+        blocks.append((first, len(raw_lines)))
+    return blocks
+
+
+def _comment_block_targets(
+    blocks: list[tuple[int, int]], annotation_line: int
+) -> list[int]:
+    """The comment block one directive covers, by the rule a paragraph follows.
+
+    The block that starts on the directive's line, else the block that holds the
+    next line with comment text.
+    """
+    for first, last in blocks:
+        if first == annotation_line or last > annotation_line:
+            return list(range(first, last + 1))
+    return []
+
+
 def scan_suppressions(
     document: Document,
     rules_by_id: dict[str, Rule],
     active: set[str] | None = None,
+    *,
+    comments: bool = False,
 ) -> tuple[dict[int, list[Suppression]], set[int], list[Finding]]:
     """Collect annotations from the RAW lines.
 
     Raw, not prose: the parser blanks HTML comments so they are not linted,
     which means the annotations are only visible here. A valid annotation on the
     line before a block (or on its first line) covers that whole block, so a
-    finding on a wrapped later line remains suppressible.
+    finding on a wrapped later line remains suppressible. With `comments`, the
+    document is a comment projection and the blocks are its comment blocks.
+
+    `active` names the rules whose reasons are checked: every rule the run's config
+    turns on, whichever engine runs it. Left as None, every rule in `rules_by_id`.
     """
     by_line: dict[int, list[Suppression]] = {}
     disabled: set[int] = set()
@@ -135,24 +182,40 @@ def scan_suppressions(
     block_disabled = False
     live = active if active is not None else set(rules_by_id)
 
-    def invalid_finding(line: int, message: str) -> None:
+    def invalid_finding(line: int, column: int, directive: str, message: str) -> None:
+        # Located like any finding, so a diff scope can place it on its line.
         invalid.append(
             Finding(
                 path=document.path,
                 line=line,
+                column=column + 1,
+                end_column=column + 1 + len(directive),
                 rule_id="meta.invalid-suppression",
                 category="meta",
                 severity=Severity.ERROR,
                 message=message,
+                matched_text=directive,
             )
         )
 
     # A marker inside a fenced block or front matter is quoted, not written: it
     # must neither disable the prose after the fence nor report as malformed.
     quoted_lines: set[int] = set()
-    for block in document.blocks:
-        if block.kind.value in ("code", "front_matter"):
-            quoted_lines.update(range(block.lines[0], block.lines[1] + 1))
+    if comments:
+        blocks = comment_blocks(document.raw_lines)
+
+        def targets_for(number: int) -> list[int]:
+            return _comment_block_targets(blocks, number)
+
+    else:
+        for block in document.blocks:
+            if block.kind.value in ("code", "front_matter"):
+                quoted_lines.update(range(block.lines[0], block.lines[1] + 1))
+
+        def targets_for(number: int) -> list[int]:
+            return _expand_block_targets(
+                document, annotation_targets(document.raw_lines, number), number
+            )
 
     open_runs: set[int] = set()
     for index, line in enumerate(document.raw_lines):
@@ -172,11 +235,7 @@ def scan_suppressions(
             disabled.add(number)
         next_line = DISABLE_LINE.search(line)
         if next_line and _written(open_runs, line, next_line):
-            disabled.update(
-                _expand_block_targets(
-                    document, annotation_targets(document.raw_lines, number), number
-                )
-            )
+            disabled.update(targets_for(number))
 
         attempts = [
             attempt
@@ -193,6 +252,8 @@ def scan_suppressions(
             if match is None:
                 invalid_finding(
                     number,
+                    attempt.start(),
+                    raw_annotation,
                     "invalid suppression; expected "
                     "<!-- slopvac-allow: rule=<rule-id> reason=<reason> -->.",
                 )
@@ -200,29 +261,35 @@ def scan_suppressions(
 
             rule_id = match.group("rule")
             reason = match.group("reason")
-            targets = _expand_block_targets(
-                document, annotation_targets(document.raw_lines, number), number
-            )
-            for target in targets:
+            for target in targets_for(number):
                 by_line.setdefault(target, []).append(
                     Suppression(rule=rule_id, reason=reason, line=number)
                 )
 
             rule = rules_by_id.get(rule_id)
             if rule is None:
-                invalid_finding(number, f"suppression names unknown rule {rule_id}.")
+                invalid_finding(
+                    number,
+                    attempt.start(),
+                    raw_annotation,
+                    f"suppression names unknown rule {rule_id}.",
+                )
                 continue
             if rule.qualified_id not in live:
                 continue
             if reason is None:
                 invalid_finding(
                     number,
+                    attempt.start(),
+                    raw_annotation,
                     f"suppression of {rule_id} names no reason. "
                     f"Add reason=<one of: {', '.join(rule.exceptions) or 'none defined'}>.",
                 )
             elif reason not in rule.exceptions:
                 invalid_finding(
                     number,
+                    attempt.start(),
+                    raw_annotation,
                     f'reason "{reason}" is not an exception of {rule_id}. '
                     f"Valid: {', '.join(rule.exceptions) or 'none defined'}.",
                 )

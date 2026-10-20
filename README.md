@@ -18,6 +18,7 @@
 [Rules](packages/slopvac-lint/docs/rules.md) ·
 [Metrics](packages/slopvac-lint/docs/metrics.md) ·
 [Triage](packages/slopvac-lint/docs/triage.md) ·
+[Suppressions](packages/slopvac-lint/docs/suppressions.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
 [Agent setup](#agent-setup) · [Writing guidance](#writing-guidance) ·
 [Semantic review](#semantic-review) · [CI](#ci-integration) · [Roadmap](#roadmap)
@@ -35,7 +36,7 @@ can run in pre-commit or CI for automated validation.
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
 Python 3.11 or later. [Vale](https://vale.sh) is optional, but **highly
-recommended**: it executes most deterministic rules. Install Vale 3.15 or later
+recommended**: it executes most deterministic rules. Install Vale 3.18 or later
 and put it on `PATH` for full deterministic coverage.
 
 With Homebrew, install Vale and check the installed version:
@@ -163,8 +164,8 @@ that points the agent to `prime` for the detailed workflow.
 
 `slopvac prime write` prints a writing guide for READMEs, docs, PR or MR
 descriptions, commit and release text, and specifications. The guide holds a
-genre table, a documentation contract, and one rewrite instruction per
-judgement rule, generated from the rule catalogue. `slopvac prime` tells the
+genre table, a documentation contract, and the `slopvac rules` command that
+prints the judgement rules for the document's genre. `slopvac prime` tells the
 agent to run it before drafting or editing that prose.
 
 Disable it with `[guidance] write = "off"` in `slopvac.toml`. The
@@ -232,9 +233,9 @@ The default profile is `normal`. Use `strict` for reference material or
 
 The [configuration reference](packages/slopvac-lint/README.md#configuration)
 includes precedence and examples. See
-[suppressions](packages/slopvac-lint/README.md#suppress-a-finding) for a local
-exception and [comment mode](packages/slopvac-lint/README.md#comment-mode) for
-source files.
+[suppressions and exclusions](packages/slopvac-lint/docs/suppressions.md) for a
+local exception or an excluded file, and
+[comment mode](packages/slopvac-lint/README.md#comment-mode) for source files.
 
 ## Limits and evaluation
 

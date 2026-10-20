@@ -142,6 +142,22 @@ def test_no_vale_reports_comment_excluded_rule_ids(tmp_path):
     assert "active rule(s) are not safe for code-comment scopes" in unchecked
 
 
+def test_no_vale_comment_mode_note_names_the_native_run(tmp_path):
+    """The native engine runs Vale's comment rules on the projection, and a rule that
+    is not safe for comment scopes runs in neither engine."""
+    sentence = " ".join(["This comment sentence keeps going"] * 12) + "."
+    source = _write(tmp_path, "src/a.py", f"# A robust linter.\n# {sentence}\n")
+    exit_code, report = _json_run(str(source), "--mode", "code-comments", "--no-vale")
+    assert exit_code == EXIT_ERROR
+    [document] = report["documents"]
+    unchecked = "\n".join(document["unchecked"])
+    assert "the native engine ran the" in unchecked
+    assert "stayed native" not in unchecked
+    rule_ids = {finding["rule_id"] for finding in document["findings"]}
+    assert "prose-inflation.slop-lexicon" in rule_ids
+    assert "prose-craft.sentence-length" not in rule_ids
+
+
 def test_compiled_code_mode_runs_comment_scoped_rules(tmp_path):
     source = _write(tmp_path, "source.py", "# robust comment\n")
     config = Config(root=tmp_path, mode=Mode.CODE_COMMENTS)
