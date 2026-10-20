@@ -40,8 +40,11 @@ Orwell's own sixth rule has in an automated pipeline.
 
 from __future__ import annotations
 
+from bisect import bisect_right
+from collections.abc import Iterator
 from dataclasses import replace
-from typing import Any
+from functools import cache
+from typing import Any, NamedTuple
 
 import regex as re
 
@@ -382,6 +385,48 @@ def build_substitution_pattern(substitutions: dict[str, str]) -> str:
     return "|".join(parts)
 
 
+@cache
+def compile_pattern(source: str, flags: int = 0) -> re.Pattern[str]:
+    """Compile a pattern once per process, keyed by its source and flags.
+
+    `lint_one` builds an `Engine` for every file. A cache on the engine started
+    empty each time, so each file called `regex.compile` for every rule again,
+    and the reuse rested on the cache inside `regex`. That cache holds 500
+    patterns and evicts at random when full, and the per-key probes in
+    `match_substitution` fill it on their own. The ruleset bounds the keys here,
+    so this cache needs no limit.
+
+    A source that does not compile raises `regex.error` on every call: `cache`
+    keeps results, not exceptions.
+    """
+    return re.compile(source, flags)
+
+
+def rule_pattern(rule: Rule) -> re.Pattern[str] | None:
+    """Return the matcher for a lexical rule, or None for a rule with no payload.
+
+    A rule that cannot compile raises. Returning None would make it silently match
+    nothing, which reads as a clean document -- the exact failure this project
+    already documents for Vale.
+    """
+    flags = re.IGNORECASE if rule.ignore_case else 0
+    if rule.kind is RuleKind.TOKENS and rule.tokens:
+        # Sort longest-first so "in order to" wins over "order".
+        alternatives = "|".join(
+            re.escape(t) for t in sorted(rule.tokens, key=len, reverse=True)
+        )
+        # Boundaries that tolerate a leading/trailing non-word character,
+        # because many tokens are multi-word phrases with punctuation.
+        source = rf"(?<![\w-])(?:{alternatives})(?![\w-])"
+    elif rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
+        source = build_substitution_pattern(rule.substitutions)
+    elif rule.kind is RuleKind.PATTERN and rule.pattern:
+        source = rule.pattern
+    else:
+        return None
+    return compile_pattern(source, flags)
+
+
 # A trailing lookahead cannot be satisfied by the matched span alone: the key
 # `\b(?:e\.g\.)(?=[\s,])` matches "e.g." inside a sentence, but re-testing it
 # against the bare string "e.g." fails, because the space it looks ahead for is
@@ -416,7 +461,7 @@ def match_substitution(substitutions: dict[str, str], matched: str) -> str | Non
                 if probe == key:
                     continue
             try:
-                if re.fullmatch(probe, matched, re.IGNORECASE):
+                if compile_pattern(probe, re.IGNORECASE).fullmatch(matched):
                     return substitutions[key]
             except re.error:
                 continue
@@ -426,7 +471,7 @@ def match_substitution(substitutions: dict[str, str], matched: str) -> str | Non
     for key in ordered:
         probe = _LEADING_ASSERTION.sub("", _TRAILING_ASSERTION.sub("", key))
         try:
-            if re.search(probe, matched, re.IGNORECASE):
+            if compile_pattern(probe, re.IGNORECASE).search(matched):
                 return substitutions[key]
         except re.error:
             continue
@@ -436,6 +481,48 @@ def match_substitution(substitutions: dict[str, str], matched: str) -> str | Non
 def is_single_replacement(replacement: str | None) -> bool:
     """Return whether a substitution names one safe automatic replacement."""
     return bool(replacement) and "," not in replacement and "|" not in replacement
+
+
+class _Span(NamedTuple):
+    """One text a lexical rule matches, with where it sits in its block."""
+
+    block: Block | None
+    offset: int
+    text: str
+    # Cell bounds within `text` that no match may cross; empty for any text that
+    # is not a whole table.
+    cells: tuple[tuple[int, int], ...] = ()
+
+
+def _matches_within_cells(
+    pattern: re.Pattern[str], text: str, cells: tuple[tuple[int, int], ...]
+) -> Iterator[re.Match[str]]:
+    """Match `pattern` in `text`, keeping only matches that lie inside one cell.
+
+    A table's text joins its cells with single spaces. A pattern bounded by
+    sentence punctuation then reads cells with no full stop as one run-on
+    sentence: `negative-guarantee-core` matched from the header row into the cell
+    below, and the finding pointed at the top of the table. A match that crosses
+    a cell boundary is dropped and the scan resumes one character after its
+    start, so a match inside the cell it ran into is still found. The scan runs
+    over the whole text, so `^` and lookaround assertions see the same context as
+    an unbounded scan.
+    """
+    if not cells:
+        yield from pattern.finditer(text)
+        return
+    starts = [start for start, _ in cells]
+    position = 0
+    while True:
+        for match in pattern.finditer(text, position):
+            cell = bisect_right(starts, match.start()) - 1
+            if cell >= 0 and match.end() <= cells[cell][1]:
+                yield match
+                continue
+            position = match.start() + 1
+            break
+        else:
+            return
 
 
 class Engine:
@@ -454,8 +541,11 @@ class Engine:
         finding twice. Left as None the engine runs everything it selects, which is
         what `severity_for` callers and the tests want.
 
-        `only` does not narrow the directive check: a bad reason for a rule that
-        Vale runs is reported here, since Vale reads no directive.
+        `only` narrows execution and nothing else. The directive check still sees
+        every active rule, so a bad reason for a rule that Vale runs is reported
+        here, since Vale reads no directive; `drop_suppressed`, `is_active`, and
+        `severity_for` serve the findings Vale raised, so one engine per file
+        covers both halves of the ruleset.
         """
         self.config = config
         self._catalog = {r.qualified_id: r for r in rules}
@@ -463,7 +553,6 @@ class Engine:
         self._active = {r.qualified_id for r in self.rules}
         if only is not None:
             self.rules = [r for r in self.rules if r.qualified_id in only]
-        self._compiled: dict[str, re.Pattern[str]] = {}
 
     # --- rule selection -------------------------------------------------------
 
@@ -609,39 +698,6 @@ class Engine:
     ) -> bool:
         return is_suppressed(rule, line, suppressions, disabled)
 
-    # --- pattern compilation --------------------------------------------------
-
-    def _pattern_for(self, rule: Rule) -> re.Pattern[str] | None:
-        cached = self._compiled.get(rule.qualified_id)
-        if cached is not None:
-            return cached
-
-        flags = re.IGNORECASE if rule.ignore_case else 0
-        if rule.kind is RuleKind.TOKENS and rule.tokens:
-            # Sort longest-first so "in order to" wins over "order".
-            alternatives = "|".join(
-                re.escape(t) for t in sorted(rule.tokens, key=len, reverse=True)
-            )
-            # Boundaries that tolerate a leading/trailing non-word character,
-            # because many tokens are multi-word phrases with punctuation.
-            source = rf"(?<![\w-])(?:{alternatives})(?![\w-])"
-        elif rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
-            source = build_substitution_pattern(rule.substitutions)
-        elif rule.kind is RuleKind.PATTERN and rule.pattern:
-            source = rule.pattern
-        else:
-            return None
-
-        try:
-            compiled = re.compile(source, flags)
-        except re.error:
-            # A rule that cannot compile must be loud. Returning None here would
-            # make it silently match nothing, which reads as a clean document --
-            # the exact failure this project already documents for Vale.
-            raise
-        self._compiled[rule.qualified_id] = compiled
-        return compiled
-
     # --- execution ------------------------------------------------------------
 
     def unimplemented_metrics(self) -> list[str]:
@@ -671,14 +727,16 @@ class Engine:
         asymmetry `drop_quoted_illustrations` exists to close, for the other half of
         the contract.
 
-        An annotation naming a rule this engine does not know cannot be validated
-        here, so it is honoured as written: the alternative is an annotation that
-        reports as invalid AND fails to suppress.
+        It knows every active rule, including the ones `only` kept this engine from
+        running: those are the rules whose findings Vale raised. An annotation
+        naming a rule that is not active cannot be validated here, so it is
+        honoured as written: the alternative is an annotation that reports as
+        invalid AND fails to suppress.
         """
         suppressions, disabled, _ = self._scan_suppressions(document)
         if not suppressions and not disabled:
             return findings
-        known = {rule.qualified_id: rule for rule in self.rules}
+        known = {rule_id: self._catalog[rule_id] for rule_id in self._active}
         kept = []
         for finding in findings:
             rule = known.get(finding.rule_id)
@@ -713,9 +771,7 @@ class Engine:
         findings.sort(key=lambda f: (f.line, f.column, f.rule_id))
         return findings
 
-    def _lines_for_scope(
-        self, rule: Rule, document: Document
-    ) -> list[tuple[Block | None, int, str]]:
+    def _lines_for_scope(self, rule: Rule, document: Document) -> list[_Span]:
         """Return matching spans with their containing block and text offset.
 
         Native lexical rules must match the same whole paragraph/sentence that Vale
@@ -723,7 +779,7 @@ class Engine:
         match offset back to the source line and column without losing soft breaks.
         """
         if rule.scope is Scope.RAW:
-            return [(None, i, line) for i, line in enumerate(document.raw_lines)]
+            return [_Span(None, i, line) for i, line in enumerate(document.raw_lines)]
 
         prose_kinds = {
             BlockKind.PARAGRAPH,
@@ -734,7 +790,7 @@ class Engine:
         }
         blocks = [b for b in document.blocks if b.kind in prose_kinds]
         if rule.scope is Scope.HEADING:
-            return [(b, 0, b.text) for b in blocks if b.kind is BlockKind.HEADING]
+            return [_Span(b, 0, b.text) for b in blocks if b.kind is BlockKind.HEADING]
 
         if rule.scope is Scope.DOCUMENT:
             parts: list[str] = []
@@ -776,10 +832,10 @@ class Engine:
                 sentences=sentences,
                 line_starts=starts,
             )
-            return [(synthetic, 0, text)]
+            return [_Span(synthetic, 0, text)]
 
         if rule.scope is Scope.SENTENCE:
-            spans: list[tuple[Block | None, int, str]] = []
+            spans: list[_Span] = []
             for block in blocks:
                 cursor = 0
                 for sentence in block.sentences:
@@ -788,13 +844,16 @@ class Engine:
                         local = block.text.find(sentence.text)
                     if local < 0:
                         local = 0
-                    spans.append((block, local, sentence.text))
+                    spans.append(_Span(block, local, sentence.text))
                     cursor = local + len(sentence.text)
             return spans
 
         # Both prose and paragraph scopes operate on whole rendered blocks. The
-        # distinction is retained in the rule data for Vale and future routing.
-        return [(block, 0, block.text) for block in blocks if block.text]
+        # distinction is retained in the rule data for Vale and future routing. A
+        # table's text is its cells joined, so its matches stay inside one cell.
+        return [
+            _Span(block, 0, block.text, block.cells) for block in blocks if block.text
+        ]
 
     def _run_lexical(
         self,
@@ -803,7 +862,7 @@ class Engine:
         suppressions: dict[int, list[Suppression]],
         disabled: set[int],
     ) -> list[Finding]:
-        pattern = self._pattern_for(rule)
+        pattern = rule_pattern(rule)
         if pattern is None:
             return []
         severity = self.severity_for(rule)
@@ -811,9 +870,9 @@ class Engine:
         allowed_phrases = [entry for entry in allowed if " " in entry]
         results: list[Finding] = []
 
-        for block, base_offset, text in self._lines_for_scope(rule, document):
+        for block, base_offset, text, cells in self._lines_for_scope(rule, document):
             lowered = text.lower()
-            for match in pattern.finditer(text):
+            for match in _matches_within_cells(pattern, text, cells):
                 if rule.text_type is not TextType.ANY:
                     position = base_offset + match.start()
                     sentence = next(

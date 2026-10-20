@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from slopvac import analyze
 from slopvac.analyze import classify_text_type, count_words, parse, split_sentences
 from slopvac.model import TextType
 
@@ -290,3 +291,53 @@ def test_paths_leave_sentence_period_visible_to_segmentation() -> None:
     assert len(split_sentences("Open документы/файл.md. Then go.", 1)) == 2
     assert len(split_sentences("Open docs/file.md. Then go.", 1)) == 2
     assert count_words("Open docs/readme.md now.") == 3
+
+
+# The classifier strips the text, a step number, and a leading list marker before
+# it tokenizes, so these are the inputs where it cannot take the counted tokens.
+_MEASURE_EDGES = [
+    "Run the migration before you deploy.",
+    "  Run the migration.  ",
+    "1. Run the migration.",
+    "1. 2. Run the migration.",
+    "Step 2.3: rotate credentials safely.",
+    "- Run the migration.",
+    "* **Run** the migration.",
+    "--dry-run is the default.",
+    "+1 for the retry limit.",
+    "WARNING: delete the old replica.",
+    "NOTE: naïve users expect café support.",
+    "Deploy scripts live in /opt/café.",
+    "U.S. users should read the docs.",
+    "",
+]
+
+
+def test_one_tokenization_gives_both_sentence_measures() -> None:
+    root = Path(__file__).parents[3]
+    labels = Path(__file__).parent / "fixtures" / "text_type" / "runbook-labels-v1.jsonl"
+    records = [json.loads(line) for line in labels.read_text(encoding="utf-8").splitlines()]
+    readme = parse("README.md", (root / "README.md").read_text(encoding="utf-8"))
+    texts = [
+        *_MEASURE_EDGES,
+        *(record["text"] for record in records[1:]),
+        *(sentence.text for sentence in readme.sentences),
+    ]
+    for text in texts:
+        assert analyze._measure_sentence(text) == (
+            count_words(text),
+            classify_text_type(text),
+        ), text
+
+
+def test_split_sentences_tokenizes_a_plain_sentence_once(monkeypatch) -> None:
+    calls: list[str] = []
+    tokenize = analyze._stepless_tokens
+
+    def counted(text: str) -> tuple[str, ...]:
+        calls.append(text)
+        return tokenize(text)
+
+    monkeypatch.setattr(analyze, "_stepless_tokens", counted)
+    split_sentences("Run the migration before you deploy.", 1)
+    assert calls == ["Run the migration before you deploy."]

@@ -390,6 +390,9 @@ class Block:
     raw_bytes: bytes = b""
     under_examples: bool = False
     heading: str = ""
+    # TABLE only: each cell's [start, end) in `text`, which joins the cells with
+    # one space. A lexical match must stay inside one cell.
+    cells: tuple[tuple[int, int], ...] = ()
 
     @property
     def source_range(self) -> tuple[int, int]:
@@ -536,42 +539,9 @@ def _block_projected_base(
         return 0
     raw_start = min(segment.raw_start for segment in block_projection.segments)
     raw_end = max(segment.raw_end for segment in block_projection.segments)
-    matching = [
-        segment
-        for segment in document_projection.segments
-        if segment.raw_end > raw_start and segment.raw_start < raw_end
-    ]
-    if matching:
-        return matching[0].proj_start
     # A block made entirely of synthetic projection characters has no raw span;
-    # anchor it at the nearest document projection boundary.
-    for segment in document_projection.segments:
-        if segment.raw_start >= raw_start:
-            return segment.proj_start
-    return document_projection.projected_length
-
-
-def _block_projected_base(
-    document_projection: ProjectionMap, block_projection: ProjectionMap
-) -> int:
-    """Return the block start in the document-wide projected coordinate space."""
-    if not block_projection.segments:
-        return 0
-    raw_start = min(segment.raw_start for segment in block_projection.segments)
-    raw_end = max(segment.raw_end for segment in block_projection.segments)
-    matching = [
-        segment
-        for segment in document_projection.segments
-        if segment.raw_end > raw_start and segment.raw_start < raw_end
-    ]
-    if matching:
-        return matching[0].proj_start
-    # A block made entirely of synthetic projection characters has no raw span;
-    # anchor it at the nearest document projection boundary.
-    for segment in document_projection.segments:
-        if segment.raw_start >= raw_start:
-            return segment.proj_start
-    return document_projection.projected_length
+    # the lookup then anchors it at the nearest document projection boundary.
+    return document_projection.proj_start_for_raw(raw_start, raw_end)
 
 
 def _is_table_row(line: str) -> bool:
@@ -734,8 +704,11 @@ def _ste_tokens(text: str) -> tuple[str, ...]:
     as interior punctuation only when word characters surround it.
     """
     # Phase 0: delete the uncounted step or paragraph marker.
-    text = STEP_NUMBER.sub("", text)
+    return _stepless_tokens(STEP_NUMBER.sub("", text))
 
+
+def _stepless_tokens(text: str) -> tuple[str, ...]:
+    """Run phases 1-7 of ``_ste_tokens`` and its scan on text past phase 0."""
     # Phases 1-3: collapse code, identifiers, quoted spans, and quoted titles.
     text = _collapse(
         text,
@@ -795,6 +768,20 @@ def count_words(text: str) -> int:
     return len(_ste_tokens(text))
 
 
+def _measure_sentence(text: str) -> tuple[int, TextType]:
+    """Return ``count_words(text)`` and ``classify_text_type(text)``, tokenizing once.
+
+    The classifier tokenizes what is left after it trims whitespace, a step
+    number, and a leading list marker. When that leaves the string
+    ``count_words`` tokenized, the classifier takes those tokens, so both results
+    equal the separate calls by construction. Otherwise it tokenizes its own
+    string.
+    """
+    stepless = STEP_NUMBER.sub("", text)
+    tokens = _stepless_tokens(stepless)
+    return len(tokens), _classify_text_type(text, (stepless, tokens))
+
+
 def classify_text_type(text: str) -> TextType:
     """Select the sentence cap, conservatively distinguishing instructions.
 
@@ -804,6 +791,13 @@ def classify_text_type(text: str) -> TextType:
     with no parser); rare imperative verbs and noun-verb homographs outside that
     list use the fallback and may be classified wrongly either way.
     """
+    return _classify_text_type(text, None)
+
+
+def _classify_text_type(
+    text: str, counted: tuple[str, tuple[str, ...]] | None
+) -> TextType:
+    """Classify ``text``; ``counted`` is a step-free string and its tokens."""
     stripped = text.strip()
     (
         imperative_markers,
@@ -831,7 +825,11 @@ def classify_text_type(text: str) -> TextType:
     if note_marker.match(stripped):
         return TextType.DESCRIPTIVE
     body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
-    tokens = _ste_tokens(body)
+    stepless = STEP_NUMBER.sub("", body)
+    if counted is not None and counted[0] == stepless:
+        tokens = counted[1]
+    else:
+        tokens = _stepless_tokens(stepless)
     # Imperative-list verbs can be noun/verb homographs. A finite verb after
     # the opener exposes a descriptive subject clause (``Deploy scripts live``).
     # This is intentionally lexical rather than a POS parse.
@@ -1005,13 +1003,14 @@ def split_sentences(text: str, start_line: int) -> list[Sentence]:
             start = end
             if not part or not WORDLIKE.search(part):
                 continue
+            word_count, text_type = _measure_sentence(part)
             pieces.append(
                 Sentence(
                     text=part,
                     line=start_line + text[:absolute_offset].count("\n"),
                     column=1,
-                    word_count=count_words(part),
-                    text_type=classify_text_type(part),
+                    word_count=word_count,
+                    text_type=text_type,
                     start=absolute_offset,
                     end=absolute_offset + len(part),
                 )
@@ -1457,21 +1456,29 @@ def parse(path: str, raw: str) -> Document:
             kind_stack.append(BlockKind.TABLE)
             continue
         if token.type == "table_close":
+            cells = table_cells or []
+            spans: list[tuple[int, int]] = []
+            cursor = 0
+            for cell in cells:
+                spans.append((cursor, cursor + len(cell)))
+                cursor += len(cell) + 1
             block = Block(
                 kind=BlockKind.TABLE,
                 lines=(table_start, table_start),
-                text=" ".join(table_cells or []),
+                text=" ".join(cells),
                 line_starts=[(0, table_start)],
+                cells=tuple(spans),
             )
-            for cell in table_cells or []:
+            for cell in cells:
                 if WORDLIKE.search(cell):
+                    word_count, text_type = _measure_sentence(cell)
                     block.sentences.append(
                         Sentence(
                             text=cell,
                             line=table_start,
                             column=1,
-                            word_count=count_words(cell),
-                            text_type=classify_text_type(cell),
+                            word_count=word_count,
+                            text_type=text_type,
                         )
                     )
             blocks.append(block)

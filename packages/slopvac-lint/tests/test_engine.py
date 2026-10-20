@@ -31,6 +31,7 @@ from slopvac.engine import (
     Engine,
     _inside_quotation,
     _is_all_caps,
+    compile_pattern,
     count_clause_boundaries,
 )
 from slopvac.metrics import NATIVE_METRICS, paragraph_words_stdev
@@ -1807,3 +1808,70 @@ def test_relaxed_prose_inclusive_opt_in_needs_only_the_rule():
         rules={"prose-inclusive.ableist": RuleSettings(severity=Severity.WARNING)},
     )
     assert "prose-inclusive.ableist" in {r.qualified_id for r in engine.rules}
+
+
+# --- table cells and the per-file engine --------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("rows", "expected"),
+    [
+        # No punctuation anywhere: the subject ran back into the header row, and
+        # the finding reported line 1, the top of the table.
+        (["| gate | They never block a tool call |"], (3, 10, "They never block")),
+        # A full stop ends the previous row, so the subject started at "gate" in
+        # the first cell: the right line, the wrong column and match.
+        (
+            [
+                "| hooks | Advisory reminders on each edit. |",
+                "| gate | They never block a tool call |",
+            ],
+            (4, 10, "They never block"),
+        ),
+    ],
+)
+def test_a_table_match_stays_inside_its_cell(rows, expected):
+    text = "\n".join(["| Component | Behaviour |", "| --- | --- |", *rows]) + "\n"
+    findings = _negative_guarantees(text)
+    assert [(f.line, f.column, f.matched_text) for f in findings] == [expected]
+
+
+@pytest.mark.parametrize(
+    ("reason", "kept"), [("enforced-invariant", []), ("reads-better", [2])]
+)
+def test_drop_suppressed_validates_directives_for_rules_it_does_not_run(reason, kept):
+    """`lint_one` hands Vale's findings to the engine that `only` restricted to
+    the native rules. That engine still knows every active rule, so it honours a
+    valid reason and rejects one that is not among the rule's exceptions."""
+    ruleset = load_ruleset()
+    rule = next(r for r in ruleset.rules if r.qualified_id == NEGATIVE_GUARANTEE_RULE)
+    resolved = resolve_for(_config(), Path("/repo/a.md"))
+    engine = Engine(ruleset.rules, resolved, only=set())
+    document = parse(
+        "a.md",
+        f"<!-- slopvac-allow: rule={NEGATIVE_GUARANTEE_RULE} reason={reason} -->\n"
+        "The agent never pushes to `main`: the pre-push hook rejects it.\n",
+    )
+    vale_finding = Finding(
+        path="a.md",
+        line=2,
+        rule_id=rule.qualified_id,
+        category=rule.category,
+        severity=Severity.WARNING,
+        message="negative guarantee",
+    )
+    assert [f.line for f in engine.drop_suppressed([vale_finding], document)] == kept
+
+
+def test_engines_for_later_files_reuse_the_compiled_patterns():
+    """`lint_one` builds one engine per file. Each rule pattern compiles for the
+    first file and is reused by every later engine in the process."""
+    ruleset = load_ruleset()
+    resolved = resolve_for(_config(), Path("/repo/a.md"))
+    text = "The release agent never merges a pull request.\n"
+    compile_pattern.cache_clear()
+    Engine(ruleset.rules, resolved).run(parse("a.md", text))
+    compiled = compile_pattern.cache_info().misses
+    Engine(ruleset.rules, resolved).run(parse("b.md", text))
+    assert compiled > 0
+    assert compile_pattern.cache_info().misses == compiled

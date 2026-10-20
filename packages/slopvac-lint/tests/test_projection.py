@@ -8,7 +8,13 @@ import pytest
 
 from slopvac import analyze
 from slopvac.analyze import BlockKind, Document, parse
-from slopvac.projection import ProjectionMap, classify_origin, classify_region, project
+from slopvac.projection import (
+    ProjectionMap,
+    Segment,
+    classify_origin,
+    classify_region,
+    project,
+)
 
 
 def test_projection_maps_unicode_entities_crlf_markup_and_code() -> None:
@@ -255,3 +261,104 @@ def test_html_spans_follow_repeated_text_nodes() -> None:
     assert sentence.source_spans[0][0] == raw.index("Hello", raw.index(">"))
     assert sentence.source_spans[1][0] == raw.index("Hello", sentence.source_spans[0][1])
     assert sentence.source_spans[0][0] != raw.index("Hello")
+
+
+def _linear_submap(mapping: ProjectionMap, start: int, end: int) -> tuple[Segment, ...]:
+    """The full scan ``submap`` ran before it bisected the segment index."""
+    return tuple(
+        Segment(
+            max(segment.proj_start, start) - start,
+            min(segment.proj_end, end) - start,
+            segment.raw_start,
+            segment.raw_end,
+        )
+        for segment in mapping.segments
+        if not (segment.proj_end <= start or segment.proj_start >= end)
+    )
+
+
+def _linear_raw_start(mapping: ProjectionMap, raw_start: int, raw_end: int) -> int:
+    """The full scan ``_block_projected_base`` ran before the raw-offset index."""
+    matching = [
+        segment
+        for segment in mapping.segments
+        if segment.raw_end > raw_start and segment.raw_start < raw_end
+    ]
+    if matching:
+        return matching[0].proj_start
+    for segment in mapping.segments:
+        if segment.raw_start >= raw_start:
+            return segment.proj_start
+    return mapping.projected_length
+
+
+_PROJECTED_SOURCES = (
+    "Café &eacute; 😊\r\nUse `inline code` and **bold**.\r\n> quoted text\r\n",
+    "first line\r\nsecond line",
+    "| A | B |\n| - | - |\n| cell | value |\n",
+    "Read [the guide](https://example.com) &amp; <b>tags</b>.\n\n- one\n- two\n",
+    "",
+)
+
+# Shapes `project` never emits: zero-width and multi-code-point segments, gaps,
+# and, in the second map, raw ranges out of source order.
+_HAND_BUILT = (
+    (Segment(0, 3, 0, 6), Segment(3, 3, 6, 6), Segment(4, 5, 9, 10), Segment(5, 7, 10, 12)),
+    (Segment(0, 3, 0, 6), Segment(3, 3, 6, 6), Segment(4, 5, 9, 10), Segment(5, 7, 2, 3)),
+)
+
+_ORACLE_MAPS = [
+    *(project(raw)[1] for raw in _PROJECTED_SOURCES),
+    *(ProjectionMap(segments, b"x" * 12) for segments in _HAND_BUILT),
+    ProjectionMap(()),
+]
+
+
+@pytest.mark.parametrize("mapping", _ORACLE_MAPS)
+def test_submap_matches_the_full_scan(mapping: ProjectionMap) -> None:
+    length = mapping.projected_length
+    for start in range(length + 1):
+        for end in range(start, length + 1):
+            assert mapping.submap(start, end).segments == _linear_submap(
+                mapping, start, end
+            )
+
+
+@pytest.mark.parametrize("mapping", _ORACLE_MAPS)
+def test_raw_lookup_matches_the_full_scan(mapping: ProjectionMap) -> None:
+    top = max((segment.raw_end for segment in mapping.segments), default=0) + 2
+    for raw_start in range(top):
+        for raw_end in range(raw_start, top):
+            assert mapping.proj_start_for_raw(raw_start, raw_end) == _linear_raw_start(
+                mapping, raw_start, raw_end
+            )
+
+
+def test_project_emits_raw_offsets_in_source_order() -> None:
+    """The raw lookup bisects only an ascending map, so the oracle above checks
+    the bisect on every projected source and the scan on the unordered map."""
+    root = Path(__file__).parents[3]
+    sources = [*_PROJECTED_SOURCES, (root / "README.md").read_text(encoding="utf-8")]
+    for raw in sources:
+        assert project(raw)[1]._raw_order is not None
+    assert ProjectionMap(_HAND_BUILT[0])._raw_order is not None
+    assert ProjectionMap(_HAND_BUILT[1])._raw_order is None
+
+
+def test_readme_blocks_and_sentences_match_the_full_scans() -> None:
+    root = Path(__file__).parents[3]
+    document = parse("README.md", (root / "README.md").read_text(encoding="utf-8"))
+    assert document.projection is not None
+    for block in document.blocks:
+        if block.projection is None or not block.projection.segments:
+            continue
+        raw_start = min(segment.raw_start for segment in block.projection.segments)
+        raw_end = max(segment.raw_end for segment in block.projection.segments)
+        assert analyze._block_projected_base(
+            document.projection, block.projection
+        ) == _linear_raw_start(document.projection, raw_start, raw_end)
+        for sentence in block.sentences:
+            assert sentence.projection is not None
+            assert sentence.projection.segments == _linear_submap(
+                block.projection, sentence.start, sentence.end
+            )
