@@ -32,7 +32,6 @@ ordinary comment, and every line and column stays where it was.
 from __future__ import annotations
 
 import json
-import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
@@ -123,27 +122,13 @@ def run_compiled_vale(
     """
     result = ValeResult()
 
-    resolved_binary = shutil.which(binary)
-    if resolved_binary is None:
-        result.unchecked.append(
-            f"`{binary}` is not on PATH, so the {len(compiled.vale_rules)} rules "
-            f"compiled for it did NOT run. Install it (`mise use -g vale` or "
-            f"`brew install vale`), or pass --no-vale to acknowledge the gap."
-        )
-        return result
+    from .vale_probe import ValeUnavailable, require_vale
 
-    from .vale_probe import MIN_VALE_VERSION, vale_version
-
-    version = vale_version(binary)
-    if version is None or version < MIN_VALE_VERSION:
-        floor = ".".join(str(n) for n in MIN_VALE_VERSION)
-        found = (
-            ".".join(str(n) for n in version) if version else "an unreadable version"
-        )
+    try:
+        resolved_binary = require_vale(binary)
+    except ValeUnavailable as exc:
         result.unchecked.append(
-            f"`{binary}` reports {found}; the compiled styles need Vale {floor} or "
-            f"later, so the {len(compiled.vale_rules)} rules compiled for it did NOT "
-            f"run. Upgrade Vale, or pass --no-vale to acknowledge the gap."
+            f"{exc} The {len(compiled.vale_rules)} Vale rules did NOT run."
         )
         return result
 
