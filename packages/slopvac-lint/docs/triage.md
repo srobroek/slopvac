@@ -11,8 +11,8 @@ JSON output includes the fields needed to inspect one match:
 | Field | Use |
 | --- | --- |
 | `rule_id` | Look up the rule contract |
-| `line`, `column`, `end_column` | Locate the match |
-| `matched_text` | See what triggered the rule |
+| `line`, `column` | Locate the finding; `end_column` can be absent |
+| `matched_text` | See what triggered the rule; metric and structure findings can leave it empty |
 | `replacement` | Use the deterministic replacement when one exists |
 | `severity` | Understand the configured gate consequence |
 
@@ -39,9 +39,12 @@ A suppression must use a reason returned by `slopvac explain`:
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-An unknown reason is reported as `meta.invalid-suppression`. For intentional
-specimen text, including examples whose purpose is to show a bad pattern, disable
-linting around the specimen rather than weakening the rule:
+An unknown reason is reported as `meta.invalid-suppression` only when its rule is
+active. An unknown rule id is reported regardless of whether any rule with that
+id is active.
+
+For intentional specimen text, including examples whose purpose is to show a bad
+pattern, disable linting around the specimen rather than weakening the rule:
 
 ```markdown
 <!-- slopvac-disable -->

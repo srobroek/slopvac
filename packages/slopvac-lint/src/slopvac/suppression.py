@@ -24,6 +24,19 @@ SUPPRESSION_ATTEMPT = re.compile(r"<!--\s*slopvac-allow\b")
 DISABLE_LINE = re.compile(r"<!--\s*slopvac-disable-next-line\s*-->")
 DISABLE_START = re.compile(r"<!--\s*slopvac-disable\s*-->")
 DISABLE_END = re.compile(r"<!--\s*slopvac-enable\s*-->")
+
+# The written forms the patterns above parse. `explain`, the prime guides, and the
+# rules reference print these, so the documented grammar is the parsed grammar.
+DISABLE_NEXT_LINE_COMMENT = "<!-- slopvac-disable-next-line -->"
+DISABLE_COMMENT = "<!-- slopvac-disable -->"
+ENABLE_COMMENT = "<!-- slopvac-enable -->"
+
+
+def allow_comment(rule_id: str, reason: str) -> str:
+    """The allow annotation for one rule and one of its named exceptions."""
+    return f"<!-- slopvac-allow: rule={rule_id} reason={reason} -->"
+
+
 # A directive quoted in a code span is documentation of the directive, not a
 # directive: the README and the skills show the grammar in backticks, and treating
 # those as written made the project's own docs fail their gate, while a quoted

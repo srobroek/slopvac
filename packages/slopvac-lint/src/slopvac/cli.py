@@ -55,6 +55,7 @@ from .pipeline import (
 from .reference import render_reference
 from .rules import RuleLoadError, inject_locale_rule, load_ruleset
 from .steering import harnesses
+from .suppression import allow_comment
 from .update_notice import show_update_notice, start_refresh
 from .vale_cache import CACHE_KEEP, cache_root, prune_cache
 from .vale_probe import ValeUnavailable
@@ -125,6 +126,21 @@ def _machine_output(arguments: tuple[str, ...] | list[str]) -> bool:
     return to_file or any(fmt != "text" for fmt in formats)
 
 
+# Options several commands share, declared once so their help cannot diverge.
+_rules_dir_option = click.option(
+    "--rules-dir",
+    multiple=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+    help="Extra rule directory, layered over the packaged rules. Repeatable.",
+)
+_text_or_json_option = click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    help="text for humans, json for tooling.",
+)
+
 
 @click.group(cls=_DefaultGroup, invoke_without_command=True)
 @click.version_option(__version__, prog_name="slopvac")
@@ -175,12 +191,7 @@ def main(context: click.Context) -> None:
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Config file. Default: nearest slopvac.toml walking up from each target.",
 )
-@click.option(
-    "--rules-dir",
-    multiple=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-    help="Extra rule directory, layered over the packaged rules. Repeatable.",
-)
+@_rules_dir_option
 @click.option(
     "--category",
     "only_categories",
@@ -279,6 +290,10 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
+    """Lint TARGETS: files, directories, or globs.
+
+    Exit 0 passes, 1 fails a threshold, and 2 is an incomplete run.
+    """
     _note_output(output_format, out_path, open_report)
     console = _console(no_color)
     scope = None
@@ -428,7 +443,10 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
 
 @main.command("rules")
 @click.option(
-    "--profile", type=click.Choice([p.value for p in Profile]), default="normal"
+    "--profile",
+    type=click.Choice([p.value for p in Profile]),
+    default="normal",
+    help="Show each rule's tier and severity at this profile.",
 )
 @click.option("--category", "only", multiple=True, help="Limit to these categories.")
 @click.option(
@@ -436,19 +454,15 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
     type=click.Choice([k.value for k in RuleKind]),
     help="Filter by rule kind; `judgement` lists the rules lint never checks.",
 )
-@click.option(
-    "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
-)
+@_text_or_json_option
 @click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Resolve severities with this config's settings. Default: the profile's "
+    "own settings.",
 )
-@click.option(
-    "--rules-dir",
-    multiple=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-)
+@_rules_dir_option
 def list_rules(
     profile: str,
     only: tuple[str, ...],
@@ -548,19 +562,14 @@ def list_rules(
 
 @main.command()
 @click.argument("rule_id")
-@click.option(
-    "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
-)
+@_text_or_json_option
 @click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Read the spelling locale from this file. Default: the nearest slopvac config.",
 )
-@click.option(
-    "--rules-dir",
-    multiple=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-)
+@_rules_dir_option
 def explain(
     rule_id: str,
     output_format: str,
@@ -594,10 +603,7 @@ def explain(
             "tiers": {name: tier.value for name, tier in rule.tiers.items()},
         }
         if rule.exceptions:
-            payload["suppression"] = (
-                f"<!-- slopvac-allow: rule={rule.qualified_id} "
-                f"reason={rule.exceptions[0]} -->"
-            )
+            payload["suppression"] = allow_comment(rule.qualified_id, rule.exceptions[0])
         click.echo(json.dumps(payload, indent=2))
         raise SystemExit(EXIT_OK)
 
@@ -622,9 +628,7 @@ def explain(
         console.print("\n[bold]Named exceptions[/] (a suppression must cite one):")
         for name in rule.exceptions:
             console.print(f"  - {name}")
-        console.print(
-            f"\n  <!-- slopvac-allow: rule={rule.qualified_id} reason={rule.exceptions[0]} -->"
-        )
+        console.print(f"\n  {allow_comment(rule.qualified_id, rule.exceptions[0])}")
     if rule.examples:
         console.print("\n[bold]Examples[/]")
         for example in rule.examples:
@@ -642,7 +646,10 @@ def explain(
 
 @main.command("init")
 @click.option(
-    "--profile", type=click.Choice([p.value for p in Profile]), default="normal"
+    "--profile",
+    type=click.Choice([p.value for p in Profile]),
+    default="normal",
+    help="Profile the new config sets.",
 )
 @click.option("--force", is_flag=True, help="Overwrite an existing config.")
 @click.option(
@@ -650,6 +657,7 @@ def explain(
     type=click.Path(path_type=Path),
     default=Path("slopvac.toml"),
     show_default=True,
+    help="Config file to write.",
 )
 @click.option(
     "--skip-agents",
@@ -757,25 +765,22 @@ def _install_harness(
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Read [guidance] from this file. Default: the nearest slopvac config.",
 )
-@click.option(
-    "--rules-dir",
-    multiple=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-)
+@_rules_dir_option
 def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ...]) -> None:
     """Print current guidance for agents.
 
-    With no TOPIC, print the lint workflow and when to run the topics. `write`
-    prints the writing guide and `review` the review workflow and checklist, both
-    generated from the rule catalogue. Prime only prints; it never writes files.
+    With no TOPIC, print how to use every command, the genres and profiles, and
+    when to run the topics. `write` prints the writing guide and `review` the
+    review workflow and checklist, both generated from the rule catalogue. Prime
+    only prints; it never writes files.
     """
     from .guidance import disabled_notice, render_review, render_write
-    from .steering import prime_text
+    from .prime import render_prime
 
     console = _console(False)
     settings, source = _guidance_of(console, config_path or find_config(Path.cwd()))
     if topic is None:
-        click.echo(prime_text(settings))
+        click.echo(render_prime(settings, main), nl=False)
         return
     if getattr(settings, topic) == "off":
         click.echo(disabled_notice(topic, source))
@@ -814,6 +819,7 @@ def onboard() -> None:
     type=click.Path(file_okay=False, path_type=Path),
     default=Path("."),
     show_default=True,
+    help="Project directory that holds the steering files and config.",
 )
 def setup_agent(
     harness: str | None,
@@ -894,25 +900,25 @@ def setup_agent(
     type=click.Path(path_type=Path),
     help="Where to write the styles. Default: the run cache.",
 )
-@click.option("--profile", type=click.Choice([p.value for p in Profile]), default=None)
+@click.option(
+    "--profile",
+    type=click.Choice([p.value for p in Profile]),
+    default=None,
+    help="Override the configured profile.",
+)
 @click.option(
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Config file. Default: the nearest slopvac config.",
 )
-@click.option(
-    "--rules-dir",
-    multiple=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-)
+@_rules_dir_option
 @click.option(
     "--no-validate",
     is_flag=True,
     help="Skip validating each rule against Vale. Faster, but the routing is unverified.",
 )
-@click.option(
-    "--format", "output_format", type=click.Choice(["text", "json"]), default="text"
-)
+@_text_or_json_option
 def compile_styles(
     outdir: Path | None,
     profile: str | None,
@@ -1081,11 +1087,7 @@ def cache(prune: bool, prune_all: bool) -> None:
     is_flag=True,
     help="Exit 2 if the file at --write differs from what would be generated.",
 )
-@click.option(
-    "--rules-dir",
-    multiple=True,
-    type=click.Path(exists=True, file_okay=False, path_type=Path),
-)
+@_rules_dir_option
 def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]) -> None:
     """Generate the markdown rules reference.
 

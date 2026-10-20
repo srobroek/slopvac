@@ -18,9 +18,6 @@ from pathlib import Path
 
 from markdown_it import MarkdownIt
 
-from .config import GuidanceSettings
-from .guidance import prime_section
-
 BEGIN = "<!-- slopvac:begin -->"
 END = "<!-- slopvac:end -->"
 
@@ -102,30 +99,6 @@ details and named exceptions.
 Treat lint exit 2 as incomplete. Vale 3.15 or later is optional but highly
 recommended for full deterministic coverage.
 <!-- slopvac:end -->
-"""
-LINT_PRIME = """\
-## Lint
-
-- Run `slopvac lint <paths> --profile <profile> --format json`.
-- Reference docs and agent guidance use `strict`.
-- READMEs and guides use `normal`.
-- Use `normal` for internal docs and change communications.
-- Informal text uses `relaxed`.
-- Exit 0 is a pass. Exit 1 is a gate failure.
-- Exit 2 is incomplete. Do not report it as clean.
-- Vale 3.15 or later is optional but recommended.
-- Without Vale, lint reports unchecked rules and exits 2.
-- On exit 2, report unchecked entries or the error text.
-- Fix the cause and rerun lint.
-- Config and rule errors print text, not JSON.
-- Run `slopvac rules` to inspect rules.
-- Run `slopvac explain <rule_id>` for details.
-- Use exceptions to suppress matching findings.
-- `slopvac explain <rule_id>` prints the suppression annotation.
-- Check factual claims against code or a source.
-- Consumer docs describe shipped behavior.
-- Put history in change communications.
-- Put plans in specifications or decisions.
 """
 
 
@@ -381,8 +354,3 @@ block stays intentionally small.
 
 Run `slopvac prime` whenever you need the current detailed lint workflow.
 """
-
-
-def prime_text(settings: GuidanceSettings) -> str:
-    """Base prime: the configured writing and review steps, then the lint workflow."""
-    return "# Slopvac lint guidance\n" + prime_section(settings) + "\n" + LINT_PRIME

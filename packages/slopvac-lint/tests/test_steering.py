@@ -115,7 +115,8 @@ def test_onboard_points_to_prime_without_duplicating_detailed_guidance():
     assert result.exit_code == 0
     assert "slopvac prime" in result.output
     assert "slopvac setup --list" in result.output
-    assert "Slopvac lint guidance" not in result.output
+    assert "## Command reference" not in result.output
+    assert "## Genres and profiles" not in result.output
     assert "judgement" not in result.output.lower()
 
 
