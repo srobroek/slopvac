@@ -396,16 +396,13 @@ def _suppression_checks() -> list[str]:
         "",
         "- Each allow reason is a named exception of its rule, and that exception "
         "fits the text.",
-        "  Lint does not report a bad reason for a rule that Vale runs. "
-        "Check each reason with `slopvac explain <rule_id>`.",
         "- Each directive has the smallest scope that works. "
         "An allow directive for one rule comes before a disable directive.",
         f"- Each `{DISABLE_COMMENT}` has a `{ENABLE_COMMENT}` after it. "
         "A region without one runs to the end of the file.",
         "- No disable directive covers authored prose. "
         "It covers only generated text or quoted specimens.",
-        "- A Vale comment, such as `<!-- vale off -->`, hides findings without a reason. "
-        "It is an unjustified suppression.",
+        "- A Vale comment, such as `<!-- vale off -->`, hides nothing. Delete it.",
         "",
     ]
 

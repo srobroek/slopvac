@@ -267,7 +267,7 @@ def _suppressions() -> list[str]:
         "- A rule whose scope is not `raw` skips these parts of a file:",
         "  - code spans and code blocks",
         "  - HTML comments",
-        "- The native engine also skips front matter. Vale reads the values in it.",
+        "  - front matter",
         "- A directive is an HTML comment. Write it in one of these case-sensitive forms:",
         f"  - `{allow_comment('<rule_id>', '<exception>')}` skips one rule "
         "in the next block.",
@@ -284,19 +284,18 @@ def _suppressions() -> list[str]:
         "A rule without named exceptions takes no allow directive.",
         "- Lint reports `meta.invalid-suppression` for a malformed allow directive.",
         "  It also reports one for an unknown rule id, or for a missing or unlisted reason.",
-        "  That directive suppresses nothing. A directive for a rule that does not run "
-        "is silent.",
-        "- Lint does not report a missing or unlisted reason for a rule that Vale runs.",
-        "  `slopvac compile --format json` lists those rules. "
-        "Check each of their reasons with `slopvac explain <rule_id>`.",
+        "  That directive suppresses nothing. A directive for a rule that the config "
+        "turns off is silent.",
+        "- The check is the same for the rules that Vale runs, and with `--no-vale`.",
         "- Regions do not nest. The first enable comment ends a region. "
         "A region without one runs to the end of the file.",
         "- A directive in a code span, a code block, or front matter is text. "
         "It has no effect.",
-        "- With `--mode code-comments`, directives have no effect.",
+        "- With `--mode code-comments`, write the directive in a source comment. "
+        "It covers the next comment block.",
         "- Use a disable directive only around generated or quoted text.",
-        "- Vale also reads its own comments, such as `<!-- vale off -->`. "
-        "They hide Vale findings with no reason check. Do not write them.",
+        "- Lint hides Vale's own comments, such as `<!-- vale off -->`, from Vale. "
+        "They have no effect.",
         f"- The full reference is `{SUPPRESSIONS_URL}`.",
         "",
     ]
