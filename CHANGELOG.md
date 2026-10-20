@@ -1,5 +1,43 @@
 # Changelog
 
+## [2.16.0](https://github.com/srobroek/slopvac/compare/v2.15.0...v2.16.0) (2026-10-20)
+
+
+### Features
+
+* **rules:** `negative-guarantee-core` skips instructions ("Never edit …"), MUST NOT/NEVER, "must/will never" and past tense, and accepts the exceptions `quotation`, `normative-keyword` and `enforced-invariant`. ([f6ac399](https://github.com/srobroek/slopvac/commit/f6ac399ff9eaf7b3e1785594197097bb70d814d8))
+* **rules:** add the judgement rule `prose-discipline.negative-guarantee-remainder` (enforced at strict, advisory at normal; recommended for consumer, reference and internal), which asks whether a "never" guarantee names what stops the action, is stacked, or lists side effects that do not happen. ([f6ac399](https://github.com/srobroek/slopvac/commit/f6ac399ff9eaf7b3e1785594197097bb70d814d8))
+* **rules:** add the pattern rule `ai-tells-structure.negative-guarantee-core` (warning, on at strict and normal) for components described by what they never do ("X never Y", "X itself never Y", "X runs no Z"). ([f6ac399](https://github.com/srobroek/slopvac/commit/f6ac399ff9eaf7b3e1785594197097bb70d814d8))
+
+
+### Bug Fixes
+
+* **dev:** run py-spy from the profile group, not the scratch venv ([#205](https://github.com/srobroek/slopvac/issues/205)) ([beaf593](https://github.com/srobroek/slopvac/commit/beaf5932e54fd6801f70d5100640a8721b4294a7))
+* **rules:** narrow `ai-tells-structure.absolute-assertion-remainder` so a component's behavioural "never" guarantee goes to `negative-guarantee-remainder` instead of being preserved. ([f6ac399](https://github.com/srobroek/slopvac/commit/f6ac399ff9eaf7b3e1785594197097bb70d814d8))
+
+
+### Performance
+
+* **analyze:** build the offset and line-start tables once per document instead of once per block; linting the 17,844-word generated rules reference drops from 89 s to 4.5 s and its peak memory from 513 to 145 MiB. ([f928a46](https://github.com/srobroek/slopvac/commit/f928a460223446a6e8221c3a389ead1b4908f5b3))
+* **analyze:** build the offset tables once for HTML blocks and lines too. ([f928a46](https://github.com/srobroek/slopvac/commit/f928a460223446a6e8221c3a389ead1b4908f5b3))
+* **analyze:** compile the text-classifier regexes on first use. ([f928a46](https://github.com/srobroek/slopvac/commit/f928a460223446a6e8221c3a389ead1b4908f5b3))
+* **cli:** load only the modules each command needs, so `slopvac --version` takes 78 ms instead of 429 ms. ([d5b1d52](https://github.com/srobroek/slopvac/commit/d5b1d52b3d07c2b98a4fe6563f22e2e918ff70ac))
+* **cli:** read the PyPI update notice from cache only and refresh a stale cache in a detached process, so no command waits on the network. ([d5b1d52](https://github.com/srobroek/slopvac/commit/d5b1d52b3d07c2b98a4fe6563f22e2e918ff70ac))
+* **rules:** cache the verified ruleset load under the cache root, keyed by package version, loader source and every rule file's text; a lint of a small file drops from 1458 ms to 575 ms and `rules`/`explain` from about 1.3 s to about 0.4 s. ([7e19bc3](https://github.com/srobroek/slopvac/commit/7e19bc31821eb7cc8306df3dce547f8b932d5f71))
+* **rules:** parse rule YAML and write Vale rule YAML with PyYAML's bundled libyaml binding, re-parsing with the pure-Python loader on error so messages are unchanged. ([7e19bc3](https://github.com/srobroek/slopvac/commit/7e19bc31821eb7cc8306df3dce547f8b932d5f71))
+* **rules:** prove shipped rule examples in tests and user rules once per cache build instead of on every run. ([7e19bc3](https://github.com/srobroek/slopvac/commit/7e19bc31821eb7cc8306df3dce547f8b932d5f71))
+* **vale:** ask `vale --version` once per binary per process. ([7e19bc3](https://github.com/srobroek/slopvac/commit/7e19bc31821eb7cc8306df3dce547f8b932d5f71))
+
+
+### Refactors
+
+* move the plain enums to `slopvac.enums`, and the exit codes, `LINTABLE` and `SKIP_SOURCE_DIRS` to `slopvac.contract`; the old import paths still work. ([d5b1d52](https://github.com/srobroek/slopvac/commit/d5b1d52b3d07c2b98a4fe6563f22e2e918ff70ac))
+
+
+### Documentation
+
+* **changelog:** list every change and rule in 2.12.0 and 2.15.0 ([#208](https://github.com/srobroek/slopvac/issues/208)) ([eec974f](https://github.com/srobroek/slopvac/commit/eec974f7ae45a8125ab4fabcf8322126a4bf39b8))
+
 ## [2.15.0](https://github.com/srobroek/slopvac/compare/v2.14.0...v2.15.0) (2026-10-20)
 
 
