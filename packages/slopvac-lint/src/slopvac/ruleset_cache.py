@@ -18,6 +18,14 @@ a miss and costs one uncached load.
 A DAMAGED ENTRY IS A MISS. The entry carries a checksum of its documents, so a
 truncated, edited, or otherwise corrupt file never yields rules that differ from
 a fresh load. Writing is atomic and never raises.
+
+THE GENERATED SPELLING RULE HAS ITS OWN SLOT, one per locale, in the same format.
+`rules.inject_locale_rule` builds it from the locale table and the project's
+allowlist on every run, then proves its examples, which compiles a pattern of
+about 280 alternatives: about 15 ms of CPU in each `lint`, `rules`, and `explain`
+run. Its entry stores the generated document under a key of that document, the
+package version, and the loader's source, so a hit means this exact rule already
+passed under this exact code.
 """
 
 from __future__ import annotations
@@ -45,6 +53,35 @@ def entry_path(extra_dirs: list[Path]) -> Path:
     for directory in extra_dirs:
         slot.update(b"\0" + str(directory.resolve()).encode())
     return cache_root() / "rulesets" / f"{slot.hexdigest()[:16]}.json"
+
+
+def locale_entry_path(tag: str) -> Path:
+    """The slot for the generated spelling rule of locale `tag`.
+
+    One slot per locale, so a changed allowlist or generator overwrites it rather
+    than adding a file. Two allowlists for one locale, in two projects or in two
+    overrides of one config, take turns in the slot, and each turn costs a proof.
+    """
+    return cache_root() / "rulesets" / f"locale-{tag}.json"
+
+
+def generated_key(origin: str, document: dict) -> str | None:
+    """The content key of one generated rule document, or None when JSON cannot
+    hold it exactly, in which case the rule is proved on every run.
+
+    Keyed on the document rather than on the generator's source: the locale and
+    the allowlist reach the proof only through the document, so any change to
+    them or to the generator that changes the rule also changes the key. The
+    text keeps the document's key order, which decides the order of
+    equal-length alternatives in the pattern.
+    """
+    try:
+        text = json.dumps(document, ensure_ascii=True, separators=(",", ":"))
+        if json.loads(text) != document:
+            return None
+    except (TypeError, ValueError):
+        return None
+    return content_key([(origin, text)])
 
 
 def content_key(sources: list[tuple[str, str]]) -> str:

@@ -158,6 +158,23 @@ def run_compiled_vale(
     # A rule that fails to load is absent from `ls-config` while Vale still exits
     # 0 on every file. Comparing the resolved set against what we wrote is the
     # only way that reads as a gap rather than as clean prose.
+    #
+    # NOT CACHED, though it costs one Vale start (about 15 ms of CPU) per run. A
+    # cached answer is safe only under a key that covers every input, and two
+    # inputs make that key cost what it saves or miss a change:
+    #
+    # - The compiled tree. Hashing its rule files and ini took 14 to 32 ms for the
+    #   134 and 286 files of the prose and code-comment trees, as much as the run
+    #   it replaces. File stats cost a third of that and miss an edit that keeps
+    #   the size and mtime.
+    # - Vale's global `.vale.ini`, which Vale finds by itself (`vale ls-dirs`) and
+    #   merges unless given `--no-global`. No key built here sees it change, so
+    #   once that file breaks the config, a cached pass would drop the "could not
+    #   report its resolved configuration" note below.
+    #
+    # Measured on Vale 3.24: `Checks` lists the rules the ini names, so a deleted
+    # rule file is still listed. Revisit if the runner passes `--no-global` or
+    # Vale reports the rules it loaded.
     from .vale_probe import resolved_checks
 
     expected = set(compiled.vale_rules)
