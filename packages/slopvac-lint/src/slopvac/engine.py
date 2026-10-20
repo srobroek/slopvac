@@ -880,6 +880,16 @@ class Engine:
                 if self._suppressed(rule, line, suppressions, disabled):
                     continue
 
+                if "\x00" in matched and block is not None:
+                    end_line, source_end = block.position(base_offset + match.end())
+                    source_lines = document.raw_lines[line - 1:end_line]
+                    if line == end_line:
+                        matched = source_lines[0][column - 1:source_end - 1]
+                    else:
+                        source_lines[0] = source_lines[0][column - 1:]
+                        source_lines[-1] = source_lines[-1][:source_end - 1]
+                        matched = "\n".join(source_lines)
+
                 candidate = None
                 if rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:
                     candidate = match_substitution(rule.substitutions, matched)

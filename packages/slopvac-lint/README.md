@@ -51,19 +51,20 @@ Slopvac skips the check in these cases:
 
 To disable the check, set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`.
 
-[Vale](https://vale.sh) is optional.
-
-For full deterministic coverage, install Vale 3.18 or later and put it on
-`PATH`. We **highly recommend** doing so because Vale executes most deterministic
-rules. `slopvac` generates the Vale configuration and styles.
+**[Vale](https://vale.sh) 3.18 or later is required for complete linting.**
+Install Vale separately and add its executable to `PATH` (`brew install vale`
+on macOS). Run `slopvac doctor` to check that Vale meets the required version.
+SlopVac generates Vale's configuration and styles. Contributors can run
+`mise install` to install the pinned Python, uv, and Vale tools.
+Users of uvx, uv, or pipx do not need mise. They install Vale separately.
 
 | Engine | Checks |
 | --- | --- |
 | Vale | Most deterministic rules, including compiled patterns and part-of-speech checks |
 | Native | Additional patterns and metrics, including comparisons between text blocks |
 
-Without Vale, only the native checks run. Missing Vale, or `--no-vale`, leaves
-selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
+Without Vale, only native findings are available. Missing or unsupported Vale,
+or `--no-vale`, leaves selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
 remain in the report, but this is an incomplete check.
 
 ## Agent steering

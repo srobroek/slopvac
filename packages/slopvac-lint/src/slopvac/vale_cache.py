@@ -124,7 +124,7 @@ def _temporary_cache() -> tempfile.TemporaryDirectory:
 
 def private_compile_root() -> Path:
     root = cache_root()
-    if trusted_cache_path(root, create=True):
+    if trusted_cache_path(root, create=True) and root.is_dir():
         return root
     return Path(_temporary_cache().name)
 

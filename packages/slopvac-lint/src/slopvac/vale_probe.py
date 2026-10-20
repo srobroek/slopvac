@@ -18,6 +18,8 @@ import tempfile
 from functools import cache
 from pathlib import Path
 
+from packaging.version import Version
+
 
 class ValeUnavailable(Exception):
     """Vale is needed to validate a compiled rule and is not usable."""
@@ -32,6 +34,31 @@ class ValeUnavailable(Exception):
 # line after an empty comment line one line late, so a finding could land inside
 # a suppression and be lost.
 MIN_VALE_VERSION = (3, 18, 0)
+
+
+def require_vale(binary: str = "vale") -> str:
+    """Resolve a supported Vale executable, with actionable prerequisite errors."""
+    resolved = shutil.which(binary)
+    floor = Version(".".join(map(str, MIN_VALE_VERSION)))
+    if resolved is None:
+        raise ValeUnavailable(
+            f"`{binary}` is not on PATH. Vale {floor} or later is required; "
+            "install Vale (https://vale.sh) and rerun `slopvac doctor`."
+        )
+    version = vale_version(resolved)
+    if version is None:
+        raise ValeUnavailable(
+            f"`{binary}` exists at {resolved} but did not report a usable "
+            f"version. Vale {floor} or later is required. Check that the "
+            "executable works with `--version`."
+        )
+    found = Version(".".join(map(str, version)))
+    if found < floor:
+        raise ValeUnavailable(
+            f"`{binary}` reports {found}; Vale {floor} or later is required. "
+            "Upgrade Vale and rerun `slopvac doctor`."
+        )
+    return resolved
 
 
 def vale_version(binary: str = "vale") -> tuple[int, int, int] | None:
@@ -69,6 +96,8 @@ def _read_version(resolved: str) -> tuple[int, int, int] | None:
             [resolved, "--version"], capture_output=True, text=True, timeout=30
         )
     except (OSError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode != 0:
         return None
     match = re.search(r"(\d+)\.(\d+)\.(\d+)", completed.stdout + completed.stderr)
     if match is None:

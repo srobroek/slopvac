@@ -78,6 +78,7 @@ def test_relative_cache_override_is_uncached(monkeypatch, tmp_path):
 def test_unsafe_compile_cache_uses_transient_private_output(monkeypatch, tmp_path):
     blocker = tmp_path / "file"
     blocker.write_text("leave this alone")
+    blocker.chmod(0o600)
     monkeypatch.setenv("SLOPVAC_CACHE_DIR", str(blocker))
     actual = vale_cache.private_compile_root()
     assert actual != blocker and actual.is_dir()
@@ -231,3 +232,26 @@ def test_negative_guarantee_review_examples(text, expected):
     assert (
         any(f.rule_id.endswith(".negative-guarantee-core") for f in findings) == expected
     )
+
+
+@pytest.mark.parametrize("marker", ["#", "//"])
+def test_indented_comment_example_is_inert(marker):
+    document = parse("comments.md", f"{marker}     <!-- slopvac-disable -->\n{marker}\n{marker} Later prose.\n")
+    assert scan_suppressions(document, {}, comments=True) == ({}, set(), [])
+
+
+def test_inline_code_subject_preserves_reported_source():
+    text = "The `deploy` helper never writes a file."
+    engine = Engine(load_ruleset().rules, resolve_for(Config(), Path("note.md")))
+    findings = [f for f in engine.run(parse("note.md", text)) if f.rule_id.endswith(".negative-guarantee-core")]
+    assert findings
+    assert all("deploy" in f.matched_text and "\x00" not in f.message + f.matched_text for f in findings)
+    assert all(f.matched_text in text for f in findings)
+
+
+def test_ruleset_hit_refreshes_recency(tmp_path):
+    slot = tmp_path / "cache" / "entry.json"
+    ruleset_cache.write(slot, "key", [])
+    os.utime(slot, (1, 1))
+    assert ruleset_cache.read(slot, "key") == []
+    assert slot.stat().st_mtime > 1

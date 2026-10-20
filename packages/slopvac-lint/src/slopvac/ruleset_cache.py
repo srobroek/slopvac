@@ -148,6 +148,10 @@ def read(path: Path, key: str) -> Documents | None:
         ):
             return None
         documents.append((item[0], item[1]))
+    try:
+        path.touch()
+    except OSError:
+        pass
     return documents
 
 

@@ -133,7 +133,7 @@ _INLINE_HTML_COMMENT = re.compile(r"<!--.*?-->")
 def _comment_text(line: str) -> str:
     """Remove source comment delimiters without dropping authored punctuation."""
     line = re.sub(r"^\s*(?://[/!]?|#+|/\*+|\*+/|[*]|--)\s?", "", line)
-    return re.sub(r"\*/\s*$", "", line).strip()
+    return re.sub(r"\*/\s*$", "", line).rstrip()
 
 
 def comment_blocks(raw_lines: list[str]) -> list[tuple[int, int]]:

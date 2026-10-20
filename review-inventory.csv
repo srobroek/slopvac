@@ -375,4 +375,4 @@ pr,comment_id,url,path,outdated,disposition
 213,4327762174,https://github.com/srobroek/slopvac/pull/213#discussion_r4327762174,packages/slopvac-lint/docs/semantic-guidance.md,False,See linked detailed disposition in REVIEW-FINDINGS.md
 213,4327762201,https://github.com/srobroek/slopvac/pull/213#discussion_r4327762201,packages/slopvac-lint/docs/semantic-guidance.md,False,See linked detailed disposition in REVIEW-FINDINGS.md
 215,4327781062,https://github.com/srobroek/slopvac/pull/215#discussion_r4327781062,packages/slopvac-lint/src/slopvac/engine.py,False,See linked detailed disposition in REVIEW-FINDINGS.md
-217,4328694899,https://github.com/srobroek/slopvac/pull/217#discussion_r4328694899,packages/slopvac-lint/tests/test_cli.py,False,See linked detailed disposition in REVIEW-FINDINGS.md
+217,4328694899,https://github.com/srobroek/slopvac/pull/217#discussion_r4328694899,packages/slopvac-lint/tests/test_cli.py,False,"Merged in 591c1e0; technical fixes verified, URL test warning unsupported, prose advisory; see report"

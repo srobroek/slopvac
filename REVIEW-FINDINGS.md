@@ -2,7 +2,7 @@
 
 Base: `f9dee48` (current main when this branch started). The initial query covered the 35 most recent PRs through #217 and found 67 unresolved threads, including 34 code-review findings. A subsequent paginated query covered all 215 PRs and found 377 unresolved threads. Every PR and thread page was complete. The full linked inventory is in `review-inventory.csv`. Outdated threads were checked against source rather than treated as resolved. No remote review threads were resolved by this patch.
 
-Open PRs and remote branches were checked before editing. The existing checkout was copied into an isolated working branch, preserving its untracked marketplace.json. PR #217 appeared during this work and remains separate.
+Open PRs and remote branches were checked before editing. The existing checkout was copied into an isolated working branch, preserving its untracked marketplace.json. PR #217 merged as `591c1e0` before this PR was ready to merge. Its supported-Vale checks are preserved here.
 
 The cache exploit does not require an empty ruleset: a model-valid document can selectively remove findings while keeping locale checks complete. The regression tests exercise that case. POSIX ownership/permission checks establish the trust boundary; a checksum detects accidental damage, not authorship. Windows selects LocalAppData as its standard cache location, but this patch deliberately skips ruleset reuse where POSIX trust checks are unavailable. Unsafe compiled-cache roots use transient private output. Existing shared entries are not migrated or repaired.
 
@@ -66,15 +66,15 @@ The cache exploit does not require an empty ruleset: a model-valid document can 
 | [#213 / 4327762174](https://github.com/srobroek/slopvac/pull/213#discussion_r4327762174) | Valid; fixed | README notifier/exit-code prose, catalog/judgment spelling, or semantic-guidance exit list corrected in this patch; verified against CLI and notifier source. |
 | [#213 / 4327762201](https://github.com/srobroek/slopvac/pull/213#discussion_r4327762201) | Valid; fixed | README notifier/exit-code prose, catalog/judgment spelling, or semantic-guidance exit list corrected in this patch; verified against CLI and notifier source. |
 | [#215 / 4327781062](https://github.com/srobroek/slopvac/pull/215#discussion_r4327781062) | Valid; fixed | cell slicing bounds greedy matches at the original start; test_table_cell_matches_keep_their_start_and_end |
-| [#217 / 4328694899](https://github.com/srobroek/slopvac/pull/217#discussion_r4328694899) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696309](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696309) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696316](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696316) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696510](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696510) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696550](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696550) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696560](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696560) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696575](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696575) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696591](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696591) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
-| [#217 / 4328696600](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696600) | Unsupported on main | Targets the unmerged fix/vale-required-prerequisite branch in active PR #217. Its require_vale/doctor implementation is absent from this PR base; retain review there and avoid duplicating active branch work. |
+| [#217 / 4328694899](https://github.com/srobroek/slopvac/pull/217#discussion_r4328694899) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696309](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696309) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696316](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696316) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696510](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696510) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696550](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696550) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696560](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696560) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696575](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696575) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696591](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696591) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
+| [#217 / 4328696600](https://github.com/srobroek/slopvac/pull/217#discussion_r4328696600) | Reassessed after merge | See the current-state assessment below. PR #217 merged as 591c1e0. |
 
 ## Complete-history scope
 
@@ -172,3 +172,24 @@ The older history adds 308 automated prose annotations and two CodeQL annotation
 | Retired writing skill (exact path in CSV) | Keep an explanatory sentence to twenty-five words | 1 |
 | Retired writing skill (exact path in CSV) | Keep an instruction to twenty words | 1 |
 | Retired writing skill (exact path in CSV) | Use a vertical list for complex content | 4 |
+
+
+## Assessment before merge
+
+PR #217 is now merged. Its two technical findings are already fixed: `compile_ruleset` calls `require_vale` when validation is requested, and unreadable-version errors include the 3.18.0 floor. The CodeQL URL annotation targets a test assertion against CLI output. That assertion neither validates a URL nor authorizes a request, so the security finding is unsupported. Its remaining prose annotations are advisory. Claims that “checks the” needs “that” are unsupported when the phrase introduces a noun object.
+
+PR #177 still owns the URL validation issue. Its current `_request` checks whether `api.github.com` occurs anywhere in a URL before attaching authorization. An exact HTTPS hostname check and redirect handling can address this on that branch, with tests for deceptive hostnames and redirects. This code is absent from main.
+
+PR #178 still owns the exception exposure review. Its current 422 response returns `str(error)` from model request handling. Return a stable public error and log internal details server-side, with a regression test for sensitive exception text. This PR does not import that server into main.
+
+The 308 historical prose annotations are not 308 distinct current defects. Retired skills, domain-categories.md, and migration.md are obsolete targets; archived evaluation reports should retain their historical content. Current documentation can receive a separate, deduplicated editorial pass. A fresh check of ste-principles.md and vale-traps.md found 46 advisory suggestions, with zero errors or warnings. Remaining categories include sentence length, punctuation, lists, voice, instruction structure, and spelling. Existing changed-file prose checks passed. Historical annotations still need individual comparison before resolution. No decision is needed to assess current prose. Rewriting archived reports or adopting experimental branches needs separate scope.
+
+The new #218 review was also checked before merge:
+
+| Thread | Disposition | Regression evidence |
+| --- | --- | --- |
+| [4328939735](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939735) | Fixed: preserve authored indentation in comment examples | test_indented_comment_example_is_inert |
+| [4328939741](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939741) | Fixed: render inline-code subjects from source | test_inline_code_subject_preserves_reported_source |
+| [4328939751](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939751) | Already fixed: retired paths retained in CSV | retired integration invariant and full suite |
+| [4328939764](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939764) | Fixed: require a directory for compiled output | blocker regression now sets mode 0600 |
+| [4328939774](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939774) | Fixed: refresh validated cache-hit recency | test_ruleset_hit_refreshes_recency |
