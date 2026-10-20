@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 1.0
   normal: 2.0
-recommended_for: [reference]
+recommended_for: [consumer, reference, internal, change-comms]
 rules:
   - id: omitted-subject
     name: Do not omit the subject after If, When, or Once

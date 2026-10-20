@@ -5,7 +5,7 @@ description: >-
   defended in place, an implementation cost the reader cannot act on, a
   reassurance answering a worry nobody raised, a closing flourish.
 weight: 1.0
-recommended_for: [consumer, change-comms]
+recommended_for: [consumer, reference, internal, change-comms]
 rules:
   - id: code-change-prose-scope
     name: Keep code-change prose scoped

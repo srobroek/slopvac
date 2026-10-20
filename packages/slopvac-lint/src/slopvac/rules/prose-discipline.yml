@@ -2,7 +2,7 @@ id: prose-discipline
 title: Prose discipline
 description: Referential consistency, sentence load, and constructions that hide the verb or the claim.
 weight: 1.5
-recommended_for: [consumer, reference, internal]
+recommended_for: [consumer, reference, internal, change-comms]
 max_per_100_words:
   strict: 0.4
   normal: 0.8
@@ -661,12 +661,14 @@ rules:
         Judgement remainder of ai-tells-structure.negative-guarantee-core. The core
         finds the shape; this question decides whether anything in the passage
         makes the guarantee true, which no pattern can read. It also covers the
-        forms the core leaves out: passive ("is never written"), modal ("will
-        never"), and subjects the core cannot parse.
+        forms the core leaves out: a guarantee after a comma or a conjunction
+        ("..., so the gate can never block them"), other modals and passives
+        ("would never", "was never written"), and subjects the core cannot parse.
         ai-tells-structure.absolute-assertion-remainder defers this form here. The
-        rule sits in prose-discipline rather than ai-tells-structure so that the
-        `reference` checklist carries it: agent guidance and runbooks are
-        `reference`, and ai-tells-structure is not recommended for that genre.
+        rule shipped in prose-discipline in 2.16.0 so that the `reference`
+        checklist, which covers agent guidance and runbooks, carried it:
+        ai-tells-structure was not recommended for that genre then. The id stays
+        where it shipped.
         Indicative run, 2026-10-20, one frontier model: 0 of 36 pre-2022 human
         paragraphs holding "never" flagged, most of them reference docs; 33 of 71
         model-written agent-tooling paragraphs that the core matched flagged. Each

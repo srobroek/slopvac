@@ -86,8 +86,9 @@ Two commands write the steering files:
   `--no-skills` writes steering without skills. `--skip-agents` writes only the
   config and cannot be combined with `--harness` or `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
-  and its skill when available. It never writes `slopvac.toml`; without a config
-  it uses default `[guidance]` settings. It works with or without `init`.
+  and its skill when available. It writes only those files and reads
+  `[guidance]` from `slopvac.toml`; without a config it uses the defaults. It
+  works with or without `init`.
 `slopvac setup <harness> --remove` removes Slopvac's block and skill. It deletes
 the skill directory only when that directory is empty. `slopvac setup --list`
 prints each harness with its steering and skill paths.

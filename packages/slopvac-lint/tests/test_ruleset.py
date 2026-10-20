@@ -173,15 +173,20 @@ def test_remainder_rules_name_a_partner_that_exists(ruleset):
             assert match.group(1) in known, f"{rule.qualified_id} cites {match.group(1)}"
 
 
-def test_negative_guarantee_remainder_is_on_the_reference_checklist(ruleset):
-    """Agent guidance and runbooks are `reference`, where the descriptive
-    never-claim appears in agent-written text, and ai-tells-structure is not
-    recommended for that genre; the remainder lives where the checklist reaches."""
-    rule = ruleset.by_id("prose-discipline.negative-guarantee-remainder")
-    assert rule is not None
-    assert "reference" in ruleset.categories[rule.category].recommended_for
-    note = " ".join((rule.provenance.note or "").split())
-    assert "Judgement remainder of ai-tells-structure.negative-guarantee-core" in note
+@pytest.mark.parametrize("genre", ["consumer", "reference", "change-comms", "internal"])
+def test_every_judgement_category_is_on_each_genre_checklist_but_informal(ruleset, genre):
+    """`slopvac rules --kind judgement --genre <genre>` is the review checklist. A
+    judgement category missing from a genre drops its questions from that review;
+    2.16.0 left 41 of the 67 off `reference`, the genre of agent guidance and
+    runbooks. `informal` (the relaxed profile) keeps its own short list."""
+    missing = sorted(
+        {
+            rule.category
+            for rule in ruleset.judgement_rules
+            if genre not in ruleset.categories[rule.category].recommended_for
+        }
+    )
+    assert not missing, f"{genre} omits judgement categories: {missing}"
 
 
 def _judgement_record(**fields) -> dict:

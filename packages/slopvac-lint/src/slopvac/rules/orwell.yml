@@ -2,7 +2,7 @@ id: orwell
 title: Orwell's rules, modernized
 description: Objective restatements of the six rules from "Politics and the English Language" (1946), plus extensions the essay warrants.
 weight: 1.5
-recommended_for: [consumer, internal, informal]
+recommended_for: [consumer, reference, internal, change-comms, informal]
 rules:
   - id: stale-figure
     name: Cut the stale figure

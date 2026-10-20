@@ -25,8 +25,9 @@ as `slopvac lint`. That catalogue includes the house rules from each
 | `--rules-dir <dir>` | Adds a directory of house rules. Repeat it for more directories. |
 
 A rule appears only when it passes each filter that you give. For example,
-`--genre consumer --category orwell` keeps the `orwell` rules, because
-`orwell` lists `consumer`. `--genre reference --category orwell` keeps no rule.
+`--genre informal --category orwell` keeps the `orwell` rules, because
+`orwell` lists `informal`. `--genre informal --category prose-scope` keeps no
+rule.
 
 `slopvac prime write` and `slopvac prime review` print this command for the
 genre and profile of a document:

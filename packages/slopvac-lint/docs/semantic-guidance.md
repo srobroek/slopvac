@@ -4,8 +4,8 @@ Lint checks rules decided by patterns. Readers judge other rules. Prime topics
 tell an agent how to apply those judgement rules in writing and review, and
 `slopvac rules` prints the rules themselves.
 
-Slopvac makes no model calls. The agent that reads the guidance does the
-semantic review.
+Slopvac prints the guidance and the rules. The agent that reads them does the
+semantic review with its own model.
 
 ## Commands
 
@@ -96,7 +96,7 @@ An excerpt of the output for the `internal` genre at `normal`, cut after the
 first fields of the first rule:
 
 ```markdown
-## AI tells -- content shape (`ai-tells-content-shape`), recommended for: consumer, internal, change-comms
+## AI tells -- content shape (`ai-tells-content-shape`), recommended for: consumer, reference, internal, change-comms
 
 ### `ai-tells-content-shape.elegant-variation`: Repeat the noun
 
@@ -164,10 +164,11 @@ default; add `--harness agents` to keep it. The `agents` harness has no skill.
 cannot be combined with `--harness` or `--no-skills`.
 
 `slopvac setup <harness>` writes, checks, or removes steering for one harness.
-It never writes the config and uses default `[guidance]` settings when no config
-exists. `--check` exits 0 when all items are current or disabled, 1 when any are
-missing or stale, and 2 for a malformed file. `--remove` deletes the managed
-steering block and skill. It deletes the skill directory only when empty.
+It writes only that harness's steering and skill, and reads `[guidance]` from
+the config or uses the defaults when no config exists. `--check` exits 0 when
+all items are current or disabled, 1 when any are missing or stale, and 2 for a
+malformed file. `--remove` deletes the managed steering block and skill. It
+deletes the skill directory only when empty.
 `--list` prints harness names and their steering and skill paths.
 
 The skill carries a `slopvac:managed` marker. Setup refuses to overwrite or

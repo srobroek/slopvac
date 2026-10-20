@@ -193,7 +193,7 @@ one line. The quotation holds 200 characters or fewer between its marks:
 - curly double quotes, `“` and `”`
 - curly single quotes, `‘` and `’`
 
-Straight single quotes never mark a quotation, because `'` is also an
+Only these three pairs mark a quotation: a straight single quote, `'`, is also an
 apostrophe. A word character before an opening straight quote stops the match.
 So does whitespace before the closing quote, or a word character after it.
 Pattern, token, and substitution rules apply this exception, and so do Vale

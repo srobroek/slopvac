@@ -14,30 +14,30 @@ Rules derived from ASD-STE100 cite a rule **number** only. No rule prose, worked
 | --- | --: | --: | --: | --- |
 | [AI residue](#ai-residue-ai-residue) | 1 | 0 | 1.5 | `consumer`, `internal`, `change-comms` |
 | [AI tells -- agentic slogan formulae](#ai-tells----agentic-slogan-formulae-ai-tells-agentic) | 1 | 0 | 1.5 | `consumer`, `internal`, `change-comms` |
-| [AI tells -- content shape](#ai-tells----content-shape-ai-tells-content-shape) | 5 | 9 | 1.5 | `consumer`, `internal`, `change-comms` |
+| [AI tells -- content shape](#ai-tells----content-shape-ai-tells-content-shape) | 5 | 9 | 1.5 | `consumer`, `reference`, `internal`, `change-comms` |
 | [AI tells -- figurative verbs](#ai-tells----figurative-verbs-ai-tells-figurative) | 12 | 0 | 1.2 | `consumer`, `internal`, `change-comms` |
-| [AI tells -- formatting and punctuation](#ai-tells----formatting-and-punctuation-ai-tells-formatting) | 8 | 1 | 1.0 | `consumer`, `internal`, `change-comms` |
-| [AI tells -- the chat-assistant register](#ai-tells----the-chat-assistant-register-ai-tells-register) | 9 | 10 | 1.5 | `consumer`, `internal`, `change-comms` |
-| [AI tells -- rhetorical structure](#ai-tells----rhetorical-structure-ai-tells-structure) | 16 | 19 | 1.5 | `consumer`, `internal`, `change-comms` |
+| [AI tells -- formatting and punctuation](#ai-tells----formatting-and-punctuation-ai-tells-formatting) | 8 | 1 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [AI tells -- the chat-assistant register](#ai-tells----the-chat-assistant-register-ai-tells-register) | 9 | 10 | 1.5 | `consumer`, `reference`, `internal`, `change-comms` |
+| [AI tells -- rhetorical structure](#ai-tells----rhetorical-structure-ai-tells-structure) | 16 | 19 | 1.5 | `consumer`, `reference`, `internal`, `change-comms` |
 | [Docs discipline](#docs-discipline-docs-discipline) | 3 | 0 | 1.0 | `consumer` |
-| [Orwell's rules, modernized](#orwells-rules-modernized-orwell) | 4 | 1 | 1.5 | `consumer`, `internal`, `informal` |
+| [Orwell's rules, modernized](#orwells-rules-modernized-orwell) | 4 | 1 | 1.5 | `consumer`, `reference`, `internal`, `change-comms`, `informal` |
 | [Prose agency](#prose-agency-prose-agency) | 5 | 0 | 1.2 | `consumer`, `internal`, `change-comms` |
 | [Prose craft](#prose-craft-prose-craft) | 27 | 0 | 0.8 | `consumer`, `internal`, `change-comms` |
-| [Prose discipline](#prose-discipline-prose-discipline) | 6 | 6 | 1.5 | `consumer`, `reference`, `internal` |
+| [Prose discipline](#prose-discipline-prose-discipline) | 6 | 6 | 1.5 | `consumer`, `reference`, `internal`, `change-comms` |
 | [Prose format](#prose-format-prose-format) | 3 | 0 | 0.8 | `consumer`, `internal`, `change-comms` |
 | [Prose inclusive](#prose-inclusive-prose-inclusive) | 3 | 0 | 0.8 | `consumer`, `internal`, `change-comms` |
 | [Prose inflation](#prose-inflation-prose-inflation) | 12 | 0 | 1.2 | `consumer`, `internal`, `change-comms` |
 | [Prose promotion](#prose-promotion-prose-promotion) | 4 | 0 | 1.2 | `consumer`, `change-comms` |
-| [Prose scope](#prose-scope-prose-scope) | 5 | 1 | 1.0 | `consumer`, `change-comms` |
-| [STE Descriptive Writing](#ste-descriptive-writing-ste-descriptive) | 2 | 4 | 1.0 | `reference` |
-| [STE Multi-word Nouns](#ste-multi-word-nouns-ste-nouns) | 1 | 1 | 1.0 | `reference` |
-| [STE Writing Practices](#ste-writing-practices-ste-practices) | 9 | 3 | 0.8 | `reference` |
+| [Prose scope](#prose-scope-prose-scope) | 5 | 1 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Descriptive Writing](#ste-descriptive-writing-ste-descriptive) | 2 | 4 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Multi-word Nouns](#ste-multi-word-nouns-ste-nouns) | 1 | 1 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Writing Practices](#ste-writing-practices-ste-practices) | 9 | 3 | 0.8 | `consumer`, `reference`, `internal`, `change-comms` |
 | [STE Procedural Writing](#ste-procedural-writing-ste-procedural) | 5 | 0 | 1.2 | `reference` |
-| [STE Punctuation and Word Count](#ste-punctuation-and-word-count-ste-punctuation) | 4 | 1 | 1.0 | `reference` |
-| [STE Safety Instructions](#ste-safety-instructions-ste-safety) | 2 | 1 | 1.5 | `reference` |
-| [STE Sentences](#ste-sentences-ste-sentences) | 5 | 2 | 1.0 | `reference` |
-| [STE Verbs](#ste-verbs-ste-verbs) | 5 | 2 | 1.0 | `reference` |
-| [STE Words](#ste-words-ste-words) | 9 | 6 | 1.0 | `reference` |
+| [STE Punctuation and Word Count](#ste-punctuation-and-word-count-ste-punctuation) | 4 | 1 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Safety Instructions](#ste-safety-instructions-ste-safety) | 2 | 1 | 1.5 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Sentences](#ste-sentences-ste-sentences) | 5 | 2 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Verbs](#ste-verbs-ste-verbs) | 5 | 2 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
+| [STE Words](#ste-words-ste-words) | 9 | 6 | 1.0 | `consumer`, `reference`, `internal`, `change-comms` |
 | **Total** | **166** | **67** | | |
 
 Weight scales a category's contribution to the overall score. A weight of 0 keeps findings visible but removes that category from ordinary score, density, error, and warning gates. Dedicated gates such as the Unicode-dash ceiling remain independent.
@@ -89,7 +89,7 @@ Replace a universal slogan with a title
 
 Defects in what the prose contains rather than how it is arranged: fabricated citations, fake specificity, vaporware description, dilution, and rationale nobody asked for.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-content-shape.adjective-per-noun-spray`
 
@@ -302,7 +302,7 @@ Name what connects and why
 
 Markup and punctuation tells. These decay slowly, but em-dash suppression shipped in late-2025 frontier models, so ABSENCE proves nothing while density still signals.
 
-Weight **1.0**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-formatting.bold-spray`
 
@@ -397,7 +397,7 @@ Use sentence case in headings
 
 The chat-assistant voice that survived lexical patching. Each entry is a voice, not a word: synonym-swapping does not remove it. Per-model fingerprints inside this register drift fast, so treat model attributions as snapshots.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-register.anthropomorphised-justification-core`
 
@@ -506,7 +506,7 @@ Name what breaks, or drop the framing
 
 Structure tells endure across model generations because preference training produces them: raters reward length, markdown, bulleted symmetry, and confident even-handedness, so every generation reconverges on the same shapes even as the vocabulary changes. Weight these above any word list.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-structure.absolute-assertion-core`
 
@@ -746,7 +746,7 @@ State what the artifact does at HEAD
 
 Objective restatements of the six rules from "Politics and the English Language" (1946), plus extensions the essay warrants.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `informal`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`, `informal`.
 
 #### `orwell.compound-preposition`
 
@@ -1176,7 +1176,7 @@ Use the short word
 
 Referential consistency, sentence load, and constructions that hide the verb or the claim.
 
-Weight **1.5**. Recommended for `consumer`, `reference`, `internal`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `prose-discipline.bidirectional-hedge`
 
@@ -1539,7 +1539,7 @@ Describe the mechanism
 
 Over-writing: real content in the wrong document. A rejected alternative defended in place, an implementation cost the reader cannot act on, a reassurance answering a worry nobody raised, a closing flourish.
 
-Weight **1.0**. Recommended for `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `prose-scope.epigram`
 
@@ -1601,7 +1601,7 @@ State the positive, or say nothing
 
 Governs information order, connective structure, sentence length, and paragraph shape in explanatory text.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-descriptive.paragraph-too-many-sentences`
 
@@ -1635,7 +1635,7 @@ Keep an explanatory sentence to twenty-five words
 
 Caps the length of noun stacks and requires a short form for longer domain terms.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-nouns.multiword-noun-too-long`
 
@@ -1654,7 +1654,7 @@ Keep a noun stack to three words
 
 Covers rewriting when substitution fails, correct word sense, phrasal verbs, consistency, and the eight general recommendations.
 
-Weight **0.8**. Recommended for `reference`.
+Weight **0.8**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-practices.false-friend-term`
 
@@ -1855,7 +1855,7 @@ Keep an instruction to twenty words
 
 Bans the semicolon, constrains hyphens and parentheses, and defines what counts as one word.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-punctuation.colon-terminates-sentence-for-count`
 
@@ -1913,7 +1913,7 @@ Do not use a semicolon
 
 Governs how a document marks a risk, orders the command, and explains the consequence.
 
-Weight **1.5**. Recommended for `reference`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-safety.safety-block-does-not-start-with-command`
 
@@ -1947,7 +1947,7 @@ Explain the consequence
 
 Governs sentence structure, omitted words, vertical lists, connectors, and determiners.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-sentences.complex-text-not-in-vertical-list`
 
@@ -2018,7 +2018,7 @@ End the list lead-in with a colon
 
 Restricts verb tense and form to simple constructions and requires the active voice.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-verbs.auxiliary-stacking`
 
@@ -2089,7 +2089,7 @@ Use only listed verb forms
 
 Restricts which words a document may use, in which part of speech, and in which spelling.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-words.approved-word-substitution`
 
@@ -2216,7 +2216,7 @@ These rules need contextual review and never produce lint findings. Each shows i
 
 Defects in what the prose contains rather than how it is arranged: fabricated citations, fake specificity, vaporware description, dilution, and rationale nobody asked for.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-content-shape.elegant-variation`
 
@@ -2418,7 +2418,7 @@ Cut the claim, not the qualifier
 
 Markup and punctuation tells. These decay slowly, but em-dash suppression shipped in late-2025 frontier models, so ABSENCE proves nothing while density still signals.
 
-Weight **1.0**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-formatting.table-wrapping-one-sentence`
 
@@ -2445,7 +2445,7 @@ Unwrap a table that holds one sentence
 
 The chat-assistant voice that survived lexical patching. Each entry is a voice, not a word: synonym-swapping does not remove it. Per-model fingerprints inside this register drift fast, so treat model attributions as snapshots.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-register.anthropomorphised-justification-remainder`
 
@@ -2653,7 +2653,7 @@ Judge whether stakes name a consequence
 
 Structure tells endure across model generations because preference training produces them: raters reward length, markdown, bulleted symmetry, and confident even-handedness, so every generation reconverges on the same shapes even as the vocabulary changes. Weight these above any word list.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `change-comms`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ai-tells-structure.absolute-assertion-remainder`
 
@@ -3071,7 +3071,7 @@ Judge whether a cited source is checkable
 
 Objective restatements of the six rules from "Politics and the English Language" (1946), plus extensions the essay warrants.
 
-Weight **1.5**. Recommended for `consumer`, `internal`, `informal`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`, `informal`.
 
 #### `orwell.concrete-floor`
 
@@ -3097,7 +3097,7 @@ Name a checkable particular
 
 Referential consistency, sentence load, and constructions that hide the verb or the claim.
 
-Weight **1.5**. Recommended for `consumer`, `reference`, `internal`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `prose-discipline.bare-quantifier-with-figure-available`
 
@@ -3261,7 +3261,7 @@ One sentence, one idea
 
 Over-writing: real content in the wrong document. A rejected alternative defended in place, an implementation cost the reader cannot act on, a reassurance answering a worry nobody raised, a closing flourish.
 
-Weight **1.0**. Recommended for `consumer`, `change-comms`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `prose-scope.code-change-prose-scope`
 
@@ -3279,7 +3279,7 @@ Keep code-change prose scoped
 
 Governs information order, connective structure, sentence length, and paragraph shape in explanatory text.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-descriptive.information-not-gradual`
 
@@ -3370,7 +3370,7 @@ Group related information in a paragraph
 
 Caps the length of noun stacks and requires a short form for longer domain terms.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-nouns.long-domain-term-without-short-form`
 
@@ -3396,7 +3396,7 @@ Give a short form for a long domain term
 
 Covers rewriting when substitution fails, correct word sense, phrasal verbs, consistency, and the eight general recommendations.
 
-Weight **0.8**. Recommended for `reference`.
+Weight **0.8**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-practices.ambiguous-preposition-with`
 
@@ -3470,7 +3470,7 @@ Rewrite the sentence when a word swap fails
 
 Bans the semicolon, constrains hyphens and parentheses, and defines what counts as one word.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-punctuation.parentheses-misuse`
 
@@ -3496,7 +3496,7 @@ Use parentheses only for the listed purposes
 
 Governs how a document marks a risk, orders the command, and explains the consequence.
 
-Weight **1.5**. Recommended for `reference`.
+Weight **1.5**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-safety.risk-level-word-missing-or-wrong`
 
@@ -3527,7 +3527,7 @@ Mark the risk level with the right word
 
 Governs sentence structure, omitted words, vertical lists, connectors, and determiners.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-sentences.missing-connector-between-related-sentences`
 
@@ -3574,7 +3574,7 @@ Write short and clear sentences
 
 Restricts verb tense and form to simple constructions and requires the active voice.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-verbs.gerund-outside-noun-use`
 
@@ -3628,7 +3628,7 @@ Use a past participle only as an adjective
 
 Restricts which words a document may use, in which part of speech, and in which spelling.
 
-Weight **1.0**. Recommended for `reference`.
+Weight **1.0**. Recommended for `consumer`, `reference`, `internal`, `change-comms`.
 
 #### `ste-words.domain-noun-category-membership`
 
