@@ -22,7 +22,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = ROOT / "scripts/perf/scenarios.toml"
 DEFAULT_SCENARIO = "startup --version"
-PROFILE_TOOLS = ("pyinstrument", "scalene", "viztracer", "memray", "py-spy", "tuna")
+PROFILE_TOOLS = ("pyinstrument", "scalene", "viztracer", "memray", "py-spy", "tuna", "kernprof")
 LOAD_RE = re.compile(r"[-+]?\d+(?:\.\d+)?")
 IMPORT_RE = re.compile(r"import time:\s*(\d+)\s*\|\s*(\d+)\s*\|\s*(.*)")
 
@@ -511,6 +511,25 @@ def run_scalene(scenario_name: str | None) -> None:
     print(f"Scalene profile artifacts: {directory}")
 
 
+def run_lines(scenario_name: str | None) -> None:
+    """Time each line of the functions in PERF_LINE_FUNCS; the source needs no decorators."""
+    check_tools("kernprof")
+    if not os.environ.get("PERF_LINE_FUNCS", "").split():
+        raise RuntimeError("perf-lines needs FUNCS, e.g. FUNCS=slopvac.analyze:_align_block_text")
+    scenario = profiler_scenario(scenario_name)
+    directory = result_dir("lines")
+    scratch, args = profiler_scratch(directory, scenario)
+    env = os.environ.copy()
+    env["NO_UPDATE_NOTIFIER"] = "1"
+    env["PERF_LINE_OUT"] = str(directory / "lines.txt")
+    try:
+        run_profiled([sys.executable, str(ROOT / "scripts/perf/line_target.py"), *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
+    finally:
+        shutil.rmtree(scratch.parent, ignore_errors=True)
+        finish_metadata(directory)
+    print(f"Line profile: {directory / 'lines.txt'} (raw stats: {directory / 'lines.lprof'})")
+
+
 def run_timeline(scenario_name: str | None) -> None:
     check_tools("viztracer")
     scenario = profiler_scenario(scenario_name)
@@ -659,6 +678,8 @@ def dispatch(action: str, scenarios: list[dict[str, Any]], args: argparse.Namesp
         run_mem(args.scenario)
     elif action == "spy":
         run_spy(args.scenario)
+    elif action == "lines":
+        run_lines(args.scenario)
     elif action == "check":
         base = args.base or git_output("describe", "--tags", "--abbrev=0")
         run_check(base, scenarios, args.runs)
@@ -682,7 +703,7 @@ def dispatch(action: str, scenarios: list[dict[str, Any]], args: argparse.Namesp
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("wait-idle", "bench", "import", "cpu", "scalene", "timeline", "mem", "spy", "check", "all", "run", "prepare-cache"))
+    parser.add_argument("action", choices=("wait-idle", "bench", "import", "cpu", "scalene", "timeline", "mem", "spy", "lines", "check", "all", "run", "prepare-cache"))
     parser.add_argument("extra", nargs="*")
     parser.add_argument("--scenario", default=os.environ.get("PERF_SCENARIO"), help="Exact scenario name in scripts/perf/scenarios.toml")
     parser.add_argument("--base", default=os.environ.get("PERF_BASE"), help="BASE revision for pre-release comparison")
@@ -711,11 +732,11 @@ def main() -> int:
             dispatch(args.action, [], args)
             return 0
         scenarios = load_scenarios()
-        if args.scenario and args.action in {"bench", "check", "all", "import", "cpu", "scalene", "timeline", "mem", "spy"}:
+        if args.scenario and args.action in {"bench", "check", "all", "import", "cpu", "scalene", "timeline", "mem", "spy", "lines"}:
             filter_scenarios(scenarios, args.scenario)
             if args.action in {"bench", "check", "all"}:
                 scenarios = filter_scenarios(scenarios, args.scenario)
-        if args.action in {"bench", "check", "all", "import", "cpu", "scalene", "timeline", "mem", "spy"} and not args.idle_checked and os.environ.get("PERF_SKIP_IDLE") != "1":
+        if args.action in {"bench", "check", "all", "import", "cpu", "scalene", "timeline", "mem", "spy", "lines"} and not args.idle_checked and os.environ.get("PERF_SKIP_IDLE") != "1":
             wait_for_idle()
         dispatch(args.action, scenarios, args)
     except SystemExit:
