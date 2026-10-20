@@ -75,9 +75,11 @@ inputs:
     required: false
     default: "true"
   vale-version:
-    description: Vale release to install.
+    description: >-
+      Vale release to install, 3.18.0 or later. Empty installs the release
+      pinned in scripts/install_vale.py.
     required: false
-    default: "3.15.2"
+    default: ""
   version:
     description: >-
       slopvac version specifier, e.g. "0.1.0" or ">=0.1,<0.2". Empty uses

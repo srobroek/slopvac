@@ -96,7 +96,7 @@ Before writing or reviewing prose, run `slopvac prime` and follow the current
 CLI guidance. Use `slopvac rules` and `slopvac explain <rule_id>` for rule
 details and named exceptions.
 
-Treat lint exit 2 as incomplete. Vale 3.15 or later is optional but highly
+Treat lint exit 2 as incomplete. Vale 3.18 or later is optional but highly
 recommended for full deterministic coverage.
 <!-- slopvac:end -->
 """

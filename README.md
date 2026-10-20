@@ -36,7 +36,7 @@ can run in pre-commit or CI for automated validation.
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
 Python 3.11 or later. [Vale](https://vale.sh) is optional, but **highly
-recommended**: it executes most deterministic rules. Install Vale 3.15 or later
+recommended**: it executes most deterministic rules. Install Vale 3.18 or later
 and put it on `PATH` for full deterministic coverage.
 
 With Homebrew, install Vale and check the installed version:

@@ -31,7 +31,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Vale
-        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin" 3.15.2
+        run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin"
       - name: Add Vale to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
@@ -277,7 +277,13 @@ jobs:
           assert len(compiled['vale']) > 100
           assert compiled['native']
           assert 'judgement' not in compiled
-          assert compiled['vale_version'] == '3.15.2'
+          import os, re
+          pin = re.search(
+              r'^VALE_VERSION = "([^"]+)"',
+              Path(os.environ['GITHUB_WORKSPACE'], 'scripts/install_vale.py').read_text(),
+              re.M,
+          ).group(1)
+          assert compiled['vale_version'] == pin, (compiled['vale_version'], pin)
           judgement = {
               r['rule_id'] for r in json.load(open('/tmp/judgement-rules.json'))['rules']
           }

@@ -26,7 +26,12 @@ class ValeUnavailable(Exception):
 # The oldest Vale the compiled styles are known to load and match under. The
 # README documents it; before this probe nothing checked it, so a 3.14 binary
 # reused a tree compiled under 3.21 and reported findings with no unchecked note.
-MIN_VALE_VERSION = (3, 15, 0)
+# 3.18 is the floor because it is the first release that parses MDX natively;
+# earlier ones fail every MDX file unless the external mdx2vast is installed,
+# which slopvac does not support. In code-comment mode 3.15 also reported every
+# line after an empty comment line one line late, so a finding could land inside
+# a suppression and be lost.
+MIN_VALE_VERSION = (3, 18, 0)
 
 
 def vale_version(binary: str = "vale") -> tuple[int, int, int] | None:

@@ -13,8 +13,12 @@ import tempfile
 from pathlib import Path
 from urllib.request import urlopen
 
-
 RELEASE_BASE = "https://github.com/vale-cli/vale/releases/download"
+
+# The one Vale pin for CI and the GitHub Action. Renovate updates it through the
+# custom manager in renovate.json, which matches the comment below.
+# renovate: datasource=github-releases depName=vale-cli/vale
+VALE_VERSION = "3.24.0"
 
 
 class InstallError(RuntimeError):
@@ -126,7 +130,12 @@ def install(version: str, prefix: Path) -> tuple[Path, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("version", help="Vale release version, for example 3.15.2")
+    parser.add_argument(
+        "version",
+        nargs="?",
+        default="",
+        help=f"Vale release version; empty installs the pinned {VALE_VERSION}",
+    )
     parser.add_argument(
         "--prefix",
         type=Path,
@@ -135,7 +144,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     try:
-        binary, version = install(args.version, args.prefix.expanduser())
+        binary, version = install(args.version or VALE_VERSION, args.prefix.expanduser())
     except InstallError as exc:
         parser.error(str(exc))
     print(f"installed {binary}")

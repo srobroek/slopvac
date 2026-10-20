@@ -47,7 +47,7 @@ written to a file or opened in a browser, non-terminal stderr, or when `CI` is s
 
 [Vale](https://vale.sh) is optional.
 
-For full deterministic coverage, install Vale 3.15 or later and put it on
+For full deterministic coverage, install Vale 3.18 or later and put it on
 `PATH`. We **highly recommend** doing so because Vale executes most deterministic
 rules. `slopvac` generates the Vale configuration and styles.
 

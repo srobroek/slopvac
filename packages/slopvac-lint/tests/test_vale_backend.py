@@ -49,17 +49,19 @@ def test_backend_report_completeness(
     ("version_output", "runs"),
     [
         ("vale version 3.21.0\n", True),
-        ("vale version 3.15.0\n", True),
-        ("vale version 3.14.9\n", False),
+        ("vale version 3.18.0\n", True),
+        ("vale version 3.17.9\n", False),
+        ("vale version 3.15.2\n", False),
         ("", False),
     ],
 )
 def test_vale_below_the_documented_floor_is_treated_as_absent(
     tmp_path, monkeypatch, version_output, runs
 ):
-    """README: Vale 3.15 or later runs the sub-gate. Before this probe a 3.14 binary
+    """README: Vale 3.18 or later runs the sub-gate. Before this probe a 3.14 binary
     reused a tree compiled under 3.21 and reported findings with no unchecked note,
-    so the run looked complete."""
+    so the run looked complete. Below 3.18, MDX needs mdx2vast and comment-mode
+    lines shift after an empty comment line."""
     config = tmp_path / ".vale.ini"
     config.write_text("StylesPath = styles\n")
     compiled = CompileResult(tmp_path, config, vale_rules=["style.rule"])
@@ -78,7 +80,7 @@ def test_vale_below_the_documented_floor_is_treated_as_absent(
     )
     assert (not result.unchecked) is runs
     if not runs:
-        assert "3.15.0" in result.unchecked[0]
+        assert "3.18.0" in result.unchecked[0]
 
 
 def test_cache_fingerprint_changes_with_the_vale_version(tmp_path):
