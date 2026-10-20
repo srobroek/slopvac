@@ -243,6 +243,11 @@ It does not establish factual correctness or make an overall judgement about
 writing quality beyond the configured rules. AI-signal labels describe rule
 evidence without changing the gate.
 
+Before merging a release PR, maintainers can run the report-only local
+[performance comparison](packages/slopvac-lint/docs/performance.md#pre-release-regression-comparison)
+on an idle host. It reports regressions and exits 0; set `PERF_FAIL=1` to fail
+on them.
+
 ## Roadmap
 
 ## Agentic judgement

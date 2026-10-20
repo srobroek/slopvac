@@ -1,0 +1,80 @@
+from __future__ import annotations
+
+import tomllib
+from pathlib import Path
+
+import pytest
+
+from scripts.perf.perf import (
+    filter_scenarios,
+    is_load_idle,
+    load_scenarios,
+    regression,
+    resolve_tool,
+)
+
+
+def test_load_threshold_is_strictly_below_cpu_ratio() -> None:
+    assert is_load_idle(6.99, 14, 0.5)
+    assert not is_load_idle(7.0, 14, 0.5)
+    assert not is_load_idle(7.01, 14, 0.5)
+
+
+@pytest.mark.parametrize(
+    ("base", "head", "ratio", "delta_ms", "expected"),
+    [
+        (1.0, 1.30, 1.25, 50, True),
+        (1.0, 1.30, 1.30, 50, False),
+        (1.0, 1.20, 1.10, 200, False),
+        (1.0, 1.30, 1.25, 299.999, True),
+        (1.0, 1.30, 1.25, 300.001, False),
+        (0.0, 0.2, 1.25, 50, True),
+        (0.0, 0.0, 1.25, 0, False),
+    ],
+)
+def test_regression_requires_ratio_and_absolute_delta(
+    base: float, head: float, ratio: float, delta_ms: float, expected: bool
+) -> None:
+    assert regression(base, head, ratio, delta_ms) is expected
+
+
+def test_load_scenarios_reads_authoritative_manifest() -> None:
+    scenarios = load_scenarios()
+    assert len(scenarios) >= 15
+    assert filter_scenarios(scenarios, "startup --version")[0]["args"] == ["--version"]
+    assert any(scenario.get("notifier") for scenario in scenarios)
+
+
+def test_scenario_parser_rejects_duplicates_and_unknown_kinds(tmp_path: Path) -> None:
+    duplicate = tmp_path / "duplicate.toml"
+    duplicate.write_text(
+        '[[scenario]]\nname="same"\nkind="cli"\n'
+        '[[scenario]]\nname="same"\nkind="cli"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="unique"):
+        load_scenarios(duplicate)
+
+    unknown = tmp_path / "unknown.toml"
+    unknown.write_text('[[scenario]]\nname="bad"\nkind="custom"\n', encoding="utf-8")
+    with pytest.raises(ValueError, match="unsupported scenario kind"):
+        load_scenarios(unknown)
+
+
+def test_filter_rejects_unknown_scenario() -> None:
+    with pytest.raises(ValueError, match="unknown scenario"):
+        filter_scenarios([{"name": "known"}], "missing")
+
+
+def test_scenario_manifest_is_valid_toml() -> None:
+    manifest = Path(__file__).parents[1] / "scripts/perf/scenarios.toml"
+    with manifest.open("rb") as stream:
+        assert len(tomllib.load(stream)["scenario"]) == len(load_scenarios())
+
+
+def test_tool_override_accepts_explicit_executable(tmp_path: Path, monkeypatch) -> None:
+    executable = tmp_path / "hyperfine"
+    executable.write_text("#!/bin/sh\necho hyperfine 2.0.0\n", encoding="utf-8")
+    executable.chmod(0o755)
+    monkeypatch.setenv("PERF_HYPERFINE", str(executable))
+    assert resolve_tool("hyperfine", "PERF_HYPERFINE") == str(executable.resolve())
