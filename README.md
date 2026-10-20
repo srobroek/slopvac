@@ -137,8 +137,9 @@ Two commands write these files:
   writes steering without skills. `--skip-agents` writes only the config and
   cannot be combined with `--harness` or `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
-  and its skill when available. It never writes the config and uses default
-  `[guidance]` settings when no config exists. Run it with or without `init`.
+  and its skill when available. It writes only those files: it reads
+  `[guidance]` from `slopvac.toml`, or uses the defaults when no config exists.
+  Run it with or without `init`.
 
 `slopvac setup --list` prints each harness with its steering and skill paths.
 The [CLI reference](packages/slopvac-lint/README.md#agent-steering) lists the
@@ -188,7 +189,8 @@ Set `[guidance] review_depth = "self"` when the author should run the pass, or
 author rebutted earlier, and the loop stops when a round reports no finding the
 author accepts. If no subagent is available, the author runs the pass and
 records `self (no subagent available)`. `review = "ask"` asks before the review;
-`review = "off"` disables it. Slopvac makes no model calls.
+`review = "off"` disables it. Slopvac only prints the workflow and the
+checklist. The agent's own model runs the review.
 
 ## CI integration
 

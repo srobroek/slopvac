@@ -73,6 +73,8 @@ def test_genre_keeps_exactly_the_categories_that_recommend_it(catalogue, genre):
 
 
 def test_genre_combines_with_category_and_kind(catalogue):
+    # `informal` is the genre that leaves judgement categories out, so it has a
+    # judgement category on each side of the filter.
     def judged(category: str) -> bool:
         return any(
             r["category"] == category and r["kind"] == "judgement"
@@ -81,13 +83,13 @@ def test_genre_combines_with_category_and_kind(catalogue):
 
     categories = catalogue["categories"]
     inside = next(
-        c["id"] for c in categories if "consumer" in c["recommended_for"] and judged(c["id"])
+        c["id"] for c in categories if "informal" in c["recommended_for"] and judged(c["id"])
     )
     outside = next(
-        c["id"] for c in categories if "consumer" not in c["recommended_for"] and judged(c["id"])
+        c["id"] for c in categories if "informal" not in c["recommended_for"] and judged(c["id"])
     )
     selected = _json(
-        "--genre", "consumer", "--category", inside, "--category", outside,
+        "--genre", "informal", "--category", inside, "--category", outside,
         "--kind", "judgement",
     )["rules"]
     expected = [

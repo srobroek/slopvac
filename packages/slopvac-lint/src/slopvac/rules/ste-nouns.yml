@@ -5,7 +5,7 @@ weight: 1.0
 max_per_100_words:
   strict: 0.5
   normal: 1.0
-recommended_for: [reference]
+recommended_for: [consumer, reference, internal, change-comms]
 rules:
   - id: multiword-noun-too-long
     name: Keep a noun stack to three words

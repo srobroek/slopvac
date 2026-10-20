@@ -536,8 +536,9 @@ NEGATIVE_GUARANTEE_RULE = "ai-tells-structure.negative-guarantee-core"
 
 # Descriptive guarantees: a component described by an action it never takes.
 # Each shape stands for a reported case: a pronoun in a table cell, "itself"
-# with a list of absent side effects, a stacked run, and a clause after a
-# semicolon inside a normative steering line.
+# with a list of absent side effects, a stacked run, a clause after a
+# semicolon inside a normative steering line, the passive, "will/can never",
+# and a subject of five to seven words.
 NEGATIVE_GUARANTEE_TELLS = [
     "| `hooks/` | Advisory reminders on each edit. They never stop a command. |",
     "The deploy helper itself never creates a branch, a tag, a release or a webhook.",
@@ -547,10 +548,18 @@ NEGATIVE_GUARANTEE_TELLS = [
     "> The importer never deletes a row.",
     "MUST Run the formatter before each commit; the plugin itself sends no telemetry.",
     "Plan-only mode does not ever apply a change.",
+    "API tokens are never written to the log.",
+    "The cache file is never deleted.",
+    "The parser will never accept a duplicate key.",
+    "The hook can never block a command.",
+    "It will never be logged.",
+    "Outside a run the plugin spawns no process.",
+    "The deploy helper in dry-run mode never pushes a tag.",
 ]
 
-# Directives, normative lines, and statements a writer keeps. The imperative
-# forms are the ones agent guidance and runbooks are made of.
+# Directives, normative lines, other modals, past narrative, and state
+# invariants a writer keeps. The imperative forms are the ones agent guidance and
+# runbooks are made of.
 NEGATIVE_GUARANTEE_KEEPS = [
     "Never edit the version files by hand.",
     "Ask the operator to refresh the token; never refresh it yourself.",
@@ -559,7 +568,12 @@ NEGATIVE_GUARANTEE_KEEPS = [
     "The client MUST NOT retry a request that returned 409.",
     "The server MUST NEVER cache a denial.",
     "The cache must never grow past 200 MB.",
-    "The parser will never accept a duplicate key.",
+    "Agents should never edit the lockfile.",
+    "The value is never empty.",
+    "The counter can never go below zero.",
+    "The cache can never be empty.",
+    "The file was never written.",
+    "A retry would never succeed.",
     "You never need to call `close()` on the handle.",
     "The queue never drained during the sale.",
     "An object's identity never changes once it has been created.",
