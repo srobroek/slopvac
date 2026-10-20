@@ -241,18 +241,3 @@ def profile_rule_defaults(profile: Profile) -> dict[str, RuleSettings]:
     return {
         name: settings.model_copy() for name, settings in _PROFILE_RULES[profile].items()
     }
-
-
-def genre_recommendation(genre: str) -> Profile:
-    """Map a document genre to the profile that suits it.
-
-    The rule catalogue uses these genres: `consumer`, `internal`,
-    `change-comms`, `reference`, `informal`. Reference material (API docs,
-    runbooks, procedures, safety text) wants strict; informal prose (issue
-    comments, discussion replies, blog posts) wants relaxed; the rest normal.
-    """
-    if genre == "reference":
-        return Profile.STRICT
-    if genre == "informal":
-        return Profile.RELAXED
-    return Profile.NORMAL

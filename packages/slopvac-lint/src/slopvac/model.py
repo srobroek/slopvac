@@ -84,7 +84,9 @@ class TextType(str, Enum):
 # Genre labels are rule metadata for documentation, inspection, and the review
 # checklist: `slopvac prime review` selects judgement categories whose
 # `recommended_for` names the document's genre. Code comments use their own
-# source-language scopes rather than this document vocabulary.
+# source-language scopes rather than this document vocabulary. `genres.GENRES`
+# owns each genre's surfaces, profile, and purpose; a test holds these names
+# equal to its names.
 Genre = Literal["consumer", "internal", "change-comms", "reference", "informal"]
 AiSignal = Literal["strong", "weak", "none"]
 AiSignalSource = Literal["measured", "catalog", "unmeasured"]

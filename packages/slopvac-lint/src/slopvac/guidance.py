@@ -3,8 +3,11 @@
 The judgement checklist is GENERATED from the loaded `RuleSet`, never copied
 into prose: a question restated here would drift from the rule the catalogue
 carries, which is the failure the generated rules reference exists to prevent.
-The static text below holds only what no rule record can: the genre table, the
-documentation contract, and the review workflow.
+The genre and profile tables are generated the same way, from `genres.GENRES`
+and the profile defaults in `config` and `profiles`; the base `slopvac prime`
+prints them too. The static text below holds only what no record can: the
+documentation contract, the review workflow, and what a tier or a scope asks of
+the reader.
 
 Order is deterministic (category id, then rule id) so two runs over the same
 catalogue print the same bytes.
@@ -13,27 +16,22 @@ catalogue print the same bytes.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
-from typing import NamedTuple
 
-from .config import GuidanceSettings
-from .model import Rule
-from .rules import RuleSet
-
-
-class Genre(NamedTuple):
-    name: str
-    surfaces: str
-    profile: str
-    body: str
-
-GENRES = (
-    Genre("consumer", "README, docs, guides", "normal", "Shipped behavior and reader use"),
-    Genre("reference", "API docs, runbooks, procedures, safety text, agent guidance", "strict", "Exact operations and dated facts for use or verification"),
-    Genre("change-comms", "PR or MR descriptions, commits, release notes, migration guides", "normal", "Change, rationale, verification"),
-    Genre("internal", "Specifications, decision records, contributor docs", "normal", "Requirements and decision rationale"),
-    Genre("informal", "Issue comments, discussions, blogs, drafts", "relaxed", "Immediate context"),
+from .config import (
+    Config,
+    GuidanceSettings,
+    Profile,
+    Severity,
+    Thresholds,
+    profile_thresholds,
 )
+from .genres import GENRES, ROUTING
+from .model import Rule, Scope, Tier
+from .profiles import profile_defaults
+from .rules import RuleSet
+from .suppression import DISABLE_COMMENT, ENABLE_COMMENT
 
 _SURFACE_LIST = (
     "a README or docs",
@@ -41,15 +39,45 @@ _SURFACE_LIST = (
     "commit or release text",
     "a specification",
 )
-_ROUTING = (
-    "When two genres fit, choose by purpose. Migration guides are `change-comms`. "
-    "Decision records and specifications are `internal`. Agent guidance and "
-    "procedures are `reference`."
-)
+
+# What each scope and tier asks of the person applying a checklist entry. Keyed
+# by the enums, so a new member without a meaning fails the render, not silently.
+_SCOPE_MEANING = {
+    Scope.PROSE: "the running text, without code, URLs, and front matter",
+    Scope.HEADING: "each heading",
+    Scope.SENTENCE: "each sentence",
+    Scope.PARAGRAPH: "each paragraph",
+    Scope.DOCUMENT: "the whole document",
+    Scope.RAW: "the whole file, code included",
+}
+_TIER_MEANING = {
+    Tier.ENFORCED: "the rule must hold. A failed question makes the review verdict REVISE.",
+    Tier.ADVISORY: "apply the rule where it fits. The review reports a failure and does not block.",
+    Tier.EXCLUDED: "the rule does not apply at that profile. Skip it.",
+}
+
+
+def unlinted(lines: list[str]) -> list[str]:
+    """Wrap a generated listing so that linting the guide skips it.
+
+    Generated rows quote catalogue text, model values, and click help verbatim,
+    and those strings are not written to the `strict` profile that every prime
+    output must pass. Hand-written guidance stays linted; only generated
+    listings go through here.
+    """
+    return [DISABLE_COMMENT, *lines, ENABLE_COMMENT]
 
 
 def _clean(text: str) -> str:
     return " ".join(text.split())
+
+
+def _table(header: list[str], rows: list[list[str]]) -> list[str]:
+    return [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join("---" for _ in header) + " |",
+        *("| " + " | ".join(row) + " |" for row in rows),
+    ]
 
 
 def _by_category(rules: list[Rule]) -> dict[str, list[Rule]]:
@@ -68,27 +96,45 @@ def _category_heading(ruleset: RuleSet, category_id: str) -> str:
     return f"### {category.title} (`{category_id}`), recommended for: {genres}"
 
 
-def write_checklist(ruleset: RuleSet) -> list[str]:
-    lines: list[str] = []
-    for category_id, rules in _by_category(ruleset.judgement_rules).items():
-        lines.extend([_category_heading(ruleset, category_id), ""])
-        for rule in rules:
-            lines.append(f"- `{rule.qualified_id}`: {_clean(rule.fix or rule.message)}")
-        lines.append("")
-    return lines
-
-
-def review_checklist(ruleset: RuleSet) -> list[str]:
+def _checklist(ruleset: RuleSet, text_of: Callable[[Rule], str]) -> list[str]:
     lines: list[str] = []
     for category_id, rules in _by_category(ruleset.judgement_rules).items():
         lines.extend([_category_heading(ruleset, category_id), ""])
         for rule in rules:
             lines.append(
-                f"- `{rule.qualified_id}` ({rule.scope.value}): "
-                f"{_clean(rule.judgement_question or '')}"
+                f"- `{rule.qualified_id}` ({rule.scope.value}): {_clean(text_of(rule))}"
             )
         lines.append("")
     return lines
+
+
+def write_checklist(ruleset: RuleSet) -> list[str]:
+    return _checklist(ruleset, lambda rule: rule.fix or rule.message)
+
+
+def review_checklist(ruleset: RuleSet) -> list[str]:
+    return _checklist(ruleset, lambda rule: rule.judgement_question or "")
+
+
+def _entry_guide(ruleset: RuleSet, text: str) -> list[str]:
+    """How to read one checklist entry, and where to get more on its rule."""
+    scopes = [s for s in Scope if any(r.scope is s for r in ruleset.judgement_rules)]
+    return [
+        f"Each entry has the form `<category>.<rule-id>` (<scope>): <{text}>.",
+        "The scope names the unit that the rule judges:",
+        "",
+        *(f"- `{scope.value}`: {_SCOPE_MEANING[scope]}" for scope in scopes),
+        "",
+        "Each rule has a tier at each profile. At the document's profile:",
+        "",
+        *(f"- `{tier.value}`: {_TIER_MEANING[tier]}" for tier in Tier),
+        "",
+        "Run `slopvac explain <rule_id>` for one rule. It prints the question, "
+        "the fix, and worked examples.",
+        "Run `slopvac rules --kind judgement --profile <profile> --format json` "
+        "for the tiers. Each `rules[].tier` holds the tier at that profile.",
+        "",
+    ]
 
 
 def _genre_categories(ruleset: RuleSet, genre: str) -> str:
@@ -102,35 +148,134 @@ def _genre_categories(ruleset: RuleSet, genre: str) -> str:
     return ", ".join(f"`{c}`" for c in categories) or "none"
 
 
-def review_step(settings: GuidanceSettings) -> str | None:
-    """The base-prime review line for one of the listed surfaces, or None."""
+def genre_table(ruleset: RuleSet | None = None) -> list[str]:
+    """One row per genre; with a ruleset, also the checklist categories."""
+    header = ["Genre", "Surfaces", "Profile", "Purpose"]
+    if ruleset is not None:
+        header.append("Checklist categories")
+    rows = []
+    for genre in GENRES:
+        row = [f"`{genre.name}`", genre.surfaces, f"`{genre.profile.value}`", genre.purpose]
+        if ruleset is not None:
+            row.append(_genre_categories(ruleset, genre.name))
+        rows.append(row)
+    return _table(header, rows)
+
+
+def _gate(value: float | None) -> str:
+    if value is None:
+        return "none"
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def profile_table() -> list[str]:
+    """Each profile's document gates, from `profile_thresholds`, keyed as in config."""
+    keys = list(Thresholds.model_fields)
+    rows = []
+    for profile in Profile:
+        gates = profile_thresholds(profile)
+        genres = ", ".join(f"`{g.name}`" for g in GENRES if g.profile is profile)
+        rows.append(
+            [
+                f"`{profile.value}`",
+                genres or "none",
+                *(_gate(getattr(gates, key)) for key in keys),
+            ]
+        )
+    return _table(["Profile", "Genres", *(f"`{key}`" for key in keys)], rows)
+
+
+def categories_off() -> list[str]:
+    """The categories each profile turns off, from `profile_defaults`."""
+    lines = []
+    for profile in Profile:
+        off = sorted(
+            name
+            for name, settings in profile_defaults(profile).items()
+            if settings.severity is Severity.OFF
+        )
+        listed = ", ".join(f"`{name}`" for name in off) or "none"
+        lines.append(f"- `{profile.value}`: {listed}")
+    return lines
+
+
+def genres_and_profiles(ruleset: RuleSet | None = None) -> list[str]:
+    """The genre and profile tables that the base prime and both topics print."""
+    default = Config.model_fields["profile"].default.value
+    lines = [
+        "## Genres and profiles",
+        "",
+        "A genre is the purpose class of a document.",
+        "Find the row whose surfaces match the document. Lint it with the row's profile.",
+    ]
+    if ruleset is not None:
+        lines.append("The row also names the checklist categories for that genre.")
+    return [
+        *lines,
+        "",
+        *genre_table(ruleset),
+        "",
+        ROUTING,
+        "",
+        "A profile sets the document gates in the next table. "
+        "It also sets the categories and rules that run.",
+        "",
+        *profile_table(),
+        "",
+        "Each gate is a `[thresholds]` key in the config. `none` means no limit.",
+        "These categories are off at each profile:",
+        "",
+        *categories_off(),
+        "",
+        f"Each file gets the profile that its config sets, or `{default}` without a config.",
+        "`--profile <profile>` overrides it for one run.",
+        "A rule whose tier is `excluded` at a profile does not run at that profile.",
+        "Run `slopvac lint --explain-config <file>` to print the settings for a file.",
+        "Run `slopvac rules --profile <profile>` to list the tier and severity of each rule.",
+        "",
+    ]
+
+
+def _handoff_step(settings: GuidanceSettings) -> str | None:
+    """The base-prime step before a hand-off, or None when review is off."""
     if settings.review == "auto":
         pass_name = "adversary loop" if settings.review_depth == "adversary" else "reviewer pass"
         return (
-            "Before you hand one off, run `slopvac prime review`. Complete its "
-            f"workflow, including the {pass_name}."
+            "Before you hand that text off, run `slopvac prime review`. Complete its "
+            f"workflow, including the {pass_name}. Put its verdict block in the hand-off."
         )
     if settings.review == "ask":
         return (
-            "Before you hand one off, ask the user whether to run the semantic "
-            "review from `slopvac prime review`."
+            "Before you hand that text off, ask the user whether to run the review "
+            "from `slopvac prime review`. If the user agrees, complete its workflow."
         )
     return None
 
 
-def prime_section(settings: GuidanceSettings) -> str:
-    lines: list[str] = []
+def prime_section(settings: GuidanceSettings) -> list[str]:
+    """The base prime's steps that route to the topics; empty when both are off."""
+    steps: list[str] = []
     if settings.write != "off":
-        lines.append("- Before you write or edit one, run `slopvac prime write`.")
-    step = review_step(settings)
-    if step:
-        lines.append(f"- {step}")
-    if not lines:
-        return ""
-    surfaces = [f"- {s}" for s in _SURFACE_LIST]
-    return "\n".join(
-        ["", "## Writing and review", "", "These steps cover:", "", *surfaces, "", *lines]
-    ) + "\n"
+        steps.append(
+            "Before you write or edit that text, run `slopvac prime write`. "
+            "Follow its workflow."
+        )
+    handoff = _handoff_step(settings)
+    if handoff:
+        steps.append(handoff)
+    if not steps:
+        return []
+    surfaces = ", ".join(_SURFACE_LIST[:-1]) + f", or {_SURFACE_LIST[-1]}"
+    return [
+        "## Writing and review",
+        "",
+        f"Follow these steps for {surfaces}.",
+        "",
+        *(f"{number}. {step}" for number, step in enumerate(steps, 1)),
+        "",
+    ]
 
 
 def disabled_notice(topic: str, config_path: Path | None) -> str:
@@ -138,21 +283,12 @@ def disabled_notice(topic: str, config_path: Path | None) -> str:
     return f'slopvac prime {topic} is disabled by [guidance] {topic} = "off"{where}.'
 
 
-
-
 def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
-    """The writing guide: genre table, documentation contract, judgement fixes."""
+    """The writing guide: genres, profiles, documentation contract, judgement fixes."""
     lines = [
         "# Slopvac writing guidance",
         "",
-        "Classify the document by purpose. Use the listed genre and profile as guidance.",
-        "",
-        "| Genre | Surfaces | Profile | What the body may contain |",
-        "| --- | --- | --- | --- |",
-        *(f"| `{g.name}` | {g.surfaces} | `{g.profile}` | {g.body} |" for g in GENRES),
-        "",
-        _ROUTING,
-        "",
+        *genres_and_profiles(ruleset),
         "## Documentation contract",
         "",
         "- Describe the artifact's behavior, configuration, and limits.",
@@ -192,18 +328,16 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         "",
         "## Workflow",
         "",
-        "1. Classify the document. Note its genre and lint profile for the review.",
+        "1. Find the document's genre in the genre table. Use the profile of that genre.",
         "2. Write from the documentation contract. Keep correct facts from sources.",
         "3. Check claims against code or a source. Verify relevant commands and paths.",
-        "4. Apply the rules below that fit the genre. `slopvac explain <rule_id>` "
-        "shows each rule's question and examples.",
+        "4. Apply the rules below that fit the genre.",
         "5. Run each example against a clean install.",
         "6. Lint with `slopvac lint <file>... --profile <profile> --format json`.",
         "7. Fix errors. Run `slopvac explain <rule_id>` to triage warnings.",
         "8. Exit 1 means that a gate failed. Exit 2 means that the run is incomplete.",
     ]
-    step = review_step(settings)
-    if step:
+    if settings.review != "off":
         lines.append("9. Before you hand off one of these, run `slopvac prime review`:")
         lines.extend(f"   - {s}" for s in _SURFACE_LIST)
         lines.append("   Complete its configured workflow.")
@@ -212,13 +346,12 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "",
             "## Rules lint cannot check",
             "",
-            "Use categories whose headings list the document's genre.",
-            "Each line gives the fix for one rule that needs a reader.",
+            "Each entry below gives the fix for one rule that needs a reader.",
+            *_entry_guide(ruleset, "fix"),
+            "Use the categories whose headings list the document's genre.",
             "If the rule question matches the text, apply its fix.",
             "",
-            "<!-- slopvac-disable -->",
-            *write_checklist(ruleset),
-            "<!-- slopvac-enable -->",
+            *unlinted(write_checklist(ruleset)),
         ]
     )
     return "\n".join(lines).rstrip("\n") + "\n"
@@ -276,7 +409,7 @@ def _review_workflow(settings: GuidanceSettings) -> list[str]:
 
 
 def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
-    """The review guide: lint, semantic checklist, claims, and reviewer pass."""
+    """The review guide: genres, profiles, lint, checklist, claims, reviewer pass."""
     lines = ["# Slopvac review guidance", ""]
     if settings.review == "ask":
         lines.extend(
@@ -288,9 +421,11 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         )
     lines.extend(
         [
+            *genres_and_profiles(ruleset),
             "## Workflow",
             "",
-            "1. Classify the document. Choose its genre and profile.",
+            "1. Find the document's genre in the genre table. "
+            "Its profile is the `<profile>` in the next steps.",
             "2. Run `slopvac lint <file>... --profile <profile> --format json`.",
             "For errors, run `slopvac explain <rule_id>` to choose a remedy.",
             "Exit 1 means that a gate failed. Exit 2 means that the run is incomplete.",
@@ -328,24 +463,14 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "or open reviewer finding.",
             "Report advisory failures without blocking. Skip excluded questions.",
             "",
-            "## Genres",
-            "",
-            "| Genre | Surfaces | Profile | Checklist categories |",
-            "| --- | --- | --- | --- |",
-            *(
-                f"| `{g.name}` | {g.surfaces} | `{g.profile}` | "
-                f"{_genre_categories(ruleset, g.name)} |"
-                for g in GENRES
-            ),
-            "",
             "## Checklist",
             "",
-            "Run `slopvac rules --kind judgement --profile <profile> --format json` "
-            "to inspect tiers. Review the profile named in step 1.",
+            "Each entry below asks one question that needs a reader.",
+            *_entry_guide(ruleset, "question"),
+            "Review at the profile from step 1. Ask the questions in the categories "
+            "whose headings list the genre.",
             "",
-            "<!-- slopvac-disable -->",
-            *review_checklist(ruleset),
-            "<!-- slopvac-enable -->",
+            *unlinted(review_checklist(ruleset)),
         ]
     )
     return "\n".join(lines).rstrip("\n") + "\n"
