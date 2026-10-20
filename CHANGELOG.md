@@ -1,5 +1,69 @@
 # Changelog
 
+## [2.16.1](https://github.com/srobroek/slopvac/compare/v2.17.0...v2.16.1) (2026-10-20)
+
+### Version selection and installation
+
+This release intentionally uses 2.16.1 and includes all changes documented in 2.17.0, plus the fixes and dependency updates below. Existing 2.17.0 tags and artifacts are preserved and are not yanked.
+
+Because 2.16.1 sorts below 2.17.0, an ordinary upgrade does not downgrade an installed 2.17.0. Install explicitly with `python -m pip install --upgrade "slopvac==2.16.1"` or `uv tool install --force slopvac==2.16.1`. Update project pins and lockfiles as needed. For one-off runs use `uvx --from slopvac==2.16.1 slopvac --version`.
+
+Unpinned package resolution and Slopvac's update notifier can still select or advertise the unyanked 2.17.0. Keep the explicit 2.16.1 pin to use these corrections. This release does not change version ordering or promise automatic downgrades.
+
+### Dependency updates
+
+Includes typos 1.51.1, cargo-binstall 1.26.0, Trivy 0.76.0, TruffleHog 3.99.3, download-artifact 8.0.2, upload-artifact 7.0.2, CodeQL 4.39.0, setup-uv 10.3.0, OSV scanner 2.7.0, uv 0.13.4 ([#225](https://github.com/srobroek/slopvac/pull/225)), and the PyPI publishing action 1.14.3 ([#226](https://github.com/srobroek/slopvac/pull/226)). The publishing action update includes an upstream security fix. Python 3.15 remains a separate compatibility change; the tested Python 3.11–3.14 support remains unchanged.
+
+### Bug Fixes
+
+* require supported Vale for complete linting ([#217](https://github.com/srobroek/slopvac/issues/217)) ([591c1e0](https://github.com/srobroek/slopvac/commit/591c1e07a95eeb5c24095623d809582a40881ca3))
+* secure ruleset cache and address outstanding reviews ([#218](https://github.com/srobroek/slopvac/issues/218)) ([fb1cfd8](https://github.com/srobroek/slopvac/commit/fb1cfd82b11d2734037e8be110560ebbcd4e0e86))
+* stabilize cache identities and profiler warmup ([#222](https://github.com/srobroek/slopvac/issues/222)) ([9c9e7a2](https://github.com/srobroek/slopvac/commit/9c9e7a2f2fe10c2762e1acc0dcf2f955e6448df5))
+
+
+### Documentation
+
+* clean up reviewed guidance and finding dispositions ([#223](https://github.com/srobroek/slopvac/issues/223)) ([8f26ccb](https://github.com/srobroek/slopvac/commit/8f26ccb57d1642fd9bf0b09a1253d0640f5fc98d))
+
+
+### Chores
+
+* **deps:** roll up compatible Renovate updates ([#224](https://github.com/srobroek/slopvac/issues/224)) ([c930676](https://github.com/srobroek/slopvac/commit/c9306760ca0aa85ae66b0558fd064669b6aefad0))
+
+### Changes included from 2.17.0
+
+#### Features
+
+* **rules:** `ai-tells-structure.negative-guarantee-core` accepts subjects of up to seven words. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** `ai-tells-structure.negative-guarantee-core` flags "X will never " and "X can never "; "must/should/shall never" stay exempt. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** `ai-tells-structure.negative-guarantee-core` flags the passive "X is/are never " and "X will/can never be ". ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend ai-tells-structure, ai-tells-register, ai-tells-formatting and ai-tells-content-shape for `reference`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend orwell for `reference` and `change-comms`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend prose-discipline for `change-comms`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend prose-scope for `reference` and `internal`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend the STE categories (descriptive, nouns, practices, punctuation, safety, sentences, verbs, words) for `consumer`, `internal` and `change-comms`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+
+
+#### Bug Fixes
+
+* **engine:** report a match inside a table cell at that cell's line, not the table's first row. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **rules:** `ai-tells-structure.negative-guarantee-core` treats "go" as a state verb, so "can never go below zero" stays clean. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+
+
+#### Performance
+
+* **analyze:** tokenize each sentence once for its word count and text type. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **engine:** compile each rule pattern once per process and share it across files and engines. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **projection:** bisect the segment index in submap and in the block start lookup. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **rules:** reuse the proved locale spelling rule across runs. ([a824f07](https://github.com/srobroek/slopvac/commit/a824f07906c94c5856b510d8312731bc5f6d583c))
+* **vale:** validate compiled rules in one Vale run instead of one run per rule; a cold README lint with Vale drops from 3.0 s to 0.9 s of CPU. ([a824f07](https://github.com/srobroek/slopvac/commit/a824f07906c94c5856b510d8312731bc5f6d583c))
+
+
+#### Documentation
+
+* state what `slopvac setup` and the prime topics do, not what they never do. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+
+
 ## [2.17.0](https://github.com/srobroek/slopvac/compare/v2.16.0...v2.17.0) (2026-10-20)
 
 
