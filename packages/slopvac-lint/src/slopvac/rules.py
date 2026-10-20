@@ -14,8 +14,9 @@ mode this project already documented for unsynced Vale styles.
 The example proof runs once per distinct input, not once per run. `ruleset_cache`
 keeps a verified load under a key that covers every rule file's text and the
 loader's own source, so a hit means that these exact rules already passed under
-this exact code. Model validation still runs on every load. The test suite proves
-the shipped examples without the cache.
+this exact code. Model validation still runs on every load. The generated
+spelling rule gets the same treatment under a key of the generated rule itself.
+The test suite proves the shipped examples without the cache.
 """
 
 from __future__ import annotations
@@ -206,10 +207,22 @@ def inject_locale_rule(ruleset: RuleSet, tag: str, allow: list[str] | None = Non
     category.rules = [r for r in category.rules if r.id != rule.id]
     category.rules.append(rule)
 
-    problems = _verify_examples([rule], f"<generated locale {tag}>")
+    # The proof runs once per distinct generated rule, as the ruleset's does once
+    # per distinct rule file: an entry under this rule's key records that it passed.
+    from . import ruleset_cache
+
+    origin = f"<generated locale {tag}>"
+    path = ruleset_cache.locale_entry_path(tag)
+    key = ruleset_cache.generated_key(origin, data)
+    if key is not None and ruleset_cache.read(path, key) is not None:
+        return None
+
+    problems = _verify_examples([rule], origin)
     if problems:
         category.rules = [r for r in category.rules if r.id != rule.id]
         return f"the generated {tag} spelling rule failed verification: {problems[0]}"
+    if key is not None:
+        ruleset_cache.write(path, key, [(origin, [data])])
     return None
 
 

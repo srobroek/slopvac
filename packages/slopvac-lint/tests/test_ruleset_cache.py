@@ -14,12 +14,19 @@ from pathlib import Path
 
 import pytest
 
+from slopvac import locale
 from slopvac import rules as rules_module
 from slopvac.analyze import parse
 from slopvac.config import Config, resolve_for
 from slopvac.engine import Engine
-from slopvac.rules import RuleLoadError, load_ruleset
-from slopvac.ruleset_cache import entry_path, read, write
+from slopvac.rules import RuleLoadError, inject_locale_rule, load_ruleset
+from slopvac.ruleset_cache import (
+    entry_path,
+    generated_key,
+    locale_entry_path,
+    read,
+    write,
+)
 from slopvac.vale_cache import cache_root
 
 HOUSE = """\
@@ -210,6 +217,7 @@ def test_documents_json_cannot_hold_exactly_are_not_stored(tmp_path, document):
     path = tmp_path / "entry.json"
     write(path, "key", [("probe.yml", [document])])
     assert not path.exists()
+    assert generated_key("<generated>", document) is None
 
 
 def test_a_written_entry_reads_back_only_under_its_key(tmp_path):
@@ -225,3 +233,94 @@ def test_slots_depend_on_the_directories_not_their_spelling(house, monkeypatch):
     monkeypatch.chdir(house.parent)
     assert entry_path([Path("house")]) == entry_path([house])
     assert entry_path([house]) != entry_path([])
+
+
+# --- the generated spelling rule ----------------------------------------------
+
+GB = "<generated locale en-GB>"
+
+
+def _spelling(ruleset):
+    rule = ruleset.by_id("ste-words.spelling")
+    assert rule is not None
+    return rule
+
+
+def test_the_generated_rule_is_proved_once_then_reused(proved):
+    fresh = load_ruleset()
+    assert inject_locale_rule(fresh, "en-GB") is None
+    assert proved.count(GB) == 1
+
+    cached = load_ruleset()
+    assert inject_locale_rule(cached, "en-GB") is None
+    assert proved.count(GB) == 1
+    assert cached.categories == fresh.categories
+    assert _findings(cached) == _findings(fresh)
+
+
+def test_a_changed_allowlist_is_proved_again_in_the_same_slot(proved):
+    inject_locale_rule(load_ruleset(), "en-GB")
+    allowed = load_ruleset()
+    assert inject_locale_rule(allowed, "en-GB", ["color"]) is None
+    assert proved.count(GB) == 2
+    assert "color" not in _spelling(allowed).substitutions
+    assert "color" in _spelling(allowed).allowlist
+    assert [path.name for path in _entries()] == [
+        entry_path([]).name,
+        locale_entry_path("en-GB").name,
+    ]
+
+
+def test_each_locale_has_its_own_slot(proved):
+    for tag in ("en-US", "en-GB", "en-US", "en-GB"):
+        assert inject_locale_rule(load_ruleset(), tag) is None
+    assert proved.count("<generated locale en-US>") == 1
+    assert proved.count(GB) == 1
+
+
+def test_a_stored_pass_never_covers_a_rule_that_now_fails(proved, monkeypatch):
+    """The slot holds a pass for the shipped generator. A generator whose
+    examples inverted produces another rule, so it is proved, fails, and stays
+    out of both the ruleset and the cache on every run."""
+    inject_locale_rule(load_ruleset(), "en-GB")
+    stored = locale_entry_path("en-GB").read_bytes()
+    real = locale.build_spelling_rule
+
+    def inverted(tag):
+        data = real(tag)
+        data["examples"] = [
+            {"bad": example["good"], "good": example["bad"]} for example in data["examples"]
+        ]
+        return data
+
+    monkeypatch.setattr(locale, "build_spelling_rule", inverted)
+    for _ in range(2):
+        ruleset = load_ruleset()
+        note = inject_locale_rule(ruleset, "en-GB")
+        assert note is not None
+        assert "spelling rule failed verification" in note
+        assert ruleset.by_id("ste-words.spelling") is None
+    assert proved.count(GB) == 3
+    assert locale_entry_path("en-GB").read_bytes() == stored
+
+
+@pytest.mark.parametrize("damage", ["garbage", "edited-body", "foreign-key"])
+def test_a_damaged_locale_entry_is_proved_again(proved, damage):
+    fresh = load_ruleset()
+    inject_locale_rule(fresh, "en-GB")
+    entry = locale_entry_path("en-GB")
+    raw = entry.read_bytes()
+    header, _, body = raw.partition(b"\n")
+    damaged = {
+        "garbage": b"\x00\xffnot json at all",
+        "edited-body": header + b"\n" + body.replace(b"colour", b"colur", 1),
+        "foreign-key": raw.replace(b'"key": "', b'"key": "0', 1),
+    }[damage]
+    assert damaged != raw
+    entry.write_bytes(damaged)
+
+    reloaded = load_ruleset()
+    assert inject_locale_rule(reloaded, "en-GB") is None
+    assert proved.count(GB) == 2
+    assert _spelling(reloaded) == _spelling(fresh)
+    assert entry.read_bytes() == raw
