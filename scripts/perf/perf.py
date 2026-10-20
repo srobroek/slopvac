@@ -562,7 +562,9 @@ def run_spy(scenario_name: str | None) -> None:
         raise RuntimeError("py-spy is not installed")
     print("py-spy uses sudo and may prompt for your password.", flush=True)
     try:
-        run_profiled(["sudo", str(python.parent / "py-spy") if os.name != "nt" else py_spy, "record", "--idle", "-f", "speedscope", "-o", str(directory / "spy.json"), "--", str(python), "-m", "slopvac.cli", *args], scenario, cwd=scratch)
+        # The scratch venv holds only slopvac; py-spy lives in the profile group,
+        # so pass its resolved absolute path (sudo's secure_path would not find it).
+        run_profiled(["sudo", py_spy, "record", "--idle", "-f", "speedscope", "-o", str(directory / "spy.json"), "--", str(python), "-m", "slopvac.cli", *args], scenario, cwd=scratch)
     finally:
         shutil.rmtree(parent, ignore_errors=True)
         finish_metadata(directory)
