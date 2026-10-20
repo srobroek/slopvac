@@ -783,13 +783,10 @@ def test_generated_vocabulary_rules_load_and_fire(vocabulary, tmp_path):
     rules = vocabulary_sequence_rules(vocabulary)
     style = tmp_path / "styles" / "ste-words"
     style.mkdir(parents=True)
-    import yaml
+    from slopvac.vale_probe import rule_yaml
 
     for name, payload in rules.items():
-        (style / f"{name}.yml").write_text(
-            yaml.safe_dump(payload, sort_keys=False, allow_unicode=True, width=10**6),
-            encoding="utf-8",
-        )
+        (style / f"{name}.yml").write_text(rule_yaml(payload), encoding="utf-8")
     config = tmp_path / ".vale.ini"
     config.write_text(
         "StylesPath = styles\nMinAlertLevel = suggestion\n[*.md]\nBasedOnStyles = ste-words\n",
@@ -802,6 +799,43 @@ def test_generated_vocabulary_rules_load_and_fire(vocabulary, tmp_path):
     assert _checks(config, f"He {verb}ed the system yesterday.\n", tmp_path) or _checks(
         config, f"They {verb} the system today.\n", tmp_path
     )
+
+
+@pytest.mark.parametrize(
+    ("profile", "path"),
+    [(Profile.STRICT, "README.md"), (Profile.NORMAL, "README.md"), (Profile.STRICT, "a.py")],
+)
+def test_every_rule_file_loads_back_to_its_payload(
+    ruleset, vocabulary, tmp_path, monkeypatch, profile, path
+):
+    """libyaml's emitter quotes some strings differently from the pure one, for
+    example an astral-plane character inside a double-quoted pattern. What Vale
+    reads must still be exactly the payload the compiler built."""
+    import yaml
+
+    from slopvac import compile_vale
+
+    written: list[tuple[dict, str]] = []
+    real = compile_vale.rule_yaml
+
+    def spy(payload: dict) -> str:
+        text = real(payload)
+        written.append((payload, text))
+        return text
+
+    monkeypatch.setattr(compile_vale, "rule_yaml", spy)
+    mode = {"mode": "code-comments"} if path.endswith(".py") else {}
+    compile_ruleset(
+        ruleset,
+        resolve_for(Config(profile=profile, **mode), Path(path)),
+        outdir=tmp_path,
+        validate=False,
+        vocabulary=vocabulary,
+    )
+    assert len(written) > 100
+    for payload, text in written:
+        assert yaml.safe_load(text) == payload, text
+
 
 
 # --- the cache ----------------------------------------------------------------
