@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.16.1](https://github.com/srobroek/slopvac/compare/v2.17.0...v2.16.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* require supported Vale for complete linting ([#217](https://github.com/srobroek/slopvac/issues/217)) ([591c1e0](https://github.com/srobroek/slopvac/commit/591c1e07a95eeb5c24095623d809582a40881ca3))
+* secure ruleset cache and address outstanding reviews ([#218](https://github.com/srobroek/slopvac/issues/218)) ([fb1cfd8](https://github.com/srobroek/slopvac/commit/fb1cfd82b11d2734037e8be110560ebbcd4e0e86))
+* stabilize cache identities and profiler warmup ([#222](https://github.com/srobroek/slopvac/issues/222)) ([9c9e7a2](https://github.com/srobroek/slopvac/commit/9c9e7a2f2fe10c2762e1acc0dcf2f955e6448df5))
+
+
+### Documentation
+
+* clean up reviewed guidance and finding dispositions ([#223](https://github.com/srobroek/slopvac/issues/223)) ([8f26ccb](https://github.com/srobroek/slopvac/commit/8f26ccb57d1642fd9bf0b09a1253d0640f5fc98d))
+
+
+### Chores
+
+* **deps:** roll up compatible Renovate updates ([#224](https://github.com/srobroek/slopvac/issues/224)) ([c930676](https://github.com/srobroek/slopvac/commit/c9306760ca0aa85ae66b0558fd064669b6aefad0))
+
 ## [2.17.0](https://github.com/srobroek/slopvac/compare/v2.16.0...v2.17.0) (2026-10-20)
 
 
