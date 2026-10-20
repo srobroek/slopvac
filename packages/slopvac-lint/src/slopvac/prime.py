@@ -48,6 +48,7 @@ COMMAND_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Read agent guidance", ("prime", "onboard")),
     ("Configure a project", ("init", "setup")),
     ("Inspect Vale styles", ("compile", "cache")),
+    ("Check prerequisites", ("doctor",)),
 )
 
 # The complete directive and exclusion reference, at the tag of this version. A

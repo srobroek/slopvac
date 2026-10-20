@@ -168,6 +168,39 @@ def main(context: click.Context) -> None:
 
 
 @main.command()
+@click.option(
+    "--binary",
+    default=None,
+    help="Vale executable name or path. Defaults to [vale].binary or vale.",
+)
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    help="Read [vale].binary from this configuration file.",
+)
+def doctor(binary: str | None, config_path: Path | None) -> None:
+    """Check that the required Vale executable is available and supported."""
+    from .config import ConfigError, find_config, load_config
+    from .vale_probe import ValeUnavailable, require_vale, vale_version
+
+    discovered = config_path or find_config(Path.cwd())
+    try:
+        config = load_config(discovered, root=discovered.parent if discovered else None)
+    except ConfigError as exc:
+        click.echo(f"config error: {exc}", err=True)
+        raise SystemExit(EXIT_ERROR) from None
+    selected = binary or config.vale.binary
+    try:
+        executable = require_vale(selected)
+    except ValeUnavailable as exc:
+        click.echo(f"Vale prerequisite failed: {exc}", err=True)
+        raise SystemExit(EXIT_ERROR) from None
+    version = vale_version(executable)
+    click.echo(f"Vale {'.'.join(map(str, version))} available: {executable}")
+
+
+@main.command()
 @click.argument("targets", nargs=-1, required=True)
 @click.option(
     "--profile",

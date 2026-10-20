@@ -54,7 +54,13 @@ from pathlib import Path
 from .config import Mode, ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType, Tier
 from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
-from .vale_probe import ValeUnavailable, probe_payloads, rule_yaml, vale_version
+from .vale_probe import (
+    ValeUnavailable,
+    probe_payloads,
+    require_vale,
+    rule_yaml,
+    vale_version,
+)
 
 COMMENT_SAFE_KINDS = frozenset({RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION})
 SOURCE_LANGUAGE_BY_EXTENSION = {
@@ -1005,6 +1011,10 @@ def compile_ruleset(
     Turning it off makes the compile fast and the output unverified, which is
     only correct in a test that already knows the answer.
     """
+    # All validated compilation paths, including the `compile` CLI, require a
+    # supported Vale. Missing or outdated binaries must never produce proven styles.
+    if validate:
+        require_vale(binary)
     levels = compiled_levels(ruleset, resolved_config)
     version = vale_version(binary) if validate else None
     if resolved_config.mode is Mode.PROSE:

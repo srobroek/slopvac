@@ -22,6 +22,46 @@ from slopvac.rules import load_ruleset
 from slopvac.vale_probe import ValeUnavailable, probe_payloads
 from slopvac.vocabulary import load_blocklist
 
+
+@pytest.mark.parametrize(
+    ("version", "expected"),
+    [
+        ("3.17.9", "Vale 3.18.0 or later is required"),
+        ("3.18.0", None),
+        ("3.24.0", None),
+    ],
+)
+def test_require_vale_checks_version(tmp_path, version, expected):
+    binary = tmp_path / "vale"
+    binary.write_text(f"#!/bin/sh\necho 'vale version {version}'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    if expected:
+        with pytest.raises(ValeUnavailable, match=expected.replace(".", r"\.")):
+            vale_probe.require_vale(str(binary))
+    else:
+        assert vale_probe.require_vale(str(binary)) == str(binary)
+
+
+def test_require_vale_reports_missing_executable():
+    with pytest.raises(ValeUnavailable, match="not on PATH"):
+        vale_probe.require_vale("vale-this-executable-does-not-exist")
+
+
+def test_validated_compile_rejects_unsupported_vale(tmp_path):
+    binary = tmp_path / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.17.9'\n", encoding="utf-8")
+    binary.chmod(0o755)
+
+    with pytest.raises(ValeUnavailable, match=r"Vale 3\.18\.0 or later"):
+        compile_vale.compile_ruleset(
+            load_ruleset(),
+            resolve_for(Config(), tmp_path / "doc.md"),
+            outdir=tmp_path / "styles",
+            binary=str(binary),
+            validate=True,
+        )
+
+
 VALE = shutil.which("vale")
 needs_vale = pytest.mark.skipif(VALE is None, reason="vale is not on PATH")
 EXAMPLE_BLOCKLIST = Path(__file__).parent.parent / "examples" / "blocklist.toml"

@@ -30,6 +30,7 @@ dependencies = [
   "regex>=2024.5.15",
   "pyyaml>=6.0",
   "jsonschema>=4.18",
+  "packaging>=24.0",
   # CommonMark block parsing. Replaces a hand-rolled line matcher: the reference
   # implementation reports a source line map per block, which is what keeps a
   # finding's line number pointing at the real file.

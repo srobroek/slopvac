@@ -416,8 +416,8 @@ def _compile_for(
     except ValeUnavailable as exc:
         return None, [
             f"the Vale styles were not compiled ({exc}), so every rule that runs "
-            f"in Vale did NOT run. Install vale, or pass --no-vale to acknowledge "
-            f"the gap explicitly."
+            f"in Vale did NOT run. Install or upgrade Vale, or pass --no-vale "
+            f"to acknowledge the incomplete run explicitly."
         ]
 
 
