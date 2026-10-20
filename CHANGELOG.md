@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.14.0](https://github.com/srobroek/slopvac/compare/v2.13.1...v2.14.0) (2026-10-20)
+
+
+### Features
+
+* **prime:** full CLI reference in prime; correct cross-referenced docs ([#200](https://github.com/srobroek/slopvac/issues/200)) ([2331f6a](https://github.com/srobroek/slopvac/commit/2331f6a2ea126e1ac2d26c09c26a9723f1de076e))
+
 ## [2.13.1](https://github.com/srobroek/slopvac/compare/v2.13.0...v2.13.1) (2026-10-19)
 
 
