@@ -311,14 +311,45 @@ class CachedSource:
     text: str
 
 
+def _github_api_origin(url: str) -> bool:
+    """Whether a URL is allowed to receive the GitHub API credential."""
+    if any(character.isspace() or ord(character) < 32 or ord(character) == 127 for character in url):
+        return False
+    try:
+        parsed = urllib.parse.urlsplit(url)
+        return (
+            parsed.scheme == "https"
+            and parsed.hostname == "api.github.com"
+            and parsed.port in (None, 443)
+            and parsed.username is None
+            and parsed.password is None
+        )
+    except ValueError:
+        return False
+
+
+class _GitHubRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def __init__(self, token: str):
+        self.token = token
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is not None and _github_api_origin(redirected.full_url):
+            redirected.add_unredirected_header("Authorization", f"Bearer {self.token}")
+        return redirected
+
+
 def _request(url: str, *, api: bool = False) -> bytes:
     headers = {"User-Agent": UA, "Accept": "application/json" if api else "*/*"}
-    if api and os.environ.get("GITHUB_TOKEN") and "api.github.com" in url:
-        headers["Authorization"] = f"Bearer {os.environ['GITHUB_TOKEN']}"
     request = urllib.request.Request(url, headers=headers)
+    token = os.environ.get("GITHUB_TOKEN") if api and _github_api_origin(url) else None
+    open_url = urllib.request.urlopen
+    if token:
+        request.add_unredirected_header("Authorization", f"Bearer {token}")
+        open_url = urllib.request.build_opener(_GitHubRedirectHandler(token)).open
     for attempt in range(5):
         try:
-            with urllib.request.urlopen(request, timeout=45) as response:
+            with open_url(request, timeout=45) as response:
                 return response.read()
         except urllib.error.HTTPError as exc:
             if exc.code not in {429, 500, 502, 503, 504} or attempt == 4:
