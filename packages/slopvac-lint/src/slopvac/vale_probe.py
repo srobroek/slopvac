@@ -10,13 +10,13 @@ payload translation stays a pure function of the ruleset.
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
 import tempfile
+from functools import cache
 from pathlib import Path
-
-import yaml
 
 
 class ValeUnavailable(Exception):
@@ -39,10 +39,31 @@ def vale_version(binary: str = "vale") -> tuple[int, int, int] | None:
 
     `vale --version` prints `vale version 3.21.0`; only the first three integers
     are read, so a pre-release suffix does not break the parse.
+
+    One answer per binary per process. The compiler keys its tree on the version
+    and the runner compares it with the floor, so one Vale lint needs it twice.
+    The memo key is the binary's path, inode, size, and mtime, so a binary that
+    changes mid-process gets a fresh `vale --version`.
     """
     resolved = shutil.which(binary)
     if resolved is None:
         return None
+    try:
+        stat = os.stat(resolved)
+    except OSError:
+        return _read_version(resolved)
+    return _version_of(resolved, stat.st_ino, stat.st_size, stat.st_mtime_ns)
+
+
+@cache
+def _version_of(
+    resolved: str, inode: int, size: int, mtime_ns: int
+) -> tuple[int, int, int] | None:
+    """`_read_version`, memoised. The identity arguments exist only as the key."""
+    return _read_version(resolved)
+
+
+def _read_version(resolved: str) -> tuple[int, int, int] | None:
     try:
         completed = subprocess.run(
             [resolved, "--version"], capture_output=True, text=True, timeout=30
@@ -64,6 +85,23 @@ def rst_converter(
         if resolved is not None:
             return resolved
     return None
+
+
+def rule_yaml(payload: dict) -> str:
+    """One Vale rule file's text.
+
+    The probe and the compiler both write through here, so the probe validates the
+    same text the compiled tree holds. libyaml's emitter when PyYAML has it: it is
+    about eight times faster over the shipped rules, and it differs from the pure
+    emitter only in quoting, such as escaping astral-plane characters inside a
+    double-quoted scalar, so every rule loads to the same values.
+    """
+    import yaml
+
+    dumper = getattr(yaml, "CSafeDumper", yaml.SafeDumper)
+    return yaml.dump(
+        payload, Dumper=dumper, sort_keys=False, allow_unicode=True, width=10**6
+    )
 
 
 def probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
@@ -93,10 +131,7 @@ def probe_payloads(payloads: dict[str, dict], binary: str) -> dict[str, str]:
         for rule_id, payload in payloads.items():
             for stale in style.iterdir():
                 stale.unlink()
-            (style / "R.yml").write_text(
-                yaml.safe_dump(payload, sort_keys=False, allow_unicode=True, width=10**6),
-                encoding="utf-8",
-            )
+            (style / "R.yml").write_text(rule_yaml(payload), encoding="utf-8")
             try:
                 completed = subprocess.run(
                     [binary, f"--config={root / '.vale.ini'}", "--no-exit", str(target)],

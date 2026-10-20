@@ -10,16 +10,20 @@ compiled, and every `examples[].bad` is asserted to match while `examples[].good
 is asserted not to. A rule whose pattern no longer fires is a rule that silently
 passes every document, which is indistinguishable from clean prose -- the failure
 mode this project already documented for unsynced Vale styles.
+
+The example proof runs once per distinct input, not once per run. `ruleset_cache`
+keeps a verified load under a key that covers every rule file's text and the
+loader's own source, so a hit means that these exact rules already passed under
+this exact code. Model validation still runs on every load. The test suite proves
+the shipped examples without the cache.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from importlib import resources
 from pathlib import Path
-
-import regex as re
-import yaml
 
 from .model import Category, Rule, RuleKind
 
@@ -70,12 +74,21 @@ class RuleSet:
         return None
 
 
-
 def _load_documents(text: str, origin: str) -> list[dict]:
+    import yaml
+
+    # libyaml parses the shipped rules about ten times faster than the pure-Python
+    # parser and builds the same documents. On any error the pure parser runs
+    # again and decides: its messages quote the offending line, and it accepts
+    # the few inputs libyaml refuses, such as a `\ud800` escape.
+    loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
     try:
-        loaded = list(yaml.safe_load_all(text))
-    except yaml.YAMLError as exc:
-        raise RuleLoadError(f"{origin}: invalid YAML: {exc}") from exc
+        loaded = list(yaml.load_all(text, Loader=loader))
+    except yaml.YAMLError:
+        try:
+            loaded = list(yaml.safe_load_all(text))
+        except yaml.YAMLError as exc:
+            raise RuleLoadError(f"{origin}: invalid YAML: {exc}") from exc
     documents: list[dict] = []
     for index, document in enumerate(loaded):
         if document is None:
@@ -107,12 +120,14 @@ def _build_category(data: dict, origin: str) -> Category:
     return category
 
 
-def _verify_examples(category: Category, origin: str) -> list[str]:
+def _verify_examples(rules: Iterable[Rule], origin: str) -> list[str]:
     """Prove every pattern still fires. Returns problems rather than raising, so
     one broken rule reports alongside the others instead of masking them."""
+    import regex as re
+
     problems: list[str] = []
 
-    for rule in category.rules:
+    for rule in rules:
         if rule.kind not in (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION):
             continue
         flags = re.IGNORECASE if rule.ignore_case else 0
@@ -184,32 +199,23 @@ def inject_locale_rule(ruleset: RuleSet, tag: str, allow: list[str] | None = Non
         return "the ste-words category is missing, so spelling was NOT checked."
 
     # Validated on the same path as a YAML rule: a generated rule that skips
-    # validation is a rule nobody checked.
+    # validation is a rule nobody checked. This proves only the generated rule.
+    # The ruleset load proved the category's own rules.
     rule = Rule.model_validate(data)
     object.__setattr__(rule, "category", category.id)
     category.rules = [r for r in category.rules if r.id != rule.id]
     category.rules.append(rule)
 
-    problems = _verify_examples(category, f"<generated locale {tag}>")
+    problems = _verify_examples([rule], f"<generated locale {tag}>")
     if problems:
         category.rules = [r for r in category.rules if r.id != rule.id]
         return f"the generated {tag} spelling rule failed verification: {problems[0]}"
     return None
 
 
-def load_ruleset(
-    extra_dirs: list[Path] | None = None, verify: bool = True
-) -> RuleSet:
-    """Load the packaged ruleset, then layer any extra directories over it.
-
-    A later category with the same id REPLACES the earlier one wholesale rather
-    than merging: a project that redefines a category means to own it, and a
-    silent per-rule merge across files would make the effective ruleset
-    unreadable.
-    """
-    ruleset = RuleSet()
-    problems: list[str] = []
-
+def _read_sources(extra_dirs: list[Path]) -> list[tuple[str, str]]:
+    """Every rule file as (origin, text): packaged files first, then each extra
+    directory in order, each sorted by name. Later files override earlier ones."""
     try:
         root = resources.files(RULES_PACKAGE) / RULES_DIRNAME
     except ModuleNotFoundError:
@@ -221,7 +227,7 @@ def load_ruleset(
             if entry.name.endswith((".yml", ".yaml")):
                 sources.append((entry.name, entry.read_text(encoding="utf-8")))
 
-    for directory in extra_dirs or []:
+    for directory in extra_dirs:
         if not directory.is_dir():
             raise RuleLoadError(f"rules directory not found: {directory}")
         for path in sorted(directory.glob("*.y*ml")):
@@ -232,16 +238,75 @@ def load_ruleset(
             "no rule files found. The package ships rules under "
             f"{RULES_PACKAGE}; a broken install is the usual cause."
         )
+    return sources
 
+
+def _parse(
+    sources: list[tuple[str, str]], into: list[tuple[str, list[dict]]]
+) -> Iterator[tuple[str, list[dict]]]:
+    """Parse each file as the loader reaches it, recording the result in `into`.
+
+    Lazy so the loader reports the first broken file: parsing everything up front
+    would let a later file's YAML error mask an earlier file's schema error.
+    """
     for origin, text in sources:
-        for data in _load_documents(text, origin):
+        parsed = (origin, _load_documents(text, origin))
+        into.append(parsed)
+        yield parsed
+
+
+def _assemble(
+    documents: Iterable[tuple[str, list[dict]]], *, verify: bool
+) -> RuleSet:
+    ruleset = RuleSet()
+    problems: list[str] = []
+    for origin, loaded in documents:
+        for data in loaded:
             category = _build_category(data, origin)
             if verify:
-                problems.extend(_verify_examples(category, origin))
+                problems.extend(_verify_examples(category.rules, origin))
             ruleset.categories[category.id] = category
 
     if problems:
         raise RuleLoadError(
             "the ruleset failed self-verification:\n  " + "\n  ".join(problems)
         )
+    return ruleset
+
+
+def load_ruleset(
+    extra_dirs: list[Path] | None = None, verify: bool = True
+) -> RuleSet:
+    """Load the packaged ruleset, then layer any extra directories over it.
+
+    A later category with the same id REPLACES the earlier one wholesale rather
+    than merging: a project that redefines a category means to own it, and a
+    silent per-rule merge across files would make the effective ruleset
+    unreadable.
+
+    When every rule file and the loader are unchanged, the load reuses the
+    verified entry in `ruleset_cache`. Otherwise it parses, validates, proves, and
+    stores the files. `verify=False` skips the proof and the cache in both
+    directions: an entry records that its documents passed the proof, so an
+    unproved load neither trusts one nor writes one.
+    """
+    directories = list(extra_dirs or [])
+    sources = _read_sources(directories)
+    if not verify:
+        return _assemble(_parse(sources, []), verify=False)
+
+    from . import ruleset_cache
+
+    path = ruleset_cache.entry_path(directories)
+    key = ruleset_cache.content_key(sources)
+    cached = ruleset_cache.read(path, key)
+    if cached is not None:
+        try:
+            return _assemble(cached, verify=False)
+        except RuleLoadError:
+            pass  # An entry that fails validation is a miss, never an error.
+
+    documents: list[tuple[str, list[dict]]] = []
+    ruleset = _assemble(_parse(sources, documents), verify=True)
+    ruleset_cache.write(path, key, documents)
     return ruleset

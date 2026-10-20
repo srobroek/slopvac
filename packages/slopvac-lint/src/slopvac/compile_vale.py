@@ -51,12 +51,10 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
-
 from .config import Mode, ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType, Tier
 from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
-from .vale_probe import ValeUnavailable, probe_payloads, vale_version
+from .vale_probe import ValeUnavailable, probe_payloads, rule_yaml, vale_version
 
 COMMENT_SAFE_KINDS = frozenset({RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION})
 SOURCE_LANGUAGE_BY_EXTENSION = {
@@ -1246,10 +1244,7 @@ def compile_ruleset(
         name = rule_id.split(".", 1)[1]
         directory = staging / "styles" / category
         directory.mkdir(parents=True, exist_ok=True)
-        (directory / f"{name}.yml").write_text(
-            yaml.safe_dump(payload, sort_keys=False, allow_unicode=True, width=10**6),
-            encoding="utf-8",
-        )
+        (directory / f"{name}.yml").write_text(rule_yaml(payload), encoding="utf-8")
         result.vale_rules.append(rule_id)
 
     (staging / ".vale.ini").write_text(

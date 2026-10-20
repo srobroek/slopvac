@@ -100,6 +100,31 @@ def test_cache_fingerprint_changes_with_the_vale_version(tmp_path):
     assert old == same
 
 
+def test_the_vale_version_is_asked_once_per_binary(tmp_path):
+    """The compiler and the runner both need the version, from one `vale` start.
+    A binary that changes on disk gets a fresh `vale --version`."""
+    from slopvac.vale_probe import vale_version
+
+    calls = tmp_path / "calls"
+    binary = tmp_path / "vale"
+
+    def install(version: str) -> None:
+        binary.write_text(
+            f"#!/bin/sh\necho call >> '{calls}'\necho 'vale version {version}'\n",
+            encoding="utf-8",
+        )
+        binary.chmod(0o755)
+
+    install("3.21.0")
+    assert vale_version(str(binary)) == (3, 21, 0)
+    assert vale_version(str(binary)) == (3, 21, 0)
+    assert calls.read_text(encoding="utf-8").count("call") == 1
+
+    install("3.22.10")
+    assert vale_version(str(binary)) == (3, 22, 10)
+    assert calls.read_text(encoding="utf-8").count("call") == 2
+
+
 @pytest.mark.parametrize(
     "payload", [[], {}, {"Checks": "style.rule"}, {"Checks": [None]}]
 )

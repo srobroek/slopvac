@@ -5,6 +5,10 @@ the profile, the blocklist, and the compiler source itself. `fingerprint` hashes
 all of them so that a change to any one mints a new key and a stale tree is never
 served. `prune_cache` bounds the number of trees kept. Separate from
 `compile_vale` so the compiler owns translation and this module owns storage.
+`cache_root` and `source_digest` also serve the other caches under the same root.
+
+Cheap to import: the startup path imports it for `cache_root` and `CACHE_KEEP`,
+so the config and model types stay annotation-only.
 """
 
 from __future__ import annotations
@@ -15,25 +19,29 @@ import os
 import shutil
 import tempfile
 from contextlib import contextmanager
+from functools import cache
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from .config import ResolvedConfig
-from .model import Rule
+if TYPE_CHECKING:
+    from .config import ResolvedConfig
+    from .model import Rule
 
 
-def _compiler_source_digest() -> str:
-    """Hash the compiler's source, for the cache key.
+@cache
+def source_digest(names: tuple[str, ...]) -> str:
+    """Hash the source of these package modules, for a cache key.
 
     Read from `__file__` rather than tracked as a hand-bumped version constant,
     because a constant only invalidates when someone REMEMBERS to bump it, and the
     failure it guards against is silent. Falls back to the package version if the
     source is unreadable (a zipimport or a frozen build), which is weaker but never
-    worse than the input-only key it replaces.
+    worse than an input-only key. Computed once per process, on first use.
     """
     try:
         here = Path(__file__).parent
         digest = hashlib.sha256()
-        for name in ("compile_vale.py", "vale_cache.py", "vale_probe.py"):
+        for name in names:
             digest.update((here / name).read_bytes())
         return digest.hexdigest()[:16]
     except OSError:
@@ -42,7 +50,8 @@ def _compiler_source_digest() -> str:
         return f"v{__version__}"
 
 
-_COMPILER_SOURCE_DIGEST = _compiler_source_digest()
+# The modules whose code decides what a compiled tree contains.
+_COMPILER_SOURCES = ("compile_vale.py", "vale_cache.py", "vale_probe.py")
 
 
 def cache_root() -> Path:
@@ -147,7 +156,7 @@ def fingerprint(
     # had to change -- because the fingerprint was unchanged and the cached style
     # still held the rule. A silently stale cache is indistinguishable from a fix
     # that does not work, which is the more expensive failure of the two.
-    digest.update(_COMPILER_SOURCE_DIGEST.encode())
+    digest.update(source_digest(_COMPILER_SOURCES).encode())
     for rule in sorted(rules, key=lambda r: r.qualified_id):
         digest.update(rule.qualified_id.encode())
         digest.update(rule.model_dump_json(exclude={"category"}).encode())
