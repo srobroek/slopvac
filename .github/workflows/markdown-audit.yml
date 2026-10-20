@@ -48,6 +48,10 @@ jobs:
                   return "fixture"
               if path.endswith("CHANGELOG.md"):
                   return "release"
+              # Evaluation reports contain generated tables and quoted corpus findings.
+              # They remain in the unrestricted diagnostic scan.
+              if path.startswith("scripts/judge-sagemaker/results/"):
+                  return "generated"
               if path.endswith("/docs/rules.md"):
                   return "generated"
               if path.startswith(".beads/") or path.startswith(".agents/skills/beads/"):
