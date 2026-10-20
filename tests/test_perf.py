@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from scripts.perf import perf
+from scripts.perf.line_target import resolve
 from scripts.perf.perf import (
     ROOT,
     _run_hyperfine,
@@ -136,3 +137,19 @@ def test_a_vale_profile_without_vale_fails_instead_of_running_incomplete(monkeyp
     monkeypatch.setattr(perf, "resolve_tool", lambda name, variable=None: None)
     with pytest.raises(RuntimeError, match="needs Vale"):
         profiler_scenario(vale_scenario["name"])
+
+
+def test_line_targets_resolve_functions_and_methods() -> None:
+    from slopvac import analyze, engine
+
+    assert resolve("slopvac.analyze:_align_block_text") is analyze._align_block_text
+    assert resolve("slopvac.engine:Engine.run") is engine.Engine.run
+
+
+@pytest.mark.parametrize(
+    "spec",
+    ["slopvac.analyze", "slopvac.analyze:no_such_function", "slopvac.analyze:_ENTITY"],
+)
+def test_bad_line_targets_fail_before_profiling(spec: str) -> None:
+    with pytest.raises(SystemExit, match="perf-lines"):
+        resolve(spec)

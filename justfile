@@ -32,6 +32,10 @@ perf-mem $SCENARIO="": perf-wait-idle
 perf-spy $SCENARIO="": perf-wait-idle
     PERF_SCENARIO="${SCENARIO#SCENARIO=}" uv run --group profile python scripts/perf/perf.py spy --idle-checked
 
+# Time each line of FUNCS (space-separated module:qualname) without decorators.
+perf-lines $FUNCS $SCENARIO="": perf-wait-idle
+    PERF_LINE_FUNCS="${FUNCS#FUNCS=}" PERF_SCENARIO="${SCENARIO#SCENARIO=}" uv run --group profile python scripts/perf/perf.py lines --idle-checked
+
 # Run the benchmark and all profilers in sequence after one idle gate.
 perf $SCENARIO="": perf-wait-idle
     PERF_SCENARIO="${SCENARIO#SCENARIO=}" uv run --group profile python scripts/perf/perf.py all --idle-checked

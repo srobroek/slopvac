@@ -24,6 +24,7 @@ pythonpath = ["."]
 
 [dependency-groups]
 profile = [
+  "line-profiler>=5.1.0",
   "memray>=1.20.0",
   "py-spy>=0.4.2",
   "pyinstrument>=5.1.3",

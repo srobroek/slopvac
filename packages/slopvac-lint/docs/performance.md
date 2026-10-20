@@ -55,6 +55,7 @@ PERF_SKIP_IDLE=1 PERF_RUNS=2 just perf-bench SCENARIO='startup --version'
 | `perf-timeline` | Write a VizTracer JSON timeline. Use the printed `vizviewer` command or open the trace in Perfetto. |
 | `perf-mem` | Write Memray allocation stats and an HTML flamegraph. |
 | `perf-spy` | Write a py-spy speedscope profile. The command uses sudo. |
+| `perf-lines` | Write per-line timings for `FUNCS`, a space-separated list of `module:qualname` names such as `slopvac.analyze:_align_block_text`. line_profiler traces those functions wherever they are called, so the source needs no `@profile` decorator. |
 | `perf` | Run the benchmark and each profiler after one idle gate. |
 | `perf-check` | Build BASE and HEAD in temporary venvs. Hyperfine interleaves the revisions. A Markdown table reports timing and peak memory deltas. |
 
