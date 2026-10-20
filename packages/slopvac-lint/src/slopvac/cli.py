@@ -497,8 +497,11 @@ def _severity_at(
     except ConfigError as exc:
         console.print(f"[red]config error[/]: {exc}")
         raise SystemExit(EXIT_ERROR) from None
-    config = config.model_copy(update={"profile": Profile(profile)})
-    engine = Engine(ruleset.rules, resolve_for(config, Path("README.md")))
+    # Inspection has no input file. File-specific overrides must not replace
+    # the requested profile or leak settings from a synthetic README path.
+    config = config.model_copy(update={"profile": Profile(profile), "overrides": []})
+    resolved = resolve_for(config, Path("README.md"))
+    engine = Engine(ruleset.rules, resolved)
     active = {rule.qualified_id for rule in engine.rules}
 
     def effective(rule: Rule) -> str:

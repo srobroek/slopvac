@@ -40,8 +40,6 @@ Orwell's own sixth rule has in an automated pipeline.
 
 from __future__ import annotations
 
-from bisect import bisect_right
-from collections.abc import Iterator
 from dataclasses import replace
 from functools import cache
 from typing import Any, NamedTuple
@@ -489,40 +487,6 @@ class _Span(NamedTuple):
     block: Block | None
     offset: int
     text: str
-    # Cell bounds within `text` that no match may cross; empty for any text that
-    # is not a whole table.
-    cells: tuple[tuple[int, int], ...] = ()
-
-
-def _matches_within_cells(
-    pattern: re.Pattern[str], text: str, cells: tuple[tuple[int, int], ...]
-) -> Iterator[re.Match[str]]:
-    """Match `pattern` in `text`, keeping only matches that lie inside one cell.
-
-    A table's text joins its cells with single spaces. A pattern bounded by
-    sentence punctuation then reads cells with no full stop as one run-on
-    sentence: `negative-guarantee-core` matched from the header row into the cell
-    below, and the finding pointed at the top of the table. A match that crosses
-    a cell boundary is dropped and the scan resumes one character after its
-    start, so a match inside the cell it ran into is still found. The scan runs
-    over the whole text, so `^` and lookaround assertions see the same context as
-    an unbounded scan.
-    """
-    if not cells:
-        yield from pattern.finditer(text)
-        return
-    starts = [start for start, _ in cells]
-    position = 0
-    while True:
-        for match in pattern.finditer(text, position):
-            cell = bisect_right(starts, match.start()) - 1
-            if cell >= 0 and match.end() <= cells[cell][1]:
-                yield match
-                continue
-            position = match.start() + 1
-            break
-        else:
-            return
 
 
 class Engine:
@@ -852,7 +816,9 @@ class Engine:
         # distinction is retained in the rule data for Vale and future routing. A
         # table's text is its cells joined, so its matches stay inside one cell.
         return [
-            _Span(block, 0, block.text, block.cells) for block in blocks if block.text
+            _Span(block, start, block.text[start:end])
+            for block in blocks if block.text
+            for start, end in (block.cells or ((0, len(block.text)),))
         ]
 
     def _run_lexical(
@@ -870,9 +836,9 @@ class Engine:
         allowed_phrases = [entry for entry in allowed if " " in entry]
         results: list[Finding] = []
 
-        for block, base_offset, text, cells in self._lines_for_scope(rule, document):
+        for block, base_offset, text in self._lines_for_scope(rule, document):
             lowered = text.lower()
-            for match in _matches_within_cells(pattern, text, cells):
+            for match in pattern.finditer(text):
                 if rule.text_type is not TextType.ANY:
                     position = base_offset + match.start()
                     sentence = next(
@@ -913,6 +879,16 @@ class Engine:
                         end_column = len(document.raw_lines[line - 1]) + 1
                 if self._suppressed(rule, line, suppressions, disabled):
                     continue
+
+                if "\x00" in matched and block is not None:
+                    end_line, source_end = block.position(base_offset + match.end())
+                    source_lines = document.raw_lines[line - 1:end_line]
+                    if line == end_line:
+                        matched = source_lines[0][column - 1:source_end - 1]
+                    else:
+                        source_lines[0] = source_lines[0][column - 1:]
+                        source_lines[-1] = source_lines[-1][:source_end - 1]
+                        matched = "\n".join(source_lines)
 
                 candidate = None
                 if rule.kind is RuleKind.SUBSTITUTION and rule.substitutions:

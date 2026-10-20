@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import statistics
 import datetime as dt
 import json
 import os
@@ -200,6 +202,9 @@ def result_dir(recipe: str) -> Path:
     versions, paths = tool_versions()
     metadata = {
         "git_sha": git_output("rev-parse", "HEAD"),
+        "git_dirty": bool(git_output("status", "--porcelain")),
+        "git_diff_sha256": hashlib.sha256(git_output("diff", "HEAD", "--binary").encode()).hexdigest(),
+        "git_untracked": git_output("ls-files", "--others", "--exclude-standard").splitlines(),
         "slopvac_version": package_version(sys.executable),
         "python": sys.version.split()[0],
         "os": platform.platform(),
@@ -327,13 +332,13 @@ def _run_hyperfine(
         "-N", "--warmup", "1", "--runs", str(runs), "--style", "basic",
         # slopvac exits 1 for a failed gate and 2 for an incomplete run (every
         # `--no-vale` scenario); both are expected results, not benchmark errors.
-        "--ignore-failure=1,2",
         "--metrics", "time_wall_clock,memory_peak_resident",
         "--export-json", str(directory / "hyperfine.json"),
         "--export-markdown", str(directory / "hyperfine.md"),
     ]
     scratch_dirs: list[Path] = []
     prepares: list[str] = []
+    specs: list[tuple[str, str]] = []
     try:
         for index, scenario in enumerate(available):
             scenario_dir = directory / f"scenario-{index}"
@@ -345,7 +350,7 @@ def _run_hyperfine(
                 cache = None
                 warm_cache = scenario_dir / f"cache-{label.replace(' ', '-')}-warm"
                 if scenario.get("cache") == "warm":
-                    warm_cache.mkdir()
+                    warm_cache.mkdir(mode=0o700)
                     warm_args = prepare_inputs(scenario, scratch)
                     warm_env = os.environ.copy()
                     warm_env.update({"NO_UPDATE_NOTIFIER": "1", "SLOPVAC_CACHE_DIR": str(warm_cache)})
@@ -366,25 +371,52 @@ def _run_hyperfine(
                 else:
                     prepares.append("true")
                 command = _scenario_command(scenario, interpreter, scratch, warm_cache, cache)
-                commands.extend([
-                    "--command-name",
-                    f"{label} {scenario['name']}" if paired else scenario["name"],
-                    shlex.join(command),
-                ])
-        # hyperfine pairs `--prepare` with commands by position and accepts either
-        # one value or one per command, so give every command its own (a no-op
-        # `true` where nothing needs resetting).
-        if any(prepare != "true" for prepare in prepares):
-            for prepare in prepares:
-                commands.extend(["--prepare", prepare])
-        # hyperfine has no per-command cwd and runs every command from its own,
-        # so start it inside a scratch project: `setup` and `init` scenarios write
-        # steering files to the cwd, and the repository must never receive them.
-        # Every path on the command line is absolute.
-        completed = subprocess.run(commands, cwd=scratch_dirs[0], check=False, text=True)
-        if completed.returncode:
-            raise subprocess.CalledProcessError(completed.returncode, commands)
-        return json.loads((directory / "hyperfine.json").read_text(encoding="utf-8"))["results"]
+                if scenario.get("notifier"):
+                    command = [sys.executable, str(ROOT / "scripts/perf/terminal_target.py"), *command]
+                accepted = "|".join(map(str, sorted(accepted_exits(scenario))))
+                script = (f"cd {shlex.quote(str(scratch))} || exit 125; "
+                          f"{shlex.join(command)}; status=$?; "
+                          f"case $status in {accepted}) exit 0;; *) exit 125;; esac")
+                specs.append((f"{label} {scenario['name']}" if paired else scenario["name"],
+                              shlex.join(["sh", "-c", script])))
+        # A paired comparison runs one sample of each revision per round.
+        # Reverse the order every round to balance which revision runs first.
+        samples: dict[str, list[dict[str, Any]]] = {}
+        rounds = runs if paired else 1
+        for round_index in range(rounds):
+            invocation = list(commands)
+            output = directory / (f"hyperfine-{round_index}.json" if paired else "hyperfine.json")
+            invocation[invocation.index("--export-json") + 1] = str(output)
+            if paired:
+                invocation[invocation.index("--export-markdown") + 1] = str(directory / f"hyperfine-{round_index}.md")
+                invocation[invocation.index("--runs") + 1] = "1"
+                invocation[invocation.index("--warmup") + 1] = "1" if round_index == 0 else "0"
+            order = list(range(len(specs)))
+            if round_index % 2:
+                order.reverse()
+            for index in order:
+                name, command = specs[index]
+                invocation.extend(["--command-name", name, command])
+            if any(prepare != "true" for prepare in prepares):
+                for index in order:
+                    invocation.extend(["--prepare", prepares[index]])
+            subprocess.run(invocation, cwd=scratch_dirs[0], check=True, text=True)
+            result = json.loads(output.read_text(encoding="utf-8"))["results"]
+            if not paired:
+                return result
+            for item in result:
+                samples.setdefault(item["name"], []).append(item)
+        combined = []
+        for name, items in samples.items():
+            summary = {}
+            for metric in items[0]["summary"]:
+                values = [item["summary"][metric]["mean"] for item in items]
+                summary[metric] = {"mean": statistics.mean(values),
+                                   "stddev": statistics.stdev(values) if len(values) > 1 else 0,
+                                   "min": min(values), "max": max(values)}
+            combined.append({"name": name, "summary": summary})
+        (directory / "hyperfine.json").write_text(json.dumps({"results": combined}, indent=2) + "\n")
+        return combined
     finally:
         for scratch in scratch_dirs:
             shutil.rmtree(scratch, ignore_errors=True)
@@ -396,7 +428,7 @@ def accepted_exits(scenario: dict[str, Any]) -> set[int]:
     0 is a pass and 1 a failed gate. `--no-vale` leaves Vale-backed rules
     unchecked, so those runs always exit 2 and that is their expected outcome.
     """
-    accepted = {0, 1}
+    accepted = {0, 1} if scenario.get("kind") in {"lint", "cache", "comments"} else {0}
     if "--no-vale" in scenario.get("args", []):
         accepted.add(2)
     return accepted
@@ -467,6 +499,40 @@ def profiler_scenario(name: str | None) -> dict[str, Any]:
 
 def run_profiled(command: list[str], scenario: dict[str, Any], **kwargs: Any) -> None:
     """Run a profiler over slopvac, accepting the exits the scenario expects."""
+    scratch = kwargs.get("cwd")
+    if scratch is not None:
+        env = dict(kwargs.pop("env", os.environ.copy()))
+        if scenario.get("notifier"):
+            for name in ("NO_UPDATE_NOTIFIER", "SLOPVAC_NO_UPDATE_CHECK", "DO_NOT_TRACK", "CI"):
+                env.pop(name, None)
+            command = [sys.executable, str(ROOT / "scripts/perf/terminal_target.py"), *command]
+        else:
+            env["NO_UPDATE_NOTIFIER"] = "1"
+        if scenario.get("cache"):
+            cache = Path(scratch) / "profile-cache"
+            if scenario["cache"] == "cold":
+                shutil.rmtree(cache, ignore_errors=True)
+            cache.mkdir(mode=0o700, exist_ok=True)
+            env["SLOPVAC_CACHE_DIR"] = str(cache)
+            if scenario["cache"] == "warm":
+                warm = subprocess.run([sys.executable, "-m", "slopvac.cli", *prepare_inputs(scenario, Path(scratch))],
+                                      cwd=scratch, env=env, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if warm.returncode not in accepted_exits(scenario):
+                    raise subprocess.CalledProcessError(warm.returncode, warm.args)
+        # sudo resets its environment. Put the scenario settings on the profiled
+        # child command as well, without forwarding unrelated environment values.
+        if "sudo" in command and "--" in command:
+            child = command.index("--") + 1
+            settings = ["env"]
+            for name in ("SLOPVAC_CACHE_DIR", "NO_UPDATE_NOTIFIER", "PATH"):
+                if name in env:
+                    settings.append(f"{name}={env[name]}")
+            if scenario.get("notifier"):
+                settings = ["env", "-u", "NO_UPDATE_NOTIFIER", "-u",
+                            "SLOPVAC_NO_UPDATE_CHECK", "-u", "DO_NOT_TRACK",
+                            "-u", "CI", *settings[1:]]
+            command = [*command[:child], *settings, *command[child:]]
+        kwargs["env"] = env
     result = subprocess.run(command, check=False, **kwargs)
     if result.returncode not in accepted_exits(scenario):
         raise subprocess.CalledProcessError(result.returncode, command)
@@ -726,7 +792,7 @@ def main() -> int:
             cache_path = Path(args.extra[0])
             if cache_path.exists():
                 shutil.rmtree(cache_path)
-            cache_path.mkdir(parents=True)
+            cache_path.mkdir(parents=True, mode=0o700)
             return 0
         if args.action == "wait-idle":
             dispatch(args.action, [], args)

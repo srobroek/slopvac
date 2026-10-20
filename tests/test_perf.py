@@ -90,8 +90,8 @@ def test_tool_override_accepts_explicit_executable(tmp_path: Path, monkeypatch) 
 
 
 def test_no_vale_scenarios_accept_the_incomplete_exit() -> None:
-    assert accepted_exits({"args": ["--no-vale"]}) == {0, 1, 2}
-    assert accepted_exits({"args": []}) == {0, 1}
+    assert accepted_exits({"kind": "lint", "args": ["--no-vale"]}) == {0, 1, 2}
+    assert accepted_exits({"kind": "lint", "args": []}) == {0, 1}
 
 
 def test_benchmarks_never_run_in_the_repository(tmp_path: Path, monkeypatch) -> None:
@@ -126,10 +126,10 @@ def test_profilers_accept_only_the_exits_a_scenario_expects(code, args, ok) -> N
     """A failed gate still yields a profile; an incomplete Vale run does not."""
     command = [sys.executable, "-c", f"raise SystemExit({code})"]
     if ok:
-        run_profiled(command, {"args": args})
+        run_profiled(command, {"kind": "lint", "args": args})
     else:
         with pytest.raises(perf.subprocess.CalledProcessError):
-            run_profiled(command, {"args": args})
+            run_profiled(command, {"kind": "lint", "args": args})
 
 
 def test_a_vale_profile_without_vale_fails_instead_of_running_incomplete(monkeypatch) -> None:

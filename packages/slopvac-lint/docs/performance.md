@@ -57,7 +57,7 @@ PERF_SKIP_IDLE=1 PERF_RUNS=2 just perf-bench SCENARIO='startup --version'
 | `perf-spy` | Write a py-spy speedscope profile. The command uses sudo. |
 | `perf-lines` | Write per-line timings for `FUNCS`, a space-separated list of `module:qualname` names such as `slopvac.analyze:_align_block_text`. line_profiler traces those functions wherever they are called, so the source needs no `@profile` decorator. |
 | `perf` | Run the benchmark and each profiler after one idle gate. |
-| `perf-check` | Build BASE and HEAD in temporary venvs. Hyperfine interleaves the revisions. A Markdown table reports timing and peak memory deltas. |
+| `perf-check` | Build BASE and HEAD in temporary venvs. The driver alternates individual Hyperfine samples and reverses their order each round. A Markdown table reports timing and peak memory deltas. |
 
 Use `hyperfine.json` to inspect individual runs and summary statistics, including peak RSS. `hyperfine.md` summarizes the primary metric. Import-time totals use microseconds. Pyinstrument and Scalene can help locate CPU work. Memray shows allocation behavior. VizTracer records event order for timeline inspection. Py-spy samples a running Python process. Each profiler adds overhead. Use profiles to choose code to inspect; use Hyperfine for timing comparisons.
 

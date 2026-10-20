@@ -165,9 +165,13 @@ cannot be combined with `--harness` or `--no-skills`.
 
 `slopvac setup <harness>` writes, checks, or removes steering for one harness.
 It writes only that harness's steering and skill, and reads `[guidance]` from
-the config or uses the defaults when no config exists. `--check` exits 0 when
-all items are current or disabled, 1 when any are missing or stale, and 2 for a
-malformed file. `--remove` deletes the managed steering block and skill. It
+the config or uses the defaults when no config exists. `--check` reports these exit codes:
+
+- 0: all items are current or disabled
+- 1: an item is absent or stale
+- 2: a file is malformed
+
+ `--remove` deletes the managed steering block and skill. It
 deletes the skill directory only when empty.
 `--list` prints harness names and their steering and skill paths.
 

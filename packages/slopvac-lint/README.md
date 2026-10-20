@@ -6,7 +6,7 @@ rules include constraints derived from Simplified Technical English and Orwell.
 
 The linter ships 166 checked rules across 26 categories. The CLI reports
 findings, scores, and incomplete coverage when selected checks cannot run. The
-catalogue also carries 67 judgement rules that lint never reports; agents apply
+catalog also carries 67 judgment rules that lint never reports. Agents apply
 them through [writing guidance and semantic review](docs/semantic-guidance.md).
 
 See the [project overview](../../README.md) for agent setup and CI integration.
@@ -39,11 +39,17 @@ pipx install slopvac
 pipx upgrade slopvac
 ```
 
-After an eligible command finishes, Slopvac prints a notice only if its cache
-contains a newer stable PyPI release. It refreshes the cache in the background.
-Set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`
-to disable the check. Slopvac skips `prime`, non-text output formats, reports
-written to a file or opened in a browser, non-terminal stderr, or when `CI` is set.
+If the cache contains a newer stable PyPI release, Slopvac prints an update notice after an eligible command.
+Slopvac refreshes that cache in the background. A newly discovered release can appear on a later run.
+Slopvac skips the check in these cases:
+
+- The command is `prime`.
+- The output format is non-text.
+- The report goes to a file or opens in a browser.
+- The environment contains `CI`.
+- Standard error is not a terminal.
+
+To disable the check, set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`.
 
 **[Vale](https://vale.sh) 3.18 or later is required for complete linting.**
 Install Vale separately and add its executable to `PATH` (`brew install vale`
@@ -88,7 +94,7 @@ Two commands write the steering files:
   config and cannot be combined with `--harness` or `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
   and its skill when available. It writes only those files and reads
-  `[guidance]` from `slopvac.toml`; without a config it uses the defaults. It
+  `[guidance]` from `slopvac.toml`. Without a config it uses the defaults. It
   works with or without `init`.
 `slopvac setup <harness> --remove` removes Slopvac's block and skill. It deletes
 the skill directory only when that directory is empty. `slopvac setup --list`
@@ -478,7 +484,7 @@ See [metrics](docs/metrics.md) for counting and text-type classification details
 ## Rules
 
 In the [generated rule reference](docs/rules.md), you can find all 26 categories
-and profile tiers for the 166 checked rules, followed by the 67 judgement rules
+and profile tiers for the 166 checked rules, followed by the 67 judgment rules
 with their review questions and examples.
 
 | Family | Categories |
@@ -531,10 +537,14 @@ slopvac cache --prune
 slopvac cache --all
 ```
 
-`--prune` removes older compiled trees; `--all` clears the cache. Set
+`--prune` removes older compiled trees and ruleset slots. `--all` removes all of those entries. Set
 `SLOPVAC_CACHE_DIR` to choose a location. Otherwise Slopvac uses
-`$XDG_CACHE_HOME/slopvac`, or a directory under the platform temporary directory
-when `XDG_CACHE_HOME` is unset.
+`$XDG_CACHE_HOME/slopvac` or `~/.cache/slopvac` on Linux,
+`~/Library/Caches/slopvac` on macOS, and `%LOCALAPPDATA%/slopvac/Cache` on Windows.
+The configured cache paths must be absolute. Ruleset reuse requires verified
+ownership and permissions, including the ancestor directories. Unsafe paths and
+platforms without these checks use a fresh parse and example proof.
+Slopvac does not migrate entries from the old cache in shared temporary storage.
 
 To inspect the compiled styles directly:
 
