@@ -103,3 +103,15 @@ def test_profile_cache_environment(monkeypatch, tmp_path, mode):
     perf.run_profiled(["profiler"], scenario, cwd=tmp_path)
     assert len(calls) == (2 if mode == "warm" else 1)
     assert all(call[1]["env"]["SLOPVAC_CACHE_DIR"] == str(tmp_path / "profile-cache") for call in calls)
+
+
+def test_spy_child_keeps_scenario_settings_across_sudo(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(perf.subprocess, "run", lambda command, **kwargs:
+                        calls.append(command) or subprocess.CompletedProcess(command, 0))
+    perf.run_profiled(["sudo", "/bin/py-spy", "record", "--", "/bin/python", "-m", "slopvac.cli"],
+                      {"kind": "cache", "cache": "cold"}, cwd=tmp_path)
+    child = calls[0][calls[0].index("--") + 1:]
+    assert child[0] == "env"
+    assert f"SLOPVAC_CACHE_DIR={tmp_path / 'profile-cache'}" in child
+    assert "NO_UPDATE_NOTIFIER=1" in child

@@ -519,6 +519,19 @@ def run_profiled(command: list[str], scenario: dict[str, Any], **kwargs: Any) ->
                                       cwd=scratch, env=env, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 if warm.returncode not in accepted_exits(scenario):
                     raise subprocess.CalledProcessError(warm.returncode, warm.args)
+        # sudo resets its environment. Put the scenario settings on the profiled
+        # child command as well, without forwarding unrelated environment values.
+        if "sudo" in command and "--" in command:
+            child = command.index("--") + 1
+            settings = ["env"]
+            for name in ("SLOPVAC_CACHE_DIR", "NO_UPDATE_NOTIFIER", "PATH"):
+                if name in env:
+                    settings.append(f"{name}={env[name]}")
+            if scenario.get("notifier"):
+                settings = ["env", "-u", "NO_UPDATE_NOTIFIER", "-u",
+                            "SLOPVAC_NO_UPDATE_CHECK", "-u", "DO_NOT_TRACK",
+                            "-u", "CI", *settings[1:]]
+            command = [*command[:child], *settings, *command[child:]]
         kwargs["env"] = env
     result = subprocess.run(command, check=False, **kwargs)
     if result.returncode not in accepted_exits(scenario):
