@@ -8,7 +8,8 @@ one rule.
 
 ## Directives
 
-A directive is an HTML comment in the source file.
+A directive is an HTML comment in the source file. In `--mode code-comments`,
+it goes inside a source comment.
 
 | Directive | Covers | Rules |
 | --- | --- | --- |
@@ -105,17 +106,16 @@ the directive, at `error` severity. That directive suppresses nothing.
 
 `<exceptions>` is the exception list of the rule, or `none defined`.
 
-Lint reports a malformed directive and an unknown rule id in each file. It
-reports a missing or unlisted reason only for a rule that the native engine
-runs:
+Lint reports a malformed directive and an unknown rule id in each file. It also
+reports a missing or unlisted reason for each rule that the config turns on. The
+report is the same in a Vale run and with `--no-vale`.
 
-- A directive for a rule that does not run is silent. The profile, the
-  `[categories]` and `[rules]` tables, `--category`, and `--disable` decide
-  which rules run.
-- A directive for a rule that Vale runs is silent too, and it still suppresses
-  nothing. `slopvac compile --format json` lists the rules that Vale runs.
-- With `--diff-base` or `--diff-working-tree`, lint reports no
-  `meta.invalid-suppression` finding, on added lines too.
+- A directive for a rule that the config turns off is silent. The profile,
+  the `[categories]` and `[rules]` tables, `--category`, and `--disable`
+  turn rules on and off.
+- Lint reports each bad directive once.
+- With `--diff-base` or `--diff-working-tree`, lint reports a bad directive
+  only when its line is an added line.
 
 ### Quoted directives
 
@@ -133,24 +133,53 @@ In `.rst`, a published page shows an HTML comment as text. Put the directive
 in a `.. raw:: html` block to hide it. A directive in an RST comment, after
 `..` on the same line, has no effect.
 
-In `--mode code-comments`, lint takes its findings from Vale and applies no
-directive. With `--no-vale`, the native engine applies directives to comment
-text, but that run is incomplete and exits 2. For source files, use
-`[[overrides]]` or `--disable`.
-
 With a diff option, a directive on an unchanged line still covers the added
 lines of its block.
 
 `--fix` changes only the findings that lint reports. It does not change
 suppressed text.
 
+### Code comments
+
+In `--mode code-comments`, write the directive inside a source comment:
+
+```python
+# <!-- slopvac-disable-next-line -->
+# This comment holds generated text.
+```
+
+A comment block is a run of consecutive comment lines that hold text. Each of
+these ends it:
+
+- a blank line
+- a line of code
+- an empty comment line
+- a comment line that holds only directives
+
+A directive in a source comment works as follows:
+
+- An allow directive or a disable-next-line directive covers the next comment
+  block. Lint skips blank lines, lines of code, and comment lines that hold only
+  directives.
+- When a comment block starts on the line of the directive, the directive
+  covers that block instead.
+- A region covers each line from the disable comment to the line before the
+  enable comment.
+- Rules do not read the text of a directive.
+
+Directives work the same in a Vale run and with `--no-vale`.
+
 ### Vale comments
 
-Vale reads its own comments. In Markdown and HTML these are
-`<!-- vale off -->`, `<!-- vale on -->`, and `<!-- vale <rule_id> = NO -->`.
-In RST, `.. vale off` and `.. vale on` do the same. They hide findings of
-the rules that Vale runs, without a reason and without a report. They do not
-change native rules, `.txt` files, or source comments. Use a slopvac
+Vale reads some comments as its own configuration:
+
+- `<!-- vale off -->`, `<!-- vale on -->`, and `<!-- vale <rule_id> = NO -->`
+  in Markdown and HTML
+- `{/* vale off */}` in MDX
+- `.. vale off` and `.. vale on` in RST
+
+Lint hides each of these comments from Vale, so they have no effect. The
+findings stay, and lint reports nothing about the comment. Use a slopvac
 directive.
 
 ## Automatic exceptions
@@ -170,12 +199,15 @@ So does whitespace before the closing quote, or a word character after it.
 Pattern, token, and substitution rules apply this exception, and so do Vale
 findings. Other native rules, such as metrics, need an allow directive.
 
-A rule whose scope is not `raw` skips code spans, code blocks, and HTML
-comments. A `raw` rule reads each source line, code included.
+A rule whose scope is not `raw` skips these parts of a file:
 
-Native rules skip front matter. Rules that Vale runs read the values in it, and
-no directive can reach them there, because a directive in front matter is text.
-For such a finding, set the rule to `off` in an `[[overrides]]` block.
+- code spans and code blocks
+- HTML comments
+- front matter
+
+A `raw` rule reads each source line, code included. Lint applies these skips
+to the findings of the rules that Vale runs too. A directive in front matter is
+text.
 
 Each other exception name applies only through an allow directive. Examples
 are `code-span` and `identifier-fidelity`.

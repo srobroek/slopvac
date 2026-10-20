@@ -378,8 +378,8 @@ covers the next block, such as a paragraph, list item, or table.
 A directive quoted in inline code or a code block has no effect.
 
 [Suppressions and exclusions](docs/suppressions.md) gives the full grammar and
-each `meta.invalid-suppression` message. It also covers the limits for Vale
-rules and comment mode, and the config controls that exclude files.
+each `meta.invalid-suppression` message. It also covers directives in source
+comments, Vale's own comments, and the config controls that exclude files.
 
 ## Output formats
 

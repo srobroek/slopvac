@@ -21,6 +21,12 @@ the reason this module is longer than a subprocess call:
     to load; Vale then reports every file clean and exits 0
 
 Every one produces an `unchecked` note. None produces a pass.
+
+VALE'S OWN COMMENTS ARE NOT DIRECTIVES. `<!-- vale off -->`, `<!-- vale Style.Rule
+= NO -->`, `{/* vale off */}`, and `.. vale off` hide findings with no named
+exception and no report, and they reach only the rules Vale runs. Vale reads a copy
+of each such file with the `vale` keyword blanked, so each of these comments is an
+ordinary comment, and every line and column stays where it was.
 """
 
 from __future__ import annotations
@@ -28,10 +34,13 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .config import Severity
+import regex as re
+
+from .config import Mode, Severity
 from .model import Finding
 
 TIMEOUT_SECONDS = 120
@@ -41,6 +50,47 @@ SEVERITY_MAP = {
     "warning": Severity.WARNING,
     "suggestion": Severity.SUGGESTION,
 }
+
+# The comment forms Vale reads as configuration: an HTML comment in Markdown and
+# HTML, a JSX comment in MDX, and a comment in reStructuredText. Vale reads none of
+# them in a text file or a source comment.
+_VALE_COMMENT = re.compile(
+    r"(<!--\s*|\{/\*\s*|^[ \t]*\.\.(?:[ \t]+|[ \t]*\n[ \t]+))vale\b",
+    re.IGNORECASE | re.MULTILINE,
+)
+_VALE_COMMENT_SUFFIXES = frozenset({".md", ".mdx", ".markdown", ".html", ".rst"})
+
+
+def hide_vale_comments(text: str) -> str:
+    """Blank the `vale` keyword of each Vale comment, keeping every line and column."""
+    return _VALE_COMMENT.sub(lambda match: match.group(1) + "    ", text)
+
+
+def _vale_inputs(paths: list[Path], scratch: Path) -> tuple[list[str], dict[str, str]]:
+    """The path Vale reads for each file, and the file behind each copy.
+
+    A file with a Vale comment becomes a copy under `scratch` that keeps its name,
+    so the same `.vale.ini` section applies to it.
+    """
+    inputs: list[str] = []
+    originals: dict[str, str] = {}
+    for index, path in enumerate(paths):
+        inputs.append(str(path))
+        if path.suffix.lower() not in _VALE_COMMENT_SUFFIXES:
+            continue
+        try:
+            text = path.read_bytes().decode("utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        hidden = hide_vale_comments(text)
+        if hidden == text:
+            continue
+        copy = scratch / str(index) / path.name
+        copy.parent.mkdir()
+        copy.write_bytes(hidden.encode("utf-8"))
+        inputs[-1] = str(copy)
+        originals[str(copy)] = originals[str(copy.resolve())] = str(path)
+    return inputs, originals
 
 
 @dataclass
@@ -126,29 +176,31 @@ def run_compiled_vale(
             + (f" (+{len(missing) - 8} more)" if len(missing) > 8 else "")
         )
 
-    try:
-        completed = subprocess.run(
-            [
-                resolved_binary,
-                f"--config={config_path}",
-                "--output=JSON",
-                "--no-exit",
-                *[str(p) for p in paths],
-            ],
-            capture_output=True,
-            text=True,
-            timeout=TIMEOUT_SECONDS,
-        )
-    except subprocess.TimeoutExpired:
-        result.unchecked.append(
-            f"Vale timed out after {TIMEOUT_SECONDS}s; its rules did NOT run."
-        )
-        return result
-    except OSError as exc:
-        result.unchecked.append(
-            f"Vale could not be run ({exc}); its rules did NOT run."
-        )
-        return result
+    with tempfile.TemporaryDirectory(prefix="slopvac-vale-") as scratch:
+        inputs, originals = _vale_inputs(paths, Path(scratch))
+        try:
+            completed = subprocess.run(
+                [
+                    resolved_binary,
+                    f"--config={config_path}",
+                    "--output=JSON",
+                    "--no-exit",
+                    *inputs,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            result.unchecked.append(
+                f"Vale timed out after {TIMEOUT_SECONDS}s; its rules did NOT run."
+            )
+            return result
+        except OSError as exc:
+            result.unchecked.append(
+                f"Vale could not be run ({exc}); its rules did NOT run."
+            )
+            return result
 
     # E201 means a rule file was rejected, and Vale then lints nothing at all.
     # The compiler probes for this, so reaching it here means a rule broke after
@@ -196,7 +248,8 @@ def run_compiled_vale(
         return result
 
     line_lengths: dict[str, list[int]] = {}
-    for path, alerts in data.items():
+    for vale_path, alerts in data.items():
+        path = originals.get(vale_path, str(vale_path))
         if not isinstance(alerts, list):
             result.unchecked.append(f"Vale returned invalid alerts for {path}.")
             continue
@@ -271,7 +324,16 @@ def unchecked_for_skipped(
 ) -> list[str]:
     """Return unchecked notes for skipped and comment-excluded rules."""
     notes: list[str] = []
-    if vale_skipped and compiled.vale_rules:
+    if vale_skipped and compiled.vale_rules and compiled.mode is Mode.CODE_COMMENTS:
+        # Comment mode routes no rule native, so the native engine runs Vale's comment
+        # rules on the comment projection instead (see `pipeline.run_lint`).
+        rules = {compiled.aliases.get(check, check) for check in compiled.vale_rules}
+        notes.append(
+            f"{cause} skipped the Vale engine, so the native engine ran the "
+            f"{len(rules)} comment rules on a projection of the comments instead. "
+            f"Its scopes are not Vale's, so a run with Vale can report other findings."
+        )
+    elif vale_skipped and compiled.vale_rules:
         notes.append(
             f"{cause} skipped the Vale engine, so {len(compiled.vale_rules)} of the "
             f"{len(compiled.vale_rules) + len(compiled.native_rules)} mechanical rules "

@@ -50,6 +50,7 @@ from .config import (
 from .diff_scope import DiffScope, filter_findings
 from .engine import (
     Engine,
+    drop_hidden_text,
     drop_quoted_illustrations,
     is_single_replacement,
     match_substitution,
@@ -248,7 +249,7 @@ def _expand_paths(
 
 
 def _comment_projection(path: Path, text: str) -> str:
-    """Mask code while retaining comments, strings, escapes, and block bounds."""
+    """Blank code and string literals, keeping comments and every line and column."""
     suffix = path.suffix.lower()
     html = suffix in {".html", ".xml", ".svg"}
     sql = suffix == ".sql"
@@ -333,33 +334,13 @@ def lint_one(
     resolved = resolve_for(config, path)
     text = path.read_text(encoding="utf-8", errors="replace")
 
+    # In code-comment mode both engines read only the comments: Vale through its
+    # comment scopes, the native engine through a projection that blanks the code.
+    # Either way the findings then take the same directives and exceptions.
     if resolved.mode is Mode.CODE_COMMENTS:
-        unchecked: list[str] = list(extra_unchecked or [])
-        if vale_result is not None:
-            findings = vale_result.findings_for(str(path))
-            unchecked.extend(vale_result.unchecked)
-            document = parse(str(path), _comment_projection(path, text))
-        else:
-            # An explicit --no-vale still runs the native projection where it is
-            # available, while the run notes make the Vale gap fail closed.
-            document = parse(str(path), _comment_projection(path, text))
-            findings = Engine(ruleset.rules, resolved).run(document)
-        if diff_scope is not None:
-            ranges = diff_scope.ranges_for(path)
-            by_id = {rule.qualified_id: rule for rule in ruleset.rules}
-            findings = filter_findings(findings, by_id, ranges, text)
-        return score_document(
-            path=str(path),
-            findings=findings,
-            words=document.words,
-            sentences=len(document.sentences),
-            paragraphs=len(document.paragraphs),
-            config=resolved,
-            categories_meta=ruleset.weights,
-            unchecked=unchecked,
-        )
-
-    document = parse(str(path), text)
+        document = parse(str(path), _comment_projection(path, text))
+    else:
+        document = parse(str(path), text)
     engine = Engine(ruleset.rules, resolved, only=native_only)
     findings = engine.run(document)
 
@@ -373,11 +354,11 @@ def lint_one(
     if vale_result is not None:
         whole = Engine(ruleset.rules, resolved)
         merged: list[Finding] = []
+        vale_findings = drop_hidden_text(
+            vale_result.findings_for(str(path)), document, ruleset
+        )
         for finding in whole.drop_suppressed(
-            drop_quoted_illustrations(
-                vale_result.findings_for(str(path)), document, ruleset
-            ),
-            document,
+            drop_quoted_illustrations(vale_findings, document, ruleset), document
         ):
             rule = ruleset.by_id(finding.rule_id)
             if rule is None:
@@ -1056,15 +1037,22 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
         # When Vale ran, it owns its rules and the native engine must not repeat
         # them. When Vale was explicitly skipped, only the rules that the compiler
         # routed native may run; Vale-owned rules stay unchecked instead of using
-        # different parsing and scope semantics.
+        # different parsing and scope semantics. Code-comment mode routes no rule
+        # native, so with Vale skipped the native engine runs Vale's comment rules
+        # over the comment projection instead. A rule that is not safe for comment
+        # scopes runs in neither engine.
         native_only = None
         if compiled is not None:
             owned = set(compiled.vale_rules) | set(compiled.aliases.values())
-            native_only = {
-                rule.qualified_id
-                for rule in ruleset.rules
-                if rule.qualified_id not in owned
-            }
+            if compiled.mode is Mode.CODE_COMMENTS and vale_result is None:
+                native_only = owned
+            else:
+                elsewhere = owned | set(compiled.excluded_rules)
+                native_only = {
+                    rule.qualified_id
+                    for rule in ruleset.rules
+                    if rule.qualified_id not in elsewhere
+                }
         for path in group:
             score = lint_one(
                 path,

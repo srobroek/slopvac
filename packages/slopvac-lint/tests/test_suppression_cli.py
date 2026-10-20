@@ -4,11 +4,6 @@
 cover what the engine tests cannot: the native and Vale engines together, each
 prose file type, diff scope, and `--fix`. Each assertion is a behaviour that
 `docs/suppressions.md` and `slopvac prime` state.
-
-A test marked `xfail(strict=True)` records a known defect: it asserts the
-behaviour the contract asks for, and it fails today in the way the docs
-describe. When a fix lands, the strict marker turns it red. Then delete the
-marker and update the docs.
 """
 
 from __future__ import annotations
@@ -200,6 +195,23 @@ def test_a_bad_reason_for_a_rule_that_does_not_run_is_silent(tmp_path):
     assert not _lines(findings["doc.md"], NATIVE)
 
 
+def test_a_bad_reason_for_a_vale_rule_is_reported_without_vale(tmp_path):
+    """The check follows the config, not the engine: `--no-vale` still reports it."""
+    doc = tmp_path / "doc.md"
+    doc.write_text(
+        f"# Notes\n\n{allow_comment(VALE, 'readability')}\n{VALE_TEXT}\n", encoding="utf-8"
+    )
+    _, findings = _lint(doc, args=("--no-vale",))
+    assert _lines(findings["doc.md"], META) == Counter({3: 1})
+
+
+def test_native_rules_skip_front_matter(tmp_path):
+    doc = tmp_path / "doc.md"
+    doc.write_text(f"---\nnote: {NATIVE_TEXT}\n---\n\n# Notes\n\n{NATIVE_TEXT}\n", encoding="utf-8")
+    _, findings = _lint(doc, args=("--no-vale",))
+    assert sorted(_lines(findings["doc.md"], NATIVE)) == [7]
+
+
 def test_the_reference_gives_each_message_that_lint_reports(native):
     """Each emitted message, with its values put back as placeholders, is a row of
     the message table in docs/suppressions.md."""
@@ -254,25 +266,31 @@ def _git(cwd: Path, *args: str) -> None:
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True)
 
 
-@pytest.fixture
-def changed_repo(tmp_path, monkeypatch) -> Path:
-    """A committed directive and paragraph, then an added line in that paragraph
-    and an added invalid allow directive."""
-    repo = tmp_path / "repo"
+def _changed_doc(repo: Path, base: str, changed: str) -> Path:
+    """A repository whose `doc.md` holds `base` at HEAD and `changed` in the tree."""
     repo.mkdir()
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "test@example.com")
     _git(repo, "config", "user.name", "Slopvac Tests")
     doc = repo / "doc.md"
-    doc.write_text(f"# Notes\n\n{DISABLE_NEXT_LINE_COMMENT}\nIntro line.\n", encoding="utf-8")
+    doc.write_text(base, encoding="utf-8")
     _git(repo, "add", "--all")
     _git(repo, "commit", "-qm", "base")
-    doc.write_text(
+    doc.write_text(changed, encoding="utf-8")
+    return doc
+
+
+@pytest.fixture
+def changed_repo(tmp_path, monkeypatch) -> Path:
+    """A committed directive and paragraph, then an added line in that paragraph
+    and an added invalid allow directive."""
+    doc = _changed_doc(
+        tmp_path / "repo",
+        f"# Notes\n\n{DISABLE_NEXT_LINE_COMMENT}\nIntro line.\n",
         f"# Notes\n\n{DISABLE_NEXT_LINE_COMMENT}\nIntro line.\n{NATIVE_TEXT}\n\n"
         f"{allow_comment(NATIVE, 'readability')}\n{NATIVE_TEXT}\n",
-        encoding="utf-8",
     )
-    monkeypatch.chdir(repo)
+    monkeypatch.chdir(doc.parent)
     return doc
 
 
@@ -281,15 +299,24 @@ def test_a_directive_on_an_unchanged_line_covers_added_lines(changed_repo):
     assert sorted(_lines(findings["doc.md"], NATIVE)) == [8]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="diff scope drops every meta.invalid-suppression finding: it has no "
-    "matched_text, so diff_scope cannot place it on an added line",
-)
 def test_diff_scope_reports_an_added_invalid_directive(changed_repo):
     _, findings = _lint(changed_repo, args=("--diff-working-tree", "--no-vale"))
     assert sorted(_lines(findings["doc.md"], META)) == [7]
+
+
+def test_diff_scope_skips_an_invalid_directive_on_an_unchanged_line(tmp_path, monkeypatch):
+    """The old directive is not reported, and it still suppresses nothing on the
+    line added to its block."""
+    directive = allow_comment(NATIVE, "readability")
+    doc = _changed_doc(
+        tmp_path / "repo",
+        f"# Notes\n\n{directive}\nIntro line.\n",
+        f"# Notes\n\n{directive}\nIntro line.\n{NATIVE_TEXT}\n",
+    )
+    monkeypatch.chdir(doc.parent)
+    _, findings = _lint(doc, args=("--diff-working-tree", "--no-vale"))
+    assert not _lines(findings["doc.md"], META)
+    assert sorted(_lines(findings["doc.md"], NATIVE)) == [5]
 
 
 # --- the Vale engine ------------------------------------------------------------
@@ -304,6 +331,7 @@ _VALE_MARKDOWN, _VALE_BLOCKS = _document(
     ("quotation", 'Avoid "robust" in docs.'),
     ("code-span", "Avoid `robust` in docs."),
     ("vale-off", f"<!-- vale off -->\n{VALE_TEXT}\n<!-- vale on -->"),
+    ("vale-rule-off", f"<!-- vale {VALE} = NO -->\n{VALE_TEXT}\n<!-- vale {VALE} = YES -->"),
 )
 
 
@@ -335,45 +363,68 @@ def test_directives_and_automatic_exceptions_apply_to_vale_findings(vale, label,
 
 
 @needs_vale
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="a Vale-routed rule is not in the native engine's active set, so "
-    "scan_suppressions treats it as inactive and reports no bad reason",
-)
 def test_lint_reports_a_bad_reason_for_a_vale_rule(vale):
-    assert set(_lines(vale, META)) == {_VALE_BLOCKS["bad-reason"].start}
+    assert _lines(vale, META) == Counter({_VALE_BLOCKS["bad-reason"].start: 1})
 
 
 @needs_vale
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="Vale honours its own comments, which name no exception",
-)
-def test_only_slopvac_directives_suppress_a_vale_finding(vale):
-    assert _reported(vale, VALE, _VALE_BLOCKS["vale-off"])
+@pytest.mark.parametrize("label", ["vale-off", "vale-rule-off"])
+def test_only_slopvac_directives_suppress_a_vale_finding(vale, label):
+    assert _reported(vale, VALE, _VALE_BLOCKS[label]), label
 
 
 @needs_vale
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="Vale reads front matter values, which the native engine skips",
-)
+def test_vale_comments_hide_nothing_in_html_and_mdx(tmp_path):
+    html = tmp_path / "doc.html"
+    html.write_text(
+        f"<html><body>\n<!-- vale off -->\n<p>{VALE_TEXT}</p>\n<!-- vale on -->\n"
+        f"<!-- vale {VALE} = NO -->\n<p>{VALE_TEXT}</p>\n<!-- vale {VALE} = YES -->\n"
+        "</body></html>\n",
+        encoding="utf-8",
+    )
+    mdx = tmp_path / "doc.mdx"
+    mdx.write_text(
+        f"# Notes\n\n{{/* vale off */}}\n\n{VALE_TEXT}\n\n{{/* vale on */}}\n\n"
+        f"<!-- vale off -->\n\n{VALE_TEXT}\n\n<!-- vale on -->\n",
+        encoding="utf-8",
+    )
+    code, findings = _lint(html, mdx)
+    assert code != 2, "the Vale run is incomplete"
+    assert {3, 6} <= set(_lines(findings["doc.html"], VALE))
+    assert {5, 11} <= set(_lines(findings["doc.mdx"], VALE))
+
+
+@needs_vale
+@pytest.mark.skipif(rst_converter() is None, reason="rst2html is not on PATH")
+def test_a_vale_comment_hides_nothing_in_rst(tmp_path):
+    doc = tmp_path / "doc.rst"
+    doc.write_text(f"Notes\n=====\n\n.. vale off\n\n{VALE_TEXT}\n\n.. vale on\n", encoding="utf-8")
+    code, findings = _lint(doc)
+    assert code != 2, "the Vale run is incomplete"
+    assert 6 in _lines(findings["doc.rst"], VALE)
+
+
+@needs_vale
 def test_vale_rules_skip_front_matter_like_native_rules(tmp_path):
     doc = tmp_path / "doc.md"
-    doc.write_text(f"---\nnote: {VALE_TEXT}\n---\n\n# Notes\n\nPlain text.\n", encoding="utf-8")
+    doc.write_text(f"---\nnote: {VALE_TEXT}\n---\n\n# Notes\n\n{VALE_TEXT}\n", encoding="utf-8")
     _, findings = _lint(doc)
-    assert not _lines(findings["doc.md"], VALE)
+    assert sorted(set(_lines(findings["doc.md"], VALE))) == [7]
 
 
 @needs_vale
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="comment mode takes Vale findings as they are and applies no directive",
-)
+def test_a_directive_in_a_text_file_draws_no_vale_finding(tmp_path):
+    """Vale reads a `.txt` file as plain text, so it lints the directive's words."""
+    doc = tmp_path / "doc.txt"
+    doc.write_text(
+        f"Notes\n\n{DISABLE_NEXT_LINE_COMMENT}\n{VALE_TEXT}\n\n{VALE_TEXT}\n", encoding="utf-8"
+    )
+    _, findings = _lint(doc)
+    assert not [finding for finding in findings["doc.txt"] if finding["line"] == 3]
+    assert sorted(set(_lines(findings["doc.txt"], VALE))) == [6]
+
+
+@needs_vale
 def test_comment_mode_honours_a_directive(tmp_path):
     source = tmp_path / "a.ts"
     source.write_text(
@@ -397,3 +448,105 @@ def test_fix_leaves_suppressed_text_alone(tmp_path):
     assert lines[2] == "We use the tool."
     assert lines[5] == sentence
     assert lines[8] == sentence
+
+
+# --- code-comment mode ----------------------------------------------------------
+
+# In comment mode every comment-safe rule runs in Vale; with --no-vale the native
+# engine runs the same rules on the comment projection. Each line number below is
+# asserted for both engines.
+_PYTHON = "\n".join(
+    [
+        f"# {DISABLE_NEXT_LINE_COMMENT}",
+        f"# {VALE_TEXT}",  # 2: covered, the next comment block
+        f"# {NATIVE_TEXT}",  # 3: covered, the same block
+        "x = 1",
+        "",
+        f"# {VALE_TEXT}",  # 6: reported
+        f"# {NATIVE_TEXT}",  # 7: reported
+        f"# {allow_comment(VALE, VALE_REASON)}",
+        f"# {allow_comment(NATIVE, NATIVE_REASON)}",
+        f"# {VALE_TEXT}",  # 10: covered by an allow
+        f"# {NATIVE_TEXT}",  # 11: covered by an allow
+        f"y = 2  # {DISABLE_NEXT_LINE_COMMENT}",
+        "z = 3",
+        f"# {VALE_TEXT}",  # 14: covered, after a code line
+        f"# {NATIVE_TEXT}",  # 15: covered
+        "#",
+        f"# {VALE_TEXT}",  # 17: reported, an empty comment line ends a block
+        f"# {NATIVE_TEXT}",  # 18: reported
+        f"# {allow_comment(VALE, 'readability')}",  # 19: meta.invalid-suppression
+        f"# {VALE_TEXT}",  # 20: reported
+        f"# {DISABLE_COMMENT}",
+        f"# {VALE_TEXT}",  # 22: covered by the region
+        "w = 4",
+        f"# {NATIVE_TEXT}",  # 24: covered by the region
+        f"# {ENABLE_COMMENT}",
+        f"# {NATIVE_TEXT}",  # 26: reported
+    ]
+) + "\n"
+_TYPESCRIPT = "\n".join(
+    [
+        f"// {DISABLE_NEXT_LINE_COMMENT}",
+        f"// {VALE_TEXT}",  # 2: covered
+        "const x = 1;",
+        f"// {VALE_TEXT}",  # 4: reported
+        f"/* {DISABLE_NEXT_LINE_COMMENT} */",
+        "/*",
+        f" * {VALE_TEXT}",  # 7: covered, the next comment block
+        " */",
+        f"// {VALE_TEXT}",  # 9: reported
+    ]
+) + "\n"
+_DIRECTIVE_LINES = {"a.py": {1, 8, 9, 12, 19, 21, 25}, "a.ts": {1, 5}}
+
+
+@pytest.fixture(scope="module", params=[pytest.param("vale", marks=needs_vale), "native"])
+def comments(request, tmp_path_factory) -> dict[str, list[dict]]:
+    """Both runs exit 2: comment mode reports the rules it cannot run in comments."""
+    root = tmp_path_factory.mktemp(f"comments-{request.param}")
+    (root / "a.py").write_text(_PYTHON, encoding="utf-8")
+    (root / "a.ts").write_text(_TYPESCRIPT, encoding="utf-8")
+    args = ("--mode", "code-comments") + (("--no-vale",) if request.param == "native" else ())
+    _, findings = _lint(root / "a.py", root / "a.ts", args=args)
+    return findings
+
+
+@pytest.mark.parametrize(
+    ("name", "rule_id", "line", "reported"),
+    [
+        ("a.py", VALE, 2, False),
+        ("a.py", NATIVE, 3, False),
+        ("a.py", VALE, 6, True),
+        ("a.py", NATIVE, 7, True),
+        ("a.py", VALE, 10, False),
+        ("a.py", NATIVE, 11, False),
+        ("a.py", VALE, 14, False),
+        ("a.py", NATIVE, 15, False),
+        ("a.py", VALE, 17, True),
+        ("a.py", NATIVE, 18, True),
+        ("a.py", VALE, 20, True),
+        ("a.py", VALE, 22, False),
+        ("a.py", NATIVE, 24, False),
+        ("a.py", NATIVE, 26, True),
+        ("a.ts", VALE, 2, False),
+        ("a.ts", VALE, 4, True),
+        ("a.ts", VALE, 7, False),
+        ("a.ts", VALE, 9, True),
+    ],
+)
+def test_a_comment_directive_covers_the_next_comment_block(
+    comments, name, rule_id, line, reported
+):
+    assert (line in _lines(comments[name], rule_id)) is reported, (name, rule_id, line)
+
+
+def test_comment_mode_reports_a_bad_directive_and_lints_no_directive_text(comments):
+    assert _lines(comments["a.py"], META) == Counter({19: 1})
+    for name, lines in _DIRECTIVE_LINES.items():
+        stray = [
+            finding
+            for finding in comments[name]
+            if finding["line"] in lines and finding["rule_id"] != META
+        ]
+        assert not stray, (name, stray)
