@@ -102,7 +102,7 @@ jobs:
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@8a2045612414e945291083f820cd50b4d8fc2218 # v1.26.0
       - name: Install typos
-        run: cargo binstall typos-cli@1.50.2 --no-confirm
+        run: cargo binstall typos-cli@1.51.1 --no-confirm
       - name: typos
         run: typos .
 
