@@ -865,7 +865,7 @@ def mean_sd_text(values):
     return f"{statistics.mean(values):.3f} ± {sd:.3f}"
 
 
-def origin_ba(result, kind, origin=None):
+def origin_balanced_accuracy(result, kind, origin=None):
     """Balanced accuracy over all test items of a kind, or one label origin's."""
     scores = result["_origins"][kind]
     score = scores["all"] if origin is None else scores["origins"].get(origin)
@@ -890,9 +890,9 @@ def origin_cells(names, results, kind, origins):
     mean ± SD of a fine-tune family."""
     columns = (None, *origins)
     if len(names) == 1:
-        return [fmt(origin_ba(results[names[0]], kind, o)) for o in columns]
+        return [fmt(origin_balanced_accuracy(results[names[0]], kind, o)) for o in columns]
     return [
-        mean_sd_text([origin_ba(results[name], kind, o) for name in names])
+        mean_sd_text([origin_balanced_accuracy(results[name], kind, o) for name in names])
         for o in columns
     ]
 
@@ -1234,6 +1234,7 @@ def render(
         "## Panel agreement caveat",
         "",
         f"Independent corpus panel agreement (source: `{panel_path}`):",
+        "",
     ]
     for role in ("finding-confirmation", "semantic-detection"):
         value = panel_values[role]

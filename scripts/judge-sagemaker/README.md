@@ -48,6 +48,7 @@ the job and writes it into `head.pt`. `--lr` (0 uses the checkpoint's rate cappe
 checkpoint training recipe; omit these to keep its batch and precision settings. `--max-runtime`
 seconds (default from `resources.json`), `--instance-type`, and `--profile` select the job
 resources. `--dry-run` prints the plan and `CreateTrainingJob` request without AWS calls.
+
 ### GPU evaluation
 
 `evaluate` runs the judge-pilot harness on a SageMaker training GPU. It starts one Jev-compatible server inside the job, probes the local API, runs single-client sequential calibration/test requests, then stops the server. It skips concurrent throughput.

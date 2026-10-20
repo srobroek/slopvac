@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 CODE=/opt/ml/input/data/code
-HP=/opt/ml/input/config/hyperparameters.json
 FAMILY="$(python -c 'import json; print(json.load(open("/opt/ml/input/config/hyperparameters.json"))["family"])')"
 KEV_COMMIT="$(python -c 'import json; print(json.load(open("/opt/ml/input/config/hyperparameters.json"))["kev_commit"])')"
 LAYA_COMMIT="$(python -c 'import json; print(json.load(open("/opt/ml/input/config/hyperparameters.json")).get("laya_commit", "9d955671415fc19f069b9cc998928075c1f255ec"))')"
 KEV_LOCK_SHA256=a9922dbb89acdef78299fd2b4a8c3f7f0fa1b2bc08b55595b6926fa785a9c466
-export HF_HOME="${HF_HOME:-/tmp/hf}" TRITON_CACHE_DIR="${HF_HOME:-/tmp/hf}/triton-cache"
+export HF_HOME="${HF_HOME:-/tmp/hf}"
+export TRITON_CACHE_DIR="$HF_HOME/triton-cache"
 export HF_HUB_DISABLE_PROGRESS_BARS=1 TOKENIZERS_PARALLELISM=false PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True PIP_DISABLE_PIP_VERSION_CHECK=1
 mkdir -p "$HF_HOME"

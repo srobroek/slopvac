@@ -319,6 +319,7 @@ jobs:
     needs:
       - changes
       - quick-lint
+      - clef-security
       - test
       - lint-package
       - cli-e2e
@@ -367,6 +368,7 @@ jobs:
 
           expected = {
               "quick-lint": True,
+              "clef-security": True,
               "test": force_all or code,
               "lint-package": force_all or package,
               "cli-e2e": force_all or package or docs,
