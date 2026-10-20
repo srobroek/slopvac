@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import json
+import sys
 import tomllib
 from pathlib import Path
 
 import pytest
 
 from scripts.perf.perf import (
+    ROOT,
+    _run_hyperfine,
+    accepted_exits,
     filter_scenarios,
     is_load_idle,
     load_scenarios,
@@ -78,3 +83,35 @@ def test_tool_override_accepts_explicit_executable(tmp_path: Path, monkeypatch) 
     executable.chmod(0o755)
     monkeypatch.setenv("PERF_HYPERFINE", str(executable))
     assert resolve_tool("hyperfine", "PERF_HYPERFINE") == str(executable.resolve())
+
+
+def test_no_vale_scenarios_accept_the_incomplete_exit() -> None:
+    assert accepted_exits({"args": ["--no-vale"]}) == {0, 1, 2}
+    assert accepted_exits({"args": []}) == {0, 1}
+
+
+def test_benchmarks_never_run_in_the_repository(tmp_path: Path, monkeypatch) -> None:
+    """`setup` and `init` scenarios write steering files to their cwd."""
+    record = tmp_path / "cwd.txt"
+    fake = tmp_path / "hyperfine"
+    fake.write_text(
+        "#!/bin/sh\n"
+        f'pwd > "{record}"\n'
+        'while [ $# -gt 0 ]; do\n'
+        '  if [ "$1" = "--export-json" ]; then printf \'{"results": []}\' > "$2"; fi\n'
+        "  shift\n"
+        "done\n",
+        encoding="utf-8",
+    )
+    fake.chmod(0o755)
+    monkeypatch.setenv("PERF_HYPERFINE", str(fake))
+    directory = tmp_path / "results"
+    directory.mkdir()
+    scenario = filter_scenarios(load_scenarios(), "startup setup claude")
+
+    _run_hyperfine(scenario, directory, runs=1, base_python=sys.executable)
+
+    cwd = Path(record.read_text(encoding="utf-8").strip()).resolve()
+    assert cwd != ROOT.resolve() and ROOT.resolve() not in cwd.parents
+    assert directory.resolve() in cwd.parents
+    assert json.loads((directory / "hyperfine.json").read_text())["results"] == []

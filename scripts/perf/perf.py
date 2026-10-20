@@ -377,7 +377,11 @@ def _run_hyperfine(
         if any(prepare != "true" for prepare in prepares):
             for prepare in prepares:
                 commands.extend(["--prepare", prepare])
-        completed = subprocess.run(commands, cwd=ROOT, check=False, text=True)
+        # hyperfine has no per-command cwd and runs every command from its own,
+        # so start it inside a scratch project: `setup` and `init` scenarios write
+        # steering files to the cwd, and the repository must never receive them.
+        # Every path on the command line is absolute.
+        completed = subprocess.run(commands, cwd=scratch_dirs[0], check=False, text=True)
         if completed.returncode:
             raise subprocess.CalledProcessError(completed.returncode, commands)
         return json.loads((directory / "hyperfine.json").read_text(encoding="utf-8"))["results"]
