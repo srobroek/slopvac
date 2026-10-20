@@ -532,6 +532,90 @@ def test_definitional_rule_accepted_fire_is_the_rhetorical_noun():
     assert _definitional_fires(ACCEPTED_DISTINCTION_FIRE)
 
 
+NEGATIVE_GUARANTEE_RULE = "ai-tells-structure.negative-guarantee-core"
+
+# Descriptive guarantees: a component described by an action it never takes.
+# Each shape stands for a reported case: a pronoun in a table cell, "itself"
+# with a list of absent side effects, a stacked run, and a clause after a
+# semicolon inside a normative steering line.
+NEGATIVE_GUARANTEE_TELLS = [
+    "| `hooks/` | Advisory reminders on each edit. They never stop a command. |",
+    "The deploy helper itself never creates a branch, a tag, a release or a webhook.",
+    "The release agent never merges a pull request.",
+    "It runs no deploy step before the release gate resolves.",
+    "- The sync tool never touches the working tree.",
+    "> The importer never deletes a row.",
+    "MUST Run the formatter before each commit; the plugin itself sends no telemetry.",
+    "Plan-only mode does not ever apply a change.",
+]
+
+# Directives, normative lines, and statements a writer keeps. The imperative
+# forms are the ones agent guidance and runbooks are made of.
+NEGATIVE_GUARANTEE_KEEPS = [
+    "Never edit the version files by hand.",
+    "Ask the operator to refresh the token; never refresh it yourself.",
+    "MUST Leave every gate to the reviewer: never close or resolve a gate bead.",
+    "The reviewer files the ticket with the owner's template, never `create-ticket`.",
+    "The client MUST NOT retry a request that returned 409.",
+    "The server MUST NEVER cache a denial.",
+    "The cache must never grow past 200 MB.",
+    "The parser will never accept a duplicate key.",
+    "You never need to call `close()` on the handle.",
+    "The queue never drained during the sale.",
+    "An object's identity never changes once it has been created.",
+    "Verify that retry delays never exceed the 30-second cap.",
+    "If the lock is held, it never retries.",
+    "The function takes no arguments.",
+]
+
+
+def _negative_guarantees(text: str, profile=Profile.NORMAL) -> list[Finding]:
+    return [f for f in _run(text, profile=profile) if f.rule_id == NEGATIVE_GUARANTEE_RULE]
+
+
+@pytest.mark.parametrize("text", NEGATIVE_GUARANTEE_TELLS)
+def test_negative_guarantee_catches_a_descriptive_never_claim(text):
+    assert _negative_guarantees(text)
+
+
+@pytest.mark.parametrize("text", NEGATIVE_GUARANTEE_KEEPS)
+def test_negative_guarantee_keeps_directives_and_invariants(text):
+    assert not _negative_guarantees(text)
+
+
+def test_negative_guarantee_reports_each_sentence_of_a_stacked_run():
+    text = (
+        "The release agent never merges a pull request. It never pushes a tag "
+        "before the release gate resolves. It runs no deploy step on its own.\n"
+    )
+    matched = [f.matched_text for f in _negative_guarantees(text)]
+    assert matched == [
+        "The release agent never merges",
+        "It never pushes",
+        "It runs no deploy",
+    ]
+
+
+def test_negative_guarantee_is_a_warning_at_normal_and_strict():
+    """The profile sets its category to error; the rule stays a warning, because
+    a backed invariant shares the shape and the writer keeps it."""
+    text = "The release agent never merges a pull request.\n"
+    for profile in (Profile.NORMAL, Profile.STRICT):
+        assert [f.severity for f in _negative_guarantees(text, profile)] == [Severity.WARNING]
+    assert [f.severity for f in _negative_guarantees(text, Profile.RELAXED)] == [
+        Severity.SUGGESTION
+    ]
+
+
+def test_negative_guarantee_backed_invariant_is_kept_with_its_exception():
+    findings = _negative_guarantees(
+        "<!-- slopvac-allow: rule=ai-tells-structure.negative-guarantee-core "
+        "reason=enforced-invariant -->\n"
+        "The agent never pushes to `main`: the pre-push hook rejects it.\n"
+    )
+    assert not findings
+
+
 def test_contractions_and_curly_apostrophes_are_not_findings():
     """Human labelling judged every contraction and curly-apostrophe finding a
     false positive. The subject-elided opener is the omission that stays."""

@@ -593,6 +593,94 @@ rules:
       Delete the hedging verbs and the quantifier, then name what actually
       changes.
 
+  # --- Unbacked guarantees: the mirror of hedging ------------------------------
+  # The hedging rules above catch a claim that commits to nothing. This catches
+  # the opposite: a component described by what it never does, which commits
+  # absolutely and names nothing that makes it true.
+  - id: negative-guarantee-remainder
+    name: Name what stops the action a component never takes
+    kind: judgement
+    message: >-
+      A guarantee about what a component never does names nothing that stops the
+      action. Name the hook, test, gate, or permission, or state what it does.
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does a sentence in this passage reassure the reader that a component, tool,
+      agent, or role never takes an action with a side effect or authority (writes,
+      deletes, pushes, creates, sends, blocks, approves, resolves, or contacts an
+      external system), as in "X never Y", "X runs no Z", "X itself never creates A,
+      B, or C", or "X is never Y-ed", while nothing in the passage stops that action?
+      Flag it when the passage names no hook, test, check, lock, permission, type,
+      or code path that prevents the action, when two or more such guarantees stack
+      up for one subject, or when the sentence lists side effects that do not
+      happen. A condition the guarantee waits on ("before the gate resolves") does
+      not prevent the action. Preserve a guarantee the passage explains or
+      enforces, a consequence the passage derives, how an operation handles a class
+      of input, a language, protocol, or data invariant, a specification line with
+      a normative keyword (MUST NOT, NEVER), an imperative or elliptical directive
+      ("Never edit ...", "..., never X"), and a past or measured fact.
+    examples:
+      - bad: >-
+          The release agent never merges a pull request. It never pushes a tag
+          before the release gate resolves. It runs no deploy step on its own.
+        good: >-
+          A maintainer merges the release pull request; branch protection rejects
+          the agent's token on `main`. CI pushes the tag after the release gate
+          resolves.
+        note: >-
+          flag: three stacked guarantees for one subject, and the gate is a
+          condition, not what stops the push
+      - bad: The sync tool itself never creates a branch, a tag, a release, or a webhook.
+        good: The sync tool writes one file, `.sync/state.json`.
+        note: "flag: a list of side effects that do not happen"
+      - bad: Advisory hooks print a reminder when a Terraform file changes. They never block a command.
+        good: Advisory hooks print a reminder when a Terraform file changes and exit 0, so the command runs.
+      - bad: The pre-push hook rejects a push to `main`, so the agent never pushes there.
+        good: null
+        note: "preserve: the passage names the hook that stops the action"
+      - bad: Segments are immutable, so a segment is never modified after it is written.
+        good: null
+        note: "preserve: data invariant"
+      - bad: The client MUST NOT retry a request that returned 409.
+        good: null
+        note: "preserve: normative specification line"
+      - bad: Never edit the lockfile by hand.
+        good: null
+        note: "preserve: imperative directive"
+    ai_signal: weak
+    ai_signal_source: measured
+    # Measurement: 33/71 vs 0/36 paragraphs flagged (model-written agent-tooling
+    # vs pre-2022 human paragraphs holding "never"), one frontier model, 2026-10-20.
+    provenance:
+      source: 'AI tells catalog — structure.md ("Absolute assertion")'
+      note: >-
+        Judgement remainder of ai-tells-structure.negative-guarantee-core. The core
+        finds the shape; this question decides whether anything in the passage
+        makes the guarantee true, which no pattern can read. It also covers the
+        forms the core leaves out: passive ("is never written"), modal ("will
+        never"), and subjects the core cannot parse.
+        ai-tells-structure.absolute-assertion-remainder defers this form here. The
+        rule sits in prose-discipline rather than ai-tells-structure so that the
+        `reference` checklist carries it: agent guidance and runbooks are
+        `reference`, and ai-tells-structure is not recommended for that genre.
+        Indicative run, 2026-10-20, one frontier model: 0 of 36 pre-2022 human
+        paragraphs holding "never" flagged, most of them reference docs; 33 of 71
+        model-written agent-tooling paragraphs that the core matched flagged. Each
+        of 12 sampled kept paragraphs named a mechanism or reason (a hook, a
+        read-only mount, a mode), was a normative line, or described no side
+        effect. On a private repository's README and two agent skills, it flagged
+        every descriptive guarantee and kept every imperative "never" directive.
+        On drafts of this question, a smaller judge model either flagged a quarter
+        of the human paragraphs or kept half the descriptive guarantees, so the
+        question needs a capable reviewer.
+    fix: >-
+      State what the component does and name what stops the action, or delete the
+      guarantee. In agent guidance, write the limit as a directive (NEVER, MUST NOT).
+
   # --- Bare quantifiers: the class no pattern can reach ----------------------
   # `most`, `some`, `many`, `often`, and `usually` are the commonest evasion in
   # generated prose AND ordinary correct English. Wikipedia's own qualifier is the

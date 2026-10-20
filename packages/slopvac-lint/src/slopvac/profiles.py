@@ -220,11 +220,19 @@ _NORMAL_RULES: dict[str, RuleSettings] = {
     "ai-tells-structure.definitional-negation-pair": RuleSettings(
         severity=Severity.WARNING
     ),
+    # A backed invariant ("The agent never pushes to main: the pre-push hook rejects
+    # it.") shares the shape with an unbacked guarantee: warning, never error.
+    "ai-tells-structure.negative-guarantee-core": RuleSettings(
+        severity=Severity.WARNING
+    ),
 }
 
 _STRICT_RULES: dict[str, RuleSettings] = {
     **_OFF_BY_DEFAULT,
     "ai-tells-structure.definitional-negation-pair": RuleSettings(
+        severity=Severity.WARNING
+    ),
+    "ai-tells-structure.negative-guarantee-core": RuleSettings(
         severity=Severity.WARNING
     ),
 }
