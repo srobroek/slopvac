@@ -768,6 +768,25 @@ def test_starter_config_is_valid(runner, tmp_path):
     assert result.exit_code in (EXIT_OK, EXIT_FINDINGS), result.output
 
 
+# --- Vale prerequisite -------------------------------------------------------
+
+
+def test_doctor_reports_missing_vale(runner):
+    result = runner.invoke(main, ["doctor", "--binary", "vale-not-installed-for-test"])
+    assert result.exit_code == EXIT_ERROR
+    assert "not on PATH" in result.output
+    assert "https://vale.sh" in result.output
+
+
+def test_doctor_reports_available_vale(runner, tmp_path):
+    binary = tmp_path / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.24.0'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    result = runner.invoke(main, ["doctor", "--binary", str(binary)])
+    assert result.exit_code == EXIT_OK
+    assert "Vale 3.24.0 available:" in result.output
+
+
 # --- Vale sub-gate -----------------------------------------------------------
 
 
