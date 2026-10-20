@@ -368,7 +368,7 @@ def _suppression_checks() -> list[str]:
         "Check each suppression in the document:",
         "",
         "- Each allow reason is a named exception of its rule, and that exception "
-        "fits the text.",
+        "fits the text. `slopvac explain <rule_id>` lists the exceptions.",
         "- Each directive has the smallest scope that works. "
         "An allow directive for one rule comes before a disable directive.",
         f"- Each `{DISABLE_COMMENT}` has a `{ENABLE_COMMENT}` after it. "
