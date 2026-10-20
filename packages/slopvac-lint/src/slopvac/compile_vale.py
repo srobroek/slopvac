@@ -54,7 +54,13 @@ from pathlib import Path
 from .config import Mode, ResolvedConfig, Severity
 from .model import Rule, RuleKind, Scope, TextType, Tier
 from .vale_cache import cache_lock, cache_root, fingerprint, prune_cache
-from .vale_probe import ValeUnavailable, probe_payloads, require_vale, rule_yaml, vale_version
+from .vale_probe import (
+    ValeUnavailable,
+    probe_payloads,
+    require_vale,
+    rule_yaml,
+    vale_version,
+)
 
 COMMENT_SAFE_KINDS = frozenset({RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION})
 SOURCE_LANGUAGE_BY_EXTENSION = {
