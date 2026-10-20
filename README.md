@@ -35,9 +35,10 @@ can run in pre-commit or CI for automated validation.
 ## Quick start
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
-Python 3.11 or later. [Vale](https://vale.sh) is optional, but **highly
-recommended**: it executes most deterministic rules. Install Vale 3.18 or later
-and put it on `PATH` for full deterministic coverage.
+Python 3.11 or later. **[Vale](https://vale.sh) 3.18 or later is required
+for a complete lint run.** Vale executes most deterministic rules and must be
+available on `PATH`. SlopVac checks its availability and version before
+compiling rules; without it, lint exits 2 (incomplete), not 0 (pass).
 
 With Homebrew, install Vale and check the installed version:
 
@@ -47,6 +48,9 @@ vale --version
 ```
 
 Other platforms can use the [Vale installation instructions](https://vale.sh).
+For contributors who already use [mise](https://mise.jdx.dev/), `mise install`
+installs the repository's pinned Python, uv, and Vale versions. **End users do
+not need mise.** Check prerequisites with `slopvac doctor` after installation.
 
 Install slopvac for persistent use with uv:
 
@@ -117,7 +121,7 @@ The native engine and Vale report findings with source locations. The report
 includes density per 100 words and a 0-100 score. Profiles and project settings
 control which findings fail a run.
 
-Missing Vale, or `--no-vale`, leaves selected Vale-backed checks unchecked.
+Missing or unsupported Vale, or `--no-vale`, leaves selected Vale-backed checks unchecked.
 Native findings remain available, but the run returns exit 2.
 
 ## Agent setup
