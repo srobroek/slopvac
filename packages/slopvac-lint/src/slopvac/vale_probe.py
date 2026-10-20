@@ -49,7 +49,8 @@ def require_vale(binary: str = "vale") -> str:
     if version is None:
         raise ValeUnavailable(
             f"`{binary}` exists at {resolved} but did not report a usable "
-            "version. Check that the executable works with `--version`."
+            f"version. Vale {floor} or later is required. Check that the "
+            "executable works with `--version`."
         )
     found = Version(".".join(map(str, version)))
     if found < floor:
