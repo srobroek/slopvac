@@ -31,7 +31,7 @@ from .genres import GENRES, ROUTING
 from .model import Rule, Scope, Tier
 from .profiles import profile_defaults
 from .rules import RuleSet
-from .suppression import DISABLE_COMMENT, ENABLE_COMMENT
+from .suppression import DISABLE_COMMENT, ENABLE_COMMENT, allow_comment
 
 _SURFACE_LIST = (
     "a README or docs",
@@ -351,6 +351,7 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
     lines.extend(
         [
             "",
+            *_excluding_content(),
             "## Rules lint cannot check",
             "",
             "Each entry below gives the fix for one rule that needs a reader.",
@@ -363,11 +364,57 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
     )
     return "\n".join(lines).rstrip("\n") + "\n"
 
+
+def _excluding_content() -> list[str]:
+    """The order of preference for text that lint must not judge as authored prose."""
+    allow = allow_comment("<rule_id>", "<exception>")
+    return [
+        "## Excluding content",
+        "",
+        "Lint judges authored prose. For other text, use the first of these that fits:",
+        "",
+        "1. Put a specimen, a command, or an identifier in a code span or a code block.",
+        "2. Put a quotation in quotation marks. "
+        "Rules with the `quotation` exception skip it.",
+        f"3. For one block that a named exception covers, write `{allow}` "
+        "on the line above it.",
+        f"4. Put `{DISABLE_COMMENT}` and `{ENABLE_COMMENT}` only around "
+        "generated text or quoted specimens.",
+        "5. For a whole generated or vendored file, add an `exclude` glob. "
+        "Or set its rules off in an `[[overrides]]` block.",
+        "",
+        "Never suppress a finding to hide a defect in prose that you wrote. Fix the prose.",
+        "Run `slopvac prime` for the scope of each directive and how lint reports a bad one.",
+        "",
+    ]
+
+
+def _suppression_checks() -> list[str]:
+    """What the review asks of each directive that hides text from lint."""
+    return [
+        "Check each suppression in the document:",
+        "",
+        "- Each allow reason is a named exception of its rule, and that exception "
+        "fits the text.",
+        "  Lint does not report a bad reason for a rule that Vale runs. "
+        "Check each reason with `slopvac explain <rule_id>`.",
+        "- Each directive has the smallest scope that works. "
+        "An allow directive for one rule comes before a disable directive.",
+        f"- Each `{DISABLE_COMMENT}` has a `{ENABLE_COMMENT}` after it. "
+        "A region without one runs to the end of the file.",
+        "- No disable directive covers authored prose. "
+        "It covers only generated text or quoted specimens.",
+        "- A Vale comment, such as `<!-- vale off -->`, hides findings without a reason. "
+        "It is an unjustified suppression.",
+        "",
+    ]
+
+
 _REVIEWER_PASS = [
     "   - Give it the document and `slopvac prime review` output.",
     "   - If you revised the document, give it the original.",
     "   - Give it any source or brief that is available.",
-    "   - It runs steps 1 to 5. It does not edit the document.",
+    "   - It runs steps 1 to 6. It does not edit the document.",
     "   - It marks wording for the author to consider removing.",
     "   - It reports each finding as rule id, quoted text, and proposed rewrite.",
     "   - It lists the received document's facts and marks each kept or wrong.",
@@ -380,9 +427,9 @@ _NO_SUBAGENT = (
 
 
 _AFTER_REVIEW = [
-    "7. Fix or rebut each reviewer finding.",
-    "8. After you edit the document, run lint again.",
-    "9. Report the verdict.",
+    "8. Fix or rebut each reviewer finding.",
+    "9. After you edit the document, run lint again.",
+    "10. Report the verdict.",
 ]
 
 
@@ -390,29 +437,28 @@ def _review_workflow(settings: GuidanceSettings) -> list[str]:
     """The configured author or subagent review steps."""
     if settings.review_depth == "self":
         return [
-            '6. Steps 3 to 5 are the review. Report "self (review_depth = self)".',
-            "7. Report the verdict.",
+            '7. Steps 3 to 6 are the review. Report "self (review_depth = self)".',
+            "8. Report the verdict.",
         ]
     if settings.review_depth == "adversary":
         return [
-            "6. Reviewer pass: run rounds, each with a new fresh-context subagent.",
+            "7. Reviewer pass: run rounds, each with a new fresh-context subagent.",
             *_REVIEWER_PASS,
-            "   - The subagent does not run steps 6 to 9.",
+            "   - The subagent does not run steps 7 to 10.",
             "   - Give each new round the findings you rebutted earlier.",
             "   - When a round reports no finding that you accept, stop.",
             _NO_SUBAGENT,
             *_AFTER_REVIEW,
         ]
     return [
-        "6. Reviewer pass: give one fresh-context subagent one pass.",
+        "7. Reviewer pass: give one fresh-context subagent one pass.",
         *_REVIEWER_PASS,
-        "   - The subagent does not run steps 6 to 9.",
+        "   - The subagent does not run steps 7 to 10.",
         "   - When the user asks for adversary rounds, repeat this pass with a "
         "new subagent. Give it your earlier rebuttals.",
         _NO_SUBAGENT,
         *_AFTER_REVIEW,
     ]
-
 
 
 def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
@@ -438,17 +484,19 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Exit 1 means that a gate failed. Exit 2 means that the run is incomplete.",
             "On exit 2, report unchecked entries or the error text.",
             "Fix the cause. Rerun lint. Config or rule errors print text, not JSON.",
-            "3. Ask enforced and advisory checklist questions. Skip excluded ones.",
+            "3. Audit each slopvac directive and each Vale comment in the document.",
+            "Apply the suppression checks at the start of the checklist.",
+            "4. Ask enforced and advisory checklist questions. Skip excluded ones.",
             "Ask document questions over the document. Ask others at their listed scope.",
             "Find the paired lint rule in each remainder rule's provenance.",
             "When lint reports that partner, ask the remainder question.",
             "Quote failures. Propose rewrites.",
-            "4. Mark wording that changes no reader action or contract fact.",
+            "5. Mark wording that changes no reader action or contract fact.",
             "The author removes marked wording.",
             "Never mark a fact or an evidence block for removal. Code blocks, logs, "
             "and diffstats are evidence.",
             "List facts in the received document. Confirm each survived or was wrong.",
-            "5. Check each claim against code or an authoritative source.",
+            "6. Check each claim against code or an authoritative source.",
             "Flag claims stronger than their source.",
             *_review_workflow(settings),
             "",
@@ -460,6 +508,8 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Deletion:  <wording marked for deletion, or none>",
             "Claims:    <verified, or the claim that does not hold>",
             "Facts:     <all kept, or the facts the revision lost>",
+            "Suppressions: <each directive with its rule and reason, and whether it "
+            "holds, or none>",
             "Reviewer:  <subagent, <n> rounds | adversary, <n> rounds | self "
             "(review_depth = self | no subagent available)>; <counts of findings fixed and rebutted>",
             "Action:    <the single highest-value change, or none>",
@@ -468,10 +518,12 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Report REVISE for lint exit 1 or 2, a failed claim, or a lost fact.",
             "Also report REVISE for a failed enforced question, failed deletion test, "
             "or open reviewer finding.",
+            "Report REVISE for each unjustified suppression too.",
             "Report advisory failures without blocking. Skip excluded questions.",
             "",
             "## Checklist",
             "",
+            *_suppression_checks(),
             "Each entry below asks one question that needs a reader.",
             *_entry_guide(ruleset, "question"),
             "Review at the profile from step 1. Ask the questions in the categories "

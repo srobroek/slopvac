@@ -828,7 +828,8 @@ def setup_agent(
     check: bool,
     root: Path,
 ) -> None:
-    """Install or remove project-local steering for a harness."""
+    """Install or remove project-local steering for a harness. HARNESS is
+    required unless --list is used."""
     from .steering import (
         harness_path,
         managed_block_state,

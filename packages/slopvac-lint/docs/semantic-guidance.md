@@ -10,9 +10,9 @@ semantic review.
 
 | Command | Prints |
 | --- | --- |
-| `slopvac prime` | How to run each command, the genre and profile tables, report keys, exit codes, and when to run the two topics below |
-| `slopvac prime write` | The genre and profile tables, the documentation contract, a writing workflow, and one fix per judgement rule |
-| `slopvac prime review` | The genre and profile tables, the review workflow, the verdict format, and one question per judgement rule |
+| `slopvac prime` | How to run each command, the genre and profile tables, report keys, exit codes, directives and exclusions, and when to run the two topics below |
+| `slopvac prime write` | The genre and profile tables, the documentation contract, a writing workflow, the order for excluding content, and one fix per judgement rule |
+| `slopvac prime review` | The genre and profile tables, the review workflow, the suppression checks, the verdict format, and one question per judgement rule |
 
 All three only print. Each reads `[guidance]` from the nearest slopvac config
 in or above the working directory; `--config PATH` names another file, and
@@ -43,7 +43,8 @@ The managed steering block in `AGENTS.md` or a harness file points agents to
 - The genre table and the profile table.
 - Inputs, results, Vale, fixes and suppressions, configuration, and agent setup.
 - Common workflows as one shell block.
-- A command reference that lists each option with its values, default, and help.
+- A command reference that gives the usage of each command and lists each
+  argument and option with its values, default, and help.
 
 The command reference comes from the installed command tree. The genre table
 comes from `genres.py`. The profile gates and the categories each profile turns
@@ -52,10 +53,17 @@ and exit codes come from the report models and the pipeline.
 
 `slopvac prime write` and `slopvac prime review` open with the same genre and
 profile tables. Their genre table adds the checklist categories for each genre.
-The write topic then prints the documentation contract and a writing workflow.
-The review topic prints the review workflow and verdict block. It includes a
-reviewer pass for `review_depth = "subagent"` or `"adversary"`; at `"self"`,
-the author applies the review steps without a separate reviewer pass.
+The write topic then prints the documentation contract, a writing workflow, and
+the order in which to exclude text that is not authored prose. The review topic
+prints the review workflow, which audits each directive, and the verdict block,
+which has a `Suppressions` line. It includes a reviewer pass for
+`review_depth = "subagent"` or `"adversary"`; at `"self"`, the author applies
+the review steps without a separate reviewer pass. An unjustified suppression
+makes the verdict REVISE.
+
+`slopvac explain <rule_id>` lists the named exceptions that an allow directive
+can cite. [Suppressions and exclusions](suppressions.md) gives the full
+directive grammar and the config controls.
 
 Each topic ends with one entry per judgement rule, grouped by category. Each
 category heading names the genres it suits. [The rules reference](rules.md)

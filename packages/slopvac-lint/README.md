@@ -14,6 +14,7 @@ See the [project overview](../../README.md) for agent setup and CI integration.
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
+[Suppressions](docs/suppressions.md) ·
 [Semantic guidance](docs/semantic-guidance.md) · [Rule coverage](#rules)
 
 ## Install
@@ -370,13 +371,15 @@ Use a reason from the rule's exception list:
 <!-- slopvac-allow: rule=orwell.stale-figure reason=quotation -->
 ```
 
-`slopvac explain orwell.stale-figure` lists the accepted reasons. An unknown
-reason or malformed directive produces `meta.invalid-suppression`.
+`slopvac explain orwell.stale-figure` lists the accepted reasons. The directive
+covers the next block, such as a paragraph, list item, or table.
+`<!-- slopvac-disable-next-line -->` suppresses all rules in that block. Use
+`<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` around a region.
+A directive quoted in inline code or a code block has no effect.
 
-The annotation covers the following block, such as a paragraph, list entry, or
-table. `<!-- slopvac-disable-next-line -->` suppresses all rules in that block.
-Use `<!-- slopvac-disable -->` and `<!-- slopvac-enable -->` around a region.
-Directives quoted in inline code or fenced blocks do not suppress findings.
+[Suppressions and exclusions](docs/suppressions.md) gives the full grammar and
+each `meta.invalid-suppression` message. It also covers the limits for Vale
+rules and comment mode, and the config controls that exclude files.
 
 ## Output formats
 

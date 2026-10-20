@@ -18,6 +18,7 @@
 [Rules](packages/slopvac-lint/docs/rules.md) ·
 [Metrics](packages/slopvac-lint/docs/metrics.md) ·
 [Triage](packages/slopvac-lint/docs/triage.md) ·
+[Suppressions](packages/slopvac-lint/docs/suppressions.md) ·
 [Configuration](packages/slopvac-lint/README.md#configuration) ·
 [Agent setup](#agent-setup) · [Writing guidance](#writing-guidance) ·
 [Semantic review](#semantic-review) · [CI](#ci-integration) · [Roadmap](#roadmap)
@@ -232,9 +233,9 @@ The default profile is `normal`. Use `strict` for reference material or
 
 The [configuration reference](packages/slopvac-lint/README.md#configuration)
 includes precedence and examples. See
-[suppressions](packages/slopvac-lint/README.md#suppress-a-finding) for a local
-exception and [comment mode](packages/slopvac-lint/README.md#comment-mode) for
-source files.
+[suppressions and exclusions](packages/slopvac-lint/docs/suppressions.md) for a
+local exception or an excluded file, and
+[comment mode](packages/slopvac-lint/README.md#comment-mode) for source files.
 
 ## Limits and evaluation
 
