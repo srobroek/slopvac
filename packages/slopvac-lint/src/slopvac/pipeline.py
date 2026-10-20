@@ -330,19 +330,18 @@ def lint_one(
             f"engine, so they did NOT run: {', '.join(missing)}"
         )
     if vale_result is not None:
-        whole = Engine(ruleset.rules, resolved)
         merged: list[Finding] = []
         vale_findings = drop_hidden_text(
             vale_result.findings_for(str(path)), document, ruleset
         )
-        for finding in whole.drop_suppressed(
+        for finding in engine.drop_suppressed(
             drop_quoted_illustrations(vale_findings, document, ruleset), document
         ):
             rule = ruleset.by_id(finding.rule_id)
             if rule is None:
                 merged.append(finding)
                 continue
-            if not whole.is_active(rule):
+            if not engine.is_active(rule):
                 continue
             replacement = finding.replacement
             if rule.kind.value == "substitution" and rule.substitutions:
@@ -351,7 +350,7 @@ def lint_one(
             merged.append(
                 finding.model_copy(
                     update={
-                        "severity": whole.severity_for(rule),
+                        "severity": engine.severity_for(rule),
                         "replacement": replacement,
                     }
                 )

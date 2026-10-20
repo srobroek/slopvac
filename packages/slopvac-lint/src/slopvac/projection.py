@@ -12,7 +12,9 @@ import hashlib
 import re
 from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
+from functools import cached_property
 from html import unescape
+from itertools import pairwise
 from pathlib import Path
 from typing import Any, Literal
 
@@ -142,21 +144,61 @@ class ProjectionMap:
 
         if start_cp < 0 or end_cp < start_cp or end_cp > self._length:
             raise ValueError("invalid projected slice")
-        segments: list[Segment] = []
-        for segment in self.segments:
-            if segment.proj_end <= start_cp or segment.proj_start >= end_cp:
-                continue
-            clipped_start = max(segment.proj_start, start_cp)
-            clipped_end = min(segment.proj_end, end_cp)
-            segments.append(
-                Segment(
-                    clipped_start - start_cp,
-                    clipped_end - start_cp,
-                    segment.raw_start,
-                    segment.raw_end,
-                )
+        # Ordered segments keep both endpoint arrays sorted, so the segments that
+        # overlap the slice are one contiguous run: from the first that ends after
+        # ``start_cp`` to the last that starts before ``end_cp``.
+        first = bisect_right(self._ends, start_cp)
+        last = bisect_left(self._starts, end_cp)
+        segments = tuple(
+            Segment(
+                max(segment.proj_start, start_cp) - start_cp,
+                min(segment.proj_end, end_cp) - start_cp,
+                segment.raw_start,
+                segment.raw_end,
             )
-        return ProjectionMap(tuple(segments), self._raw)
+            for segment in self.segments[first:last]
+        )
+        return ProjectionMap(segments, self._raw)
+
+    def proj_start_for_raw(self, raw_start: int, raw_end: int) -> int:
+        """Return the projected offset where raw bytes ``[raw_start, raw_end)`` begin.
+
+        That is the start of the first segment that overlaps the range. With none,
+        it is the start of the first segment at or after ``raw_start``, and with
+        neither, the projected length.
+        """
+
+        if self._raw_order is None:
+            for segment in self.segments:
+                if segment.raw_end > raw_start and segment.raw_start < raw_end:
+                    return segment.proj_start
+            for segment in self.segments:
+                if segment.raw_start >= raw_start:
+                    return segment.proj_start
+            return self._length
+        raw_starts, raw_ends = self._raw_order
+        first = bisect_right(raw_ends, raw_start)
+        if first < len(raw_starts) and raw_starts[first] < raw_end:
+            return self.segments[first].proj_start
+        after = bisect_left(raw_starts, raw_start)
+        if after < len(raw_starts):
+            return self.segments[after].proj_start
+        return self._length
+
+    @cached_property
+    def _raw_order(self) -> tuple[tuple[int, ...], tuple[int, ...]] | None:
+        """Return the raw start and end arrays when both ascend, else ``None``.
+
+        :func:`project` emits source in order, so its maps ascend and a raw lookup
+        can bisect. A hand-built map need not, and is scanned instead.
+        """
+
+        starts = tuple(segment.raw_start for segment in self.segments)
+        ends = tuple(segment.raw_end for segment in self.segments)
+        ascending = all(a <= b for a, b in pairwise(starts)) and all(
+            a <= b for a, b in pairwise(ends)
+        )
+        return (starts, ends) if ascending else None
 
 
 _LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n|$)")
