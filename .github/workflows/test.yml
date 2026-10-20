@@ -432,4 +432,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Test HTTP error boundary without model downloads
-        run: uv run --no-project --with pytest --with fastapi --with httpx python -m pytest scripts/judge-sagemaker/tests/test_clef_server.py
+        run: >-
+          uv run --no-project --with pytest --with fastapi --with httpx
+          python -m pytest scripts/judge-sagemaker/tests/test_clef_server.py
