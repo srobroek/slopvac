@@ -495,8 +495,9 @@ See [metrics](docs/metrics.md) for counting and text-type classification details
 
 ## Rules
 
-The [generated rule reference](docs/rules.md) lists all 26 categories and profile tiers for the 166 checked rules.
-It then lists the 67 judgment rules with their review questions and examples.
+The [rule reference](docs/rules.md) lists 26 categories.
+It describes 167 checked rules and 67 judgment rules.
+Each judgment rule includes review questions and examples.
 
 | Family | Categories |
 | --- | --- |
