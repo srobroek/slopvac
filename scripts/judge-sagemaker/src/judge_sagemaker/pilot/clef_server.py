@@ -19,6 +19,7 @@ Writes runs/<arm>/placement.json: the placement, devices and per-GPU memory afte
 """
 
 import json
+import logging
 import sys
 import threading
 import time
@@ -29,11 +30,12 @@ from typing import Annotated
 
 import torch
 import uvicorn
+from arms import ARMS, RUNS
 from fastapi import Body, FastAPI
 from fastapi.responses import JSONResponse
 from huggingface_hub import snapshot_download
 
-from arms import ARMS, RUNS
+logger = logging.getLogger(__name__)
 
 DTYPE = torch.bfloat16
 
@@ -147,10 +149,11 @@ def create_app(arm, jsm, model, processor, placement):
         try:
             with lock:
                 response = jsm.systemone(model, processor, body)
-        except (ValueError, KeyError, TypeError) as error:
+        except (ValueError, KeyError, TypeError):
+            logger.exception("Clef rejected a System One request")
             return JSONResponse(
                 status_code=422,
-                content={"error": {"type": "invalid_request", "message": str(error)}},
+                content={"error": {"type": "invalid_request", "message": "The request could not be processed."}},
             )
         response["latency_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
