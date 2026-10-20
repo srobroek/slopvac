@@ -34,7 +34,9 @@ from slopvac.suppression import (
 
 FLAG = re.compile(r"(?<![\w-])--[a-z][a-z0-9-]*")
 SPAN = re.compile(r"`([^`\n]+)`")
-DIRECTIVE = re.compile(r"<!--.*?-->")
+# Extracts the comment examples shown in code spans. DOTALL keeps a multi-line
+# comment whole instead of skipping it.
+DIRECTIVE = re.compile(r"<!--.*?-->", re.DOTALL)
 # One checklist entry: `<category>.<rule-id>` (<scope>): <fix or question>.
 ENTRY = re.compile(r"^- `(?P<id>[a-z0-9-]+\.[a-z0-9-]+)` \((?P<scope>[a-z]+)\): .+$")
 
