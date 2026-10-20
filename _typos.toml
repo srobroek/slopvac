@@ -7,6 +7,8 @@
 # often enough (`caf391e` -> `calf`) that the file is noise-only.
 extend-exclude = [
   "CHANGELOG.md",
+  # Quoted source corpus preserves upstream spellings and personal names.
+  "scripts/judge-corpus/sources/human.jsonl",
   "packages/slopvac-lint/tests/fixtures/text_type/runbook-labels-v1.jsonl",
 ]
 
