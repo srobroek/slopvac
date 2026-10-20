@@ -46,12 +46,11 @@ to disable the check. Slopvac skips `prime`, non-text output formats, reports
 written to a file or opened in a browser, non-terminal stderr, or when `CI` is set.
 
 **[Vale](https://vale.sh) 3.18 or later is required for complete linting.**
-Install its executable on `PATH` independently of the Python package (for
-example, `brew install vale`). `slopvac doctor` checks the executable and
-version before linting. `slopvac` generates Vale's configuration and styles.
-Contributors with mise can run `mise install` from the repository root to
-install the pinned Python, uv, and Vale versions. Users of `uvx`, uv, or pipx
-do not need mise; they must install Vale separately.
+Install Vale separately and add its executable to `PATH` (`brew install vale`
+on macOS). Run `slopvac doctor` to check that Vale meets the required version.
+SlopVac generates Vale's configuration and styles. Contributors can run
+`mise install` to install the pinned Python, uv, and Vale tools.
+Users of uvx, uv, or pipx do not need mise. They install Vale separately.
 
 | Engine | Checks |
 | --- | --- |
@@ -59,8 +58,7 @@ do not need mise; they must install Vale separately.
 | Native | Additional patterns and metrics, including comparisons between text blocks |
 
 Without Vale, only native findings are available. Missing or unsupported Vale,
-or `--no-vale`, leaves
-selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
+or `--no-vale`, leaves selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
 remain in the report, but this is an incomplete check.
 
 ## Agent steering
