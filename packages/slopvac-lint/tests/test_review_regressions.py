@@ -121,9 +121,9 @@ def test_canonical_and_surrogate_origins(tmp_path, monkeypatch):
     source = tmp_path / "rule.yml"
     source.write_text("text")
     monkeypatch.chdir(tmp_path)
-    assert ruleset_cache.content_key(
-        [(str(source), "text")]
-    ) == ruleset_cache.content_key([("rule.yml", "text")])
+    from slopvac.rules import _read_sources
+
+    assert _read_sources([Path(".")])[-1][0] == str(source.resolve())
     assert ruleset_cache.content_key([("rule-\udcff.yml", "text")])
     assert ruleset_cache.entry_path([tmp_path / "rules-\udcff"])
 
@@ -255,3 +255,13 @@ def test_ruleset_hit_refreshes_recency(tmp_path):
     os.utime(slot, (1, 1))
     assert ruleset_cache.read(slot, "key") == []
     assert slot.stat().st_mtime > 1
+
+
+def test_packaged_cache_identity_ignores_cwd_collisions(tmp_path, monkeypatch):
+    from slopvac.rules import _read_sources
+
+    monkeypatch.chdir(tmp_path)
+    sources = _read_sources([])
+    before = ruleset_cache.content_key(sources)
+    (tmp_path / sources[0][0]).write_text("unrelated local content")
+    assert ruleset_cache.content_key(_read_sources([])) == before

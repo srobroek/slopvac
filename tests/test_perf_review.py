@@ -31,10 +31,10 @@ def benchmark(monkeypatch, tmp_path):
     monkeypatch.setattr(perf, "hyperfine_command", lambda: ["fake-hyperfine"])
     monkeypatch.setattr(perf, "_scenario_command", lambda scenario, python, scratch, *rest: [
         sys.executable, "-c",
-        "import os,json; from pathlib import Path; "
+        ("import os,json; from pathlib import Path; "
         f"p=Path({str(log)!r}); "
         f"p.open('a').write(json.dumps([{python!r},os.getcwd()])+'\\n'); "
-        f"raise SystemExit({scenario.get('exit', 0)})",
+        f"raise SystemExit({scenario.get('exit', 0)})"),
     ])
     real_run = subprocess.run
 
@@ -89,7 +89,7 @@ def test_notifier_target_really_has_a_terminal():
     result = subprocess.run([
         sys.executable, str(perf.ROOT / "scripts/perf/terminal_target.py"),
         sys.executable, "-c", "import sys; raise SystemExit(0 if sys.stderr.isatty() else 9)",
-    ], capture_output=True)
+    ], check=False, capture_output=True)
     assert result.returncode == 0
 
 
@@ -115,3 +115,16 @@ def test_spy_child_keeps_scenario_settings_across_sudo(monkeypatch, tmp_path):
     assert child[0] == "env"
     assert f"SLOPVAC_CACHE_DIR={tmp_path / 'profile-cache'}" in child
     assert "NO_UPDATE_NOTIFIER=1" in child
+
+
+def test_profile_warmup_uses_profiled_interpreter(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(perf, "prepare_inputs", lambda *_: ["--version"])
+    monkeypatch.setattr(perf.subprocess, "run", lambda command, **kwargs:
+                        calls.append((command, kwargs)) or subprocess.CompletedProcess(command, 0))
+    target_python = "/isolated-venv/bin/python"
+    perf.run_profiled(["sudo", "/bin/py-spy", "record", "--", target_python, "-m", "slopvac.cli"],
+                      {"kind": "cache", "cache": "warm"}, python=target_python, cwd=tmp_path)
+    assert calls[0][0][0] == target_python
+    assert target_python in calls[1][0]
+    assert calls[0][1]["env"]["SLOPVAC_CACHE_DIR"] == calls[1][1]["env"]["SLOPVAC_CACHE_DIR"]

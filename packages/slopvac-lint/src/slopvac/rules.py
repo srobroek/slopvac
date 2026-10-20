@@ -244,7 +244,7 @@ def _read_sources(extra_dirs: list[Path]) -> list[tuple[str, str]]:
         if not directory.is_dir():
             raise RuleLoadError(f"rules directory not found: {directory}")
         for path in sorted(directory.glob("*.y*ml")):
-            sources.append((str(path), path.read_text(encoding="utf-8")))
+            sources.append((str(path.resolve()), path.read_text(encoding="utf-8")))
 
     if not sources:
         raise RuleLoadError(
