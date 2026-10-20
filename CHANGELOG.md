@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.17.0](https://github.com/srobroek/slopvac/compare/v2.16.0...v2.17.0) (2026-10-20)
+
+
+### Features
+
+* **rules:** `ai-tells-structure.negative-guarantee-core` accepts subjects of up to seven words. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** `ai-tells-structure.negative-guarantee-core` flags "X will never &lt;verb&gt;" and "X can never &lt;verb&gt;"; "must/should/shall never" stay exempt. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** `ai-tells-structure.negative-guarantee-core` flags the passive "X is/are never &lt;participle&gt;" and "X will/can never be &lt;participle&gt;". ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend ai-tells-structure, ai-tells-register, ai-tells-formatting and ai-tells-content-shape for `reference`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend orwell for `reference` and `change-comms`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend prose-discipline for `change-comms`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend prose-scope for `reference` and `internal`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+* **rules:** recommend the STE categories (descriptive, nouns, practices, punctuation, safety, sentences, verbs, words) for `consumer`, `internal` and `change-comms`. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+
+
+### Bug Fixes
+
+* **engine:** report a match inside a table cell at that cell's line, not the table's first row. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **rules:** `ai-tells-structure.negative-guarantee-core` treats "go" as a state verb, so "can never go below zero" stays clean. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+
+
+### Performance
+
+* **analyze:** tokenize each sentence once for its word count and text type. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **engine:** compile each rule pattern once per process and share it across files and engines. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **projection:** bisect the segment index in submap and in the block start lookup. ([2b0970e](https://github.com/srobroek/slopvac/commit/2b0970e8dfb69fb364388d326751af4f19d77338))
+* **rules:** reuse the proved locale spelling rule across runs. ([a824f07](https://github.com/srobroek/slopvac/commit/a824f07906c94c5856b510d8312731bc5f6d583c))
+* **vale:** validate compiled rules in one Vale run instead of one run per rule; a cold README lint with Vale drops from 3.0 s to 0.9 s of CPU. ([a824f07](https://github.com/srobroek/slopvac/commit/a824f07906c94c5856b510d8312731bc5f6d583c))
+
+
+### Documentation
+
+* state what `slopvac setup` and the prime topics do, not what they never do. ([37b8203](https://github.com/srobroek/slopvac/commit/37b82033ba9bf9da765ef63a200439c9342c1fab))
+
 ## [2.16.0](https://github.com/srobroek/slopvac/compare/v2.15.0...v2.16.0) (2026-10-20)
 
 
