@@ -112,23 +112,23 @@ The older history adds 308 automated prose annotations and two CodeQL annotation
 | `packages/slopvac-lint/docs/domain-categories.md` | Use a vertical list for complex content | 2 |
 | `packages/slopvac-lint/docs/domain-categories.md` | Use en-US spelling | 1 |
 | `packages/slopvac-lint/docs/domain-categories.md` | Use the active voice | 2 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Convert a long paragraph to a list or table | 5 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Cut a three-item list to the items that carry load | 3 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Do not hyphenate more than three words | 1 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Do not use a semicolon | 21 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Give the absolute date or version | 1 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Keep a noun stack to three words | 19 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Keep a paragraph to six sentences | 6 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Keep an explanatory sentence to twenty-five words | 10 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Put the condition before the command | 8 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Start with the first new fact | 1 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Use a vertical list for complex content | 10 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Use en-US spelling | 10 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Use sentence case in headings | 1 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Use simple tenses only | 1 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Use the active voice | 19 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Use the controlled replacement word | 1 |
-| `packages/slopvac-lint/docs/judgement-eval.md` | Write one instruction per sentence | 1 |
+| Archived evaluation report (exact path in CSV) | Convert a long paragraph to a list or table | 5 |
+| Archived evaluation report (exact path in CSV) | Cut a three-item list to the items that carry load | 3 |
+| Archived evaluation report (exact path in CSV) | Do not hyphenate more than three words | 1 |
+| Archived evaluation report (exact path in CSV) | Do not use a semicolon | 21 |
+| Archived evaluation report (exact path in CSV) | Give the absolute date or version | 1 |
+| Archived evaluation report (exact path in CSV) | Keep a noun stack to three words | 19 |
+| Archived evaluation report (exact path in CSV) | Keep a paragraph to six sentences | 6 |
+| Archived evaluation report (exact path in CSV) | Keep an explanatory sentence to twenty-five words | 10 |
+| Archived evaluation report (exact path in CSV) | Put the condition before the command | 8 |
+| Archived evaluation report (exact path in CSV) | Start with the first new fact | 1 |
+| Archived evaluation report (exact path in CSV) | Use a vertical list for complex content | 10 |
+| Archived evaluation report (exact path in CSV) | Use en-US spelling | 10 |
+| Archived evaluation report (exact path in CSV) | Use sentence case in headings | 1 |
+| Archived evaluation report (exact path in CSV) | Use simple tenses only | 1 |
+| Archived evaluation report (exact path in CSV) | Use the active voice | 19 |
+| Archived evaluation report (exact path in CSV) | Use the controlled replacement word | 1 |
+| Archived evaluation report (exact path in CSV) | Write one instruction per sentence | 1 |
 | `packages/slopvac-lint/docs/metrics.md` | Convert a long paragraph to a list or table | 1 |
 | `packages/slopvac-lint/docs/metrics.md` | Cut a three-item list to the items that carry load | 2 |
 | `packages/slopvac-lint/docs/metrics.md` | Do not use a Latin abbreviation | 3 |
@@ -164,11 +164,11 @@ The older history adds 308 automated prose annotations and two CodeQL annotation
 | `packages/slopvac-lint/docs/vale-traps.md` | Use simple tenses only | 1 |
 | `packages/slopvac-lint/docs/vale-traps.md` | Use the active voice | 1 |
 | `packages/slopvac-lint/docs/vale-traps.md` | Write one instruction per sentence | 1 |
-| `packages/slopvac/skills/review-docs/SKILL.md` | Use a vertical list for complex content | 1 |
-| `packages/slopvac/skills/review-docs/SKILL.md` | Use en-US spelling | 1 |
-| `packages/slopvac/skills/write-docs/SKILL.md` | Do not use a Latin abbreviation | 2 |
-| `packages/slopvac/skills/write-docs/SKILL.md` | Do not use a semicolon | 3 |
-| `packages/slopvac/skills/write-docs/SKILL.md` | Keep a noun stack to three words | 3 |
-| `packages/slopvac/skills/write-docs/SKILL.md` | Keep an explanatory sentence to twenty-five words | 1 |
-| `packages/slopvac/skills/write-docs/SKILL.md` | Keep an instruction to twenty words | 1 |
-| `packages/slopvac/skills/write-docs/SKILL.md` | Use a vertical list for complex content | 4 |
+| Retired review skill (exact path in CSV) | Use a vertical list for complex content | 1 |
+| Retired review skill (exact path in CSV) | Use en-US spelling | 1 |
+| Retired writing skill (exact path in CSV) | Do not use a Latin abbreviation | 2 |
+| Retired writing skill (exact path in CSV) | Do not use a semicolon | 3 |
+| Retired writing skill (exact path in CSV) | Keep a noun stack to three words | 3 |
+| Retired writing skill (exact path in CSV) | Keep an explanatory sentence to twenty-five words | 1 |
+| Retired writing skill (exact path in CSV) | Keep an instruction to twenty words | 1 |
+| Retired writing skill (exact path in CSV) | Use a vertical list for complex content | 4 |
