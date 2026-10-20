@@ -61,7 +61,7 @@ from .report import LintReport, build_sarif, summarize
 from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .score import score_document
 from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
-from .vale_probe import require_vale, rst_converter
+from .vale_probe import rst_converter
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
 SOURCE_LINTABLE = tuple(
@@ -389,9 +389,6 @@ def _compile_for(
         source_language, source_extension = _comment_source_language(sample)
     try:
         if validate:
-            # Check before compiling hundreds of rules. This respects per-file
-            # [vale].binary overrides and keeps missing engines explicitly unchecked.
-            require_vale(resolved.vale.binary)
             return (
                 compile_ruleset(
                     ruleset,
