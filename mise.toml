@@ -1,4 +1,4 @@
 [tools]
 "github:sharkdp/hyperfine" = "2.0.0"
 just = "1.59.0"                      # available via mise registry aqua:casey/just
-typos = "1.50.2"
+typos = "1.51.1"
