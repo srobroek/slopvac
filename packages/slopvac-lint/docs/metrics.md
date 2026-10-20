@@ -58,8 +58,10 @@ sentence; a following proper-name-like continuation remains attached.
 Sentence caps depend on the text type. Slopvac classifies text with lexical
 rules; it does not use a dependency parser or general part-of-speech model.
 
-- A safety marker such as `WARNING`, `CAUTION`, or `DANGER` produces safety
-  text unless the following text is an instruction.
+- `WARNING`, `CAUTION`, and `DANGER` produce safety text unless the following
+  text is an instruction. `NOTICE` and `ATTENTION` also produce safety text
+  unless followed by an instruction. `IMPORTANT` is descriptive unless followed
+  by an instruction.
 - `NOTE`, `TIP`, `HINT`, and `INFO` are descriptive.
 - An instruction recognized from the closed imperative-verb vocabulary is
   procedural.
@@ -70,8 +72,8 @@ for descriptive text.
 
 ## Native metrics
 
-These metrics are evaluated by the native engine when selected by an active
-rule.
+These metrics are evaluated by the native engine when an active rule uses a
+metric that Vale cannot handle. Other metric rules may run in Vale.
 
 | Metric | Measurement |
 | --- | --- |

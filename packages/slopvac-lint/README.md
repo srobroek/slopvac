@@ -78,16 +78,18 @@ slopvac prime review
 
 Two commands write the steering files:
 
-- `slopvac init` creates `slopvac.toml` and writes steering for each harness
-  named with `--harness <name>`; repeat the option for several harnesses.
-  Without `--harness`, it writes only the generic `AGENTS.md` block. Naming a
-  harness replaces that default, so add `--harness agents` to keep it.
-  `--no-skills` writes the steering without skills. `--skip-agents` writes only
-  `slopvac.toml` and cannot be combined with `--harness` or `--no-skills`.
+- `slopvac init` creates `slopvac.toml` when absent and keeps an existing file
+  unless you pass `--force`. Repeat `--harness <name>` to write steering for
+  several harnesses. Without `--harness`, it writes generic `AGENTS.md` steering;
+  naming a harness replaces that default, so add `--harness agents` to keep it.
+  `--no-skills` writes steering without skills. `--skip-agents` writes only the
+  config and cannot be combined with `--harness` or `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
-  and, for harnesses that have one, its skill. It never creates `slopvac.toml`;
-  without one it uses the default `[guidance]` settings. It works with or
-  without a prior `init`; use it to add, check, or repair one harness.
+  and its skill when available. It never writes `slopvac.toml`; without a config
+  it uses default `[guidance]` settings. It works with or without `init`.
+`slopvac setup <harness> --remove` removes Slopvac's block and skill. It deletes
+the skill directory only when that directory is empty. `slopvac setup --list`
+prints each harness with its steering and skill paths.
 
 ```sh
 slopvac init --harness claude --harness omp   # config plus Claude Code and Oh My Pi
@@ -109,8 +111,9 @@ markers. Neither touches a skill file that Slopvac did not write.
 `stale`, or `malformed`, and the skill as one of those or `disabled`, without
 changing files. It exits 0 when everything is `current` or `disabled`, 1 when
 something is `missing` or `stale`, and 2 when a file is `malformed`.
-`slopvac setup <harness> --remove` removes only Slopvac's block and skill.
-`slopvac setup --list` prints each harness with its steering and skill paths.
+`slopvac setup <harness> --remove` removes its managed steering block and skill.
+The skill directory is deleted only when empty. `slopvac setup --list` lists each
+harness and its steering and skill paths.
 
 ## Lint documents
 
@@ -135,7 +138,8 @@ slopvac --fix README.md
 ```
 
 `--diff-base REV` limits findings to added lines in the committed `REV...HEAD`
-diff. `--diff-working-tree` uses the index and working tree relative to `HEAD`.
+diff. `--diff-working-tree` uses the index and working tree relative to `HEAD`;
+untracked files are included with all lines in scope.
 
 `--fix` edits source files using deterministic replacements with a single
 alternative. It preserves match case and skips replacements that offer multiple
@@ -145,8 +149,9 @@ again after applying replacements. Review the resulting diff for meaning.
 ## Supported file types
 
 Prose directory targets select `.md`, `.mdx`, `.markdown`, `.txt`, `.rst`,
-and `.html` files. An explicitly named TOML file is accepted and checks its
-comments. In comment mode, directory scans also include TOML files.
+and `.html` files. An explicitly named TOML file is accepted only in
+code-comments mode, where Slopvac checks its comments. Comment-mode directory
+scans also include TOML files.
 
 RST processing needs Docutils's `rst2html` or `rst2html.py` command on `PATH`.
 Install it with `pip install docutils`. A selected RST target without the
@@ -169,8 +174,8 @@ unsupported source types with a non-failing note. An explicitly named
 unsupported file is an error. Configured exclusions still apply.
 
 `--mode` applies to the whole invocation and cannot appear in `[[overrides]]`.
-Comment mode uses the packaged Vale configuration. It rejects a custom
-`vale.config` or nonempty `vale.styles`, including per-file settings.
+Comment mode uses the Vale configuration and styles that Slopvac compiles.
+`vale.config` and `vale.styles` settings do not change that configuration.
 
 ## Profiles
 
@@ -195,7 +200,9 @@ also apply, including in `relaxed`. All profiles default to
 
 A tier is separate from configured severity. `severity = "off"` disables an
 otherwise admitted category or rule. A project setting can override a
-profile-default `off`, but it cannot override an `excluded` tier.
+profile-default `off` at the same level: use `[categories]` for a category
+setting and `[rules]` for a rule setting. A rule setting cannot override a
+category-level `off` or an `excluded` tier.
 
 For rules admitted by their tier, explicit category and rule settings can
 override profile-default severity. An `excluded` tier remains final. Inspect
@@ -243,6 +250,7 @@ profile = "strict"
 
 | Setting | Controls |
 | --- | --- |
+| `mode` | Whether the CLI checks prose or code comments |
 | `profile` | Default rule treatment and thresholds |
 | `exclude` | Gitignore-style file exclusions |
 | `[thresholds]` | Error and warning limits, density, minimum score, and Unicode dash count |
@@ -251,7 +259,7 @@ profile = "strict"
 | `[[overrides]]` | Path-specific configuration patches |
 | `[locale]` | Spelling target and allowed spellings |
 | `[vocabulary]` | Path to a project word blocklist |
-| `[vale]` | Vale enablement, binary, configuration, and styles |
+| `[vale]` | Vale enablement and binary; `config` and `styles` are accepted but currently have no effect |
 | `[guidance]` | Whether `slopvac prime` points agents at writing guidance and semantic review |
 
 ### Agent guidance
@@ -314,9 +322,11 @@ precedence over the category. The string shorthand
 A category's `minimum_severity` raises findings below that level while retaining
 higher severities. Per-rule overrides still take precedence.
 
-A category with `weight = 0` reports its findings without contributing to the
-score or ordinary gates. The Unicode dash gate counts its named findings
-independently of category weight.
+A category with `weight = 0` reports findings without contributing to the score,
+error and warning counts, or density gates when any category has a positive
+weight. If every category has zero weight, the document score and document-level
+error, warning, and density thresholds use all categories together. The Unicode
+dash gate always counts its named findings regardless of category weight.
 
 ### Spelling
 
@@ -426,7 +436,8 @@ it. Without a category budget, each unit of gating density costs 10 points.
 
 The document score is the lower of the weighted category mean and the score
 computed over all scoring categories together. Categories with zero weight do
-not contribute to either calculation.
+not contribute to the weighted mean. If all categories have zero weight, the
+weighted mean is 100, so the whole-document score determines the result.
 
 Below 60 words, the scorer uses absolute counts: 20 points per error and 10 per
 warning. Each suggestion costs 2.5 points, capped at 15. Density fields are zero
@@ -479,9 +490,10 @@ slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
 
-`--rules-dir` adds project rules over the packaged YAML and is repeatable.
-The `my-rules` directory must exist and contain valid rule files. The loader
-validates regexes and their positive and negative examples.
+`--rules-dir` adds project categories over packaged YAML and is repeatable. A
+project category with the same id replaces the packaged category. Each directory
+must exist; it can be empty if the packaged rules provide files. Rule files that
+it contains must be valid.
 
 `slopvac rules` also includes the spelling rule generated for the configured
 locale. The YAML rule count excludes that generated rule.
@@ -498,8 +510,9 @@ slopvac cache --all
 ```
 
 `--prune` removes older compiled trees; `--all` clears the cache. Set
-`SLOPVAC_CACHE_DIR` to choose a location, or use the default under
-`XDG_CACHE_HOME`.
+`SLOPVAC_CACHE_DIR` to choose a location. Otherwise Slopvac uses
+`$XDG_CACHE_HOME/slopvac`, or a directory under the platform temporary directory
+when `XDG_CACHE_HOME` is unset.
 
 To inspect the compiled styles directly:
 

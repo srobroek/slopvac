@@ -6,32 +6,23 @@
 #     path = "docs/blocklist.toml"
 #
 # WHAT BELONGS HERE. A word your project refuses, as one part of speech, for a
-# reason you can state. Nothing else. The blocklist is not a style guide and not a
-# controlled vocabulary -- a word absent from this file is fine by definition, and
-# there is no way to express "only these words are allowed". That is deliberate:
-# this package shipped an allowlist once, and it produced 828 findings on ordinary
-# software prose for words that simply had no entry.
+# reason you can state. The blocklist is not a style guide or an allowlist: words
+# absent from this file are not findings.
 #
 # EVERY ENTRY NEEDS A `reason`. The loader refuses the file otherwise. An
 # undocumented refusal cannot be reviewed or argued with, and six months on nobody
 # remembers whether it was a considered decision or a bad afternoon.
 #
 # FIELDS
-#   word         required. Matched case-insensitively.
-#   pos          required. noun, verb, adjective, adverb, preposition,
-#                conjunction, pronoun, article.
+#   word         required. Matched case-insensitively after normalization.
+#   pos          required. noun, verb, adjective, or adverb; other accepted POS
+#                values are currently stored but do not produce lint rules.
+#                Matching is case-insensitive and only for the declared POS.
+#                Entries are unique by word and POS, not by sense. `deploy` as a
+#                noun is separate from `deploy` as a verb.
 #
-#                THE PART OF SPEECH IS THE POINT. `deploy` is a good verb and a
-#                bad noun, and one entry per sense is what lets you say so.
-#                Vale's tagger enforces it, so "the deploy failed" is flagged and
-#                "deploy the worker" is not.
-#   reason       required. Why this project refuses it.
-#   replacement  optional. What to write instead. Omit it when the fix depends on
-#                the sentence -- a wrong suggestion is worse than none, because a
-#                reader applies it without thinking.
-#
-# .yml and .json load too, if you have a wordlist in one already.
-
+#   replacement  optional metadata. It is stored but not shown as a finding fix;
+#                use it as a project note, not as a suggestion surfaced by lint.
 # --- Verb-as-noun -------------------------------------------------------------
 # The verb is fine; the noun is a verb wearing a noun's clothes. Each of these has
 # a real noun already, and using the verb form loses it.

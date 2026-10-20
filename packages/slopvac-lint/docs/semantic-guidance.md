@@ -20,9 +20,9 @@ in or above the working directory; `--config PATH` names another file, and
 
 The judgement lists come from the loaded rule catalogue, grouped by category
 and sorted by rule id. A house rule with `kind: judgement` in a `--rules-dir`
-directory appears in both topics. `slopvac explain <rule_id>` shows a rule's
-question, fix, and worked examples. `slopvac rules --kind judgement` lists them
-all.
+`slopvac explain <rule_id>` shows a rule's question, fix, and worked examples
+when those fields are defined. `slopvac rules --kind judgement` lists all
+judgement rules.
 
 ## When an agent runs them
 
@@ -53,8 +53,9 @@ and exit codes come from the report models and the pipeline.
 `slopvac prime write` and `slopvac prime review` open with the same genre and
 profile tables. Their genre table adds the checklist categories for each genre.
 The write topic then prints the documentation contract and a writing workflow.
-The review topic prints the review workflow, the reviewer pass that
-`review_depth` selects, and the verdict block.
+The review topic prints the review workflow and verdict block. It includes a
+reviewer pass for `review_depth = "subagent"` or `"adversary"`; at `"self"`,
+the author applies the review steps without a separate reviewer pass.
 
 Each topic ends with one entry per judgement rule, grouped by category. Each
 category heading names the genres it suits. [The rules reference](rules.md)
@@ -129,15 +130,19 @@ slopvac init --harness claude --harness omp
 slopvac setup codex
 ```
 
-`slopvac init` without `--harness` writes generic `AGENTS.md` steering and no
-skill. Each `--harness` writes that harness's steering and skill;
-`--no-skills` writes steering only. `--skip-agents` writes neither and cannot
-be combined with `--harness`.
+`slopvac init` creates `slopvac.toml` when absent and keeps it unless `--force`
+is set. Without `--harness`, it writes generic `AGENTS.md` steering and no
+skill. Each `--harness` writes that harness's steering and replaces the generic
+default; add `--harness agents` to keep it. The `agents` harness has no skill.
+`--no-skills` writes steering only. `--skip-agents` writes only the config and
+cannot be combined with `--harness` or `--no-skills`.
 
-`slopvac setup <harness> --check` reports the skill as `current`, `missing`,
-`stale`, `malformed`, or `disabled`. Disabled means both guidance modes are off
-and no skill is present. `--remove` deletes the skill and its directory when
-empty. Other files in that directory stay.
+`slopvac setup <harness>` writes, checks, or removes steering for one harness.
+It never writes the config and uses default `[guidance]` settings when no config
+exists. `--check` exits 0 when all items are current or disabled, 1 when any are
+missing or stale, and 2 for a malformed file. `--remove` deletes the managed
+steering block and skill. It deletes the skill directory only when empty.
+`--list` prints harness names and their steering and skill paths.
 
 The skill carries a `slopvac:managed` marker. Setup refuses to overwrite or
 delete a skill without that marker, refuses a skill directory that resolves

@@ -18,7 +18,9 @@ inputs:
     required: false
     default: ""
   config:
-    description: Path to slopvac.toml. Defaults to the nearest one found.
+    description: >-
+      Config file path. Defaults to the nearest slopvac.toml, .slopvac.toml, or
+      pyproject.toml with a [tool.slopvac] table.
     required: false
     default: ""
   changed-files-only:
@@ -29,13 +31,14 @@ inputs:
     required: false
     default: "false"
   min-score:
-    description: Fail below this 0-100 score. Empty uses the profile default.
+    description: Empty preserves the effective threshold from config or profile.
     required: false
     default: ""
   max-per-100-words:
     description: >-
       Fail above this severity-weighted error/warning density. Errors count 1.0
-      and warnings 0.5. Empty uses the profile default.
+      and warnings 0.5. Empty preserves the effective threshold from config or
+      profile.
     required: false
     default: ""
   fail-on-findings:
@@ -50,10 +53,10 @@ inputs:
     default: "true"
   sarif:
     description: >-
-      Write SARIF to sarif-file and upload it to GitHub code scanning. The
-      calling job needs `permissions: security-events: write`, and the upload is
-      skipped with a warning rather than failing the job when it does not have
-      it. Set upload-sarif false to write the file without uploading.
+      Write SARIF to sarif-file and attempt upload to GitHub code scanning. The
+      calling job needs `permissions: security-events: write`. Upload failures
+      are tolerated by this action. Set upload-sarif false to write the file
+      without attempting an upload.
     required: false
     default: "false"
   sarif-file:
@@ -77,9 +80,9 @@ inputs:
     default: "3.15.2"
   version:
     description: >-
-      slopvac version specifier, e.g. "0.1.0" or ">=0.1,<0.2". Empty
-      installs the newest release. Pin it to keep CI reproducible. Ignored when
-      source is set.
+      slopvac version specifier, e.g. "0.1.0" or ">=0.1,<0.2". Empty uses
+      unpinned slopvac through uvx, which may reuse a cached version. Pin it to
+      keep CI reproducible. Ignored when source is set.
     required: false
     default: ""
   source:
@@ -90,8 +93,9 @@ inputs:
     required: false
     default: ""
   rules-dir:
-    description: Extra rule directory layered over the packaged rules.
-    required: false
+    description: >-
+      Add rules over the packaged rules. A same-ID project category replaces
+      the packaged category; it does not merge with it.
     default: ""
 
 outputs:
@@ -120,13 +124,13 @@ outputs:
     description: Finding density per 100 words.
     value: ${{ steps.lint.outputs.per-100-words }}
   passed:
-    description: '"true" when every threshold was met.'
+    description: '"true" when every threshold was met; with no paths, true is returned without a report.'
     value: ${{ steps.lint.outputs.passed }}
   json:
-    description: Path to the full JSON report.
+    description: Path to the full JSON report; empty when no target paths were selected.
     value: ${{ steps.lint.outputs.json }}
   sarif:
-    description: Path to the SARIF report, empty when sarif was false.
+    description: Path to the SARIF report, empty when SARIF is disabled or no target paths were selected.
     value: ${{ steps.lint.outputs.sarif }}
 
 runs:

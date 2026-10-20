@@ -24,8 +24,9 @@
 
 `slopvac` lints prose and source comments. Its rules cover AI writing patterns
 and general prose quality, including documentation discipline and
-technical-writing constraints. Use it on AI-generated documentation, PR descriptions,
-source comments, static TSX/JSX text, and other prose.
+technical-writing constraints. Use it on AI-generated documentation, PR
+descriptions, Markdown, and comments in supported source files such as TSX and
+JSX. Comment mode checks comments, not code or strings.
 
 Coding agents can run the CLI, inspect findings, and apply fixes. The same checks
 can run in pre-commit or CI for automated validation.
@@ -58,9 +59,10 @@ Upgrade the installation with `uv tool upgrade slopvac`. To run slopvac without
 a persistent install, use `uvx slopvac README.md`. uvx reuses its cached
 environment; use `uvx slopvac@latest README.md` to force the latest release.
 
-`init` creates `slopvac.toml` with the `normal` profile and leaves existing
-files unchanged. Replace `README.md` with the file or directory to check. A
-passing run exits 0; findings above a threshold exit 1; an incomplete check exits 2.
+`init` creates `slopvac.toml` with the `normal` profile when absent and keeps an
+existing config unless you pass `--force`. Replace `README.md` with the file or
+directory to check. A passing run exits 0; findings above a threshold exit 1;
+an incomplete check exits 2.
 
 ### Update notice
 
@@ -127,25 +129,24 @@ copies rule policy; the installed CLI prints it.
 
 Two commands write these files:
 
-- `slopvac init` creates `slopvac.toml` and writes steering for each harness
-  named with `--harness <name>`; repeat the option for several harnesses.
-  Without `--harness`, it writes only the generic `AGENTS.md` block. Naming a
-  harness replaces that default, so add `--harness agents` to keep it.
-  `--no-skills` writes the steering without skills. `--skip-agents` writes only
-  `slopvac.toml`.
+- `slopvac init` creates `slopvac.toml` when absent and keeps an existing file
+  unless `--force` is set. Repeat `--harness <name>` for several harnesses.
+  Without `--harness`, it writes generic `AGENTS.md` steering; naming a harness
+  replaces that default, so add `--harness agents` to keep it. `--no-skills`
+  writes steering without skills. `--skip-agents` writes only the config and
+  cannot be combined with `--harness` or `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
-  and, for harnesses that have one, its skill. It never creates `slopvac.toml`;
-  without one it uses the default `[guidance]` settings. It works with or
-  without a prior `init`; use it to add, check, or repair one harness.
+  and its skill when available. It never writes the config and uses default
+  `[guidance]` settings when no config exists. Run it with or without `init`.
+
+`slopvac setup --list` prints each harness with its steering and skill paths.
+The [CLI reference](packages/slopvac-lint/README.md#agent-steering) lists the
+per-harness paths, `setup --check` exit codes, and `--remove` behavior.
 
 ```sh
 slopvac init --harness claude --harness omp   # config plus Claude Code and Oh My Pi
 slopvac setup codex                           # one harness; reads config, never writes it
 ```
-
-`slopvac setup --list` prints each harness with its steering and skill paths.
-The [CLI reference](packages/slopvac-lint/README.md#agent-steering) lists the
-paths per harness and the `setup --check` and `--remove` behavior.
 
 Agents get detailed guidance on demand:
 
