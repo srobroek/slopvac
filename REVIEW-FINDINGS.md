@@ -173,7 +173,6 @@ The older history adds 308 automated prose annotations and two CodeQL annotation
 | Retired writing skill (exact path in CSV) | Keep an instruction to twenty words | 1 |
 | Retired writing skill (exact path in CSV) | Use a vertical list for complex content | 4 |
 
-
 ## Assessment before merge
 
 PR #217 is now merged. Its two technical findings are already fixed: `compile_ruleset` calls `require_vale` when validation is requested, and unreadable-version errors include the 3.18.0 floor. The CodeQL URL annotation targets a test assertion against CLI output. That assertion neither validates a URL nor authorizes a request, so the security finding is unsupported. Its remaining prose annotations are advisory. Claims that “checks the” needs “that” are unsupported when the phrase introduces a noun object.
