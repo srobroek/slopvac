@@ -45,18 +45,21 @@ Set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`
 to disable the check. Slopvac skips `prime`, non-text output formats, reports
 written to a file or opened in a browser, non-terminal stderr, or when `CI` is set.
 
-[Vale](https://vale.sh) is optional.
-
-For full deterministic coverage, install Vale 3.18 or later and put it on
-`PATH`. We **highly recommend** doing so because Vale executes most deterministic
-rules. `slopvac` generates the Vale configuration and styles.
+**[Vale](https://vale.sh) 3.18 or later is required for complete linting.**
+Install its executable on `PATH` independently of the Python package (for
+example, `brew install vale`). `slopvac doctor` checks the executable and
+version before linting. `slopvac` generates Vale's configuration and styles.
+Contributors with mise can run `mise install` from the repository root to
+install the pinned Python, uv, and Vale versions. Users of `uvx`, uv, or pipx
+do not need mise; they must install Vale separately.
 
 | Engine | Checks |
 | --- | --- |
 | Vale | Most deterministic rules, including compiled patterns and part-of-speech checks |
 | Native | Additional patterns and metrics, including comparisons between text blocks |
 
-Without Vale, only the native checks run. Missing Vale, or `--no-vale`, leaves
+Without Vale, only native findings are available. Missing or unsupported Vale,
+or `--no-vale`, leaves
 selected Vale-backed checks `UNCHECKED` and returns exit 2. Native findings
 remain in the report, but this is an incomplete check.
 
