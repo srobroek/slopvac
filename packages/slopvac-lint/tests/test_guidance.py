@@ -8,6 +8,7 @@ text, because the contract is that the guidance is generated from it.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -24,8 +25,16 @@ def ruleset():
     return load_ruleset()
 
 
+# One checklist entry: `<category>.<rule-id>` (<scope>): <fix or question>.
+ENTRY = re.compile(r"^- `(?P<id>[a-z0-9-]+\.[a-z0-9-]+)` \((?P<scope>[a-z]+)\): (?P<text>.+)$")
+
+
 def _clean(text: str) -> str:
     return " ".join(text.split())
+
+
+def _entries(output: str) -> list[re.Match[str]]:
+    return [match for line in output.splitlines() if (match := ENTRY.match(line))]
 
 
 def _prime(runner: CliRunner, *args: str):
@@ -83,27 +92,26 @@ def test_base_prime_handoff_names_reviewer_pass():
     assert "including the adversary loop" in adversary
 
 
-def test_lint_accepts_five_prime_outputs_at_strict_profile(tmp_path):
+def test_lint_accepts_every_prime_output_at_strict_profile(tmp_path):
+    """The base prime under each review mode and depth, the writing guide, and
+    the review guide under each depth: all pass their own strict gate."""
     runner = CliRunner()
-    outputs = {}
+    outputs = []
+    cases = [
+        ("default", {}, ([], ["write"], ["review"])),
+        ("ask", {"review": "ask"}, ([],)),
+        ("adversary", {"review_depth": "adversary"}, ([], ["review"])),
+        ("self", {"review_depth": "self"}, ([], ["review"])),
+    ]
     with runner.isolated_filesystem():
-        for topic in (None, "write"):
-            args = ["prime"] + ([topic] if topic else [])
-            result = runner.invoke(main, args)
-            assert result.exit_code == 0, result.output
-            path = tmp_path / f"prime-{topic or 'base'}.md"
-            path.write_text(result.output, encoding="utf-8")
-            outputs[path] = result.output
+        for name, modes, topics in cases:
+            _guidance(**modes)
+            for topic in topics:
+                path = tmp_path / f"prime-{'-'.join(topic) or 'base'}-{name}.md"
+                path.write_text(_prime(runner, *topic), encoding="utf-8")
+                outputs.append(path)
 
-        for depth in ("subagent", "adversary", "self"):
-            _guidance(review_depth=depth)
-            review = runner.invoke(main, ["prime", "review"])
-            assert review.exit_code == 0, review.output
-            path = tmp_path / f"prime-review-{depth}.md"
-            path.write_text(review.output, encoding="utf-8")
-            outputs[path] = review.output
-
-    assert len(outputs) == 5
+    assert len(outputs) == 8
     for path in outputs:
         result = runner.invoke(
             main, ["lint", str(path), "--profile", "strict", "--format", "json"]
@@ -112,6 +120,8 @@ def test_lint_accepts_five_prime_outputs_at_strict_profile(tmp_path):
         payload = json.loads(result.output)
         assert payload["summary"]["errors"] == 0, path.name
         assert payload["summary"]["warnings"] == 0, path.name
+
+
 # --- generated checklists -----------------------------------------------------
 
 
@@ -119,15 +129,14 @@ def test_review_checklist_asks_every_judgement_question_once(ruleset):
     runner = CliRunner()
     with runner.isolated_filesystem():
         output = _prime(runner, "review")
-    lines = [line for line in output.splitlines() if line.startswith("- `")]
-    ids = [line.split("`")[1] for line in lines]
+    entries = _entries(output)
 
     expected = sorted(rule.qualified_id for rule in ruleset.judgement_rules)
-    assert ids == expected, "one line per judgement rule, in qualified-id order"
-    for line, rule_id in zip(lines, ids, strict=True):
-        rule = ruleset.by_id(rule_id)
-        assert f"({rule.scope.value})" in line
-        assert line.endswith(_clean(rule.judgement_question))
+    assert [e["id"] for e in entries] == expected, "one line per judgement rule, in order"
+    for entry in entries:
+        rule = ruleset.by_id(entry["id"])
+        assert entry["scope"] == rule.scope.value
+        assert entry["text"] == _clean(rule.judgement_question)
 
 
 def test_write_checklist_gives_every_judgement_fix_once(ruleset):
@@ -135,14 +144,15 @@ def test_write_checklist_gives_every_judgement_fix_once(ruleset):
     with runner.isolated_filesystem():
         output = _prime(runner, "write")
     checklist = output.split("\n## Rules lint cannot check\n", 1)[1]
-    lines = [line for line in checklist.splitlines() if line.startswith("- `")]
+    entries = _entries(checklist)
 
-    assert [line.split("`")[1] for line in lines] == sorted(
+    assert [e["id"] for e in entries] == sorted(
         rule.qualified_id for rule in ruleset.judgement_rules
     )
-    for line in lines:
-        rule = ruleset.by_id(line.split("`")[1])
-        assert line.endswith(_clean(rule.fix or rule.message))
+    for entry in entries:
+        rule = ruleset.by_id(entry["id"])
+        assert entry["scope"] == rule.scope.value
+        assert entry["text"] == _clean(rule.fix or rule.message)
 
 
 def test_checklists_are_byte_stable():
@@ -156,13 +166,16 @@ def test_review_genre_table_lists_the_categories_recommended_for_each_genre(rule
     runner = CliRunner()
     with runner.isolated_filesystem():
         output = _prime(runner, "review")
-    row = next(line for line in output.splitlines() if line.startswith("| `reference`"))
+    lines = output.splitlines()
+    header = next(line for line in lines if line.startswith("| Genre |"))
+    column = [cell.strip() for cell in header.split("|")].index("Checklist categories")
+    row = next(line for line in lines if line.startswith("| `reference`"))
     expected = {
         rule.category
         for rule in ruleset.judgement_rules
         if "reference" in ruleset.categories[rule.category].recommended_for
     }
-    listed = {cell.strip("` ") for cell in row.split("|")[4].split(",")}
+    listed = {cell.strip("` ") for cell in row.split("|")[column].split(",")}
     assert listed == expected
 
 
@@ -190,7 +203,7 @@ def test_a_house_judgement_rule_reaches_the_checklist(tmp_path):
         review = _prime(runner, "review", "--rules-dir", str(house))
         write = _prime(runner, "write", "--rules-dir", str(house))
     assert "`house.owner-named` (prose): Does the page name the team that owns it?" in review
-    assert "`house.owner-named`: Name the owning team in the first paragraph." in write
+    assert "`house.owner-named` (prose): Name the owning team in the first paragraph." in write
 
 
 # --- [guidance] modes ----------------------------------------------------------

@@ -10,9 +10,9 @@ semantic review.
 
 | Command | Prints |
 | --- | --- |
-| `slopvac prime` | The lint workflow, plus when to run the two topics below |
-| `slopvac prime write` | Genre table, documentation contract, and one rewrite per judgement rule |
-| `slopvac prime review` | Review workflow, verdict format, genre selection, and one question per judgement rule |
+| `slopvac prime` | How to run each command, the genre and profile tables, report keys, exit codes, and when to run the two topics below |
+| `slopvac prime write` | The genre and profile tables, the documentation contract, a writing workflow, and one fix per judgement rule |
+| `slopvac prime review` | The genre and profile tables, the review workflow, the verdict format, and one question per judgement rule |
 
 All three only print. Each reads `[guidance]` from the nearest slopvac config
 in or above the working directory; `--config PATH` names another file, and
@@ -34,36 +34,53 @@ The managed steering block in `AGENTS.md` or a harness file points agents to
 `slopvac prime`. Harnesses with project skill support also get the thin
 `slopvac-prose` skill.
 
-## Review workflow
+## What each topic prints
 
-`slopvac prime review` prints these steps:
+`slopvac prime` prints these sections, in order:
 
-1. Classify the document by genre. Note its profile and checklist categories.
-2. Run `slopvac lint --profile <profile>` first. Fix errors, triage warnings,
-   and report unchecked rules. Exit 1 means a gate failed; exit 2 means the run
-   is incomplete.
-3. Ask the enforced and advisory checklist questions for the profile, and skip
-   excluded ones. Quote each failure and propose a rewrite.
-4. Mark wording that changes no reader action or contract fact. List the
-   original facts and confirm each one survived or was wrong.
-5. Check claims against the code. Flag claims stronger than their source.
-6. Run the configured reviewer pass.
-7. Fix or rebut each finding, lint again after edits, and report `PASS` or
-   `REVISE`.
+- Core rules and the writing and review steps that `[guidance]` turns on.
+- The commands, grouped by purpose.
+- The genre table and the profile table.
+- Inputs, results, Vale, fixes and suppressions, configuration, and agent setup.
+- Common workflows as one shell block.
+- A command reference that lists each option with its values, default, and help.
 
-The default pass uses one fresh-context subagent. Give it the document and the
-`slopvac prime review` output, plus the original and any source or brief. The
-subagent runs steps 1 to 5, edits nothing, and does not start another reviewer.
-It reports each finding once: rule id, quoted text, proposed rewrite, lost facts,
-and claims stronger than the source. The author fixes or rebuts every finding.
-The pass does not repeat by default.
+The command reference comes from the installed command tree. The genre table
+comes from `genres.py`. The profile gates and the categories each profile turns
+off come from the profile defaults in `config.py` and `profiles.py`. Report keys
+and exit codes come from the report models and the pipeline.
 
-Set `review_depth = "self"` for an author-run pass; steps 3 to 5 are the review.
-If subagents are unavailable, the author runs the pass and reports
-`self (no subagent available)`. Set `review_depth = "adversary"` for repeated
-rounds: each round gets the earlier rebuttals, and the loop stops when a round
-reports no finding the author accepts. A user can request the loop without
-changing the default.
+`slopvac prime write` and `slopvac prime review` open with the same genre and
+profile tables. Their genre table adds the checklist categories for each genre.
+The write topic then prints the documentation contract and a writing workflow.
+The review topic prints the review workflow, the reviewer pass that
+`review_depth` selects, and the verdict block.
+
+Each topic ends with one entry per judgement rule, grouped by category. Each
+category heading names the genres it suits. [The rules reference](rules.md)
+gives the current number of judgement rules.
+
+| Topic | Entry format |
+| --- | --- |
+| `slopvac prime write` | `` `<category>.<rule-id>` (<scope>): <fix> `` |
+| `slopvac prime review` | `` `<category>.<rule-id>` (<scope>): <question> `` |
+
+The scope is the unit the rule judges: a sentence, a paragraph, or the whole
+document. Before the entries, each topic explains the scopes and the three
+tiers, `enforced`, `advisory`, and `excluded`. It also names the two commands
+that give more detail on a rule:
+
+- `slopvac explain <rule_id>` prints the question, the fix, and worked examples.
+- `slopvac rules --kind judgement --profile <profile> --format json` gives each
+  rule's `tier` at that profile.
+
+An excerpt of the review checklist:
+
+```text
+### AI tells -- content shape (`ai-tells-content-shape`), recommended for: consumer, internal, change-comms
+
+- `ai-tells-content-shape.elegant-variation` (document): Does this document refer to one thing by two or more different names without saying they are the same thing?
+```
 
 ## Configuration
 
