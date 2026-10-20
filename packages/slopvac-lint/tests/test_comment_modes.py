@@ -17,7 +17,8 @@ from slopvac.compile_vale import (
     source_scopes,
 )
 from slopvac.config import Config, Mode, Override, resolve_for
-from slopvac.pipeline import EXIT_ERROR, _expand_paths
+from slopvac.contract import EXIT_ERROR
+from slopvac.pipeline import _expand_paths
 from slopvac.rules import load_ruleset
 
 

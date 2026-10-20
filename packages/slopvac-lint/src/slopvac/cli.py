@@ -14,58 +14,36 @@ project sets `max_warnings`, which preserves the existing gate's behaviour.
 
 from __future__ import annotations
 
-import json
+# Every command, `--version` included, pays for what this module imports when it
+# loads. So the top level imports only what the click declarations need, and each
+# command imports its own machinery.
 import sys
-import tempfile
-from collections.abc import Callable
-from datetime import datetime
 from itertools import pairwise
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
-from rich.console import Console
-from rich.markup import escape
-from rich.table import Table
 
 from . import __version__
-from .compile_vale import compile_ruleset
-from .config import (
-    Config,
-    ConfigError,
-    GuidanceSettings,
-    Mode,
-    Profile,
-    Severity,
-    find_config,
-    load_config,
-    resolve_blocklist_path,
-    resolve_for,
-)
-from .diff_scope import DiffScopeError, apply_replacements, changed_scope
-from .engine import Engine
+from .contract import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
+from .enums import Mode, Profile, RuleKind, Severity, Tier
 from .genres import GENRES
-from .model import Rule, RuleKind, Tier
-from .pipeline import (
-    EXIT_ERROR,
-    EXIT_FINDINGS,
-    EXIT_OK,
-    PipelineError,
-    emit_report,
-    load_run_context,
-    run_lint,
-)
-from .reference import render_reference
-from .rule_markdown import message_text, render_explain, render_rules
-from .rules import RuleLoadError, RuleSet, inject_locale_rule, load_ruleset
 from .steering import harnesses
-from .suppression import allow_comment
-from .update_notice import show_update_notice, start_refresh
-from .vale_cache import CACHE_KEEP, cache_root, prune_cache
-from .vale_probe import ValeUnavailable
-from .vocabulary import VocabularyError, load_blocklist
+from .vale_cache import CACHE_KEEP
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from rich.console import Console
+
+    from .config import GuidanceSettings
+    from .model import Rule
+    from .rules import RuleSet
 
 
 def _console(no_color: bool) -> Console:
+    from rich.console import Console
+
     # force_terminal=False lets rich detect a pipe and drop styling, so piped
     # output stays greppable.
     return Console(no_color=no_color, soft_wrap=True, stderr=False)
@@ -174,12 +152,13 @@ def main(context: click.Context) -> None:
         context.meta.get("slopvac_update_arguments", ())
     ):
         return
-    refresh = start_refresh()
+    from .update_notice import show_update_notice, start_refresh
+
+    start_refresh()
 
     def notice() -> None:
         meta = context.find_root().meta
         show_update_notice(
-            refresh,
             command=context.invoked_subcommand,
             output_format=meta.get("slopvac_update_format"),
             output_to_file=meta.get("slopvac_update_to_file", False),
@@ -310,6 +289,9 @@ def lint(
 
     Exit 0 passes, 1 fails a threshold, and 2 is an incomplete run.
     """
+    from .diff_scope import DiffScopeError, apply_replacements, changed_scope
+    from .pipeline import emit_report
+
     _note_output(output_format, out_path, open_report)
     console = _console(no_color)
     scope = None
@@ -391,6 +373,8 @@ def _format_was_given() -> bool:
 
 
 def _load_lint_context(console: Console, targets: tuple[str, ...], **options):
+    from .pipeline import PipelineError, load_run_context
+
     try:
         return load_run_context(targets, **options)
     except PipelineError as exc:
@@ -400,6 +384,8 @@ def _load_lint_context(console: Console, targets: tuple[str, ...], **options):
 
 
 def _run_lint_or_exit(run, console: Console, *, no_vale: bool):
+    from .pipeline import PipelineError, run_lint
+
     try:
         return run_lint(run, no_vale=no_vale)
     except PipelineError as exc:
@@ -409,6 +395,8 @@ def _run_lint_or_exit(run, console: Console, *, no_vale: bool):
 
 
 def _print_resolved_config(run, console: Console) -> None:
+    from .config import resolve_blocklist_path, resolve_for
+
     for path in run.paths:
         config = run.configs[path]
         resolved = resolve_for(config, path)
@@ -448,6 +436,8 @@ def _locale_of(config_path: Path | None) -> tuple[str, list[str] | None]:
     A broken config is not worth failing an inspection command over -- it falls back
     to the default locale, and `lint` is where a config error is reported.
     """
+    from .config import ConfigError, load_config
+
     try:
         config = load_config(
             config_path, root=config_path.parent if config_path else None
@@ -466,6 +456,9 @@ def _severity_at(
     and the config file's authored overrides. The shipped `severity` field alone
     told a reader `warning` for a rule that `lint` reported as an error.
     """
+    from .config import Config, ConfigError, load_config, resolve_for
+    from .engine import Engine
+
     try:
         config = load_config(config_path) if config_path else Config()
     except ConfigError as exc:
@@ -529,6 +522,14 @@ def list_rules(
     `--format md` prints each rule in full, grouped by category, for an agent to
     read. The filters combine: a rule must pass every one given.
     """
+    import json
+
+    from rich.table import Table
+
+    from .config import find_config
+    from .rule_markdown import render_rules
+    from .rules import RuleLoadError, inject_locale_rule, load_ruleset
+
     _note_output(output_format)
     console = _console(False)
     try:
@@ -637,6 +638,15 @@ def explain(
 
     `--format md` prints the block that `slopvac rules --format md` prints.
     """
+    import json
+
+    from rich.markup import escape
+
+    from .config import find_config
+    from .rule_markdown import message_text, render_explain
+    from .rules import RuleLoadError, inject_locale_rule, load_ruleset
+    from .suppression import allow_comment
+
     _note_output(output_format)
     console = _console(False)
     try:
@@ -776,7 +786,7 @@ def init_config(
 
     if not skip_agents:
         chosen = tuple(dict.fromkeys(selected)) or ("agents",)
-        guidance = _guidance_of(console, path)[0]
+        guidance = _guidance_of(path)[0]
         console.print(f"harnesses: {', '.join(chosen)}")
         for name in chosen:
             _install_harness(
@@ -786,20 +796,24 @@ def init_config(
     console.print("next: slopvac prime")
 
 
-def _guidance_of(
-    console: Console, config_path: Path | None
-) -> tuple[GuidanceSettings, Path | None]:
+def _guidance_of(config_path: Path | None) -> tuple[GuidanceSettings, Path | None]:
     """The `[guidance]` settings and the config file they came from.
 
     A broken config fails the command rather than falling back to defaults, which
     would tell an agent to run a step the project switched off.
     """
+    from .config import ConfigError, GuidanceSettings, load_config
+
     if config_path is None:
         return GuidanceSettings(), None
     try:
         return load_config(config_path).guidance, config_path
     except ConfigError as exc:
-        console.print(f"[red]config error[/]: {escape(str(exc))}")
+        from rich.markup import escape
+
+        # The console is built only on this error: `prime` prints through click
+        # and otherwise never loads rich.
+        _console(False).print(f"[red]config error[/]: {escape(str(exc))}")
         raise SystemExit(EXIT_ERROR) from None
 
 
@@ -847,21 +861,23 @@ def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ..
     review workflow. Both print the `slopvac rules` command that lists the
     judgement rules for a genre. Prime only prints; it never writes files.
     """
+    from .config import find_config
     from .guidance import disabled_notice, render_review, render_write
     from .prime import render_prime
 
-    console = _console(False)
-    settings, source = _guidance_of(console, config_path or find_config(Path.cwd()))
+    settings, source = _guidance_of(config_path or find_config(Path.cwd()))
     if topic is None:
         click.echo(render_prime(settings, main), nl=False)
         return
     if getattr(settings, topic) == "off":
         click.echo(disabled_notice(topic, source))
         return
+    from .rules import RuleLoadError, load_ruleset
+
     try:
         ruleset = load_ruleset(list(rules_dir) or None)
     except RuleLoadError as exc:
-        console.print(f"[red]ruleset error[/]: {exc}")
+        _console(False).print(f"[red]ruleset error[/]: {exc}")
         raise SystemExit(EXIT_ERROR) from None
     render = render_write if topic == "write" else render_review
     click.echo(render(ruleset, settings), nl=False)
@@ -940,7 +956,9 @@ def setup_agent(
         raise click.ClickException(str(exc)) from exc
 
     if check:
-        guidance = _guidance_of(console, find_config(root))[0]
+        from .config import find_config
+
+        guidance = _guidance_of(find_config(root))[0]
         states = [(managed_block_state(target), target)]
         if stub is not None:
             states.append((skill_state(stub, wanted=guidance.enabled), stub))
@@ -954,7 +972,9 @@ def setup_agent(
         raise SystemExit(EXIT_FINDINGS)
 
     if not remove:
-        guidance = _guidance_of(console, find_config(root))[0]
+        from .config import find_config
+
+        guidance = _guidance_of(find_config(root))[0]
         _install_harness(console, root, harness, skills=True, guidance=guidance)
         return
 
@@ -1005,6 +1025,17 @@ def compile_styles(
 
     To run Vale by hand: `vale --config=<outdir>/.vale.ini docs/`.
     """
+    import json
+    import tempfile
+
+    from rich.table import Table
+
+    from .compile_vale import compile_ruleset
+    from .config import ConfigError, find_config, load_config, resolve_for
+    from .rules import RuleLoadError, inject_locale_rule, load_ruleset
+    from .vale_probe import ValeUnavailable
+    from .vocabulary import VocabularyError, load_blocklist
+
     _note_output(output_format)
     console = _console(False)
     discovered = config_path or find_config(Path.cwd())
@@ -1108,6 +1139,13 @@ def cache(prune: bool, prune_all: bool) -> None:
     A tree's key hashes the rules and the config, so nothing is served stale.
     Pruning only frees disk.
     """
+    import json
+    from datetime import datetime
+
+    from rich.table import Table
+
+    from .vale_cache import cache_root, prune_cache
+
     console = _console(False)
     root = cache_root()
     if not root.is_dir():
@@ -1167,6 +1205,9 @@ def reference(destination: Path | None, check: bool, rules_dir: tuple[Path, ...]
 
     `--check` fails when the committed copy has drifted.
     """
+    from .reference import render_reference
+    from .rules import RuleLoadError, load_ruleset
+
     console = _console(False)
     try:
         ruleset = load_ruleset(list(rules_dir) or None)

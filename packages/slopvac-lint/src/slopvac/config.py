@@ -21,57 +21,26 @@ its own slopvac.toml and a file outside any package still resolves at the root.
 
 from __future__ import annotations
 
-import tomllib
-from enum import Enum
 from pathlib import Path
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-import pathspec
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+
+from .enums import Mode, Profile, Severity
+
+if TYPE_CHECKING:
+    import pathspec
 
 CONFIG_NAMES = ("slopvac.toml", ".slopvac.toml")
 PYPROJECT = "pyproject.toml"
 
 
-class Severity(str, Enum):
-    """A finding's weight. `off` is a level rather than a deletion so that a
-    disabled rule still resolves, and `slopvac rules` can report it as off."""
+def _path_spec(patterns: list[str]) -> pathspec.PathSpec:
+    """Compile gitignore-style patterns. pathspec is imported on first use: the
+    commands that build no config should not pay for it."""
+    import pathspec
 
-    OFF = "off"
-    SUGGESTION = "suggestion"
-    WARNING = "warning"
-    ERROR = "error"
-
-    @property
-    def rank(self) -> int:
-        return {"off": 0, "suggestion": 1, "warning": 2, "error": 3}[self.value]
-
-    def at_least(self, floor: Severity) -> bool:
-        return self.rank >= floor.rank
-
-
-class Profile(str, Enum):
-    """Strictness tier.
-
-    STRICT is technical documentation: reference, specs, API docs, runbooks.
-    NORMAL is general writing held to a high bar: README, guides, ADRs, essays.
-    RELAXED keeps only high-level readability rules: notes, comments, drafts.
-
-    The tiers are NOT a simple ordering. Two rules invert deliberately -- see
-    profiles.py -- because agentless passive is correct in a spec and wrong in a
-    README, so passive voice is advisory at strict and enforced at normal.
-    """
-
-    STRICT = "strict"
-    NORMAL = "normal"
-    RELAXED = "relaxed"
-
-
-class Mode(str, Enum):
-    """Input surface selected for a lint run."""
-
-    PROSE = "prose"
-    CODE_COMMENTS = "code-comments"
+    return pathspec.PathSpec.from_lines("gitwildmatch", patterns)
 
 
 class CategorySettings(BaseModel):
@@ -383,11 +352,7 @@ class Override(BaseModel):
     @model_validator(mode="after")
     def _compile_spec(self) -> Override:
         # Compiled once at load; matching runs per file.
-        object.__setattr__(
-            self,
-            "_spec",
-            pathspec.PathSpec.from_lines("gitwildmatch", self.files),
-        )
+        object.__setattr__(self, "_spec", _path_spec(self.files))
         return self
 
     def matches(self, relative_path: str) -> bool:
@@ -437,11 +402,7 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def _compile_exclude(self) -> Config:
-        object.__setattr__(
-            self,
-            "_exclude_spec",
-            pathspec.PathSpec.from_lines("gitwildmatch", self.exclude),
-        )
+        object.__setattr__(self, "_exclude_spec", _path_spec(self.exclude))
         return self
 
     @model_validator(mode="after")
@@ -566,6 +527,8 @@ def find_config(start: Path) -> Path | None:
                 return candidate
         pyproject = directory / PYPROJECT
         if pyproject.is_file():
+            import tomllib
+
             try:
                 with pyproject.open("rb") as handle:
                     data = tomllib.load(handle)
@@ -612,6 +575,8 @@ def load_config(path: Path | None, root: Path | None = None) -> Config:
         config = Config()
         object.__setattr__(config, "root", root)
         return config
+
+    import tomllib
 
     try:
         with path.open("rb") as handle:

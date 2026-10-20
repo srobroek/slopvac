@@ -10,12 +10,15 @@ tested and reused without pulling in rule execution.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import regex as re
 
-from .analyze import Document
-from .config import Severity
+from .enums import Severity
 from .model import Finding, Rule
+
+if TYPE_CHECKING:
+    from .analyze import Document
 
 SUPPRESSION = re.compile(
     r"<!--\s*slopvac-allow:\s*rule=(?P<rule>[\w.-]+)(?:\s+reason=(?P<reason>[\w-]+))?\s*-->"

@@ -14,6 +14,7 @@ or a scope asks of the reader.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from .config import (
     Config,
@@ -26,8 +27,10 @@ from .config import (
 from .genres import GENRES, ROUTING
 from .model import Scope, Tier
 from .profiles import profile_defaults
-from .rules import RuleSet
 from .suppression import DISABLE_COMMENT, ENABLE_COMMENT, allow_comment
+
+if TYPE_CHECKING:
+    from .rules import RuleSet
 
 _SURFACE_LIST = (
     "a README or docs",

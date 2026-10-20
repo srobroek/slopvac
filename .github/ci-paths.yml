@@ -39,7 +39,7 @@ action:
   - 'packages/slopvac-lint/src/**'
 
 # The linter supports these prose extensions. Keep this list aligned with
-# slopvac.pipeline.LINTABLE so repository prose cannot bypass its own gate.
+# slopvac.contract.LINTABLE so repository prose cannot bypass its own gate.
 docs:
   - '.github/workflows/**'
   - '.lychee.toml'

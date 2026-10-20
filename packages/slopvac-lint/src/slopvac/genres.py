@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
-from .config import Profile
+from .enums import Profile
 
 
 class DocumentGenre(NamedTuple):

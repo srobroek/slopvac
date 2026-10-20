@@ -27,9 +27,9 @@ from .config import (
     Override,
     Severity,
 )
+from .contract import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK, LINTABLE, SKIP_SOURCE_DIRS
 from .guidance import genres_and_profiles, prime_section, unlinted
 from .model import DocumentScore, Finding
-from .pipeline import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK, LINTABLE, SKIP_SOURCE_DIRS
 from .report import LintReport, RunSummary
 from .steering import harnesses
 from .suppression import (

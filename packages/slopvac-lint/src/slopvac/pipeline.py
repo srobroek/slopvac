@@ -12,7 +12,6 @@ import copy
 import fnmatch
 import os
 import tempfile
-import webbrowser
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -47,6 +46,7 @@ from .config import (
     resolve_blocklist_path,
     resolve_for,
 )
+from .contract import EXIT_ERROR, LINTABLE, SKIP_SOURCE_DIRS
 from .diff_scope import DiffScope, filter_findings
 from .engine import (
     Engine,
@@ -64,7 +64,6 @@ from .vale import ValeResult, run_compiled_vale, unchecked_for_skipped
 from .vale_probe import rst_converter
 from .vocabulary import Vocabulary, VocabularyError, load_blocklist
 
-LINTABLE = ("*.md", "*.mdx", "*.markdown", "*.txt", "*.rst", "*.html")
 SOURCE_LINTABLE = tuple(
     f"*{suffix}" for suffix in SOURCE_LANGUAGE_BY_EXTENSION
 ) + tuple(SOURCE_FILENAMES)
@@ -77,27 +76,6 @@ def _comment_source_language(path: Path | str) -> tuple[str, str]:
     if candidate.suffix.lower() == ".toml":
         return "toml", ".toml"
     return canonical_source_language(candidate)
-
-
-SKIP_SOURCE_DIRS = frozenset(
-    {
-        ".git",
-        ".hg",
-        ".svn",
-        ".venv",
-        "venv",
-        "node_modules",
-        "vendor",
-        "build",
-        "dist",
-        "target",
-        "__pycache__",
-    }
-)
-
-EXIT_OK = 0
-EXIT_FINDINGS = 1
-EXIT_ERROR = 2
 
 
 class PipelineError(Exception):
@@ -657,6 +635,8 @@ def emit_report(
             if open_report:
                 # A browser that will not open is not a lint failure, so this
                 # reports and carries on to the exit code the prose earned.
+                import webbrowser
+
                 if webbrowser.open(destination.resolve().as_uri()):
                     console.print("opened in your browser")
                 else:
