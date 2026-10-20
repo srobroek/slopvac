@@ -496,7 +496,7 @@ See [metrics](docs/metrics.md) for counting and text-type classification details
 ## Rules
 
 The [rule reference](docs/rules.md) lists 26 categories.
-It describes 167 checked rules and 67 judgment rules.
+It describes 166 checked rules and 67 judgment rules.
 Each judgment rule includes review questions and examples.
 
 | Family | Categories |
