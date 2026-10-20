@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.0](https://github.com/srobroek/slopvac/compare/v2.14.0...v2.15.0) (2026-10-20)
+
+
+### Features
+
+* full rule records per genre, suppression fixes, prime directives ([#202](https://github.com/srobroek/slopvac/issues/202)) ([b2a511f](https://github.com/srobroek/slopvac/commit/b2a511f3a6c09a2e9a7fcbc8c12cadfb074fbe1f))
+
 ## [2.14.0](https://github.com/srobroek/slopvac/compare/v2.13.1...v2.14.0) (2026-10-20)
 
 
