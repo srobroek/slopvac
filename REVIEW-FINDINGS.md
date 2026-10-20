@@ -192,3 +192,28 @@ The new #218 review was also checked before merge:
 | [4328939751](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939751) | Already fixed: retired paths retained in CSV | retired integration invariant and full suite |
 | [4328939764](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939764) | Fixed: require a directory for compiled output | blocker regression now sets mode 0600 |
 | [4328939774](https://github.com/srobroek/slopvac/pull/218#discussion_r4328939774) | Fixed: refresh validated cache-hit recency | test_ruleset_hit_refreshes_recency |
+
+## Follow-up after merge
+
+PR #218 merged as `fb1cfd82b11d2734037e8be110560ebbcd4e0e86`; post-merge CI passed. No release was published. The assessment above records the pre-merge state.
+
+| Finding | Current disposition | Evidence |
+| --- | --- | --- |
+| #177 URL authorization | Valid; fixed in [#220](https://github.com/srobroek/slopvac/pull/220), targeting exp/judge-corpus | 19 regressions cover exact HTTPS origins, deceptive URLs, redirect boundaries and retries |
+| #178 exception exposure | Valid; fixed in [#221](https://github.com/srobroek/slopvac/pull/221), targeting exp/judge-sagemaker | HTTP tests cover three exception types, opaque responses, internal logging and success |
+| #218 [4329158766](https://github.com/srobroek/slopvac/pull/218#discussion_r4329158766) | Valid; fixed in [#222](https://github.com/srobroek/slopvac/pull/222) | Packaged basename collision and canonical custom-origin regressions |
+| #218 [4329158780](https://github.com/srobroek/slopvac/pull/218#discussion_r4329158780) | Valid; fixed in #222 | Target-interpreter warm-up regression |
+| #218 inline-code output and slot recency | Already fixed in merged #218 | Source-rendering and valid-hit recency regressions passed again in #222 |
+| #221 [4329296320](https://github.com/srobroek/slopvac/pull/221#discussion_r4329296320) | Valid; fixed in #221 | Required gate includes security job; tests exercise success, failure and skipped outcomes |
+| #217 prerequisites and doctor | Already fixed in merged #217 | Validation requires Vale; unreadable-version message includes supported floor |
+| #217 URL annotation in test assertion | Unsupported | Assertion checks CLI output and does not authorize a request |
+
+These follow-up PRs remain unmerged. Experimental fixes do not introduce their packages into main.
+
+### Historical prose
+
+The current-document pass covers both READMEs, metrics, semantic guidance, STE principles, Vale traps, and performance guidance. It corrects spelling, semicolons, sentence structure, instruction ordering, exit-code wording, links, and stale benchmark instructions. A fresh reviewer checked the changes against source. The heading anchor, lookbehind explanation, and malformed-file exit condition were corrected after that review.
+
+Retired documents and skills are obsolete targets. Archived evaluation data retains its wording and values. Experimental server report changes add Markdown spacing only; the generator receives the same correction. Generated catalogs and changelogs preserve literal rule names, examples and historical entries.
+
+Remaining prose alerts are advisory rather than confirmed defects. Examples include requests to insert "that" before a noun object, proper names such as GitHub Actions, condition-first sentences flagged as condition-last, and deliberate reference tables or lint examples. No claim is made that every historical alert disappeared or that remote threads are resolved. The CSV preserves original comment links and identifies retired targets and live documents covered by this pass.

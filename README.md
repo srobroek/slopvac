@@ -29,7 +29,7 @@ technical-writing constraints. Use it on AI-generated documentation, PR
 descriptions, Markdown, and comments in supported source files such as TSX and
 JSX. Comment mode checks comments, not code or strings.
 
-Coding agents can run the CLI, inspect findings, and apply fixes. The same checks
+Coding agents use the CLI to inspect findings and apply fixes. The same checks
 can run in pre-commit or CI for automated validation.
 
 ## Quick start
@@ -37,7 +37,7 @@ can run in pre-commit or CI for automated validation.
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
 Python 3.11 or later. **[Vale](https://vale.sh) 3.18 or later is required
 for a complete lint run.** Vale executes most deterministic rules and must be
-available on `PATH`. SlopVac checks the Vale version before compiling rules.
+available on `PATH`. Slopvac checks the Vale version before compiling rules.
 Without Vale, lint exits 2 (incomplete) instead of 0 (pass).
 
 With Homebrew, install Vale and check the installed version:
@@ -81,7 +81,11 @@ Slopvac skips the check in these cases:
 - The environment contains `CI`.
 - Standard error is not a terminal.
 
-To disable the check, set `NO_UPDATE_NOTIFIER=1`, `SLOPVAC_NO_UPDATE_CHECK=1`, or `DO_NOT_TRACK=1`.
+To disable the check, set one of these environment variables:
+
+- `NO_UPDATE_NOTIFIER=1`
+- `SLOPVAC_NO_UPDATE_CHECK=1`
+- `DO_NOT_TRACK=1`
 
 ### Use the results
 
@@ -91,8 +95,7 @@ slopvac --open README.md
 slopvac --fix README.md
 ```
 
-`--fix` edits source files using deterministic replacements. Review the diff
-before keeping those edits. The **[CLI reference](packages/slopvac-lint/README.md)**
+`--fix` edits source files using deterministic replacements. Before keeping those edits, review the diff. The **[CLI reference](packages/slopvac-lint/README.md)**
 covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
 [profiles](packages/slopvac-lint/README.md#profiles), and
 [scoring](packages/slopvac-lint/README.md#scoring).
@@ -132,19 +135,19 @@ Native findings remain available, but the run returns exit 2.
 ## Agent setup
 
 Slopvac installs small project-local files instead of harness marketplaces.
-The managed steering block tells the agent to run `slopvac prime`, and a
-`slopvac-prose` skill tells harnesses that load project skills to run
-`slopvac prime write` and `slopvac prime review` around prose work. Neither
-copies rule policy; the installed CLI prints it.
+The managed steering block tells the agent to run `slopvac prime`.
+Harnesses that load project skills also receive `slopvac-prose`.
+That skill directs agents to run `slopvac prime write` and `slopvac prime review` around prose work. Neither
+copies rule policy. The installed CLI prints it.
 
 Two commands write these files:
 
 - `slopvac init` creates `slopvac.toml` when absent and keeps an existing file
-  unless `--force` is set. Repeat `--harness <name>` for several harnesses.
-  Without `--harness`, it writes generic `AGENTS.md` steering; naming a harness
+  unless you pass `--force`. Repeat `--harness <name>` to select multiple harnesses.
+  Without `--harness`, it writes generic `AGENTS.md` steering. Naming a harness
   replaces that default, so add `--harness agents` to keep it. `--no-skills`
   writes steering without skills. `--skip-agents` writes only the config and
-  cannot be combined with `--harness` or `--no-skills`.
+  rejects `--harness` and `--no-skills`.
 - `slopvac setup <harness>` writes, checks, or removes one harness's steering
   and its skill when available. It writes only those files: it reads
   `[guidance]` from `slopvac.toml`, or uses the defaults when no config exists.
@@ -173,9 +176,8 @@ that points the agent to `prime` for the detailed workflow.
 ## Writing guidance
 
 `slopvac prime write` prints a writing guide for READMEs, docs, PR or MR
-descriptions, commit and release text, and specifications. The guide holds a
-genre table, a documentation contract, and the `slopvac rules` command that
-prints the judgement rules for the document's genre. `slopvac prime` tells the
+descriptions, commit and release text, and specifications. The guide provides a genre table and a documentation contract.
+It also gives the `slopvac rules` command for the genre's judgment rules. `slopvac prime` tells the
 agent to run it before drafting or editing that prose.
 
 Disable it with `[guidance] write = "off"` in `slopvac.toml`. The
@@ -185,19 +187,20 @@ lists every mode.
 ## Semantic review
 
 `slopvac prime review` prints a review workflow. The agent runs `slopvac lint`
-first, answers the judgement checklist for the document's genre, and checks
-factual claims against the code. The default reviewer pass uses one
-fresh-context subagent. The author gives it the draft, original if revised,
-source or brief if available, and review output. It runs lint, the checklist,
-and fact check, then reports findings once with rule id, quoted text, proposed
-rewrite, lost facts, and claims stronger than the source. The author fixes or
+first, answers the judgment checklist for the document's genre, and checks
+factual claims against the code. The default reviewer pass uses one fresh-context subagent.
+ The reviewer receives the text and the review output.
+For a revision, it also receives the original. It receives the source or brief when available.
+The reviewer runs lint and applies the checklist. It verifies factual claims against the source.
+Its report names each rule and quotes the affected text, with a proposed rewrite.
+It also identifies lost facts and claims stronger than the source. The author fixes or
 rebuts each finding. No loop follows unless requested.
 
-Set `[guidance] review_depth = "self"` when the author should run the pass, or
-`"adversary"` to run repeated reviewer rounds. Each round gets the findings the
+For a pass by the author, set `[guidance] review_depth = "self"`.
+For repeated reviewer rounds, set `review_depth = "adversary"`. Each round gets the findings the
 author rebutted earlier, and the loop stops when a round reports no finding the
 author accepts. If no subagent is available, the author runs the pass and
-records `self (no subagent available)`. `review = "ask"` asks before the review;
+records `self (no subagent available)`. `review = "ask"` asks before the review.
 `review = "off"` disables it. Slopvac only prints the workflow and the
 checklist. The agent's own model runs the review.
 
@@ -251,45 +254,40 @@ local exception or an excluded file, and
 ## Limits and evaluation
 
 A passing run means the selected checks stayed within configured thresholds.
-It does not establish factual correctness or make an overall judgement about
+It does not establish factual correctness or make an overall judgment about
 writing quality beyond the configured rules. AI-signal labels describe rule
 evidence without changing the gate.
 
 Before merging a release PR, maintainers can run the report-only local
 [performance comparison](packages/slopvac-lint/docs/performance.md#pre-release-regression-comparison)
-on an idle host. It reports regressions and exits 0; set `PERF_FAIL=1` to fail
+on an idle host. It reports regressions and exits 0. Set `PERF_FAIL=1` to fail
 on them.
 
 ## Roadmap
 
-## Agentic judgement
+## Agentic judgment
 
 Lint is deterministic, and the [semantic review](#semantic-review) is a
-checklist that an agent applies. A separate development track is
-evaluating an optional semantic decision layer built around **typed judge
-models** rather than free-form text generation. Candidate backends include
+checklist that an agent applies. A separate development track evaluates optional **typed judge models** for semantic decisions. Candidate backends include
 hosted [Jev](https://www.typesafeai.org/jev) and local/open models such as
 [Laya](https://github.com/NandhaKishorM/laya),
 [Nimble](https://github.com/bespokelabsai/nimble), and
 [Kev](https://github.com/jaredpalmer/kev), plus the
 [SemIf](https://github.com/theoleecj/semif) direct-logit scoring approach.
-The design is tracked in
+The design appears in
 [issue #162](https://github.com/srobroek/slopvac/issues/162).
 
-The planned layer fits **after** Slopvac has parsed the document and generated
-candidate spans. It has two uses:
+The proposed layer would run **after** Slopvac parses the document and generates candidate spans. It has two uses:
 
 1. **Semantic detection.** For AI/style defects that cannot be expressed
    reliably as syntax, structure, or fixed patterns, a typed judge evaluates
    bounded questions such as applicability, semantic fit, evidence sufficiency,
    and repair category. Slopvac code, not the model, derives the final
    confirm/reject/uncertain policy.
-2. **Rule validation.** For an ordinary linter rule that already fired, the same
-   decision provider receives the rule id, exact source span, and local context
-   and asks whether the trigger actually matches the defect the rule intends to
-   detect. This is intended to measure false positives, validate rule changes
-   against gold/control corpora, and identify rules whose deterministic trigger
-   should be improved.
+2. **Rule validation.** The provider receives a finding's rule id, exact source span, and local context.
+   It assesses whether the trigger matches the intended defect.
+   These assessments would measure false positives and validate rule changes against gold/control corpora.
+   They would also identify deterministic triggers to improve.
 
 An optional local reranker may sit before the typed judge when candidate volume
 is high. The first candidate is
@@ -308,8 +306,7 @@ source
   -> semantic detection / rule-validation report
 ```
 
-Exact source locations remain host-authoritative. This semantic layer is being
-developed separately and is not part of the current linter CLI or exit status.
+Exact source locations remain host-authoritative. The semantic layer remains separate from the current linter CLI and its exit status.
 
 ## License
 
