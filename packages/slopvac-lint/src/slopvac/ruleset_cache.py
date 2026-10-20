@@ -110,8 +110,7 @@ def content_key(sources: list[tuple[str, str]]) -> str:
         ).encode()
     )
     for origin, text in sources:
-        identity = str(Path(origin).resolve()) if Path(origin).is_file() else origin
-        digest.update(b"\0" + os.fsencode(identity) + b"\0")
+        digest.update(b"\0" + os.fsencode(origin) + b"\0")
         digest.update(hashlib.sha256(text.encode("utf-8")).digest())
     return digest.hexdigest()
 

@@ -4,15 +4,15 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
-import statistics
 import datetime as dt
+import hashlib
 import json
 import os
 import platform
 import re
 import shlex
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -497,7 +497,7 @@ def profiler_scenario(name: str | None) -> dict[str, Any]:
     return scenario
 
 
-def run_profiled(command: list[str], scenario: dict[str, Any], **kwargs: Any) -> None:
+def run_profiled(command: list[str], scenario: dict[str, Any], *, python: str | None = None, **kwargs: Any) -> None:
     """Run a profiler over slopvac, accepting the exits the scenario expects."""
     scratch = kwargs.get("cwd")
     if scratch is not None:
@@ -515,7 +515,7 @@ def run_profiled(command: list[str], scenario: dict[str, Any], **kwargs: Any) ->
             cache.mkdir(mode=0o700, exist_ok=True)
             env["SLOPVAC_CACHE_DIR"] = str(cache)
             if scenario["cache"] == "warm":
-                warm = subprocess.run([sys.executable, "-m", "slopvac.cli", *prepare_inputs(scenario, Path(scratch))],
+                warm = subprocess.run([python or sys.executable, "-m", "slopvac.cli", *prepare_inputs(scenario, Path(scratch))],
                                       cwd=scratch, env=env, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 if warm.returncode not in accepted_exits(scenario):
                     raise subprocess.CalledProcessError(warm.returncode, warm.args)
@@ -649,7 +649,7 @@ def run_spy(scenario_name: str | None) -> None:
     try:
         # The scratch venv holds only slopvac; py-spy lives in the profile group,
         # so pass its resolved absolute path (sudo's secure_path would not find it).
-        run_profiled(["sudo", py_spy, "record", "--idle", "-f", "speedscope", "-o", str(directory / "spy.json"), "--", str(python), "-m", "slopvac.cli", *args], scenario, cwd=scratch)
+        run_profiled(["sudo", py_spy, "record", "--idle", "-f", "speedscope", "-o", str(directory / "spy.json"), "--", str(python), "-m", "slopvac.cli", *args], scenario, python=str(python), cwd=scratch)
     finally:
         shutil.rmtree(parent, ignore_errors=True)
         finish_metadata(directory)
