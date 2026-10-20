@@ -56,8 +56,8 @@ jobs:
           import json
           rules = json.load(open('/tmp/rules.json'))
           kinds = [rule['kind'] for rule in rules['rules']]
-          assert len(rules['rules']) == 232, len(rules['rules'])
-          assert kinds.count('judgement') == 66, kinds.count('judgement')
+          assert len(rules['rules']) == 234, len(rules['rules'])
+          assert kinds.count('judgement') == 67, kinds.count('judgement')
           assert len(rules['categories']) == 26, len(rules['categories'])
           PY
           slopvac explain orwell.stale-figure --format json > /tmp/explain.json
@@ -139,7 +139,7 @@ jobs:
           python3 - <<'PY'
           import json
           rules = json.load(open('/tmp/judgement-rules.json'))['rules']
-          assert len(rules) == 66 and all(r['kind'] == 'judgement' for r in rules)
+          assert len(rules) == 67 and all(r['kind'] == 'judgement' for r in rules)
           explained = json.load(open('/tmp/judgement-explain.json'))
           assert explained['judgement_question'] and explained['fix']
           assert explained['examples']
@@ -443,8 +443,8 @@ jobs:
           python - <<'PY'
           import json
           rules = json.load(open("/tmp/rules.json"))
-          assert len(rules["rules"]) == 232
-          assert sum(r["kind"] == "judgement" for r in rules["rules"]) == 66
+          assert len(rules["rules"]) == 234
+          assert sum(r["kind"] == "judgement" for r in rules["rules"]) == 67
           assert len(rules["categories"]) == 26
           PY
 
