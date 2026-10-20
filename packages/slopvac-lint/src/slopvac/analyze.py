@@ -42,6 +42,7 @@ import unicodedata
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import cache
 from html import unescape
 from html.parser import HTMLParser
 
@@ -266,42 +267,46 @@ _IMPERATIVE_VERB_ALTERNATION = "|".join(
 # engine flags and locale settings.
 _UNICODE_WORD_END = r"(?![\p{L}\p{Nd}_])"
 
-IMPERATIVE_MARKERS = re.compile(
-    rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
-    re.I,
-)
-PHRASAL_IMPERATIVE = re.compile(
-    rf"^(?:please\s+)?(?:"
-    rf"(?:{_IMPERATIVE_VERB_ALTERNATION})\s+"
-    r"(?:up|down|off|on|out|in|over|back|away)|"
-    r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
-    r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
-    r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))"
-    rf"{_UNICODE_WORD_END}",
-    re.I,
-)
-NEGATIVE_IMPERATIVE = re.compile(
-    rf"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+{_UNICODE_WORD_END}",
-    re.I,
-)
-TO_VERB = re.compile(
-    rf"^to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
-    re.I,
-)
-REMEMBER_TO = re.compile(
-    rf"^(?:remember|make\s+sure)\s+to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
-    re.I,
-)
-SAFETY_MARKER = re.compile(
-    rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT){_UNICODE_WORD_END}"
-    r"(?:\*{0,2})?\s*[:.!]?",
-    re.I,
-)
-NOTE_MARKER = re.compile(
-    rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?:NOTE(?:\*{{0,2}})?\s*:\s*|(?:TIP|HINT|INFO){_UNICODE_WORD_END}"
-    r"(?:\*{0,2})?\s*[:.!]?)",
-    re.I,
-)
+@cache
+def _text_type_patterns() -> tuple[re.Pattern[str], ...]:
+    """Compile classifier-only patterns on the first text-type check."""
+    return (
+        re.compile(
+            rf"^(?:please\s+)?(?:do\s+not\s+|do\s+)?(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^(?:please\s+)?(?:"
+            rf"(?:{_IMPERATIVE_VERB_ALTERNATION})\s+"
+            r"(?:up|down|off|on|out|in|over|back|away)|"
+            r"back\s+up|shut\s+down|power\s+off|turn\s+(?:off|on)|"
+            r"switch\s+(?:off|on)|log\s+(?:in|out)|sign\s+(?:in|out)|"
+            r"set\s+up|spin\s+up|roll\s+back|scale\s+(?:down|up))"
+            rf"{_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^(?:please\s+)?(?:don't|never|do\s+not)\s+[A-Za-z]+{_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}", re.I
+        ),
+        re.compile(
+            rf"^(?:remember|make\s+sure)\s+to\s+(?:{_IMPERATIVE_VERB_ALTERNATION}){_UNICODE_WORD_END}",
+            re.I,
+        ),
+        re.compile(
+            rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?P<marker>WARNING|CAUTION|DANGER|NOTICE|ATTENTION|IMPORTANT){_UNICODE_WORD_END}"
+            r"(?:\*{0,2})?\s*[:.!]?",
+            re.I,
+        ),
+        re.compile(
+            rf"^\s*(?:>\s*)?(?:\*{{0,2}})?(?:NOTE(?:\*{{0,2}})?\s*:\s*|(?:TIP|HINT|INFO){_UNICODE_WORD_END}"
+            r"(?:\*{0,2})?\s*[:.!]?)",
+            re.I,
+        ),
+    )
 
 
 def _identity_id(
@@ -456,7 +461,9 @@ class Document:
 _ENTITY = re.compile(r"&(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]+);?")
 
 
-def _raw_cp_bytes(raw: str) -> list[int]:
+def _raw_cp_bytes(raw: str) -> list[int] | range:
+    if raw.isascii():
+        return range(len(raw) + 1)
     offsets = [0]
     for char in raw:
         offsets.append(offsets[-1] + len(char.encode("utf-8")))
@@ -471,11 +478,16 @@ def _line_cp_starts(raw: str) -> list[int]:
     return starts
 
 
-def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionMap:
+def _align_block_text(
+    text: str,
+    raw: str,
+    first: int,
+    last: int,
+    offsets: list[int] | range,
+    starts: list[int],
+    raw_bytes: bytes,
+) -> ProjectionMap:
     """Align parser-rendered block text with its source line span."""
-
-    offsets = _raw_cp_bytes(raw)
-    starts = _line_cp_starts(raw)
     start_cp = starts[max(0, min(first - 1, len(starts) - 1))]
     end_line = max(first, min(last, len(starts)))
     end_cp = starts[end_line] if end_line < len(starts) else len(raw)
@@ -513,7 +525,7 @@ def _align_block_text(text: str, raw: str, first: int, last: int) -> ProjectionM
         segments.append(
             Segment(position, position + 1, offsets[raw_start_cp], offsets[raw_end_cp])
         )
-    return ProjectionMap(tuple(segments), raw.encode("utf-8"))
+    return ProjectionMap(tuple(segments), raw_bytes)
 
 
 def _block_projected_base(
@@ -579,6 +591,8 @@ def _finalize_document(document: Document) -> Document:
 
     examples_heading = False
     projected_cursor = 0
+    offsets = _raw_cp_bytes(document.raw)
+    starts = _line_cp_starts(document.raw)
     block_occurrences: dict[tuple[str, str], int] = {}
     sentence_occurrences: dict[str, int] = {}
     for block in document.blocks:
@@ -600,7 +614,13 @@ def _finalize_document(document: Document) -> Document:
             last = max(block.lines[0], last)
         if block.projection is None:
             block.projection = _align_block_text(
-                block.text, document.raw, block.lines[0], last
+                block.text,
+                document.raw,
+                block.lines[0],
+                last,
+                offsets,
+                starts,
+                raw_bytes,
             )
         block_base = projected_text.find(block.text, projected_cursor)
         if block_base < 0:
@@ -785,21 +805,30 @@ def classify_text_type(text: str) -> TextType:
     list use the fallback and may be classified wrongly either way.
     """
     stripped = text.strip()
-    safety_match = SAFETY_MARKER.match(stripped)
+    (
+        imperative_markers,
+        phrasal_imperative,
+        negative_imperative,
+        to_verb,
+        remember_to,
+        safety_marker,
+        note_marker,
+    ) = _text_type_patterns()
+    safety_match = safety_marker.match(stripped)
     if safety_match:
         marker = safety_match.group("marker").upper()
         marker_body = stripped[safety_match.end() :].lstrip(" :.!?*-+")
         if (
-            IMPERATIVE_MARKERS.match(marker_body)
-            or PHRASAL_IMPERATIVE.match(marker_body)
-            or NEGATIVE_IMPERATIVE.match(marker_body)
-            or TO_VERB.match(marker_body)
-            or REMEMBER_TO.match(marker_body)
+            imperative_markers.match(marker_body)
+            or phrasal_imperative.match(marker_body)
+            or negative_imperative.match(marker_body)
+            or to_verb.match(marker_body)
+            or remember_to.match(marker_body)
             or re.match(r"^you\s+(?:should|must|need\s+to)\b", marker_body, re.I)
         ):
             return TextType.PROCEDURAL
         return TextType.DESCRIPTIVE if marker == "IMPORTANT" else TextType.SAFETY
-    if NOTE_MARKER.match(stripped):
+    if note_marker.match(stripped):
         return TextType.DESCRIPTIVE
     body = STEP_NUMBER.sub("", stripped).lstrip(" -*+")
     tokens = _ste_tokens(body)
@@ -821,10 +850,10 @@ def classify_text_type(text: str) -> TextType:
     ):
         return TextType.DESCRIPTIVE
     if (
-        IMPERATIVE_MARKERS.match(body)
-        or NEGATIVE_IMPERATIVE.match(body)
-        or TO_VERB.match(body)
-        or REMEMBER_TO.match(body)
+        imperative_markers.match(body)
+        or negative_imperative.match(body)
+        or to_verb.match(body)
+        or remember_to.match(body)
         or re.match(r"^you\s+(?:should|must|need\s+to)\b", body, re.I)
     ):
         return TextType.PROCEDURAL
