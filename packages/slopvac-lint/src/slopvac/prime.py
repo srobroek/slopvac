@@ -7,8 +7,8 @@ that owns it. The hand-written parts are the grouping of commands, the rules,
 and the workflows; a test holds each command and flag they mention to the click
 tree, so a renamed flag fails the suite instead of leaving the guide wrong.
 
-The judgement checklists stay in `slopvac prime write|review`; this guide only
-routes to them.
+The judgement rules are not listed here or in `slopvac prime write|review`:
+`slopvac rules --format md` prints them, and this guide only routes to it.
 """
 
 from __future__ import annotations
@@ -56,6 +56,12 @@ SUPPRESSIONS_DOC = "packages/slopvac-lint/docs/suppressions.md"
 SUPPRESSIONS_URL = (
     f"https://github.com/srobroek/slopvac/blob/v{__version__}/{SUPPRESSIONS_DOC}"
 )
+# The reference for both `slopvac rules` output formats. A test holds the path to
+# a file in the repository and the documented JSON keys to the command's output.
+RULES_OUTPUT_DOC = "packages/slopvac-lint/docs/rules-output.md"
+RULES_OUTPUT_URL = (
+    f"https://github.com/srobroek/slopvac/blob/v{__version__}/{RULES_OUTPUT_DOC}"
+)
 
 # The report keys an agent reads, checked against the models that serialise
 # `--format json`, so a renamed field fails the render.
@@ -95,6 +101,10 @@ _WORKFLOWS: tuple[tuple[str, tuple[str, ...]], ...] = (
             "slopvac lint docs/api.md --explain-config",
             "slopvac rules --profile strict --kind judgement --format json",
         ),
+    ),
+    (
+        "Read the rules that a reviewer applies to one genre",
+        ("slopvac rules --kind judgement --genre reference --profile strict --format md",),
     ),
     (
         "Install steering for one harness and check it",
@@ -302,6 +312,27 @@ def _suppressions() -> list[str]:
     ]
 
 
+def _rule_lookup(cli: click.Group) -> list[str]:
+    """Which `slopvac rules` format to read, and how its filters combine."""
+    return [
+        "## Rule lookup",
+        "",
+        "- `slopvac rules --format md` prints each rule in full, for an agent to read.",
+        "- `slopvac rules --format json` prints the same rules as data, for tools.",
+        "- `--kind`, `--category`, and `--genre` select rules. "
+        "The list keeps the rules that match each filter that you give.",
+        f"- `--genre` takes one of {_choices(cli, 'rules', '--genre')}. "
+        "It keeps the categories that list that genre.",
+        "- With `--profile`, md output omits the rules that the profile excludes. "
+        "`--include-excluded` keeps them.",
+        "- `slopvac explain <rule_id> --format md` prints the block of one rule.",
+        "- Give these commands the `--rules-dir` that lint uses. "
+        "Then they include the house rules.",
+        f"- The output reference is `{RULES_OUTPUT_URL}`.",
+        "",
+    ]
+
+
 def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
     """The base guide for an agent, for the given `[guidance]` and command tree."""
     keys, tables = _config_keys()
@@ -333,6 +364,7 @@ def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
         *prime_section(settings),
         *_commands(cli),
         *genres_and_profiles(),
+        *_rule_lookup(cli),
         "## Inputs",
         "",
         "- `TARGETS` are files, directories, or globs.",

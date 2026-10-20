@@ -1,7 +1,8 @@
 # Writing guidance and semantic review
 
 Lint checks rules decided by patterns. Readers judge other rules. Prime topics
-turn those judgement rules into instructions for writing and review.
+tell an agent how to apply those judgement rules in writing and review, and
+`slopvac rules` prints the rules themselves.
 
 Slopvac makes no model calls. The agent that reads the guidance does the
 semantic review.
@@ -10,19 +11,20 @@ semantic review.
 
 | Command | Prints |
 | --- | --- |
-| `slopvac prime` | How to run each command, the genre and profile tables, report keys, exit codes, directives and exclusions, and when to run the two topics below |
-| `slopvac prime write` | The genre and profile tables, the documentation contract, a writing workflow, the order for excluding content, and one fix per judgement rule |
-| `slopvac prime review` | The genre and profile tables, the review workflow, the suppression checks, the verdict format, and one question per judgement rule |
+| `slopvac prime` | How to run each command, the genre and profile tables, rule lookup, report keys, exit codes, directives and exclusions, and when to run the two topics below |
+| `slopvac prime write` | The genre and profile tables, the documentation contract, a writing workflow, the order for excluding content, and the command that prints the judgement rules for a genre |
+| `slopvac prime review` | The genre and profile tables, the review workflow, the suppression checks, the verdict format, and the command that prints the judgement checklist for a genre |
+| `slopvac rules --kind judgement --genre <genre> --profile <profile> --format md` | Each judgement rule for that genre in full, grouped by category |
 
-All three only print. Each reads `[guidance]` from the nearest slopvac config
-in or above the working directory; `--config PATH` names another file, and
-`--rules-dir DIR` adds house rules to the topics.
+The three prime commands only print. Each reads `[guidance]` from the nearest
+slopvac config in or above the working directory; `--config PATH` names
+another file. `--rules-dir DIR` adds house rules to the genre table of the
+topics.
 
-The judgement lists come from the loaded rule catalogue, grouped by category
-and sorted by rule id. A house rule with `kind: judgement` in a `--rules-dir`
-`slopvac explain <rule_id>` shows a rule's question, fix, and worked examples
-when those fields are defined. `slopvac rules --kind judgement` lists all
-judgement rules.
+`slopvac rules` renders the judgement rules from the loaded rule catalogue,
+grouped by category and sorted by rule id. A house rule with `kind: judgement`
+in a `--rules-dir` appears when the agent passes that `--rules-dir` to
+`slopvac rules`, as the topics say. `slopvac explain <rule_id>` shows one rule.
 
 ## When an agent runs them
 
@@ -41,6 +43,8 @@ The managed steering block in `AGENTS.md` or a harness file points agents to
 - Core rules and the writing and review steps that `[guidance]` turns on.
 - The commands, grouped by purpose.
 - The genre table and the profile table.
+- Rule lookup: the `slopvac rules` format to read, how its filters combine,
+  and a link to the [rules output reference](rules-output.md).
 - Inputs, results, Vale, fixes and suppressions, configuration, and agent setup.
 - Common workflows as one shell block.
 - A command reference that gives the usage of each command and lists each
@@ -56,39 +60,53 @@ profile tables. Their genre table adds the checklist categories for each genre.
 The write topic then prints the documentation contract, a writing workflow, and
 the order in which to exclude text that is not authored prose. The review topic
 prints the review workflow, which audits each directive, and the verdict block,
-which has a `Suppressions` line. It includes a reviewer pass for
-`review_depth = "subagent"` or `"adversary"`; at `"self"`, the author applies
-the review steps without a separate reviewer pass. An unjustified suppression
-makes the verdict REVISE.
+which has a `Checked` line and a `Suppressions` line. It includes a reviewer
+pass for `review_depth = "subagent"` or `"adversary"`; at `"self"`, the author
+applies the review steps without a separate reviewer pass. An unjustified
+suppression makes the verdict REVISE.
 
 `slopvac explain <rule_id>` lists the named exceptions that an allow directive
 can cite. [Suppressions and exclusions](suppressions.md) gives the full
 directive grammar and the config controls.
 
-Each topic ends with one entry per judgement rule, grouped by category. Each
-category heading names the genres it suits. [The rules reference](rules.md)
-gives the current number of judgement rules.
+Neither topic lists the judgement rules. The last section of each gives this
+command, for the genre and profile of the document:
 
-| Topic | Entry format |
-| --- | --- |
-| `slopvac prime write` | `` `<category>.<rule-id>` (<scope>): <fix> `` |
-| `slopvac prime review` | `` `<category>.<rule-id>` (<scope>): <question> `` |
+```sh
+slopvac rules --kind judgement --genre <genre> --profile <profile> --format md
+```
 
-The scope is the unit the rule judges: a sentence, a paragraph, or the whole
-document. Before the entries, each topic explains the scopes and the three
-tiers, `enforced`, `advisory`, and `excluded`. It also names the two commands
-that give more detail on a rule:
+The command prints one block per rule, under a heading for its category. Each
+category heading names the genres that the category suits. A block gives the
+rule's question, fix, examples, tiers, and source. The command omits each rule
+that the profile excludes; `--include-excluded` keeps them.
+[Rules output](rules-output.md) gives the block layout, and
+[the rules reference](rules.md) gives the current number of judgement rules.
 
-- `slopvac explain <rule_id>` prints the question, the fix, and worked examples.
-- `slopvac rules --kind judgement --profile <profile> --format json` gives each
-  rule's `tier` at that profile.
+After the command, each topic explains the scopes and the three tiers,
+`enforced`, `advisory`, and `excluded`. The scope is the unit the rule judges:
+a sentence, a paragraph, or the whole document. The write topic tells the agent
+to apply the fix of each rule whose question matches the text, and to calibrate
+with the examples. The review topic tells the agent to ask each enforced and
+advisory question at its scope and to quote each failure. The `Checked` line of
+the verdict names the command and the id of each rule asked. A verdict without
+the command is REVISE, because the review did not print the checklist.
 
-An excerpt of the review checklist:
+An excerpt of the output for the `internal` genre at `normal`, cut after the
+first fields of the first rule:
 
-```text
-### AI tells -- content shape (`ai-tells-content-shape`), recommended for: consumer, internal, change-comms
+```markdown
+## AI tells -- content shape (`ai-tells-content-shape`), recommended for: consumer, internal, change-comms
 
-- `ai-tells-content-shape.elegant-variation` (document): Does this document refer to one thing by two or more different names without saying they are the same thing?
+### `ai-tells-content-shape.elegant-variation`: Repeat the noun
+
+- Category: `ai-tells-content-shape`
+- Scope: `document`
+- Kind: `judgement`
+- Severity: `suggestion`; at `normal`: `suggestion`
+- Tier at `normal`: `enforced`; all tiers: `strict=enforced normal=enforced relaxed=advisory`
+- Question: Does this document refer to one thing by two or more different names without saying they are the same thing?
+- Fix: Pick one name and use it every time.
 ```
 
 ## Configuration

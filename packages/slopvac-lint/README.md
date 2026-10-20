@@ -489,9 +489,26 @@ with their review questions and examples.
 
 ```sh
 slopvac rules --profile strict
+slopvac rules --kind judgement --genre consumer --profile normal --format md
 slopvac explain ste-sentences.sentence-not-short-or-clear
 slopvac lint --rules-dir ./my-rules docs/
 ```
+
+`slopvac rules --format md` prints each selected rule in full for an agent to
+read: the question or message, the fix, the examples, the tiers, and the
+source. `--format json` prints the same rules as data for tools.
+`--genre <genre>` keeps the categories whose `recommended_for` lists that
+genre. The filters `--kind`, `--category`, and `--genre` combine, so a rule
+appears only when it passes each one. With `--profile`, md output omits the
+rules that the profile excludes; `--include-excluded` keeps them.
+`slopvac explain <rule_id> --format md` prints the same block for one rule.
+The [rules output reference](docs/rules-output.md) lists every JSON key and
+the layout of each md block.
+
+`slopvac prime write` and `slopvac prime review` list no rules. Each prints the
+`slopvac rules --kind judgement --genre <genre> --profile <profile> --format md`
+command for the document, and the agent passes it the same `--rules-dir` as
+lint.
 
 `--rules-dir` adds project categories over packaged YAML and is repeatable. A
 project category with the same id replaces the packaged category. Each directory

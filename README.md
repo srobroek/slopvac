@@ -164,8 +164,8 @@ that points the agent to `prime` for the detailed workflow.
 
 `slopvac prime write` prints a writing guide for READMEs, docs, PR or MR
 descriptions, commit and release text, and specifications. The guide holds a
-genre table, a documentation contract, and one rewrite instruction per
-judgement rule, generated from the rule catalogue. `slopvac prime` tells the
+genre table, a documentation contract, and the `slopvac rules` command that
+prints the judgement rules for the document's genre. `slopvac prime` tells the
 agent to run it before drafting or editing that prose.
 
 Disable it with `[guidance] write = "off"` in `slopvac.toml`. The

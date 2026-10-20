@@ -145,9 +145,10 @@ jobs:
           assert explained['examples']
           PY
 
-          # Writing and review guidance, with the checklist generated from the catalogue.
+          # Writing and review guidance name the rules command; the rules come from it.
           slopvac prime write > /tmp/prime-write.md
           slopvac prime review > /tmp/prime-review.md
+          slopvac rules --kind judgement --format md > /tmp/judgement-rules.md
           grep -q 'slopvac prime write' /tmp/prime.md
           grep -q 'slopvac prime review' /tmp/prime.md
           grep -q '^## Rules lint cannot check' /tmp/prime-write.md
@@ -155,13 +156,19 @@ jobs:
           python3 - <<'PY'
           import json
           ids = {r['rule_id'] for r in json.load(open('/tmp/judgement-rules.json'))['rules']}
+          command = 'slopvac rules --kind judgement --genre <genre> --profile <profile> --format md'
           for path in ('/tmp/prime-write.md', '/tmp/prime-review.md'):
-              listed = {
-                  line.split('`')[1]
-                  for line in open(path, encoding='utf-8')
-                  if line.startswith('- `')
-              }
-              assert ids <= listed, (path, sorted(ids - listed))
+              text = open(path, encoding='utf-8').read()
+              assert command in text, path
+              listed = sorted(rule_id for rule_id in ids if rule_id in text)
+              assert not listed, (path, listed)
+          headings = [
+              line.split('`')[1]
+              for line in open('/tmp/judgement-rules.md', encoding='utf-8')
+              if line.startswith('### `')
+          ]
+          assert len(headings) == len(set(headings)), 'a rule printed twice'
+          assert sorted(headings) == sorted(ids), sorted(set(ids) ^ set(headings))
           PY
 
           # Flag-off path: [guidance] off disables each topic and installs no skill.

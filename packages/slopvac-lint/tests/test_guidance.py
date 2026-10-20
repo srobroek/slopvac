@@ -1,14 +1,13 @@
-"""Writing and review guidance: generated checklists, `[guidance]` modes, and the
-`slopvac-prose` skill stub.
+"""Writing and review guidance: the rules command the topics delegate to,
+`[guidance]` modes, and the `slopvac-prose` skill stub.
 
-The checklist assertions compare against the loaded catalogue rather than fixed
-text, because the contract is that the guidance is generated from it.
+The topic assertions compare against the loaded catalogue rather than fixed
+text: the topics list no rule, and the rules come from `slopvac rules`.
 """
 
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 import pytest
@@ -16,6 +15,7 @@ import yaml
 from click.testing import CliRunner
 
 from slopvac.cli import main
+from slopvac.guidance import RULES_COMMAND
 from slopvac.rules import load_ruleset
 from slopvac.steering import SKILL_MARKER, SKILL_NAME, SKILL_STUB
 
@@ -23,18 +23,6 @@ from slopvac.steering import SKILL_MARKER, SKILL_NAME, SKILL_STUB
 @pytest.fixture(scope="module")
 def ruleset():
     return load_ruleset()
-
-
-# One checklist entry: `<category>.<rule-id>` (<scope>): <fix or question>.
-ENTRY = re.compile(r"^- `(?P<id>[a-z0-9-]+\.[a-z0-9-]+)` \((?P<scope>[a-z]+)\): (?P<text>.+)$")
-
-
-def _clean(text: str) -> str:
-    return " ".join(text.split())
-
-
-def _entries(output: str) -> list[re.Match[str]]:
-    return [match for line in output.splitlines() if (match := ENTRY.match(line))]
 
 
 def _prime(runner: CliRunner, *args: str):
@@ -127,40 +115,21 @@ def test_lint_accepts_every_prime_output_at_strict_profile(tmp_path):
         assert payload["summary"]["warnings"] == 0, path.name
 
 
-# --- generated checklists -----------------------------------------------------
+# --- the topics delegate the rules to `slopvac rules` ---------------------------
 
 
-def test_review_checklist_asks_every_judgement_question_once(ruleset):
+@pytest.mark.parametrize("topic", ["write", "review"])
+def test_topics_list_no_rule_and_print_the_rules_command(ruleset, topic):
     runner = CliRunner()
     with runner.isolated_filesystem():
-        output = _prime(runner, "review")
-    entries = _entries(output)
-
-    expected = sorted(rule.qualified_id for rule in ruleset.judgement_rules)
-    assert [e["id"] for e in entries] == expected, "one line per judgement rule, in order"
-    for entry in entries:
-        rule = ruleset.by_id(entry["id"])
-        assert entry["scope"] == rule.scope.value
-        assert entry["text"] == _clean(rule.judgement_question)
+        output = _prime(runner, topic)
+    listed = [rule.qualified_id for rule in ruleset.all_rules if rule.qualified_id in output]
+    assert not listed, listed
+    assert f"\n```bash\n{RULES_COMMAND}\n```\n" in output
+    assert "`--rules-dir <dir>`" in output, "house rules need the same option"
 
 
-def test_write_checklist_gives_every_judgement_fix_once(ruleset):
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        output = _prime(runner, "write")
-    checklist = output.split("\n## Rules lint cannot check\n", 1)[1]
-    entries = _entries(checklist)
-
-    assert [e["id"] for e in entries] == sorted(
-        rule.qualified_id for rule in ruleset.judgement_rules
-    )
-    for entry in entries:
-        rule = ruleset.by_id(entry["id"])
-        assert entry["scope"] == rule.scope.value
-        assert entry["text"] == _clean(rule.fix or rule.message)
-
-
-def test_checklists_are_byte_stable():
+def test_topics_are_byte_stable():
     runner = CliRunner()
     with runner.isolated_filesystem():
         for topic in ("write", "review"):
@@ -184,7 +153,7 @@ def test_review_genre_table_lists_the_categories_recommended_for_each_genre(rule
     assert listed == expected
 
 
-def test_a_house_judgement_rule_reaches_the_checklist(tmp_path):
+def test_a_house_judgement_rule_reaches_the_rules_listing(tmp_path):
     house = tmp_path / "house"
     house.mkdir()
     (house / "house.yml").write_text(
@@ -203,12 +172,14 @@ def test_a_house_judgement_rule_reaches_the_checklist(tmp_path):
         "      source: house style\n",
         encoding="utf-8",
     )
+    command = RULES_COMMAND.replace("<genre>", "consumer").replace("<profile>", "normal")
     runner = CliRunner()
     with runner.isolated_filesystem():
-        review = _prime(runner, "review", "--rules-dir", str(house))
-        write = _prime(runner, "write", "--rules-dir", str(house))
-    assert "`house.owner-named` (prose): Does the page name the team that owns it?" in review
-    assert "`house.owner-named` (prose): Name the owning team in the first paragraph." in write
+        result = runner.invoke(main, [*command.split()[1:], "--rules-dir", str(house)])
+    assert result.exit_code == 0, result.output
+    assert "### `house.owner-named`: Name the owner" in result.output
+    assert "Does the page name the team that owns it?" in result.output
+    assert "Name the owning team in the first paragraph." in result.output
 
 
 # --- [guidance] modes ----------------------------------------------------------

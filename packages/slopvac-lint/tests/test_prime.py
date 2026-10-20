@@ -29,9 +29,16 @@ from slopvac.config import (
     profile_thresholds,
 )
 from slopvac.genres import GENRES
+from slopvac.guidance import RULES_COMMAND
 from slopvac.model import Tier
 from slopvac.pipeline import SKIP_SOURCE_DIRS
-from slopvac.prime import COMMAND_GROUPS, SUPPRESSIONS_DOC, SUPPRESSIONS_URL
+from slopvac.prime import (
+    COMMAND_GROUPS,
+    RULES_OUTPUT_DOC,
+    RULES_OUTPUT_URL,
+    SUPPRESSIONS_DOC,
+    SUPPRESSIONS_URL,
+)
 from slopvac.profiles import profile_defaults
 from slopvac.rules import load_ruleset
 from slopvac.suppression import (
@@ -61,8 +68,6 @@ DIRECTIVE_DOCS = tuple(
         "README.md",
     )
 )
-# One checklist entry: `<category>.<rule-id>` (<scope>): <fix or question>.
-ENTRY = re.compile(r"^- `(?P<id>[a-z0-9-]+\.[a-z0-9-]+)` \((?P<scope>[a-z]+)\): .+$")
 
 _MODES = {
     "default": "",
@@ -295,31 +300,39 @@ def test_topics_define_genres_and_profiles_before_the_workflow(outputs, topic):
     assert "`slopvac rules --profile <profile>`" in head
 
 
-# --- checklist entries and where to read more ---------------------------------------
+# --- the rules command the topics print, and where to read more ---------------------
 
 
 @pytest.mark.parametrize("topic", ["write", "review"])
-def test_topics_explain_the_entry_format_before_the_first_entry(outputs, topic):
-    lines = outputs[f"{topic}-default"].splitlines()
-    first = next(i for i, line in enumerate(lines) if ENTRY.match(line))
-    before = "\n".join(lines[:first])
-    assert "`<category>.<rule-id>` (<scope>)" in before
-    assert "`slopvac explain <rule_id>`" in before
-    assert "`slopvac rules --kind judgement --profile <profile> --format json`" in before
-    for scope in {m["scope"] for line in lines if (m := ENTRY.match(line))}:
-        assert f"- `{scope}`: " in before, scope
+def test_topics_explain_the_blocks_the_rules_command_prints(outputs, topic):
+    text = outputs[f"{topic}-default"]
+    assert f"\n```bash\n{RULES_COMMAND}\n```\n" in text
+    after = text.split(RULES_COMMAND, 1)[1]
+    assert "`slopvac explain <rule_id> --format md`" in after
+    scopes = {rule.scope.value for rule in load_ruleset().judgement_rules}
+    for scope in scopes:
+        assert f"- `{scope}`: " in after, scope
     for tier in Tier:
-        assert f"- `{tier.value}`: " in before, tier
+        assert f"- `{tier.value}`: " in after, tier
 
 
-def test_the_tier_key_the_topics_name_is_in_the_rules_json(outputs):
-    assert "`rules[].tier`" in outputs["write-default"]
-    assert "`rules[].tier`" in outputs["review-default"]
-    result = CliRunner().invoke(
-        main, ["rules", "--kind", "judgement", "--profile", "strict", "--format", "json"]
+@pytest.mark.parametrize("genre", GENRES, ids=lambda genre: genre.name)
+def test_the_rules_command_runs_for_each_genre_at_its_profile(genre):
+    command = RULES_COMMAND.replace("<genre>", genre.name).replace(
+        "<profile>", genre.profile.value
     )
-    rules = json.loads(result.output)["rules"]
-    assert rules and {rule["tier"] for rule in rules} <= {tier.value for tier in Tier}
+    result = CliRunner().invoke(main, command.split()[1:])
+    assert result.exit_code == 0, result.output
+    assert result.output.startswith("# "), "md output"
+
+
+def test_the_base_prime_routes_rule_lookup_to_md_and_json(outputs):
+    base = outputs["base-default"]
+    spans = _spans(base)
+    assert "slopvac rules --format md" in spans and "slopvac rules --format json" in spans
+    assert f"`{RULES_OUTPUT_URL}`" in base
+    assert RULES_OUTPUT_URL.endswith(f"/v{__version__}/{RULES_OUTPUT_DOC}")
+    assert (ROOT / RULES_OUTPUT_DOC).is_file()
 
 
 # --- report keys and annotations ----------------------------------------------------
@@ -491,8 +504,7 @@ def test_the_review_audits_each_directive_inside_the_review_steps(outputs, name)
     assert low <= audit <= high
 
     checklist = outputs[name].split("\n## Checklist\n", 1)[1]
-    first_entry = next(i for i, line in enumerate(checklist.splitlines()) if ENTRY.match(line))
-    checks = "\n".join(checklist.splitlines()[:first_entry])
+    checks = checklist.split(RULES_COMMAND, 1)[0]
     assert DISABLE_COMMENT in checks and ENABLE_COMMENT in checks
     assert "`slopvac explain <rule_id>`" in checks
 
@@ -505,3 +517,13 @@ def test_the_verdict_reports_suppressions_and_an_unjustified_one_is_revise(outpu
     assert "Suppressions" in [line.split(":", 1)[0] for line in verdict[1:]]
     revise = [line for line in review.splitlines() if "REVISE for" in line]
     assert any("suppression" in line for line in revise), revise
+
+
+@pytest.mark.parametrize("name", _REVIEWS)
+def test_the_verdict_lists_the_rules_asked_and_a_skipped_fetch_is_revise(outputs, name):
+    """The `Checked` line makes a review that never ran the rules command visible."""
+    review = outputs[name]
+    verdict = review.split("\n```text\n", 1)[1].split("\n```", 1)[0].splitlines()
+    assert "Checked" in [line.split(":", 1)[0] for line in verdict[1:]]
+    after = review.split("\n```\n", 1)[1].split("\n## ", 1)[0]
+    assert any("`Checked`" in line and "REVISE" in line for line in after.splitlines())

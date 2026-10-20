@@ -1,22 +1,18 @@
 """Writing and review guidance printed by `slopvac prime write|review`.
 
-The judgement checklist is GENERATED from the loaded `RuleSet`, never copied
-into prose: a question restated here would drift from the rule the catalogue
-carries, which is the failure the generated rules reference exists to prevent.
-The genre and profile tables are generated the same way, from `genres.GENRES`
-and the profile defaults in `config` and `profiles`; the base `slopvac prime`
-prints them too. The static text below holds only what no record can: the
-documentation contract, the review workflow, and what a tier or a scope asks of
-the reader.
-
-Order is deterministic (category id, then rule id) so two runs over the same
-catalogue print the same bytes.
+The topics list no judgement rule. Each prints `RULES_COMMAND`, and that
+command renders the rules for the document's genre and profile from the loaded
+`RuleSet`: a question restated here would drift from the rule the catalogue
+carries, and a full listing of every genre's rules in each topic is text that
+an agent would mostly skip. The genre and profile tables are generated from
+`genres.GENRES` and the profile defaults in `config` and `profiles`; the base
+`slopvac prime` prints them too. The static text below holds only what no
+record can: the documentation contract, the review workflow, and what a tier
+or a scope asks of the reader.
 """
 
 from __future__ import annotations
 
-from collections import defaultdict
-from collections.abc import Callable
 from pathlib import Path
 
 from .config import (
@@ -28,7 +24,7 @@ from .config import (
     profile_thresholds,
 )
 from .genres import GENRES, ROUTING
-from .model import Rule, Scope, Tier
+from .model import Scope, Tier
 from .profiles import profile_defaults
 from .rules import RuleSet
 from .suppression import DISABLE_COMMENT, ENABLE_COMMENT, allow_comment
@@ -68,10 +64,6 @@ def unlinted(lines: list[str]) -> list[str]:
     return [DISABLE_COMMENT, *lines, ENABLE_COMMENT]
 
 
-def _clean(text: str) -> str:
-    return " ".join(text.split())
-
-
 def _table(header: list[str], rows: list[list[str]]) -> list[str]:
     return [
         "| " + " | ".join(header) + " |",
@@ -80,48 +72,33 @@ def _table(header: list[str], rows: list[list[str]]) -> list[str]:
     ]
 
 
-def _by_category(rules: list[Rule]) -> dict[str, list[Rule]]:
-    buckets: dict[str, list[Rule]] = defaultdict(list)
-    for rule in rules:
-        buckets[rule.category].append(rule)
-    return {
-        category: sorted(bucket, key=lambda r: r.id)
-        for category, bucket in sorted(buckets.items())
-    }
+# The command that prints the judgement rules for one document. Both topics show
+# it, and a test checks each of its flags against click.
+RULES_COMMAND = (
+    "slopvac rules --kind judgement --genre <genre> --profile <profile> --format md"
+)
 
 
-def _category_heading(ruleset: RuleSet, category_id: str) -> str:
-    category = ruleset.categories[category_id]
-    genres = ", ".join(category.recommended_for) or "no genre"
-    return f"### {category.title} (`{category_id}`), recommended for: {genres}"
-
-
-def _checklist(ruleset: RuleSet, text_of: Callable[[Rule], str]) -> list[str]:
-    lines: list[str] = []
-    for category_id, rules in _by_category(ruleset.judgement_rules).items():
-        lines.extend([_category_heading(ruleset, category_id), ""])
-        for rule in rules:
-            lines.append(
-                f"- `{rule.qualified_id}` ({rule.scope.value}): {_clean(text_of(rule))}"
-            )
-        lines.append("")
-    return lines
-
-
-def write_checklist(ruleset: RuleSet) -> list[str]:
-    return _checklist(ruleset, lambda rule: rule.fix or rule.message)
-
-
-def review_checklist(ruleset: RuleSet) -> list[str]:
-    return _checklist(ruleset, lambda rule: rule.judgement_question or "")
-
-
-def _entry_guide(ruleset: RuleSet, text: str) -> list[str]:
-    """How to read one checklist entry, and where to get more on its rule."""
+def _rules_command(ruleset: RuleSet) -> list[str]:
+    """The command that prints the judgement rules, and how to read its blocks."""
     scopes = [s for s in Scope if any(r.scope is s for r in ruleset.judgement_rules)]
     return [
-        f"Each entry has the form `<category>.<rule-id>` (<scope>): <{text}>.",
-        "The scope names the unit that the rule judges:",
+        "Print them for the genre and the profile from step 1:",
+        "",
+        "```bash",
+        RULES_COMMAND,
+        "```",
+        "",
+        "If you lint with `--rules-dir <dir>`, add the same option to this command.",
+        "The command prints one block for each rule of that genre, under its category.",
+        "It omits each rule that the profile excludes. Each block has these parts:",
+        "",
+        "- the question and the fix",
+        "- examples of `bad` and `good` text, with notes",
+        "- the tier and the severity at the profile",
+        "- the source",
+        "",
+        "The scope in a block names the unit that the rule judges:",
         "",
         *(f"- `{scope.value}`: {_SCOPE_MEANING[scope]}" for scope in scopes),
         "",
@@ -129,10 +106,7 @@ def _entry_guide(ruleset: RuleSet, text: str) -> list[str]:
         "",
         *(f"- `{tier.value}`: {_TIER_MEANING[tier]}" for tier in Tier),
         "",
-        "Run `slopvac explain <rule_id>` for one rule. It prints the question, "
-        "the fix, and worked examples.",
-        "Run `slopvac rules --kind judgement --profile <profile> --format json` "
-        "for the tiers. Each `rules[].tier` holds the tier at that profile.",
+        "Run `slopvac explain <rule_id> --format md` for one rule.",
         "",
     ]
 
@@ -291,7 +265,7 @@ def disabled_notice(topic: str, config_path: Path | None) -> str:
 
 
 def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
-    """The writing guide: genres, profiles, documentation contract, judgement fixes."""
+    """The writing guide: genres, profiles, documentation contract, judgement rules."""
     lines = [
         "# Slopvac writing guidance",
         "",
@@ -338,7 +312,8 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
         "1. Find the document's genre in the genre table. Use the profile of that genre.",
         "2. Write from the documentation contract. Keep correct facts from sources.",
         "3. Check claims against code or a source. Verify relevant commands and paths.",
-        "4. Apply the rules below that fit the genre.",
+        "4. Apply the rules that lint cannot check. The last section gives the "
+        "command that prints them.",
         "5. Run each example against a clean install.",
         "6. Lint with `slopvac lint <file>... --profile <profile> --format json`.",
         "7. Fix errors. Run `slopvac explain <rule_id>` to triage warnings.",
@@ -354,12 +329,10 @@ def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             *_excluding_content(),
             "## Rules lint cannot check",
             "",
-            "Each entry below gives the fix for one rule that needs a reader.",
-            *_entry_guide(ruleset, "fix"),
-            "Use the categories whose headings list the document's genre.",
-            "If the rule question matches the text, apply its fix.",
-            "",
-            *unlinted(write_checklist(ruleset)),
+            "Some rules need a reader.",
+            *_rules_command(ruleset),
+            "Read the question of each block. If it matches the text, apply the fix.",
+            "Use the examples to calibrate the fix.",
         ]
     )
     return "\n".join(lines).rstrip("\n") + "\n"
@@ -486,9 +459,10 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Fix the cause. Rerun lint. Config or rule errors print text, not JSON.",
             "3. Audit each slopvac directive and each Vale comment in the document.",
             "Apply the suppression checks at the start of the checklist.",
-            "4. Ask enforced and advisory checklist questions. Skip excluded ones.",
+            "4. Print the checklist with the rules command at the end of this guide.",
+            "Ask its enforced and advisory questions. It omits the excluded ones.",
             "Ask document questions over the document. Ask others at their listed scope.",
-            "Find the paired lint rule in each remainder rule's provenance.",
+            "Find the paired lint rule in the `Source note` of each remainder rule.",
             "When lint reports that partner, ask the remainder question.",
             "Quote failures. Propose rewrites.",
             "5. Mark wording that changes no reader action or contract fact.",
@@ -505,6 +479,7 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Gate:      profile <profile>, score <n>/100, <n> errors, <n> warnings, "
             "unchecked <entries or none> (exit <code>)",
             "Semantic:  <failed enforced rule ids with quoted text, advisory findings, or none>",
+            "Checked:   <the rules command that you ran>; <the id of each rule that you asked>",
             "Deletion:  <wording marked for deletion, or none>",
             "Claims:    <verified, or the claim that does not hold>",
             "Facts:     <all kept, or the facts the revision lost>",
@@ -519,17 +494,18 @@ def render_review(ruleset: RuleSet, settings: GuidanceSettings) -> str:
             "Also report REVISE for a failed enforced question, failed deletion test, "
             "or open reviewer finding.",
             "Report REVISE for each unjustified suppression too.",
+            "",
+            "If the `Checked` line gives no rules command, the review did not print "
+            "the checklist. Report REVISE.",
             "Report advisory failures without blocking. Skip excluded questions.",
             "",
             "## Checklist",
             "",
             *_suppression_checks(),
-            "Each entry below asks one question that needs a reader.",
-            *_entry_guide(ruleset, "question"),
-            "Review at the profile from step 1. Ask the questions in the categories "
-            "whose headings list the genre.",
-            "",
-            *unlinted(review_checklist(ruleset)),
+            "Other checks need a reader.",
+            *_rules_command(ruleset),
+            "Ask each enforced and advisory question at its scope. Quote each failure.",
+            "Put the command and the id of each rule that you asked on the `Checked` line.",
         ]
     )
     return "\n".join(lines).rstrip("\n") + "\n"
