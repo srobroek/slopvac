@@ -16,8 +16,17 @@ from pydantic import ValidationError
 
 from slopvac.config import Severity
 from slopvac.engine import build_substitution_pattern
-from slopvac.model import Rule, RuleKind, Tier
-from slopvac.rules import RuleLoadError, inject_locale_rule, load_ruleset
+from slopvac.model import Example, Rule, RuleKind, Tier
+from slopvac.rules import (
+    RuleLoadError,
+    _load_documents,
+    _read_sources,
+    _verify_examples,
+    inject_locale_rule,
+    load_ruleset,
+)
+
+_LEXICAL = (RuleKind.TOKENS, RuleKind.PATTERN, RuleKind.SUBSTITUTION)
 
 
 @pytest.fixture(scope="module")
@@ -26,9 +35,72 @@ def ruleset():
 
 
 def test_ruleset_loads_and_verifies(ruleset):
-    """load_ruleset raises on any broken rule, so reaching here is the assertion."""
+    """load_ruleset raises on any rule that fails validation, or the example proof
+    when it is not a cache hit, so reaching here is the assertion."""
     assert ruleset.rules
     assert ruleset.categories
+
+
+def test_every_shipped_example_proves_its_own_pattern():
+    """THIS TEST PROVES THE SHIPPED EXAMPLES. A lint reuses a cached load once these
+    exact files pass, so a lint does not prove them on every run. This test proves
+    them on every suite run regardless of the cache: `verify=False` neither reads
+    nor writes it, and the proof runs explicitly."""
+    shipped = load_ruleset(verify=False)
+    problems = [
+        problem
+        for category in shipped.categories.values()
+        for problem in _verify_examples(category.rules, category.id)
+    ]
+    assert not problems, "\n".join(problems)
+
+
+def test_a_shipped_example_that_stops_matching_fails_the_proof():
+    """The negative control for the proof above: swap one shipped example's
+    `bad` and `good`, so the bad text stops firing and the fix fires."""
+    shipped = load_ruleset(verify=False)
+    rule = next(
+        r for r in shipped.rules if r.kind in _LEXICAL and any(e.good for e in r.examples)
+    )
+    example = next(e for e in rule.examples if e.good)
+    swapped = rule.model_copy(
+        update={"examples": [Example(bad=example.good, good=example.bad)]}
+    )
+    problems = _verify_examples([swapped], "shipped")
+    assert len(problems) == 2, problems
+    assert "'bad' text does not match its own pattern" in problems[0]
+    assert "fires on its own fix" in problems[1]
+
+
+def test_libyaml_builds_the_same_documents_as_the_pure_parser():
+    """The loader parses with libyaml for speed. The pure parser is the reference."""
+    import yaml
+
+    shipped = _read_sources([])
+    assert shipped
+    for origin, text in shipped:
+        reference = [d for d in yaml.safe_load_all(text) if d is not None]
+        assert _load_documents(text, origin) == reference, origin
+
+
+def test_invalid_yaml_reports_the_pure_parser_message(tmp_path):
+    """libyaml words its errors differently and drops the quoted source line, so the
+    loader parses a file it rejects again with the pure parser and reports that
+    message."""
+    import yaml
+
+    text = "id: x\nrules:\n  - id: [unclosed\n    name: y\n"
+    (tmp_path / "broken.yml").write_text(text, encoding="utf-8")
+    with pytest.raises(yaml.YAMLError) as reference:
+        list(yaml.safe_load_all(text))
+    with pytest.raises(RuleLoadError) as caught:
+        load_ruleset(extra_dirs=[tmp_path])
+    assert str(caught.value) == f"{tmp_path / 'broken.yml'}: invalid YAML: {reference.value}"
+
+
+def test_input_only_the_pure_parser_accepts_still_loads():
+    """libyaml refuses a lone-surrogate escape that the pure parser accepts."""
+    assert _load_documents('a: "\\ud800"\n', "probe") == [{"a": "\ud800"}]
 
 
 def test_every_rule_has_provenance(ruleset):
