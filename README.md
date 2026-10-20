@@ -197,7 +197,7 @@ records `self (no subagent available)`. `review = "ask"` asks before the review;
 ```yaml
 repos:
   - repo: https://github.com/srobroek/slopvac
-    rev: v2.15.0 # x-release-please-version
+    rev: v2.16.0 # x-release-please-version
     hooks:
       - id: slopvac
 ```
@@ -212,7 +212,7 @@ Add these steps to a workflow job:
 
 ```yaml
 - uses: actions/checkout@v7
-- uses: srobroek/slopvac@v2.15.0 # x-release-please-version
+- uses: srobroek/slopvac@v2.16.0 # x-release-please-version
   with:
     paths: README.md docs/
     profile: normal
