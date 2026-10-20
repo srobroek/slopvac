@@ -459,7 +459,17 @@ def profiler_scratch(directory: Path, scenario: dict[str, Any]) -> tuple[Path, l
 
 
 def profiler_scenario(name: str | None) -> dict[str, Any]:
-    return filter_scenarios(load_scenarios(), name or DEFAULT_SCENARIO)[0]
+    scenario = filter_scenarios(load_scenarios(), name or DEFAULT_SCENARIO)[0]
+    if scenario.get("requires_vale") and resolve_tool("vale", "PERF_VALE") is None:
+        raise RuntimeError(f"{scenario['name']} needs Vale: put it on PATH or set PERF_VALE")
+    return scenario
+
+
+def run_profiled(command: list[str], scenario: dict[str, Any], **kwargs: Any) -> None:
+    """Run a profiler over slopvac, accepting the exits the scenario expects."""
+    result = subprocess.run(command, check=False, **kwargs)
+    if result.returncode not in accepted_exits(scenario):
+        raise subprocess.CalledProcessError(result.returncode, command)
 
 
 def run_cpu(scenario_name: str | None) -> None:
@@ -471,8 +481,8 @@ def run_cpu(scenario_name: str | None) -> None:
     env["NO_UPDATE_NOTIFIER"] = "1"
     try:
         with (directory / "cpu.txt").open("w", encoding="utf-8") as output:
-            subprocess.run(["pyinstrument", "-m", "slopvac.cli", *args], cwd=scratch, env=env, stdout=output, check=True)
-        subprocess.run(["pyinstrument", "--renderer", "html", "-o", str(directory / "cpu.html"), "-m", "slopvac.cli", *args], cwd=scratch, env=env, check=True, stdout=subprocess.DEVNULL)
+            run_profiled(["pyinstrument", "-m", "slopvac.cli", *args], scenario, cwd=scratch, env=env, stdout=output)
+        run_profiled(["pyinstrument", "--renderer", "html", "-o", str(directory / "cpu.html"), "-m", "slopvac.cli", *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
     finally:
         shutil.rmtree(scratch.parent, ignore_errors=True)
         finish_metadata(directory)
@@ -489,7 +499,7 @@ def run_scalene(scenario_name: str | None) -> None:
     env = os.environ.copy()
     env["NO_UPDATE_NOTIFIER"] = "1"
     try:
-        subprocess.run(["scalene", "run", "-o", str(directory / "scalene.json"), str(target), "---", *args], cwd=scratch, env=env, check=True, stdout=subprocess.DEVNULL)
+        run_profiled(["scalene", "run", "-o", str(directory / "scalene.json"), str(target), "---", *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
         with (directory / "scalene.txt").open("w", encoding="utf-8") as output:
             subprocess.run(["scalene", "view", "--cli", str(directory / "scalene.json")], check=True, stdout=output, stderr=subprocess.STDOUT)
     finally:
@@ -506,7 +516,7 @@ def run_timeline(scenario_name: str | None) -> None:
     env = os.environ.copy()
     env["NO_UPDATE_NOTIFIER"] = "1"
     try:
-        subprocess.run(["viztracer", "-o", str(directory / "timeline.json"), "--module", "slopvac.cli", *args], cwd=scratch, env=env, check=True, stdout=subprocess.DEVNULL)
+        run_profiled(["viztracer", "-o", str(directory / "timeline.json"), "--module", "slopvac.cli", *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
     finally:
         shutil.rmtree(scratch.parent, ignore_errors=True)
         finish_metadata(directory)
@@ -523,7 +533,7 @@ def run_mem(scenario_name: str | None) -> None:
     env = os.environ.copy()
     env["NO_UPDATE_NOTIFIER"] = "1"
     try:
-        subprocess.run(["memray", "run", "-o", str(trace), "-m", "slopvac.cli", *args], cwd=scratch, env=env, check=True, stdout=subprocess.DEVNULL)
+        run_profiled(["memray", "run", "-o", str(trace), "-m", "slopvac.cli", *args], scenario, cwd=scratch, env=env, stdout=subprocess.DEVNULL)
         with (directory / "memray-stats.txt").open("w", encoding="utf-8") as output:
             subprocess.run(["memray", "stats", str(trace)], check=True, text=True, stdout=output, stderr=subprocess.STDOUT)
         subprocess.run(["memray", "flamegraph", "-o", str(directory / "memray.html"), str(trace)], check=True, stdout=subprocess.DEVNULL)
@@ -549,7 +559,7 @@ def run_spy(scenario_name: str | None) -> None:
         raise RuntimeError("py-spy is not installed")
     print("py-spy uses sudo and may prompt for your password.", flush=True)
     try:
-        subprocess.run(["sudo", str(python.parent / "py-spy") if os.name != "nt" else py_spy, "record", "--idle", "-f", "speedscope", "-o", str(directory / "spy.json"), "--", str(python), "-m", "slopvac.cli", *args], cwd=scratch, check=True)
+        run_profiled(["sudo", str(python.parent / "py-spy") if os.name != "nt" else py_spy, "record", "--idle", "-f", "speedscope", "-o", str(directory / "spy.json"), "--", str(python), "-m", "slopvac.cli", *args], scenario, cwd=scratch)
     finally:
         shutil.rmtree(parent, ignore_errors=True)
         finish_metadata(directory)
@@ -679,6 +689,10 @@ def main() -> int:
     args = parser.parse_args()
     if args.runs < 1:
         parser.error("--runs must be positive")
+    vale = resolve_tool("vale", "PERF_VALE")
+    if os.environ.get("PERF_VALE") and vale:
+        # slopvac finds Vale on PATH, so an explicit PERF_VALE must lead it.
+        os.environ["PATH"] = os.path.dirname(vale) + os.pathsep + os.environ.get("PATH", "")
     try:
         if args.action == "prepare-cache":
             if len(args.extra) != 1:

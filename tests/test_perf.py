@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from scripts.perf import perf
 from scripts.perf.perf import (
     ROOT,
     _run_hyperfine,
@@ -14,8 +15,10 @@ from scripts.perf.perf import (
     filter_scenarios,
     is_load_idle,
     load_scenarios,
+    profiler_scenario,
     regression,
     resolve_tool,
+    run_profiled,
 )
 
 
@@ -115,3 +118,21 @@ def test_benchmarks_never_run_in_the_repository(tmp_path: Path, monkeypatch) -> 
     assert cwd != ROOT.resolve() and ROOT.resolve() not in cwd.parents
     assert directory.resolve() in cwd.parents
     assert json.loads((directory / "hyperfine.json").read_text())["results"] == []
+
+
+@pytest.mark.parametrize(("code", "args", "ok"), [(1, [], True), (2, ["--no-vale"], True), (2, [], False)])
+def test_profilers_accept_only_the_exits_a_scenario_expects(code, args, ok) -> None:
+    """A failed gate still yields a profile; an incomplete Vale run does not."""
+    command = [sys.executable, "-c", f"raise SystemExit({code})"]
+    if ok:
+        run_profiled(command, {"args": args})
+    else:
+        with pytest.raises(perf.subprocess.CalledProcessError):
+            run_profiled(command, {"args": args})
+
+
+def test_a_vale_profile_without_vale_fails_instead_of_running_incomplete(monkeypatch) -> None:
+    vale_scenario = next(s for s in load_scenarios() if s.get("requires_vale"))
+    monkeypatch.setattr(perf, "resolve_tool", lambda name, variable=None: None)
+    with pytest.raises(RuntimeError, match="needs Vale"):
+        profiler_scenario(vale_scenario["name"])
