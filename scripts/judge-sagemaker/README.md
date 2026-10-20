@@ -102,8 +102,8 @@ The report also shows:
 
 - Balanced accuracy by test `label_origin`, joining predictions to the test split. The all-origin value must reproduce the headline.
 - Fine-tune versus base differences.
-- A comparison selected with `--compare`. This campaign must use the same test export and can supply missing base arms.
-- Label-source ablations selected with repeatable `--ablation` options. These campaigns share the test export and show seed means and standard deviations by role and origin.
+- A comparison selected with `--compare`. This campaign must use the same test and calibration exports and can supply missing base arms.
+- Label-source ablations selected with repeatable `--ablation` options. These campaigns share the test and calibration exports and show seed means and standard deviations by role and origin.
 - Every submitted ledger job, including failed and stopped attempts.
 
 The command refuses to render if an arm of any named campaign is missing. `--note` adds a status line. The committed reports were generated with:
