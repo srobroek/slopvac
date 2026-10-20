@@ -37,8 +37,8 @@ can run in pre-commit or CI for automated validation.
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
 Python 3.11 or later. **[Vale](https://vale.sh) 3.18 or later is required
 for a complete lint run.** Vale executes most deterministic rules and must be
-available on `PATH`. SlopVac checks its availability and version before
-compiling rules; without it, lint exits 2 (incomplete), not 0 (pass).
+available on `PATH`. SlopVac checks the Vale version before compiling rules.
+Without Vale, lint exits 2 (incomplete) instead of 0 (pass).
 
 With Homebrew, install Vale and check the installed version:
 
@@ -48,9 +48,9 @@ vale --version
 ```
 
 Other platforms can use the [Vale installation instructions](https://vale.sh).
-For contributors who already use [mise](https://mise.jdx.dev/), `mise install`
-installs the repository's pinned Python, uv, and Vale versions. **End users do
-not need mise.** Check prerequisites with `slopvac doctor` after installation.
+Contributors can run `mise install` to install the pinned Python, uv, and Vale
+tools from `mise.toml`. **End users do not need mise.** After installation,
+run `slopvac doctor` to check the Vale prerequisite.
 
 Install slopvac for persistent use with uv:
 
