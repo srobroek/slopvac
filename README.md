@@ -90,8 +90,8 @@ covers [linting and fixes](packages/slopvac-lint/README.md#lint-documents),
 
 ## What it checks
 
-The linter ships 165 checked rules across 26 categories. The catalogue also
-carries 66 judgement rules that lint never reports; the
+The linter ships 166 checked rules across 26 categories. The catalogue also
+carries 67 judgement rules that lint never reports; the
 [writing guidance](#writing-guidance) and [semantic review](#semantic-review)
 apply them.
 

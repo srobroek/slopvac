@@ -131,18 +131,20 @@ def test_checked_and_judgement_rules_partition_the_catalogue(ruleset):
     """`rules` is the lint surface; judgement rules reach only the guidance."""
     checked = {rule.qualified_id for rule in ruleset.rules}
     judgement = {rule.qualified_id for rule in ruleset.judgement_rules}
-    assert len(checked) == 165
-    assert len(judgement) == 66
+    assert len(checked) == 166
+    assert len(judgement) == 67
     assert not checked & judgement
     assert checked | judgement == {rule.qualified_id for rule in ruleset.all_rules}
     assert {
         "ai-tells-structure.negative-inventory-core",
+        "ai-tells-structure.negative-guarantee-core",
         "ai-tells-agentic.formulaic-universal-heading",
         "prose-scope.formulaic-subject-verb-slogan",
         "ai-tells-structure.contrastive-inversion-frames",
     } <= checked
     assert {
         "ai-tells-structure.negative-inventory-remainder",
+        "prose-discipline.negative-guarantee-remainder",
         "ai-tells-content-shape.unasked-for-rationale",
         "ai-tells-structure.contrastive-inversion-remainder",
         "prose-scope.code-change-prose-scope",
@@ -169,6 +171,17 @@ def test_remainder_rules_name_a_partner_that_exists(ruleset):
         match = re.search(r"Judgement remainder of ([a-z-]+\.[a-z0-9-]+)", note)
         if match:
             assert match.group(1) in known, f"{rule.qualified_id} cites {match.group(1)}"
+
+
+def test_negative_guarantee_remainder_is_on_the_reference_checklist(ruleset):
+    """Agent guidance and runbooks are `reference`, where the descriptive
+    never-claim appears in agent-written text, and ai-tells-structure is not
+    recommended for that genre; the remainder lives where the checklist reaches."""
+    rule = ruleset.by_id("prose-discipline.negative-guarantee-remainder")
+    assert rule is not None
+    assert "reference" in ruleset.categories[rule.category].recommended_for
+    note = " ".join((rule.provenance.note or "").split())
+    assert "Judgement remainder of ai-tells-structure.negative-guarantee-core" in note
 
 
 def _judgement_record(**fields) -> dict:
