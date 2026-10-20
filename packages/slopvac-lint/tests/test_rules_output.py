@@ -194,6 +194,26 @@ def test_lint_reports_nothing_from_the_rule_blocks(tmp_path):
     assert all(finding["line"] < start for finding in document["findings"]), document["findings"]
 
 
+def test_the_rule_region_closes_before_text_that_follows_it(tmp_path):
+    """Text written after the listing is linted again: the wrapper must not
+    swallow a document that embeds the listing."""
+    output = _run(
+        "rules", "--kind", "judgement", "--genre", "consumer", "--profile", "normal",
+        "--format", "md",
+    )
+    sentinel = "This configuration change makes no claim about endpoint health."
+    path = tmp_path / "embedded.md"
+    path.write_text(f"{output}\n{sentinel}\n", encoding="utf-8")
+    sentinel_line = len(output.splitlines()) + 2
+
+    result = CliRunner().invoke(main, ["lint", str(path), "--profile", "strict", "--format", "json"])
+    findings = json.loads(result.output)["documents"][0]["findings"]
+    assert any(
+        f["line"] == sentinel_line and f["rule_id"] == "ai-tells-register.disclaimed-claim-core"
+        for f in findings
+    ), findings
+
+
 # --- explain shares the block ------------------------------------------------------
 
 
