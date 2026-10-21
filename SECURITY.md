@@ -6,7 +6,7 @@ Slopvac provides security fixes for the latest minor release on PyPI. Older mino
 
 ## Report a vulnerability
 
-Use [GitHub's private reporting feature](https://github.com/srobroek/slopvac/security/advisories/new) to report vulnerabilities. Do not report them in public issues. Ask a repository maintainer to enable this feature.
+Use [GitHub's private reporting feature](https://github.com/srobroek/slopvac/security/advisories/new) to report vulnerabilities. Do not report them in public issues.
 
 Include these details in your report:
 
