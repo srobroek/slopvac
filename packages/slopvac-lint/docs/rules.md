@@ -611,7 +611,7 @@ State what a component does, not what it never does
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** paragraph
-- **Fix.** State what the component does. Where the limit matters, name what enforces it (a hook, test, gate, lock, or permission); otherwise delete the sentence. In agent guidance, write the limit as a directive.
+- **Fix.** State what the component does. Where the limit matters, name what enforces it (a hook, test, gate, lock, or permission); otherwise delete the sentence. In agent guidance, write the limit as a directive. Review modal and passive guarantees with prose-discipline.negative-guarantee-remainder.
 - **Suppressible with.** `quotation`, `normative-keyword`, `enforced-invariant` — any other reason is reported rather than honoured
 - **AI register signal.** `weak` (measured)
 

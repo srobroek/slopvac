@@ -538,8 +538,7 @@ NEGATIVE_GUARANTEE_RULE = "ai-tells-structure.negative-guarantee-core"
 # Descriptive guarantees: a component described by an action it never takes.
 # Each shape stands for a reported case: a pronoun in a table cell, "itself"
 # with a list of absent side effects, a stacked run, a clause after a
-# semicolon inside a normative steering line, the passive, "will/can never",
-# and a subject of five to seven words.
+# semicolon inside a normative steering line and a subject of five to seven words.
 NEGATIVE_GUARANTEE_TELLS = [
     "| `hooks/` | Advisory reminders on each edit. They never stop a command. |",
     "The deploy helper itself never creates a branch, a tag, a release or a webhook.",
@@ -549,11 +548,6 @@ NEGATIVE_GUARANTEE_TELLS = [
     "> The importer never deletes a row.",
     "MUST Run the formatter before each commit; the plugin itself sends no telemetry.",
     "Plan-only mode does not ever apply a change.",
-    "API tokens are never written to the log.",
-    "The cache file is never deleted.",
-    "The parser will never accept a duplicate key.",
-    "The hook can never block a command.",
-    "It will never be logged.",
     "Outside a run the plugin spawns no process.",
     "The deploy helper in dry-run mode never pushes a tag.",
 ]
@@ -562,6 +556,12 @@ NEGATIVE_GUARANTEE_TELLS = [
 # invariants a writer keeps. The imperative forms are the ones agent guidance and
 # runbooks are made of.
 NEGATIVE_GUARANTEE_KEEPS = [
+    "API tokens are never written to the log.",
+    "The cache file is never deleted.",
+    "The parser will never accept a duplicate key.",
+    "The hook can never block a command.",
+    "It will never be logged.",
+
     "Never edit the version files by hand.",
     "Ask the operator to refresh the token; never refresh it yourself.",
     "MUST Leave every gate to the reviewer: never close or resolve a gate bead.",
@@ -596,6 +596,27 @@ def test_negative_guarantee_catches_a_descriptive_never_claim(text):
 @pytest.mark.parametrize("text", NEGATIVE_GUARANTEE_KEEPS)
 def test_negative_guarantee_keeps_directives_and_invariants(text):
     assert not _negative_guarantees(text)
+
+
+@pytest.mark.parametrize("profile", [Profile.NORMAL, Profile.STRICT])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The parser will never accept a duplicate key because duplicate keys raise ValueError.",
+        "The parser will not ever accept a duplicate key because duplicate keys raise ValueError.",
+        "The counter can never become negative because subtraction saturates at zero.",
+        "The process can never acquire the lock because its user lacks permission.",
+        "API tokens are never written to the log because the logger redacts them first.",
+        "They are never deleted, since it is impossible to detect the termination of alien threads.",
+        "The buffer is never resized after initialization because its capacity is fixed.",
+        "The record will never be modified because the transaction is read-only.",
+        "The secret can never be recovered because the encryption key has been destroyed.",
+        "The value is never undefined because the constructor initializes it.",
+        "The function will never return normally because it always raises an exception.",
+    ],
+)
+def test_negative_guarantee_leaves_modal_and_passive_claims_to_judgement(text, profile):
+    assert not _negative_guarantees(text, profile)
 
 
 def test_negative_guarantee_reports_each_sentence_of_a_stacked_run():
