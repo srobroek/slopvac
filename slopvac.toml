@@ -30,8 +30,6 @@ exclude = [
   ".agents/**",
   # The Contributor Covenant 2.1, kept verbatim except for its contact line.
   "CODE_OF_CONDUCT.md",
-  # This action fixture intentionally contains prose rule violations.
-  ".github/action-fixtures/slop-laden.md",
 ]
 
 [thresholds]
