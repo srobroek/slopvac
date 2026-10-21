@@ -117,6 +117,21 @@ def _checked_at(cache: dict[str, object] | None) -> datetime | None:
     return checked_at.astimezone(UTC)
 
 
+def cached_latest_release() -> tuple[str, str] | None:
+    """Return the cached stable version and check time without refreshing it."""
+    cache = _read_cache(_cache_path())
+    if cache is None:
+        return None
+    version = cache.get("latest_version")
+    checked_at = cache.get("checked_at")
+    if not isinstance(version, str) or not isinstance(checked_at, str):
+        return None
+    parsed = _parse_release(version)
+    if parsed is None or parsed[1] != 3 or _checked_at(cache) is None:
+        return None
+    return version, checked_at
+
+
 def _is_fresh(cache: dict[str, object] | None, now: datetime) -> bool:
     checked_at = _checked_at(cache)
     if checked_at is None:

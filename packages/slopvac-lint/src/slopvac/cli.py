@@ -168,6 +168,7 @@ def main(context: click.Context) -> None:
 
 
 @main.command()
+@_text_or_json_option
 @click.option(
     "--binary",
     default=None,
@@ -179,26 +180,51 @@ def main(context: click.Context) -> None:
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Read [vale].binary from this configuration file.",
 )
-def doctor(binary: str | None, config_path: Path | None) -> None:
+def doctor(binary: str | None, config_path: Path | None, output_format: str) -> None:
     """Check that the required Vale executable is available and supported."""
     from .config import ConfigError, find_config, load_config
     from .vale_probe import ValeUnavailable, require_vale, vale_version
 
+    if output_format == "text":
+        discovered = config_path or find_config(Path.cwd())
+        try:
+            config = load_config(discovered, root=discovered.parent if discovered else None)
+        except ConfigError as exc:
+            click.echo(f"config error: {exc}", err=True)
+            raise SystemExit(EXIT_ERROR) from None
+        try:
+            executable = require_vale(binary or config.vale.binary)
+        except ValeUnavailable as exc:
+            click.echo(f"Vale prerequisite failed: {exc}", err=True)
+            raise SystemExit(EXIT_ERROR) from None
+        version = vale_version(executable)
+        click.echo(f"Vale {'.'.join(map(str, version))} available: {executable}")
+        return
+
+    from . import doctor_report
+
     discovered = config_path or find_config(Path.cwd())
+    if discovered is not None:
+        discovered = discovered.resolve()
     try:
         config = load_config(discovered, root=discovered.parent if discovered else None)
     except ConfigError as exc:
-        click.echo(f"config error: {exc}", err=True)
-        raise SystemExit(EXIT_ERROR) from None
-    selected = binary or config.vale.binary
-    try:
-        executable = require_vale(selected)
-    except ValeUnavailable as exc:
-        click.echo(f"Vale prerequisite failed: {exc}", err=True)
-        raise SystemExit(EXIT_ERROR) from None
-    version = vale_version(executable)
-    click.echo(f"Vale {'.'.join(map(str, version))} available: {executable}")
+        config = None
+        config_error = str(exc)
+    else:
+        config_error = None
+    report = doctor_report.build_report(
+        discovered,
+        config=config,
+        config_error=config_error,
+        binary=binary or (config.vale.binary if config else "vale"),
+        root=discovered.parent if discovered else Path.cwd(),
+    )
+    import json
 
+    click.echo(json.dumps(report, indent=2))
+    if not report["ok"]:
+        raise SystemExit(EXIT_ERROR)
 
 @main.command()
 @click.argument("targets", nargs=-1, required=True)
