@@ -14,8 +14,8 @@ See the [project overview](../../README.md) for agent setup and CI integration.
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
-[Suppressions](docs/suppressions.md) ·
-[Semantic guidance](docs/semantic-guidance.md) · [Rule coverage](#rules)
+[Suppressions](docs/suppressions.md) · [Semantic guidance](docs/semantic-guidance.md) ·
+[Rule coverage](#rules) · [Doctor JSON](docs/doctor.md)
 
 ## Install
 
@@ -60,6 +60,8 @@ Install Vale separately and add its executable to `PATH` (`brew install vale`
 on macOS). Run `slopvac doctor` to check that Vale meets the required version.
 Slopvac generates Vale's configuration and styles.
 
+Use `slopvac doctor --format json` to print the local environment and config. The command prints JSON when a check fails. Exit 2 means that config loading failed or Vale is missing or unsupported. The command reads the release cache only. See the [doctor JSON schema](docs/doctor.md) for every field.
+
 Contributors can run
 `mise install` to install the pinned Python, uv, and Vale tools.
 Users of uvx, uv, or pipx do not need mise. They install Vale separately.
@@ -84,10 +86,14 @@ prints them:
 slopvac prime
 slopvac prime write
 slopvac prime review
+slopvac prime report
 ```
 
 `slopvac prime` prints the lint workflow and says when to run the `write` and
-`review` topics. [Semantic guidance](docs/semantic-guidance.md) describes both topics.
+`review` topics. [Semantic guidance](docs/semantic-guidance.md) describes them.
+`slopvac prime report` prints an issue workflow. It requires user approval for
+each exact post and does not post automatically. Set `[guidance] report = "off"`
+to omit this guidance.
 
 Two commands write the steering files:
 
@@ -281,7 +287,7 @@ profile = "strict"
 | `[locale]` | Spelling target and allowed spellings |
 | `[vocabulary]` | Path to a project word blocklist |
 | `[vale]` | Vale enablement and binary. `config` and `styles` are accepted but currently have no effect |
-| `[guidance]` | Whether `slopvac prime` points agents at writing guidance and semantic review |
+| `[guidance]` | Whether `slopvac prime` points agents at writing, semantic review, and problem reporting |
 
 ### Agent guidance
 
@@ -290,6 +296,7 @@ profile = "strict"
 write = "auto"             # auto | off
 review = "auto"            # auto | ask | off
 review_depth = "subagent"  # self | subagent | adversary
+report = "ask"             # ask | off
 ```
 
 `write = "off"` drops the writing step. `review = "ask"` prompts before review.
@@ -305,9 +312,11 @@ Set `review_depth = "self"` for an author-run pass, or `"adversary"` for
 repeated rounds. Each round gets the earlier rebuttals, and the loop stops when
 a round reports no finding the author accepts. If no subagent is available, the
 author runs the pass and reports `self (no subagent available)`.
-`review = "off"` still disables review. Guidance keys cannot appear in
-`[[overrides]]`. With both modes off, `init --harness` and `setup` install no
-skill. See [semantic guidance](docs/semantic-guidance.md#configuration).
+`review = "off"` still disables review. `report = "ask"` directs agents to
+`slopvac prime report`; every post needs approval in the current conversation.
+`report = "off"` disables that guidance. Guidance keys cannot appear in
+`[[overrides]]`. With both writing and review off, `init --harness` and `setup`
+install no skill. See [semantic guidance](docs/semantic-guidance.md#configuration).
 
 ### Precedence
 

@@ -46,7 +46,7 @@ jobs:
           def document_class(path):
               if path.startswith(".github/action-fixtures/") or "/tests/fixtures/" in path:
                   return "fixture"
-              if path.endswith("CHANGELOG.md"):
+              if path.endswith("CHANGELOG.md") or path == "CODE_OF_CONDUCT.md":
                   return "release"
               if path.endswith("/docs/rules.md"):
                   return "generated"
