@@ -4,7 +4,7 @@
 
 Run `slopvac doctor --format json` to print local config and system data. JSON prints to stdout on failure. Exit 0 means that slopvac loads config and finds supported Vale. Exit 2 indicates a config error or an unsupported Vale. Text output is the default.
 
-The command reads only the release cache. A missing or unreadable cache gives `latest_release: null`. Absolute home paths use `~`. Path fields inside the current directory are relative to it.
+The command reads only the release cache. A missing or unreadable cache gives `latest_release: null`. The command replaces every absolute home path with `~`. This includes paths reached through a symlink and paths in errors. The command prints path fields inside the current directory as relative paths. The steering skill state is `disabled` when both `write` and `review` guidance are off. When config loading fails, the command still wants the skill.
 
 ## Schema version 1
 
@@ -32,8 +32,8 @@ platform.release: string - Operating-system release.
 platform.machine: string - Machine architecture.
 vale: object - Selected Vale binary and its support status.
 vale.binary: string - Requested Vale name or path. Home paths use `~`.
-vale.path: string or null - Resolved executable path, or null when unavailable.
-vale.version: string or null - Version reported by the executable.
+vale.path: string or null - Resolved executable path, or null when no executable was found.
+vale.version: string or null - Version reported by the executable, including when it is too old.
 vale.minimum: string - Minimum version from `MIN_VALE_VERSION`.
 vale.supported: boolean - True when Vale meets the minimum version.
 vale.error: string or null - Vale prerequisite error, or null when supported.

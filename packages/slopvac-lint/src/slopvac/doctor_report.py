@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 import platform
+import shutil
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -15,11 +17,23 @@ if TYPE_CHECKING:
 
 def _display_path(path: Path, *, cwd: Path, home: Path) -> str:
     """Redact home-directory paths, otherwise prefer project-relative paths."""
-    absolute = path.expanduser().resolve()
-    try:
-        return (Path("~") / absolute.relative_to(home)).as_posix()
-    except ValueError:
-        pass
+    expanded = path.expanduser().absolute()
+    for candidate in (Path.home(), home):
+        try:
+            return (Path("~") / expanded.relative_to(candidate.absolute())).as_posix()
+        except ValueError:
+            pass
+
+    absolute = expanded.resolve()
+    for candidate in (Path.home(), home):
+        candidate_resolved = candidate.resolve()
+        try:
+            return (Path("~") / absolute.relative_to(candidate_resolved)).as_posix()
+        except ValueError:
+            for separator in {"/", os.sep}:
+                prefix = str(candidate_resolved) + separator
+                if str(absolute).startswith(prefix):
+                    return "~" + str(absolute)[len(str(candidate_resolved)) :]
     try:
         return absolute.relative_to(cwd).as_posix()
     except ValueError:
@@ -28,15 +42,23 @@ def _display_path(path: Path, *, cwd: Path, home: Path) -> str:
 
 def _redact_home(value: str, home: Path) -> str:
     """Replace home paths embedded in error messages as well as path fields."""
-    home_text = str(home)
-    if value == home_text:
-        return "~"
-    if value.startswith(home_text + "/"):
-        return "~" + value[len(home_text) :]
-    return value.replace(home_text + "/", "~/")
+    home_paths = {
+        str(home),
+        str(home.resolve()),
+        str(Path.home()),
+        str(Path.home().resolve()),
+    }
+    for home_text in sorted(home_paths, key=len, reverse=True):
+        if value == home_text:
+            return "~"
+        for separator in {"/", os.sep}:
+            value = value.replace(home_text + separator, "~" + separator)
+    return value
 
 
-def _steering_report(root: Path, home: Path) -> list[dict[str, object]]:
+def _steering_report(
+    root: Path, home: Path, *, skill_wanted: bool
+) -> list[dict[str, object]]:
     from .steering import (
         SteeringError,
         harness_path,
@@ -56,7 +78,11 @@ def _steering_report(root: Path, home: Path) -> list[dict[str, object]]:
                     "harness": harness,
                     "path": block_path.relative_to(root).as_posix(),
                     "block": managed_block_state(block_path),
-                    "skill": skill_state(skill_file) if skill_file is not None else None,
+                    "skill": (
+                        skill_state(skill_file, wanted=skill_wanted)
+                        if skill_file is not None
+                        else None
+                    ),
                 }
             )
         except (SteeringError, OSError) as exc:
@@ -80,15 +106,25 @@ def build_report(
     """Collect local system/configuration status without making network calls."""
     from . import update_notice
     from .vale_cache import cache_root
-    from .vale_probe import MIN_VALE_VERSION, ValeUnavailable, require_vale, vale_version
+    from .vale_probe import (
+        MIN_VALE_VERSION,
+        ValeUnavailable,
+        require_vale,
+        vale_version,
+    )
 
     cwd = Path.cwd().resolve()
-    home = Path.home().resolve()
+    home = Path.home()
     try:
         executable = require_vale(binary)
     except ValeUnavailable as exc:
-        vale_path = None
-        version = None
+        executable = shutil.which(binary)
+        vale_path = (
+            _display_path(Path(executable), cwd=cwd, home=home)
+            if executable is not None
+            else None
+        )
+        version = vale_version(executable) if executable is not None else None
         vale_error = _redact_home(str(exc), home)
     else:
         vale_path = _display_path(Path(executable), cwd=cwd, home=home)
@@ -157,6 +193,10 @@ def build_report(
             "error": vale_error,
         },
         "config": config_data,
-        "steering": _steering_report(root, home),
+        "steering": _steering_report(
+            root,
+            home,
+            skill_wanted=config.guidance.enabled if config is not None else True,
+        ),
         "cache": {"root": _display_path(cache_root(), cwd=cwd, home=home)},
     }

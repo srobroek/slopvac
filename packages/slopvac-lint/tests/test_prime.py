@@ -77,9 +77,6 @@ _MODES = {
 }
 
 
-
-
-
 @pytest.fixture(scope="module")
 def outputs() -> dict[str, str]:
     """Every topic under each `[guidance]` mode that changes the text."""
@@ -94,6 +91,15 @@ def outputs() -> dict[str, str]:
                 assert result.exit_code == 0, result.output
                 rendered[f"{topic}-{mode}"] = result.output
     return rendered
+
+
+@pytest.fixture(scope="module")
+def report_output() -> str:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(main, ["prime", "report"])
+        assert result.exit_code == 0, result.output
+        return result.output
 
 
 def _contexts() -> tuple[click.Context, dict[str, click.Context]]:
@@ -144,27 +150,54 @@ def _table(text: str, first_header: str) -> list[dict[str, str]]:
 # --- click is the source of every command and flag --------------------------------
 
 
-def test_every_command_and_flag_a_guide_names_exists_in_click(outputs):
+_GITHUB_FLAGS = frozenset(
+    {
+        "--state",
+        "--search",
+        "--json",
+        "--limit",
+        "--from",
+        "--label",
+        "--title",
+        "--body-file",
+    }
+)
+
+
+def _assert_commands_and_flags_exist(text: str, *, name: str) -> set[str]:
     root, contexts = _contexts()
     known = _flags(main, root).union(
         *(_flags(command, contexts[name]) for name, command in main.commands.items())
     )
+    assert set(FLAG.findall(text)) <= known.union(_GITHUB_FLAGS), (
+        name,
+        set(FLAG.findall(text)) - known - _GITHUB_FLAGS,
+    )
+    commands_seen = set()
+    for snippet in _snippets(text):
+        words = snippet.split()
+        if len(words) < 2 or words[0] != "slopvac":
+            continue
+        if words[1].startswith("-"):
+            command, context = main, root
+        else:
+            assert words[1] in main.commands, (name, snippet)
+            command, context = main.commands[words[1]], contexts[words[1]]
+            commands_seen.add(words[1])
+        unknown = set(FLAG.findall(snippet)) - _flags(command, context)
+        assert not unknown, (name, snippet, unknown)
+    return commands_seen
+
+
+def test_every_command_and_flag_a_guide_names_exists_in_click(outputs):
     commands_seen = set()
     for name, text in outputs.items():
-        assert set(FLAG.findall(text)) <= known, (name, set(FLAG.findall(text)) - known)
-        for snippet in _snippets(text):
-            words = snippet.split()
-            if len(words) < 2 or words[0] != "slopvac":
-                continue
-            if words[1].startswith("-"):
-                command, context = main, root
-            else:
-                assert words[1] in main.commands, (name, snippet)
-                command, context = main.commands[words[1]], contexts[words[1]]
-                commands_seen.add(words[1])
-            unknown = set(FLAG.findall(snippet)) - _flags(command, context)
-            assert not unknown, (name, snippet, unknown)
+        commands_seen.update(_assert_commands_and_flags_exist(text, name=name))
     assert commands_seen == set(main.commands), "the check must reach every command"
+
+
+def test_report_command_and_flags_exist_in_click(report_output):
+    _assert_commands_and_flags_exist(report_output, name="report")
 
 
 def _reference_sections(base: str) -> dict[str, tuple[str, str]]:

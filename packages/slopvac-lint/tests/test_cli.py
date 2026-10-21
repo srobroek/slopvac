@@ -835,6 +835,70 @@ def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkey
     assert str(home) not in result.output
     assert report["latest_release"] is None
 
+def test_doctor_json_redacts_home_through_symlink(runner, tmp_path, monkeypatch):
+    home_target = tmp_path / "home-target"
+    home_target.mkdir()
+    home_link = tmp_path / "home-link"
+    home_link.symlink_to(home_target, target_is_directory=True)
+    project = tmp_path / "project"
+    project.mkdir()
+    monkeypatch.setenv("HOME", str(home_link))
+    monkeypatch.chdir(project)
+
+    binary = home_link / "bin" / "missing-vale"
+    config = home_link / "slopvac.toml"
+    config.write_text("profile = [\n", encoding="utf-8")
+    result = runner.invoke(
+        main,
+        ["doctor", "--binary", str(binary), "--config", str(config), "--format", "json"],
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    assert str(home_link) not in result.output
+    assert str(home_target) not in result.output
+    report = json.loads(result.output)
+    assert report["vale"]["binary"] == "~/bin/missing-vale"
+    assert str(binary) not in report["vale"]["error"]
+    assert str(config) not in report["config"]["error"]
+
+
+def test_doctor_json_disables_skill_when_write_and_review_are_off(
+    runner, tmp_path, monkeypatch
+):
+    config = _write(
+        tmp_path,
+        "slopvac.toml",
+        '[guidance]\nwrite = "off"\nreview = "off"\n',
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        main,
+        ["doctor", "--config", str(config), "--binary", "missing-vale", "--format", "json"],
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    steering = json.loads(result.output)["steering"]
+    skill_states = [entry["skill"] for entry in steering if entry["skill"] is not None]
+    assert skill_states
+    assert set(skill_states) == {"disabled"}
+
+
+def test_doctor_json_keeps_too_old_vale_data(runner, tmp_path, monkeypatch):
+    binary = tmp_path / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.17.0'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    from slopvac import update_notice
+
+    monkeypatch.setattr(update_notice, "_cache_path", lambda: tmp_path / "no-cache")
+    result = runner.invoke(main, ["doctor", "--binary", str(binary), "--format", "json"])
+
+    assert result.exit_code == EXIT_ERROR
+    report = json.loads(result.output)
+    assert report["vale"]["path"] == str(binary)
+    assert report["vale"]["version"] == "3.17.0"
+    assert report["vale"]["supported"] is False
+
 def test_doctor_json_keeps_steering_failures_per_harness(runner, monkeypatch):
     from slopvac import steering
 
@@ -918,11 +982,13 @@ def test_doctor_json_never_fetches_network(runner, tmp_path, monkeypatch):
     binary = tmp_path / "vale"
     binary.write_text("#!/bin/sh\necho 'vale version 3.24.0'\n", encoding="utf-8")
     binary.chmod(0o755)
-    from urllib import request
-
-    monkeypatch.setattr(request, "urlopen", lambda *args, **kwargs: pytest.fail("network"))
     from slopvac import update_notice
 
+    monkeypatch.setattr(
+        update_notice,
+        "start_refresh",
+        lambda: pytest.fail("update check started for doctor JSON"),
+    )
     monkeypatch.setattr(update_notice, "_cache_path", lambda: tmp_path / "no-cache")
 
     result = runner.invoke(main, ["doctor", "--binary", str(binary), "--format", "json"])

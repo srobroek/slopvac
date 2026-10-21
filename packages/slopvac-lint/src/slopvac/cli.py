@@ -917,7 +917,7 @@ def _install_harness(
 @_rules_dir_option
 def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ...]) -> None:
     """Print current guidance for agents.
-
+    With no TOPIC, print how to use every command, the genres and profiles, and
     when to run the topics. `write` prints the writing guide, `review` prints the
     review workflow, and `report` prints the issue reporting workflow. The first
     two print the `slopvac rules` command for a genre. Prime only prints; it never

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import tomllib
 from pathlib import Path
 
@@ -35,7 +36,7 @@ def _registry_form(category: ReportCategory) -> dict:
     """Build one throwaway issue form with the schema declared by the registry."""
     return {
         "name": category.form_name,
-        "title": f"{category.title_prefix}<title>",
+        "title": category.title_prefix,
         "labels": list(category.labels),
         "body": [
             {"type": "markdown", "attributes": {"value": "reporting policy"}},
@@ -46,9 +47,8 @@ def _registry_form(category: ReportCategory) -> dict:
 
 def _assert_form_matches(category: ReportCategory, form: dict, form_path: Path) -> None:
     assert form.get("name") == category.form_name, f"{form_path}: form name differs"
-    title = form.get("title", "")
-    assert title.startswith(category.title_prefix), (
-        f"{form_path}: title must start with {category.title_prefix!r}"
+    assert form.get("title") == category.title_prefix, (
+        f"{form_path}: title differs from {category.title_prefix!r}"
     )
     assert form.get("labels") == list(category.labels), f"{form_path}: labels differ"
     actual_fields = [
@@ -98,10 +98,31 @@ def test_issue_form_matches_registry(category):
     _assert_form_matches(category, form, path)
 
 
-def test_registry_generated_form_proves_comparison_logic(tmp_path):
-    """A temporary form from the Contract B registry exercises the YAML comparator."""
+def test_issue_form_files_match_registry():
+    form_files = {path.name for path in FORM_ROOT.glob("*.yml")} - {"config.yml"}
+    registry_files = {category.form_file for category in REPORT_CATEGORIES}
+    assert form_files == registry_files
+
+
+@pytest.mark.parametrize("field", ["options", "required", "render", "labels", "title"])
+def test_form_comparison_rejects_contract_drift(field, tmp_path):
     category = next(item for item in REPORT_CATEGORIES if item.key == "bug")
+    form = copy.deepcopy(_registry_form(category))
+    fields = {
+        item["id"]: item
+        for item in form["body"]
+        if isinstance(item, dict) and "id" in item
+    }
+    if field == "options":
+        fields["reporter"]["attributes"]["options"].append("Unexpected")
+    elif field == "required":
+        fields["what-happened"]["validations"]["required"] = False
+    elif field == "render":
+        fields["output"]["attributes"]["render"] = "markdown"
+    elif field == "labels":
+        form["labels"].append("unexpected")
+    else:
+        form["title"] += "extra"
     path = tmp_path / category.form_file
-    path.write_text(yaml.safe_dump(_registry_form(category), sort_keys=False), encoding="utf-8")
-    form = yaml.safe_load(path.read_text(encoding="utf-8"))
-    _assert_form_matches(category, form, path)
+    with pytest.raises(AssertionError):
+        _assert_form_matches(category, form, path)
