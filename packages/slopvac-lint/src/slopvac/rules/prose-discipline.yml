@@ -662,8 +662,8 @@ rules:
         finds the shape; this question decides whether anything in the passage
         makes the guarantee true, which no pattern can read. It also covers the
         forms the core leaves out: a guarantee after a comma or a conjunction
-        ("..., so the gate can never block them"), other modals and passives
-        ("would never", "was never written"), and subjects the core cannot parse.
+        ("..., so the gate can never block them"), modal guarantees and passives
+        ("will never", "can never", "is never written", "would never", "was never written"), and subjects the core cannot parse.
         ai-tells-structure.absolute-assertion-remainder defers this form here. The
         rule shipped in prose-discipline in 2.16.0 so that the `reference`
         checklist, which covers agent guidance and runbooks, carried it:

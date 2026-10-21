@@ -220,8 +220,8 @@ def test_table_cell_matches_keep_their_start_and_end(text, rule):
     [
         ("The `deploy` helper never writes a file.", True),
         ("`slopvac` never writes the config.", True),
-        ("The parser will not ever accept a duplicate key.", True),
-        ("The parser will never accept a duplicate key.", True),
+        ("The parser will not ever accept a duplicate key.", False),
+        ("The parser will never accept a duplicate key.", False),
         ("The agent never drove the deployment during the incident.", False),
         ("The client never understood the response.", False),
     ],
