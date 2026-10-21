@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.2](https://github.com/srobroek/slopvac/compare/v2.16.1...v2.16.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* **rules:** leave modal and passive guarantees to contextual review ([ea5e690](https://github.com/srobroek/slopvac/commit/ea5e690697f370f5a26e18d716b63145a7768e03))
+
 ## [2.16.1](https://github.com/srobroek/slopvac/compare/v2.17.0...v2.16.1) (2026-10-20)
 
 ### Version selection and installation
