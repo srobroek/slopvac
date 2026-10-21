@@ -77,6 +77,9 @@ _MODES = {
 }
 
 
+
+
+
 @pytest.fixture(scope="module")
 def outputs() -> dict[str, str]:
     """Every topic under each `[guidance]` mode that changes the text."""

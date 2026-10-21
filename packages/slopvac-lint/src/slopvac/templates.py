@@ -134,6 +134,7 @@ default = "en-US"        # en-US | en-GB | und
 # write = "auto"       # auto | off: `slopvac prime write` before drafting
 # review = "auto"      # auto | ask | off: `slopvac prime review` before hand-off
 # review_depth = "subagent" # self | subagent | adversary; adversary repeats rounds
+# report = "ask"       # ask | off: `slopvac prime report` for problems
 
 # --- Vale sub-gate -----------------------------------------------------------
 # Vale runs the upstream tbhb/vale-ai-tells package, which we do not fork. Our

@@ -881,7 +881,7 @@ def _install_harness(
 
 
 @main.command("prime")
-@click.argument("topic", required=False, type=click.Choice(["write", "review"]))
+@click.argument("topic", required=False, type=click.Choice(["write", "review", "report"]))
 @click.option(
     "--config",
     "config_path",
@@ -892,13 +892,13 @@ def _install_harness(
 def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ...]) -> None:
     """Print current guidance for agents.
 
-    With no TOPIC, print how to use every command, the genres and profiles, and
-    when to run the topics. `write` prints the writing guide and `review` the
-    review workflow. Both print the `slopvac rules` command that lists the
-    judgement rules for a genre. Prime only prints; it never writes files.
+    when to run the topics. `write` prints the writing guide, `review` prints the
+    review workflow, and `report` prints the issue reporting workflow. The first
+    two print the `slopvac rules` command for a genre. Prime only prints; it never
+    writes files.
     """
     from .config import find_config
-    from .guidance import disabled_notice, render_review, render_write
+    from .guidance import disabled_notice, render_report, render_review, render_write
     from .prime import render_prime
 
     settings, source = _guidance_of(config_path or find_config(Path.cwd()))
@@ -908,6 +908,10 @@ def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ..
     if getattr(settings, topic) == "off":
         click.echo(disabled_notice(topic, source))
         return
+    if topic == "report":
+        click.echo(render_report(settings), nl=False)
+        return
+
     from .rules import RuleLoadError, load_ruleset
 
     try:
