@@ -1,0 +1,127 @@
+name: New rule proposal
+description: Propose a writing pattern that no existing rule covers.
+title: "[new rule]: "
+labels: [new-rule, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agents may file only with the user's approval and must follow `slopvac prime report`.
+        Leave out private, proprietary, and secret text. Give the smallest reproduction.
+        Send security vulnerabilities through the private advisory form, not an issue.
+  - type: dropdown
+    id: reporter
+    attributes:
+      label: Reported by
+      options:
+        - A person
+        - An AI agent, with the user's approval
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and model
+      description: >-
+        Agent name and model, for example `Claude Code, claude-sonnet-4-5`. Write `none` when no agent was involved.
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and version
+      description: >-
+        For example omp 14.2, Claude Code 2.1, Codex CLI, Kiro, GitHub Action, pre-commit, or terminal.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: slopvac version
+      description: "Output of `slopvac --version`."
+    validations:
+      required: true
+  - type: dropdown
+    id: latest
+    attributes:
+      label: Reproduces on the latest release
+      description: >-
+        Rerun the command with `uvx --from slopvac@latest
+        slopvac ...`. If the latest release fixes it, upgrade instead of filing.
+      options:
+        - "Yes"
+        - Not checked
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: "Output of `slopvac doctor --format json`. Home paths print as `~`."
+      render: json
+    validations:
+      required: false
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command or commands you ran.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: pattern
+    attributes:
+      label: Pattern
+      description: Describe the writing pattern and why it reads as slop.
+    validations:
+      required: true
+  - type: textarea
+    id: bad-examples
+    attributes:
+      label: Examples that should fire
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: good-examples
+    attributes:
+      label: Examples that must not fire
+      render: markdown
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Rule kind
+      options:
+        - Pattern (deterministic)
+        - Judgement (reviewer question)
+        - Unsure
+    validations:
+      required: true
+  - type: dropdown
+    id: genres
+    attributes:
+      label: Genres
+      multiple: true
+      options:
+        - consumer
+        - reference
+        - change-comms
+        - internal
+        - informal
+    validations:
+      required: false
+  - type: input
+    id: related
+    attributes:
+      label: Related existing rules
+    validations:
+      required: false
+  - type: textarea
+    id: source
+    attributes:
+      label: Evidence or source
+    validations:
+      required: false
