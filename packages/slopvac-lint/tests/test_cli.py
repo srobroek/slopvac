@@ -17,6 +17,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
+from slopvac.config import GuidanceSettings
+from slopvac.steering import harnesses
 from slopvac.cli import main
 from slopvac.contract import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
 
@@ -786,6 +788,158 @@ def test_doctor_reports_available_vale(runner, tmp_path):
     assert result.exit_code == EXIT_OK
     assert "Vale 3.24.0 available:" in result.output
 
+
+
+def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    home.mkdir()
+    binary = home / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.24.0'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    config = tmp_path / "slopvac.toml"
+    config.write_text('profile = "relaxed"\n', encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(Path, "home", lambda: home)
+    from slopvac import doctor_report, update_notice
+
+    monkeypatch.setattr(doctor_report.sys, "prefix", str(home / "python"))
+    monkeypatch.setattr(update_notice, "_cache_path", lambda: tmp_path / "no-cache")
+
+    result = runner.invoke(
+        main, ["doctor", "--binary", str(binary), "--config", str(config), "--format", "json"]
+    )
+
+    assert result.exit_code == EXIT_OK, result.output
+    report = json.loads(result.output)
+    assert report["schema_version"] == 1
+    assert report["ok"] is True
+    assert report["slopvac"]["version"]
+    assert report["python"]["implementation"]
+    assert report["platform"]["system"]
+    assert report["vale"]["version"] == "3.24.0"
+    assert report["vale"]["minimum"] == "3.18.0"
+    assert report["vale"]["supported"] is True
+    assert report["config"]["path"] == "slopvac.toml"
+    assert report["config"]["error"] is None
+    assert report["config"]["profile"] == "relaxed"
+    assert report["config"]["mode"] == "prose"
+    assert report["config"]["guidance"]["write"] == "auto"
+    assert report["config"]["guidance"] == GuidanceSettings().model_dump()
+
+    assert all("block" in entry and "skill" in entry for entry in report["steering"])
+    assert {entry["harness"] for entry in report["steering"]} == set(harnesses())
+    assert all(entry["path"] for entry in report["steering"])
+    assert report["vale"]["binary"] == "~/vale"
+    assert report["vale"]["path"] == "~/vale"
+    assert report["slopvac"]["python_prefix"] == "~/python"
+    assert str(home) not in result.output
+    assert report["latest_release"] is None
+
+def test_doctor_json_keeps_steering_failures_per_harness(runner, monkeypatch):
+    from slopvac import steering
+
+    real_harness_path = steering.harness_path
+
+    def fail_claude(root, harness):
+        if harness == "claude":
+            raise steering.SteeringError("unsafe test target")
+        return real_harness_path(root, harness)
+
+    monkeypatch.setattr(steering, "harness_path", fail_claude)
+    monkeypatch.setattr(steering, "harnesses", lambda: ("claude", "agents"))
+
+    result = runner.invoke(main, ["doctor", "--binary", "missing-vale", "--format", "json"])
+
+    assert result.exit_code == EXIT_ERROR
+    steering_entries = json.loads(result.output)["steering"]
+    assert steering_entries[0] == {"harness": "claude", "error": "unsafe test target"}
+    assert steering_entries[1]["harness"] == "agents"
+    assert steering_entries[1]["block"] == "missing"
+
+
+def test_doctor_json_reports_cached_latest_release(runner, tmp_path, monkeypatch):
+    binary = tmp_path / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.24.0'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    cache = tmp_path / "update-check.json"
+    cache.write_text(
+        json.dumps(
+            {"latest_version": "9999.0", "checked_at": "2026-10-21T12:00:00+00:00"}
+        ),
+        encoding="utf-8",
+    )
+    from slopvac import update_notice
+
+    monkeypatch.setattr(update_notice, "_cache_path", lambda: cache)
+
+    result = runner.invoke(main, ["doctor", "--binary", str(binary), "--format", "json"])
+
+    assert result.exit_code == EXIT_OK, result.output
+    release = json.loads(result.output)["latest_release"]
+    assert release["version"] == "9999.0"
+    assert release["checked_at"] == "2026-10-21T12:00:00+00:00"
+    assert release["newer"] is True
+
+def test_doctor_json_prints_when_vale_is_missing(runner):
+    result = runner.invoke(
+        main, ["doctor", "--binary", "vale-not-installed-for-test", "--format", "json"]
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    report = json.loads(result.output)
+    assert report["ok"] is False
+    assert report["vale"]["supported"] is False
+    assert "not on PATH" in report["vale"]["error"]
+
+
+def test_doctor_json_reports_config_error_and_other_system_data(runner, tmp_path):
+    config = _write(tmp_path, "slopvac.toml", "profile = [\n")
+    result = runner.invoke(
+        main,
+        ["doctor", "--config", str(config), "--binary", "missing-vale", "--format", "json"],
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    report = json.loads(result.output)
+    assert report["ok"] is False
+    assert "not valid TOML" in report["config"]["error"]
+    assert report["slopvac"]["version"]
+    assert report["python"]["version"]
+    assert report["platform"]["system"]
+    assert report["cache"]["root"]
+    assert report["config"]["path"] == str(config)
+    assert report["config"]["profile"] is None
+    assert report["config"]["mode"] is None
+    assert report["config"]["guidance"] is None
+    assert report["steering"]
+
+
+def test_doctor_json_never_fetches_network(runner, tmp_path, monkeypatch):
+    binary = tmp_path / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.24.0'\n", encoding="utf-8")
+    binary.chmod(0o755)
+    from urllib import request
+
+    monkeypatch.setattr(request, "urlopen", lambda *args, **kwargs: pytest.fail("network"))
+    from slopvac import update_notice
+
+    monkeypatch.setattr(update_notice, "_cache_path", lambda: tmp_path / "no-cache")
+
+    result = runner.invoke(main, ["doctor", "--binary", str(binary), "--format", "json"])
+
+    assert result.exit_code == EXIT_OK, result.output
+    json.loads(result.output)
+
+
+def test_doctor_text_output_is_unchanged(runner, tmp_path):
+    binary = tmp_path / "vale"
+    binary.write_text("#!/bin/sh\necho 'vale version 3.24.0'\n", encoding="utf-8")
+    binary.chmod(0o755)
+
+    result = runner.invoke(main, ["doctor", "--binary", str(binary)])
+
+    assert result.exit_code == EXIT_OK
+    assert result.output == f"Vale 3.24.0 available: {binary}\n"
 
 # --- Vale sub-gate -----------------------------------------------------------
 

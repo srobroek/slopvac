@@ -14,8 +14,8 @@ See the [project overview](../../README.md) for agent setup and CI integration.
 [Lint documents](#lint-documents) · [Profiles](#profiles) ·
 [Configuration](#configuration) · [Scoring](#scoring) ·
 [Metrics](docs/metrics.md) · [Finding triage](docs/triage.md) ·
-[Suppressions](docs/suppressions.md) ·
-[Semantic guidance](docs/semantic-guidance.md) · [Rule coverage](#rules)
+[Suppressions](docs/suppressions.md) · [Semantic guidance](docs/semantic-guidance.md) ·
+[Rule coverage](#rules) · [Doctor JSON](docs/doctor.md)
 
 ## Install
 
@@ -59,6 +59,8 @@ To disable the check, set one of these environment variables:
 Install Vale separately and add its executable to `PATH` (`brew install vale`
 on macOS). Run `slopvac doctor` to check that Vale meets the required version.
 Slopvac generates Vale's configuration and styles.
+
+Use `slopvac doctor --format json` to print the local environment and config. The command prints JSON when a check fails. Exit 2 means that config loading failed or Vale is missing or unsupported. The command reads the release cache only. See the [doctor JSON schema](docs/doctor.md) for every field.
 
 Contributors can run
 `mise install` to install the pinned Python, uv, and Vale tools.
