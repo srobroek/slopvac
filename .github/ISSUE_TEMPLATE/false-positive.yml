@@ -1,0 +1,106 @@
+name: Rule flags text that is not slop
+description: Report a rule flagging text that is not slop.
+title: "[false positive]: "
+labels: [false-positive, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agents may file only with the user's approval and must follow `slopvac prime report`.
+        Leave out private, proprietary, and secret text. Give the smallest reproduction.
+        Send security vulnerabilities through the private advisory form, not an issue.
+  - type: dropdown
+    id: reporter
+    attributes:
+      label: Reported by
+      options:
+        - A person
+        - An AI agent, with the user's approval
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and model
+      description: >-
+        Agent name and model, for example `Claude Code, claude-sonnet-4-5`. Write `none` when no agent was involved.
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and version
+      description: >-
+        For example omp 14.2, Claude Code 2.1, Codex CLI, Kiro, GitHub Action, pre-commit, or terminal.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: slopvac version
+      description: "Output of `slopvac --version`."
+    validations:
+      required: true
+  - type: dropdown
+    id: latest
+    attributes:
+      label: Reproduces on the latest release
+      description: >-
+        Rerun the command with `uvx --from slopvac@latest
+        slopvac ...`. If the latest release fixes it, upgrade instead of filing.
+      options:
+        - "Yes"
+        - Not checked
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: "Output of `slopvac doctor --format json`. Home paths print as `~`."
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command or commands you ran.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: rule-id
+    attributes:
+      label: Rule ID
+    validations:
+      required: true
+  - type: input
+    id: context
+    attributes:
+      label: Genre and profile
+      description: "For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Flagged text
+      description: The smallest sample that still triggers the finding.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding
+      description: The finding object from `slopvac lint <file> --format json`.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this is not slop
+    validations:
+      required: true

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/srobroek/slopvac/security/advisories/new
+    about: Report security vulnerabilities through the private advisory form.
+  - name: Read the documentation
+    url: https://github.com/srobroek/slopvac#readme
+    about: Read the slopvac documentation.

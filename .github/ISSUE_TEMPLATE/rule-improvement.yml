@@ -1,0 +1,119 @@
+name: Rule improvement
+description: Propose a change to an existing rule as a whole.
+title: "[rule improvement]: "
+labels: [rule-improvement, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agents may file only with the user's approval and must follow `slopvac prime report`.
+        Leave out private, proprietary, and secret text. Give the smallest reproduction.
+        Send security vulnerabilities through the private advisory form, not an issue.
+  - type: dropdown
+    id: reporter
+    attributes:
+      label: Reported by
+      options:
+        - A person
+        - An AI agent, with the user's approval
+    validations:
+      required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and model
+      description: >-
+        Agent name and model, for example `Claude Code, claude-sonnet-4-5`. Write `none` when no agent was involved.
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Harness and version
+      description: >-
+        For example omp 14.2, Claude Code 2.1, Codex CLI, Kiro, GitHub Action, pre-commit, or terminal.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: slopvac version
+      description: "Output of `slopvac --version`."
+    validations:
+      required: true
+  - type: dropdown
+    id: latest
+    attributes:
+      label: Reproduces on the latest release
+      description: >-
+        Rerun the command with `uvx --from slopvac@latest
+        slopvac ...`. If the latest release fixes it, upgrade instead of filing.
+      options:
+        - "Yes"
+        - Not checked
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: "Output of `slopvac doctor --format json`. Home paths print as `~`."
+      render: json
+    validations:
+      required: false
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command or commands you ran.
+      render: shell
+    validations:
+      required: false
+  - type: input
+    id: rule-id
+    attributes:
+      label: Rule ID
+    validations:
+      required: true
+  - type: dropdown
+    id: aspect
+    attributes:
+      label: What to improve
+      multiple: true
+      options:
+        - Accuracy across many findings
+        - Message or fix wording
+        - Examples
+        - Exceptions
+        - Judgement question
+        - Severity or tier
+        - Genre recommendation
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: accuracy
+    attributes:
+      label: Accuracy sample
+      description: >-
+        Findings judged on a sample: how many were true slop, how many were not, and the corpus they came from.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+    validations:
+      required: false
