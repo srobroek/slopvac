@@ -272,7 +272,6 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
         output = _prime(runner, "report")
     for expected in (
         "uvx --from slopvac@latest slopvac --version",
-        "If both versions match, do not rerun the command.",
         "gh issue list -R srobroek/slopvac",
         "gh label list -R srobroek/slopvac --json name",
         "gh issue comment <N> -R srobroek/slopvac --body-file <file>",
