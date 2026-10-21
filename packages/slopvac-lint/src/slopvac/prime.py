@@ -28,7 +28,7 @@ from .config import (
     Severity,
 )
 from .contract import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK, LINTABLE, SKIP_SOURCE_DIRS
-from .guidance import genres_and_profiles, prime_section, unlinted
+from .guidance import genres_and_profiles, prime_section, report_prime_section, unlinted
 from .model import DocumentScore, Finding
 from .report import LintReport, RunSummary
 from .steering import harnesses
@@ -362,6 +362,7 @@ def render_prime(settings: GuidanceSettings, cli: click.Group) -> str:
         "decision records.",
         "",
         *prime_section(settings),
+        *report_prime_section(settings),
         *_commands(cli),
         *genres_and_profiles(),
         *_rule_lookup(cli),

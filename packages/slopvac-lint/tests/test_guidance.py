@@ -86,12 +86,11 @@ def test_base_prime_handoff_matches_configured_review_depth():
 
 
 def test_lint_accepts_every_prime_output_at_strict_profile(tmp_path):
-    """The base prime under each review mode and depth, the writing guide, and
-    the review guide under each depth: all pass their own strict gate."""
+    """Base prime and writing, review, and reporting topics pass their strict gate."""
     runner = CliRunner()
     outputs = []
     cases = [
-        ("default", {}, ([], ["write"], ["review"])),
+        ("default", {}, ([], ["write"], ["review"], ["report"])),
         ("ask", {"review": "ask"}, ([],)),
         ("adversary", {"review_depth": "adversary"}, ([], ["review"])),
         ("self", {"review_depth": "self"}, ([], ["review"])),
@@ -104,7 +103,7 @@ def test_lint_accepts_every_prime_output_at_strict_profile(tmp_path):
                 path.write_text(_prime(runner, *topic), encoding="utf-8")
                 outputs.append(path)
 
-    assert len(outputs) == 8
+    assert len(outputs) == 9
     for path in outputs:
         result = runner.invoke(
             main, ["lint", str(path), "--profile", "strict", "--format", "json"]
@@ -243,6 +242,49 @@ def test_both_off_drops_the_whole_prime_section():
     assert "slopvac prime" in default.split("## Writing and review")[1]
     assert "## Writing and review" not in base
     assert "slopvac lint" in base
+
+
+def test_report_guidance_is_enabled_by_default_and_omitted_when_off():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        default = _prime(runner)
+        _guidance(report="off")
+        disabled = _prime(runner)
+    assert "## Reporting slopvac problems" in default
+    assert "## Reporting slopvac problems" not in disabled
+
+
+def test_report_topic_off_prints_the_disabled_notice_without_ruleset_loading():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        _guidance(report="off")
+        result = runner.invoke(main, ["prime", "report"])
+    assert result.exit_code == 0, result.output
+    assert result.output.count("\n") == 1
+    assert 'report = "off"' in result.output
+
+
+def test_report_topic_contains_workflow_commands_and_category_skeletons():
+    from slopvac.reporting import REPORT_CATEGORIES
+
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        output = _prime(runner, "report")
+    for expected in (
+        "uvx --from slopvac@latest",
+        "gh issue list -R srobroek/slopvac",
+        "gh label list -R srobroek/slopvac --json name",
+        "gh issue comment <N> -R srobroek/slopvac --body-file <file>",
+        "gh issue create -R srobroek/slopvac --title",
+        "https://github.com/srobroek/slopvac/issues/new?template=<file>",
+        "agent-reported",
+    ):
+        assert expected in output
+    for category in REPORT_CATEGORIES:
+        category_skeleton = output.split(f"### `{category.key}`\n", 1)[1]
+        category_skeleton = category_skeleton.split("### `", 1)[0]
+        for field in category.fields:
+            assert f"### {field.label}" in category_skeleton
 
 
 def test_prime_reads_an_explicit_config(tmp_path):

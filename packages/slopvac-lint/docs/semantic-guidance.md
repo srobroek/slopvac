@@ -14,12 +14,13 @@ semantic review with its own model.
 | `slopvac prime` | Command usage and configuration. Genre/profile tables and rule lookup. Report keys, exit codes, directives, exclusions, and guidance triggers. |
 | `slopvac prime write` | Genre/profile tables and the documentation contract. A writing workflow, exclusion order, and the command for judgment rules. |
 | `slopvac prime review` | Genre/profile tables and a review workflow. Suppression checks, verdict format, and the command for the judgment checklist. |
+| `slopvac prime report` | Approval-gated issue reporting workflow, category selection, and issue body skeletons. |
 | `slopvac rules --kind judgement --genre <genre> --profile <profile> --format md` | Each judgment rule for that genre in full, grouped by category |
 
-The three prime commands only print. Each reads `[guidance]` from the nearest
+The four prime commands only print. Each reads `[guidance]` from the nearest
 slopvac config in or above the working directory. `--config PATH` names
 another file. `--rules-dir DIR` adds house rules to the genre table of the
-topics.
+write and review topics. `prime report` does not load the ruleset.
 
 `slopvac rules` renders the judgment rules from the loaded rule catalog,
 grouped by category and sorted by rule id. A house rule with `kind: judgement`
@@ -30,7 +31,9 @@ in a `--rules-dir` appears when the agent passes that `--rules-dir` to
 
 The base `slopvac prime` output directs the agent to run `slopvac prime write`
 before drafting and `slopvac prime review` before hand-off. When
-`[guidance] review = "ask"`, it asks the user before the review.
+`[guidance] review = "ask"`, it asks the user before the review. Unless
+`[guidance] report = "off"`, it directs agents to run `slopvac prime report`
+for problems. Every post needs the user's approval in the current conversation.
 
 The managed steering block in `AGENTS.md` or a harness file points agents to
 `slopvac prime`. Harnesses with project skill support also get the thin
@@ -40,11 +43,9 @@ The managed steering block in `AGENTS.md` or a harness file points agents to
 
 `slopvac prime` prints these sections, in order:
 
-- Core rules and the writing and review steps that `[guidance]` turns on.
-- The commands, grouped by purpose.
-- The genre table and the profile table.
-- Rule lookup: the `slopvac rules` format to read, how its filters combine,
-  and a link to the [rules output reference](rules-output.md).
+- Core rules and writing and review steps; the report trigger when `[guidance] report` is on.
+- Commands grouped by purpose.
+- Genre and profile tables, and rule lookup.
 - Inputs, results, Vale, fixes and suppressions, configuration, and agent setup.
 - Common workflows as one shell block.
 - A command reference that gives the usage of each command and lists each
@@ -115,6 +116,7 @@ first fields of the first rule:
 write = "auto"             # auto | off
 review = "auto"            # auto | ask | off
 review_depth = "subagent"  # self | subagent | adversary
+report = "ask"             # ask | off
 ```
 
 | Key | Value | Effect |
@@ -127,6 +129,8 @@ review_depth = "subagent"  # self | subagent | adversary
 | `review_depth` | `subagent` (default) | One fresh-context reviewer pass |
 | `review_depth` | `self` | The author applies the reviewer pass |
 | `review_depth` | `adversary` | Repeated reviewer rounds until a round reports no finding the author accepts |
+| `report` | `ask` (default) | Adds `slopvac prime report` to the base guide |
+| `report` | `off` | Omits the base section. `slopvac prime report` prints a notice and exits 0 |
 
 `review = "off"` disables review regardless of `review_depth`. Guidance is
 project-wide. `[[overrides]]` cannot set it. When both `write` and `review` are `off`, setup removes any skill it installed earlier.

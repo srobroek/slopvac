@@ -169,9 +169,10 @@ slopvac prime
 ```
 
 `prime` covers linting, exit-code semantics, Vale coverage, rule explanation,
-named exceptions, factual-claim verification, and when to run the writing and
-review topics. It only prints. `slopvac onboard` prints a short setup handoff
-that points the agent to `prime` for the detailed workflow.
+named exceptions, factual-claim verification, and writing, review, and reporting
+guidance. `slopvac prime report` prints an approval-gated issue workflow and
+posts nothing until the user approves the exact post.
+`slopvac onboard` prints a short setup handoff that points the agent to `prime`.
 
 ## Writing guidance
 

@@ -249,6 +249,21 @@ def test_guidance_defaults_to_auto_and_accepts_each_mode():
     assert not both_off.guidance.enabled
 
 
+def test_report_guidance_defaults_to_ask_and_rejects_unknown_values():
+    assert Config().guidance.report == "ask"
+    report_off = Config.model_validate({"guidance": {"report": "off"}})
+    assert report_off.guidance.enabled
+    with pytest.raises(ValidationError):
+        Config.model_validate({"guidance": {"report": "auto"}})
+
+
+def test_report_guidance_cannot_be_set_per_path():
+    with pytest.raises(ValidationError, match="project-wide"):
+        Config.model_validate(
+            {"overrides": [{"files": ["docs/**"], "guidance": {"report": "off"}}]}
+        )
+
+
 @pytest.mark.parametrize(
     "guidance",
     [{"write": "ask"}, {"review": "always"}, {"reviews": "auto"}],

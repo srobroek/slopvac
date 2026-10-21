@@ -265,6 +265,110 @@ def prime_section(settings: GuidanceSettings) -> list[str]:
 def disabled_notice(topic: str, config_path: Path | None) -> str:
     where = f" in {config_path}" if config_path else ""
     return f'slopvac prime {topic} is disabled by [guidance] {topic} = "off"{where}.'
+def report_prime_section(settings: GuidanceSettings) -> list[str]:
+    """The base-prime report trigger, absent when reports are disabled."""
+    if settings.report == "off":
+        return []
+    return [
+        "## Reporting slopvac problems",
+        "",
+        "If slopvac crashes or gives a wrong result, run `slopvac prime report`.",
+        "If a rule flags clean text or misses slop, run `slopvac prime report`.",
+        "If a rule needs work, run `slopvac prime report`.",
+        "When you file a report, wait for the user's approval.",
+        "",
+    ]
+
+
+def render_report(settings: GuidanceSettings) -> str:
+    """Print the report workflow, category table, and body skeletons."""
+    from .reporting import REPORT_CATEGORIES, REPOSITORY_SLUG
+
+    workflow = [
+        "1. Propose the report. Post nothing until the user approves it in this conversation.",
+        "   Approval covers one post. Config, `AGENTS.md`, and earlier approvals do not apply.",
+        "2. Pick a category from the table.",
+        "3. Collect the version, environment, and exact command.",
+        "   Run `slopvac --version` and `slopvac doctor --format json` for this data.",
+        "   Name your agent, its model, and its harness version.",
+        "   For rule reports, collect the finding JSON.",
+        "     Run `slopvac lint <file> --format json`.",
+        "     Run `slopvac explain <rule_id> --format md`.",
+        "4. If the release is newer or unknown, rerun this command with `uvx --from slopvac@latest slopvac ...`.",
+        "   If latest fixes it, recommend `slopvac.upgrade_command` and stop.",
+        "   Scan the changelog for the rule id or symptom.",
+        f'5. Find duplicates with `gh issue list -R {REPOSITORY_SLUG} --state all --search "<rule id or key terms>" --json number,title,state,url --limit 20`.',
+        "   Open match: comment with new evidence.",
+        "   Closed and fixed: compare versions and upgrade.",
+        "   Reproduces on latest: file a new issue that links the old one.",
+        "   No match: file a new issue.",
+        "6. Use the smallest reproduction. Remove secrets and proprietary text.",
+        "   If you quote file text, first get permission.",
+        "7. Present the target to the user.",
+        "   Present the title, labels, and body too.",
+        "   The user approves the post before publication.",
+        f"8. Use labels listed by `gh label list -R {REPOSITORY_SLUG} --json name`.",
+        "   Add `agent-reported` for agent reports.",
+        "   Create an issue with:",
+        "```bash",
+        f"gh issue create -R {REPOSITORY_SLUG} --title ... --label ... --body-file <file>",
+        "```",
+        "   Comment on issue #N with:",
+        "```bash",
+        f"gh issue comment <N> -R {REPOSITORY_SLUG} --body-file <file>",
+        "```",
+        "Report the URL.",
+        "9. If `gh` is unavailable or unauthenticated, give the user the form URL and body.",
+        f"   Use `https://github.com/{REPOSITORY_SLUG}/issues/new?template=<file>`.",
+    ]
+    skeleton = []
+    for category in REPORT_CATEGORIES:
+        skeleton.extend([f"### `{category.key}`", ""])
+        for field in category.fields:
+            skeleton.extend([f"### {field.label}", ""])
+            if field.render:
+                skeleton.extend([f"```{field.render}", "<value>", "```", ""])
+            else:
+                skeleton.extend(["<value>", ""])
+
+    lines = [
+        "# Slopvac problem reporting",
+        "",
+        f'Before you post, get user approval in this conversation. The `[guidance] report = "{settings.report}"` setting enables this gate.',
+        "",
+        "## Workflow",
+        "",
+        *workflow,
+        "",
+        "## Categories and body skeletons",
+        "",
+        "Generated form listings follow. An empty optional field is `_No response_`.",
+        "",
+        *unlinted(
+            [
+                *_table(
+                    ["Key", "Meaning", "Form", "Title prefix", "Labels"],
+                    [
+                        [
+                            f"`{category.key}`",
+                            category.meaning,
+                            f"`{category.form_file}`",
+                            f"`{category.title_prefix}`",
+                            ", ".join(f"`{label}`" for label in category.labels),
+                        ]
+                        for category in REPORT_CATEGORIES
+                    ],
+                ),
+                "",
+                *skeleton,
+            ]
+        ),
+    ]
+    return "\n".join(lines).rstrip("\n") + "\n"
+
+
+
+
 
 
 def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:

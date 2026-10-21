@@ -264,6 +264,11 @@ class GuidanceSettings(BaseModel):
         "`subagent` uses one read-only fresh-context pass, and `adversary` "
         "repeats rounds until no finding the author accepts remains.",
     )
+    report: Literal["ask", "off"] = Field(
+        default="ask",
+        description="`ask` points agents at `slopvac prime report` when they find a "
+        "problem; `off` disables problem reporting guidance.",
+    )
 
     @property
     def enabled(self) -> bool:
