@@ -308,6 +308,10 @@ source
 
 Exact source locations remain host-authoritative. The semantic layer remains separate from the current linter CLI and its exit status.
 
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and pull request guidance. Use [SECURITY.md](SECURITY.md) to report vulnerabilities in private. File bugs, rule findings, and proposals with an [issue form](https://github.com/srobroek/slopvac/issues/new/choose). Do not post security reports as issues.
+
 ## License
 
 Apache-2.0. Includes rules derived from
