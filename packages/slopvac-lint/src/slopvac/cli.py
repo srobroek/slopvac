@@ -935,7 +935,7 @@ def prime(topic: str | None, config_path: Path | None, rules_dir: tuple[Path, ..
         click.echo(disabled_notice(topic, source))
         return
     if topic == "report":
-        click.echo(render_report(settings), nl=False)
+        click.echo(render_report(), nl=False)
         return
 
     from .rules import RuleLoadError, load_ruleset

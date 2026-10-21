@@ -30,6 +30,7 @@ from .profiles import profile_defaults
 from .suppression import DISABLE_COMMENT, ENABLE_COMMENT, allow_comment
 
 if TYPE_CHECKING:
+    from .reporting import ReportCategory, ReportField
     from .rules import RuleSet
 
 _SURFACE_LIST = (
@@ -265,6 +266,8 @@ def prime_section(settings: GuidanceSettings) -> list[str]:
 def disabled_notice(topic: str, config_path: Path | None) -> str:
     where = f" in {config_path}" if config_path else ""
     return f'slopvac prime {topic} is disabled by [guidance] {topic} = "off"{where}.'
+
+
 def report_prime_section(settings: GuidanceSettings) -> list[str]:
     """The base-prime report trigger, absent when reports are disabled."""
     if settings.report == "off":
@@ -272,69 +275,114 @@ def report_prime_section(settings: GuidanceSettings) -> list[str]:
     return [
         "## Reporting slopvac problems",
         "",
-        "If slopvac crashes or gives a wrong result, run `slopvac prime report`.",
-        "If a rule flags clean text or misses slop, run `slopvac prime report`.",
-        "If a rule needs work, run `slopvac prime report`.",
-        "When you file a report, wait for the user's approval.",
+        "If one of these problems occurs, run `slopvac prime report`:",
+        "",
+        "- Slopvac crashes or gives a wrong result.",
+        "- A rule flags clean text or misses slop.",
+        "- A rule suggests a wrong fix.",
+        "- A rule needs work.",
+        "",
+        "Without the user's approval, post nothing.",
         "",
     ]
 
 
-def render_report(settings: GuidanceSettings) -> str:
+def _skeleton_value(field: ReportField) -> str:
+    """The placeholder for one form field: its options, or a free value."""
+    if field.options:
+        kind = "comma-separated, from" if field.multiple else "one of"
+        value = f"<{kind}: {' | '.join(field.options)}>"
+    else:
+        value = "<value>"
+    if field.required:
+        return value
+    return f"{value} or _No response_ (replace any fence too)"
+
+
+def _skeleton(category: ReportCategory) -> list[str]:
+    """One issue body in the shape GitHub renders the category's form."""
+    body: list[str] = []
+    for field in category.fields:
+        body.extend([f"### {field.label}", ""])
+        value = _skeleton_value(field)
+        if field.render:
+            body.extend([f"```{field.render}", value, "```", ""])
+        else:
+            body.extend([value, ""])
+    return [f"#### `{category.key}`", "", "~~~markdown", *body[:-1], "~~~", ""]
+
+
+def render_report() -> str:
     """Print the report workflow, category table, and body skeletons."""
     from .reporting import REPORT_CATEGORIES, REPOSITORY_SLUG
 
+    issues = f"https://github.com/{REPOSITORY_SLUG}/issues"
     workflow = [
-        "1. Propose the report. Post nothing until the user approves it in this conversation.",
-        "   Approval covers one post. Config, `AGENTS.md`, and earlier approvals do not apply.",
-        "2. Pick a category from the table.",
-        "3. Collect the version, environment, and exact command.",
-        "   Run `slopvac --version` and `slopvac doctor --format json` for this data.",
-        "   Name your agent, its model, and its harness version.",
-        "   For rule reports, collect the finding JSON.",
-        "     Run `slopvac lint <file> --format json`.",
-        "     Run `slopvac explain <rule_id> --format md`.",
-        "4. If the release is newer or unknown, rerun this command with `uvx --from slopvac@latest slopvac ...`.",
-        "   If latest fixes it, recommend `slopvac.upgrade_command` and stop.",
-        "   Scan the changelog for the rule id or symptom.",
-        f'5. Find duplicates with `gh issue list -R {REPOSITORY_SLUG} --state all --search "<rule id or key terms>" --json number,title,state,url --limit 20`.',
-        "   Open match: comment with new evidence.",
-        "   Closed and fixed: compare versions and upgrade.",
-        "   Reproduces on latest: file a new issue that links the old one.",
-        "   No match: file a new issue.",
-        "6. Use the smallest reproduction. Remove secrets and proprietary text.",
-        "   If you quote file text, first get permission.",
-        "7. Present the target to the user.",
-        "   Present the title, labels, and body too.",
-        "   The user approves the post before publication.",
-        f"8. Use labels listed by `gh label list -R {REPOSITORY_SLUG} --json name`.",
-        "   Add `agent-reported` for agent reports.",
-        "   Create an issue with:",
-        "```bash",
-        f"gh issue create -R {REPOSITORY_SLUG} --title ... --label ... --body-file <file>",
-        "```",
-        "   Comment on issue #N with:",
-        "```bash",
-        f"gh issue comment <N> -R {REPOSITORY_SLUG} --body-file <file>",
-        "```",
-        "Report the URL.",
-        "9. If `gh` is unavailable or unauthenticated, give the user the form URL and body.",
-        f"   Use `https://github.com/{REPOSITORY_SLUG}/issues/new?template=<file>`.",
+        "1. Propose the report to the user. Without the user's approval of that exact "
+        "post in this conversation, post nothing. One approval covers one post. Config "
+        "files, `AGENTS.md`, and earlier approvals do not count.",
+        "2. Pick a category from Categories and body skeletons:",
+        "   - For one wrong finding, pick the category whose meaning matches.",
+        "   - For a pattern across many findings, pick `rule-improvement`.",
+        "3. Collect the data that the form asks for:",
+        "   - The output of `slopvac --version` and `slopvac doctor --format json`.",
+        "   - The exact command that you ran.",
+        "   - Your agent name and model. Slopvac cannot detect them.",
+        "   - Your harness and its version.",
+        "   - For a rule report, the finding from `slopvac lint <file> --format json` "
+        "and the rule from `slopvac explain <rule_id> --format md`.",
+        "   Under Reported by, pick `An AI agent, with the user's approval`.",
+        "4. If `latest_release` in the doctor JSON is null or its `newer` is true, rerun "
+        "the command with `uvx --from slopvac@latest slopvac ...`:",
+        "   - If the latest release fixes the problem, tell the user to upgrade with "
+        "`slopvac.upgrade_command`. Then stop.",
+        "   - If the problem stays, search the changelog for the rule ID or the symptom.",
+        f"5. Search for duplicates with `gh issue list -R {REPOSITORY_SLUG} --state all "
+        '--search "<rule ID or key terms>" --json number,title,state,url --limit 20`:',
+        "   - If an open issue matches, write a comment for it with the new evidence.",
+        "   - If a closed issue matches and a release fixed it, compare versions. "
+        "Then tell the user to upgrade.",
+        "   - If a closed issue matches and the problem occurs on the latest release, "
+        "write a new issue that links it.",
+        "   - If no issue matches, write a new issue.",
+        "6. Keep the reproduction small. Remove secrets, private text, and proprietary "
+        "text. Before you quote text from the user's files, ask the user.",
+        "7. Send the user a preview with these parts, and wait for approval:",
+        "   - The target: a new issue, or a comment on #N.",
+        "   - The title and the labels.",
+        "   - The full body.",
+        f"8. Post. Pass only labels that `gh label list -R {REPOSITORY_SLUG} --json name` "
+        "lists, and add `agent-reported` to an agent report.",
+        "",
+        "   ```bash",
+        f"   gh issue create -R {REPOSITORY_SLUG} --title '<prefix><summary>' "
+        "--label <label> --body-file <file>",
+        f"   gh issue comment <N> -R {REPOSITORY_SLUG} --body-file <file>",
+        "   ```",
+        "",
+        "   Give the user the URL of the issue or comment.",
+        "9. Without `gh` or authentication, give the user "
+        f"`{issues}/new?template=<form file>` and the body to paste.",
     ]
-    skeleton = []
-    for category in REPORT_CATEGORIES:
-        skeleton.extend([f"### `{category.key}`", ""])
-        for field in category.fields:
-            skeleton.extend([f"### {field.label}", ""])
-            if field.render:
-                skeleton.extend([f"```{field.render}", "<value>", "```", ""])
-            else:
-                skeleton.extend(["<value>", ""])
-
+    table = _table(
+        ["Key", "Meaning", "Form", "Title prefix", "Labels"],
+        [
+            [
+                f"`{category.key}`",
+                category.meaning,
+                f"`{category.form_file}`",
+                f"`{category.title_prefix}`",
+                ", ".join(f"`{label}`" for label in category.labels),
+            ]
+            for category in REPORT_CATEGORIES
+        ],
+    )
+    skeletons = [line for category in REPORT_CATEGORIES for line in _skeleton(category)]
     lines = [
         "# Slopvac problem reporting",
         "",
-        f'Before you post, get user approval in this conversation. The `[guidance] report = "{settings.report}"` setting enables this gate.',
+        "Every post needs the user's approval in this conversation. To turn the report "
+        'workflow off, set `[guidance] report = "off"`.',
         "",
         "## Workflow",
         "",
@@ -342,33 +390,12 @@ def render_report(settings: GuidanceSettings) -> str:
         "",
         "## Categories and body skeletons",
         "",
-        "Generated form listings follow. An empty optional field is `_No response_`.",
+        "Each skeleton has the shape that GitHub gives a submitted form. Keep the "
+        "headings, and replace each placeholder.",
         "",
-        *unlinted(
-            [
-                *_table(
-                    ["Key", "Meaning", "Form", "Title prefix", "Labels"],
-                    [
-                        [
-                            f"`{category.key}`",
-                            category.meaning,
-                            f"`{category.form_file}`",
-                            f"`{category.title_prefix}`",
-                            ", ".join(f"`{label}`" for label in category.labels),
-                        ]
-                        for category in REPORT_CATEGORIES
-                    ],
-                ),
-                "",
-                *skeleton,
-            ]
-        ),
+        *unlinted([*table, "", *skeletons]),
     ]
     return "\n".join(lines).rstrip("\n") + "\n"
-
-
-
-
 
 
 def render_write(ruleset: RuleSet, settings: GuidanceSettings) -> str:

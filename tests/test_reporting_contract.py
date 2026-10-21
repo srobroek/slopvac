@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from slopvac.reporting import REPORT_CATEGORIES, REPOSITORY_SLUG, ReportCategory
 
 ROOT = Path(__file__).resolve().parents[1]

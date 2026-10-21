@@ -17,10 +17,10 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from slopvac.config import GuidanceSettings
-from slopvac.steering import harnesses
 from slopvac.cli import main
+from slopvac.config import GuidanceSettings
 from slopvac.contract import EXIT_ERROR, EXIT_FINDINGS, EXIT_OK
+from slopvac.steering import harnesses
 
 
 def test_machine_formats_skip_update_check(runner, tmp_path, monkeypatch):

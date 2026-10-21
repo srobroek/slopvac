@@ -26,7 +26,6 @@ def _display_path(path: Path, *, cwd: Path, home: Path) -> str:
         return str(absolute)
 
 
-
 def _redact_home(value: str, home: Path) -> str:
     """Replace home paths embedded in error messages as well as path fields."""
     home_text = str(home)

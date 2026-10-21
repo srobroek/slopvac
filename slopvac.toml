@@ -28,6 +28,8 @@ exclude = [
   "CHANGELOG.md",
   ".beads/**",
   ".agents/**",
+  # The Contributor Covenant 2.1, kept verbatim except for its contact line.
+  "CODE_OF_CONDUCT.md",
 ]
 
 [thresholds]

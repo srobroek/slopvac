@@ -276,7 +276,7 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
         "gh label list -R srobroek/slopvac --json name",
         "gh issue comment <N> -R srobroek/slopvac --body-file <file>",
         "gh issue create -R srobroek/slopvac --title",
-        "https://github.com/srobroek/slopvac/issues/new?template=<file>",
+        "https://github.com/srobroek/slopvac/issues/new?template=",
         "agent-reported",
     ):
         assert expected in output
