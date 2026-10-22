@@ -8,9 +8,8 @@ body:
       value: >-
         An AI agent filing a report MUST disclose itself: tick Reported by an AI
         agent and fill in Agent, Model, and Harness and version.
-        Reports must not contain paths. File names may only be `repro.md` and
-        `slopvac.toml`. Do not include user names, host names, repository names,
-        organization names, or other private data.
+        Reports must not contain paths or file names. Do not include user names,
+        host names, repository names, organization names, or other private data.
         For security vulnerabilities, use the private vulnerability report on
         the Security tab.
   - type: checkboxes
@@ -87,7 +86,8 @@ body:
     attributes:
       label: Command
       description: >-
-        The exact command or commands you ran. Name the sample `repro.md`. Do not include other paths or file names.
+        The exact command or commands you ran. Pipe the sample into
+        `slopvac lint --stdin`. Do not include paths or file names.
       render: shell
     validations:
       required: true

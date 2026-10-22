@@ -63,8 +63,7 @@ The forms cover these categories:
 
 Before submitting an agent report, run `slopvac prime report`. Get the user's approval for the exact post.
 
-Do not include paths or private data.
-File names may only be `repro.md` and `slopvac.toml`.
+Do not include paths, file names, or private data.
 Do not include user names, host names, repository names, or organisation names.
 Paste sample text into the report. A local file path is not enough.
 Prefer a synthetic sample over text from private or proprietary sources.

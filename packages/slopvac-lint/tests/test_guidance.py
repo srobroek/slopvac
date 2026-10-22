@@ -281,7 +281,8 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
         "When it is newer, rerun with `uvx --from slopvac@latest slopvac ...`.",
     ):
         assert expected in output
-    assert output.index("Prefer a synthetic sample") < output.index("6. Search for duplicates")
+    assert output.index("slopvac lint --stdin --format json") < output.index("6. Search for duplicates")
+    assert "repro.md" not in output
     assert output.index("5. When you need a reproduction") < output.index("6. Search for duplicates")
     for category in REPORT_CATEGORIES:
         category_skeleton = output.split(f"### `{category.key}`\n", 1)[1]

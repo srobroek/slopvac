@@ -107,7 +107,7 @@ _COMMON_FIELDS = (
         checkbox_options=(("I searched existing issues for duplicates", True),),
     ),
     _field("environment", "Environment", "textarea", required=False, render="json", description="Output of `slopvac doctor --format json`."),
-    _field("command", "Command", "textarea", required=False, render="shell", description="The exact command or commands you ran. Name the sample `repro.md`. Do not include other paths or file names."),
+    _field("command", "Command", "textarea", required=False, render="shell", description="The exact command or commands you ran. Pipe the sample into `slopvac lint --stdin`. Do not include paths or file names."),
 )
 
 
@@ -149,7 +149,7 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
             _field("rule-id", "Rule ID", "input"),
             _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
             _field("input", "Flagged text", "textarea", render="markdown", description="The smallest sample that still triggers the finding. Paste the sample text itself. A local file path is not enough."),
-            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint repro.md --format json`. Lint `repro.md` so the path field reads `repro.md`."),
+            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint --stdin --format json`. Its path reads `<stdin>`."),
             _field("why", "Why this is not slop", "textarea"),
         ),
     ),
@@ -178,7 +178,7 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
             _field("rule-id", "Rule ID", "input"),
             _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
             _field("input", "Flagged text", "textarea", render="markdown", description="Paste the sample text itself. A local file path is not enough."),
-            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint repro.md --format json`. Lint `repro.md` so the path field reads `repro.md`."),
+            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint --stdin --format json`. Its path reads `<stdin>`."),
             _field("problem", "What is wrong", "dropdown", options=("Wrong rule", "Wrong severity", "Wrong span or location"), multiple=True),
             _field("expected", "Expected finding", "textarea", description="The rule, severity, or span you expected."),
         ),
@@ -194,7 +194,7 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
             _field("rule-id", "Rule ID", "input"),
             _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
             _field("input", "Flagged text", "textarea", render="markdown", description="Paste the sample text itself. A local file path is not enough."),
-            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint repro.md --format json`. Lint `repro.md` so the path field reads `repro.md`."),
+            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint --stdin --format json`. Its path reads `<stdin>`."),
             _field("problem", "What is wrong", "dropdown", options=("Wrong suggested replacement", "--fix changed the meaning", "--fix produced broken text", "Misleading or unclear message", "Fix guidance does not apply here"), multiple=True),
             _field("fixed-text", "Text after the fix", "textarea", required=False, render="markdown", description="Output of `slopvac lint --fix`, when you ran it."),
             _field("expected", "Expected suggestion", "textarea"),
