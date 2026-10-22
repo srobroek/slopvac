@@ -39,7 +39,7 @@ pipx install slopvac
 pipx upgrade slopvac
 ```
 
-To try a release candidate, select its exact prerelease version:
+To try a release candidate, use one of these commands:
 
 ```sh
 uvx --from 'slopvac==X.Y.ZrcN' slopvac README.md
@@ -48,7 +48,8 @@ pip install --pre slopvac
 ```
 
 Replace `X.Y.ZrcN` with the candidate version. The `uvx` command pins that
-version. `slopvac@latest` and plain installs stay on stable releases.
+version; the other two install the newest release, candidates included.
+`slopvac@latest` and plain installs stay on stable releases.
 
 If the cache contains a newer stable PyPI release, Slopvac prints an update notice after an eligible command.
 Slopvac refreshes that cache in the background. A newly discovered release can appear on a later run.

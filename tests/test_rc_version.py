@@ -91,3 +91,26 @@ def test_rewrites_every_configured_version_file(tmp_path):
         text = (tmp_path / relative).read_text(encoding="utf-8")
         assert "2.17.0rc1" in text
         assert "2.17.0" not in text.replace("2.17.0rc1", "")
+
+
+def test_rewrite_leaves_unmarked_lines_alone():
+    text = (
+        'requires = ["slopvac>=2.17.0"]\n'
+        'version = "2.17.0" # x-release-please-version\n'
+    )
+    rewritten = rc_version.rewrite_marked_versions(text, "2.17.0rc1")
+    assert rewritten.splitlines()[0] == 'requires = ["slopvac>=2.17.0"]'
+    assert rewritten.splitlines()[1] == 'version = "2.17.0rc1" # x-release-please-version'
+
+
+def test_extra_file_outside_the_workspace_is_rejected(tmp_path):
+    config = {"packages": {".": {"extra-files": ["../outside.toml"]}}}
+    (tmp_path / "release-please-config.json").write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(ValueError, match="escapes workspace"):
+        rc_version.release_version_files(tmp_path)
+
+
+def test_a_later_alpha_makes_the_pending_version_stale(release_map):
+    release_map["2.18.0a1"] = [{"yanked": False}]
+    with pytest.raises(ValueError, match="not newer"):
+        rc_version.next_rc_version("2.17.0", release_map)

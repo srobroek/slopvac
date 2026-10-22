@@ -25,9 +25,10 @@ name: Publish slopvac
 # RELEASE CANDIDATES. release-please stays stable-only. Every push to its release
 # PR branch (`release-please--branches--main`) builds the next `X.Y.ZrcN` of the
 # pending version, chosen by scripts/rc_version.py, and queues it for PyPI behind
-# the same `pypi` environment approval. An RC never gets a tag, so the stable
-# publish job below, which runs only on a `vX.Y.Z` tag, cannot fire for one. The
-# version is rewritten in this workspace only; nothing is committed.
+# the same `pypi` environment approval. An RC never gets a tag. The stable job
+# runs only on a tag that is exactly `vX.Y.Z` and equals the package version, so
+# it cannot fire for an RC. The version is rewritten in this workspace only;
+# nothing is committed.
 
 on:
  push:
@@ -47,7 +48,7 @@ on:
     options: [testpypi, pypi]
     default: testpypi
    rc:
-    description: Build a release candidate of the selected ref's pending version.
+    description: Build a release candidate of the selected ref's pending version. Numbered from PyPI, also for TestPyPI.
     type: boolean
     default: false
 
@@ -55,9 +56,11 @@ permissions:
  contents: read
 
 concurrency:
- group: ${{ github.workflow }}-${{ github.ref }}
- # A newer release PR update replaces an RC still waiting for approval. Tags and
- # manual runs never cancel each other.
+ group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+ # A newer release PR update replaces an RC still waiting for approval. Tag and
+ # manual runs have their own groups and are never cancelled. A push that lands
+ # during an approved upload can cancel it part-way; the next RC then takes the
+ # following number, because rc_version.py counts every number already on PyPI.
  cancel-in-progress: ${{ github.event_name == 'push' && github.ref_type == 'branch' }}
 
 jobs:
@@ -98,6 +101,11 @@ jobs:
        version="$(python3 scripts/rc_version.py --rewrite)"
       else
        version="$(python3 -c 'import tomllib; print(tomllib.load(open("packages/slopvac-lint/pyproject.toml", "rb"))["project"]["version"])')"
+       # A stable tag must be exactly vX.Y.Z and name the version it publishes.
+       if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+        [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ && "$GITHUB_REF_NAME" == "v$version" ]] || {
+         echo "tag $GITHUB_REF_NAME is not v$version; refusing to publish"; exit 1; }
+       fi
       fi
       echo "version=$version" >> "$GITHUB_OUTPUT"
       echo "rc=$RC" >> "$GITHUB_OUTPUT"
@@ -153,7 +161,10 @@ jobs:
       set -euo pipefail
       uv venv /tmp/smoke
       VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
-      # An RC whose rewrite missed a file would build as the stable number.
+      # PyPI takes the version from the wheel and sdist metadata, and the CLI
+      # reports __version__; both must equal the version this run resolved.
+      test -f "dist/slopvac-$EXPECTED-py3-none-any.whl" && test -f "dist/slopvac-$EXPECTED.tar.gz" || {
+       echo "dist/ does not hold slopvac $EXPECTED:"; ls dist; exit 1; }
       actual="$(/tmp/smoke/bin/slopvac --version)"
       test "$actual" = "slopvac, version $EXPECTED" || {
        echo "expected slopvac, version $EXPECTED, got $actual"; exit 1; }
@@ -272,12 +283,12 @@ jobs:
  pypi:
   name: Publish to PyPI
   needs: build
-  # Stable only: a `vX.Y.Z` tag, or a manual run that is not an RC. A push to the
+  # Stable only: a tag push (the build step already refused any tag that is not
+  # exactly v<package version>), or a manual run that is not an RC. A push to the
   # release PR branch is an RC and never reaches this job.
   if: >-
    needs.build.outputs.rc != 'true' &&
-   ((github.event_name == 'push' && github.ref_type == 'tag' &&
-     !contains(github.ref_name, '-')) ||
+   ((github.event_name == 'push' && github.ref_type == 'tag') ||
     (github.event_name == 'workflow_dispatch' &&
      !inputs.dry-run &&
      inputs.target == 'pypi'))
