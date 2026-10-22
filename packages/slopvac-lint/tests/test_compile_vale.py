@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -849,7 +850,16 @@ def test_cache_dir_is_overridable(monkeypatch, tmp_path):
 def test_cache_falls_back_to_xdg(monkeypatch, tmp_path):
     monkeypatch.delenv("SLOPVAC_CACHE_DIR", raising=False)
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    monkeypatch.setattr(sys, "platform", "linux")
     assert cache_root() == tmp_path / "xdg" / "slopvac"
+
+
+def test_darwin_cache_precedes_xdg(monkeypatch, tmp_path):
+    monkeypatch.delenv("SLOPVAC_CACHE_DIR", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    assert cache_root() == tmp_path / "Library/Caches/slopvac"
 
 
 def test_second_compile_reuses_the_cache(ruleset, vocabulary, tmp_path):
