@@ -182,7 +182,7 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: excluded
-    pattern: '\b(?:make\s+sure|makes\s+sure|ensure[s]?|show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|mean[s]?|assume[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b'
+    pattern: '\b(?:make\s+sure|makes\s+sure|ensure[s]?|show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|mean[s]?|assume[s]?)\s+(?:(?:it|you|we|they)(?=\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|[a-z]+ed|[a-z]+s)\b)|(?:the|this|these|a|an|your|our)(?=(?:\s+[\w''-]+){1,3}?\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|[a-z]+ed|[a-z]+s(?=\s+[\w''-]))\b))'
     ignore_case: true
     exceptions:
       - quotation
@@ -200,6 +200,8 @@ rules:
         good: Make sure that the migration completed before you restart the worker.
       - bad: The dashboard shows the queue is empty.
         good: The dashboard shows that the queue is empty.
+      - bad: We recommend the team ships the fix today.
+        good: Show the user the target, then recommend the upgrade.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -208,10 +210,12 @@ rules:
       note: >-
         A general recommendation, not a rule; the specification says so explicitly, which is
         why severity is suggestion and the relaxed tier excludes it. The false-positive shape
-        is a direct object rather than a clause ("check the logs"), which is what the allowlist
-        controls. Tested: both bad examples match, both good examples do not, and
-        "check the config" is allowlisted rather than pattern-excluded because a lookahead for
-        every noun is unmaintainable.
+        is a direct object rather than a clause ("check the logs"). The pattern only fires when
+        a finite verb follows the noun phrase within three words (an auxiliary, an -ed form, or
+        an -s form that another word follows), so "show the user the target" and "recommend the
+        upgrade" stay clean. The allowlist keeps the remaining object-only phrases that a
+        following -s or -ed word would otherwise catch. Tested: every bad example matches and
+        every good example does not.
     fix: Insert "that" after the reporting verb.
 
   - id: ambiguous-preposition-with

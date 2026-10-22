@@ -591,6 +591,23 @@ def test_word_count_rule_is_silent_on_a_short_sentence(compiled, tmp_path):
     """A compliant sentence produces no length finding."""
     checks = _checks(compiled.config_path, "Close the valve.\n", tmp_path)
     assert "ste-procedural.sentence-too-long-procedural" not in checks
+
+
+@needs_vale
+@pytest.mark.parametrize(
+    ("text", "fires"),
+    [
+        ("Show the user the target.", False),
+        ("Compare versions and recommend the upgrade.", False),
+        ("Make sure the cache is warm.", True),
+        ("Ensure it works before you merge.", True),
+        ("Verify the build passed.", True),
+    ],
+)
+def test_omitted_that_needs_a_clause_not_a_direct_object(compiled, tmp_path, text, fires):
+    """A reporting verb with a direct object omits no conjunction; one with a clause does."""
+    checks = _checks(compiled.config_path, text + "\n", tmp_path)
+    assert ("ste-practices.omitted-conjunction-that" in checks) is fires
     assert "ste-descriptive.sentence-too-long-descriptive" not in checks
 
 
