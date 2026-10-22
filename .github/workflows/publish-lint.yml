@@ -163,8 +163,9 @@ jobs:
       VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
       # PyPI takes the version from the wheel and sdist metadata, and the CLI
       # reports __version__; both must equal the version this run resolved.
-      test -f "dist/slopvac-$EXPECTED-py3-none-any.whl" && test -f "dist/slopvac-$EXPECTED.tar.gz" || {
-       echo "dist/ does not hold slopvac $EXPECTED:"; ls dist; exit 1; }
+      if [[ ! -f "dist/slopvac-$EXPECTED-py3-none-any.whl" || ! -f "dist/slopvac-$EXPECTED.tar.gz" ]]; then
+       echo "dist/ does not hold slopvac $EXPECTED:"; ls dist; exit 1
+      fi
       actual="$(/tmp/smoke/bin/slopvac --version)"
       test "$actual" = "slopvac, version $EXPECTED" || {
        echo "expected slopvac, version $EXPECTED, got $actual"; exit 1; }
@@ -283,12 +284,12 @@ jobs:
  pypi:
   name: Publish to PyPI
   needs: build
-  # Stable only: a tag push (the build step already refused any tag that is not
-  # exactly v<package version>), or a manual run that is not an RC. A push to the
-  # release PR branch is an RC and never reaches this job.
+  # Stable only, and always from a tag the build step accepted as exactly
+  # v<package version>: the tag push itself, or a manual re-run on that tag. A push
+  # to the release PR branch is an RC and never reaches this job.
   if: >-
-   needs.build.outputs.rc != 'true' &&
-   ((github.event_name == 'push' && github.ref_type == 'tag') ||
+   needs.build.outputs.rc != 'true' && github.ref_type == 'tag' &&
+   (github.event_name == 'push' ||
     (github.event_name == 'workflow_dispatch' &&
      !inputs.dry-run &&
      inputs.target == 'pypi'))
