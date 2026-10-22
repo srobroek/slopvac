@@ -1247,6 +1247,7 @@ def test_mixed_case_status_language_still_fires(phrase):
         ("This page is a draft that the team still edits.", ["draft"]),
         ("This is a draft PR.", ["draft"]),
         ("Draft: status label.", ["Draft"]),
+        ("Status: Draft\nThe API may change.", ["Draft"]),
     ],
 )
 def test_status_language_distinguishes_draft_verb_from_status(text, expected):
