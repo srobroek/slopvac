@@ -63,6 +63,12 @@ from .projection import (
 
 FRONT_MATTER = re.compile(r"^---\s*$")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+
+def _blank_html_comments(text: str) -> str:
+    """Blank HTML comments without shifting later line numbers."""
+
+    return HTML_COMMENT.sub(lambda match: re.sub(r"[^\n]", " ", match.group(0)), text)
+
 # CommonMark closes a code span with a backtick run exactly as long as its
 # opener. Equal-length runs may contain shorter runs, so a single-backtick
 # expression leaks valid ``code ` — here`` spans into markup metrics.
@@ -457,7 +463,8 @@ class Document:
             for number, line in enumerate(self.raw_lines, start=1)
             if number not in skip
         ]
-        return INLINE_CODE.sub(" ", "\n".join(kept))
+        text = INLINE_CODE.sub(" ", "\n".join(kept))
+        return _blank_html_comments(text)
 
 
 
@@ -1312,10 +1319,7 @@ def _parse_html(path: str, raw: str) -> Document:
         html_lines.append(line)
         html_projections.append(projection)
     prose_lines = html_lines
-    joined = HTML_COMMENT.sub(
-        lambda m: re.sub(r"[^\n]", " ", m.group(0)), "\n".join(prose_lines)
-    )
-    prose_lines = joined.split("\n")
+    prose_lines = _blank_html_comments("\n".join(prose_lines)).split("\n")
 
     blocks: list[Block] = []
     for index, text in enumerate(prose_lines):
@@ -1572,10 +1576,7 @@ def parse(path: str, raw: str) -> Document:
 
     # HTML comments can span lines; blank them after block assignment so a
     # suppression annotation is not itself linted.
-    joined = HTML_COMMENT.sub(
-        lambda m: re.sub(r"[^\n]", " ", m.group(0)), "\n".join(prose_lines)
-    )
-    prose_lines = joined.split("\n")
+    prose_lines = _blank_html_comments("\n".join(prose_lines)).split("\n")
 
     return _finalize_document(
         Document(
