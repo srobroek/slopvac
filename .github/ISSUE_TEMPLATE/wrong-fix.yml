@@ -87,7 +87,8 @@ body:
       label: Command
       description: >-
         The exact command or commands you ran. Pipe the sample into
-        `slopvac lint --stdin`. Do not include paths or file names.
+        `slopvac lint --stdin`, or run `--fix` on a synthetic `sample.md`. Do not
+        include other paths or file names.
       render: shell
     validations:
       required: true

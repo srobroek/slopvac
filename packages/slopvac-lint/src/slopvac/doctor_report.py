@@ -22,7 +22,7 @@ _PATH_RE = re.compile(
     r"/(?!/)[^\s'\"`<>,;)}]+|"
     r"\.\.?[\\\\/][\w.@+-]+(?:[\\\\/][\w.@+-]+)*|"
     r"[\w.@+-]+(?:[\\\\/][\w.@+-]+){2,}|"
-    r"[\w.@+-]+\.(?:toml|py|json|ya?ml|txt|md|ini|cfg|conf|sh|exe|dll|dylib))",
+    r"(?:[\w.@+-]+[\\\\/])?[\w.@+-]+\.(?:toml|py|json|ya?ml|txt|md|ini|cfg|conf|sh|exe|dll|dylib))",
     re.IGNORECASE,
 )
 _QUOTED_PATH_RE = re.compile(

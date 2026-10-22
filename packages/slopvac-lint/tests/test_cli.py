@@ -941,13 +941,13 @@ def test_doctor_error_redaction_covers_windows_and_relative_paths():
 
     redacted = _redact_error(
         "could not open C:\\Users\\acme-secret-client\\config.toml, "
-        "../acme-secret-client/private.toml or "
+        "../acme-secret-client/private.toml, acme-secret-dir/words.toml or "
         "\\\\acme-secret-host\\share\\notes.md"
     )
 
     assert "C:\\" not in redacted
     assert "acme-secret" not in redacted
-    assert redacted.count("<path>") == 3
+    assert redacted.count("<path>") == 4
 
 
 def test_doctor_error_redaction_keeps_text_that_is_not_a_path():

@@ -411,7 +411,7 @@ def render_report() -> str:
         "     - Its labels.",
         "     - Its full body.",
         "   - For a comment, include its target and full comment body.",
-        "     Start each agent comment with `Reported by an AI agent (<agent>, <model>, <harness and version>) with the user's approval.`",
+        f"     Start each agent comment with `{reporter_label} (<agent>, <model>, <harness and version>) with the user's approval.`",
         "   - Send this preview to the user, and wait for a reply.",
         "     Only approval of this exact preview counts.",
         "8. When the user approves, post that exact body.",
