@@ -541,7 +541,7 @@ def _excluding_content() -> list[str]:
         "on the line above it.",
         f"4. Put `{DISABLE_COMMENT}` and `{ENABLE_COMMENT}` only around "
         "generated text or quoted specimens.",
-        f"5. For a whole generated or vendored file, add an `exclude` glob. "
+        "5. For a whole generated or vendored file, add an `exclude` glob. "
         "Or set its rules off in an `[[overrides]]` block.",
         "",
         "Never suppress a finding to hide a defect in prose that you wrote. Fix the prose.",
