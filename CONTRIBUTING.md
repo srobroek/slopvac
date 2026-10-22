@@ -43,8 +43,9 @@ These tests check that each lexical rule's `bad` example matches its pattern. A 
 
 ## Release candidates
 
-Each release-please PR update builds an RC. A maintainer approves the `pypi`
-environment to publish it. Merging the release PR ships the stable release.
+Release-please keeps an open release PR with the upcoming stable version. Each update to that PR builds a new release candidate, for example `2.18.0rc1`, from `publish-lint.yml`. The candidate waits for a maintainer to approve the `pypi` environment, then publishes to PyPI. Candidates get no tag and no changelog entry. Merging the release PR ships the stable release.
+
+Plain installs and `slopvac@latest` stay on the latest stable release. The package README lists how to opt in to a candidate.
 
 ## Commits and pull requests
 
