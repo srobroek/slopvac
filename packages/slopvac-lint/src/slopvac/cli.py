@@ -397,9 +397,17 @@ def lint(
 
             temporary_context = TemporaryDirectory(prefix="slopvac-stdin-")
             stdin_target = Path(temporary_context.name) / f"stdin{_stdin_suffix(language or 'markdown', code_comments)}"
-            # Copy the bytes and let the pipeline decode them as it decodes a file,
-            # so an encoding error is replaced rather than raised.
-            stdin_target.write_bytes(click.get_binary_stream("stdin").read())
+            # Stdin is documented as UTF-8. Reject anything else up front: Vale
+            # panics on invalid UTF-8, so a replaced decode would still end incomplete.
+            raw = click.get_binary_stream("stdin").read()
+            try:
+                raw.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                click.echo(
+                    f"incomplete check: stdin is not valid UTF-8 (byte {exc.start}).", err=True
+                )
+                raise SystemExit(EXIT_ERROR) from None
+            stdin_target.write_bytes(raw)
             targets = (str(stdin_target),)
 
         _note_output(output_format, out_path, open_report)

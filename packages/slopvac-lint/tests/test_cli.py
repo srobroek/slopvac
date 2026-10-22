@@ -1709,16 +1709,15 @@ def test_stdin_uses_config_found_upward_from_cwd(runner, tmp_path, monkeypatch):
     assert "ai-tells-content-shape" not in categories(nested)
 
 
-def test_stdin_replaces_undecodable_bytes(runner):
+def test_stdin_rejects_invalid_utf8(runner):
     result = runner.invoke(
         main,
-        ["lint", "--stdin", "--no-vale", "--format", "json"],
-        input=b"caf\xff text with a robust synergy.\n",
+        ["lint", "--stdin", "--format", "json"],
+        input=b"caf\xff text.\n",
     )
-    # --no-vale is an incomplete run by design, so 2; a decode crash would raise instead.
-    assert result.exit_code == EXIT_ERROR, result.output
+    assert result.exit_code == EXIT_ERROR
     assert isinstance(result.exception, SystemExit)
-    assert json.loads(result.output)["documents"][0]["path"] == "<stdin>"
+    assert "stdin is not valid UTF-8 (byte 3)" in result.output
 
 
 def test_stdin_explicit_mode_wins_over_comments(runner):
