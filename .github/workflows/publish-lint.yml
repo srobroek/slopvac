@@ -1,233 +1,265 @@
 name: Publish slopvac
 
 # Publishes the linter to PyPI through Trusted Publishing (OIDC), so no API token
-# is stored anywhere. The identity PyPI must be configured to trust is the
-# combination below, and every field has to match exactly:
+# is stored anywhere. The PyPI trusted publisher is bound to this filename and
+# the `pypi` environment, which has a required reviewer.
 #
-#   Owner:               srobroek
-#   Repository:          slopvac
-#   Workflow filename:   publish-lint.yml
-#   Environment:         pypi
-#
-# Set that up once at https://pypi.org/manage/account/publishing/ as a "pending
-# publisher" BEFORE the first release, which also reserves the project name.
-#
-# The `pypi` environment is not decoration: it is where a required reviewer is
-# configured, so a release cannot reach PyPI without an approval. PyPI matches the
-# environment name as part of the trusted identity, so renaming it breaks
-# publishing.
-#
-# TRIGGER. Runs on the repository's release tag. Everything here versions in
-# lockstep behind one `vX.Y.Z`, so the tag that publishes the linter is the same
-# tag that releases the native plugins. Also runnable by hand for a re-run after
-# a partial failure, and a dry run proves the build before the tag exists.
+# Each release-please PR update builds the next `X.Y.ZrcN`. A maintainer approves
+# the `pypi` environment to publish it. Merging the release PR publishes stable.
+# Manual dispatches can opt into an RC from any ref.
 
 on:
- push:
-  tags:
-   - "v[0-9]*"
- workflow_dispatch:
-  inputs:
-   dry-run:
-    description: Build and check, but publish nowhere.
-    type: boolean
-    default: true
-   target:
-    description: Where to publish when dry-run is false.
-    type: choice
-    options: [testpypi, pypi]
-    default: testpypi
+  push:
+    tags:
+      - "v[0-9]*"
+    branches:
+      - release-please--branches--main
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Build and check, but publish nowhere.
+        type: boolean
+        default: true
+      target:
+        description: Where to publish when dry-run is false.
+        type: choice
+        options: [testpypi, pypi]
+        default: testpypi
+      rc:
+        description: Build a release candidate from the selected ref.
+        type: boolean
+        default: false
 
 permissions:
- contents: read
+  contents: read
 
 concurrency:
- group: ${{ github.workflow }}-${{ github.ref }}
- cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
- build:
-  name: Build and verify
-  runs-on: ubuntu-latest
-  timeout-minutes: 15
-  steps:
-   - name: Checkout
-     uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-     with:
-      persist-credentials: false
+  build:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-rc: ${{ steps.version.outputs.is_rc }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-   # No cache on the publishing path: a poisoned cache entry would reach PyPI.
-   - name: Install uv
-     uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
-     with:
-      enable-cache: false
+      # No cache on the publishing path: a poisoned cache entry would reach PyPI.
+      - name: Install uv
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: false
 
-   - name: Set up Python
-     uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-     with:
-      python-version: "3.14"
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
 
-   - name: Build
-     working-directory: packages/slopvac-lint
-     run: uvx --from build==1.6.0 pyproject-build --sdist --wheel --outdir dist
+      - name: Resolve release version
+        id: version
+        env:
+          IS_RC: >-
+            (github.event_name == 'push' && github.ref_type == 'branch' &&
+             github.ref_name == 'release-please--branches--main') ||
+            (github.event_name == 'workflow_dispatch' && inputs.rc)
+        run: |
+          set -euo pipefail
+          if [[ "$IS_RC" == "true" ]]; then
+            version="$(python3 scripts/rc_version.py --rewrite)"
+          else
+            version="$(awk -F '\"' '/^version = / { print $2; exit }' packages/slopvac-lint/pyproject.toml)"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "is_rc=$IS_RC" >> "$GITHUB_OUTPUT"
 
-   - name: Check metadata
-     working-directory: packages/slopvac-lint
-     run: uvx twine==7.0.0 check --strict dist/*
+      - name: Build
+        working-directory: packages/slopvac-lint
+        run: uvx --from build==1.6.0 pyproject-build --sdist --wheel --outdir dist
 
-   # The rules and the wordlist are data the linter cannot run without, and
-   # hatchling includes them by path. A wheel that builds without them installs
-   # cleanly and then fails on first use, so assert they are present.
-   - name: Assert the wheel carries its data
-     working-directory: packages/slopvac-lint
-     run: |
-      set -euo pipefail
-      python3 - <<'PY'
-      import glob, sys, zipfile
+      - name: Check metadata
+        working-directory: packages/slopvac-lint
+        run: uvx twine==7.0.0 check --strict dist/*
 
-      wheel = glob.glob("dist/*.whl")[0]
-      names = zipfile.ZipFile(wheel).namelist()
-      rules = [n for n in names if "/rules/" in n and n.endswith(".yml")]
-      problems = []
-      if len(rules) < 15:
-          problems.append(f"only {len(rules)} rule files in the wheel")
+      # The rules are data the linter cannot run without. A wheel that builds
+      # without them installs cleanly, then fails on first use.
+      - name: Assert the wheel carries its data
+        working-directory: packages/slopvac-lint
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob, sys, zipfile
 
-      # NO WORDLIST IS SHIPPED, and this asserts the ABSENCE. The wheel used to
-      # carry an extracted ASD-STE100 dictionary enforced as an allowlist, which
-      # made every unlisted word a finding; a project now supplies its own
-      # blocklist via `[vocabulary] path`. Re-adding a packaged default would
-      # restore that behaviour silently, so it fails the release instead.
-      shipped_data = [n for n in names if "/data/" in n]
-      if shipped_data:
-          problems.append(f"the wheel ships a wordlist again: {shipped_data}")
-      if any("examples/" in n for n in names):
-          problems.append("examples/ is repo documentation and must not be packaged")
+          wheel = glob.glob("dist/*.whl")[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          rules = [n for n in names if "/rules/" in n and n.endswith(".yml")]
+          problems = []
+          if len(rules) < 15:
+              problems.append(f"only {len(rules)} rule files in the wheel")
+          shipped_data = [n for n in names if "/data/" in n]
+          if shipped_data:
+              problems.append(f"the wheel ships a wordlist again: {shipped_data}")
+          if any("examples/" in n for n in names):
+              problems.append("examples/ is repo documentation and must not be packaged")
+          if problems:
+              sys.exit("wheel is incomplete: " + "; ".join(problems))
+          print(f"wheel carries {len(rules)} rule files and no packaged wordlist")
+          PY
 
-      if problems:
-          sys.exit("wheel is incomplete: " + "; ".join(problems))
-      print(f"wheel carries {len(rules)} rule files and no packaged wordlist")
-      PY
+      - name: Smoke-test the built wheel
+        working-directory: packages/slopvac-lint
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          uv venv /tmp/smoke
+          VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
+          actual_version="$(/tmp/smoke/bin/slopvac --version)"
+          expected_version="slopvac, version $EXPECTED_VERSION"
+          test "$actual_version" = "$expected_version" || {
+            echo "expected $expected_version, got $actual_version"
+            exit 1
+          }
+          /tmp/smoke/bin/slopvac rules --format json > /tmp/rules.json
+          python3 - <<'PY'
+          import json, sys
 
-   # Install the built wheel in a clean environment and run it, so a packaging
-   # mistake fails here rather than for the first user.
-   - name: Smoke-test the built wheel
-     working-directory: packages/slopvac-lint
-     run: |
-      set -euo pipefail
-      uv venv /tmp/smoke
-      VIRTUAL_ENV=/tmp/smoke uv pip install dist/*.whl
-      /tmp/smoke/bin/slopvac --version
-      /tmp/smoke/bin/slopvac rules --format json > /tmp/rules.json
-      python3 - <<'PY'
-      import json, sys
+          data = json.load(open("/tmp/rules.json"))
+          if len(data["rules"]) < 150:
+              sys.exit(f"only {len(data['rules'])} rules loaded from the wheel")
+          print(f"{len(data['rules'])} rules in {len(data['categories'])} categories")
+          PY
 
-      data = json.load(open("/tmp/rules.json"))
-      if len(data["rules"]) < 150:
-          sys.exit(f"only {len(data['rules'])} rules loaded from the wheel")
-      print(f"{len(data['rules'])} rules in {len(data['categories'])} categories")
-      PY
+          cat > /tmp/probe.md <<'EOF'
+          # fluxcache
 
-      cat > /tmp/probe.md <<'EOF'
-      # fluxcache
+          fluxcache matches a prompt against prompts already in the cache.
 
-      fluxcache matches a prompt against prompts already in the cache.
+          ## Install
 
-      ## Install
+          ```sh
+          uv tool install fluxcache
+          ```
 
-      ```sh
-      uv tool install fluxcache
-      ```
+          ## Configure
 
-      ## Configure
+          | Option | Default | Effect |
+          | --- | --- | --- |
+          | `threshold` | 0.85 | Minimum similarity for a cache hit |
+          | `ttl` | 3600 | Seconds an entry stays valid |
 
-      | Option | Default | Effect |
-      | --- | --- | --- |
-      | `threshold` | 0.85 | Minimum similarity for a cache hit |
-      | `ttl` | 3600 | Seconds an entry stays valid |
+          The server returns the stored response when two prompts are close enough in
+          meaning. This lowers the number of calls to the model. When the cache
+          receives a prompt it compares the embedding against every stored entry and
+          returns the stored response for the closest entry above the threshold, and
+          otherwise it forwards the prompt to the model and stores the new response
+          for later reuse.
 
-      The server returns the stored response when two prompts are close enough in
-      meaning. This lowers the number of calls to the model. When the cache
-      receives a prompt it compares the embedding against every stored entry and
-      returns the stored response for the closest entry above the threshold, and
-      otherwise it forwards the prompt to the model and stores the new response
-      for later reuse.
+          ## License
 
-      ## License
+          Apache-2.0.
+          EOF
+          set +e
+          /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale --format json > /tmp/probe.json
+          status=$?
+          set -e
+          test "$status" -eq 2 || { echo "expected exit 2, got $status"; exit 1; }
+          python3 - <<'PY'
+          import json
 
-      Apache-2.0.
-      EOF
-      set +e
-      /tmp/smoke/bin/slopvac /tmp/probe.md --no-vale --format json > /tmp/probe.json
-      status=$?
-      set -e
-      test "$status" -eq 2 || { echo "expected exit 2, got $status"; exit 1; }
-      python3 - <<'PY'
-      import json
+          report = json.load(open("/tmp/probe.json"))
+          assert report["summary"]["passed"] is False, report
+          assert report["documents"][0]["unchecked"], report
+          assert report["documents"][0]["findings"], report
+          PY
 
-      report = json.load(open("/tmp/probe.json"))
-      assert report["summary"]["passed"] is False, report
-      assert report["documents"][0]["unchecked"], report
-      assert report["documents"][0]["findings"], report
-      PY
+      - name: Upload distributions
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: packages/slopvac-lint/dist/
+          if-no-files-found: error
 
-   - name: Upload distributions
-     uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-     with:
-      name: dist
-      path: packages/slopvac-lint/dist/
-      if-no-files-found: error
+  test-pypi:
+    name: Publish to TestPyPI
+    needs: build
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      !inputs.dry-run &&
+      inputs.target == 'testpypi' && !inputs.rc
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/slopvac
+    permissions:
+      id-token: write # the OIDC token Trusted Publishing exchanges for an upload
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
 
- test-pypi:
-  name: Publish to TestPyPI
-  needs: build
-  if: >-
-   github.event_name == 'workflow_dispatch' &&
-   !inputs.dry-run &&
-   inputs.target == 'testpypi'
-  runs-on: ubuntu-latest
-  timeout-minutes: 15
-  environment:
-   name: testpypi
-   url: https://test.pypi.org/p/slopvac
-  permissions:
-   id-token: write # the OIDC token Trusted Publishing exchanges for an upload
-  steps:
-   - name: Download distributions
-     uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-     with:
-      name: dist
-      path: dist
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          repository-url: https://test.pypi.org/legacy/
 
-   - name: Publish
-     uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-     with:
-      repository-url: https://test.pypi.org/legacy/
+  pypi-rc:
+    name: Publish release candidate to PyPI
+    needs: build
+    if: >-
+      needs.build.outputs.is-rc == 'true' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && !inputs.dry-run && inputs.target == 'pypi'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi
+      url: https://pypi.org/project/slopvac/${{ needs.build.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
 
- pypi:
-  name: Publish to PyPI
-  needs: build
-  if: >-
-   github.event_name == 'push' ||
-   (github.event_name == 'workflow_dispatch' &&
-    !inputs.dry-run &&
-    inputs.target == 'pypi')
-  runs-on: ubuntu-latest
-  timeout-minutes: 15
-  environment:
-   name: pypi
-   url: https://pypi.org/p/slopvac
-  permissions:
-   id-token: write
-  steps:
-   - name: Download distributions
-     uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-     with:
-      name: dist
-      path: dist
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
 
-   - name: Publish
-     uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-     with:
-      # Re-tagging an already-published version is a no-op instead of a 400.
-      # PyPI never overwrites a release, so this only skips, never replaces.
-      skip-existing: true
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    if: >-
+      (github.event_name == 'push' && github.ref_type == 'tag' &&
+       !contains(github.ref_name, '-')) ||
+      (github.event_name == 'workflow_dispatch' &&
+       !inputs.dry-run && inputs.target == 'pypi' && !inputs.rc)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi
+      url: https://pypi.org/p/slopvac
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          # Re-tagging an already-published version skips, never replaces.
+          skip-existing: true
