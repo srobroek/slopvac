@@ -41,6 +41,11 @@ uv run pytest packages/slopvac-lint/tests/test_ruleset.py
 
 These tests check that each lexical rule's `bad` example matches its pattern. A `good` example must not match. The tests check that each lexical rule has an example. For substitutions, the tests check that each example resolves to a replacement.
 
+## Release candidates
+
+Each release-please PR update builds an RC. A maintainer approves the `pypi`
+environment to publish it. Merging the release PR ships the stable release.
+
 ## Commits and pull requests
 
 Use [Conventional Commits](https://www.conventionalcommits.org/). Release-please reads the commit message to prepare releases. Examples: `feat(rules): add a rule`, `fix: correct a rule`, and `docs: clarify setup`.
