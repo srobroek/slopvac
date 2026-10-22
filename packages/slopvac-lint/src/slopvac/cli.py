@@ -356,8 +356,7 @@ def lint(
     from .pipeline import emit_report
 
     temporary_context = None
-    temporary_directory: Path | None = None
-    code_comments = mode == Mode.CODE_COMMENTS.value or comments
+    code_comments = False
     stdin_target: Path | None = None
     if stdin_input:
         if targets:
@@ -372,22 +371,21 @@ def lint(
             )
         if open_report:
             raise click.UsageError("--open is not supported with --stdin.")
-        if comments and mode is None:
-            mode = Mode.CODE_COMMENTS.value
-        code_comments = mode == Mode.CODE_COMMENTS.value or comments
+        # The pipeline lets an explicit --mode win over --comments, so the
+        # language check follows the same rule.
+        code_comments = mode == Mode.CODE_COMMENTS.value if mode is not None else comments
+        if mode is None:
+            mode = Mode.CODE_COMMENTS.value if comments else Mode.PROSE.value
         if code_comments and language is None:
             raise click.UsageError("--language is required with --stdin --mode code-comments.")
         if language is None:
             language = "markdown"
         valid_languages = _stdin_languages(code_comments)
         if language not in valid_languages:
-            shown_mode = mode or Mode.PROSE.value
             raise click.UsageError(
-                f"--language {language!r} is not valid for mode {shown_mode}. "
+                f"--language {language!r} is not valid for mode {mode}. "
                 f"Valid values: {', '.join(valid_languages)}."
             )
-        if mode is None:
-            mode = Mode.PROSE.value
     elif language is not None:
         raise click.UsageError("--language requires --stdin.")
     elif not targets:
@@ -398,10 +396,10 @@ def lint(
             from tempfile import TemporaryDirectory
 
             temporary_context = TemporaryDirectory(prefix="slopvac-stdin-")
-            temporary_directory = Path(temporary_context.name)
-            stdin_target = temporary_directory / f"stdin{_stdin_suffix(language or 'markdown', code_comments)}"
-            stdin_text = sys.stdin.read()
-            stdin_target.write_text(stdin_text, encoding="utf-8")
+            stdin_target = Path(temporary_context.name) / f"stdin{_stdin_suffix(language or 'markdown', code_comments)}"
+            # Copy the bytes and let the pipeline decode them as it decodes a file,
+            # so an encoding error is replaced rather than raised.
+            stdin_target.write_bytes(click.get_binary_stream("stdin").read())
             targets = (str(stdin_target),)
 
         _note_output(output_format, out_path, open_report)
@@ -413,7 +411,7 @@ def lint(
             except DiffScopeError as exc:
                 console.print(f"[red]incomplete check[/]: {exc}")
                 raise SystemExit(EXIT_ERROR) from None
-        replacement = (str(stdin_target), "<stdin>") if stdin_target else None
+
         run = _load_lint_context(
             console,
             targets,
@@ -428,12 +426,12 @@ def lint(
             locale_tag=locale_tag,
             diff_scope=scope,
             comments=comments,
-            stdin_input=stdin_input,
-            path_replacement=replacement,
+            stdin_path=stdin_target,
         )
         if not run.paths and not run.collection_unchecked:
             if stdin_input:
-                raise click.ClickException("stdin document could not be selected by the pipeline.")
+                console.print("[red]incomplete check[/]: the stdin document was not selected for linting.")
+                raise SystemExit(EXIT_ERROR)
             click.echo("no lintable files matched", err=True)
             emit_report(
                 [], run.ruleset, console, output_format=output_format,
@@ -447,15 +445,7 @@ def lint(
             _print_resolved_config(run, console)
             raise SystemExit(EXIT_OK)
 
-        scores = _run_lint_or_exit(
-            run, console, no_vale=no_vale, path_replacement=replacement
-        )
-        if stdin_target is not None and temporary_directory is not None:
-            _map_stdin_report_paths(scores, run.collection_notes, temporary_directory)
-            run.collection_unchecked[:] = [
-                note.replace(str(temporary_directory), "<stdin>")
-                for note in run.collection_unchecked
-            ]
+        scores = _run_lint_or_exit(run, console, no_vale=no_vale)
         if fix:
             rules = {
                 rule.qualified_id: rule
@@ -463,9 +453,7 @@ def lint(
                 for rule in ruleset.rules
             }
             if apply_replacements(scores, rules, scope) > 0:
-                scores = _run_lint_or_exit(
-                    run, console, no_vale=no_vale, path_replacement=replacement
-                )
+                scores = _run_lint_or_exit(run, console, no_vale=no_vale)
         emit_report(
             scores, run.ruleset, console, output_format=output_format,
             out_path=out_path, open_report=open_report,
@@ -511,18 +499,11 @@ def _stdin_suffix(language: str, code_comments: bool) -> str:
     return _stdin_extensions(code_comments)[language]
 
 
-def _map_stdin_report_paths(scores, notes, temporary_directory: Path) -> None:
-    root = str(temporary_directory)
-    for score in scores:
-        score.path = "<stdin>"
-        score.unchecked = [note.replace(root, "<stdin>") for note in score.unchecked]
-        score.failure_reasons = [
-            reason.replace(root, "<stdin>") for reason in score.failure_reasons
-        ]
-        for finding in score.findings:
-            finding.path = "<stdin>"
-    if notes is not None:
-        notes[:] = [note.replace(root, "<stdin>") for note in notes]
+def _print_pipeline_error(console: Console, exc, stdin_path: Path | None) -> None:
+    from .pipeline import redact_stdin
+
+    for message in exc.messages:
+        console.print(redact_stdin(message, stdin_path))
 
 
 def _format_was_given() -> bool:
@@ -536,33 +517,25 @@ def _load_lint_context(
     console: Console,
     targets: tuple[str, ...],
     *,
-    path_replacement: tuple[str, str] | None = None,
+    stdin_path: Path | None = None,
     **options,
 ):
     from .pipeline import PipelineError, load_run_context
 
     try:
-        return load_run_context(targets, **options)
+        return load_run_context(targets, stdin_input=stdin_path is not None, **options)
     except PipelineError as exc:
-        for message in exc.messages:
-            if path_replacement is not None:
-                message = message.replace(*path_replacement)
-            console.print(message)
+        _print_pipeline_error(console, exc, stdin_path)
         raise SystemExit(exc.code) from None
 
 
-def _run_lint_or_exit(
-    run, console: Console, *, no_vale: bool, path_replacement=None
-):
+def _run_lint_or_exit(run, console: Console, *, no_vale: bool):
     from .pipeline import PipelineError, run_lint
 
     try:
         return run_lint(run, no_vale=no_vale)
     except PipelineError as exc:
-        for message in exc.messages:
-            if path_replacement is not None:
-                message = message.replace(*path_replacement)
-            console.print(message)
+        _print_pipeline_error(console, exc, run.stdin_path)
         raise SystemExit(exc.code) from None
 
 

@@ -1685,20 +1685,67 @@ def test_stdin_report_paths_do_not_leak_temp_directory(
         assert "<stdin>" in result.output
 
 
-def test_stdin_uses_config_from_cwd(runner, tmp_path, monkeypatch):
-    config = _write(tmp_path, "slopvac.toml", '[categories]\n"prose-craft" = "off"\n')
-    monkeypatch.chdir(tmp_path)
+def test_stdin_uses_config_found_upward_from_cwd(runner, tmp_path, monkeypatch):
+    sample = "This robust solution leverages seamless synergy.\n"
+
+    def categories(cwd):
+        monkeypatch.chdir(cwd)
+        result = runner.invoke(
+            main, ["lint", "--stdin", "--no-vale", "--format", "json"], input=sample
+        )
+        document = json.loads(result.output)["documents"][0]
+        assert document["path"] == "<stdin>"
+        return {finding["category"] for finding in document["findings"]}
+
+    unconfigured = tmp_path / "plain"
+    unconfigured.mkdir()
+    (unconfigured / "slopvac.toml").write_text("", encoding="utf-8")
+    assert "ai-tells-content-shape" in categories(unconfigured)
+
+    project = tmp_path / "project"
+    nested = project / "docs" / "drafts"
+    nested.mkdir(parents=True)
+    _write(project, "slopvac.toml", '[categories]\n"ai-tells-content-shape" = "off"\n')
+    assert "ai-tells-content-shape" not in categories(nested)
+
+
+def test_stdin_replaces_undecodable_bytes(runner):
     result = runner.invoke(
         main,
         ["lint", "--stdin", "--no-vale", "--format", "json"],
-        input="This robust solution leverages seamless synergy.\n",
+        input=b"caf\xff text with a robust synergy.\n",
     )
+    # --no-vale is an incomplete run by design, so 2; a decode crash would raise instead.
+    assert result.exit_code == EXIT_ERROR, result.output
+    assert isinstance(result.exception, SystemExit)
+    assert json.loads(result.output)["documents"][0]["path"] == "<stdin>"
 
+
+def test_stdin_explicit_mode_wins_over_comments(runner):
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--mode", "prose", "--comments", "--language", "python"],
+        input="# x\n",
+    )
     assert result.exit_code == EXIT_ERROR
-    report = json.loads(result.output)
-    assert report["documents"][0]["path"] == "<stdin>"
-    assert not any(finding["category"] == "prose-craft" for finding in report["documents"][0]["findings"])
-    assert config.is_file()
+    assert "not valid for mode prose" in result.output
+
+
+def test_stdin_explain_config_names_stdin(runner, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(main, ["lint", "--stdin", "--explain-config"], input="x\n")
+    assert result.exit_code == EXIT_OK
+    assert result.output.splitlines()[0] == "<stdin>"
+    assert "slopvac-stdin-" not in result.output
+
+
+def test_redact_stdin_hides_the_staged_file_and_its_directory(tmp_path):
+    from slopvac.pipeline import redact_stdin
+
+    staged = tmp_path / "slopvac-stdin-abc" / "stdin.md"
+    message = f"skipped ({staged}); scratch in {staged.parent}"
+    assert redact_stdin(message, staged) == "skipped (<stdin>); scratch in <stdin>"
+    assert redact_stdin(message, None) == message
 
 
 @pytest.mark.parametrize(

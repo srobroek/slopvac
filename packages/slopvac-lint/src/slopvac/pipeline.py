@@ -364,9 +364,11 @@ def lint_one(
         ranges = diff_scope.ranges_for(path)
         by_id = {rule.qualified_id: rule for rule in ruleset.rules}
         findings = filter_findings(findings, by_id, ranges, text)
+    if document_path is not None:
+        findings = [finding.model_copy(update={"path": document_path}) for finding in findings]
     return score_document(
         path=report_path,
-        findings=[finding.model_copy(update={"path": report_path}) for finding in findings],
+        findings=findings,
         words=document.words,
         sentences=len(document.sentences),
         paragraphs=len(document.paragraphs),
@@ -1075,7 +1077,32 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                     unchecked=list(ctx.collection_unchecked),
                 )
             )
+    if ctx.stdin_path is not None:
+        for score in scores:
+            score.unchecked = [redact_stdin(note, ctx.stdin_path) for note in score.unchecked]
+            score.failure_reasons = [
+                redact_stdin(reason, ctx.stdin_path) for reason in score.failure_reasons
+            ]
+        ctx.collection_notes[:] = [
+            redact_stdin(note, ctx.stdin_path) for note in ctx.collection_notes
+        ]
     # Back into the order the caller asked for, since the groups reordered them.
     order = {str(path): index for index, path in enumerate(ctx.paths)}
     scores.sort(key=lambda score: order.get(score.path, 0))
     return scores
+
+
+STDIN_LABEL = "<stdin>"
+
+
+def redact_stdin(text: str, stdin_path: Path | None) -> str:
+    """Replace the staged stdin file, then its directory, with `<stdin>`.
+
+    The whole path goes first so a message reads `<stdin>`, not `<stdin>/stdin.md`;
+    the directory is the fallback for a message that names only the folder."""
+    if stdin_path is None:
+        return text
+    for candidate in (stdin_path, stdin_path.parent):
+        for spelling in sorted({str(candidate), str(candidate.resolve())}, key=len, reverse=True):
+            text = text.replace(spelling, STDIN_LABEL)
+    return text
