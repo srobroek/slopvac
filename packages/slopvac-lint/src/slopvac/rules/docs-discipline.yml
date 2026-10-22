@@ -19,7 +19,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft|being (specified|designed|implemented|built)|not yet (implemented|supported|available)|will (eventually|later|soon)\b|to be (implemented|defined|determined)|TBD|TODO|for now|at the moment|currently(?! (running|active|open|connected|executing|loaded|mounted))|as of (now|writing|today)|planned( for)?|on the roadmap|in (a )?future (release|version)|stay tuned)\b'
+    pattern: '\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft(?!\s+(?:a|an|the|your)\b)|being (specified|designed|implemented|built)|not yet (implemented|supported|available)|will (eventually|later|soon)\b|to be (implemented|defined|determined)|TBD|TODO|for now|at the moment|currently(?! (running|active|open|connected|executing|loaded|mounted))|as of (now|writing|today)|planned( for)?|on the roadmap|in (a )?future (release|version)|stay tuned)\b'
     ignore_case: true
     match_all_caps: true
     fix: Delete the passage, or state the behaviour the code has now.
@@ -28,6 +28,10 @@ rules:
         good: The flag accepts a literal path.
       - bad: Support for MDX is not yet implemented.
         good: The parser reads Markdown.
+      - bad: This page is a draft that the team still edits.
+        good: "Open match: draft a comment on it with the new evidence."
+      - bad: The API is in draft.
+        good: The API accepts requests.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -41,6 +45,9 @@ rules:
         preference. .vale.ini turns it off for the package's own normative source
         files, which quote the ban list they enforce.
         Go->Python: the lookahead `(?!...)` is RE2-safe and ports unchanged.
+        `Draft` excludes a following `a`, `an`, `the`, or `your`, so the
+        imperative verb in `draft a comment` is not status language. Noun uses
+        such as `a draft`, `in draft`, and `a draft that ...` still match.
 
   - id: history-narration
     exceptions: [quotation]

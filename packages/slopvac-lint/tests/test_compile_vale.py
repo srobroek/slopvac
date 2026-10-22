@@ -735,6 +735,19 @@ def test_every_compiled_lexical_rule_fires_on_its_own_example(compiled, ruleset,
         f"compiled rules that no longer fire on their own example: {still_missing}"
     )
 
+@needs_vale
+def test_status_language_distinguishes_draft_verb_from_status(compiled, tmp_path):
+    assert "docs-discipline.status-language" not in _checks(
+        compiled.config_path,
+        "Open match: draft a comment on it with the new evidence.",
+        tmp_path,
+    )
+    for text in ("This page is a draft.", "The API is in draft."):
+        assert "docs-discipline.status-language" in _checks(
+            compiled.config_path, text, tmp_path
+        )
+
+
 
 # --- vocabulary ---------------------------------------------------------------
 
