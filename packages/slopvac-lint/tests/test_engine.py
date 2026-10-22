@@ -1606,6 +1606,38 @@ def test_a_numeric_range_is_not_a_dash_aside():
     assert DASH_AS_ASIDE.findall("pass --verbose to see steps 1--2") == []
 
 
+def test_html_comments_do_not_contribute_to_dash_density():
+    plain_sentences = [
+        f"Sentence {index} is plain prose for density measurement."
+        for index in range(1, 21)
+    ]
+    comments = [
+        comment
+        for _ in range(6)
+        for comment in ("<!-- slopvac-disable -->", "<!-- slopvac-enable -->")
+    ]
+    comments.append(
+        "<!-- this -- text contains a dash and an em dash — neither is prose -->"
+    )
+    commented = parse("a.md", "\n".join([*plain_sentences, *comments]))
+
+    with_asides = [
+        f"Sentence {index} is -- plain prose -- for density measurement."
+        if index <= 6
+        else sentence
+        for index, sentence in enumerate(plain_sentences, start=1)
+    ]
+    real_asides = parse("a.md", "\n".join(with_asides))
+
+    assert DASH_AS_ASIDE.findall(commented.markup_text()) == []
+    assert DASH_AS_ASIDE.findall(real_asides.markup_text()) == ["--"] * 12
+
+    engine = _engine(profile=Profile.STRICT)
+    rule_id = "ai-tells-formatting.em-dash-density"
+    assert not any(finding.rule_id == rule_id for finding in engine.run(commented))
+    assert any(finding.rule_id == rule_id for finding in engine.run(real_asides))
+
+
 def test_markup_metrics_ignore_code_blocks_and_inline_spans():
     """`markup_text` exists because `prose_text` strips the characters these two
     rules count. Reading `raw` instead would count `**kwargs` in a snippet as a bold
