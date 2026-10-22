@@ -313,6 +313,6 @@ jobs:
    - name: Publish
      uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
      with:
-      # Re-tagging an already-published version is a no-op instead of a 400.
+      # Dispatching an already-published version again is a no-op instead of a 400.
       # PyPI never overwrites a release, so this only skips, never replaces.
       skip-existing: true
