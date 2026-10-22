@@ -18,6 +18,7 @@ from __future__ import annotations
 # loads. So the top level imports only what the click declarations need, and each
 # command imports its own machinery.
 import sys
+from contextlib import contextmanager
 from itertools import pairwise
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -355,61 +356,18 @@ def lint(
     from .diff_scope import DiffScopeError, apply_replacements, changed_scope
     from .pipeline import emit_report
 
-    temporary_context = None
-    code_comments = False
-    stdin_target: Path | None = None
-    if stdin_input:
-        if targets:
-            raise click.UsageError("TARGETS must be empty when --stdin is set.")
-        if diff_base is not None:
-            raise click.UsageError("--diff-base is not supported with --stdin.")
-        if diff_working_tree:
-            raise click.UsageError("--diff-working-tree is not supported with --stdin.")
-        if fix:
-            raise click.UsageError(
-                "--fix is not supported with --stdin because stdin has no file to write back to."
-            )
-        if open_report:
-            raise click.UsageError("--open is not supported with --stdin.")
-        # The pipeline lets an explicit --mode win over --comments, so the
-        # language check follows the same rule.
-        code_comments = mode == Mode.CODE_COMMENTS.value if mode is not None else comments
-        if mode is None:
-            mode = Mode.CODE_COMMENTS.value if comments else Mode.PROSE.value
-        if code_comments and language is None:
-            raise click.UsageError("--language is required with --stdin --mode code-comments.")
-        if language is None:
-            language = "markdown"
-        valid_languages = _stdin_languages(code_comments)
-        if language not in valid_languages:
-            raise click.UsageError(
-                f"--language {language!r} is not valid for mode {mode}. "
-                f"Valid values: {', '.join(valid_languages)}."
-            )
-    elif language is not None:
-        raise click.UsageError("--language requires --stdin.")
-    elif not targets:
-        raise click.UsageError("TARGETS are required unless --stdin is set.")
-
-    try:
-        if stdin_input:
-            from tempfile import TemporaryDirectory
-
-            temporary_context = TemporaryDirectory(prefix="slopvac-stdin-")
-            stdin_target = Path(temporary_context.name) / f"stdin{_stdin_suffix(language or 'markdown', code_comments)}"
-            # Stdin is documented as UTF-8. Reject anything else up front: Vale
-            # panics on invalid UTF-8, so a replaced decode would still end incomplete.
-            raw = click.get_binary_stream("stdin").read()
-            try:
-                raw.decode("utf-8")
-            except UnicodeDecodeError as exc:
-                click.echo(
-                    f"incomplete check: stdin is not valid UTF-8 (byte {exc.start}).", err=True
-                )
-                raise SystemExit(EXIT_ERROR) from None
-            stdin_target.write_bytes(raw)
-            targets = (str(stdin_target),)
-
+    mode, language, code_comments = _resolve_input_options(
+        targets,
+        stdin_input=stdin_input,
+        language=language,
+        mode=mode,
+        comments=comments,
+        diff_base=diff_base,
+        diff_working_tree=diff_working_tree,
+        fix=fix,
+        open_report=open_report,
+    )
+    with _staged_stdin(targets, stdin_input, language, code_comments) as (inputs, stdin_path):
         _note_output(output_format, out_path, open_report)
         console = _console(no_color)
         scope = None
@@ -419,10 +377,9 @@ def lint(
             except DiffScopeError as exc:
                 console.print(f"[red]incomplete check[/]: {exc}")
                 raise SystemExit(EXIT_ERROR) from None
-
         run = _load_lint_context(
             console,
-            targets,
+            inputs,
             profile=profile,
             mode=mode,
             config_path=config_path,
@@ -434,17 +391,24 @@ def lint(
             locale_tag=locale_tag,
             diff_scope=scope,
             comments=comments,
-            stdin_path=stdin_target,
+            stdin_path=stdin_path,
         )
         if not run.paths and not run.collection_unchecked:
-            if stdin_input:
-                console.print("[red]incomplete check[/]: the stdin document was not selected for linting.")
-                raise SystemExit(EXIT_ERROR)
+            # A run with nothing to lint still owes the caller a report in the format
+            # it asked for: the GitHub action parses the JSON, and a bare text line
+            # where JSON was expected read as "the report could not be produced" on
+            # every release PR, whose only prose change (CHANGELOG.md) is excluded.
+            # The notice goes to stderr so a machine format on stdout stays parseable.
             click.echo("no lintable files matched", err=True)
             emit_report(
-                [], run.ruleset, console, output_format=output_format,
-                out_path=out_path, open_report=open_report,
-                format_given=_format_was_given(), verbose=verbose,
+                [],
+                run.ruleset,
+                console,
+                output_format=output_format,
+                out_path=out_path,
+                open_report=open_report,
+                format_given=_format_was_given(),
+                verbose=verbose,
                 notes=run.collection_notes,
             )
             raise SystemExit(EXIT_OK)
@@ -463,17 +427,98 @@ def lint(
             if apply_replacements(scores, rules, scope) > 0:
                 scores = _run_lint_or_exit(run, console, no_vale=no_vale)
         emit_report(
-            scores, run.ruleset, console, output_format=output_format,
-            out_path=out_path, open_report=open_report,
-            format_given=_format_was_given(), verbose=verbose,
+            scores,
+            run.ruleset,
+            console,
+            output_format=output_format,
+            out_path=out_path,
+            open_report=open_report,
+            format_given=_format_was_given(),
+            verbose=verbose,
             notes=run.collection_notes,
         )
-        if any(score.unchecked for score in scores):
-            raise SystemExit(EXIT_ERROR)
-        raise SystemExit(EXIT_OK if all(score.passed for score in scores) else EXIT_FINDINGS)
-    finally:
-        if temporary_context is not None:
-            temporary_context.cleanup()
+    if any(score.unchecked for score in scores):
+        raise SystemExit(EXIT_ERROR)
+    raise SystemExit(EXIT_OK if all(score.passed for score in scores) else EXIT_FINDINGS)
+
+
+def _resolve_input_options(
+    targets: tuple[str, ...],
+    *,
+    stdin_input: bool,
+    language: str | None,
+    mode: str | None,
+    comments: bool,
+    diff_base: str | None,
+    diff_working_tree: bool,
+    fix: bool,
+    open_report: bool,
+) -> tuple[str | None, str | None, bool]:
+    """Validate TARGETS against --stdin and return the mode, language and comment flag.
+
+    Without --stdin the mode is returned unchanged. With it, the mode is made
+    explicit so the staged file and the pipeline agree on how to read it."""
+    if not stdin_input:
+        if language is not None:
+            raise click.UsageError("--language requires --stdin.")
+        if not targets:
+            raise click.UsageError("TARGETS are required unless --stdin is set.")
+        return mode, language, False
+    if targets:
+        raise click.UsageError("TARGETS must be empty when --stdin is set.")
+    rejected = {
+        "--diff-base": diff_base is not None,
+        "--diff-working-tree": diff_working_tree,
+        "--fix": fix,
+        "--open": open_report,
+    }
+    for option, given in rejected.items():
+        if given:
+            reason = " because stdin has no file to write back to" if option == "--fix" else ""
+            raise click.UsageError(f"{option} is not supported with --stdin{reason}.")
+    # The pipeline lets an explicit --mode win over --comments, so the language
+    # check follows the same rule.
+    code_comments = mode == Mode.CODE_COMMENTS.value if mode is not None else comments
+    if mode is None:
+        mode = Mode.CODE_COMMENTS.value if comments else Mode.PROSE.value
+    if code_comments and language is None:
+        raise click.UsageError("--language is required with --stdin --mode code-comments.")
+    language = language or "markdown"
+    valid_languages = _stdin_languages(code_comments)
+    if language not in valid_languages:
+        raise click.UsageError(
+            f"--language {language!r} is not valid for mode {mode}. "
+            f"Valid values: {', '.join(valid_languages)}."
+        )
+    return mode, language, code_comments
+
+
+@contextmanager
+def _staged_stdin(
+    targets: tuple[str, ...], stdin_input: bool, language: str | None, code_comments: bool
+):
+    """Yield the targets to lint and the staged stdin file, or None without --stdin.
+
+    The pipeline lints paths, so stdin goes through a file named only by its
+    extension; every report maps that file back to `<stdin>`. The directory is
+    removed on every exit, including errors."""
+    if not stdin_input:
+        yield targets, None
+        return
+    from tempfile import TemporaryDirectory
+
+    # Stdin is documented as UTF-8. Reject anything else up front: Vale panics on
+    # invalid UTF-8, so a replaced decode would still end incomplete.
+    raw = click.get_binary_stream("stdin").read()
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        click.echo(f"incomplete check: stdin is not valid UTF-8 (byte {exc.start}).", err=True)
+        raise SystemExit(EXIT_ERROR) from None
+    with TemporaryDirectory(prefix="slopvac-stdin-") as directory:
+        staged = Path(directory) / f"stdin{_stdin_suffix(language or 'markdown', code_comments)}"
+        staged.write_bytes(raw)
+        yield (str(staged),), staged
 
 
 def _stdin_extensions(code_comments: bool) -> dict[str, str]:

@@ -1713,7 +1713,7 @@ def test_stdin_rejects_invalid_utf8(runner):
     result = runner.invoke(
         main,
         ["lint", "--stdin", "--format", "json"],
-        input=b"caf\xff text.\n",
+        input=b"abc\xff text.\n",
     )
     assert result.exit_code == EXIT_ERROR
     assert isinstance(result.exception, SystemExit)

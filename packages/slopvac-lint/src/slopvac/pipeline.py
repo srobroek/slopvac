@@ -900,6 +900,11 @@ def load_run_context(
         raise PipelineError(
             [f"[red]config error[/] {message}" for message in name_errors]
         )
+    if stdin_input and not paths and not incomplete:
+        # A file that matches nothing is a clean no-op; stdin always has a document.
+        raise PipelineError(
+            "[red]incomplete check[/]: the stdin document was not selected for linting."
+        )
 
     rulesets: dict[Path, RuleSet] = {}
     for path in paths:
