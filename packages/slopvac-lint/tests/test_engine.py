@@ -1235,6 +1235,31 @@ def test_mixed_case_status_language_still_fires(phrase):
     ]
 
 
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("Open match: draft a comment on it with the new evidence.", []),
+        ("Open match: draft the reply.", []),
+        ("Open match: draft an issue.", []),
+        ("This page is a draft.", ["draft"]),
+        ("The API is in draft.", ["draft"]),
+        ("The API is currently in draft.", ["currently", "draft"]),
+        ("This page is a draft that the team still edits.", ["draft"]),
+        ("This is a draft PR.", ["draft"]),
+        ("Draft: status label.", ["Draft"]),
+        ("Status: Draft\nThe API may change.", ["Draft"]),
+    ],
+)
+def test_status_language_distinguishes_draft_verb_from_status(text, expected):
+    """Imperative ``draft`` is a verb; both noun-status forms remain findings."""
+    findings = _run(text, profile=Profile.STRICT)
+    assert [
+        finding.matched_text
+        for finding in findings
+        if finding.rule_id == "docs-discipline.status-language"
+    ] == expected
+
+
 def test_lowercase_equivalent_still_fires():
     """The carve-out is about capitals, not about the words."""
     findings = _run("You should ensure the value is correct.", profile=Profile.STRICT)
