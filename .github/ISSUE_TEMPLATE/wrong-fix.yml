@@ -101,7 +101,9 @@ body:
     id: context
     attributes:
       label: Genre and profile
-      description: "For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."
+      description: >-
+        For example `reference`, `strict`. `slopvac lint --stdin --explain-config`
+        prints the profile. Copy only that line.
     validations:
       required: true
   - type: textarea
@@ -139,7 +141,9 @@ body:
     id: fixed-text
     attributes:
       label: Text after the fix
-      description: Output of `slopvac lint --fix`, when you ran it.
+      description: >-
+        Text after `slopvac lint sample.md --fix`, run on a synthetic sample in an
+        empty temporary directory.
       render: markdown
     validations:
       required: false

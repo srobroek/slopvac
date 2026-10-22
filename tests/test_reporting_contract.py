@@ -16,8 +16,6 @@ FORM_ROOT = ROOT / ".github" / "ISSUE_TEMPLATE"
 
 def _field_form(field):
     attributes = {"label": field.label}
-    if field.description is not None:
-        attributes["description"] = field.description
     if field.render is not None:
         attributes["render"] = field.render
     if field.type == "checkboxes":

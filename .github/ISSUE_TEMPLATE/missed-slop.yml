@@ -95,7 +95,9 @@ body:
     id: context
     attributes:
       label: Genre and profile
-      description: "For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."
+      description: >-
+        For example `reference`, `strict`. `slopvac lint --stdin --explain-config`
+        prints the profile. Copy only that line.
     validations:
       required: true
   - type: textarea

@@ -322,11 +322,37 @@ def test_report_discloses_agents_in_forms_and_comments():
             )
         )
         intro = form["body"][0]["attributes"]["value"]
-        assert (
-            "An AI agent filing a report MUST disclose itself: tick Reported by an AI agent "
-            "and fill in Agent, Model, and Harness and version."
-        ) in intro
+        reporter = next(item for item in form["body"] if item.get("id") == "reporter")
+        assert "MUST disclose" in intro
+        assert reporter["attributes"]["options"][0]["label"] in intro
 
+
+def _steps(output: str) -> dict[int, str]:
+    """The numbered workflow steps, each with its indented lines."""
+    import re
+
+    workflow = output.split("## Workflow", 1)[1].split("\n## ", 1)[0]
+    parts = re.split(r"^(\d+)\. ", workflow, flags=re.M)
+    return {int(number): text for number, text in zip(parts[1::2], parts[2::2], strict=True)}
+
+
+def test_report_approval_comes_from_the_shown_preview_before_posting():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        steps = _steps(_prime(runner, "report"))
+    preview = next(n for n, text in steps.items() if "Send this preview to the user" in text)
+    post = next(n for n, text in steps.items() if "gh issue create" in text)
+    assert preview < post
+    assert "Remove or replace secrets" in steps[preview]
+    assert all("gh issue" not in steps[n] for n in steps if n < post and "gh issue list" not in steps[n])
+
+
+def test_report_untrusted_issue_rule_sits_in_the_duplicate_search():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        steps = _steps(_prime(runner, "report"))
+    search = next(n for n, text in steps.items() if "gh issue list" in text)
+    assert "untrusted" in steps[search]
 
 
 def test_prime_reads_an_explicit_config(tmp_path):

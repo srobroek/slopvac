@@ -17,7 +17,6 @@ class ReportField:
     options: tuple[str, ...] = ()
     checkbox_options: tuple[tuple[str, bool], ...] = ()
     multiple: bool = False
-    description: str | None = None
 
 
 @dataclass(frozen=True)
@@ -41,7 +40,6 @@ def _field(
     options: tuple[str, ...] = (),
     checkbox_options: tuple[tuple[str, bool], ...] = (),
     multiple: bool = False,
-    description: str | None = None,
 ) -> ReportField:
     return ReportField(
         id=id,
@@ -52,7 +50,6 @@ def _field(
         options=options,
         checkbox_options=checkbox_options,
         multiple=multiple,
-        description=description,
     )
 
 
@@ -64,50 +61,19 @@ _COMMON_FIELDS = (
         required=False,
         checkbox_options=(("Reported by an AI agent", False),),
     ),
-    _field(
-        "agent",
-        "Agent",
-        "input",
-        description="Agent product name, for example Claude Code, Codex, omp, Kiro, or Cursor. Write N/A when unknown.",
-    ),
-    _field(
-        "model",
-        "Model",
-        "input",
-        description=(
-            "Record the model name exactly as the harness reports it in its active system prompt, "
-            "context, or /model selection. Do not use self-description or config defaults. "
-            "Write N/A when unavailable."
-        ),
-    ),
-    _field(
-        "harness",
-        "Harness and version",
-        "input",
-        description=(
-            "Use the harness's version command, for example `claude --version`, `codex --version`, "
-            "or `omp --version`. Write N/A when unavailable."
-        ),
-    ),
-    _field("version", "slopvac version", "input", description="Output of `slopvac --version`."),
-    _field(
-        "latest",
-        "Reproduces on the latest release",
-        "dropdown",
-        options=("Yes", "Not checked"),
-        description=(
-            "Rerun the command with `uvx --from slopvac@latest slopvac ...`. "
-            "If the latest release fixes it, upgrade instead of filing."
-        ),
-    ),
+    _field("agent", "Agent", "input"),
+    _field("model", "Model", "input"),
+    _field("harness", "Harness and version", "input"),
+    _field("version", "slopvac version", "input"),
+    _field("latest", "Reproduces on the latest release", "dropdown", options=("Yes", "Not checked")),
     _field(
         "duplicates",
         "Duplicate search",
         "checkboxes",
         checkbox_options=(("I searched existing issues for duplicates", True),),
     ),
-    _field("environment", "Environment", "textarea", required=False, render="json", description="Output of `slopvac doctor --format json`."),
-    _field("command", "Command", "textarea", required=False, render="shell", description="The exact command or commands you ran. Pipe the sample into `slopvac lint --stdin`. Do not include paths or file names."),
+    _field("environment", "Environment", "textarea", required=False, render="json"),
+    _field("command", "Command", "textarea", required=False, render="shell"),
 )
 
 
@@ -134,8 +100,8 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         fields=_category_fields(
             _field("what-happened", "What happened", "textarea"),
             _field("expected", "Expected behavior", "textarea"),
-            _field("output", "Output", "textarea", required=False, render="text", description="stderr, traceback, or report excerpt"),
-            _field("config", "Configuration", "textarea", required=False, render="toml", description="Relevant `slopvac.toml` lines"),
+            _field("output", "Output", "textarea", required=False, render="text"),
+            _field("config", "Configuration", "textarea", required=False, render="toml"),
         ),
     ),
     ReportCategory(
@@ -147,9 +113,9 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         meaning="A rule flags text that is not slop.",
         fields=_category_fields(
             _field("rule-id", "Rule ID", "input"),
-            _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
-            _field("input", "Flagged text", "textarea", render="markdown", description="The smallest sample that still triggers the finding. Paste the sample text itself. A local file path is not enough."),
-            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint --stdin --format json`. Its path reads `<stdin>`."),
+            _field("context", "Genre and profile", "input"),
+            _field("input", "Flagged text", "textarea", render="markdown"),
+            _field("finding", "Finding", "textarea", render="json"),
             _field("why", "Why this is not slop", "textarea"),
         ),
     ),
@@ -161,9 +127,9 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         labels=("false-negative", "needs-triage"),
         meaning="Slop that no finding reports, where an existing rule should cover it; when unsure, use this form.",
         fields=_category_fields(
-            _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
-            _field("input", "Missed text", "textarea", render="markdown", description="Paste the sample text itself. A local file path is not enough."),
-            _field("expected-rule", "Rule that should fire", "input", required=False, description="Leave empty when you do not know. When no rule covers the pattern, use the new rule form."),
+            _field("context", "Genre and profile", "input"),
+            _field("input", "Missed text", "textarea", render="markdown"),
+            _field("expected-rule", "Rule that should fire", "input", required=False),
             _field("why", "Why this is slop", "textarea"),
         ),
     ),
@@ -176,11 +142,11 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         meaning="The flagged text is slop, but the rule, severity, or span/location is wrong.",
         fields=_category_fields(
             _field("rule-id", "Rule ID", "input"),
-            _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
-            _field("input", "Flagged text", "textarea", render="markdown", description="Paste the sample text itself. A local file path is not enough."),
-            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint --stdin --format json`. Its path reads `<stdin>`."),
+            _field("context", "Genre and profile", "input"),
+            _field("input", "Flagged text", "textarea", render="markdown"),
+            _field("finding", "Finding", "textarea", render="json"),
             _field("problem", "What is wrong", "dropdown", options=("Wrong rule", "Wrong severity", "Wrong span or location"), multiple=True),
-            _field("expected", "Expected finding", "textarea", description="The rule, severity, or span you expected."),
+            _field("expected", "Expected finding", "textarea"),
         ),
     ),
     ReportCategory(
@@ -192,11 +158,11 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         meaning="The flagged text is slop and the right rule fired, but the message, suggested replacement, fix guidance, or `--fix` edit is wrong, unclear, or changes the meaning.",
         fields=_category_fields(
             _field("rule-id", "Rule ID", "input"),
-            _field("context", "Genre and profile", "input", description="For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."),
-            _field("input", "Flagged text", "textarea", render="markdown", description="Paste the sample text itself. A local file path is not enough."),
-            _field("finding", "Finding", "textarea", render="json", description="The finding object from `slopvac lint --stdin --format json`. Its path reads `<stdin>`."),
+            _field("context", "Genre and profile", "input"),
+            _field("input", "Flagged text", "textarea", render="markdown"),
+            _field("finding", "Finding", "textarea", render="json"),
             _field("problem", "What is wrong", "dropdown", options=("Wrong suggested replacement", "--fix changed the meaning", "--fix produced broken text", "Misleading or unclear message", "Fix guidance does not apply here"), multiple=True),
-            _field("fixed-text", "Text after the fix", "textarea", required=False, render="markdown", description="Output of `slopvac lint --fix`, when you ran it."),
+            _field("fixed-text", "Text after the fix", "textarea", required=False, render="markdown"),
             _field("expected", "Expected suggestion", "textarea"),
         ),
     ),
@@ -208,7 +174,7 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         labels=("new-rule", "needs-triage"),
         meaning="A writing pattern that no existing rule covers.",
         fields=_category_fields(
-            _field("pattern", "Pattern", "textarea", description="Describe the writing pattern and why it reads as slop."),
+            _field("pattern", "Pattern", "textarea"),
             _field("bad-examples", "Examples that should fire", "textarea", render="markdown"),
             _field("good-examples", "Examples that must not fire", "textarea", render="markdown"),
             _field("kind", "Rule kind", "dropdown", options=("Pattern (deterministic)", "Judgement (reviewer question)", "Unsure")),
@@ -230,7 +196,7 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
             _field("aspect", "What to improve", "dropdown", options=("Accuracy across many findings", "Message or fix wording", "Examples", "Exceptions", "Judgement question", "Severity or tier", "Genre recommendation", "Documentation"), multiple=True),
             _field("current", "Current behavior", "textarea"),
             _field("proposal", "Proposed change", "textarea"),
-            _field("accuracy", "Accuracy sample", "textarea", required=False, description="Findings judged on a sample: how many were true slop, how many were not, and the corpus they came from."),
+            _field("accuracy", "Accuracy sample", "textarea", required=False),
             _field("evidence", "Evidence", "textarea", required=False),
             proposal=True,
         ),
