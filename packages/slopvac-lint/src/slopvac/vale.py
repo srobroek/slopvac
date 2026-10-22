@@ -222,8 +222,13 @@ def run_compiled_vale(
         return result
 
     if completed.returncode != 0 or completed.stderr.strip():
+        # Vale names the scratch copy of a file that has a Vale comment. Name the
+        # file the caller passed instead, so a scratch path never reaches a report.
+        stderr = completed.stderr.strip()
+        for copy, original in sorted(originals.items(), key=lambda item: -len(item[0])):
+            stderr = stderr.replace(copy, original)
         result.unchecked.append(
-            f"Vale failed ({completed.returncode}): {completed.stderr.strip()}; "
+            f"Vale failed ({completed.returncode}): {stderr}; "
             "its findings may be incomplete."
         )
         return result

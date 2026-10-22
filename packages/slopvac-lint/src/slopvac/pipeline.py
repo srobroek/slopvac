@@ -99,6 +99,7 @@ class RunContext:
     diff_scope: DiffScope | None = None
     mode: Mode = Mode.PROSE
     comments: bool = False
+    stdin_path: Path | None = None
     # Informational notes about directory entries omitted from code-comment scans.
     # They are emitted in JSON/text and do not affect the exit status.
     collection_notes: list[str] = field(default_factory=list)
@@ -307,8 +308,9 @@ def lint_one(
     native_only: set[str] | None = None,
     *,
     diff_scope: DiffScope | None = None,
-    comments: bool = False,
+    document_path: str | None = None,
 ) -> DocumentScore:
+    report_path = document_path or str(path)
     resolved = resolve_for(config, path)
     text = path.read_text(encoding="utf-8", errors="replace")
 
@@ -362,8 +364,10 @@ def lint_one(
         ranges = diff_scope.ranges_for(path)
         by_id = {rule.qualified_id: rule for rule in ruleset.rules}
         findings = filter_findings(findings, by_id, ranges, text)
+    if document_path is not None:
+        findings = [finding.model_copy(update={"path": document_path}) for finding in findings]
     return score_document(
-        path=str(path),
+        path=report_path,
         findings=findings,
         words=document.words,
         sentences=len(document.sentences),
@@ -700,6 +704,7 @@ def load_run_context(
     locale_tag: str | None,
     mode: str | Mode | None = None,
     diff_scope: DiffScope | None = None,
+    stdin_input: bool = False,
     comments: bool = False,
 ) -> RunContext:
     """Discover and apply the nearest config independently for every target."""
@@ -731,6 +736,9 @@ def load_run_context(
     loaded: dict[Path | None, Config] = {}
     explicit = config_path.resolve() if config_path is not None else None
 
+    def discovered_config(path: Path) -> Path | None:
+        return explicit or find_config(Path.cwd() if stdin_input else path)
+
     def load_discovered(discovered: Path | None) -> Config:
         key = discovered.resolve() if discovered is not None else None
         if key not in loaded:
@@ -746,16 +754,16 @@ def load_run_context(
         for target in targets:
             path = Path(target)
             if path.is_file():
-                load_discovered(explicit or find_config(path))
+                load_discovered(discovered_config(path))
     for path in skipped_collections:
-        load_discovered(explicit or find_config(path))
+        load_discovered(discovered_config(path))
 
     # An empty directory still needs its nearest config loaded so malformed
     # configuration is reported rather than silently treated as a clean run.
     starts = [Path(target) for target in targets] if not candidates else candidates
     base_by_path: dict[Path, Config] = {}
     for path in starts:
-        discovered = explicit or find_config(path if path.exists() else Path.cwd())
+        discovered = discovered_config(path if path.exists() else Path.cwd())
         base = load_discovered(discovered)
         if path in candidates:
             base_by_path[path] = base
@@ -812,6 +820,8 @@ def load_run_context(
     effective_by_source: dict[Path | None, Config] = {}
     for source, base in loaded.items():
         config = copy.deepcopy(base)
+        if stdin_input:
+            config.overrides = []
         if not auto_mode:
             config.mode = selected_mode
         if has_cli_override:
@@ -831,7 +841,7 @@ def load_run_context(
                 for pattern in patterns
             ):
                 continue
-        if config.is_excluded(_relative_to_config(path, config)):
+        if not stdin_input and config.is_excluded(_relative_to_config(path, config)):
             continue
         paths.append(path)
         configs[path] = config
@@ -843,7 +853,7 @@ def load_run_context(
             path = Path(target)
             if not path.is_file():
                 continue
-            discovered = explicit or find_config(path)
+            discovered = discovered_config(path)
             base = load_discovered(discovered)
             source = base.source.resolve() if base.source is not None else None
             config = effective_by_source[source]
@@ -855,7 +865,7 @@ def load_run_context(
     informational: list[str] = []
     incomplete: list[str] = []
     for path, message in skipped_collections.items():
-        discovered = explicit or find_config(path)
+        discovered = discovered_config(path)
         base = load_discovered(discovered)
         source = base.source.resolve() if base.source is not None else None
         config = effective_by_source[source]
@@ -890,6 +900,11 @@ def load_run_context(
         raise PipelineError(
             [f"[red]config error[/] {message}" for message in name_errors]
         )
+    if stdin_input and not paths and not incomplete:
+        # A file that matches nothing is a clean no-op; stdin always has a document.
+        raise PipelineError(
+            "[red]incomplete check[/]: the stdin document was not selected for linting."
+        )
 
     rulesets: dict[Path, RuleSet] = {}
     for path in paths:
@@ -910,6 +925,7 @@ def load_run_context(
         ruleset=canonical,
         paths=paths,
         locale_notes=locale_notes,
+        stdin_path=Path(targets[0]) if stdin_input else None,
         diff_scope=diff_scope,
         mode=selected_mode,
         comments=selected_mode is Mode.CODE_COMMENTS,
@@ -1041,7 +1057,7 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                 run_notes,
                 native_only,
                 diff_scope=ctx.diff_scope,
-                comments=ctx.comments,
+                document_path="<stdin>" if ctx.stdin_path == path else None,
             )
             note = ctx.locale_notes.get(path)
             if note is not None:
@@ -1057,7 +1073,7 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
             first = next(iter(ctx.configs.values()), None)
             scores.append(
                 DocumentScore(
-                    path="<collection>",
+                    path="<stdin>" if ctx.stdin_path is not None else "<collection>",
                     profile=first.profile.value if first else Profile.NORMAL.value,
                     words=0,
                     sentences=0,
@@ -1066,7 +1082,32 @@ def run_lint(ctx: RunContext, *, no_vale: bool) -> list[DocumentScore]:
                     unchecked=list(ctx.collection_unchecked),
                 )
             )
+    if ctx.stdin_path is not None:
+        for score in scores:
+            score.unchecked = [redact_stdin(note, ctx.stdin_path) for note in score.unchecked]
+            score.failure_reasons = [
+                redact_stdin(reason, ctx.stdin_path) for reason in score.failure_reasons
+            ]
+        ctx.collection_notes[:] = [
+            redact_stdin(note, ctx.stdin_path) for note in ctx.collection_notes
+        ]
     # Back into the order the caller asked for, since the groups reordered them.
     order = {str(path): index for index, path in enumerate(ctx.paths)}
     scores.sort(key=lambda score: order.get(score.path, 0))
     return scores
+
+
+STDIN_LABEL = "<stdin>"
+
+
+def redact_stdin(text: str, stdin_path: Path | None) -> str:
+    """Replace the staged stdin file, then its directory, with `<stdin>`.
+
+    The whole path goes first so a message reads `<stdin>`, not `<stdin>/stdin.md`;
+    the directory is the fallback for a message that names only the folder."""
+    if stdin_path is None:
+        return text
+    for candidate in (stdin_path, stdin_path.parent):
+        for spelling in sorted({str(candidate), str(candidate.resolve())}, key=len, reverse=True):
+            text = text.replace(spelling, STDIN_LABEL)
+    return text

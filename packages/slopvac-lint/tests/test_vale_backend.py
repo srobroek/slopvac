@@ -192,3 +192,28 @@ def test_vale_reads_a_copy_without_its_comments_and_reports_the_source(tmp_path,
     assert not result.unchecked
     [finding] = result.findings_for(str(doc))
     assert (finding.path, finding.line, finding.column) == (str(doc), 2, 1)
+
+
+def test_a_vale_failure_names_the_source_not_its_scratch_copy(tmp_path, monkeypatch):
+    doc = tmp_path / "doc.md"
+    doc.write_text("<!-- vale off -->\nRobust text.\n", encoding="utf-8")
+    config = tmp_path / ".vale.ini"
+    config.write_text("StylesPath = styles\n")
+    compiled = CompileResult(tmp_path, config, vale_rules=["style.rule"])
+    monkeypatch.setattr("shutil.which", lambda _: "/fake/vale")
+    scratch: list[str] = []
+
+    def run(argv, **kwargs):
+        if "--version" in argv:
+            return subprocess.CompletedProcess(argv, 0, "vale version 3.21.0\n", "")
+        if "ls-config" in argv:
+            return subprocess.CompletedProcess(argv, 0, '{"Checks": ["style.rule"]}', "")
+        scratch.append(argv[-1])
+        return subprocess.CompletedProcess(argv, 2, "", f"cannot read {argv[-1]}\n")
+
+    monkeypatch.setattr("subprocess.run", run)
+    result = run_compiled_vale([doc], compiled, {"style.rule": Severity.WARNING}, {})
+    [note] = result.unchecked
+    assert scratch and scratch[0] != str(doc)
+    assert f"cannot read {doc}" in note
+    assert scratch[0] not in note

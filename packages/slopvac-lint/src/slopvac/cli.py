@@ -18,6 +18,7 @@ from __future__ import annotations
 # loads. So the top level imports only what the click declarations need, and each
 # command imports its own machinery.
 import sys
+from contextlib import contextmanager
 from itertools import pairwise
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -227,7 +228,9 @@ def doctor(binary: str | None, config_path: Path | None, output_format: str) -> 
         raise SystemExit(EXIT_ERROR)
 
 @main.command()
-@click.argument("targets", nargs=-1, required=True)
+@click.argument("targets", nargs=-1, required=False)
+@click.option("--stdin", "stdin_input", is_flag=True, help="Read one UTF-8 document from standard input.")
+@click.option("--language", help="Input format: markdown, mdx, rst, html, text, or a source language in code-comments.")
 @click.option(
     "--profile",
     type=click.Choice([p.value for p in Profile]),
@@ -243,7 +246,7 @@ def doctor(binary: str | None, config_path: Path | None, output_format: str) -> 
     "--config",
     "config_path",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="Config file. Default: nearest slopvac.toml walking up from each target.",
+    help="Config file. Default: nearest slopvac.toml from the current directory with --stdin, or each target.",
 )
 @_rules_dir_option
 @click.option(
@@ -323,6 +326,8 @@ def doctor(binary: str | None, config_path: Path | None, output_format: str) -> 
 )
 def lint(
     targets: tuple[str, ...],
+    stdin_input: bool,
+    language: str | None,
     profile: str | None,
     mode: str | None,
     config_path: Path | None,
@@ -344,46 +349,85 @@ def lint(
     verbose: bool,
     explain_config: bool,
 ) -> None:
-    """Lint TARGETS: files, directories, or globs.
+    """Lint TARGETS, or one document read from standard input.
 
     Exit 0 passes, 1 fails a threshold, and 2 is an incomplete run.
     """
     from .diff_scope import DiffScopeError, apply_replacements, changed_scope
     from .pipeline import emit_report
 
-    _note_output(output_format, out_path, open_report)
-    console = _console(no_color)
-    scope = None
-    if diff_base is not None or diff_working_tree:
-        try:
-            scope = changed_scope(base=diff_base, working_tree=diff_working_tree)
-        except DiffScopeError as exc:
-            console.print(f"[red]incomplete check[/]: {exc}")
-            raise SystemExit(EXIT_ERROR) from None
-    run = _load_lint_context(
-        console,
+    mode, language, code_comments = _resolve_input_options(
         targets,
-        profile=profile,
+        stdin_input=stdin_input,
+        language=language,
         mode=mode,
-        config_path=config_path,
-        rules_dir=rules_dir,
-        only_categories=only_categories,
-        disabled=disabled,
-        min_score=min_score,
-        max_per_100_words=max_per_100_words,
-        locale_tag=locale_tag,
-        diff_scope=scope,
         comments=comments,
+        diff_base=diff_base,
+        diff_working_tree=diff_working_tree,
+        fix=fix,
+        open_report=open_report,
     )
-    if not run.paths and not run.collection_unchecked:
-        # A run with nothing to lint still owes the caller a report in the format
-        # it asked for: the GitHub action parses the JSON, and a bare text line
-        # where JSON was expected read as "the report could not be produced" on
-        # every release PR, whose only prose change (CHANGELOG.md) is excluded.
-        # The notice goes to stderr so a machine format on stdout stays parseable.
-        click.echo("no lintable files matched", err=True)
+    with _staged_stdin(targets, stdin_input, language, code_comments) as (inputs, stdin_path):
+        _note_output(output_format, out_path, open_report)
+        console = _console(no_color)
+        scope = None
+        if diff_base is not None or diff_working_tree:
+            try:
+                scope = changed_scope(base=diff_base, working_tree=diff_working_tree)
+            except DiffScopeError as exc:
+                console.print(f"[red]incomplete check[/]: {exc}")
+                raise SystemExit(EXIT_ERROR) from None
+        run = _load_lint_context(
+            console,
+            inputs,
+            profile=profile,
+            mode=mode,
+            config_path=config_path,
+            rules_dir=rules_dir,
+            only_categories=only_categories,
+            disabled=disabled,
+            min_score=min_score,
+            max_per_100_words=max_per_100_words,
+            locale_tag=locale_tag,
+            diff_scope=scope,
+            comments=comments,
+            stdin_path=stdin_path,
+        )
+        if not run.paths and not run.collection_unchecked:
+            # A run with nothing to lint still owes the caller a report in the format
+            # it asked for: the GitHub action parses the JSON, and a bare text line
+            # where JSON was expected read as "the report could not be produced" on
+            # every release PR, whose only prose change (CHANGELOG.md) is excluded.
+            # The notice goes to stderr so a machine format on stdout stays parseable.
+            click.echo("no lintable files matched", err=True)
+            emit_report(
+                [],
+                run.ruleset,
+                console,
+                output_format=output_format,
+                out_path=out_path,
+                open_report=open_report,
+                format_given=_format_was_given(),
+                verbose=verbose,
+                notes=run.collection_notes,
+            )
+            raise SystemExit(EXIT_OK)
+
+        if explain_config:
+            _print_resolved_config(run, console)
+            raise SystemExit(EXIT_OK)
+
+        scores = _run_lint_or_exit(run, console, no_vale=no_vale)
+        if fix:
+            rules = {
+                rule.qualified_id: rule
+                for ruleset in run.rulesets.values()
+                for rule in ruleset.rules
+            }
+            if apply_replacements(scores, rules, scope) > 0:
+                scores = _run_lint_or_exit(run, console, no_vale=no_vale)
         emit_report(
-            [],
+            scores,
             run.ruleset,
             console,
             output_format=output_format,
@@ -393,35 +437,126 @@ def lint(
             verbose=verbose,
             notes=run.collection_notes,
         )
-        raise SystemExit(EXIT_OK)
-
-    if explain_config:
-        _print_resolved_config(run, console)
-        raise SystemExit(EXIT_OK)
-
-    scores = _run_lint_or_exit(run, console, no_vale=no_vale)
-    if fix:
-        rules = {
-            rule.qualified_id: rule
-            for ruleset in run.rulesets.values()
-            for rule in ruleset.rules
-        }
-        if apply_replacements(scores, rules, scope) > 0:
-            scores = _run_lint_or_exit(run, console, no_vale=no_vale)
-    emit_report(
-        scores,
-        run.ruleset,
-        console,
-        output_format=output_format,
-        out_path=out_path,
-        open_report=open_report,
-        format_given=_format_was_given(),
-        verbose=verbose,
-        notes=run.collection_notes,
-    )
     if any(score.unchecked for score in scores):
         raise SystemExit(EXIT_ERROR)
     raise SystemExit(EXIT_OK if all(score.passed for score in scores) else EXIT_FINDINGS)
+
+
+def _resolve_input_options(
+    targets: tuple[str, ...],
+    *,
+    stdin_input: bool,
+    language: str | None,
+    mode: str | None,
+    comments: bool,
+    diff_base: str | None,
+    diff_working_tree: bool,
+    fix: bool,
+    open_report: bool,
+) -> tuple[str | None, str | None, bool]:
+    """Validate TARGETS against --stdin and return the mode, language and comment flag.
+
+    Without --stdin the mode is returned unchanged. With it, the mode is made
+    explicit so the staged file and the pipeline agree on how to read it."""
+    if not stdin_input:
+        if language is not None:
+            raise click.UsageError("--language requires --stdin.")
+        if not targets:
+            raise click.UsageError("TARGETS are required unless --stdin is set.")
+        return mode, language, False
+    if targets:
+        raise click.UsageError("TARGETS must be empty when --stdin is set.")
+    rejected = {
+        "--diff-base": diff_base is not None,
+        "--diff-working-tree": diff_working_tree,
+        "--fix": fix,
+        "--open": open_report,
+    }
+    for option, given in rejected.items():
+        if given:
+            reason = " because stdin has no file to write back to" if option == "--fix" else ""
+            raise click.UsageError(f"{option} is not supported with --stdin{reason}.")
+    # The pipeline lets an explicit --mode win over --comments, so the language
+    # check follows the same rule.
+    code_comments = mode == Mode.CODE_COMMENTS.value if mode is not None else comments
+    if mode is None:
+        mode = Mode.CODE_COMMENTS.value if comments else Mode.PROSE.value
+    if code_comments and language is None:
+        raise click.UsageError("--language is required with --stdin --mode code-comments.")
+    language = language or "markdown"
+    valid_languages = _stdin_languages(code_comments)
+    if language not in valid_languages:
+        raise click.UsageError(
+            f"--language {language!r} is not valid for mode {mode}. "
+            f"Valid values: {', '.join(valid_languages)}."
+        )
+    return mode, language, code_comments
+
+
+@contextmanager
+def _staged_stdin(
+    targets: tuple[str, ...], stdin_input: bool, language: str | None, code_comments: bool
+):
+    """Yield the targets to lint and the staged stdin file, or None without --stdin.
+
+    The pipeline lints paths, so stdin goes through a file named only by its
+    extension; every report maps that file back to `<stdin>`. The directory is
+    removed on every exit, including errors."""
+    if not stdin_input:
+        yield targets, None
+        return
+    from tempfile import TemporaryDirectory
+
+    # Stdin is documented as UTF-8. Reject anything else up front: Vale panics on
+    # invalid UTF-8, so a replaced decode would still end incomplete.
+    raw = click.get_binary_stream("stdin").read()
+    try:
+        raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        click.echo(f"incomplete check: stdin is not valid UTF-8 (byte {exc.start}).", err=True)
+        raise SystemExit(EXIT_ERROR) from None
+    with TemporaryDirectory(prefix="slopvac-stdin-") as directory:
+        staged = Path(directory) / f"stdin{_stdin_suffix(language or 'markdown', code_comments)}"
+        staged.write_bytes(raw)
+        yield (str(staged),), staged
+
+
+def _stdin_extensions(code_comments: bool) -> dict[str, str]:
+    """Map each `--language` value to the extension the staged file takes.
+
+    Built from the lists that select files by extension, so a format slopvac
+    lints from disk is a format it lints from stdin, and nothing else is."""
+    if code_comments:
+        from .compile_vale import SOURCE_LANGUAGE_BY_EXTENSION
+
+        extensions = {".toml": "toml", **SOURCE_LANGUAGE_BY_EXTENSION}
+    else:
+        from .contract import LINTABLE
+
+        aliases = {".md": "markdown", ".markdown": "markdown", ".txt": "text"}
+        extensions = {
+            suffix: aliases.get(suffix, suffix.lstrip("."))
+            for suffix in (pattern.removeprefix("*") for pattern in LINTABLE)
+        }
+    by_language: dict[str, str] = {}
+    for suffix, language in extensions.items():
+        by_language.setdefault(language, suffix)
+    return by_language
+
+
+def _stdin_languages(code_comments: bool) -> tuple[str, ...]:
+    return tuple(sorted(_stdin_extensions(code_comments)))
+
+
+def _stdin_suffix(language: str, code_comments: bool) -> str:
+    return _stdin_extensions(code_comments)[language]
+
+
+def _print_pipeline_error(console: Console, exc, stdin_path: Path | None) -> None:
+    from .pipeline import redact_stdin
+
+    for message in exc.messages:
+        console.print(redact_stdin(message, stdin_path))
 
 
 def _format_was_given() -> bool:
@@ -431,14 +566,19 @@ def _format_was_given() -> bool:
     )
 
 
-def _load_lint_context(console: Console, targets: tuple[str, ...], **options):
+def _load_lint_context(
+    console: Console,
+    targets: tuple[str, ...],
+    *,
+    stdin_path: Path | None = None,
+    **options,
+):
     from .pipeline import PipelineError, load_run_context
 
     try:
-        return load_run_context(targets, **options)
+        return load_run_context(targets, stdin_input=stdin_path is not None, **options)
     except PipelineError as exc:
-        for message in exc.messages:
-            console.print(message)
+        _print_pipeline_error(console, exc, stdin_path)
         raise SystemExit(exc.code) from None
 
 
@@ -448,8 +588,7 @@ def _run_lint_or_exit(run, console: Console, *, no_vale: bool):
     try:
         return run_lint(run, no_vale=no_vale)
     except PipelineError as exc:
-        for message in exc.messages:
-            console.print(message)
+        _print_pipeline_error(console, exc, run.stdin_path)
         raise SystemExit(exc.code) from None
 
 
@@ -459,7 +598,8 @@ def _print_resolved_config(run, console: Console) -> None:
     for path in run.paths:
         config = run.configs[path]
         resolved = resolve_for(config, path)
-        console.print(f"[bold]{path}[/]")
+        display_path = "<stdin>" if run.stdin_path == path else path
+        console.print(f"[bold]{display_path}[/]")
         console.print(f"  config: {config.source or '(defaults)'}")
         console.print(f"  profile: {resolved.profile.value}")
         if resolved.applied_overrides:

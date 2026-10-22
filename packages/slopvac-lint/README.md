@@ -156,6 +156,24 @@ slopvac --format json docs/ | jq .summary
 `--category` to select categories or `--disable` to disable named categories
 or rules.
 
+### Linting standard input
+
+```sh
+printf 'This robust solution leverages seamless synergy.\n' | slopvac lint --stdin --format json
+cat src/module.py | slopvac lint --stdin --mode code-comments --language python
+```
+
+`--stdin` reads one UTF-8 document and reports its path as `<stdin>`. `--language`
+selects a prose format (`markdown` by default, `mdx`, `rst`, `html`, or `text`)
+or, in `--mode code-comments`, a source language. Give `--language` in this mode.
+Its choices come from supported source file extensions and `toml`.
+`--language` is available only with `--stdin`, and `TARGETS` must be empty. The
+nearest config comes from the current working directory unless `--config` names
+one explicitly. Stdin has no file path, so config `exclude` globs and
+`[[overrides]]` file globs do not apply. With stdin, slopvac rejects
+`--diff-base`, `--diff-working-tree`, `--fix`, and `--open`. `--fix` cannot write
+changes back to a stream.
+
 ### Changed lines and fixes
 
 ```sh
