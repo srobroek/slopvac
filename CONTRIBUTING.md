@@ -41,9 +41,14 @@ uv run pytest packages/slopvac-lint/tests/test_ruleset.py
 
 These tests check that each lexical rule's `bad` example matches its pattern. A `good` example must not match. The tests check that each lexical rule has an example. For substitutions, the tests check that each example resolves to a replacement.
 
-## Release candidates
+## Stable releases and release candidates
 
-Release-please keeps an open release PR with the upcoming stable version. Each update to that PR builds a new release candidate, for example `2.18.0rc1`, from `publish-lint.yml`. The candidate waits for a maintainer to approve the `pypi` environment, then publishes to PyPI. Candidates get no tag and no changelog entry. Merging the release PR ships the stable release.
+Merge the release PR. Then run `just release X.Y.Z` to start publishing from
+the matching `vX.Y.Z` tag. The workflow waits for approval in the `pypi`
+environment before it publishes to PyPI.
+
+Release candidates build from each update to the release PR branch. They also
+wait for `pypi` approval. They get no tag or changelog entry.
 
 Plain installs and `slopvac@latest` stay on the latest stable release. The package README lists how to opt in to a candidate.
 

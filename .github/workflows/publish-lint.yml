@@ -17,10 +17,10 @@ name: Publish slopvac
 # environment name as part of the trusted identity, so renaming it breaks
 # publishing.
 #
-# TRIGGER. Runs on the repository's release tag. Everything here versions in
-# lockstep behind one `vX.Y.Z`, so the tag that publishes the linter is the same
-# tag that releases the native plugins. Also runnable by hand for a re-run after
-# a partial failure, and a dry run proves the build before the tag exists.
+# TRIGGER. Release-please keeps stable versions in its release PR. After merging
+# that PR, start stable publishing manually on the matching `vX.Y.Z` tag with
+# `just release X.Y.Z`. The workflow queues the upload for approval in `pypi`;
+# stable publishing never starts from a tag push.
 #
 # RELEASE CANDIDATES. release-please stays stable-only. Every push to its release
 # PR branch (`release-please--branches--main`) builds the next `X.Y.ZrcN` of the
@@ -32,8 +32,6 @@ name: Publish slopvac
 
 on:
  push:
-  tags:
-   - "v[0-9]*"
   branches:
    - release-please--branches--main
  workflow_dispatch:
@@ -57,10 +55,10 @@ permissions:
 
 concurrency:
  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
- # A newer release PR update replaces an RC still waiting for approval. Tag and
- # manual runs have their own groups and are never cancelled. A push that lands
- # during an approved upload can cancel it part-way; the next RC then takes the
- # following number, because rc_version.py counts every number already on PyPI.
+ # A newer release PR update replaces an RC still waiting for approval. Manual
+ # runs have their own groups and are never cancelled. A push that lands during
+ # an approved upload can cancel it part-way; the next RC takes the following
+ # number, because rc_version.py counts every number already on PyPI.
  cancel-in-progress: ${{ github.event_name == 'push' && github.ref_type == 'branch' }}
 
 jobs:
@@ -95,6 +93,8 @@ jobs:
        ${{ (github.event_name == 'push' && github.ref_type == 'branch' &&
        github.ref_name == 'release-please--branches--main') ||
        (github.event_name == 'workflow_dispatch' && inputs.rc) }}
+      DRY_RUN: ${{ inputs.dry-run }}
+      TARGET: ${{ inputs.target }}
      run: |
       set -euo pipefail
       if [[ "$RC" == "true" ]]; then
@@ -106,6 +106,8 @@ jobs:
         if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ || "$GITHUB_REF_NAME" != "v$version" ]]; then
          echo "tag $GITHUB_REF_NAME is not v$version; refusing to publish"; exit 1
         fi
+       elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$DRY_RUN" == "false" && "$TARGET" == "pypi" ]]; then
+        echo "stable PyPI publishing requires a v$version tag ref; refusing to publish"; exit 1
        fi
       fi
       echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -285,15 +287,15 @@ jobs:
  pypi:
   name: Publish to PyPI
   needs: build
-  # Stable only, and always from a tag the build step accepted as exactly
-  # v<package version>: the tag push itself, or a manual re-run on that tag. A push
-  # to the release PR branch is an RC and never reaches this job.
+  # Stable publishing is manual and only from a tag the build step accepted as
+  # exactly v<package version>. A push to the release PR branch is an RC and
+  # never reaches this job.
   if: >-
-   needs.build.outputs.rc != 'true' && github.ref_type == 'tag' &&
-   (github.event_name == 'push' ||
-    (github.event_name == 'workflow_dispatch' &&
-     !inputs.dry-run &&
-     inputs.target == 'pypi'))
+   needs.build.outputs.rc != 'true' &&
+   github.event_name == 'workflow_dispatch' &&
+   github.ref_type == 'tag' &&
+   !inputs.dry-run &&
+   inputs.target == 'pypi'
   runs-on: ubuntu-latest
   timeout-minutes: 15
   environment:
@@ -311,6 +313,6 @@ jobs:
    - name: Publish
      uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
      with:
-      # Re-tagging an already-published version is a no-op instead of a 400.
+      # Dispatching an already-published version again is a no-op instead of a 400.
       # PyPI never overwrites a release, so this only skips, never replaces.
       skip-existing: true

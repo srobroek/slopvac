@@ -1,5 +1,22 @@
 set shell := ["bash", "-cu"]
 
+# Dispatch stable publishing for an existing version tag; approve it in GitHub.
+release VERSION:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version={{quote(VERSION)}}
+    if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "expected stable version X.Y.Z, got $version" >&2
+        exit 2
+    fi
+    tag="v$version"
+    if ! git ls-remote --exit-code --refs origin "refs/tags/$tag" >/dev/null; then
+        echo "tag $tag does not exist on origin" >&2
+        exit 1
+    fi
+    run_url="$(gh workflow run publish-lint.yml --ref "$tag" -f dry-run=false -f target=pypi)"
+    printf '%s\nRun waits for the pypi environment approval.\n' "$run_url"
+
 # Wait for a normal system load before measuring.
 perf-wait-idle:
     uv run --group profile python scripts/perf/perf.py wait-idle
