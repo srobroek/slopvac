@@ -1609,3 +1609,171 @@ def test_rst_is_collected_when_converter_is_available(runner, tmp_path, monkeypa
     assert not any(
         "rst2html" in note for doc in report["documents"] for note in doc["unchecked"]
     )
+
+def test_stdin_default_markdown_reports_findings(runner, monkeypatch):
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--no-vale", "--format", "json"],
+        input="This robust solution leverages seamless synergy.\n",
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    document = json.loads(result.output)["documents"][0]
+    assert document["path"] == "<stdin>"
+    assert document["findings"]
+
+
+@pytest.mark.parametrize(
+    ("language", "text"),
+    [
+        ("mdx", "This robust solution leverages seamless synergy.\n"),
+        ("text", "This robust solution leverages seamless synergy.\n"),
+        ("html", "<p>This robust solution leverages seamless synergy.</p>\n"),
+        ("rst", "This robust solution leverages seamless synergy.\n"),
+    ],
+)
+def test_stdin_prose_language(runner, monkeypatch, language, text):
+    from slopvac.vale_probe import rst_converter
+
+    if language == "rst" and rst_converter() is None:
+        pytest.skip("rst2html is not on PATH")
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--language", language, "--no-vale", "--format", "json"],
+        input=text,
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    assert json.loads(result.output)["documents"][0]["findings"]
+
+
+def test_stdin_code_comments_python(runner):
+    result = runner.invoke(
+        main,
+        [
+            "lint", "--stdin", "--mode", "code-comments", "--language", "python",
+            "--no-vale", "--format", "json",
+        ],
+        input="# This robust solution leverages seamless synergy.\nx = 1\n",
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    document = json.loads(result.output)["documents"][0]
+    assert document["path"] == "<stdin>"
+    assert document["findings"]
+
+
+@pytest.mark.parametrize("output_format", ["json", "sarif"])
+def test_stdin_report_paths_do_not_leak_temp_directory(
+    runner, tmp_path, monkeypatch, output_format
+):
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--no-vale", "--format", output_format],
+        input="This robust solution leverages seamless synergy.\n",
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    assert "slopvac-stdin" not in result.output
+    assert "slopvac-stdin" not in result.stderr
+    if output_format == "json":
+        report = json.loads(result.output)
+        assert report["documents"][0]["path"] == "<stdin>"
+        assert all(finding["path"] == "<stdin>" for finding in report["documents"][0]["findings"])
+    else:
+        assert "<stdin>" in result.output
+
+
+def test_stdin_uses_config_from_cwd(runner, tmp_path, monkeypatch):
+    config = _write(tmp_path, "slopvac.toml", '[categories]\n"prose-craft" = "off"\n')
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--no-vale", "--format", "json"],
+        input="This robust solution leverages seamless synergy.\n",
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    report = json.loads(result.output)
+    assert report["documents"][0]["path"] == "<stdin>"
+    assert not any(finding["category"] == "prose-craft" for finding in report["documents"][0]["findings"])
+    assert config.is_file()
+
+
+@pytest.mark.parametrize(
+    ("args", "message"),
+    [
+        (["lint", "--stdin", "README.md"], "TARGETS must be empty"),
+        (["lint", "--language", "markdown", "README.md"], "requires --stdin"),
+        (["lint", "--stdin", "--diff-base", "HEAD"], "--diff-base is not supported"),
+        (["lint", "--stdin", "--diff-working-tree"], "--diff-working-tree is not supported"),
+        (["lint", "--stdin", "--fix"], "--fix is not supported"),
+        (["lint", "--stdin", "--open"], "--open is not supported"),
+        (["lint", "--stdin", "--language", "unknown"], "Valid values:"),
+        (["lint", "--stdin", "--mode", "code-comments"], "--language is required"),
+    ],
+)
+def test_stdin_rejections(runner, args, message):
+    result = runner.invoke(main, args, input="x\n")
+    assert result.exit_code == EXIT_ERROR
+    assert message in result.output
+
+
+def test_stdin_requires_targets_without_stdin(runner):
+    result = runner.invoke(main, ["lint"])
+    assert result.exit_code == EXIT_ERROR
+    assert "TARGETS are required" in result.output
+
+
+def test_stdin_no_vale_still_runs_native_checks(runner):
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--no-vale", "--format", "json"],
+        input="This robust solution leverages seamless synergy.\n",
+    )
+    assert result.exit_code == EXIT_ERROR
+    assert json.loads(result.output)["documents"][0]["findings"]
+
+
+def test_stdin_temp_directory_is_removed_when_config_fails(runner, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _write(tmp_path, "slopvac.toml", "invalid = true\n")
+    seen = []
+    from tempfile import TemporaryDirectory
+
+    original = TemporaryDirectory
+
+    def recording_temporary_directory(*args, **kwargs):
+        directory = original(*args, **kwargs)
+        seen.append(Path(directory.name))
+        return directory
+
+    monkeypatch.setattr("tempfile.TemporaryDirectory", recording_temporary_directory)
+    result = runner.invoke(main, ["lint", "--stdin"], input="text\n")
+    assert result.exit_code == EXIT_ERROR
+    assert "slopvac-stdin-" not in result.output
+    assert len(seen) == 1
+    assert not seen[0].exists()
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+@pytest.mark.parametrize("output_format", ["json", "sarif", "text"])
+def test_stdin_reports_vale_findings_under_stdin_only(tmp_path, monkeypatch, output_format):
+    """A Vale-owned rule fires on piped text, and no staging path leaks."""
+    monkeypatch.chdir(tmp_path)
+    result = CliRunner().invoke(
+        main,
+        ["lint", "--stdin", "--format", output_format],
+        input=_PROSE_WITH_INTERNAL_REF,
+        catch_exceptions=False,
+    )
+    assert result.exit_code in (EXIT_OK, EXIT_FINDINGS), result.output
+    output = result.output + (result.stderr or "")
+    assert "<stdin>" in output
+    assert "docs-discipline.internal-refs" in output
+    assert "stdin.md" not in output
+    assert os.sep + "T" + os.sep not in output and "/tmp/" not in output
+    if output_format == "json":
+        document = json.loads(result.output)["documents"][0]
+        assert document["path"] == "<stdin>"
+        assert {finding["path"] for finding in document["findings"]} == {"<stdin>"}
