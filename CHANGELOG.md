@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.18.0](https://github.com/srobroek/slopvac/compare/v2.16.2...v2.18.0) (2026-10-22)
+
+
+### Features
+
+* **lint:** read a document from stdin with --stdin and --language ([7767aa9](https://github.com/srobroek/slopvac/commit/7767aa93ab1de3f1d95a001fe279d03b30737519))
+* **release:** build release candidates from the release PR ([7c2a06e](https://github.com/srobroek/slopvac/commit/7c2a06e10ed17bc7a40c1e1efdbae70426923f29))
+* structured problem reporting with issue forms, prime report, and doctor JSON ([97da777](https://github.com/srobroek/slopvac/commit/97da7777cf0316f8efdc77947bbba6fb81889534))
+
+
+### Bug Fixes
+
+* **reporting:** keep paths and private data out of reports and require agent disclosure ([2f8d28e](https://github.com/srobroek/slopvac/commit/2f8d28e0dd6bb86f023cf1be8c040f85ce3a8471))
+* **rules:** keep HTML comments out of em-dash density ([#240](https://github.com/srobroek/slopvac/issues/240)) ([231f5de](https://github.com/srobroek/slopvac/commit/231f5de578ab839cf9a3e45bed88ce2f45725d81))
+* **rules:** only flag an omitted "that" when a clause follows ([#241](https://github.com/srobroek/slopvac/issues/241)) ([8f80d97](https://github.com/srobroek/slopvac/commit/8f80d97468edb4bd5b36c3b7530d3bd822f047ef))
+* **rules:** stop status-language flagging the imperative verb draft ([#239](https://github.com/srobroek/slopvac/issues/239)) ([ddf3ba2](https://github.com/srobroek/slopvac/commit/ddf3ba2b2207aef073102b8ee326d7c5de1a1236))
+
+
+### Chores
+
+* release 2.18.0 ([bd665c5](https://github.com/srobroek/slopvac/commit/bd665c5d27fce87babbad580f2300e6a3da58270))
+
 ## [2.16.2](https://github.com/srobroek/slopvac/compare/v2.16.1...v2.16.2) (2026-10-21)
 
 
