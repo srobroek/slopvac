@@ -675,9 +675,7 @@ def test_a_judgement_rule_in_config_is_named_as_unlintable(runner, tmp_path):
     )
     doc = tmp_path / "doc.md"
     doc.write_text("The parser rejects nested depth over 64.\n", encoding="utf-8")
-    result = runner.invoke(
-        main, ["lint", str(doc), "--config", str(config), "--no-vale"]
-    )
+    result = runner.invoke(main, ["lint", str(doc), "--config", str(config), "--no-vale"])
     assert result.exit_code == EXIT_ERROR
     assert "judgement rule" in result.output
     assert "unknown rule" not in result.output
@@ -789,6 +787,167 @@ def test_doctor_reports_available_vale(runner, tmp_path):
     assert "Vale 3.24.0 available:" in result.output
 
 
+def _doctor_report_without_sensitive_paths(result, marker: str):
+    """Assert public doctor JSON contains neither paths nor private filenames."""
+    output = result.output
+    home = Path.home()
+    assert str(home) not in output
+    assert str(home.resolve()) not in output
+    assert "/Users/" not in output
+    assert "/home/" not in output
+    assert "C:\\" not in output
+    assert marker not in output
+    return json.loads(output)
+
+
+def test_doctor_json_redacts_paths_and_user_chosen_file_names(
+    runner, tmp_path, monkeypatch
+):
+    marker = "acme-secret-client"
+    project = tmp_path / marker
+    project.mkdir()
+    monkeypatch.chdir(project)
+    from slopvac import update_notice
+
+    monkeypatch.setattr(update_notice, "_cache_path", lambda: tmp_path / "no-cache")
+
+    def vale(path: Path, version: str = "3.24.0") -> Path:
+        path.write_text(f"#!/bin/sh\necho 'vale version {version}'\n", encoding="utf-8")
+        path.chmod(0o755)
+        return path
+
+    config = _write(project, "slopvac.toml", 'profile = "normal"\n')
+
+    ok = runner.invoke(
+        main,
+        [
+            "doctor",
+            "--config",
+            str(config),
+            "--binary",
+            str(vale(project / "vale-ok")),
+            "--format",
+            "json",
+        ],
+    )
+    assert ok.exit_code == EXIT_OK, ok.output
+    report = _doctor_report_without_sensitive_paths(ok, marker)
+    assert report["config"]["file"] == "slopvac.toml"
+    assert report["vale"]["binary"] == "<path>"
+    assert report["vale"]["found"] is True
+
+    missing = runner.invoke(
+        main,
+        [
+            "doctor",
+            "--config",
+            str(config),
+            "--binary",
+            str(project / "missing-vale"),
+            "--format",
+            "json",
+        ],
+    )
+    assert missing.exit_code == EXIT_ERROR
+    missing_report = _doctor_report_without_sensitive_paths(missing, marker)
+    assert missing_report["vale"]["binary"] == "<path>"
+    assert missing_report["vale"]["found"] is False
+
+    old = runner.invoke(
+        main,
+        [
+            "doctor",
+            "--config",
+            str(config),
+            "--binary",
+            str(vale(project / "vale-old", "3.17.0")),
+            "--format",
+            "json",
+        ],
+    )
+    assert old.exit_code == EXIT_ERROR
+    old_report = _doctor_report_without_sensitive_paths(old, marker)
+    assert old_report["vale"]["version"] == "3.17.0"
+    assert old_report["vale"]["supported"] is False
+
+    custom = _write(project, f"{marker}.toml", "profile = [\n")
+    malformed = runner.invoke(
+        main,
+        [
+            "doctor",
+            "--config",
+            str(custom),
+            "--binary",
+            str(project / "vale-ok"),
+            "--format",
+            "json",
+        ],
+    )
+    assert malformed.exit_code == EXIT_ERROR
+    malformed_report = _doctor_report_without_sensitive_paths(malformed, marker)
+    assert malformed_report["config"]["file"] == "<custom>"
+    assert "not valid TOML" in malformed_report["config"]["error"]
+
+    custom.write_text('profile = "strict"\n', encoding="utf-8")
+    valid_custom = runner.invoke(
+        main,
+        [
+            "doctor",
+            "--config",
+            str(custom),
+            "--binary",
+            str(project / "vale-ok"),
+            "--format",
+            "json",
+        ],
+    )
+    assert valid_custom.exit_code == EXIT_OK, valid_custom.output
+    custom_report = _doctor_report_without_sensitive_paths(valid_custom, marker)
+    assert custom_report["config"]["file"] == "<custom>"
+    assert custom_report["config"]["profile"] == "strict"
+
+
+def test_doctor_json_redacts_values_echoed_by_config_validation(
+    runner, tmp_path, monkeypatch
+):
+    marker = "acme-secret-client"
+    project = tmp_path / marker
+    project.mkdir()
+    monkeypatch.chdir(project)
+    leaked_value = str(project / "private-value")
+    config = _write(project, "slopvac.toml", f'profile = "{leaked_value}"\n')
+
+    result = runner.invoke(
+        main,
+        [
+            "doctor",
+            "--config",
+            str(config),
+            "--binary",
+            "missing-vale",
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == EXIT_ERROR
+    report = _doctor_report_without_sensitive_paths(result, marker)
+    assert leaked_value not in report["config"]["error"]
+    assert "<redacted>" in report["config"]["error"]
+
+
+def test_doctor_error_redaction_covers_windows_and_relative_paths():
+    from slopvac.doctor_report import _redact_error
+
+    redacted = _redact_error(
+        "could not open C:\\Users\\acme-secret-client\\config.toml or "
+        "../acme-secret-client/private.toml"
+    )
+
+    assert "C:\\" not in redacted
+    assert "acme-secret-client" not in redacted
+    assert "<path>" in redacted
+
 
 def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkeypatch):
     home = tmp_path / "home"
@@ -800,13 +959,13 @@ def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkey
     config.write_text('profile = "relaxed"\n', encoding="utf-8")
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(Path, "home", lambda: home)
-    from slopvac import doctor_report, update_notice
+    from slopvac import update_notice
 
-    monkeypatch.setattr(doctor_report.sys, "prefix", str(home / "python"))
     monkeypatch.setattr(update_notice, "_cache_path", lambda: tmp_path / "no-cache")
 
     result = runner.invoke(
-        main, ["doctor", "--binary", str(binary), "--config", str(config), "--format", "json"]
+        main,
+        ["doctor", "--binary", str(binary), "--config", str(config), "--format", "json"],
     )
 
     assert result.exit_code == EXIT_OK, result.output
@@ -819,7 +978,8 @@ def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkey
     assert report["vale"]["version"] == "3.24.0"
     assert report["vale"]["minimum"] == "3.18.0"
     assert report["vale"]["supported"] is True
-    assert report["config"]["path"] == "slopvac.toml"
+    assert report["vale"]["found"] is True
+    assert report["config"]["file"] == "slopvac.toml"
     assert report["config"]["error"] is None
     assert report["config"]["profile"] == "relaxed"
     assert report["config"]["mode"] == "prose"
@@ -828,12 +988,17 @@ def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkey
 
     assert all("block" in entry and "skill" in entry for entry in report["steering"])
     assert {entry["harness"] for entry in report["steering"]} == set(harnesses())
-    assert all(entry["path"] for entry in report["steering"])
-    assert report["vale"]["binary"] == "~/vale"
-    assert report["vale"]["path"] == "~/vale"
-    assert report["slopvac"]["python_prefix"] == "~/python"
+    assert all(
+        set(entry).issubset({"harness", "block", "skill", "error"})
+        for entry in report["steering"]
+    )
+    assert report["vale"]["binary"] == "<path>"
     assert str(home) not in result.output
+    assert "cache" not in report
+    assert "location" not in report["slopvac"]
+    assert "python_prefix" not in report["slopvac"]
     assert report["latest_release"] is None
+
 
 def test_doctor_json_redacts_home_through_symlink(runner, tmp_path, monkeypatch):
     home_target = tmp_path / "home-target"
@@ -857,9 +1022,9 @@ def test_doctor_json_redacts_home_through_symlink(runner, tmp_path, monkeypatch)
     assert str(home_link) not in result.output
     assert str(home_target) not in result.output
     report = json.loads(result.output)
-    assert report["vale"]["binary"] == "~/bin/missing-vale"
-    assert str(binary) not in report["vale"]["error"]
-    assert str(config) not in report["config"]["error"]
+    assert report["vale"]["binary"] == "<path>"
+    assert "<path>" in report["vale"]["error"]
+    assert "<path>" in report["config"]["error"]
 
 
 def test_doctor_json_disables_skill_when_write_and_review_are_off(
@@ -874,7 +1039,15 @@ def test_doctor_json_disables_skill_when_write_and_review_are_off(
 
     result = runner.invoke(
         main,
-        ["doctor", "--config", str(config), "--binary", "missing-vale", "--format", "json"],
+        [
+            "doctor",
+            "--config",
+            str(config),
+            "--binary",
+            "missing-vale",
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == EXIT_ERROR
@@ -895,9 +1068,10 @@ def test_doctor_json_keeps_too_old_vale_data(runner, tmp_path, monkeypatch):
 
     assert result.exit_code == EXIT_ERROR
     report = json.loads(result.output)
-    assert report["vale"]["path"] == str(binary)
+    assert "path" not in report["vale"]
     assert report["vale"]["version"] == "3.17.0"
     assert report["vale"]["supported"] is False
+
 
 def test_doctor_json_keeps_steering_failures_per_harness(runner, monkeypatch):
     from slopvac import steering
@@ -912,7 +1086,9 @@ def test_doctor_json_keeps_steering_failures_per_harness(runner, monkeypatch):
     monkeypatch.setattr(steering, "harness_path", fail_claude)
     monkeypatch.setattr(steering, "harnesses", lambda: ("claude", "agents"))
 
-    result = runner.invoke(main, ["doctor", "--binary", "missing-vale", "--format", "json"])
+    result = runner.invoke(
+        main, ["doctor", "--binary", "missing-vale", "--format", "json"]
+    )
 
     assert result.exit_code == EXIT_ERROR
     steering_entries = json.loads(result.output)["steering"]
@@ -944,6 +1120,7 @@ def test_doctor_json_reports_cached_latest_release(runner, tmp_path, monkeypatch
     assert release["checked_at"] == "2026-10-21T12:00:00+00:00"
     assert release["newer"] is True
 
+
 def test_doctor_json_prints_when_vale_is_missing(runner):
     result = runner.invoke(
         main, ["doctor", "--binary", "vale-not-installed-for-test", "--format", "json"]
@@ -960,7 +1137,15 @@ def test_doctor_json_reports_config_error_and_other_system_data(runner, tmp_path
     config = _write(tmp_path, "slopvac.toml", "profile = [\n")
     result = runner.invoke(
         main,
-        ["doctor", "--config", str(config), "--binary", "missing-vale", "--format", "json"],
+        [
+            "doctor",
+            "--config",
+            str(config),
+            "--binary",
+            "missing-vale",
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == EXIT_ERROR
@@ -970,8 +1155,8 @@ def test_doctor_json_reports_config_error_and_other_system_data(runner, tmp_path
     assert report["slopvac"]["version"]
     assert report["python"]["version"]
     assert report["platform"]["system"]
-    assert report["cache"]["root"]
-    assert report["config"]["path"] == str(config)
+    assert "cache" not in report
+    assert report["config"]["file"] == "slopvac.toml"
     assert report["config"]["profile"] is None
     assert report["config"]["mode"] is None
     assert report["config"]["guidance"] is None
@@ -1006,6 +1191,7 @@ def test_doctor_text_output_is_unchanged(runner, tmp_path):
 
     assert result.exit_code == EXIT_OK
     assert result.output == f"Vale 3.24.0 available: {binary}\n"
+
 
 # --- Vale sub-gate -----------------------------------------------------------
 
@@ -1574,6 +1760,7 @@ def test_rst_without_converter_is_unchecked_but_other_files_score(
         for doc in report["documents"]
         for note in doc["unchecked"]
     )
+
 
 def test_explicit_rst_without_converter_is_unchecked(runner, tmp_path, monkeypatch):
     path = _write(tmp_path, "only.rst", "A title\n=======\n\nPlain text.\n")
