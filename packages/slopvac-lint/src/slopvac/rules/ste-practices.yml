@@ -182,7 +182,7 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: excluded
-    pattern: '\b(?:(?:make\s+sure|makes\s+sure|ensure[s]?|mean[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b|(?:show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|assume[s]?)\s+(?:it(?=''s\b|\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|[a-z]+ed|[a-z]+s(?=\s+[\w''-]))\b|\s+[a-z]+s\b)|(?:you|we|they)\b(?!\s+(?:the|a|an|this|that|these|those|your|our|their|my|its|how|what|where|why|when|which|who|to|for|with|about|in|on|at|out|up|down|again|here|there|now|first|around|through|back)\b|\s*[.!?;:,)]|\s*$)|(?:this|these)(?=\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do)\b)|(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,4}?\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|[a-z]+ed|[a-z]+s(?=\s+[\w''-]))\b|(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){0,3}?\s+[a-z]+s\s+(?:pass|work|run|exist|match|fail|start|finish|succeed|build|load|apply|compile|stop|change|appear|return)\b)))'
+    pattern: '\b(?:(?:make\s+sure|makes\s+sure|ensure[s]?|mean[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b|(?:verify|verifies|confirm[s]?)\s+(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,3}?\s+[a-z]+s\s*[.!?;:])|(?:show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|assume[s]?)\s+(?:it(?=''s\b|\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|[a-z]+s(?=\s+[\w''-]))\b|\s+[a-z]+s\b)|(?:you|we|they)\b(?!\s+(?:the|a|an|this|that|these|those|your|our|their|my|its|how|what|where|why|when|which|who|to|for|with|about|in|on|at|out|up|down|again|here|there|now|first|around|through|back)\b|\s*[.!?;:,)]|\s*$)|(?:this|these)(?=\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do)\b)|(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,4}?\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|[a-z]+s(?=\s+[\w''-]))\b|(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){0,3}?\s+[a-z]+s\s+(?:pass|work|run|exist|match|fail|start|finish|succeed|build|load|apply|compile|stop|change|appear|return)\b)))'
     ignore_case: true
     exceptions:
       - quotation
@@ -220,11 +220,13 @@ rules:
         pass"). After "you", "we", or "they", anything except a determiner, a preposition, a
         wh-word, or the end of the sentence counts as the verb. A relative pronoun ends the
         noun phrase, so "show the user who owns the file" stays clean, as do "show the user
-        the target" and "recommend the upgrade". Known gap: a single -s verb at the end of a
-        sentence after these verbs ("verify the service starts.") stays clean, because the
-        same shape is a plural object ("check the release notes."). The allowlist keeps the
-        remaining object-only phrases. Tested: every bad example matches and every good
-        example does not.
+        the target" and "recommend the upgrade". An -ed form followed by "below", "above",
+        "here", "earlier", "previously", "by", or "next" is a participle ("the files listed
+        below"), not the verb. After "verify" and "confirm", an -s form that ends the
+        sentence counts as the verb ("verify the service starts."). After the other verbs it
+        does not, because that shape is usually a plural object ("check the release notes.").
+        The allowlist keeps the remaining object-only phrases. Tested: every bad example
+        matches and every good example does not.
     fix: Insert "that" after the reporting verb.
 
   - id: ambiguous-preposition-with
