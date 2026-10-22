@@ -1720,6 +1720,20 @@ def test_stdin_rejects_invalid_utf8(runner):
     assert "stdin is not valid UTF-8 (byte 3)" in result.output
 
 
+def test_stdin_skip_note_names_stdin_not_the_staged_file(runner, monkeypatch):
+    monkeypatch.setattr("slopvac.pipeline.rst_converter", lambda: None)
+    result = runner.invoke(
+        main,
+        ["lint", "--stdin", "--language", "rst", "--no-vale", "--format", "json"],
+        input="A paragraph.\n",
+    )
+    assert result.exit_code == EXIT_ERROR
+    notes = " ".join(json.loads(result.output)["documents"][0]["unchecked"])
+    assert "RST target(s) skipped" in notes
+    assert "(<stdin>)" in notes
+    assert "stdin.rst" not in notes and "slopvac-stdin-" not in notes
+
+
 def test_stdin_explicit_mode_wins_over_comments(runner):
     result = runner.invoke(
         main,
