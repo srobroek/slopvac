@@ -18,7 +18,7 @@ RELEASE_BASE = "https://github.com/vale-cli/vale/releases/download"
 # The one Vale pin for CI and the GitHub Action. Renovate updates it through the
 # custom manager in renovate.json, which matches the comment below.
 # renovate: datasource=github-releases depName=vale-cli/vale
-VALE_VERSION = "3.24.0"
+VALE_VERSION = "3.25.1"
 
 
 class InstallError(RuntimeError):
