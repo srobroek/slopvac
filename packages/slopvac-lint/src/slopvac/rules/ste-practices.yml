@@ -182,7 +182,7 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: excluded
-    pattern: '\b(?:make\s+sure|makes\s+sure|ensure[s]?|show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|mean[s]?|assume[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b'
+    pattern: '\b(?:(?:make\s+sure|makes\s+sure|ensure[s]?|mean[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b|(?:verify|verifies|confirm[s]?)\s+(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,3}?\s+[a-z]+s\s*[.!?;:])|(?:show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|assume[s]?)\s+(?:it(?!\s+as\b)(?=''s\b|\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|[a-z]+s(?=\s+[\w''-]))\b|\s+[a-z]+s\b)|(?:you|we|they)\b(?!\s+(?:the|a|an|this|that|these|those|your|our|their|my|its|how|what|where|why|when|which|who|to|for|with|about|in|on|at|out|up|down|again|here|there|now|first|around|through|back)\b|\s*[.!?;:,)]|\s*$)|(?:this|these)(?=\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do)\b)|(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,4}?\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|[a-z]+s(?=\s+[\w''-]))\b|(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){0,3}?\s+[a-z]+s\s+(?:pass|work|run|exist|match|fail|start|finish|succeed|build|load|apply|compile|stop|change|appear|return)\b)))'
     ignore_case: true
     exceptions:
       - quotation
@@ -200,6 +200,10 @@ rules:
         good: Make sure that the migration completed before you restart the worker.
       - bad: The dashboard shows the queue is empty.
         good: The dashboard shows that the queue is empty.
+      - bad: We recommend the team ships the fix today.
+        good: Show the user the target, then recommend the upgrade.
+      - bad: Make sure you restart the worker.
+        good: Make sure that you restart the worker.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -208,10 +212,24 @@ rules:
       note: >-
         A general recommendation, not a rule; the specification says so explicitly, which is
         why severity is suggestion and the relaxed tier excludes it. The false-positive shape
-        is a direct object rather than a clause ("check the logs"), which is what the allowlist
-        controls. Tested: both bad examples match, both good examples do not, and
-        "check the config" is allowlisted rather than pattern-excluded because a lookahead for
-        every noun is unmaintainable.
+        is a direct object rather than a clause ("check the logs"). "Make sure", "ensure",
+        and "mean" almost always take a clause, so they fire on any following determiner or
+        subject pronoun. The other verbs often take a direct object, so they fire only when a
+        finite verb follows: an auxiliary, an -ed form, a common irregular past, an -s form
+        that another word follows, or a common base verb after a plural noun ("the tests
+        pass"). After "you", "we", or "they", anything except a determiner, a preposition, a
+        wh-word, or the end of the sentence counts as the verb. A relative pronoun ends the
+        noun phrase, so "show the user who owns the file" stays clean, as do "show the user
+        the target" and "recommend the upgrade". An -ed form followed by "below", "above",
+        "here", "earlier", "previously", "by", or "next" is a participle ("the files listed
+        below"), not the verb; common outcome verbs such as "failed" and "passed" always count
+        as the verb. "It as" is not a clause ("show it as a table"). After "verify" and
+        "confirm", an -s form that ends the sentence counts as the verb ("verify the service
+        starts."). That also flags a compound plural object ("verify the release notes."), an
+        accepted false positive. After the other verbs a final -s form does not count, because
+        there the shape is usually a plural object ("check the release notes."). The allowlist
+        keeps the remaining object-only phrases. Tested: every bad example matches and every
+        good example does not.
     fix: Insert "that" after the reporting verb.
 
   - id: ambiguous-preposition-with

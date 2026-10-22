@@ -595,6 +595,56 @@ def test_word_count_rule_is_silent_on_a_short_sentence(compiled, tmp_path):
 
 
 @needs_vale
+@pytest.mark.parametrize(
+    ("text", "fires"),
+    [
+        # Direct objects: no conjunction is missing.
+        ("Show the user the target.", False),
+        ("Compare versions and recommend the upgrade.", False),
+        ("Show the user who owns the file.", False),
+        ("Show you how it works.", False),
+        ("Check the files listed below.", False),
+        ("Recommend the approach described here.", False),
+        ("Verify the checksums.", False),
+        ("Show it as a table.", False),
+        ("Recommend it to the team.", False),
+        ("Check these files for errors.", False),
+        ("Check the release notes.", False),
+        ("Verify the results.", False),
+        # Clauses with the conjunction dropped.
+        ("Make sure you restart the worker.", True),
+        ("Ensure the build succeeds.", True),
+        ("Make sure the new default timeout value is set.", True),
+        ("Verify the build passed.", True),
+        ("Verify the build ran.", True),
+        ("Verify the tests pass.", True),
+        ("Verify the service starts.", True),
+        ("Verify the job failed in CI.", True),
+        ("Note the build failed here.", True),
+        ("Confirm you need admin access.", True),
+        ("Check it works.", True),
+        ("Note this is required.", True),
+        ("The dashboard shows the queue is empty.", True),
+    ],
+)
+def test_omitted_that_needs_a_clause_not_a_direct_object(
+    compiled, ruleset, tmp_path, text, fires
+):
+    """A reporting verb with a direct object omits no conjunction; one with a
+    clause does. Vale and the native engine must agree on every case."""
+    from slopvac.analyze import parse
+    from slopvac.engine import Engine
+
+    rule_id = "ste-practices.omitted-conjunction-that"
+    document = tmp_path / "probe.md"
+    document.write_text(text + "\n", encoding="utf-8")
+    config = resolve_for(Config(profile=Profile.STRICT), document)
+    native = Engine(ruleset.rules, config).run(parse(str(document), text + "\n"))
+    assert any(finding.rule_id == rule_id for finding in native) is fires
+    assert (rule_id in _checks(compiled.config_path, text + "\n", tmp_path)) is fires
+
+
+@needs_vale
 def test_emoji_rules_reject_emoji_not_ascii(compiled, ruleset, tmp_path):
     """Both emoji rules must match the emoji itself, never the ASCII around it.
     The heading rule is Vale-compiled; the list-marker rule is raw-scoped and so
