@@ -62,3 +62,11 @@ The forms cover these categories:
 - **Rule improvement:** Covers whole-rule changes to accuracy, examples, exceptions, judgment, tier, severity, genre advice, wording, or docs.
 
 Before submitting an agent report, run `slopvac prime report`. Get the user's approval for the exact post.
+
+Do not include paths, file names, or private data.
+Do not include user names, host names, repository names, or organisation names.
+Paste sample text into the report. A local file path is not enough.
+Prefer a synthetic sample over text from private or proprietary sources.
+Record the agent product name. Record the active model exactly as the harness reports it in its system prompt, context, or `/model` selection. Do not use model self-description or config defaults. Write N/A when the active model is unavailable.
+Get the harness version from its version command. Write N/A when unavailable.
+Do not infer these fields from environment variables.

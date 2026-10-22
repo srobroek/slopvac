@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import os
 import platform
+import re
 import shutil
-import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -15,50 +14,58 @@ if TYPE_CHECKING:
     from .config import Config
 
 
-def _display_path(path: Path, *, cwd: Path, home: Path) -> str:
-    """Redact home-directory paths, otherwise prefer project-relative paths."""
-    expanded = path.expanduser().absolute()
-    for candidate in (Path.home(), home):
-        try:
-            return (Path("~") / expanded.relative_to(candidate.absolute())).as_posix()
-        except ValueError:
-            pass
-
-    absolute = expanded.resolve()
-    for candidate in (Path.home(), home):
-        candidate_resolved = candidate.resolve()
-        try:
-            return (Path("~") / absolute.relative_to(candidate_resolved)).as_posix()
-        except ValueError:
-            for separator in {"/", os.sep}:
-                prefix = str(candidate_resolved) + separator
-                if str(absolute).startswith(prefix):
-                    return "~" + str(absolute)[len(str(candidate_resolved)) :]
-    try:
-        return absolute.relative_to(cwd).as_posix()
-    except ValueError:
-        return str(absolute)
+_PATH_RE = re.compile(
+    r"(?<![\w:/\\\\])"
+    r"(?:[A-Z]:[\\\\/][^\s'\"`<>,;)}]+|"
+    r"\\\\[^\s'\"`<>,;)}]+|"
+    r"~[\\\\/][^\s'\"`<>,;)}]+|"
+    r"/(?!/)[^\s'\"`<>,;)}]+|"
+    r"\.\.?[\\\\/][\w.@+-]+(?:[\\\\/][\w.@+-]+)*|"
+    r"[\w.@+-]+(?:[\\\\/][\w.@+-]+){2,}|"
+    r"(?:[\w.@+-]+[\\\\/])?[\w.@+-]+\.(?:toml|py|json|ya?ml|txt|md|ini|cfg|conf|sh|exe|dll|dylib))",
+    re.IGNORECASE,
+)
+_QUOTED_PATH_RE = re.compile(
+    r"""(?ix)(['"`])((?:[A-Z]:[\\/]|\\\\|/(?!/)|~[\\/]|\.{1,2}[\\/])[^'"`]*)\1"""
+)
+_URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
+_PYDANTIC_INPUT_VALUE_RE = re.compile(r"(input_value=).*?(?=,\s*input_type=)", re.DOTALL)
 
 
-def _redact_home(value: str, home: Path) -> str:
-    """Replace home paths embedded in error messages as well as path fields."""
-    home_paths = {
-        str(home),
-        str(home.resolve()),
-        str(Path.home()),
-        str(Path.home().resolve()),
-    }
-    for home_text in sorted(home_paths, key=len, reverse=True):
-        if value == home_text:
-            return "~"
-        for separator in {"/", os.sep}:
-            value = value.replace(home_text + separator, "~" + separator)
+def _redact_error(
+    value: str,
+    *,
+    paths: tuple[Path | str | None, ...] = (),
+    names: tuple[str, ...] = (),
+) -> str:
+    """Remove filesystem paths and user values echoed by validation errors."""
+    urls: list[str] = []
+    for match in _URL_RE.finditer(value):
+        urls.append(match.group())
+    url_map = {url: f"\x00{index}\x00" for index, url in enumerate(urls)}
+    value = _URL_RE.sub(lambda match: url_map[match.group()], value)
+    for path in sorted(
+        (str(path) for path in paths if path is not None and str(path)),
+        key=len,
+        reverse=True,
+    ):
+        value = value.replace(path, "<path>")
+    for name in sorted((name for name in names if name), key=len, reverse=True):
+        value = value.replace(name, "<path>")
+    value = _QUOTED_PATH_RE.sub("<path>", value)
+    value = _PYDANTIC_INPUT_VALUE_RE.sub(r"\1<redacted>", value)
+    value = _PATH_RE.sub("<path>", value)
+    for index, url in enumerate(urls):
+        value = value.replace(f"\x00{index}\x00", url)
     return value
 
 
-def _steering_report(
-    root: Path, home: Path, *, skill_wanted: bool
-) -> list[dict[str, object]]:
+def _is_path(value: str) -> bool:
+    """Whether a binary selection is a path rather than a bare command name."""
+    return "/" in value or "\\" in value or re.match(r"^[A-Za-z]:", value) is not None
+
+
+def _steering_report(root: Path, *, skill_wanted: bool) -> list[dict[str, object]]:
     from .steering import (
         SteeringError,
         harness_path,
@@ -76,7 +83,6 @@ def _steering_report(
             entries.append(
                 {
                     "harness": harness,
-                    "path": block_path.relative_to(root).as_posix(),
                     "block": managed_block_state(block_path),
                     "skill": (
                         skill_state(skill_file, wanted=skill_wanted)
@@ -89,7 +95,10 @@ def _steering_report(
             entries.append(
                 {
                     "harness": harness,
-                    "error": _redact_home(str(exc), home),
+                    "error": _redact_error(
+                        str(exc),
+                        paths=(root, root.resolve(), Path.home(), Path.home().resolve()),
+                    ),
                 }
             )
     return entries
@@ -105,7 +114,7 @@ def build_report(
 ) -> dict[str, object]:
     """Collect local system/configuration status without making network calls."""
     from . import update_notice
-    from .vale_cache import cache_root
+    from .config import CONFIG_NAMES, PYPROJECT
     from .vale_probe import (
         MIN_VALE_VERSION,
         ValeUnavailable,
@@ -113,27 +122,29 @@ def build_report(
         vale_version,
     )
 
-    cwd = Path.cwd().resolve()
-    home = Path.home()
     try:
         executable = require_vale(binary)
     except ValeUnavailable as exc:
         executable = shutil.which(binary)
-        vale_path = (
-            _display_path(Path(executable), cwd=cwd, home=home)
-            if executable is not None
+        version = vale_version(executable) if executable is not None else None
+        vale_error = _redact_error(
+            str(exc),
+            paths=(
+                binary if _is_path(binary) else None,
+                Path(binary).resolve() if _is_path(binary) else None,
+                Path.home(),
+                Path.home().resolve(),
+            ),
+            names=(Path(binary).name,) if _is_path(binary) else (),
+        )
+    else:
+        version = vale_version(executable)
+        vale_error = (
+            f"`{Path(binary).name if _is_path(binary) else binary}` did not report "
+            "a usable version."
+            if version is None
             else None
         )
-        version = vale_version(executable) if executable is not None else None
-        vale_error = _redact_home(str(exc), home)
-    else:
-        vale_path = _display_path(Path(executable), cwd=cwd, home=home)
-        version = vale_version(executable)
-        if version is None:
-            vale_error = f"`{binary}` did not report a usable version."
-            vale_path = None
-        else:
-            vale_error = None
 
     cached_release = update_notice.cached_latest_release()
     latest_release = (
@@ -147,15 +158,26 @@ def build_report(
     )
 
     if config_path is None:
-        config_display_path = None
+        config_file = None
+    elif config_path.name in (*CONFIG_NAMES, PYPROJECT):
+        config_file = config_path.name
     else:
-        try:
-            config_display_path = config_path.resolve().relative_to(cwd).as_posix()
-        except ValueError:
-            config_display_path = _display_path(config_path, cwd=cwd, home=home)
+        config_file = "<custom>"
     config_data: dict[str, object] = {
-        "path": config_display_path,
-        "error": _redact_home(config_error, home) if config_error is not None else None,
+        "file": config_file,
+        "error": (
+            _redact_error(
+                config_error,
+                paths=(config_path, Path.home(), Path.home().resolve()),
+                names=(
+                    config_path.name
+                    if config_path is not None and config_file == "<custom>"
+                    else "",
+                ),
+            )
+            if config_error is not None
+            else None
+        ),
         "profile": config.profile.value if config is not None else None,
         "mode": config.mode.value if config is not None else None,
         "guidance": config.guidance.model_dump() if config is not None else None,
@@ -166,8 +188,6 @@ def build_report(
         "ok": config is not None and vale_error is None,
         "slopvac": {
             "version": __version__,
-            "location": _display_path(Path(__file__).parent, cwd=cwd, home=home),
-            "python_prefix": _display_path(Path(sys.prefix), cwd=cwd, home=home),
             "upgrade_command": update_notice.upgrade_hint(),
         },
         "latest_release": latest_release,
@@ -181,12 +201,8 @@ def build_report(
             "machine": platform.machine(),
         },
         "vale": {
-            "binary": (
-                _display_path(Path(binary), cwd=cwd, home=home)
-                if Path(binary).is_absolute()
-                else binary
-            ),
-            "path": vale_path,
+            "binary": "<path>" if _is_path(binary) else binary,
+            "found": executable is not None,
             "version": ".".join(map(str, version)) if version is not None else None,
             "minimum": ".".join(map(str, MIN_VALE_VERSION)),
             "supported": vale_error is None,
@@ -195,8 +211,6 @@ def build_report(
         "config": config_data,
         "steering": _steering_report(
             root,
-            home,
             skill_wanted=config.guidance.enabled if config is not None else True,
         ),
-        "cache": {"root": _display_path(cache_root(), cwd=cwd, home=home)},
     }

@@ -5,25 +5,36 @@ labels: [false-positive, needs-triage]
 body:
   - type: markdown
     attributes:
-      value: |
-        Agents may file only with the user's approval and must follow `slopvac prime report`.
-        Leave out private, proprietary, and secret text. Give the smallest reproduction.
-        Send security vulnerabilities through the private advisory form, not an issue.
-  - type: dropdown
+      value: >-
+        An AI agent filing a report MUST disclose itself: tick Reported by an AI
+        agent and fill in Agent, Model, and Harness and version.
+        Reports must not contain paths or file names. Do not include user names,
+        host names, repository names, organization names, or other private data.
+        For security vulnerabilities, use the private vulnerability report on
+        the Security tab.
+  - type: checkboxes
     id: reporter
     attributes:
-      label: Reported by
+      label: Reporter
       options:
-        - A person
-        - An AI agent, with the user's approval
-    validations:
-      required: true
+        - label: Reported by an AI agent
+          required: false
   - type: input
     id: agent
     attributes:
-      label: Agent and model
+      label: Agent
       description: >-
-        Agent name and model, for example `Claude Code, claude-sonnet-4-5`. Write `none` when no agent was involved.
+        Agent product name, for example Claude Code, Codex, omp, Kiro, or Cursor. Write N/A when unknown.
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: >-
+        Record the active model name exactly as the harness reports it in its
+        system prompt, context, or /model selection.
+        Do not use self-description or config defaults. Write N/A when unavailable.
     validations:
       required: true
   - type: input
@@ -31,7 +42,8 @@ body:
     attributes:
       label: Harness and version
       description: >-
-        For example omp 14.2, Claude Code 2.1, Codex CLI, Kiro, GitHub Action, pre-commit, or terminal.
+        Use the harness's version command, for example claude --version, codex --version, or omp --version.
+        Write N/A when unavailable.
     validations:
       required: true
   - type: input
@@ -53,11 +65,19 @@ body:
         - Not checked
     validations:
       required: true
+  - type: checkboxes
+    id: duplicates
+    attributes:
+      label: Duplicate search
+      options:
+        - label: I searched existing issues for duplicates
+          required: true
   - type: textarea
     id: environment
     attributes:
       label: Environment
-      description: "Output of `slopvac doctor --format json`. Home paths print as `~`."
+      description: >-
+        Output of `slopvac doctor --format json`, which contains no paths.
       render: json
     validations:
       required: true
@@ -65,7 +85,9 @@ body:
     id: command
     attributes:
       label: Command
-      description: The exact command or commands you ran.
+      description: >-
+        The exact command or commands you ran. Pipe the sample into
+        `slopvac lint --stdin`. Do not include paths or file names.
       render: shell
     validations:
       required: true
@@ -79,14 +101,18 @@ body:
     id: context
     attributes:
       label: Genre and profile
-      description: "For example `reference`, `strict`. `slopvac lint --explain-config <file>` prints the profile."
+      description: >-
+        For example `reference`, `strict`. `slopvac lint --stdin --explain-config`
+        prints the profile. Copy only that line.
     validations:
       required: true
   - type: textarea
     id: input
     attributes:
       label: Flagged text
-      description: The smallest sample that still triggers the finding.
+      description: >-
+        The smallest sample that still triggers the finding. Paste the sample
+        text itself. A local file path is not enough.
       render: markdown
     validations:
       required: true
@@ -94,7 +120,9 @@ body:
     id: finding
     attributes:
       label: Finding
-      description: The finding object from `slopvac lint <file> --format json`.
+      description: >-
+        The finding object from `slopvac lint --stdin --format json`. Its
+        path reads `<stdin>`.
       render: json
     validations:
       required: true

@@ -16,11 +16,14 @@ FORM_ROOT = ROOT / ".github" / "ISSUE_TEMPLATE"
 
 def _field_form(field):
     attributes = {"label": field.label}
-    if field.description is not None:
-        attributes["description"] = field.description
     if field.render is not None:
         attributes["render"] = field.render
-    if field.options:
+    if field.type == "checkboxes":
+        attributes["options"] = [
+            {"label": label, "required": required}
+            for label, required in field.checkbox_options
+        ]
+    elif field.options:
         attributes["options"] = list(field.options)
     if field.multiple:
         attributes["multiple"] = True
@@ -28,7 +31,9 @@ def _field_form(field):
         "type": field.type,
         "id": field.id,
         "attributes": attributes,
-        "validations": {"required": field.required},
+        "validations": (
+            {} if field.type == "checkboxes" else {"required": field.required}
+        ),
     }
 
 
@@ -61,18 +66,25 @@ def _assert_form_matches(category: ReportCategory, form: dict, form_path: Path) 
         attributes = item.get("attributes", {})
         validations = item.get("validations", {})
         assert attributes.get("label") == field.label, (form_path, field.id, "label")
-        assert item.get("type") == field.type, (form_path, field.id, "type")
-        assert validations.get("required", False) is field.required, (
-            form_path,
-            field.id,
-            "required",
-        )
         assert attributes.get("render") == field.render, (form_path, field.id, "render")
-        assert attributes.get("options", []) == list(field.options), (
-            form_path,
-            field.id,
-            "options",
-        )
+        assert item.get("type") == field.type, (form_path, field.id, "type")
+        if field.type != "checkboxes":
+            assert validations.get("required", False) is field.required, (
+                form_path,
+                field.id,
+                "required",
+            )
+        if field.type == "checkboxes":
+            assert attributes.get("options", []) == [
+                {"label": label, "required": required}
+                for label, required in field.checkbox_options
+            ], (form_path, field.id, "checkbox options")
+        else:
+            assert attributes.get("options", []) == list(field.options), (
+                form_path,
+                field.id,
+                "options",
+            )
         assert attributes.get("multiple", False) is field.multiple, (
             form_path,
             field.id,
@@ -104,7 +116,10 @@ def test_issue_form_files_match_registry():
     assert form_files == registry_files
 
 
-@pytest.mark.parametrize("field", ["options", "required", "render", "labels", "title"])
+@pytest.mark.parametrize(
+    "field",
+    ["options", "checkbox_options", "checkbox_required", "required", "render", "labels", "title"],
+)
 def test_form_comparison_rejects_contract_drift(field, tmp_path):
     category = next(item for item in REPORT_CATEGORIES if item.key == "bug")
     form = copy.deepcopy(_registry_form(category))
@@ -114,11 +129,17 @@ def test_form_comparison_rejects_contract_drift(field, tmp_path):
         if isinstance(item, dict) and "id" in item
     }
     if field == "options":
-        fields["reporter"]["attributes"]["options"].append("Unexpected")
+        fields["latest"]["attributes"]["options"].append("Unexpected")
+    elif field == "checkbox_options":
+        fields["reporter"]["attributes"]["options"].append(
+            {"label": "Unexpected", "required": False}
+        )
+    elif field == "checkbox_required":
+        fields["duplicates"]["attributes"]["options"][0]["required"] = False
     elif field == "required":
         fields["what-happened"]["validations"]["required"] = False
     elif field == "render":
-        fields["output"]["attributes"]["render"] = "markdown"
+        fields["config"]["attributes"]["render"] = "markdown"
     elif field == "labels":
         form["labels"].append("unexpected")
     else:
