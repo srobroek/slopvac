@@ -81,8 +81,9 @@ _COMMON_FIELDS = (
 
 CONTEXT_DESCRIPTION = (
     "Genre: the genre name from the matching row of the Genres and profiles table "
-    "in `slopvac prime`. Profile: the value of the `profile:` line that "
-    "`slopvac lint --stdin --explain-config` prints."
+    "in `slopvac prime`. Profile: the value of the top `profile:` line that "
+    "`slopvac lint --stdin --explain-config` prints with the same `--profile`, "
+    "`--config`, and `--mode` flags as your command."
 )
 
 _CONTEXT_FIELD = _field("context", "Genre and profile", "input", description=CONTEXT_DESCRIPTION)
