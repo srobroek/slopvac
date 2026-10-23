@@ -182,7 +182,7 @@ rules:
       strict: enforced
       normal: advisory
       relaxed: excluded
-    pattern: '\b(?:(?:make\s+sure|makes\s+sure|ensure[s]?|mean[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b|(?:verify|verifies|confirm[s]?)\s+(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,3}?\s+[a-z]+s\s*[.!?;:])|(?:show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|assume[s]?)\s+(?:it(?!\s+as\b)(?=''s\b|\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|[a-z]+s(?=\s+[\w''-]))\b|\s+[a-z]+s\b)|(?:you|we|they)\b(?!\s+(?:the|a|an|this|that|these|those|your|our|their|my|its|how|what|where|why|when|which|who|to|for|with|about|in|on|at|out|up|down|again|here|there|now|first|around|through|back)\b|\s*[.!?;:,)]|\s*$)|(?:this|these)(?=\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do)\b)|(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,4}?\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|(?:applies|appears|belongs|comes|connects|continues|defaults|depends|exists|expires|fails|finishes|flips|listens|lives|occurs|opens|passes|points|refers|remains|resolves|responds|reverts|runs|starts|stops|succeeds|waits|works|[a-z]+s(?!\s+(?:in|on|at|from|of|for|with|to|into|by|under|over)\b))(?=\s+[\w''-]))\b|(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){0,3}?\s+[a-z]+s\s+(?:pass|work|run|exist|match|fail|start|finish|succeed|build|load|apply|compile|stop|change|appear|return)\b)))'
+    pattern: '\b(?:(?:make\s+sure|makes\s+sure|ensure[s]?|mean[s]?)\s+(?:the|this|these|a|an|your|our|it|you|we|they)\b|(?:verify|verifies|confirm[s]?)\s+(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,3}?\s+[a-z]+s\s*[.!?;:])|(?:show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|assume[s]?)\s+(?:it(?!\s+as\b)(?=''s\b|\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|[a-z]+s(?=\s+[\w''-]))\b|\s+[a-z]+s\b)|(?:you|we|they)\b(?!\s+(?:the|a|an|this|that|these|those|your|our|their|my|its|how|what|where|why|when|which|who|to|for|with|about|in|on|at|out|up|down|again|here|there|now|first|around|through|back)\b|\s*[.!?;:,)]|\s*$)|(?:this|these)(?=\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do)\b)|(?:the|this|these|a|an|your|our)(?=(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){1,4}?\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\s+(?:below|above|here|earlier|previously|by|next)\b)|(?:advances|appears|applies|asks|begins|belongs|burns|comes|completes|connects|consists|continues|defaults|depends|drops|exists|exits|expires|fails|finishes|fires|flips|goes|grows|increments|inherits|jumps|listens|lives|loads|looks|moves|needs|occurs|opens|passes|points|recovers|refers|relies|remains|reopens|replies|resets|resolves|responds|restarts|returns|reverts|runs|seems|sends|sits|spills|splits|starts|stays|stops|succeeds|transitions|tries|waits|wants|works|writes|[a-z]+s(?!\s+(?:in|on|at|from|of|for|with|to|into|by|under|over)\b))(?=\s+[\w''-]))\b|(?:\s+(?!(?:who|whom|whose|which|that)\b)[\w''-]+){0,3}?\s+[a-z]+s\s+(?:pass|work|run|exist|match|fail|start|finish|succeed|build|load|apply|compile|stop|change|appear|return)\b)))'
     ignore_case: true
     exceptions:
       - quotation
@@ -219,26 +219,36 @@ rules:
         subject pronoun. The other verbs often take a direct object, so they fire only when a
         finite verb follows: an auxiliary, an -ed form, a common irregular past, an -s form
         that another word follows, or a common base verb after a plural noun ("the tests
-        pass"). After a determiner, an -s form that a preposition follows is a plural object,
-        not the verb ("check the error messages in the output"). The pattern names twelve
-        prepositions, such as "in" and "for". Thirty listed verbs, such as "runs" and
-        "depends", still count as the verb there ("check the service runs on port 80"). The
-        list can be wrong in both directions, and the rule accepts both errors. A listed verb
-        that names a plural thing still fires ("check the workflow runs in the Actions tab").
-        An unlisted verb followed by a preposition does not fire ("check the URL redirects to
-        the login page"). After "you", "we", or "they", anything except a determiner, a
-        preposition, a wh-word, or the end of the sentence counts as the verb. A relative
-        pronoun ends the noun phrase, so "show the user who owns the
+        pass"). The pattern names twelve prepositions: in, on, at, from, of, for, with, to,
+        into, by, under, and over. After a determiner, an -s form that one of them follows is
+        a plural object, not the verb ("check the error messages in the output"). A listed
+        verb still counts as the verb there ("check the service runs on port 80", "check the
+        user needs to sign in"). A verb joins the list only when at least four in five of its
+        uses in that position are verbs. The count covers 14,096 distinct local Markdown
+        files. "Flows", "triggers", "redirects", and "crashes" do not reach that share.
+        Plural nouns such as "logs" and "results" are far below it. The list can be wrong in
+        both directions, and the rule accepts both errors. A listed verb that names a plural
+        thing still fires ("check the workflow runs in CI"). An unlisted verb followed by a
+        preposition does not fire ("check the URL redirects to the login page"). The
+        preposition test looks only at the word after each -s form. So a later plural noun
+        in the prepositional phrase can still count as the verb ("check the sample files
+        under the docs folder"). A plural object before any other preposition also still
+        fires ("check the error messages about the timeout"). Examples are "about", "after",
+        "as", "before", "across", "during", and "via". After "you", "we", or "they", anything
+        except a determiner, a preposition, a wh-word, or the end of the sentence counts as
+        the verb. A relative pronoun ends the noun phrase, so "show the user who owns the
         file" stays clean, as do "show the user the target" and "recommend the upgrade". An
         -ed form followed by "below", "above", "here", "earlier", "previously", "by", or
         "next" is a participle ("the files listed below"), not the verb; common outcome verbs
         such as "failed" and "passed" always count as the verb. "It as" is not a clause ("show
         it as a table"). After "verify" and "confirm", an -s form that ends the sentence
         counts as the verb ("verify the service starts."). That also flags a compound plural
-        object ("verify the release notes."), an accepted false positive. After the other
-        verbs a final -s form does not count, because there the shape is usually a plural
-        object ("check the release notes."). The allowlist keeps the remaining object-only
-        phrases. Tested: every bad example matches and every good example does not.
+        object ("verify the release notes."), an accepted false positive. It also flags a
+        plural noun at the end of a prepositional phrase ("verify the error messages in
+        logs."), another accepted false positive. After the other verbs a final -s form does
+        not count, because there the shape is usually a plural object ("check the release
+        notes."). The allowlist keeps the remaining object-only phrases. Tested: every bad
+        example matches and every good example does not.
     fix: Insert "that" after the reporting verb.
 
   - id: ambiguous-preposition-with
