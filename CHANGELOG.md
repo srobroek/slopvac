@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.18.1](https://github.com/srobroek/slopvac/compare/v2.18.0...v2.18.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **release:** start stable publishing by hand for approval ([#242](https://github.com/srobroek/slopvac/issues/242)) ([0910e91](https://github.com/srobroek/slopvac/commit/0910e9106b867df943ee5894e4d47d8c65b1b924))
+* **reporter:** close report workflow gaps ([#248](https://github.com/srobroek/slopvac/issues/248)) ([bb1fa48](https://github.com/srobroek/slopvac/commit/bb1fa48d0f33b5de47b89e76f053c62fec4e932a))
+* **rules:** read a plural object before a preposition as an object ([#249](https://github.com/srobroek/slopvac/issues/249)) ([0fdc5a6](https://github.com/srobroek/slopvac/commit/0fdc5a6da02fe3b4704117afcd7089caea1c5375))
+
+
+### Documentation
+
+* **rules:** state how the omitted-that verb list was labelled ([#250](https://github.com/srobroek/slopvac/issues/250)) ([ed374ed](https://github.com/srobroek/slopvac/commit/ed374edd051f3795bcda014c74c60000279a2768))
+
 ## [2.18.0](https://github.com/srobroek/slopvac/compare/v2.16.2...v2.18.0) (2026-10-22)
 
 
