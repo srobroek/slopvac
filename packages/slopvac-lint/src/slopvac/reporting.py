@@ -17,6 +17,7 @@ class ReportField:
     options: tuple[str, ...] = ()
     checkbox_options: tuple[tuple[str, bool], ...] = ()
     multiple: bool = False
+    description: str | None = None
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ def _field(
     options: tuple[str, ...] = (),
     checkbox_options: tuple[tuple[str, bool], ...] = (),
     multiple: bool = False,
+    description: str | None = None,
 ) -> ReportField:
     return ReportField(
         id=id,
@@ -50,6 +52,7 @@ def _field(
         options=options,
         checkbox_options=checkbox_options,
         multiple=multiple,
+        description=description,
     )
 
 
@@ -113,7 +116,16 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         meaning="A rule flags text that is not slop.",
         fields=_category_fields(
             _field("rule-id", "Rule ID", "input"),
-            _field("context", "Genre and profile", "input"),
+            _field(
+                "context",
+                "Genre and profile",
+                "input",
+                description=(
+                    "Choose the genre from the matching row in `slopvac prime`'s Genres and profiles table. "
+                    "Get the profile from the `profile:` line in `slopvac lint --stdin --explain-config` output. "
+                    "Copy only that line."
+                ),
+            ),
             _field("input", "Flagged text", "textarea", render="markdown"),
             _field("finding", "Finding", "textarea", render="json"),
             _field("why", "Why this is not slop", "textarea"),
@@ -127,7 +139,16 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         labels=("false-negative", "needs-triage"),
         meaning="Slop that no finding reports, where an existing rule should cover it; when unsure, use this form.",
         fields=_category_fields(
-            _field("context", "Genre and profile", "input"),
+            _field(
+                "context",
+                "Genre and profile",
+                "input",
+                description=(
+                    "Choose the genre from the matching row in `slopvac prime`'s Genres and profiles table. "
+                    "Get the profile from the `profile:` line in `slopvac lint --stdin --explain-config` output. "
+                    "Copy only that line."
+                ),
+            ),
             _field("input", "Missed text", "textarea", render="markdown"),
             _field("expected-rule", "Rule that should fire", "input", required=False),
             _field("why", "Why this is slop", "textarea"),
@@ -142,7 +163,16 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         meaning="The flagged text is slop, but the rule, severity, or span/location is wrong.",
         fields=_category_fields(
             _field("rule-id", "Rule ID", "input"),
-            _field("context", "Genre and profile", "input"),
+            _field(
+                "context",
+                "Genre and profile",
+                "input",
+                description=(
+                    "Choose the genre from the matching row in `slopvac prime`'s Genres and profiles table. "
+                    "Get the profile from the `profile:` line in `slopvac lint --stdin --explain-config` output. "
+                    "Copy only that line."
+                ),
+            ),
             _field("input", "Flagged text", "textarea", render="markdown"),
             _field("finding", "Finding", "textarea", render="json"),
             _field("problem", "What is wrong", "dropdown", options=("Wrong rule", "Wrong severity", "Wrong span or location"), multiple=True),
@@ -158,7 +188,16 @@ REPORT_CATEGORIES: tuple[ReportCategory, ...] = (
         meaning="The flagged text is slop and the right rule fired, but the message, suggested replacement, fix guidance, or `--fix` edit is wrong, unclear, or changes the meaning.",
         fields=_category_fields(
             _field("rule-id", "Rule ID", "input"),
-            _field("context", "Genre and profile", "input"),
+            _field(
+                "context",
+                "Genre and profile",
+                "input",
+                description=(
+                    "Choose the genre from the matching row in `slopvac prime`'s Genres and profiles table. "
+                    "Get the profile from the `profile:` line in `slopvac lint --stdin --explain-config` output. "
+                    "Copy only that line."
+                ),
+            ),
             _field("input", "Flagged text", "textarea", render="markdown"),
             _field("finding", "Finding", "textarea", render="json"),
             _field("problem", "What is wrong", "dropdown", options=("Wrong suggested replacement", "--fix changed the meaning", "--fix produced broken text", "Misleading or unclear message", "Fix guidance does not apply here"), multiple=True),

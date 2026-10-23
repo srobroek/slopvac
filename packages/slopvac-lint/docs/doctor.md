@@ -4,7 +4,15 @@
 
 Run `slopvac doctor --format json` to print local config and system data. JSON prints to stdout on failure. Exit 0 means that slopvac loads config and finds supported Vale. Exit 2 indicates a config error or an unsupported Vale. Text output is the default.
 
-The command reads only the release cache. A missing or unreadable cache gives `latest_release: null`. **The JSON contains no filesystem paths or user-chosen file names.** Error messages replace paths with `<path>` and custom config names with `<path>`. The steering skill state is `disabled` when both `write` and `review` guidance are off. It keeps that state when config loading fails.
+`doctor` reads `update-check.json` from the release cache. It does not call the refresh function. An absent or invalid entry gives `latest_release: null`.
+
+Eligible interactive CLI commands call the refresh function. It starts a best-effort background PyPI check. `doctor` and `prime` skip that step. The value can be null even when PyPI has a newer release.
+
+The refresh requires a TTY on stderr. It skips when CI has a value or when `NO_UPDATE_NOTIFIER`, `SLOPVAC_NO_UPDATE_CHECK`, or `DO_NOT_TRACK` has a value. A failed first fetch leaves no cached version.
+
+**The JSON contains no filesystem paths or user-chosen file names.** Error messages replace paths with `<path>` and custom config names with `<path>`.
+
+The steering skill state is `disabled` when both `write` and `review` guidance are off. It keeps that state when config loading fails.
 
 ## Schema version 1
 
@@ -17,7 +25,7 @@ ok: boolean - True only when the config loads and Vale meets its minimum version
 slopvac: object - Package version and upgrade advice.
 slopvac.version: string - Installed slopvac version.
 slopvac.upgrade_command: string - Upgrade command for this Python.
-latest_release: object or null - Release data from the cache, or null when no valid cache exists.
+latest_release: object or null - Cached release data from an eligible background update check, or null when no valid cache exists.
 latest_release.version: string - Cached stable release version.
 latest_release.checked_at: string - Cached ISO 8601 check time, including its timezone.
 latest_release.newer: boolean - True when `is_newer_release` says the cached version is newer.
