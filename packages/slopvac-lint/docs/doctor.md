@@ -4,7 +4,15 @@
 
 Run `slopvac doctor --format json` to print local config and system data. JSON prints to stdout on failure. Exit 0 means that slopvac loads config and finds supported Vale. Exit 2 indicates a config error or an unsupported Vale. Text output is the default.
 
-The command reads only the release cache. A missing or unreadable cache gives `latest_release: null`. **The JSON contains no filesystem paths or user-chosen file names.** Error messages replace paths with `<path>` and custom config names with `<path>`. The steering skill state is `disabled` when both `write` and `review` guidance are off. It keeps that state when config loading fails.
+The JSON report reads `update-check.json` from the release cache and never fetches a release itself. An absent or invalid entry gives `latest_release: null`.
+
+Interactive commands start a best-effort background PyPI check that fills the cache. `prime` skips that check, and so does any command with `--format` other than text, `--out`, or `--open`. Text-mode `slopvac doctor` starts the check, so a later `doctor --format json` can read its result.
+
+The check needs a TTY on stderr. It skips when `CI` is set, even to an empty value. It also skips when `NO_UPDATE_NOTIFIER`, `SLOPVAC_NO_UPDATE_CHECK`, or `DO_NOT_TRACK` has a value. A failed first fetch leaves no cached version. So `latest_release: null` can mean that no check ran, that checks are off, or that the first fetch failed. It does not mean that the installed version is the latest.
+
+**The JSON contains no filesystem paths or user-chosen file names.** Error messages replace paths with `<path>` and custom config names with `<path>`.
+
+The steering skill state is `disabled` when both `write` and `review` guidance are off. It keeps that state when config loading fails.
 
 ## Schema version 1
 
@@ -17,7 +25,7 @@ ok: boolean - True only when the config loads and Vale meets its minimum version
 slopvac: object - Package version and upgrade advice.
 slopvac.version: string - Installed slopvac version.
 slopvac.upgrade_command: string - Upgrade command for this Python.
-latest_release: object or null - Release data from the cache, or null when no valid cache exists.
+latest_release: object or null - Cached release data from an eligible background update check, or null when no valid cache exists.
 latest_release.version: string - Cached stable release version.
 latest_release.checked_at: string - Cached ISO 8601 check time, including its timezone.
 latest_release.newer: boolean - True when `is_newer_release` says the cached version is newer.

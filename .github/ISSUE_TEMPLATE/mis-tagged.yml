@@ -102,8 +102,10 @@ body:
     attributes:
       label: Genre and profile
       description: >-
-        For example `reference`, `strict`. `slopvac lint --stdin --explain-config`
-        prints the profile. Copy only that line.
+        Genre: the genre name from the matching row of the Genres and profiles table
+        in `slopvac prime`. Profile: the value of the top `profile:` line that
+        `slopvac lint --stdin --explain-config` prints with the same `--profile`,
+        `--config`, and `--mode` flags as your command.
     validations:
       required: true
   - type: textarea

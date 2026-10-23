@@ -281,6 +281,13 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
         "When it is newer, rerun with `uvx --from slopvac@latest slopvac ...`.",
     ):
         assert expected in output
+    search_url = next(
+        line for line in output.splitlines() if "/issues?q=" in line
+    )
+    assert "is%3Aissue" in search_url
+    assert "is%3Aopen" not in search_url and "state%3A" not in search_url, (
+        "the no-gh duplicate search must cover closed issues"
+    )
     assert output.index("slopvac lint --stdin --format json") < output.index("6. Search for duplicates")
     assert "repro.md" not in output
     assert output.index("5. When you need a reproduction") < output.index("6. Search for duplicates")
@@ -292,6 +299,10 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
             if field.type == "checkboxes":
                 for label, _ in field.checkbox_options:
                     assert f"- [ ] {label}" in category_skeleton
+            if field.description:
+                assert field.description not in category_skeleton, (
+                    "a submitted form never contains field descriptions"
+                )
 
 
 def test_report_skeletons_use_github_checkbox_markdown():
