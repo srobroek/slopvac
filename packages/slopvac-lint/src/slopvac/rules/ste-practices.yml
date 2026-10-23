@@ -224,9 +224,12 @@ rules:
         a plural object, not the verb ("check the error messages in the output"). A listed
         verb still counts as the verb there ("check the service runs on port 80", "check the
         user needs to sign in"). A verb joins the list only when at least four in five of its
-        uses in that position are verbs. The count covers 14,096 distinct local Markdown
-        files; a model labelled each use, and the noun labels were read by hand. The list
-        holds only verbs measured so far, so measure a new verb before adding it.
+        uses in that position are verbs. This is a heuristic cut, measured once over 6,846
+        uses in 14,096 local Markdown files that are not in this repository. A model labelled
+        each use; the agent that wrote the change then read the noun-labelled uses of
+        borderline verbs and up to 12 verb-labelled uses per verb. No person audited the
+        labels. The list holds only verbs measured that way, so
+        measure a new verb before adding it.
         "Flows", "triggers", "redirects", and "crashes" do not reach that share.
         Plural nouns such as "logs" and "results" are far below it. The list can be wrong in
         both directions, and the rule accepts both errors. A listed verb that names a plural
