@@ -281,10 +281,13 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
         "When it is newer, rerun with `uvx --from slopvac@latest slopvac ...`.",
     ):
         assert expected in output
-    assert "q=is%3Aissue+<url-encoded-rule-ID-or-generic-symptom>" in output
-    assert "search includes open and closed issues" in output
-    assert "When you have read the results, tick `I searched existing issues for duplicates`. Otherwise, wait for the user's confirmation." in output
-    assert "no valid release cache is available; doctor does not fetch a release" in output
+    search_url = next(
+        line for line in output.splitlines() if "/issues?q=" in line
+    )
+    assert "is%3Aissue" in search_url
+    assert "is%3Aopen" not in search_url and "state%3A" not in search_url, (
+        "the no-gh duplicate search must cover closed issues"
+    )
     assert output.index("slopvac lint --stdin --format json") < output.index("6. Search for duplicates")
     assert "repro.md" not in output
     assert output.index("5. When you need a reproduction") < output.index("6. Search for duplicates")

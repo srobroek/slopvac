@@ -1006,7 +1006,6 @@ def test_doctor_json_reports_system_config_and_steering(runner, tmp_path, monkey
     assert "location" not in report["slopvac"]
     assert "python_prefix" not in report["slopvac"]
     assert report["latest_release"] is None
-    assert '"latest_release": null' in result.output
 
 
 def test_doctor_json_redacts_home_through_symlink(runner, tmp_path, monkeypatch):

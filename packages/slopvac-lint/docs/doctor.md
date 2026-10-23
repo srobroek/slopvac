@@ -4,11 +4,11 @@
 
 Run `slopvac doctor --format json` to print local config and system data. JSON prints to stdout on failure. Exit 0 means that slopvac loads config and finds supported Vale. Exit 2 indicates a config error or an unsupported Vale. Text output is the default.
 
-`doctor` reads `update-check.json` from the release cache. It does not call the refresh function. An absent or invalid entry gives `latest_release: null`.
+The JSON report reads `update-check.json` from the release cache and never fetches a release itself. An absent or invalid entry gives `latest_release: null`.
 
-Eligible interactive CLI commands call the refresh function. It starts a best-effort background PyPI check. `doctor` and `prime` skip that step. The value can be null even when PyPI has a newer release.
+Interactive commands start a best-effort background PyPI check that fills the cache. `prime` skips that check, and so does any command with `--format` other than text, `--out`, or `--open`. Text-mode `slopvac doctor` starts the check, so a later `doctor --format json` can read its result.
 
-The refresh requires a TTY on stderr. It skips when CI has a value or when `NO_UPDATE_NOTIFIER`, `SLOPVAC_NO_UPDATE_CHECK`, or `DO_NOT_TRACK` has a value. A failed first fetch leaves no cached version.
+The check needs a TTY on stderr. It skips when `CI` is set, even to an empty value. It also skips when `NO_UPDATE_NOTIFIER`, `SLOPVAC_NO_UPDATE_CHECK`, or `DO_NOT_TRACK` has a value. A failed first fetch leaves no cached version. So `latest_release: null` can mean that no check ran, that checks are off, or that the first fetch failed. It does not mean that the installed version is the latest.
 
 **The JSON contains no filesystem paths or user-chosen file names.** Error messages replace paths with `<path>` and custom config names with `<path>`.
 
