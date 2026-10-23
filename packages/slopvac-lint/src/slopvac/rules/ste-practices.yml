@@ -225,7 +225,9 @@ rules:
         verb still counts as the verb there ("check the service runs on port 80", "check the
         user needs to sign in"). A verb joins the list only when at least four in five of its
         uses in that position are verbs. The count covers 14,096 distinct local Markdown
-        files. "Flows", "triggers", "redirects", and "crashes" do not reach that share.
+        files; a model labelled each use, and the noun labels were read by hand. The list
+        holds only verbs measured so far, so measure a new verb before adding it.
+        "Flows", "triggers", "redirects", and "crashes" do not reach that share.
         Plural nouns such as "logs" and "results" are far below it. The list can be wrong in
         both directions, and the rule accepts both errors. A listed verb that names a plural
         thing still fires ("check the workflow runs in CI"). An unlisted verb followed by a
