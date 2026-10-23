@@ -304,8 +304,6 @@ def _skeleton(category: ReportCategory) -> list[str]:
     body: list[str] = []
     for field in category.fields:
         body.extend([f"### {field.label}", ""])
-        if field.description:
-            body.extend([field.description, ""])
         if field.type == "checkboxes":
             body.extend(f"- [ ] {label}" for label, _ in field.checkbox_options)
             body.append("")
@@ -350,6 +348,8 @@ def render_report() -> str:
         "   - Record the harness version from its version command.",
         "   - When unavailable, record N/A for the version.",
         "   - Do not detect these fields from environment variables.",
+        "   - Record the genre from its row in the Genres and profiles table of `slopvac prime`.",
+        "   - Record the profile from the `profile:` line of `slopvac lint --stdin --explain-config`.",
         f"   - An AI agent MUST tick `{reporter_label}`.",
         "     It MUST fill in Agent and Model.",
         "     It MUST NOT present its report as written by a person.",

@@ -103,9 +103,9 @@ body:
     attributes:
       label: Genre and profile
       description: >-
-        Choose the genre from the matching row in `slopvac prime`'s Genres and profiles table.
-        Get the profile from the `profile:` line in `slopvac lint --stdin --explain-config` output.
-        Copy only that line.
+        Genre: the genre name from the matching row of the Genres and profiles table
+        in `slopvac prime`. Profile: the value of the `profile:` line that
+        `slopvac lint --stdin --explain-config` prints.
     validations:
       required: true
   - type: textarea

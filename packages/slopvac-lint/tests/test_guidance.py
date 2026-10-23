@@ -297,7 +297,9 @@ def test_report_topic_contains_workflow_commands_and_category_skeletons():
                 for label, _ in field.checkbox_options:
                     assert f"- [ ] {label}" in category_skeleton
             if field.description:
-                assert field.description in category_skeleton
+                assert field.description not in category_skeleton, (
+                    "a submitted form never contains field descriptions"
+                )
 
 
 def test_report_skeletons_use_github_checkbox_markdown():
