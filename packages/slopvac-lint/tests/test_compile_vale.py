@@ -611,6 +611,14 @@ def test_word_count_rule_is_silent_on_a_short_sentence(compiled, tmp_path):
         ("Check these files for errors.", False),
         ("Check the release notes.", False),
         ("Verify the results.", False),
+        # A plural object followed by a preposition (#247).
+        ("Check the error messages in the output.", False),
+        ("Verify the error messages in the output.", False),
+        ("Show the recent changes to the team.", False),
+        ("Check the open issues on the tracker.", False),
+        ("Show the recent alerts from the monitor.", False),
+        ("Check the API docs for details.", False),
+        ("Check the failing jobs with the retry label.", False),
         # Clauses with the conjunction dropped.
         ("Make sure you restart the worker.", True),
         ("Ensure the build succeeds.", True),
@@ -625,6 +633,26 @@ def test_word_count_rule_is_silent_on_a_short_sentence(compiled, tmp_path):
         ("Check it works.", True),
         ("Note this is required.", True),
         ("The dashboard shows the queue is empty.", True),
+        ("We recommend the team ships the fix today.", True),
+        # A listed verb before a preposition still counts as the verb.
+        ("Check the service runs on port 80.", True),
+        ("Verify the file exists in the bucket.", True),
+        ("Check the hook depends on the build step.", True),
+        ("Check the agent connects to the server.", True),
+        ("Check the user needs to sign in again.", True),
+        ("Check the process exits with code 0.", True),
+        ("Check the pod restarts on failure.", True),
+        ("Check the page loads\nin under two seconds.", True),
+        # Accepted trade-offs, documented in the rule's provenance note: a listed
+        # verb used as a plural noun, an unlisted verb before a preposition, a
+        # later plural noun inside the prepositional phrase, a preposition outside
+        # the twelve, and a plural at the end of a sentence after "verify".
+        ("Check the workflow runs in CI.", True),
+        ("Check the URL redirects to the login page.", False),
+        ("Check the sample files under the docs folder.", True),
+        ("Check the error messages about the timeout.", True),
+        ("Verify the release notes.", True),
+        ("Verify the error messages in logs.", True),
     ],
 )
 def test_omitted_that_needs_a_clause_not_a_direct_object(
