@@ -28,7 +28,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.15"
 
       - name: Install Vale
         run: python3 scripts/install_vale.py --prefix "$HOME/.local/bin"
@@ -394,7 +394,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.15"
 
       - name: Install source package
         run: python -m pip install --quiet -e ./packages/slopvac-lint
