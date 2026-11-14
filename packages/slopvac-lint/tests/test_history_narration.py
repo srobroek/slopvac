@@ -82,3 +82,16 @@ def test_an_unlisted_reason_is_still_rejected(tmp_path):
     ids = _rule_ids(tmp_path, f"{allow_comment(HISTORY, 'readability')}\n{text}")
     assert META in ids
     assert HISTORY in ids
+
+
+def test_judgement_remainder_preserves_change_communications():
+    """`rules --kind judgement --genre change-comms` lists the remainder, so its
+    question must tell the reviewer to keep a legitimate delta."""
+    result = CliRunner().invoke(
+        main, ["rules", "--kind", "judgement", "--genre", "change-comms", "--format", "json"]
+    )
+    assert result.exit_code == 0, result.output
+    rules = {r["rule_id"]: r for r in json.loads(result.output)["rules"]}
+    question = " ".join(rules["prose-discipline.no-longer-change-remainder"]["judgement_question"].split())
+    assert "release note" in question
+    assert "preserve it" in question.split("release note", 1)[1]
