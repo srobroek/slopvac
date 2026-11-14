@@ -72,7 +72,7 @@ When 3.0 ships, a bead tracks the replies on #252 to #257 and the Slack thread.
 | Word lists | `aho-corasick` |
 | Markdown | `pulldown-cmark`. `markdown-rs` for MDX. A pre-pass masks `:::` and `!!!` containers. |
 | Front matter | A new generic crate, `frontmatter-spans`: YAML, TOML, and JSON with per-value spans and serde support. |
-| Part-of-speech tags | A Rust port of the `prose` v3.3.1 tagger that Vale uses (decision record 0001, decision 25). The model licence is open in `slopvac-8l4.3.23`. |
+| Part-of-speech tags | A Rust port of the `prose` v3.3.1 tagger that Vale uses (decision record 0001, decision 25). The binary embeds the model under CC BY-SA 4.0 with attribution and a notice that covers the model file only. |
 | Spelling | `spellbook` with SCOWL and VarCon data |
 | Code comments | `tree-sitter` with the language pack |
 | HTML | `html5ever` |
@@ -204,7 +204,7 @@ An adversarial review of this plan and its beads found these gaps. Each one now 
 - **Golden suite modes:** reference parity pinned to a Python commit, Vale 3.24, and corpus hashes; 3.0 default-policy tests with reviewed deltas; and migration-preservation tests. The 2.x profiles have per-rule dispositions, so a separate bead maps them onto the 3.0 model.
 - **Plugin security:** a threat model and an independent review before the plugin host and OCI client close. The review covers what the signature covers, publisher-key authority, key rotation, extraction limits, subprocess containment, and regex resource limits.
 - **PCRE2 build policy:** pin version 10.43 or later, test JIT and non-JIT across Windows, macOS, glibc, and musl, and prove a match-limit mechanism.
-- **POS tagger:** `harper-brill` failed its spike (`slopvac-8l4.3.10`): noun agreement 3.8% and 10.9% of words untagged. A Rust port of the `prose` tagger passed, with 99.1% exact tag match. Only the opt-in vocabulary blocklist check depends on POS. The model licence is open in `slopvac-8l4.3.23`.
+- **POS tagger:** `harper-brill` failed its spike (`slopvac-8l4.3.10`): noun agreement 3.8% and 10.9% of words untagged. A Rust port of the `prose` tagger passed, with 99.1% exact tag match. Only the opt-in vocabulary blocklist check depends on POS. The binary embeds the model under CC BY-SA 4.0 with attribution and a share-alike notice for the model file only; the code keeps the project licence (`slopvac-8l4.3.23`).
 - **Accuracy gate:** recall on seeded and adjudicated positives, false-positive rates on clean controls, and a held-out set, as well as precision.
 - **Position contract:** byte spans, line and column bases, and per-format conversions, including LSP UTF-16. Agree these before fixes and suggestions ship.
 - **RST:** stays in core through a bundled docutils adapter. AsciiDoc is new and experimental.

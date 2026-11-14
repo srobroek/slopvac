@@ -1,6 +1,6 @@
 # 0001. Slopvac 3.0 architecture
 
-- Status: accepted, 2026-11-14. Every decision holds for 3.0. One item stays open: the licence of the POS model file (decision 25, `slopvac-8l4.3.23`).
+- Status: accepted, 2026-11-14. Every decision holds for 3.0, and no item is open.
 - Deciders: slopvac maintainers
 - Tracking: bead `slopvac-8l4.2.1`, epic `slopvac-8l4`
 - Detail: [Slopvac 3.0 plan](slopvac-3.md)
@@ -259,7 +259,8 @@ Port the averaged-perceptron tagger from the `prose` library v3.3.1, which Vale 
   - 10.9% of corpus words came back untagged;
   - it matched 87 of 143 gold targets, against 123 for Vale.
 - Cause of the failure: a 26.9k-word most-frequent-tag dictionary plus 201 patches, so `deploy` and `return` come out as verbs and `key` as an adjective. A mapping adapter from its universal tags to Penn tags cannot fix that.
-- Conditions: port the `prose` tokenizer, match Vale's scope for Markdown and HTML (Vale lints prose inside `<td>` and `<em>`), and resolve the model licence. The model derives from UD_English-EWT, which is CC BY-SA 4.0 (`slopvac-8l4.3.23`, decision pending).
+- Conditions: port the `prose` tokenizer and match Vale's scope for Markdown and HTML (Vale lints prose inside `<td>` and `<em>`).
+- Licence (`slopvac-8l4.3.23`, decided 2026-11-14): the model derives from UD_English-EWT, which is CC BY-SA 4.0. The binary embeds the model with CC BY-SA 4.0 attribution and a share-alike notice that covers the model file only. The code keeps the project licence. 2.x never redistributed the model, because users installed Vale, so embedding is new. Rejected: download on opt-in, and retraining on permissive data. If the model cannot ship, the vocabulary check must stop with exit 2 and an error.
 - Limits: the evidence is one spike, with one annotator for the gold set.
 
 ## Consequences
@@ -274,7 +275,7 @@ Bad or risky:
 - The hand-rolled OCI client adds 42 dependencies and 1.67 MB stripped. No bead measures the size of the full binary.
 - The rewrite is large, and the full scope raises the release risk. The golden suite, a compatibility matrix, and the readiness gate exist to manage it.
 - PCRE2 is a C dependency. Its build must work on Windows, macOS, glibc, and musl.
-- The POS tagger is a port of the model Vale uses. Its model licence (CC BY-SA 4.0) is undecided (`slopvac-8l4.3.23`). If the model cannot ship, the vocabulary check must stop with exit 2 and an error, and never skip the check without a message.
+- The binary redistributes a CC BY-SA 4.0 model. Releases must carry the attribution and a share-alike notice for the model file, and the code must stay separable from it. Plan the `NOTICE` file for this.
 - The plugin host and OCI client carry security risk. The threat model and independent review gate them.
 - No spike numbers back decisions 7, 10 to 13, 15, 16, 19, and 22 to 24. Decisions 8 and 9 have spikes for the transport and the registry, but none for the protocol or the trust model. These decisions rest on convention and the plan.
 - Users on 2.x must migrate. `slopvac migrate` and a one-minor compatibility mode cover this.
