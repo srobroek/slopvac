@@ -624,6 +624,7 @@ Cut low-value negative inventory
 - **strict / normal / relaxed.** enforced / enforced / advisory
 - **Scope.** prose
 - **Fix.** State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
+- **Suppressible with.** `quotation` — any other reason is reported rather than honoured
 - **AI register signal.** `weak` (catalog)
 
 #### `ai-tells-structure.rhetorical-question-transition`
