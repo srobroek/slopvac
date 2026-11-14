@@ -1789,8 +1789,7 @@ Put the condition before the command
 - **Kind.** pattern — a regular expression
 - **Ships as.** warning
 - **strict / normal / relaxed.** enforced / advisory / advisory
-- **Scope.** sentence
-- **Applies to.** procedural text
+- **Scope.** body-sentence
 - **Fix.** Move the condition clause to the front and follow it with a comma.
 - **Suppressible with.** `quotation`, `code-span` — any other reason is reported rather than honoured
 - **Reference.** ASD-STE100 issue 9, rule 5.4

@@ -798,9 +798,14 @@ class Engine:
             )
             return [_Span(synthetic, 0, text)]
 
-        if rule.scope is Scope.SENTENCE:
+        if rule.scope in (Scope.SENTENCE, Scope.BODY_SENTENCE):
             spans: list[_Span] = []
             for block in blocks:
+                if rule.scope is Scope.BODY_SENTENCE and block.kind in (
+                    BlockKind.HEADING,
+                    BlockKind.TABLE,
+                ):
+                    continue
                 cursor = 0
                 for sentence in block.sentences:
                     local = block.text.find(sentence.text, cursor)

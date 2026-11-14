@@ -70,7 +70,7 @@ array or object, as the type column says.
 | `rules[].category` | string | The id of the owning category. |
 | `rules[].name` | string | A short imperative label. |
 | `rules[].kind` | string | The checker: `tokens`, `pattern`, `substitution`, `vocabulary`, `metric`, `structure`, or `judgement`. |
-| `rules[].scope` | string | The unit that the rule reads: `prose`, `heading`, `sentence`, `paragraph`, `document`, or `raw`. |
+| `rules[].scope` | string | The unit that the rule reads: `prose`, `heading`, `sentence`, `body-sentence`, `paragraph`, `document`, or `raw`. |
 | `rules[].text_type` | string | The text that the rule applies to: `any`, `procedural`, `descriptive`, or `safety`. |
 | `rules[].severity` | string | The shipped level: `suggestion`, `warning`, or `error`. A judgement rule always ships as `suggestion`. |
 | `rules[].effective_severity` | string | The level that lint reports at `profile`, after the profile and the `--config` settings. It is `off` when the rule does not run there. A judgement rule keeps its shipped level. |

@@ -112,6 +112,7 @@ def source_scopes(mode: Mode, extension: str | None = None) -> tuple[str, str]:
 SCOPE_MAP = {
     Scope.PROSE: "text",
     Scope.SENTENCE: "sentence",
+    Scope.BODY_SENTENCE: "sentence & ~heading & ~table",
     Scope.PARAGRAPH: "paragraph",
     Scope.HEADING: "heading",
     Scope.RAW: "raw",
@@ -142,6 +143,9 @@ VALE_SCOPES = frozenset(
         "list",
         "paragraph",
         "sentence",
+        # Vale scope negation (`& ~scope`), confirmed by a probe: headings and
+        # table cells drop out, list items and paragraphs stay.
+        "sentence & ~heading & ~table",
         "raw",
         "alt",
     }
