@@ -1856,7 +1856,7 @@ rules:
       strict: advisory
       normal: advisory
       relaxed: excluded
-    pattern: '^(?=(?:.*\b[A-Z][A-Za-z0-9]*(?:[-''’][A-Za-z0-9]+)*\b){2,})(?:(?:[A-Z][A-Za-z0-9]*(?:[-''’][A-Za-z0-9]+)*|[A-Z]{2,}|`[^`\n]+`|\d+(?:\.\d+)*|a|an|and|as|at|but|by|for|from|in|into|nor|of|on|or|the|to|up|via|with|without|your|you|is|are|was|were|than|[,:;.!?&()/+-])[,:;.!?)]*(?:[ \t]+|$))+$'
+    pattern: '^(?=\S+[ \t]+(?:\S+[ \t]+)*?(?!(?i:ALLOWED_WORDS)[,:;.!?)]*(?:[ \t]|$))[A-Z][a-z]+[,:;.!?)]*(?:[ \t]|$))(?=(?:.*\b[A-Z][A-Za-z0-9]*(?:[-''’][A-Za-z0-9]+)*\b){2,})(?:(?:[A-Z][A-Za-z0-9]*(?:[-''’][A-Za-z0-9]+)*|[A-Z]{2,}|`[^`\n]+`|\d+(?:\.\d+)*|a|an|and|as|at|but|by|for|from|in|into|nor|of|on|or|the|to|up|via|with|without|your|you|is|are|was|were|than|[,:;.!?&()/+-])[,:;.!?)]*(?:[ \t]+|$))+$'
     ignore_case: false
     fix: Lower-case every word but the first and any proper noun.
     examples:
@@ -1872,6 +1872,10 @@ rules:
         bad: Quick Start Guide
       - good: Using the `--json` flag
         bad: Using The JSON Flag
+      - good: Use the TypeScript SDK
+        bad: Configure The Server
+      - good: Implement EventLog
+        bad: Configure Brave Search
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
@@ -1887,6 +1891,12 @@ rules:
         three-plain-words form matched 5 of 143 AI headings and 0 of 191 human; this
         one matches 30 of 143 AI and 16 of 191 human, the human hits being proper
         nouns.
+
+        Only plain capitalised words after the first count (`Server`, not `SDK`,
+        `EventLog`, `gRPC`, `Python3` or a code span), so a heading whose only
+        capitals are acronyms or identifiers passes (issue #257). `ALLOWED_WORDS` in
+        the pattern is a placeholder that matches nothing real; rules.inject_locale_rule
+        swaps in the `[locale] allow` words so a project can declare its proper nouns.
 
   - id: bold-spray
     name: Bold at most the first definitional use

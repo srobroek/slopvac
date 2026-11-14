@@ -21,6 +21,7 @@ The test suite proves the shipped examples without the cache.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from importlib import resources
@@ -168,6 +169,31 @@ def _verify_examples(rules: Iterable[Rule], origin: str) -> list[str]:
     return problems
 
 
+ALLOWED_WORDS_PLACEHOLDER = "ALLOWED_WORDS"
+
+
+def _inject_heading_allow(ruleset: RuleSet, allow: list[str] | None) -> None:
+    """Make `[locale] allow` words exempt from title-case-heading.
+
+    The rule counts plain capitalised words, and an allowed word (a product or
+    proper noun) must not count. A regex cannot read the config, so the words go
+    into the pattern in place of its placeholder. Only single alphabetic words
+    matter: nothing else is a plain capitalised word.
+    """
+    words = sorted({w for w in allow or () if w.isascii() and w.isalpha()}, key=str.lower)
+    if not words:
+        return
+    for category in ruleset.categories.values():
+        for rule in category.rules:
+            if rule.id == "title-case-heading" and rule.pattern:
+                alternation = "|".join(re.escape(w) for w in words)
+                object.__setattr__(
+                    rule,
+                    "pattern",
+                    rule.pattern.replace(ALLOWED_WORDS_PLACEHOLDER, alternation),
+                )
+
+
 def inject_locale_rule(ruleset: RuleSet, tag: str, allow: list[str] | None = None) -> str | None:
     """Add the generated spelling rule for `tag` to the ste-words category.
 
@@ -177,6 +203,8 @@ def inject_locale_rule(ruleset: RuleSet, tag: str, allow: list[str] | None = Non
     report it as unchecked rather than passing it silently.
     """
     from .locale import LOCALES, build_spelling_rule
+
+    _inject_heading_allow(ruleset, allow)
 
     if tag not in LOCALES:
         return (
