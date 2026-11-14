@@ -1,0 +1,102 @@
+name: Reviewdog
+# Posts lint findings as pull request review comments. The lint jobs in lint.yml run
+# with read-only permissions and upload their findings as artifacts. This workflow
+# runs from the default branch, holds the write token, and never checks out the pull
+# request. That is what makes it safe for fork pull requests, where the pull_request
+# token is read-only. Artifact contents are untrusted input.
+on:
+  workflow_run: # zizmor: ignore[dangerous-triggers] reads artifacts only; no PR code is checked out or run
+    workflows: [CI]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: reviewdog-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  comment:
+    if: ${{ github.event.workflow_run.event == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read # download artifacts from the triggering run
+      pull-requests: write # review comments
+    steps:
+      - name: Download findings
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: reviewdog-*
+          path: findings
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - name: Install reviewdog
+        uses: reviewdog/action-setup@38a8d76742a75eeb6c6ffc616bde64179fd09ebf # v1.5.0
+        with:
+          reviewdog_version: v0.21.3
+      - name: Validate the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(findings/*/pr-number)
+          if (( ${#files[@]} == 0 )); then
+            echo "No findings artifact; nothing to report."
+            echo "number=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Every artifact claims a number. They must agree, and the number must be
+          # digits only before it reaches an API path.
+          number="$(head -c 20 "${files[0]}" | tr -d '[:space:]')"
+          for f in "${files[@]}"; do
+            other="$(head -c 20 "$f" | tr -d '[:space:]')"
+            [[ "$other" == "$number" ]] || { echo "::error::artifacts disagree on the PR number"; exit 1; }
+          done
+          [[ "$number" =~ ^[1-9][0-9]{0,8}$ ]] || { echo "::error::invalid PR number in artifact"; exit 1; }
+          # The number is only a claim. Accept it when that PR is open here and its head
+          # is the commit the triggering run tested.
+          state="$(gh api "repos/$REPO/pulls/$number" --jq '[.state, .head.sha] | @tsv')"
+          if [[ "$state" != "open"$'\t'"$HEAD_SHA" ]]; then
+            echo "PR $number is not open at $HEAD_SHA (got: $state); skipping."
+            echo "number=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+      - name: Post review comments
+        if: ${{ steps.pr.outputs.number != '' }}
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
+          CI_REPO_OWNER: ${{ github.repository_owner }}
+          CI_REPO_NAME: ${{ github.event.repository.name }}
+          CI_COMMIT: ${{ github.event.workflow_run.head_sha }}
+          CI_PULL_REQUEST: ${{ steps.pr.outputs.number }}
+          MAX_BYTES: "5000000"
+        run: |
+          set -euo pipefail
+          # reviewdog reads the event payload when it sees GITHUB_ACTIONS, and a
+          # workflow_run payload has no pull request. Unsetting it makes reviewdog
+          # use the CI_* variables above. It needs a git directory to resolve paths;
+          # an empty one holds no pull request code.
+          git init -q "$RUNNER_TEMP/rd"
+          root="$PWD/findings"
+          cd "$RUNNER_TEMP/rd"
+          run_reviewdog() {
+            env -u GITHUB_ACTIONS reviewdog "$@" -reporter=github-pr-review \
+              -filter-mode=added -fail-level=none
+          }
+          if [[ -f "$root/reviewdog-prose/findings.sarif" ]]; then
+            f="$root/reviewdog-prose/findings.sarif"
+            (( $(stat -c %s "$f") <= MAX_BYTES )) || { echo "::error::SARIF too large"; exit 1; }
+            python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$f"
+            run_reviewdog -f=sarif -name=slopvac < "$f"
+          fi
+          if [[ -f "$root/reviewdog-shellcheck/findings.checkstyle" ]]; then
+            f="$root/reviewdog-shellcheck/findings.checkstyle"
+            (( $(stat -c %s "$f") <= MAX_BYTES )) || { echo "::error::checkstyle too large"; exit 1; }
+            run_reviewdog -f=checkstyle -name=shellcheck < "$f"
+          fi

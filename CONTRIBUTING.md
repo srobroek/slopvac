@@ -29,6 +29,12 @@ uvx --from ./packages/slopvac-lint slopvac <files>
 
 Exit 2 means the check is incomplete, not clean. If the command exits 2, install Vale 3.18 or later and rerun it. Fix findings before you open a pull request.
 
+### Review comments on pull requests
+
+CI also posts prose and shellcheck findings as review comments on added lines. The lint jobs in `lint.yml` run with read-only permissions and upload their findings as `reviewdog-*` artifacts. Then `reviewdog.yml` runs on `workflow_run` from the default branch, with `pull-requests: write`. It runs without any pull request code, so it works the same for pull requests from forks.
+
+That workflow treats the artifacts as untrusted. It accepts a pull request number only when that PR is open and its head commit is the one the CI run tested. `workflow_run` workflows load from the default branch, so changes to `reviewdog.yml` take effect only after merge. The pass or fail result of the lint jobs does not depend on this path.
+
 ## Rules
 
 Rule definitions live in [`packages/slopvac-lint/src/slopvac/rules/`](packages/slopvac-lint/src/slopvac/rules/). Each YAML file defines a category and its rules. Add examples of text the rule should flag and text it should leave alone.
