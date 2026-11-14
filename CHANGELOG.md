@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.18.2](https://github.com/srobroek/slopvac/compare/v2.18.1...v2.18.2) (2026-11-14)
+
+
+### Bug Fixes
+
+* **rules:** skip acronyms, CamelCase and allowed terms in title-case-heading ([d705dcb](https://github.com/srobroek/slopvac/commit/d705dcb87fb839843537d8010a260e6d35094363))
+
+
+### Documentation
+
+* **adr:** record the slopvac 3.0 architecture ([4a47880](https://github.com/srobroek/slopvac/commit/4a47880b53b48010b6008e70967bf81537d4616a))
+* **design:** add the slopvac 3.0 plan ([#261](https://github.com/srobroek/slopvac/issues/261)) ([e112ccc](https://github.com/srobroek/slopvac/commit/e112ccc01047e87b8028e15dbecd28b3c6c7f4d3))
+
 ## [2.18.1](https://github.com/srobroek/slopvac/compare/v2.18.0...v2.18.1) (2026-10-23)
 
 
