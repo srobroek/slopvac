@@ -215,6 +215,7 @@ Ledger jobs for targets outside this campaign's arms: kev-9b-ft-s? (no seed).
 ## Panel agreement caveat
 
 Independent corpus panel agreement (source: `/Users/sjors/tmp/worktrees/slopvac/exp-judge-corpus/scripts/judge-corpus/.cache/items-v2/panel-agreement.json`):
+
 - finding-confirmation: Fleiss κ=0.13 (3599 three-vote items).
 - semantic-detection: Fleiss κ=0.02 (1587 three-vote items).
 - Scores on panel-labelled rows measure agreement with the panel. Only constructions and human-adjudicated rows have independent ground truth.

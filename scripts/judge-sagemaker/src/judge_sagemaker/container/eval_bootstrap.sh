@@ -28,8 +28,10 @@ LAYA_TORCH_INDEX=https://download.pytorch.org/whl/cu126
 
 export JUDGE_EVAL_OUT=/opt/ml/model JUDGE_FT_ROOT=/opt/judge/ft
 export KEV_ROOT=/opt/kev LAYA_ROOT=/opt/laya
-export KEV_PY="$(command -v python)" LAYA_PY=/opt/laya-venv/bin/python HARNESS_PY=/opt/harness-venv/bin/python
-export CLEF_PY="$(command -v python)"
+KEV_PY="$(command -v python)"
+export KEV_PY LAYA_PY=/opt/laya-venv/bin/python HARNESS_PY=/opt/harness-venv/bin/python
+CLEF_PY="$(command -v python)"
+export CLEF_PY
 export JUDGE_LAYA_TORCH="$LAYA_TORCH" JUDGE_LAYA_TORCH_INDEX="$LAYA_TORCH_INDEX"
 export HF_HOME="${HF_HOME:-/tmp/hf}"
 export TRITON_CACHE_DIR="$HF_HOME/triton-cache"

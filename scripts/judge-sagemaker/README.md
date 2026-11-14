@@ -45,9 +45,10 @@ the job and writes it into `head.pt`. `--lr` (0 uses the checkpoint's rate cappe
 `--replay` (default 2000 records of Kev's decision-v7 training partition; 0 disables it),
 `--p-none-pair` (default 0.25), `--max-state` (passes `kev.train --max_state`), and
 `--batch`, `--accum`, `--checkpointing`, `--dtype`, and `--weights-dtype` override the saved
-checkpoint training recipe; omit these to keep its batch and precision settings. `--max-runtime`
+checkpoint training recipe. Omit these to keep its batch and precision settings. `--max-runtime`
 seconds (default from `resources.json`), `--instance-type`, and `--profile` select the job
 resources. `--dry-run` prints the plan and `CreateTrainingJob` request without AWS calls.
+
 ### GPU evaluation
 
 `evaluate` runs the judge-pilot harness on a SageMaker training GPU. It starts one Jev-compatible server inside the job, probes the local API, runs single-client sequential calibration/test requests, then stops the server. It skips concurrent throughput.
@@ -95,7 +96,17 @@ counted attempt; after three of them the target waits for on-demand capacity.
 
 ### Campaign reports
 
-`scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` once every arm of a campaign has fetched results. It leads with per-role (finding-confirmation, semantic-detection) balanced accuracy, class recalls, ECE, GPU, latency and cost per arm and seed mean ± SD, then the same balanced accuracy per role sliced by test `label_origin` (computed from each arm's predictions joined to its test split; the all-origin value must reproduce the headline), fine-tune-vs-base deltas, a comparison with `--compare` (a campaign on the same test export; it also supplies base arms the campaign does not evaluate), a label-source ablation with `--ablation` (repeatable; campaigns on the same test export side by side, seed mean ± SD per role and origin slice), and every ledger job the campaign submitted with failed and stopped attempts. It refuses to render while an arm of any named campaign is missing. `--note` adds a status line. The committed reports were generated with:
+`scripts/corpus_eval_report.py` renders `results/<campaign results>/REPORT.md` after every arm of a campaign has fetched results. It reports balanced accuracy, class recalls, ECE, GPU, latency and cost for each role and arm. Repeated seeds include their mean and standard deviation.
+
+The report also shows:
+
+- Balanced accuracy by test `label_origin`, joining predictions to the test split. The all-origin value must reproduce the headline.
+- Fine-tune versus base differences.
+- A comparison selected with `--compare`. This campaign must use the same test and calibration exports and can supply missing base arms.
+- Label-source ablations selected with repeatable `--ablation` options. These campaigns share the test and calibration exports and show seed means and standard deviations by role and origin.
+- Every submitted ledger job, including failed and stopped attempts.
+
+The command refuses to render if an arm of any named campaign is missing. `--note` adds a status line. The committed reports were generated with:
 
 ```sh
 V4="Pre-v4 baseline. v4 rebuilds the judge items against the merged lint rules (main 7544c168e0: curly-quotes and uniform-paragraph-mass retired, about 13 rules narrowed) and the human-labelled rows, then re-tests every arm on the rebuilt items; v4 scores are not comparable with this test export."
@@ -193,4 +204,4 @@ Then restore the provenance header and update the digest in `bootstrap.sh`.
   downloads about 18 GB of base weights at start.
 - **Service quota:** the account needs `ml.g6e.2xlarge for training job usage` quota of at least 1.
   The scheduler puts Kev-4B and Kev-9B on `ml.g6e.12xlarge` (4 L40S, one used) only after every
-  2xlarge–16xlarge slot, because it costs more per hour than the 16xlarge.
+  2xlarge--16xlarge slot, because it costs more per hour than the 16xlarge.
