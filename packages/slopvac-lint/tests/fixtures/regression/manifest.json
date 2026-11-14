@@ -1,0 +1,140 @@
+{
+  "vale": "3.24.0",
+  "fixtures": [
+    {
+      "id": "stacklok-permissions-and-posture-before",
+      "path": "stacklok/permissions-and-posture.before.md",
+      "source": {
+        "repo": "stacklok/mecatl",
+        "path": "user-docs/features/security-and-execution/permissions-and-posture.md",
+        "commit": "eec00143fff9ab331bb49845acebf95b7b1a5751",
+        "license": "Apache-2.0",
+        "note": "verbatim; see NOTICE"
+      },
+      "expected": {
+        "ai-tells-structure.cataphoric-lead-in-core": 2,
+        "ai-tells-structure.negative-guarantee-core": 6,
+        "ai-tells-structure.negative-inventory-core": 1,
+        "docs-discipline.history-narration": 5,
+        "prose-agency.anthropomorphism": 1,
+        "prose-craft.directional-ref": 1,
+        "prose-craft.future-tense": 1,
+        "prose-craft.sentence-length": 4,
+        "ste-descriptive.paragraph-too-many-sentences": 1,
+        "ste-descriptive.sentence-too-long-descriptive": 16,
+        "ste-nouns.multiword-noun-too-long": 7,
+        "ste-practices.omitted-conjunction-that": 2,
+        "ste-practices.phrasal-verb": 1,
+        "ste-procedural.condition-after-command": 15,
+        "ste-procedural.instruction-not-imperative": 1,
+        "ste-procedural.multiple-instructions-per-sentence": 3,
+        "ste-punctuation.colon-terminates-sentence-for-count": 1,
+        "ste-punctuation.hyphen-missing-in-compound-modifier": 1,
+        "ste-punctuation.semicolon-used": 33,
+        "ste-sentences.complex-text-not-in-vertical-list": 14,
+        "ste-verbs.complex-tense": 3,
+        "ste-verbs.nominalized-action": 1,
+        "ste-verbs.passive-voice": 21,
+        "ste-words.approved-word-substitution": 2,
+        "ste-words.obligation-word-substitution": 1,
+        "ste-words.spelling": 3,
+        "ste-words.verb-used-as-noun": 2
+      }
+    },
+    {
+      "id": "stacklok-permissions-and-posture-after",
+      "path": "stacklok/permissions-and-posture.after.md",
+      "source": {
+        "repo": "stacklok/mecatl",
+        "path": "user-docs/features/security-and-execution/permissions-and-posture.md",
+        "commit": "eec00143fff9ab331bb49845acebf95b7b1a5751",
+        "license": "Apache-2.0",
+        "note": "revised copy of the commit above, no upstream commit matches it, so it is a modified copy; see NOTICE"
+      },
+      "expected": {
+        "ai-tells-structure.negative-guarantee-core": 4,
+        "prose-agency.anthropomorphism": 2,
+        "prose-craft.future-tense": 1,
+        "ste-descriptive.paragraph-too-many-sentences": 1,
+        "ste-descriptive.sentence-too-long-descriptive": 3,
+        "ste-nouns.multiword-noun-too-long": 3,
+        "ste-practices.omitted-conjunction-that": 4,
+        "ste-practices.phrasal-verb": 1,
+        "ste-procedural.condition-after-command": 7,
+        "ste-procedural.instruction-not-imperative": 1,
+        "ste-procedural.multiple-instructions-per-sentence": 3,
+        "ste-punctuation.hyphen-missing-in-compound-modifier": 1,
+        "ste-punctuation.semicolon-used": 18,
+        "ste-sentences.complex-text-not-in-vertical-list": 17,
+        "ste-verbs.nominalized-action": 1,
+        "ste-verbs.passive-voice": 13,
+        "ste-words.approved-word-substitution": 1,
+        "ste-words.spelling": 1
+      }
+    },
+    {
+      "id": "issue-252",
+      "path": "issues/252-judgement-checklist-config.md",
+      "config": "issues/252-config.toml",
+      "source": {
+        "issue": "srobroek/slopvac#252",
+        "note": "lint input only; the bug is in `slopvac rules`/`prime`, which this lint run cannot observe"
+      },
+      "expected": {}
+    },
+    {
+      "id": "issue-253",
+      "path": "issues/253-diff-base-symlink.md",
+      "source": {
+        "issue": "srobroek/slopvac#253",
+        "note": "sample.md body only; the bug needs a git range with a symlink, which this lint run cannot observe"
+      },
+      "expected": {}
+    },
+    {
+      "id": "issue-254",
+      "path": "issues/254-condition-after-command.md",
+      "source": {
+        "issue": "srobroek/slopvac#254"
+      },
+      "expected": {
+        "ai-tells-formatting.bold-spray": 1,
+        "ste-procedural.condition-after-command": 4,
+        "ste-punctuation.semicolon-used": 1
+      }
+    },
+    {
+      "id": "issue-255",
+      "path": "issues/255-history-narration-current-state.md",
+      "source": {
+        "issue": "srobroek/slopvac#255"
+      },
+      "expected": {
+        "docs-discipline.history-narration": 3,
+        "ste-sentences.missing-article-or-determiner": 1,
+        "ste-verbs.passive-voice": 1
+      }
+    },
+    {
+      "id": "issue-256",
+      "path": "issues/256-versioned-change-note.md",
+      "source": {
+        "issue": "srobroek/slopvac#256"
+      },
+      "expected": {
+        "docs-discipline.history-narration": 1,
+        "ste-procedural.condition-after-command": 1
+      }
+    },
+    {
+      "id": "issue-257",
+      "path": "issues/257-title-case-proper-nouns.md",
+      "source": {
+        "issue": "srobroek/slopvac#257"
+      },
+      "expected": {
+        "ai-tells-formatting.title-case-heading": 5
+      }
+    }
+  ]
+}

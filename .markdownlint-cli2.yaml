@@ -44,3 +44,5 @@ globs:
   # setup, so the finding would come back on a branch nobody touched.
   - "!.agents/**"
   - "!.beads/**"
+  # Test inputs: vendored pages and quoted issue samples whose defects are the point.
+  - "!packages/slopvac-lint/tests/fixtures/**"
