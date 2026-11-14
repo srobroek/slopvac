@@ -1,0 +1,47 @@
+# Rust workspace for slopvac 3.0. It sits beside the Python package
+# (packages/slopvac-lint), which stays the reference implementation until the
+# golden suite passes. Crates live under crates/ so the Python layout is untouched.
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+# Stable is 1.99; the floor trails it by two minor releases so contributors on a
+# slightly older toolchain still build. rust-toolchain.toml pins the dev toolchain.
+rust-version = "1.97"
+license = "Apache-2.0"
+repository = "https://github.com/srobroek/slopvac"
+publish = false
+
+[workspace.dependencies]
+slopvac-model = { path = "crates/slopvac-model" }
+slopvac-config = { path = "crates/slopvac-config" }
+slopvac-parse = { path = "crates/slopvac-parse" }
+slopvac-text = { path = "crates/slopvac-text" }
+slopvac-rules = { path = "crates/slopvac-rules" }
+slopvac-engine = { path = "crates/slopvac-engine" }
+slopvac-report = { path = "crates/slopvac-report" }
+slopvac-plugins = { path = "crates/slopvac-plugins" }
+slopvac-lsp = { path = "crates/slopvac-lsp" }
+clap = { version = "4.6", features = ["derive"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+# Pedantic lints that mostly add noise for a text-processing codebase.
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"

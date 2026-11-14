@@ -5,3 +5,4 @@ vale = "3.24.0"
 "github:sharkdp/hyperfine" = "2.0.0"
 just = "1.59.0"                      # available via mise registry aqua:casey/just
 typos = "1.51.1"
+"cargo:cargo-nextest" = "0.9.152"

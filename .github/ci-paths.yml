@@ -19,6 +19,17 @@ code:
   - 'tests/**'
   - 'scripts/**/*.py'
 
+# Rust workspace under crates/. Build, format, lint and test run across three
+# operating systems.
+rust:
+  - '.github/workflows/**'
+  - 'Cargo.toml'
+  - 'Cargo.lock'
+  - 'crates/**'
+  - 'rust-toolchain.toml'
+  - 'rustfmt.toml'
+  - '.config/nextest.toml'
+
 package:
   - '.github/workflows/**'
   - 'pyproject.toml'
