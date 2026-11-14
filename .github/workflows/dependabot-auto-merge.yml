@@ -27,6 +27,7 @@ concurrency:
 
 jobs:
   auto-merge:
+    # yamllint disable-line rule:line-length
     if: ${{ github.actor == 'dependabot[bot]' && github.actor_id == 49699333 && github.event.pull_request.user.id == 49699333 }} # zizmor: ignore[bot-conditions] actor id is checked too
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -57,9 +58,13 @@ jobs:
           fi
 
       - name: Require release-app credentials
-        if: ${{ steps.decide.outputs.merge == 'true' && (vars.RELEASE_APP_CLIENT_ID == '' || env.HAS_APP_KEY != 'true') }}
+        if: >-
+          ${{ steps.decide.outputs.merge == 'true'
+          && (vars.RELEASE_APP_CLIENT_ID == '' || env.HAS_APP_KEY != 'true') }}
         run: |
-          echo "::error::RELEASE_APP_CLIENT_ID (Actions variable) and RELEASE_APP_PRIVATE_KEY (Dependabot secret, not an Actions secret) must both be available to Dependabot runs to enable auto-merge."
+          echo "::error::RELEASE_APP_CLIENT_ID (Actions variable) and" \
+            "RELEASE_APP_PRIVATE_KEY (Dependabot secret, not an Actions secret)" \
+            "must both be available to Dependabot runs to enable auto-merge."
           exit 1
 
       - name: Mint release-app token
