@@ -1,0 +1,21 @@
+Third-party material in this directory
+
+stacklok/permissions-and-posture.before.md
+stacklok/permissions-and-posture.after.md
+
+  Source:     https://github.com/stacklok/mecatl
+  Path:       user-docs/features/security-and-execution/permissions-and-posture.md
+  Commit:     eec00143fff9ab331bb49845acebf95b7b1a5751 (2026-10-26)
+  License:    Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0
+              The upstream repository ships no NOTICE file.
+  Changes:    The ".before.md" file is the upstream file at that commit, unmodified.
+              The ".after.md" file is a revised copy. No upstream commit matches
+              it, so treat it as modified from the upstream file.
+
+The files are test inputs for the prose linter. Their wording is not endorsed by
+the upstream project.
+
+issues/
+
+  Short samples quoted from GitHub issues srobroek/slopvac#252 to #257. They are
+  part of this repository and carry its license.

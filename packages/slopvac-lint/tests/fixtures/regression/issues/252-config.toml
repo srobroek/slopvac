@@ -1,0 +1,4 @@
+profile = "normal"
+
+[categories.ste-punctuation]
+severity = "off"
