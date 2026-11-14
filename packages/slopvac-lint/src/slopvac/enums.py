@@ -94,6 +94,9 @@ class Scope(str, Enum):
     PROSE = "prose"
     HEADING = "heading"
     SENTENCE = "sentence"
+    # A sentence of running text: headings and table cells are not instructions
+    # or claims, so a rule about sentence shape opts out of them.
+    BODY_SENTENCE = "body-sentence"
     PARAGRAPH = "paragraph"
     DOCUMENT = "document"
     RAW = "raw"

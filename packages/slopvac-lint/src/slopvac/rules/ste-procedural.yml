@@ -128,13 +128,12 @@ rules:
     kind: pattern
     severity: warning
     message: 'The condition follows the command ("{match}"). Put the condition first.'
-    scope: sentence
-    text_type: procedural
+    scope: body-sentence
     tiers:
       strict: enforced
       normal: advisory
       relaxed: advisory
-    pattern: '^\s*(?!(?:The|A|An|This|That|These|Those|Their|Its|Our|Your|His|Her|My|It|They|We|You|He|She|There|Each|Every|Any|Some|All|Both|No|Many|Most|Such|Other|One)\b)(?![A-Z][a-z]*[^e]ed\b)(?![A-Z][a-z]*[^su]s\b)(?!(?!Bring\b)[A-Z][a-z]+ing\b)[A-Z][a-z]+\b(?!-)[^.!?]*?\s+(if|when|once|unless|after|before|while(?!\s+[a-z]+ing\b))\s+[^.!?]*[.!?]?\s*$'
+    pattern: '^\s*(?:(?:(?:For|To|In|On|At|With|Without|During|Using|From|By)\b[^,.!?]{0,80},\s+|(?:Or|Then|Next|First|Second|Third|Finally|Also|Otherwise|Alternatively|Optionally|Now),\s+)(?:[Aa]dd|[Aa]llow|[Aa]pply|[Aa]pprove|[Aa]sk|[Aa]ssume|[Aa]ttach|[Aa]void|[Bb]ack|[Bb]ackup|[Bb]ind|[Bb]uild|[Cc]all|[Cc]ancel|[Cc]hange|[Cc]heck|[Cc]hoose|[Cc]lear|[Cc]lone|[Cc]lose|[Cc]onfigure|[Cc]onfirm|[Cc]onnect|[Cc]onsider|[Cc]opy|[Cc]reate|[Dd]elete|[Dd]eny|[Dd]eploy|[Dd]etach|[Dd]isable|[Dd]isconnect|[Dd]o|[Dd]owngrade|[Dd]rain|[Dd]rop|[Ee]dit|[Ee]nable|[Ee]nsure|[Ee]nter|[Ee]xecute|[Ee]xpect|[Ee]xport|[Ff]ence|[Ff]etch|[Ff]ind|[Ff]ix|[Ff]lush|[Ff]ollow|[Gg]et|[Gg]ive|[Gg]o|[Gg]rant|[Hh]old|[Ii]dentify|[Ii]mport|[Ii]nit|[Ii]nspect|[Ii]nstall|[Ii]nvoke|[Ii]terate|[Kk]eep|[Ll]eave|[Ll]ist|[Ll]oad|[Ll]ock|[Ll]og|[Ll]ogin|[Ll]ogout|[Mm]ake|[Mm]ark|[Mm]atch|[Mm]erge|[Mm]onitor|[Mm]ount|[Mm]ove|[Nn]avigate|[Nn]otify|[Oo]pen|[Oo]verride|[Pp]ass|[Pp]ause|[Pp]erform|[Pp]ick|[Pp]in|[Pp]oint|[Pp]refer|[Pp]repend|[Pp]ress|[Pp]rint|[Pp]romote|[Pp]ull|[Pp]ush|[Pp]ut|[Rr]ead|[Rr]ebuild|[Rr]econcile|[Rr]ecord|[Rr]eject|[Rr]elease|[Rr]eload|[Rr]ely|[Rr]emember|[Rr]emove|[Rr]ename|[Rr]eplace|[Rr]eport|[Rr]erun|[Rr]eset|[Rr]estart|[Rr]esume|[Rr]etry|[Rr]evert|[Rr]eview|[Rr]evoke|[Rr]oll|[Rr]otate|[Rr]un|[Ss]ave|[Ss]chedule|[Ss]elect|[Ss]end|[Ss]et|[Ss]how|[Ss]kip|[Ss]plit|[Ss]tage|[Ss]tart|[Ss]top|[Ss]tore|[Ss]witch|[Tt]ag|[Tt]ake|[Tt]est|[Tt]oggle|[Tt]reat|[Tt]ype|[Uu]nlock|[Uu]nmount|[Uu]nset|[Uu]pdate|[Uu]pgrade|[Uu]se|[Vv]erify|[Ww]ait|[Ww]rap|[Ww]rite)\b(?!-)|(?!(?:If|When|Whenever|Once|Unless|After|Before|While|Until|Because|Since|Although|Though|As|The|A|An|This|That|These|Those|Their|Its|Our|Your|His|Her|My|It|They|We|You|He|She|There|Each|Every|Any|Some|All|Both|No|Many|Most|Such|Other|One|Only|Also|Even|Just|Either|Neither|Not|So|Then|What|Where|Which|Who|How|Why|Whether|Here|Now|For|To|In|On|At|With|Without|During|Using|From|By|Or|And|But)\b)(?:(?:Add|Allow|Apply|Approve|Ask|Assume|Attach|Avoid|Back|Backup|Bind|Build|Call|Cancel|Change|Check|Choose|Clear|Clone|Close|Configure|Confirm|Connect|Consider|Copy|Create|Delete|Deny|Deploy|Detach|Disable|Disconnect|Do|Downgrade|Drain|Drop|Edit|Enable|Ensure|Enter|Execute|Expect|Export|Fence|Fetch|Find|Fix|Flush|Follow|Get|Give|Go|Grant|Hold|Identify|Import|Init|Inspect|Install|Invoke|Iterate|Keep|Leave|List|Load|Lock|Log|Login|Logout|Make|Mark|Match|Merge|Monitor|Mount|Move|Navigate|Notify|Open|Override|Pass|Pause|Perform|Pick|Pin|Point|Prefer|Prepend|Press|Print|Promote|Pull|Push|Put|Read|Rebuild|Reconcile|Record|Reject|Release|Reload|Rely|Remember|Remove|Rename|Replace|Report|Rerun|Reset|Restart|Resume|Retry|Revert|Review|Revoke|Roll|Rotate|Run|Save|Schedule|Select|Send|Set|Show|Skip|Split|Stage|Start|Stop|Store|Switch|Tag|Take|Test|Toggle|Treat|Type|Unlock|Unmount|Unset|Update|Upgrade|Use|Verify|Wait|Wrap|Write)\b(?!-)|(?![A-Z][a-z]*[^e]ed\b)(?![A-Z][a-z]*[^su]s\b)(?!(?!Bring\b)[A-Z][a-z]+ing\b)[A-Z][a-z]+\b(?=\s+(?:the|a|an|your|this|that|each|all|any|it|these|those|its|their|`))(?!-)))[^.!?]*?\s+(if|when|once|unless|after|before|while(?!\s+[a-z]+ing\b))\s+[^.!?]*[.!?]?\s*$'
     ignore_case: false
     exceptions:
       - quotation
@@ -147,6 +146,10 @@ rules:
         good: When the import completes, clear the cache.
       - bad: Drain the queue before the worker shuts down.
         good: The worker drains the queue before it shuts down.
+      - bad: For headless servers, configure the permissions required by the workload before it starts.
+        good: Before the workload starts, configure the permissions it requires on headless servers.
+      - bad: Reconcile the ledger when the import completes.
+        good: When the import completes, reconcile the ledger.
     ai_signal: none
     ai_signal_source: unmeasured
     provenance:
@@ -163,7 +166,14 @@ rules:
         using") or a manner phrase ("while preserving the meaning"), so the opening word
         must now look like a command -- not a determiner or pronoun, not an -ed, -s, or
         -ing form, not the first half of a hyphenated adjective -- and "while" followed
-        by a gerund no longer counts as a condition.
+        by a gerund no longer counts as a condition. Issue 254 (2026-11): headings and
+        table cells are skipped (scope body-sentence); the opener must be a known
+        command verb, or a capitalised word followed by a determiner or code span, so a
+        noun-phrase subject ("Action reviews offer") no longer counts; a For/To/In
+        lead-in or an Or/Then/First connective is stripped before that test; and a
+        sentence that starts with its condition never matches. The rule no longer declares
+        text_type: Vale ignores it, and the opener test above replaces the closed-list
+        classifier, so Vale and the native engine now agree.
     fix: Move the condition clause to the front and follow it with a comma.
 
   - id: note-gives-instruction

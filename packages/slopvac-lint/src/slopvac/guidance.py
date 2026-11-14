@@ -46,6 +46,7 @@ _SCOPE_MEANING = {
     Scope.PROSE: "the running text, without code, URLs, and front matter",
     Scope.HEADING: "each heading",
     Scope.SENTENCE: "each sentence",
+    Scope.BODY_SENTENCE: "each sentence outside headings and table cells",
     Scope.PARAGRAPH: "each paragraph",
     Scope.DOCUMENT: "the whole document",
     Scope.RAW: "the whole file, code included",
