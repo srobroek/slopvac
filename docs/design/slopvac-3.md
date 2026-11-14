@@ -213,7 +213,7 @@ An adversarial review of this plan and its beads found these gaps. Each one now 
 - **Release readiness:** one gate bead that the stable release depends on, separate from building candidates.
 - **Interim status:** no 2.x release ships, so the issues get status and workarounds now.
 
-The review also proposes a smaller 3.0.0. Under that cut, 3.0.0 is a Rust lint replacement with compatibility, migration, safe fixes, local custom rules, and the current outputs. Remote packs and plugins, LSP, diagrams, Diátaxis detection, proper-noun inference, extra reporters, self update, and model evals move to 3.1 or later. That cut is not decided yet.
+The review also proposed a smaller 3.0.0 that moves the new platforms to 3.1. The decision, made 2026-11-14, is to keep the full scope in 3.0.0. Every programme bead outside the backlog carries the `release:3.0.0` label. The release-readiness gate still applies to the whole scope.
 
 ## Order of work
 
