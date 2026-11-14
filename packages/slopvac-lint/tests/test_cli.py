@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -2097,3 +2098,30 @@ def test_stdin_reports_vale_findings_under_stdin_only(tmp_path, monkeypatch, out
         document = json.loads(result.output)["documents"][0]
         assert document["path"] == "<stdin>"
         assert {finding["path"] for finding in document["findings"]} == {"<stdin>"}
+
+
+# --- colour ------------------------------------------------------------------
+
+_COLOUR_SGR = re.compile(r"\x1b\[(?:[0-9;]*;)?(?:3[0-7]|9[0-7]|38|4[0-7]|48)[0-9;]*m")
+
+
+def _colour_probe(runner, tmp_path, monkeypatch, *args):
+    path = _write(tmp_path, "a.md", "This robust solution leverages seamless synergy.\n")
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    monkeypatch.setenv("TERM", "xterm-256color")
+    return runner.invoke(main, ["lint", str(path), "--no-vale", *args]).output
+
+
+def test_forced_terminal_emits_colour_codes(runner, tmp_path, monkeypatch):
+    assert _COLOUR_SGR.search(_colour_probe(runner, tmp_path, monkeypatch))
+
+
+def test_no_color_flag_removes_colour_codes(runner, tmp_path, monkeypatch):
+    assert not _COLOUR_SGR.search(_colour_probe(runner, tmp_path, monkeypatch, "--no-color"))
+
+
+def test_piped_text_output_has_no_escape_codes(runner, tmp_path, monkeypatch):
+    monkeypatch.delenv("FORCE_COLOR", raising=False)
+    path = _write(tmp_path, "a.md", "This robust solution leverages seamless synergy.\n")
+    output = runner.invoke(main, ["lint", str(path), "--no-vale"]).output
+    assert "\x1b" not in output
