@@ -1,6 +1,6 @@
 # 0001. Slopvac 3.0 architecture
 
-- Status: accepted, 2026-11-14. Every decision holds for 3.0 except decision 2, which waits on the `harper-brill` parity spike (`slopvac-8l4.3.10`, running). Removing Vale proceeds only if that spike passes its go or no-go threshold.
+- Status: accepted, 2026-11-14. Every decision holds for 3.0. One item stays open: the licence of the POS model file (decision 25, `slopvac-8l4.3.23`).
 - Deciders: slopvac maintainers
 - Tracking: bead `slopvac-8l4.2.1`, epic `slopvac-8l4`
 - Detail: [Slopvac 3.0 plan](slopvac-3.md)
@@ -39,7 +39,7 @@ Rewrite slopvac in Rust as a Cargo workspace. The Python 2.x code stays the refe
 
 Slopvac matches every rule itself. The README keeps an "Inspired by Vale" section that thanks the project.
 
-- Evidence: the PCRE2 spike matched Python on 142 of 143 patterns (decision 4), which shows regex rule patterns run without Vale's engine. It does not cover rules that use part-of-speech tags. The `harper-brill` parity spike (`slopvac-8l4.3.10`) covers those and gates this decision.
+- Evidence: the PCRE2 spike matched Python on 142 of 143 patterns (decision 4), which shows regex rule patterns run without Vale's engine. Part-of-speech rules are covered by decision 25: only the opt-in vocabulary blocklist check depends on POS tags.
 - Rejected: keep Vale as an optional engine. It would keep two code paths and two behaviors to test.
 
 ### 3. No async runtime
@@ -248,6 +248,20 @@ The golden suite runs in three modes:
 
 Evidence: none from a spike. These gates came from the adversarial plan review. Detail: plan sections "Distribution and release", "Evals", and "Release gate and risks".
 
+### 25. Part-of-speech tagger
+
+Port the averaged-perceptron tagger from the `prose` library v3.3.1, which Vale uses, to Rust. The port is about 250 lines with no dependencies. It reads the `prose` model file, emits Penn Treebank tags, and uses a Vale-like token adapter that drops inline code and joins hyphenated spans. Only the opt-in vocabulary blocklist check depends on POS tags. It is off unless `[vocabulary] path` is set.
+
+- Evidence (`slopvac-8l4.3.10`): the port matched Vale's tag on 99.1% of 124,659 corpus words and on all 143 hand-labelled gold targets. Agreement with Vale's findings on the shipped blocklist was 96.2% for nouns and 100% for verbs, adjectives, and adverbs. It keeps Penn tags, so the generated rules stay unchanged. Of its 5 shipped disagreements, 1 removes a Vale false positive, and 4 come from Markdown and HTML scope rather than the tagger.
+- Rejected: `harper-brill` 3.2.0. It failed the thresholds set before measuring:
+  - shipped blocklist agreement for nouns, verbs, adjectives, and adverbs was 3.8%, 76.9%, 93.1%, and 100%;
+  - 3 of 4 bad examples stopped firing;
+  - 10.9% of corpus words came back untagged;
+  - it matched 87 of 143 gold targets, against 123 for Vale.
+- Cause of the failure: a 26.9k-word most-frequent-tag dictionary plus 201 patches, so `deploy` and `return` come out as verbs and `key` as an adjective. A mapping adapter from its universal tags to Penn tags cannot fix that.
+- Conditions: port the `prose` tokenizer, match Vale's scope for Markdown and HTML (Vale lints prose inside `<td>` and `<em>`), and resolve the model licence. The model derives from UD_English-EWT, which is CC BY-SA 4.0 (`slopvac-8l4.3.23`, decision pending).
+- Limits: the evidence is one spike, with one annotator for the gold set.
+
 ## Consequences
 
 Good:
@@ -260,7 +274,8 @@ Bad or risky:
 - The hand-rolled OCI client adds 42 dependencies and 1.67 MB stripped. No bead measures the size of the full binary.
 - The rewrite is large, and the full scope raises the release risk. The golden suite, a compatibility matrix, and the readiness gate exist to manage it.
 - PCRE2 is a C dependency. Its build must work on Windows, macOS, glibc, and musl.
-- `harper-brill` must match Vale's POS tags well enough per rule. That spike is a go or no-go gate, and no result is recorded yet.
+- The POS tagger is a port of the model Vale uses. Its model licence (CC BY-SA 4.0) is undecided (`slopvac-8l4.3.23`). If the model cannot ship, the vocabulary check must fail loudly with exit 2 and never go silent.
+- The plan's "Part-of-speech tags" row still names `harper-brill`. Decision 25 replaces it.
 - The plugin host and OCI client carry security risk. The threat model and independent review gate them.
 - No spike numbers back decisions 7, 10 to 13, 15, 16, 19, and 22 to 24. Decisions 8 and 9 have spikes for the transport and the registry, but none for the protocol or the trust model. These decisions rest on convention and the plan.
 - Users on 2.x must migrate. `slopvac migrate` and a one-minor compatibility mode cover this.
@@ -275,6 +290,7 @@ Bad or risky:
 | `slopvac-8l4.2.16` | Lexical against model2vec |
 | `slopvac-8l4.2.17` | OCI client and async runtime |
 | `slopvac-8l4.2.18` | rumdl and reviewdog |
+| `slopvac-8l4.3.10` | harper-brill against the prose tagger |
 | `slopvac-8l4.4.1` | `schematic` against the layer stack |
 | `slopvac-8l4.10.1` | Diagram over-explanation signals. Non-decisional: it informs experimental diagram rules only. |
 
