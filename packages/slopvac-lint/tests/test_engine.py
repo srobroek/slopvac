@@ -1981,3 +1981,71 @@ def test_heading_allow_words_apply_when_spelling_is_unchecked(tag, note_fragment
     text = "# Deploy\n\n## Install with Helm\n\n## Configure The Server\n"
     findings = engine.run(parse("a.md", text))
     assert [f.matched_text for f in findings] == ["Configure The Server"]
+
+NEGATIVE_INVENTORY_RULE = "ai-tells-structure.negative-inventory-core"
+
+
+def _negative_inventory(text: str):
+    return [f for f in _run(text) if f.rule_id == NEGATIVE_INVENTORY_RULE]
+
+
+# Constraint statements and requirements. "Excluded from" here says what a
+# rule or a permission does, so the reader loses an enforced boundary if it goes.
+NEGATIVE_INVENTORY_KEEPS = [
+    "Trust cannot restore a capability excluded from the child's set or denied by Cedar.",
+    "A tool that is excluded from the child's set must not be called.",
+    "Packages excluded from the allowlist are rejected at install time.",
+    "Dependencies must not be pinned to a branch.",
+    "Dependencies shall be not pinned to a moving tag.",
+    "Do not pin the formatter to a floating tag.",
+    "- Do not pin the formatter to a floating tag.",
+    'The lockfile field reads "not pinned" until the first install.',
+    "The `not pinned` state is reported by `doctor`.",
+    "Excluded: clients MUST NOT access telemetry.",
+    "- Out of scope: agents must never edit the lockfile.",
+    "> Not included: clients shall not read the cache.",
+    "Excluded from this release: nothing must be pinned to a branch.",
+    "Run the formatter, then do not pin it to a floating tag.",
+    "If the build is flaky, never pin the formatter.",
+    "Please do not pin the formatter.",
+    "do not pin the formatter to a floating tag.",
+    "Never pin the formatter to a floating tag.",
+    "Packages not included must be audited.",
+]
+
+NEGATIVE_INVENTORY_TELLS = [
+    "Excluded from this review: browser checks and visual polish.",
+    "- Excluded: browser checks and visual polish.",
+    "**Not included:** browser checks.",
+    "| Browser checks | Not included |",
+    "Browser checks are excluded from this release.",
+    "Visual polish is excluded from this review.",
+    "Out of scope: visual polish.",
+    "The formatter does not pin versions.",
+    "Tooling not pinned: versions may drift.",
+    "Excluded from verification: accessibility checks.",
+    "Excluded features: accessibility testing is excluded.",
+    "Excluded: accessibility checks. The formatter does not pin versions.",
+]
+
+# Requirement text in an earlier sentence is out of scope for 2.x; the 3.0
+# requirement context handles it. These fire in both engines.
+NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT = (
+    "Packages not included must be audited. Browser checks are not included."
+)
+
+
+@pytest.mark.parametrize("text", NEGATIVE_INVENTORY_KEEPS)
+def test_negative_inventory_core_ignores_constraints_and_requirements(text):
+    assert not _negative_inventory(text)
+
+
+@pytest.mark.parametrize("text", NEGATIVE_INVENTORY_TELLS)
+def test_negative_inventory_core_fires_on_inventory_form(text):
+    assert _negative_inventory(text)
+
+
+def test_negative_inventory_core_judges_each_match_in_its_own_sentence():
+    findings = _negative_inventory(NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT)
+    assert [f.matched_text for f in findings] == ["not included"]
+    assert findings[0].column == NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT.rindex("not included") + 1

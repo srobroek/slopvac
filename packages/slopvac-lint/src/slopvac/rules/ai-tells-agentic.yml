@@ -857,6 +857,7 @@ rules:
         prose-discipline.negative-guarantee-remainder now judges it.
 
   - id: negative-inventory-core
+    exceptions: [quotation]
     name: Cut low-value negative inventory
     kind: pattern
     severity: warning
@@ -866,7 +867,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:does|do|did)\s+not\s+pin\b|\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\b(?:is|are|was|were)\s+excluded\b|\bexcluded\s+from\b|\bnot\s+included\b|\brecorded\s+elsewhere\b'
+    pattern: '(?:\b(?:does|did)\s+not\s+pin\b|(?<!^)(?<!\n)(?<!^[-*+>]\s)(?<![.!?:;,]\s)(?<![.!?:;,])(?<!please\s)(?<!then\s)(?<!and\s)(?<!also\s)(?<!always\s)(?<!but\s)\bdo\s+not\s+pin\b|(?<!shall\s)(?<!must\s)(?<!should\s)(?<!shall\sbe\s)(?<!must\sbe\s)(?<!should\sbe\s)(?<!never\s)\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\bexcluded\s+from\s+this\s+(?:review|scope|run|release)\b|(?:(?<=^)|(?<=^[-*+>]\s)|(?<=^\*\*)|(?<=^[-*+]\s\*\*)|(?<=\|)|(?<=\|\s)|(?<=\|\s\*\*)|(?<=\|\*\*))(?:excluded|not\s+included|out\s+of\s+scope)\b(?=\s*(?:[:|*—-]|$)|(?:\s+[\w-]+){1,6}\s*:)|(?<!shall\s)(?<!must\s)(?<!should\s)(?<!shall\sbe\s)(?<!must\sbe\s)(?<!should\sbe\s)(?<!never\s)\bnot\s+included\b|\brecorded\s+elsewhere\b)(?![^\n.!?]*(?:\b(?:must|shall|should)\b|\b(?:is|are|be)\s+required\b|[:;,]\s*(?:(?:please|then|and|also|always|but)\s+)*(?:do\s+not|don''t|never)\b))'
     ignore_case: true
     fix: State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
     examples:
@@ -881,6 +882,14 @@ rules:
         good: The parser test suite covers TOML comments; browser behavior is not run here.
       - bad: Config is recorded elsewhere.
         good: The deployment manifest records the region and is the source of truth.
+      - bad: "- Excluded: browser checks and visual polish."
+        good: Trust cannot restore a capability excluded from the child's set.
+      - bad: Visual polish is excluded from this release.
+        good: Dependencies must not be pinned to a branch.
+      - bad: "Out of scope: visual polish."
+        good: Do not pin the formatter to a floating tag.
+      - bad: "Excluded from verification: accessibility checks."
+        good: "Excluded: clients MUST NOT access telemetry."
     ai_signal: weak
     ai_signal_source: catalog
     provenance:
@@ -888,7 +897,11 @@ rules:
       note: >-
         Mechanizable vocabulary for inventories that announce what is absent without
         giving the reader a decision, constraint, result, or reproduction path.
-        Judgement remainder in ai-tells-structure.negative-inventory-remainder.
+        Judgement remainder in ai-tells-structure.negative-inventory-remainder. Requirement exception: a match is dropped when its sentence tail (to the next
+        `.`, `!`, `?` or line break) holds must/shall/should, "is required" or a
+        clause-initial do not/don't/never; a pin phrase is also dropped after a
+        modal or a leading imperative. Requirement text earlier in a different
+        sentence is a known 2.x gap, handled by the 3.0 requirement context.
 
   - id: negative-inventory-remainder
     name: Judge whether a negative constraint is actionable
