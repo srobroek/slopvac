@@ -84,6 +84,7 @@ array or object, as the type column says.
 | `rules[].examples[].good` | string or null | The rewrite. It is `null` when the example gives none, and an empty string when the fix deletes the text. |
 | `rules[].examples[].note` | string or null | Why the example passes or fails. It is `null` when absent. |
 | `rules[].exceptions` | array of strings | The reasons that an allow directive can cite. It is empty when the rule takes no allow directive, as for each judgement rule. |
+| `rules[].skip_when_sentence_matches` | string or null | A regular expression. A match never fires when the sentence that holds it also matches this pattern. It is `null` for most rules. |
 | `rules[].allowlist` | array of strings | Literal text that never matches. It is empty for most rules. |
 | `rules[].provenance` | object | Where the rule comes from. |
 | `rules[].provenance.source` | string | The origin, such as `ASD-STE100` or `Orwell 1946`. |

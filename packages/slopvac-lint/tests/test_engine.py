@@ -2001,6 +2001,15 @@ NEGATIVE_INVENTORY_KEEPS = [
     "- Do not pin the formatter to a floating tag.",
     'The lockfile field reads "not pinned" until the first install.',
     "The `not pinned` state is reported by `doctor`.",
+    "Excluded: clients MUST NOT access telemetry.",
+    "- Out of scope: agents must never edit the lockfile.",
+    "| Not included | Clients shall not read the cache |",
+    "Excluded from this release: nothing must be pinned to a branch.",
+    "Run the formatter, then do not pin it to a floating tag.",
+    "If the build is flaky, never pin the formatter.",
+    "Please do not pin the formatter.",
+    "do not pin the formatter to a floating tag.",
+    "Never pin the formatter to a floating tag.",
 ]
 
 NEGATIVE_INVENTORY_TELLS = [
@@ -2013,6 +2022,9 @@ NEGATIVE_INVENTORY_TELLS = [
     "Out of scope: visual polish.",
     "The formatter does not pin versions.",
     "Tooling not pinned: versions may drift.",
+    "Excluded from verification: accessibility checks.",
+    "Excluded features: accessibility testing is excluded.",
+    "Excluded: accessibility checks. The formatter does not pin versions.",
 ]
 
 

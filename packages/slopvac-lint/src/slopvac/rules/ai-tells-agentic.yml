@@ -867,7 +867,14 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: advisory
-    pattern: '\b(?:does|did|(?-i:do))\s+not\s+pin\b|(?<!shall\s)(?<!must\s)(?<!should\s)(?<!shall\sbe\s)(?<!must\sbe\s)(?<!should\sbe\s)(?<!never\s)\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\bexcluded\s+from\s+this\s+(?:review|scope|run|release)\b|(?:(?<=^)|(?<=^[-*+>]\s)|(?<=^\*\*)|(?<=^[-*+]\s\*\*)|(?<=\|)|(?<=\|\s)|(?<=\|\s\*\*)|(?<=\|\*\*))(?:excluded|not\s+included|out\s+of\s+scope)\b(?=\s*(?:[:|*\u2014-]|$))|(?<!shall\s)(?<!must\s)(?<!should\s)(?<!never\s)\bnot\s+included\b|\brecorded\s+elsewhere\b'
+    pattern: '\b(?:does|do|did)\s+not\s+pin\b|\bnot\s+pinned\b|\boutside\s+(?:the\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\s+run)\b|\bexcluded\s+from\s+this\s+(?:review|scope|run|release)\b|(?:(?<=^)|(?<=^[-*+>]\s)|(?<=^\*\*)|(?<=^[-*+]\s\*\*)|(?<=\|)|(?<=\|\s)|(?<=\|\s\*\*)|(?<=\|\*\*))(?:excluded|not\s+included|out\s+of\s+scope)\b(?=\s*(?:[:|*—-]|$)|(?:\s+[\w-]+){1,6}\s*:)|\bnot\s+included\b|\brecorded\s+elsewhere\b'
+    # Requirement exception (automatic, no annotation needed). A match is dropped when
+    # its sentence holds a normative marker (must/shall/should, "is required") or an
+    # imperative with negation at a clause start ("do not", "don't", "never", after an
+    # optional please/then/and/also/always/but). The sentence runs from the previous
+    # `.`/`!`/`?` before whitespace or line break to the next one. A port must apply
+    # this to every alternative of `pattern`, case-insensitively.
+    skip_when_sentence_matches: '\b(?:must|shall|should)\b|\b(?:is|are|be)\s+required\b|(?:^|[.!?:;,]\s*|^[-*>\s]+)(?:(?:please|then|and|also|always|but)\s+)*(?:do\s+not|don''t|never)\b'
     ignore_case: true
     fix: State the actionable behavior, enforced constraint, or reproducible result; delete the inventory otherwise.
     examples:
@@ -888,6 +895,8 @@ rules:
         good: Dependencies must not be pinned to a branch.
       - bad: "Out of scope: visual polish."
         good: Do not pin the formatter to a floating tag.
+      - bad: "Excluded from verification: accessibility checks."
+        good: "Excluded: clients MUST NOT access telemetry."
     ai_signal: weak
     ai_signal_source: catalog
     provenance:

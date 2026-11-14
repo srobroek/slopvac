@@ -137,6 +137,30 @@ def _inside_quotation(text: str, start: int, end: int) -> bool:
     )
 
 
+# A sentence ends at `.`, `!` or `?` before whitespace, or at a line break. Naive on
+# purpose: the Rust port reproduces it exactly, and an abbreviation only narrows
+# the context a `skip_when_sentence_matches` pattern sees.
+_SENTENCE_BREAK = re.compile(r"[.!?](?=\s)|\n")
+
+
+def _enclosing_sentence(text: str, start: int, end: int) -> str:
+    """The sentence of `text` that holds the span [start, end)."""
+    begin = 0
+    for brk in _SENTENCE_BREAK.finditer(text, 0, start):
+        begin = brk.end()
+    after = _SENTENCE_BREAK.search(text, end)
+    return text[begin : after.start() if after else len(text)]
+
+
+def _in_skipped_sentence(rule: Rule, text: str, start: int, end: int) -> bool:
+    """Does the rule's `skip_when_sentence_matches` pattern hold for this match?"""
+    if rule.skip_when_sentence_matches is None:
+        return False
+    flags = re.IGNORECASE if rule.ignore_case else 0
+    sentence = _enclosing_sentence(text, start, end)
+    return re.search(rule.skip_when_sentence_matches, sentence, flags) is not None
+
+
 # An inline code span, single or double backtick. Line-scoped like the quotation
 # span above, because an unclosed backtick in running prose would otherwise pair
 # with one several paragraphs away.
@@ -179,6 +203,8 @@ def drop_quoted_illustrations(
         end = start + len(finding.matched_text)
         if start != -1:
             if "quotation" in rule.exceptions and _inside_quotation(line, start, end):
+                continue
+            if _in_skipped_sentence(rule, line, start, end):
                 continue
             # A `scope: prose` rule must not reach inside inline code. The
             # native engine gets this free -- it masks every code span before
@@ -866,6 +892,8 @@ class Engine:
                 if "quotation" in rule.exceptions and _inside_quotation(
                     text, match.start(), match.end()
                 ):
+                    continue
+                if _in_skipped_sentence(rule, text, match.start(), match.end()):
                     continue
 
                 if block is None:
