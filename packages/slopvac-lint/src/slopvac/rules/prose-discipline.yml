@@ -741,3 +741,33 @@ rules:
     fix: >-
       Replace the quantifier with the figure. Where the set is genuinely
       unmeasured, say so and name why.
+
+  - id: no-longer-change-remainder
+    name: Judge whether "no longer" narrates a change
+    kind: judgement
+    severity: suggestion
+    message: '"no longer" may narrate a change: state what the artifact does now'
+    scope: paragraph
+    tiers:
+      strict: enforced
+      normal: advisory
+      relaxed: excluded
+    judgement_question: >-
+      Does this "no longer" tell the reader what the artifact used to do, or does it
+      describe runtime state (a run that is no longer live, a node that is no longer
+      healthy)? Runtime state is legitimate; preserve it. In change communications
+      (a changelog, release note, migration guide, or a labelled, versioned change
+      note) the delta is the content; preserve it. Flag only a change claim in a
+      consumer or reference doc body that the checked rule's change-verb list does
+      not name.
+    fix: State the current behaviour; move the delta to a changelog or release note.
+    examples:
+      - bad: The importer no longer tolerates trailing commas.
+        good: The importer rejects trailing commas.
+    ai_signal: none
+    ai_signal_source: unmeasured
+    provenance:
+      source: Split from docs-discipline.history-narration (issue 255)
+      url: https://github.com/srobroek/slopvac/issues/255
+      note: >-
+        Judgement remainder of docs-discipline.no-longer-change.

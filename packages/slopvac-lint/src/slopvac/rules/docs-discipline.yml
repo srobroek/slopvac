@@ -51,7 +51,7 @@ rules:
         matches. Noun uses such as `a draft`, `in draft`, and `a draft that ...` match.
 
   - id: history-narration
-    exceptions: [quotation]
+    exceptions: [quotation, versioned-change-note]
     name: Keep deltas out of a doc body
     kind: pattern
     severity: error
@@ -61,7 +61,7 @@ rules:
       strict: enforced
       normal: enforced
       relaxed: excluded
-    pattern: '\b(previously|formerly|used to (be|do|have)|has been (refactored|migrated|renamed|rewritten)|was (refactored|migrated|renamed|rewritten|extracted)|renamed from|moved (over )?from|we (dropped|removed|changed|switched|migrated)|no longer\b|instead of the old)\b'
+    pattern: '\b(previously|formerly|used to (be|do|have)|has been (refactored|migrated|renamed|rewritten)|was (refactored|migrated|renamed|rewritten|extracted)|renamed from|moved (over )?from|we (dropped|removed|changed|switched|migrated)|instead of the old)\b'
     ignore_case: true
     fix: Delete the delta; a changelog or release note carries it.
     examples:
@@ -77,6 +77,39 @@ rules:
         genre assumption: a changelog, release note, or migration guide exists to
         narrate the delta, so the rule is wrong for the change-comms genre by
         construction.
+
+  - id: no-longer-change
+    exceptions: [quotation, versioned-change-note]
+    name: Keep "no longer" change claims out of a doc body
+    kind: pattern
+    severity: error
+    message: 'history narration: {match} -- state what the artifact does now; the delta belongs in change comms'
+    scope: prose
+    tiers:
+      strict: enforced
+      normal: enforced
+      relaxed: excluded
+    pattern: '\b(no longer (?:supports?|supporting|requires?|requiring|accepts?|accepting|ships?|shipping|includes?|including|provides?|providing|uses?|using|needs?|needing|works?|working|resolves?|resolving|prints?|printing|loads?|loading|reads?|reading|writes?|writing|sends?|sending|creates?|creating|returns?|returning|applies|apply|applying|(?:is|are) (?:available|required))|(?:is|are) no longer (?:available|required|(?:supporting|requiring|accepting|shipping|including|providing|using|needing|working|resolving|printing|loading|reading|writing|sending|creating|returning|applying)))\b'
+    ignore_case: true
+    fix: State the current behaviour; a changelog or release note carries the delta.
+    examples:
+      - bad: The loader no longer resolves paths.
+        good: The loader resolves paths.
+      - bad: The flag is no longer required.
+        good: The flag is optional.
+      - bad: The importer no longer reads the cache.
+        good: Stop polling when the run is no longer live.
+        note: "the good text is runtime state, not a change claim"
+    ai_signal: none
+    ai_signal_source: unmeasured
+    provenance:
+      source: Split from docs-discipline.history-narration (issue 255)
+      url: https://github.com/srobroek/slopvac/issues/255
+      note: >-
+        "no longer" before a change verb narrates a delta. In the prototype run
+        81 of 83 uses described runtime state ("the run is no longer live"), so
+        the phrase alone no longer fires; only a following change verb does.
+        Excluded at relaxed for the same genre reason as history-narration.
 
   - id: internal-refs
     exceptions: [quotation]
