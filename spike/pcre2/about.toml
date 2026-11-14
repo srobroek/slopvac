@@ -1,0 +1,23 @@
+accepted = ["Apache-2.0","MIT","Unicode-3.0","Unlicense","BSD-3-Clause","BSD-2-Clause"]
+
+[pcre2-sys.clarify]
+license = "(MIT OR Unlicense) AND BSD-3-Clause AND BSD-2-Clause"
+
+[[pcre2-sys.clarify.files]]
+path = "COPYING"
+license = "MIT OR Unlicense"
+checksum = "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f"
+
+[[pcre2-sys.clarify.files]]
+path = "upstream/src/pcre2_compile.c"
+license = "BSD-3-Clause"
+start = "Written by Philip Hazel"
+end = "POSSIBILITY OF SUCH DAMAGE."
+checksum = "5d7737ea2017ca42c14e363535d1d611b053e98b76d7486b9e825b6b20ed90c0"
+
+[[pcre2-sys.clarify.files]]
+path = "upstream/deps/sljit/sljit_src/sljitLir.c"
+license = "BSD-2-Clause"
+start = "Copyright Zoltan Herczeg"
+end = "SUCH DAMAGE."
+checksum = "1bc1f100861b4a49d19e483874536955dcfe04730407dfdb5de9027a881057b4"

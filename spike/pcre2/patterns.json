@@ -1,0 +1,1003 @@
+[
+{
+"rule_id": "ai-residue.chat-leakage",
+"source_kind": "pattern",
+"pattern": "(\\bas an AI\\b|\\bas a large language model\\b|\\bI'?m an AI\\b|\\bas of my (last )?(update|knowledge cut[- ]?off)\\b|\\bmy (training data|knowledge) (only )?(goes up to|extends to|cut[- ]?off)\\b|\\bI (cannot|can'?t|am unable to) (browse|access the internet|provide)\\b|\\bI (apologi[sz]e|hope this helps)\\b|\\bfeel free to ask\\b|\\bthis section would (contain|describe|explain)\\b|\\b(insert|your) [a-z ]{3,20} here\\b|oaicite|contentReference|\\[cite:\\s*\\d+\\]|grok_card|【\\d+†[^】]*】)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.contrastive-inversion-frames",
+"source_kind": "pattern",
+"pattern": "\\b(?:it's|it is|this isn't|this is not|that's not|it's not|it isn't)\\s+(?:not|less about)\\b[^.!?]{1,80}\\b(?:it's|it is|and more about|but rather)\\b|(?:^|[.!?][ \\t]+)(?:the|a|an|this|that|these|those|our|your|my|his|her|its|their)\\s+[\\w-]+(?:\\s+[\\w-]+){0,3}\\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must|[a-z][\\w-]*(?:s|ed))\\b(?:\\s+[\\w-]+){0,6}\\s*[,;]\\s+(?:(?:it|this|that|they|these|those)\\s+(?:is|are|was|were|does|do|did|has|have|had|can|cannot|will|would|should|must)\\s+not|not)\\s+[^.!?\\n]{1,50}",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.definitional-negation-pair",
+"source_kind": "pattern",
+"pattern": "\\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\\s+[\\w-]+(?:\\s+[\\w-]+)?|[A-Z][\\w-]*)\\s+(?:is|are|was|were|'s|'re)\\s+(?:not\\s+)?(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\\b[^.!?;\\n]{1,90}[.;:—–]\\s+(?:it|this|that|they|these|those|the\\s+[\\w-]+(?:\\s+[\\w-]+)?|[A-Z][\\w-]*)\\s*(?:(?:is|are|was|were|does|do|did)\\s+not|isn't|aren't|wasn't|weren't|doesn't|don't|didn't|'s\\s+not|'re\\s+not)\\s+(?:(?:about|just|simply|merely|only|whether|because|how|what|where|when|why)\\b|(?:a|an|the|another|some|your)\\s+(?:[\\w-]+\\s+){0,2}?(?:requirement|silver\\s+bullet|magic\\s+bullet|panacea|magic|afterthought|luxury|nice-to-have|checkbox|check-box|formality|ritual|ceremony|badge|trophy|vanity\\s+metric|buzzword|slogan|gimmick|trick|hack|workaround|band-?aid|crutch|stopgap|toy|demo|fad|trend|hype|marketing\\s+\\w+|sales\\s+pitch|dogma|religion|cult|philosophy|mindset|journey|destination|sprint|marathon|race|competition|contest|popularity\\s+contest|excuse|accident|coincidence|mistake|failure|matter\\s+of|question\\s+of|sign\\s+of|one-off|big[- ]bang\\s+\\w+|rewrite|black\\s+box|free\\s+lunch|holy\\s+grail|end\\s+in\\s+itself|means\\s+to\\s+an\\s+end|replacement\\s+for|substitute\\s+for|goal|target|feature|bug|phase|dashboard|guarantee|theory|opinion|exercise|shortcut|place\\s+for|time\\s+for|way\\s+to)\\b|meant\\b|intended\\b|designed\\b|there\\b|here\\b|to\\b)[^.!?\\n]{0,90}|\\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\\s+[\\w-]+(?:\\s+[\\w-]+)?|[A-Z][\\w-]*)\\s*(?:(?:is|are|was|were|does|do|did)\\s+not|isn't|aren't|wasn't|weren't|doesn't|don't|didn't|'s\\s+not|'re\\s+not)\\s+(?:(?:about|just|simply|merely|only|whether|because|how|what|where|when|why)\\b|(?:a|an|the|another|some|your)\\s+(?:[\\w-]+\\s+){0,2}?(?:requirement|silver\\s+bullet|magic\\s+bullet|panacea|magic|afterthought|luxury|nice-to-have|checkbox|check-box|formality|ritual|ceremony|badge|trophy|vanity\\s+metric|buzzword|slogan|gimmick|trick|hack|workaround|band-?aid|crutch|stopgap|toy|demo|fad|trend|hype|marketing\\s+\\w+|sales\\s+pitch|dogma|religion|cult|philosophy|mindset|journey|destination|sprint|marathon|race|competition|contest|popularity\\s+contest|excuse|accident|coincidence|mistake|failure|matter\\s+of|question\\s+of|sign\\s+of|one-off|big[- ]bang\\s+\\w+|rewrite|black\\s+box|free\\s+lunch|holy\\s+grail|end\\s+in\\s+itself|means\\s+to\\s+an\\s+end|replacement\\s+for|substitute\\s+for|goal|target|feature|bug|phase|dashboard|guarantee|theory|opinion|exercise|shortcut|place\\s+for|time\\s+for|way\\s+to)\\b|meant\\b|intended\\b|designed\\b|there\\b|here\\b|to\\b)[^.!?;\\n]{0,90}[.;:—–]\\s+(?:it|this|that|they|these|those|the\\s+[\\w-]+(?:\\s+[\\w-]+)?|[A-Z][\\w-]*)\\s*(?:is|are|was|were|'s|'re)\\s+(?:a|an|the|about|just|simply|merely|only|whether|another|some|meant|intended|designed|there|here|because|how|what|where|when|why|to)\\b[^.!?\\n]{0,90}|\\b(?:it|this|that|they|these|those|(?:the|this|that|these|those|our|your|its|a|an)\\s+[\\w-]+(?:\\s+[\\w-]+)?|[A-Z][\\w-]*)\\s*(?:(?:is|are|was|were|does|do|did)\\s+not|isn't|aren't|wasn't|weren't|doesn't|don't|didn't|'s\\s+not|'re\\s+not)\\s+\\w+[^.!?;\\n]{0,60}[.;:—–]\\s+(?:it|this|that|they|these|those|the\\s+[\\w-]+(?:\\s+[\\w-]+)?|[A-Z][\\w-]*)\\s*(?:is|are|was|were|'s|'re)\\s+\\w+(?:\\s+\\w+)?,\\s+not\\b|\\bnot\\s+because\\b[^.!?\\n]{1,80}\\bbut\\s+because\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.staccato-negative-parallel-frames",
+"source_kind": "pattern",
+"pattern": "(?:\\b[Nn]o(?:t)?\\s+[^.!?\\n]{1,30}\\.\\s+){2,}",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ai-tells-structure.tricolon-abuse-core",
+"source_kind": "pattern",
+"pattern": "\\b((?:fast|faster|quick|quicker|reliable|dependable|secure|safe|safer|robust|resilient|stable|scalable|seamless|smooth|streamlined|efficient|effective|clear|clearer|concise|simple|simpler|easy|easier|easy-to-use|intuitive|user-friendly|flexible|versatile|extensible|powerful|modern|elegant|polished|clean|cleaner|lightweight|performant|maintainable|readable|accessible|engaging|comprehensive|innovative|cutting-edge|consistent|transparent|predictable|responsive|affordable|cheap|cheaper|sustainable|inclusive|actionable|meaningful|impactful|insightful|practical|thoughtful|vibrant|dynamic|holistic|agile|battle-tested|production-ready|future-proof|best-in-class|world-class)),\\s+((?:fast|faster|quick|quicker|reliable|dependable|secure|safe|safer|robust|resilient|stable|scalable|seamless|smooth|streamlined|efficient|effective|clear|clearer|concise|simple|simpler|easy|easier|easy-to-use|intuitive|user-friendly|flexible|versatile|extensible|powerful|modern|elegant|polished|clean|cleaner|lightweight|performant|maintainable|readable|accessible|engaging|comprehensive|innovative|cutting-edge|consistent|transparent|predictable|responsive|affordable|cheap|cheaper|sustainable|inclusive|actionable|meaningful|impactful|insightful|practical|thoughtful|vibrant|dynamic|holistic|agile|battle-tested|production-ready|future-proof|best-in-class|world-class)),\\s+and\\s+(\\w+(?:-\\w+)*(?:\\s+\\w+(?:-\\w+)*)*)\\b(?=[\\s.,;:]|$)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.false-suspense-frames",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:here's\\ where\\ it\\ gets\\ interesting|here's\\ what\\ most\\ people\\ miss|here's\\ what\\ nobody\\ tells\\ you|but\\ here's\\ the\\ problem|here\\ is\\ the\\ thing|here's\\ the\\ kicker|here's\\ the\\ thing|here's\\ the\\ catch|and\\ here's\\ why)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.fragment-question-pivot",
+"source_kind": "pattern",
+"pattern": "\\b[A-Z][a-z]*(?:\\s+\\w+){0,3}\\?\\s+[A-Z]\\w*(?:\\s+\\w+){0,2}\\.",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ai-tells-structure.rhetorical-question-transition",
+"source_kind": "pattern",
+"pattern": "(?m)^\\s*(?:#{1,6}\\s*)?(?:So|But|Now|And)?\\s*(?:why|what|how|who)\\b[^.!?\\n]{0,60}\\?\\s*$",
+"flags": 8234,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.meta-narration-frames",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:let's\\ break\\ this\\ down|let's\\ take\\ a\\ look\\ at|we'll\\ walk\\ through|let's\\ dive\\ into|let's\\ dive\\ in|let's\\ explore|we'll\\ explore|in\\ this\\ guide|let's\\ unpack|buckle\\ up)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.summary-closer-frames",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:that\\ covers\\ the\\ essentials|at\\ the\\ end\\ of\\ the\\ day|the\\ bottom\\ line\\ is|to\\ wrap\\ things\\ up|happy\\ migrating|in\\ conclusion|and\\ that's\\ it|happy\\ hacking|to\\ summarize|to\\ summarise|happy\\ coding|more\\ to\\ come|wrapping\\ up|to\\ wrap\\ up|in\\ summary|all\\ in\\ all|to\\ sum\\ up)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.cataphoric-lead-in-core",
+"source_kind": "pattern",
+"pattern": "\\b(?:there are |falls? into |breaks? down into |comes? down to |divides? into |consists? of |has )?(?:two|three|four|five|six|seven)\\s+(?:pillars|categories|kinds|types|reasons|things|ways|factors|areas|themes|buckets|dimensions|principles|steps)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.absolute-assertion-core",
+"source_kind": "pattern",
+"pattern": "(?i:\\b(?:the only way to|the single most important|make no mistake|there is no substitute for|the one thing you need|without exception the|always the right|never the right)\\b)|\\bEvery\\s+(?:[A-Z][a-z]*\\s+){1,5}(?:Is|Are|Was|Were|Does|Do|Did|Has|Have|Had|Can|Will|Must|Should|Requires?|Accepts?|Maps?|Traces?|Needs?|Uses?|Produces?|Supports?|Contains?|Returns?|Runs?|Fails?)\\s+(?:[A-Z][a-z]*\\s+){0,8}[A-Z][a-z]*(?=[.!?,;:]|$)",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ai-tells-structure.negative-inventory-core",
+"source_kind": "pattern",
+"pattern": "\\b(?:does|do|did)\\s+not\\s+pin\\b|\\bnot\\s+pinned\\b|\\boutside\\s+(?:the\\s+)?(?:scope|tooling|coverage|repository|contract|matrix|current\\s+run)\\b|\\b(?:is|are|was|were)\\s+excluded\\b|\\bexcluded\\s+from\\b|\\bnot\\s+included\\b|\\brecorded\\s+elsewhere\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.negative-guarantee-core",
+"source_kind": "pattern",
+"pattern": "(?:^|(?<=[.!?;:]\\s)|(?<=[.!?]\\s\\s)|(?<=\\u2014)|(?<=\\u2014\\s)|\\b(?=(?:It|They|The|This|These|Those|That|Each|Every|Its|Their)\\s))(?!(?:If|When|Whenever|Because|Although|Though|While|Unless|Since|As|There|Here|Please|Just|And|But|Or|So|Then|Note|Never|Once|After|Before|Until|Where|Why|How|What|Do|Don't|Instead|Otherwise|Thus|Hence|However|Also|Only|Even|Ensure|Make|Verify|Check|Confirm|Assert|Test|Remember|Keep|Use|Set|Configure|Run|Let|Require|Expect)\\b)(?!(?i:(?:must|should|shall|will|would|can|could|may|might|does|do|did|is|are|was|were|has|have|had|be|not|never|and|or|but|if|when|then|so)|you|we|i)\\b)[\\w`'\\x00](?:[\\w`'.-]*[\\w`'\\x00])?(?:\\s+(?!(?i:(?:must|should|shall|will|would|can|could|may|might|does|do|did|is|are|was|were|has|have|had|be|not|never|and|or|but|if|when|then|so)|(?:that|which|who|whom|whose|whether|where|what|how|why|because|than|unless|until|while|once))\\b)[\\w`'\\x00](?:[\\w`'.-]*[\\w`'\\x00])?){0,6}?\\s+(?:(?:itself|themselves|also|still|simply|currently|deliberately|by\\s+design|by\\s+default)\\s+)?(?:never\\s+(?!(?:be|been|before|again|once|ever|mind|[a-z]+(?<!e)ed|was|were|had|did|got|went|saw|made|ran|wrote|came|became|found|left|took|knew|thought|told|said|gave|lost|broke|held|kept|sent|built|caught|fell|grew|drew|threw|spoke|stood|bought|brought|fought|taught|meant|began|chose|drove|understood|ate|drank|slept|swam|sang|sank|sat|rose|rode|flew|forgot|forgave|hid|shook|stole|tore|wore|woke|won|withdrew|withstood|arose|awoke|blew|dealt|dug|fed|felt|fled|froze|heard|laid|led|lent|lit|met|paid|sold|sought|spent|struck|swept|wept|changes?|var(?:y|ies)|exceeds?|happens?|occurs?|exists?|matters?|equals?|says?|states?|mentions?|contains?|overlaps?|appears?|go(?:es)?)\\b)[a-z][\\w-]*|(?:runs|writes|makes|sends|creates|opens|performs|calls|touches|stores|modifies|deletes|issues|emits|spawns|starts|executes|pushes|fetches|contacts|commits|merges|closes|resolves|blocks|edits|uploads|downloads|installs|collects|logs|tracks|caches|retries|mutates|leaks|exposes|grants|deploys|publishes|overwrites|removes|claims|asks)\\s+no\\s+[a-z][\\w-]*|(?:does|do)\\s+not\\s+ever\\s+[a-z][\\w-]*)",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ai-tells-structure.think-of-it-as-core",
+"source_kind": "pattern",
+"pattern": "\\b(?:think of (?:it|this|them) (?:as|like)|imagine (?:it|this|a)|picture (?:it|this|a)|it's (?:kind of |sort of )?like a?)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.vague-attribution-core",
+"source_kind": "pattern",
+"pattern": "\\b(?:experts?|researchers?|analysts?|observers?|critics?|studies|surveys?|reports?|sources?|some|many|most)\\s+(?:agree|say|note|suggest|argue|believe|report|found|indicate|point out|warn)\\b|\\b(?:industry|market|recent)\\s+(?:reports?|studies|research|analysis|data)\\s+(?:shows?|suggests?|indicates?|finds?)\\b|\\bit is (?:widely|generally|commonly) (?:known|believed|accepted|understood|reported)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-structure.audience-straddle-core",
+"source_kind": "pattern",
+"pattern": "\\bwhether you(?:'re| are)\\s+a\\b[^.!?]{1,60}\\bor\\b[^.!?]{1,40}|\\b(?:beginners? and (?:experts?|professionals?|veterans?)|novices? and (?:experts?|professionals?))\\b|\\bseasoned (?:pro|professional|veteran|developer)s?\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.faux-candor-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:if\\ we're\\ being\\ honest|let's\\ be\\ honest|i'll\\ be\\ honest|let's\\ be\\ real|to\\ be\\ honest|the\\ truth\\ is|honestly\\?|real\\ talk)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.intensifier-tics-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:quietly\\ excellent|surprisingly\\ good|deeply\\ satisfying|genuinely\\ useful|fundamentally|refreshingly|remarkably|genuinely|deeply)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.corporate-analytic-filler-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:it\\ is\\ worth\\ noting|the\\ key\\ insight\\ is|it's\\ worth\\ noting|worth\\ noting\\ that|more\\ importantly|at\\ a\\ high\\ level|at\\ its\\ core|importantly|lean\\ into|nuanced|lean\\ in)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.sycophantic-meta-residue",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:you\\ are\\ absolutely\\ right|you're\\ absolutely\\ right|that's\\ a\\ great\\ point|excellent\\ question|absolutely!\\ here|i'd\\ be\\ happy\\ to|certainly!\\ here|great\\ question|happy\\ to\\ help)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.figurative-verb-verdict-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:punches\\ above\\ its\\ weight|does\\ the\\ heavy\\ lifting|the\\ criticism\\ sticks|the\\ argument\\ holds|carries\\ the\\ weight|the\\ claim\\ survives|stays\\ quiet\\ about|the\\ analogy\\ holds|the\\ point\\ lands|earns\\ its\\ keep)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.urgency-inflation-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:the\\ stakes\\ have\\ never\\ been\\ higher|in\\ an\\ increasingly\\ complex\\ world|more\\ important\\ than\\ ever|at\\ an\\ inflection\\ point|in\\ today's\\ fast\\-paced|cannot\\ be\\ overstated|can't\\ be\\ overstated|a\\ critical\\ juncture|now\\ more\\ than\\ ever)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.organic-consequence-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:a\\ natural\\ consequence\\ of|naturally\\ follows\\ from|falls\\ out\\ naturally|emerges\\ organically|emerges\\ naturally|happens\\ by\\ itself|comes\\ for\\ free|falls\\ out\\ of)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.anthropomorphised-justification-core",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:deserves\\ a\\ closer\\ look|settles\\ the\\ debate|pulls\\ its\\ weight|proves\\ its\\ worth|justifies\\ itself|deserves\\ better|earns\\ its\\ keep|load\\-bearing|has\\ earned)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-register.disclaimed-claim-core",
+"source_kind": "pattern",
+"pattern": "\\bmakes?\\s+no\\s+(?:claims?|representations?)\\b|\\b(?:does|do|did)\\s+not\\s+(?:establish|demonstrate)\\s+that\\b|\\bwithout\\s+(?:claiming|implying|asserting)\\b|\\bcannot\\s+independently\\s+(?:verify|confirm|substantiate)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-formatting.title-case-heading",
+"source_kind": "pattern",
+"pattern": "^(?=(?:.*\\b[A-Z][A-Za-z0-9]*(?:[-'’][A-Za-z0-9]+)*\\b){2,})(?:(?:[A-Z][A-Za-z0-9]*(?:[-'’][A-Za-z0-9]+)*|[A-Z]{2,}|`[^`\\n]+`|\\d+(?:\\.\\d+)*|a|an|and|as|at|but|by|for|from|in|into|nor|of|on|or|the|to|up|via|with|without|your|you|is|are|was|were|than|[,:;.!?&()/+-])[,:;.!?)]*(?:[ \\t]+|$))+$",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ai-tells-formatting.italicised-copula",
+"source_kind": "pattern",
+"pattern": "(?<![\\w*])\\*(?:is|are|was|were|not|the|do|does|did|can|will)\\*(?![\\w*])|(?<![\\w_])_(?:is|are|was|were|not|the|do|does|did|can|will)_(?![\\w_])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-formatting.cross-reference-signposting",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:as\\ mentioned\\ earlier|as\\ discussed\\ earlier|as\\ stated\\ previously|as\\ mentioned\\ above|as\\ noted\\ earlier|as\\ we\\ will\\ see|we\\ saw\\ earlier|as\\ we'll\\ see|recall\\ that)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-formatting.emoji-list-markers",
+"source_kind": "pattern",
+"pattern": "(?m)^[ \\t]*[-*+][ \\t]+[\\U0001F300-\\U0001FAFF☀-➿⬀-⯿]️?[ \\t]",
+"flags": 8232,
+"ignore_case": false
+},
+{
+"rule_id": "ai-tells-content-shape.fabricated-citations-core",
+"source_kind": "pattern",
+"pattern": "utm_source=|utm_medium=|utm_campaign=|[?&]fbclid=|[?&]gclid=",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-content-shape.fake-specificity",
+"source_kind": "pattern",
+"pattern": "\\b(?:over|more than|upwards of|nearly|almost)\\s+\\d+\\+|\\b\\d+\\+\\s+(?:different\\s+)?(?!(?:to|of|and|or|the|a|an|is|are|was|were|for|in|on|at|by)\\b)\\w{3,}|\\ba wide range of\\b|\\ba broad range of\\b|\\ba host of\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-content-shape.superficial-ing-analysis",
+"source_kind": "pattern",
+"pattern": ",\\s+(?:highlighting|underscoring|emphasi[sz]ing|ensuring|showcasing|demonstrating|reflecting|illustrating|reinforcing|signalling|signaling|making it|allowing for|paving the way|cementing|solidifying)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-content-shape.durable-vocabulary-habits",
+"source_kind": "substitution",
+"pattern": "(?:\\brepresents(?=\\s+(?:a|an)\\s+(?:\\w+\\s+)?(?:significant|substantial|major|important|pivotal|key|fundamental|dramatic|bold|huge|giant|big|step|shift|leap|milestone|turning|departure|evolution|breakthrough|commitment)\\b))|(?:\\boffers(?!\\s+(?:you\\s+)?(?:a|an|the)\\s+(?:[\\w-]+\\s+)?(?:path|way|approach|means|route|balance|trade-?off|alternative|compromise|middle)\\b)(?=\\s+(?:a|an|the|you|\\d)\\b))|(?:\\bplays a (?:vital|key|crucial|critical|central|pivotal) role\\b)|(?:\\bfeatures(?=\\s+(?:a|an|the|\\d)\\b))|(?:\\bunderscores the importance of\\b)|(?:(?<!such )\\bacts as\\b)|(?:\\bis designed to\\b)|(?:\\bserves as\\b)|(?:\\bstands as\\b)|(?:\\bboasts\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-agentic.formulaic-universal-heading",
+"source_kind": "pattern",
+"pattern": "^every\\s+[\\w-]+\\s+(?:is|are|was|were|has|have|does|do|can|cannot|will|would|should|must|[a-z][\\w-]*(?<!s)s)(?:\\s+[\\w-]+){2,8}$",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-sits",
+"source_kind": "pattern",
+"pattern": "\\bsit(?:s|ting)? (?:squarely |firmly |neatly |cleanly |comfortably |uncomfortably |uneasily |awkwardly |snugly )?at the (?:intersection|center|centre|core|nexus|crux|crossroads|confluence|junction|foundation|edge|apex|boundary) of\\b|\\bsit(?:s|ting)? somewhere (?:between|in|along|on|near|toward|around|beyond)\\b|\\bsit(?:s|ting)? (?:squarely|firmly|neatly|cleanly|comfortably|uncomfortably|uneasily|awkwardly|snugly|precariously) (?:within|inside|in|at|on|alongside|atop|above|below|beneath|beside|between|with|next|among|amid|outside)\\b|\\bsit(?:s|ting)? (?:alongside|atop|astride)\\b|\\bsit(?:s|ting)? with\\b|\\bsit(?:s|ting)? (?:squarely |firmly |neatly |comfortably )?within\\b|\\bjust sit(?:s|ting)? there\\b|\\bsit(?:s|ting)? in isolation\\b|\\bsit(?:s|ting)? (?:idle|unused|untouched|unresolved|unaddressed|unfinished|dormant|neglected|stale|forgotten|abandoned)\\b|\\bsit(?:s|ting)? (?:right|well|poorly|badly|wrong)\\b|\\bsit(?:s|ting)? (?:heavy|heavily)\\b|\\bsit(?:s|ting)? (?:at odds|in tension|in conflict|in opposition) (?:with|to)\\b|\\bsit(?:s|ting)? in (?:limbo|purgatory|a holding pattern|the balance|a gr[ae]y area|no man's land)\\b|\\bsit(?:s|ting)? front and cent(?:er|re)\\b|\\bsit(?:s|ting)? on the fence\\b|\\bsit(?:s|ting)? (?:just |right |directly )?(?:above|below|beneath|underneath|on top of) the (?:\\w+ )?(?:layer|stack|tier|level|hierarchy|pipeline|chain)\\b|\\bsit(?:s|ting)? at the top of the (?:agenda|priority|priorities|to-?do|backlog|pile|queue)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-runs",
+"source_kind": "pattern",
+"pattern": "\\brun(?:s|ning)? deep(?:er)?\\b|\\brun(?:s|ning)? counter to\\b|\\brun(?:s|ning)? afoul of\\b|\\brun(?:s|ning)? roughshod over\\b|\\brun(?:s|ning)? the (?:full )?(?:gamut|spectrum)\\b|\\brun(?:s|ning)? the show\\b|\\brun(?:s|ning)? the risk of\\b|\\brun(?:s|ning)? interference\\b|\\brun(?:s|ning)? (?:circles|rings) around\\b|\\brun(?:s|ning)? on (?:fumes|empty|borrowed time)\\b|\\bran on (?:fumes|empty|borrowed time)\\b|\\brun(?:s|ning)? dry\\b|\\bran dry\\b|\\brun(?:s|ning)? (?:its|their) course\\b|\\bran (?:its|their) course\\b|\\brun(?:s|ning)? out of runway\\b|\\bran out of runway\\b|\\b(?:run(?:s|ning)?|ran) (?:under|underneath|beneath|behind|through) (?:the (?:whole|entire) \\w+|it all)\\b|\\b(?:themes?|threads?|currents?|undercurrents?|tensions?|assumptions?|through-?lines?) (?:that )?(?:runs?|ran|running) (?:through|under|beneath|across)\\b|\\b(?:run(?:s|ning)?|ran) beneath the surface\\b|\\bhit the ground running\\b|\\boff and running\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-falls",
+"source_kind": "pattern",
+"pattern": "\\bfall(?:s|ing)? short\\b|\\bfall(?:s|ing)? flat\\b|\\bfall(?:s|ing)? apart\\b|\\bfall(?:s|ing)? to pieces\\b|\\bfall(?:s|ing)? through(?:\\b|$)|\\bfall(?:s|ing)? behind\\b|\\bfall(?:s|ing)? under (?:the (?:category|heading|umbrella|banner|purview|remit|scope|rubric)|\\w+ jurisdiction)\\b|\\bfall(?:s|ing)? (?:squarely |neatly |cleanly |broadly )?within (?:the )?(?:scope|remit|purview|bounds|category|realm|domain|ambit)\\b|\\bfall(?:s|ing)? outside (?:the )?(?:scope|remit|purview|bounds|category|realm|domain)\\b|\\bfall(?:s|ing)? into place\\b|\\bfall(?:s|ing)? into line\\b|\\bfall(?:s|ing)? into the (?:trap|habit|pattern|category) of\\b|\\b(?:responsibility|responsibilities|the task|the job|the duty|the burden|the onus|the decision|the choice|the call|the blame|the work|it all) falls? (?:to|on|upon)\\b|\\bfall(?:s|ing)? by the wayside\\b|\\bfall(?:s|ing)? through the cracks\\b|\\bfall(?:s|ing)? on deaf ears\\b|\\bfall(?:s|ing)? out of (?:favor|favour|use|fashion|style)\\b|\\bfall(?:s|ing)? off (?:the|a) (?:radar|cliff|map|table|rails)\\b|\\bfall(?:s|ing)? into (?:disrepair|disuse|obscurity|oblivion|neglect)\\b|\\bfall(?:s|ing)? (?:victim|prey) to\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-draws",
+"source_kind": "pattern",
+"pattern": "\\bdraw(?:s|ing)? (?:heavily |largely |partly |loosely )?(?:on|upon) (?:the |its |a |an |our |their |years of |decades of |a rich |a long )?\\w+|\\bdrew (?:heavily |largely |partly |loosely )?(?:on|upon)\\b|\\bdraw(?:s|ing)? inspiration from\\b|\\bdrew inspiration from\\b|\\bdraw(?:s|ing)? (?:a|an|the|clear|sharp) (?:distinction|parallel|comparison|analogy|contrast|line|connection)\\b|\\bdrew (?:a|an|the|clear|sharp) (?:distinction|parallel|comparison|analogy|contrast|line|connection)\\b|\\bdraw(?:s|ing)? comparisons\\b|\\bdraw(?:s|ing)? (?:attention|scrutiny|criticism|praise|fire|the eye|the reader'?s eye|focus) (?:to|toward|towards)?\\b|\\bdrew (?:attention|scrutiny|criticism|praise|fire|the eye|focus)\\b|\\bdraw(?:s|ing)? to a (?:close|end)\\b|\\bdrew to a (?:close|end)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-casts",
+"source_kind": "pattern",
+"pattern": "\\bcast(?:s|ing)? (?:serious |real |some |considerable )?doubt (?:on|over|upon)\\b|\\bcast(?:s|ing)? a (?:long |dark |lingering )?shadow (?:on|over|across)?\\b|\\bcast(?:s|ing)? a pall\\b|\\bcast(?:s|ing)? aspersions\\b|\\bcast(?:s|ing)? (?:new )?light on\\b|\\bcast(?:s|ing)? (?:it|this|that|them|the \\w+) in a (?:new|different|positive|negative|favorable|favourable) light\\b|\\bcast(?:s|ing)? a wide net\\b|\\bcast(?:s|ing)? the net wide\\b|\\bcast(?:s|ing)? aside\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-strikes",
+"source_kind": "pattern",
+"pattern": "\\b(?:strike|strikes|striking) a (?:chord|nerve)\\b|\\bstruck a (?:chord|nerve)\\b|\\b(?:strike|strikes|striking) (?:the right|a|an?) (?:note|tone|chord)\\b|\\bstruck (?:the right|a|an?) (?:note|tone|chord)\\b|\\b(?:strike|strikes|striking) at the (?:core|center|centre|root) of\\b|\\bstruck at the (?:core|center|centre|root) of\\b|\\b(?:strike|strikes|striking) close to home\\b|\\b(?:strike|strikes|striking) gold\\b|\\bstruck gold\\b|\\bstrike while the iron is hot\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-wins",
+"source_kind": "pattern",
+"pattern": "\\bwin(?:s|ning)? the day\\b|\\bwon the day\\b|\\bwin(?:s|ning)? out\\b|\\bwon out\\b|\\bwin(?:s|ning)? hands down\\b|\\bcom(?:es|ing)? out on top\\b|\\bcame out on top\\b|\\bwin(?:s|ning)? hearts and minds\\b|\\ban? (?:quick|easy|clear|big|huge|major|real|cheap|early|guaranteed|obvious) win\\b|\\b(?:quick|easy|cheap|early) wins\\b|\\b(?:chalk|notch|score|rack|bank|log)(?:s|ed|ing)? up (?:a|another|some|several)? ?wins?\\b|\\bfor the win\\b|\\ba winning (?:formula|combination|combo|strategy|streak|hand|recipe|play|move)\\b|\\bthe winning (?:formula|combination|combo|strategy|hand|recipe|play|move)\\b|\\bwin-win\\b|\\bwin/win\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-lends",
+"source_kind": "pattern",
+"pattern": "\\blend(?:s|ing)? itself (?:well |neatly |naturally |readily )?to\\b|\\blend(?:s|ing)? themselves (?:well |neatly |naturally |readily )?to\\b|\\blend(?:s|ing)? (?:credence|credibility|weight|gravitas|authority|legitimacy|support|nuance|texture|color|colour|depth|clarity)\\b|\\blent (?:credence|credibility|weight|gravitas|authority|legitimacy|support|nuance|texture|color|colour|depth|clarity)\\b|\\blend(?:s|ing)? an (?:air|aura|element|element of surprise|impression) (?:of|to)\\b|\\blend(?:s|ing)? a hand\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-rides",
+"source_kind": "pattern",
+"pattern": "\\b(?:ride|rides|riding) on (?:whether|a single|(?:this |that )?one \\w+|(?:the|this|that) (?:assumption|premise|hope|outcome|answer|result|success)|an assumption)\\b|\\b(?:everything|it all|a lot|much|the whole \\w+) (?:ride|rides|riding) on\\b|\\b(?:ride|rides|riding) along\\b|\\b(?:ride|rides|riding) shotgun\\b|\\bhitch(?:es|ed|ing)? a ride\\b|\\balong for the ride\\b|\\bfree ride\\b|\\b(?:ride|rides|riding) on top of\\b|\\b(?:ride|rides|riding) (?:the|a|that) wave\\b|\\b(?:ride|rides|riding) (?:on the |the )?coattails\\b|\\b(?:ride|rides|riding) the momentum\\b|\\b(?:ride|rides|riding) high\\b|\\b(?:ride|rides|riding) the (?:index|cache|(?:hot|fast|slow|happy|read|write|critical) path|pipeline|queue|wire|backbone|mainline|gradient|event loop|fast lane)\\b|\\b(?:ride|rides|riding) herd on\\b|\\blet it ride\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.figurative-loud",
+"source_kind": "pattern",
+"pattern": "\\bloudly (?:announces?|proclaims?|declares?|complains?|protests?|objects?|warns?|signals?|advertises?|broadcasts?|fails?|logs?|flags?|insists?|demands?|trumpets?|telegraphs?)\\b|\\b(?:fails?|failing|failed|breaks?|breaking|broke|errors?|erroring|errored|crashes?|complains?|complained) loudly\\b|\\b(?:sends?|sending|sent|throws?|throwing|threw|emits?|emitting|emitted) (?:a|an|off a|out a) loud (?:signal|warning|message|alarm|alert)\\b|\\ba loud (?:signal|warning|message) (?:about|that|to)\\b|\\bloud and clear\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.resonate-overuse",
+"source_kind": "pattern",
+"pattern": "\\bresonat(?:e|es|ed|ing)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ai-tells-figurative.colloquial-assessment",
+"source_kind": "pattern",
+"pattern": "\\bthe (?:joke|point|argument|line|metaphor|analogy|comparison|critique|distinction|observation|framing|insight|takeaway|punchline|callback|bit|reference|callout) (?:really |actually |just |finally )?lands?\\b|\\bthe (?:joke|point|argument|line|metaphor|analogy|comparison|critique|distinction|observation|framing|insight|takeaway|punchline|callback|bit|reference|callout) (?:really|actually|just|finally) landed\\b|\\b(?:really|actually) lands\\b|\\b(?:really|actually) landed\\b|\\bland(?:s|ed)? flat\\b|\\bwhere (?:it|this|that|everything|the whole thing) (?:really |finally |ultimately |just |all )?lands?\\b|\\bis the move\\b|\\bwas the move\\b|\\b(?:that|this)'?s the move\\b|\\bthe (?:right|smart|obvious) move\\b|\\bthe play here\\b|\\bthe move here\\b|\\bwhat (?:really|truly|actually|genuinely) matters\\b|\\bwhat matters most\\b|\\ball that (?:really |truly |actually )?matters\\b|\\bthe only thing that (?:really |truly |actually )?matters\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-promotion.promotional-puffery",
+"source_kind": "pattern",
+"pattern": "\\bnestled (?:in|between|among|alongside|within) (?:the|a)?\\b|\\b(?:in|at) the heart of\\b|\\brich cultural heritage\\b|\\brich (?:history and|and diverse|and vibrant)\\b|\\bvibrant (?:community|culture|ecosystem|atmosphere)\\b|\\bnatural beauty\\b|\\ba (?:hub for|hub of|dynamic hub|thriving hub|cultural hub)\\b|\\ba beacon (?:of|for)\\b|\\ba treasure trove (?:of|for)\\b|\\ba (?:shining|prime) example\\b|\\ba masterclass in\\b|\\ba testament to (?:the|its)\\b|\\brenowned for (?:its|their)\\b|\\bwidely (?:regarded as|recognized as|considered)\\b|\\bhas emerged as (?:a|the)\\b|\\bhas established itself as\\b|\\bcontinues to (?:thrive|grow|inspire)\\b|\\bleft an indelible (?:mark|impact)\\b|\\bleaving an indelible mark\\b|\\bleft a lasting (?:impact|impression)\\b|\\bleaving a lasting impact\\b|\\b(?:a lasting|enduring) legacy\\b|\\benduring impact\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-promotion.strategy-buzzwords",
+"source_kind": "pattern",
+"pattern": "\\bflywheel effect\\b|\\b(?:growth|data|content|engagement|customer|revenue|sales|marketing|business|virtuous|self-?reinforcing) flywheels?\\b|\\b(?:build|building|built|create|creates|created|creating|spin|spins|spinning|start|starts|started|starting) (?:a |the |our |its |their )?flywheels?\\b|\\b(?:competitive|economic|defensible|durable|structural|wide|deep|business|data|regulatory|technological|distribution) moats?\\b|\\b(?:build|building|built|widen|widens|widening|widened|deepen|deepens|deepening|deepened|create|creates|created|creating) (?:a |the |our |its |their |wider |deeper )?moats?\\b|\\bmoats? (?:around|against) (?:the |our |its |their |your )?(?:business|company|product|platform|franchise|market|position|revenue|profits?|margins?|data|ecosystem|core)\\b|\\bnorth[- ]star metric\\b|\\bnorth-star\\b|\\b(?:our|your|their|its) north star\\b|\\bnetwork effects?\\b|\\bfirst[- ]mover advantage\\b|\\b(?:market|customer|data|talent|competitive|global|massive|enterprise) land[- ]grab\\b|\\bland[- ]grab for\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-promotion.promotional-adjective-noun",
+"source_kind": "pattern",
+"pattern": "\\b(?:multifaceted|intricate|transformative|groundbreaking|unparalleled|unprecedented|pivotal|innovative|sophisticated) [a-z]+\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-promotion.promotional-verbs",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:spearheading|showcasing|spearheads|showcases|embarking|fostering|spearhead|showcase|embarks|fosters|embark|foster)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "docs-discipline.status-language",
+"source_kind": "pattern",
+"pattern": "\\b(under construction|work[- ]in[- ]progress|WIP|coming soon|Draft(?!\\s+(?-i:a|an|the|your)\\b)|being (specified|designed|implemented|built)|not yet (implemented|supported|available)|will (eventually|later|soon)\\b|to be (implemented|defined|determined)|TBD|TODO|for now|at the moment|currently(?! (running|active|open|connected|executing|loaded|mounted))|as of (now|writing|today)|planned( for)?|on the roadmap|in (a )?future (release|version)|stay tuned)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "docs-discipline.history-narration",
+"source_kind": "pattern",
+"pattern": "\\b(previously|formerly|used to (be|do|have)|has been (refactored|migrated|renamed|rewritten)|was (refactored|migrated|renamed|rewritten|extracted)|renamed from|moved (over )?from|we (dropped|removed|changed|switched|migrated)|no longer\\b|instead of the old)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "docs-discipline.internal-refs",
+"source_kind": "pattern",
+"pattern": "(\\bspecs?/|\\.specify/|\\bADRs?\\b|\\bADR[- ]?\\d+|\\bconstitution\\b|\\bdesign doc(ument)?\\b|per the spec\\b|as specified in\\b|extracted from\\b|mirrors (the )?\\w+ (package|repo)|aligned with\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "orwell.stale-figure",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:navigate\\ the\\ complexities\\ of|the\\ elephant\\ in\\ the\\ room|hit\\ the\\ ground\\ running|at\\ the\\ end\\ of\\ the\\ day|harness\\ the\\ power\\ of|peel\\ back\\ the\\ layers|unlock\\ the\\ power\\ of|tip\\ of\\ the\\ iceberg|double\\-edged\\ sword|low\\-hanging\\ fruit|move\\ the\\ needle|in\\ the\\ realm\\ of|paradigm\\ shift|a\\ testament\\ to|perfect\\ storm|silver\\ bullet|game\\ changer|secret\\ sauce|holy\\ grail|deep\\ dive)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "orwell.not-un",
+"source_kind": "pattern",
+"pattern": "\\bnot\\s+un\\w+",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "orwell.compound-preposition",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:in\\ spite\\ of\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:despite\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:at\\ this\\ point\\ in\\ time)(?![\\w-])|(?<![\\w-])(?:due\\ to\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:for\\ the\\ purpose\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ event\\ that)(?![\\w-])|(?<![\\w-])(?:with\\ respect\\ to)(?![\\w-])|(?<![\\w-])(?:subsequent\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ order\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ view\\ of)(?![\\w-])|(?<![\\w-])(?:by\\ dint\\ of)(?![\\w-])|(?<![\\w-])(?:prior\\ to)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "orwell.unsupported-evaluative",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:enterprise\\-grade|industry\\-leading|state\\-of\\-the\\-art|blazingly\\ fast|lightning\\-fast|comprehensive|battle\\-tested|cutting\\-edge|world\\-class|powerful|seamless|robust)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-agency.false-agency",
+"source_kind": "pattern",
+"pattern": "\\b(the )?(complaint|request|question|concern|idea|suggestion|feedback|bug report)s?\\s+(becomes?\\s+(?:a|an|the|our|your|their|its|part of)|turns? into|grows? into|evolves? into)\\b|\\b(the )?(bet|decision|project|initiative|effort|strategy)s?\\s+(lives? or dies?|takes? on a life|makes? itself)\\b|\\b(the )?(data|metrics?|numbers?|evidence|research|code)\\s+(tells? (us|you|me)|says? that|suggests? that|wants? to|knows?|believes?)\\b|\\b(the )?(culture|conversation|discourse|narrative|momentum|industry|market)s?\\s+(shifts?|moves? toward|rewards?|punishes?|decides?|demands?)\\b|\\b(the )?(decision|consensus|answer|conclusion|solution)s?\\s+(emerges?|arrives?|presents? itself|reveals? itself)\\b|\\bstops? being\\b[^.!?]{1,40}\\band starts? being\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-agency.agentless-passive",
+"source_kind": "pattern",
+"pattern": "\\bit (?!is assumed\\s+that\\s+(?:the\\s+)?(?:reader|readers|audience|you)\\b)(?:is|was) (?:believed|thought|felt|assumed|expected|understood|considered|argued|reported|hoped|suggested|recognized|recognised)\\s+that\\b|\\b(?:mistakes|errors|choices|assumptions|concessions|compromises)\\s+were made\\b|\\bthe (?:decision|conclusion|agreement|consensus|determination)\\s+was (?:reached|made|taken|arrived at)\\b|\\b(?:it|this) was (?:decided|agreed|determined|concluded|resolved)\\b(?!\\s+to be\\b)|\\b(?:steps?|actions?|measures?)\\s+(?:was|were) taken\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-agency.anthropomorphism",
+"source_kind": "pattern",
+"pattern": "\\b(?:the )?(?:PC|app|apps|platform|service|computer|machine|program|script|parser|linter|compiler|gate|hook|loader|server|client|daemon|process|database|engine|object|software|hardware|system|tool|binary|agent|model|API|CLI|runtime|framework|library|module|function|algorithm)s?\\s+(?:just |simply |already |also |never |always )?(?:sees|saw|tells|told|thinks|thought|wants|wanted|cares|realises|realizes|realised|realized|assumes|assumed|knows|knew|remembers|remembered|decides|decided|refuses|refused|demands|demanded|understands|understood|believes|believed|hopes|hoped|prefers|preferred|expects|expected|feels|felt|guesses|guessed|worries|worried|is happy|is confused|gets confused|is smart enough)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-agency.narrator-distance",
+"source_kind": "pattern",
+"pattern": "(?m)^\\s*(?:[-*]\\s+|>\\s+)?(?:[Ll]ook,|[Ss]ee,|[Ll]isten,)\\s|\\b(?:[Pp]eople|[Ee]ngineers|[Dd]evelopers|[Tt]eams|[Uu]sers|[Mm]ost folks)\\s+tend to\\b|\\b[Nn]obody\\s+(?:designed|planned|intended|chose|decided|asked for)\\b|\\b(?:[Ee]veryone|[Nn]obody|[Nn]o one)\\s+(?:knows|thinks|assumes|believes|wants)\\b",
+"flags": 8232,
+"ignore_case": false
+},
+{
+"rule_id": "prose-agency.unattributed-recommendation",
+"source_kind": "pattern",
+"pattern": "\\bit(?:\\s+is|'s|\\s+was)\\s+(?:(?:not|highly|strongly|generally)\\s+)?(?:recommended|advised|suggested|encouraged|considered good practice|best practice|preferable|advisable)\\b|\\bthe recommended (?:approach|way|method|practice|option) is\\b|\\b(?:best|common) practice (?:is|dictates|suggests)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.acronym-periods",
+"source_kind": "pattern",
+"pattern": "\\b(?:[A-Z]\\.){3,5}",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.ambiguity",
+"source_kind": "pattern",
+"pattern": "\\b(?:and/or|or/and)\\b|\\bhis/her\\b|\\b(?:bi[- ]?weekly|bi[- ]?monthly|bi[- ]?annual(?:ly)?)\\b|\\b12\\s?(?:am|pm|a\\.m\\.|p\\.m\\.)\\b|\\b(?:last|next)\\s+version\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.articles",
+"source_kind": "substitution",
+"pattern": "(?:\\ban one[- ]?time\\b)|(?:\\ba HTTPS\\b)|(?:\\ban UUID\\b)|(?:\\ban JSON\\b)|(?:\\ban YAML\\b)|(?:\\ba HTML\\b)|(?:\\ba HTTP\\b)|(?:\\ban URL\\b)|(?:\\ban URI\\b)|(?:\\ban USB\\b)|(?:\\ban UTF\\b)|(?:\\ban GUI\\b)|(?:\\ban GPU\\b)|(?:\\ban PDF\\b)|(?:\\ban CPU\\b)|(?:\\ban CSV\\b)|(?:\\ban RAM\\b)|(?:\\ba FTP\\b)|(?:\\ba LLM\\b)|(?:\\ba LTS\\b)|(?:\\ba MP3\\b)|(?:\\ba NDA\\b)|(?:\\ba RFC\\b)|(?:\\ba RSS\\b)|(?:\\ba RPC\\b)|(?:\\ba SDK\\b)|(?:\\ba SSH\\b)|(?:\\ba SSL\\b)|(?:\\ba SVG\\b)|(?:\\ba SSD\\b)|(?:\\ba API\\b)|(?:\\ba IDE\\b)|(?:\\ba XML\\b)|(?:\\ba XSS\\b)|(?:\\ban UI\\b)|(?:\\ban UX\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.command-prompt",
+"source_kind": "pattern",
+"pattern": "(?m)^[ \\t]*(?:\\$|❯|PS[ \\t]*[A-Za-z]:\\\\[^\\n>]*>)[ \\t]+[A-Za-z_./~-]",
+"flags": 8232,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.conflict-markers",
+"source_kind": "pattern",
+"pattern": "(?m)^(?:<{7}(?:\\s|$)|={7}$|>{7}(?:\\s|$))",
+"flags": 8232,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.dead-opener",
+"source_kind": "pattern",
+"pattern": "(?m)(?:^|(?<=[.!?;]\\s)|(?<=^[-*]\\s)|(?<=^>\\s))\\s*[Tt]here\\s+(?:is|are|was|were|will be|has been|have been)\\b|(?:^|(?<=[.!?;]\\s))\\s*[Ii]t\\s+(?:is|was)\\s+(?:important|worth|essential|critical|necessary|useful|helpful|possible|interesting|notable|clear|obvious|apparent|recommended|advisable)\\s+(?:to\\s+)?(?:note|mention|remember|point out|observe|understand|see|say)?\\b",
+"flags": 8232,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.directional-ref",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:(?:as )?(?:shown|described|outlined|listed|defined|detailed|specified|explained|discussed|mentioned|noted) above)(?![\\w-])|(?<![\\w-])(?:(?:as )?(?:shown|described|outlined|listed|defined|detailed|specified|explained|discussed|noted) below)(?![\\w-])|(?<![\\w-])(?:(?:the |this )?(?:table|section|figure|diagram|example|screenshot|chart|step|command|code) below)(?![\\w-])|(?<![\\w-])(?:(?:the |this )?(?:table|section|figure|diagram|example|screenshot|chart|step|command|code) above)(?![\\w-])|(?<![\\w-])(?:the below (?:table|section|figure|diagram|image|example|list|code|command|step)s?)(?![\\w-])|(?<![\\w-])(?:the above (?:table|section|figure|diagram|image|example|list|code|command|step)s?)(?![\\w-])|(?<![\\w-])(?:in the (?:left|right) (?:column|panel|sidebar|nav|navigation|menu|pane))(?![\\w-])|(?<![\\w-])(?:(?:to|on|in) the (?:left|right)(?: side)?(?: of)?)(?![\\w-])|(?<![\\w-])(?:(?:left|right) side of the (?:page|screen|window))(?![\\w-])|(?<![\\w-])(?:(?:left|right)[- ]hand side)(?![\\w-])|(?<![\\w-])(?:scroll (?:left|right))(?![\\w-])|(?<![\\w-])(?:see\\ below)(?![\\w-])|(?<![\\w-])(?:see\\ above)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.first-person-plural",
+"source_kind": "pattern",
+"pattern": "\\b(?:[Ww]e|[Ww]e'(?:ve|re|ll|d))\\s+(?=\\w)|\\b[Oo]ur\\s+(?=\\w)|\\b[Ll]et's\\b",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.future-tense",
+"source_kind": "pattern",
+"pattern": "\\b(?!(?:(?<=\\bthat\\s+)|(?<=\\b(?:which|where|when|what)(?:\\s+[\\w-]+){0,2}\\s+))(?:will|shall)\\s+(?:not\\s+)?be\\b)(?:will|shall)\\s+(?:not\\s+)?(?=[a-z])|\\b(?:we|it|this|that|you|they)'ll\\b|\\b(?:is|are) going to\\s+(?=[a-z])",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.gerund-heading",
+"source_kind": "pattern",
+"pattern": "^\\w+ing\\s+(?:a|an|the|your|this|these)\\s+\\w+",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.hyphens",
+"source_kind": "pattern",
+"pattern": "\\b[^\\s-]+ly-\\w+\\b",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.latinisms",
+"source_kind": "substitution",
+"pattern": "(?:\\b(?:e\\.g\\.|eg\\.|e\\.g)(?=[\\s,]))|(?:\\b(?:i\\.e\\.|ie\\.|i\\.e)(?=[\\s,]))|(?:\\betc\\.?(?=[\\s,)]|$))|(?:\\bvs\\.?(?=\\s))|(?:\\bad hoc\\b)|(?:\\bper se\\b)|(?:\\bN\\.B\\.)|(?:\\bviz\\.)|(?:\\bvia\\b)|(?:\\bcf\\.)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.link-text",
+"source_kind": "pattern",
+"pattern": "\\[[^\\]]*\\b(?:here|this|this link|this page|this document|click here|read more|learn more|find out more|see (?:here|more)|more|link|page|the docs?|documentation|website|site)\\b[^\\]]*\\]\\(",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.misnomer",
+"source_kind": "pattern",
+"pattern": "\\b(?:ATM machine|PIN number|GUI interface|CLI interface|API interface|HIV virus|LCD display|LED display|PDF format|ISBN number|RPC call|SQL language|IP protocol|DNS server system|SSL layer|TLS layer|CSS stylesheet|HTTP protocol|HTTPS protocol|URL locator|URI identifier|RAM memory|ROM memory|CPU unit|GPU unit|SIM card module|UUID identifier|JSON notation|YAML language|HTML language|XML language|CSV values|SaaS service|IDE environment|VM machine|SSH shell|TCP protocol|UTC time|DST time|RSS feed syndication|OTP password|MFA authentication|2FA authentication|SDK kit|LAN network|WAN network|VPN network|NIC card|BIOS system|RAS syndrome)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.negative-requirement",
+"source_kind": "pattern",
+"pattern": "\\b(?:cannot|can't|will not|won't|do not|don't|does not|doesn't|unable to|not possible|not available|not accessible|no way)\\b[^.!?\\n]{1,60}\\b(?:without|unless|until you)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.optional-plural",
+"source_kind": "pattern",
+"pattern": "\\b\\w+\\((?:s|es)\\)",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.ordinals",
+"source_kind": "pattern",
+"pattern": "\\b(?:firstly|secondly|thirdly|fourthly|fifthly|lastly)\\b|(?<!\\w)\\d{1,2}(?:st|nd|rd|th)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.politeness",
+"source_kind": "pattern",
+"pattern": "(?<![\\w-])please\\b|\\bthank(?:s| you)\\b|\\bkindly\\s+(?=\\w)|\\b(?:sorry|we(?:'re| are) sorry|apologies)\\b|\\bunfortunately\\b|\\bfeel free to\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.redundancy",
+"source_kind": "pattern",
+"pattern": "\\b(?:past history|future plans?|end result|final outcome|new innovations?|free gifts?|added bonus|component parts?|basic fundamentals?|close proximity|advance (?:warning|planning)|unexpected surprise|personal opinion|brief summary|final conclusion|empty space)\\b|\\b(?:merge|combine|collaborate|join|link|connect|assemble|group|aggregate|consolidate)\\s+together\\b|\\b(?:revert|refer|return|reply|recall|repeat|retreat)\\s+back\\b|\\bplan(?:ning|ned)?\\s+ahead\\b|\\brise\\s+up\\b|\\bdescend\\s+down\\b|\\bthe reasons? why\\b|\\bin order to be able to\\b|\\b(?:generally|usually|normally|often)\\s+always\\b|\\b(?:exact|precise|accurate)\\s+estimate\\b|\\bincreasingly\\s+less\\b|\\bfound\\s+missing\\b|\\bconspicuous(?:ly)?\\s+absen(?:t|ce)\\b|\\bmandatory\\s+(?:choice|option)\\b|\\bcompletely\\s+obsolescent\\b|\\babsolutely\\s+(?:essential|necessary)\\b|\\bcompletely\\s+(?:eliminate|destroy|finish)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.relative-date",
+"source_kind": "pattern",
+"pattern": "\\b(?:recently|lately|nowadays|these days|of late|historically)\\b|\\b(?:last|this|next|past|coming|previous|upcoming)\\s+(?:week|month|quarter|year|release|version|sprint)\\b|\\b(?:a|one|two|three|several|few)\\s+(?:days?|weeks?|months?|years?)\\s+ago\\b|\\b(?:in|since|as of)\\s+(?:the\\s+)?(?:last|past|recent|coming)\\s+(?:few\\s+)?(?:days?|weeks?|months?|years?)\\b|\\b(?:yesterday|today|tomorrow)\\b|\\bthe other (?:day|week)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.self-reference",
+"source_kind": "pattern",
+"pattern": "\\b(?:this|the (?:following|preceding|current|next|previous))\\s+(?:section|chapter|subsection|topic|module|assembly|part)\\b|\\bin the (?:sections?|chapters?) that follows?\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.spacing",
+"source_kind": "pattern",
+"pattern": "(?<!\\d)[a-z][.?!] {2,}[A-Z]|(?<!\\d)[a-z][.?!][A-Z][a-z]",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.unclear-antecedent",
+"source_kind": "pattern",
+"pattern": "(?m)(?:^\\s*|(?<=[.!?;]\\s)|(?<=^[-*]\\s)|(?<=^>\\s))(?:This|That|These|Those)\\s+(?:is|are|was|were|means?|makes?|gives?|lets?|causes?|happens?|works?|matters?|helps?)\\b",
+"flags": 8232,
+"ignore_case": false
+},
+{
+"rule_id": "prose-craft.versions",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:(?:higher|newer) versions?)(?![\\w-])|(?<![\\w-])(?:(?:lower|older) versions?)(?![\\w-])|(?<![\\w-])(?:(?:and|or) higher)(?![\\w-])|(?<![\\w-])(?:(?:and|or) newer)(?![\\w-])|(?<![\\w-])(?:(?:and|or) lower)(?![\\w-])|(?<![\\w-])(?:(?:and|or) older)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.wordiness",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:a (?:large |small |good |fair )?(?:number|amount) of)(?![\\w-])|(?<![\\w-])(?:on a (?:daily|weekly|monthly|yearly) basis)(?![\\w-])|(?<![\\w-])(?:during the (?:course|period) of)(?![\\w-])|(?<![\\w-])(?:for\\ all\\ intents\\ and\\ purposes)(?![\\w-])|(?<![\\w-])(?:in the (?:course|process) of)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ majority\\ of\\ instances)(?![\\w-])|(?<![\\w-])(?:the (?:manner|way) in which)(?![\\w-])|(?<![\\w-])(?:at this (?:point in )?time)(?![\\w-])|(?<![\\w-])(?:by\\ virtue\\ of\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:the\\ question\\ as\\ to\\ whether)(?![\\w-])|(?<![\\w-])(?:in\\ light\\ of\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:in\\ spite\\ of\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:a (?:large )?majority of)(?![\\w-])|(?<![\\w-])(?:an\\ appreciable\\ number\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ a\\ manner\\ of\\ speaking)(?![\\w-])|(?<![\\w-])(?:take\\ into\\ consideration)(?![\\w-])|(?<![\\w-])(?:under\\ the\\ provisions\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ neighborhood\\ of)(?![\\w-])|(?<![\\w-])(?:owing\\ to\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:an\\ adequate\\ number\\ of)(?![\\w-])|(?<![\\w-])(?:despite\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:give\\ consideration\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ close\\ proximity\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ final\\ analysis)(?![\\w-])|(?<![\\w-])(?:with\\ the\\ exception\\ of)(?![\\w-])|(?<![\\w-])(?:as a means (?:of|to))(?![\\w-])|(?<![\\w-])(?:due\\ to\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:it\\ is\\ essential\\ that)(?![\\w-])|(?<![\\w-])(?:it\\ is\\ necessary\\ that)(?![\\w-])|(?<![\\w-])(?:with\\ the\\ result\\ that)(?![\\w-])|(?<![\\w-])(?:accomplish(?:es|ed)?)(?![\\w-])|(?<![\\w-])(?:strategiz(?:e|es|ed))(?![\\w-])|(?<![\\w-])(?:as\\ a\\ matter\\ of\\ fact)(?![\\w-])|(?<![\\w-])(?:at\\ the\\ present\\ time)(?![\\w-])|(?<![\\w-])(?:for\\ the\\ reason\\ that)(?![\\w-])|(?<![\\w-])(?:in\\ conjunction\\ with)(?![\\w-])|(?<![\\w-])(?:is\\ in\\ a\\ position\\ to)(?![\\w-])|(?<![\\w-])(?:on\\ the\\ grounds\\ that)(?![\\w-])|(?<![\\w-])(?:demonstrate(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:disseminate(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:necessitate(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:along\\ the\\ lines\\ of)(?![\\w-])|(?<![\\w-])(?:for\\ the\\ purpose\\ of)(?![\\w-])|(?<![\\w-])(?:has\\ the\\ ability\\ to)(?![\\w-])|(?<![\\w-])(?:have\\ a\\ tendency\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ accordance\\ with)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ near\\ future)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ vicinity\\ of)(?![\\w-])|(?<![\\w-])(?:until\\ such\\ time\\ as)(?![\\w-])|(?<![\\w-])(?:accentuate(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:ascertain(?:s|ed)?)(?![\\w-])|(?<![\\w-])(?:facilitate(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:finaliz(?:e|es|ed))(?![\\w-])|(?<![\\w-])(?:in\\ all\\ likelihood)(?![\\w-])|(?<![\\w-])(?:in\\ some\\ instances)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ absence\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ event\\ that)(?![\\w-])|(?<![\\w-])(?:various\\ different)(?![\\w-])|(?<![\\w-])(?:transpire(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:utiliz(?:e|es|ed))(?![\\w-])|(?<![\\w-])(?:are\\ in\\ agreement)(?![\\w-])|(?<![\\w-])(?:is\\ applicable\\ to)(?![\\w-])|(?<![\\w-])(?:is\\ authorized\\ to)(?![\\w-])|(?<![\\w-])(?:this\\ day\\ and\\ age)(?![\\w-])|(?<![\\w-])(?:adversely\\ impact)(?![\\w-])|(?<![\\w-])(?:commence(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:expedite(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:initiate(?:s|d)?)(?![\\w-])|(?<![\\w-])(?:at\\ a\\ later\\ date)(?![\\w-])|(?<![\\w-])(?:in\\ an\\ effort\\ to)(?![\\w-])|(?<![\\w-])(?:the\\ majority\\ of)(?![\\w-])|(?<![\\w-])(?:with\\ respect\\ to)(?![\\w-])|(?<![\\w-])(?:attributable\\ to)(?![\\w-])|(?<![\\w-])(?:as\\ a\\ result\\ of)(?![\\w-])|(?<![\\w-])(?:each\\ and\\ every)(?![\\w-])|(?<![\\w-])(?:in\\ the\\ case\\ of)(?![\\w-])|(?<![\\w-])(?:whether\\ or\\ not)(?![\\w-])|(?<![\\w-])(?:with\\ regard\\ to)(?![\\w-])|(?<![\\w-])(?:component\\ part)(?![\\w-])|(?<![\\w-])(?:incumbent\\ upon)(?![\\w-])|(?<![\\w-])(?:in\\ advance\\ of)(?![\\w-])|(?<![\\w-])(?:is\\ capable\\ of)(?![\\w-])|(?<![\\w-])(?:null\\ and\\ void)(?![\\w-])|(?<![\\w-])(?:point\\ in\\ time)(?![\\w-])|(?<![\\w-])(?:provided\\ that)(?![\\w-])|(?<![\\w-])(?:subsequent\\ to)(?![\\w-])|(?<![\\w-])(?:utilizations?)(?![\\w-])|(?<![\\w-])(?:a\\ variety\\ of)(?![\\w-])|(?<![\\w-])(?:at\\ all\\ times)(?![\\w-])|(?<![\\w-])(?:by\\ virtue\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ excess\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ regard\\ to)(?![\\w-])|(?<![\\w-])(?:is\\ unable\\ to)(?![\\w-])|(?<![\\w-])(?:additionally)(?![\\w-])|(?<![\\w-])(?:cognizant\\ of)(?![\\w-])|(?<![\\w-])(?:remuneration)(?![\\w-])|(?<![\\w-])(?:subsequently)(?![\\w-])|(?<![\\w-])(?:a\\ myriad\\ of)(?![\\w-])|(?<![\\w-])(?:any\\ and\\ all)(?![\\w-])|(?<![\\w-])(?:by\\ means\\ of)(?![\\w-])|(?<![\\w-])(?:in\\ order\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ terms\\ of)(?![\\w-])|(?<![\\w-])(?:pursuant\\ to)(?![\\w-])|(?<![\\w-])(?:endeavor\\ to)(?![\\w-])|(?<![\\w-])(?:is\\ able\\ to)(?![\\w-])|(?<![\\w-])(?:ameliorate)(?![\\w-])|(?<![\\w-])(?:promulgate)(?![\\w-])|(?<![\\w-])(?:as\\ of\\ yet)(?![\\w-])|(?<![\\w-])(?:acquiesce)(?![\\w-])|(?<![\\w-])(?:utilizing)(?![\\w-])|(?<![\\w-])(?:prior\\ to)(?![\\w-])|(?<![\\w-])(?:expend)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-craft.plural-abbreviation",
+"source_kind": "pattern",
+"pattern": "\\b[A-Z]{2,}'s",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-discipline.frozen-verb",
+"source_kind": "pattern",
+"pattern": "(?<![\\w-])(?:perform|conduct|carry out|undertake|execute|make|do|give|provide|effect|achieve|obtain|initiate|implement)(?:s|ed|ing)?\\s+(?:(?:a|an|the)\\s+)?(?!(?:guidance|assistance|information|difference|condition)s?(?![\\w-]))\\w{4,}(?:tion|sion|ment|ance|ence|ysis|ision|ation)(?![\\w-])(?=\\s*(?:$|[^\\w\\s]|(?:of|on|for|to|about|into|onto|with|between|among|against|from|by|in|at|over|across|through|under|upon|per|via|within|without|during|until|and|or|but|nor|that|which|when|where|while|before|after|if|unless|because|so|as|than)(?![\\w-])))",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-discipline.phrasal-verb",
+"source_kind": "substitution",
+"pattern": "(?:\\blevel(?:s|ling|ing)? up\\b)|(?:\\bdouble(?:s|d)? down on\\b)|(?:\\bspin(?:s|ning)? down\\b)|(?:\\breach(?:es|ing)? out\\b)|(?:\\bdrill(?:s|ing)? down\\b)|(?:\\bdig(?:s|ging)? into\\b)|(?:\\blean(?:s|ing)? into\\b)|(?:\\bwind(?:s|ing)? down\\b)|(?:\\bsun ?set(?:s|ting)?\\b)|(?:\\bspin(?:s|ning)? up\\b)|(?:\\bstand(?:s|ing)? up\\b)|(?:\\bkick(?:s|ing)? off\\b)|(?:\\bsurface(?:s|d)? up\\b)|(?:\\bdive(?:s|d)? into\\b)|(?:\\bramp(?:s|ing)? up\\b)|(?:\\bbubble(?:s|d)? up\\b)|(?:\\bloop(?:s|ing)? in\\b)|(?:\\bunpack(?:s|ing)?\\b)|(?:\\bcircling back\\b)|(?:\\breached out\\b)|(?:\\bdiving into\\b)|(?:\\bcircle back\\b)|(?:\\bkicked off\\b)|(?:\\btouch base\\b)|(?:\\bramped up\\b)|(?:\\blooped in\\b)|(?:\\bstood up\\b)|(?:\\bspun up\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-discipline.marketing-lexicon",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:ridiculously\\ easy|next\\-generation|buttery\\ smooth|best\\-in\\-class|game\\-changing|revolutionary|insanely\\ fast|effortlessly|supercharged|unparalleled|future\\-proof|supercharge|beautifully|first\\-class|hassle\\-free|zero\\-effort|bulletproof|dead\\ simple|effortless|delightful|rock\\-solid|unleashes|unmatched|pain\\-free|empowers|stunning|top\\-tier|turnkey|unleash|empower|magical|premier|blazing)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-discipline.bidirectional-hedge",
+"source_kind": "pattern",
+"pattern": "(?:may|might|could|can|should|tends? to|is likely to)\\s+\\w+[^.!?]{0,80}?(?:,\\s*)?(?:but|though|although|however|while|whereas|yet)\\s+[^.!?]{0,40}?(?:may|might|could|can|also|equally|sometimes)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-discipline.hedged-hedge",
+"source_kind": "pattern",
+"pattern": "(?<![\\w-])(?:may|might|could|can|should|would)\\s+(?:\\w+\\s+)?(?:help(?:s)?\\s+(?:to\\s+)?|serve\\s+to\\s+|work\\s+to\\s+|tend\\s+to\\s+)?\\w+\\s+(?:some|certain|various|several|many|most)\\s+(?:of\\s+)?(?:the\\s+)?\\w+|(?<![\\w-])in\\s+(?:some|certain|many|most)\\s+cases?(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-format.no-unicode-dash",
+"source_kind": "pattern",
+"pattern": "[—–]",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-format.emoji-heading",
+"source_kind": "pattern",
+"pattern": "[🌀-🫿☀-➿⬀-⯿️]",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-inclusive.ableist",
+"source_kind": "substitution",
+"pattern": "(?:\\bcrippl(?:ing|es|ed) (?:debt|fear|blow|anxiety|performance|latency)\\b)|(?:\\bturn(?:ing|ed)? a blind eye\\b)|(?:\\bfall(?:ing|s)? on deaf ears\\b)|(?:\\bstands? on its own two feet\\b)|(?:\\bparaly[sz]ed (?:with|by)\\b)|(?:\\bconfined to a wheelchair\\b)|(?:\\bwheelchair[- ]bound\\b)|(?:\\bretard(?:ed|s)?\\b)|(?:\\bbasket[- ]case\\b)|(?:\\bafflicted with\\b)|(?:\\bable[- ]bodied\\b)|(?:\\bschizophrenic\\b)|(?:\\bsuffers? from\\b)|(?:\\bnormal person\\b)|(?:\\bblind spots?\\b)|(?:\\btone[- ]deaf\\b)|(?:\\bidiot(?:ic)?\\b)|(?:\\bhandicapped\\b)|(?:\\bimbeciles?\\b)|(?:\\bdeaf ears\\b)|(?:\\bcrippled?\\b)|(?:\\bblind to\\b)|(?:\\bmoronic\\b)|(?:\\binsane\\b)|(?:\\bcrazy\\b)|(?:\\blame\\b)|(?:\\bdumb\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inclusive.device-assumption",
+"source_kind": "substitution",
+"pattern": "(?:\\bsee the\\b(?= (?:icon|button|badge|indicator)))|(?:\\bclick(?:ing|ed)? (?:on |the |this ))|(?:\\btap(?:ping|ped)? (?:on |the |this ))|(?:\\bdouble[- ]click (?:on |the ))|(?:\\bright[- ]click (?:on |the ))|(?:\\bswipe (?:the |this ))|(?:\\blong[- ]press\\b)|(?:\\bdrag and drop\\b)|(?:\\bhover over\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inclusive.exclusive",
+"source_kind": "substitution",
+"pattern": "(?:\\bmaster(?! branch| boot record| broker| key| password| node| subscription agreement| serviced? agreement| licen[cs]e agreement| agreement| data)\\b)|(?:\\b(?:chair|spokes|business|police|fire|mail|sales)m[ae]n\\b)|(?:\\bdummy (?:data|value|file|object|variable)\\b)|(?:\\b(?:he/she|s/he|\\(s\\)he|he or she)\\b)|(?:\\bgrandfather(?:ed|ing)?\\b)|(?:\\b(?:his/her|his or her)\\b)|(?:\\b(?:code )?wizards?\\b)|(?:\\bblack[- ]?listing\\b)|(?:\\bwhite[- ]?listing\\b)|(?:\\bblack[- ]?lists?\\b)|(?:\\bblack[- ]?listed\\b)|(?:\\bwhite[- ]?lists?\\b)|(?:\\bwhite[- ]?listed\\b)|(?:\\bslave(?! broker)\\b)|(?:\\btribal knowledge\\b)|(?:\\brock[- ]?stars?\\b)|(?:\\bsanity[- ]check\\b)|(?:\\bgrey[- ]?list\\b)|(?:\\bspirit animal\\b)|(?:\\bman[- ]hours?\\b)|(?:\\bmaster/slave\\b)|(?:\\bpow[- ]?wow\\b)|(?:\\bmanpower\\b)|(?:\\bninjas?\\b)|(?:\\bmankind\\b)|(?:\\bgurus?\\b)|(?:\\bguys\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.slop-lexicon",
+"source_kind": "pattern",
+"pattern": "\\b(seamless(ly)?|effortless(ly)?|blazing(ly)?([- ]fast)?|cutting[- ]edge|state[- ]of[- ]the[- ]art|game[- ]chang\\w+|revolutioni[sz]\\w+|supercharg\\w+|unleash\\w*|empower\\w*|delve\\w*|elevat(e|ing) your|robust|powerful|comprehensive|best[- ]in[- ]class|world[- ]class|battle[- ]tested|production[- ]grade|feature[- ]rich|rich set of|leverag(e|es|ed|ing)|elegant(ly)?|streamlin\\w+|turbocharg\\w+|next[- ]generation|next[- ]gen)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.business-jargon",
+"source_kind": "pattern",
+"pattern": "\\b(double down|circle back|touch base|move the needle|lean in(to)?|take a step back|on the same page|moving forward|going forward|at the end of the day|low[- ]hanging fruit|boil the ocean|table stakes|deep[- ]dive|drill down into|level[- ]set|best[- ]of[- ]breed|synerg(y|ies|istic))\\b|\\b(hit the ground running|move the goal ?posts?|shift the goal ?posts?|peel (back )?the onion|drink the kool[- ]?aid|blue[- ]?sky thinking|apples to apples|par for the course|bang for (your|the) buck|no[- ]brainer|elephant in the room|all hands on deck|take (this|it) offline|on my (plate|radar)|ping me|thrown? under the bus|think outside the box|get the ball rolling|back to the drawing board|win[- ]win|move fast and break things|eat (our|your) own dog ?food|rubber (meets|hits) the road|the ball is in your court|reinvent the wheel|boots on the ground|north star|force multiplier|raise the bar|swim ?lane|paradigm shift)\\b|\\b(incentivi[sz]\\w+|productiz\\w+|operationaliz\\w+|solutioniz\\w+|ideat\\w+|architect(ed|ing)|visionar(y|ies)|thought leader\\w*|value[- ]add(ed)?|mission[- ]critical|holistic(ally)?)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.vague-declarative",
+"source_kind": "pattern",
+"pattern": "\\bthe (?:reasons?|causes?|implications?|consequences?|stakes|risks?|tradeoffs?|problems?|challenges?|issues?|differences?|benefits?)\\s+(?:are|is)\\s+(?:structural|significant|substantial|profound|real|clear|high|serious|considerable|non[- ]trivial|manifold|obvious|stark|striking)\\b|\\bthis is the (?:deepest|hardest|real|core|fundamental|central) (?:problem|issue|question|challenge|tension)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.additive-hedge",
+"source_kind": "pattern",
+"pattern": "\\bnot (?:just|only|merely|simply)\\b[^.!?]{1,60}\\bbut (?:also|even)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.hedge-stack",
+"source_kind": "pattern",
+"pattern": "\\b(?:may|might|could|can|would|should)\\s+(?:possibly|potentially|perhaps|maybe|probably|likely|conceivably|arguably|presumably|generally|typically|sometimes|often|usually)\\b|\\b(?:possibly|potentially|perhaps|maybe|probably|arguably|presumably)\\s+(?:may|might|could|can|would|should)\\b|\\b(?:may|might|could|can|would|should)\\s+(?:help(?:s)? to|tend(?:s)? to|seem(?:s)? to|appear(?:s)? to)\\b|\\b(?:might|may)\\s+(?:possibly\\s+)?(?:be able to|want to)\\s+(?:try to|attempt to)\\b|\\b(?:roughly|approximately|about|around)\\s+(?:approximately|about|around|some)\\s+\\d|\\bit (?:is|was) (?:thought|believed|assumed|expected|suggested)\\s+that\\s+[^.!?]{0,30}\\b(?:may|might|could|possibly|potentially)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.intensifier",
+"source_kind": "pattern",
+"pattern": "\\b(?:very|extremely|exceedingly|remarkably|surprisingly|incredibly|unbelievably|tremendously|immensely|enormously|vastly|hugely|terribly|awfully|wildly|insanely|ridiculously|super)\\s+(?=\\w)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.uncomparables",
+"source_kind": "pattern",
+"pattern": "\\b(?:absolutely|most|more|less|least|very|quite|largely|extremely|increasingly|hardly|greatly|somewhat|rather|fairly)\\s+(?:absolute|complete|devoid|entire|fatal|final|ideal|impossible|inevitable|infinite|irreversible|irrevocable|perfect|permanent|perpetual|simultaneous|unanimous|unavoidable|unbroken|uniform|unique|universal|void)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.vague-quantifier",
+"source_kind": "pattern",
+"pattern": "\\b(?:several|various|numerous|myriad|a (?:number|variety|handful) of|a (?:large|small|good|fair) (?:number|amount) of|countless|innumerable|plenty of|lots of|a lot of)\\b|\\b(?:usually|typically|oftentimes|frequently|generally speaking|more often than not|in most cases|for the most part)\\b|\\b(?:huge|vast|tiny|massive|enormous)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.nominalized-verb",
+"source_kind": "pattern",
+"pattern": "\\b(?:perform|performs|performed|conduct|conducts|conducted|carry out|carries out|carried out|undertake|undertakes|undertook|effect|effects|effected|achieve|achieves|achieved)\\s+(?:a|an|the|any|some)?\\s*\\w*(?:ation|ations|ment|ments|ance|ence|sion|sions|ysis|yses)\\b|\\b(?:make|makes|made) (?:a|the) (?:decision|choice|selection|determination|comparison|attempt|request|change)\\b|\\b(?:take|takes|took) (?:a|the) (?:look|decision|measurement)\\b|\\b(?:provide|provides|provided) support for\\b|\\b(?:is|are|was|were) (?:responsible for|in charge of) \\w+ing\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.document-preamble",
+"source_kind": "pattern",
+"pattern": "\\bthe (?:purpose|aim|goal|intent|objective) of this\\s+(?:document|page|guide|topic|article|section|README|readme)\\b|\\bthis (?:document|page|guide|topic|article|README|readme)\\s+(?:describes|explains|shows|covers|outlines|details|introduces|walks you through|will (?:describe|explain|show|cover))\\b|\\bin this (?:document|page|guide|topic|article|post)\\b|\\bby the end of this\\s+(?:document|page|guide|topic|article|tutorial)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.apologizing",
+"source_kind": "pattern",
+"pattern": "\\b(?:more|further|additional)\\s+(?:research|investigation|study|work|analysis|testing|benchmarking|measurement)\\s+(?:is|are|will be|would be|may be|might be|remains?)\\s+(?:needed|required|necessary|warranted|left as|outside)\\b|\\b(?:warrants?|merits?|deserves?)\\s+(?:further|additional|more)\\s+(?:research|investigation|study|attention|analysis)\\b|\\bleft as an exercise\\b|\\b(?:beyond|outside) the scope of this\\s+\\w+\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-inflation.borderline-hype",
+"source_kind": "pattern",
+"pattern": "\\b(simply|just works|easy to use|easily|intuitive(ly)?|flexible|hassle[- ]free|out of the box|plug[- ]and[- ]play)\\b|\\b(obvious(ly)?|of course|clearly|needless to say|everyone knows|as (?:you|we) (?:all )?know|it goes without saying|trivial(ly)?|straightforward(ly)?)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-scope.rejected-alternative",
+"source_kind": "pattern",
+"pattern": "\\b(?:rather than|instead of) [^.!?]{3,60}\\bbecause\\b|\\bwe (?:chose|picked|selected|went with|settled on|opted for)\\b|\\bchosen over\\b|\\b(?:in favou?r of) [^.!?]{3,60}\\bbecause\\b|\\b(?:deliberately|intentionally|on purpose) (?:does not|doesn't|omits|avoids|skips)\\b|\\b(?:does not|doesn't) (?:run|use|do|call|spawn) [^.!?]{0,40}\\bbecause\\b|\\bfor the same reason\\b|\\bthe (?:earlier|first|original|previous|old|naive) (?:implementation|version|approach|design)\\b|\\bwould (?:have (?:been|required|meant|cost)|discard|break|force) [^.!?]{0,50}\\b(?:instead|so|which)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-scope.implementation-leak",
+"source_kind": "pattern",
+"pattern": "(?<!<dd>)(?<![Tt]imeout of )(?<![Bb]udget of )(?<![Dd]eadline of )(?<![Ll]imit of )(?<![Ww]ithin )(?<![Aa]fter )(?<![Ee]very )\\b\\d+(?:\\.\\d+)?\\s?(?:ms|milliseconds?|µs|microseconds?|ns|nanoseconds?)\\b(?![^.!?]{0,30}\\b(?:timeout|budget|deadline|limit|allowance|before (?:giving up|falling back))\\b)|\\b\\d+(?:\\.\\d+)?\\s?(?:s|sec|seconds?)\\s+(?:per|each|faster|slower)\\b|\\b\\d+(?:\\.\\d+)?x\\s+(?:faster|slower|speedup|the (?:speed|cost))\\b|(?<!at most )(?<!maximum of )(?<!up to )\\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\\d+)\\s+(?:process(?:es)?|spawns?|subprocess(?:es)?|forks?|syscalls?|round[- ]trips?|invocations?|shell[- ]outs?)\\b(?![^.!?]{0,25}\\b(?:limit|maximum|concurrently|at a time)\\b)|\\bcosts? (?:one|two|three|a single|only) \\w+ (?:startup|spawn|call|process)\\b|\\bzero (?:spawns?|subprocess(?:es)?|allocations?)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-scope.unrequested-reassurance",
+"source_kind": "pattern",
+"pattern": "\\b(?:nothing|none of (?:this|it|these))\\s+(?:here\\s+)?(?:needs?|requires?|has to be)\\b|\\bno\\s+(?:\\w+\\s+)?(?:setup|configuration|config|install(?:ation)?|dependencies|boilerplate)\\s+(?:is\\s+)?(?:required|needed|necessary)\\b|\\bleaves? (?:nothing|no trace) behind\\b|\\b(?:with )?(?:zero|no) (?:setup|configuration|config|boilerplate|ceremony)\\b|\\bout of the box\\b|\\bworks? (?:as soon as|the moment|right away|immediately|out of)\\b|\\b(?:it |they )?just works?\\b|\\b(?:you|there) (?:do not|don't|is no|are no) (?:have to|need to|need)\\b|\\b(?:do not|don't) worry\\b|\\brest assured\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "prose-scope.epigram",
+"source_kind": "pattern",
+"pattern": "\\b[Tt]he \\w+ (\\w+s) [\\w']+\\. [Tt]he \\w+ \\1 [\\w']+\\.|\\b[Tt]he \\w+ (?:is|are|does|has) [\\w' ]{2,20}\\. [Tt]he \\w+ (?:is|are|does|has) [\\w' ]{2,20}\\.|[,;] not (?:yours|mine|theirs|ours|his|hers|its|the other way(?: round| around)?)\\.",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "prose-scope.formulaic-subject-verb-slogan",
+"source_kind": "pattern",
+"pattern": "^(?:the|a|an|this|that|these|those|its|our|your|their)\\s+[\\w-]+(?:\\s+[\\w-]+)?\\s+(?:is|are|was|were|has|have|does|do|can|cannot|will|would|should|must|[a-z][\\w-]*(?<!s)s)(?:\\s+[\\w-]+){0,3}\\s*,\\s*(?:the|a|an|this|that|these|those|its|our|your|their)\\s+[\\w-]+(?:\\s+[\\w-]+)?\\s+(?:is|are|was|were|has|have|does|do|can|cannot|will|would|should|must|[a-z][\\w-]*(?<!s)s)(?:\\s+[\\w-]+){0,3}$",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.phrasal-verb",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:come\\ up\\ with)(?![\\w-])|(?<![\\w-])(?:bring\\ down)(?![\\w-])|(?<![\\w-])(?:figure\\ out)(?![\\w-])|(?<![\\w-])(?:throw\\ away)(?![\\w-])|(?<![\\w-])(?:break\\ down)(?![\\w-])|(?<![\\w-])(?:tear\\ down)(?![\\w-])|(?<![\\w-])(?:shut\\ down)(?![\\w-])|(?<![\\w-])(?:roll\\ back)(?![\\w-])|(?<![\\w-])(?:carry\\ out)(?![\\w-])|(?<![\\w-])(?:look\\ into)(?![\\w-])|(?<![\\w-])(?:take\\ down)(?![\\w-])|(?<![\\w-])(?:point\\ out)(?![\\w-])|(?<![\\w-])(?:bring\\ up)(?![\\w-])|(?<![\\w-])(?:turn\\ off)(?![\\w-])|(?<![\\w-])(?:roll\\ out)(?![\\w-])|(?<![\\w-])(?:run\\ into)(?![\\w-])|(?<![\\w-])(?:hold\\ off)(?![\\w-])|(?<![\\w-])(?:spin\\ up)(?![\\w-])|(?<![\\w-])(?:turn\\ on)(?![\\w-])|(?<![\\w-])(?:back\\ up)(?![\\w-])|(?<![\\w-])(?:put\\ off)(?![\\w-])|(?<![\\w-])(?:give\\ up)(?![\\w-])|(?<![\\w-])(?:pick\\ up)(?![\\w-])|(?<![\\w-])(?:set\\ up)(?![\\w-])|(?<![\\w-])(?:end\\ up)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.omitted-conjunction-that",
+"source_kind": "pattern",
+"pattern": "\\b(?:(?:make\\s+sure|makes\\s+sure|ensure[s]?|mean[s]?)\\s+(?:the|this|these|a|an|your|our|it|you|we|they)\\b|(?:verify|verifies|confirm[s]?)\\s+(?:the|this|these|a|an|your|our)(?=(?:\\s+(?!(?:who|whom|whose|which|that)\\b)[\\w'-]+){1,3}?\\s+[a-z]+s\\s*[.!?;:])|(?:show[s]?|showed|recommend[s]?|verify|verifies|confirm[s]?|check[s]?|note[s]?|assume[s]?)\\s+(?:it(?!\\s+as\\b)(?='s\\b|\\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\\s+(?:below|above|here|earlier|previously|by|next)\\b)|[a-z]+s(?=\\s+[\\w'-]))\\b|\\s+[a-z]+s\\b)|(?:you|we|they)\\b(?!\\s+(?:the|a|an|this|that|these|those|your|our|their|my|its|how|what|where|why|when|which|who|to|for|with|about|in|on|at|out|up|down|again|here|there|now|first|around|through|back)\\b|\\s*[.!?;:,)]|\\s*$)|(?:this|these)(?=\\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do)\\b)|(?:the|this|these|a|an|your|our)(?=(?:\\s+(?!(?:who|whom|whose|which|that)\\b)[\\w'-]+){1,4}?\\s+(?:is|are|was|were|has|have|had|will|would|can|could|should|must|may|might|does|did|do|ran|began|went|took|made|got|came|built|broke|found|kept|wrote|sent|lost|failed|succeeded|passed|expired|crashed|finished|completed|started|stopped|landed|[a-z]+ed(?!\\s+(?:below|above|here|earlier|previously|by|next)\\b)|(?:advances|appears|applies|asks|begins|belongs|burns|comes|completes|connects|consists|continues|defaults|depends|drops|exists|exits|expires|fails|finishes|fires|flips|goes|grows|increments|inherits|jumps|listens|lives|loads|looks|moves|needs|occurs|opens|passes|points|recovers|refers|relies|remains|reopens|replies|resets|resolves|responds|restarts|returns|reverts|runs|seems|sends|sits|spills|splits|starts|stays|stops|succeeds|transitions|tries|waits|wants|works|writes|[a-z]+s(?!\\s+(?:in|on|at|from|of|for|with|to|into|by|under|over)\\b))(?=\\s+[\\w'-]))\\b|(?:\\s+(?!(?:who|whom|whose|which|that)\\b)[\\w'-]+){0,3}?\\s+[a-z]+s\\s+(?:pass|work|run|exist|match|fail|start|finish|succeed|build|load|apply|compile|stop|change|appear|return)\\b)))",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.unclear-pronoun",
+"source_kind": "pattern",
+"pattern": "\\b(?:he|she|him|her|his|hers)\\b|,\\s+(?:they|them|it)\\s+(?:can|will|may|might|must|becomes?|is|are)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.unclear-demonstrative-this",
+"source_kind": "pattern",
+"pattern": "(?:^|[.!?]\\s+|\\(\\s*)(?:This|These|That|Those)\\s+(?:can|could|will|would|may|might|is|are|was|were|causes?|means?|makes?|prevents?|breaks?|fails?|happens?|occurs?)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.false-friend-term",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:eventual\\ consistency)(?![\\w-])|(?<![\\w-])(?:comprehensive)(?![\\w-])|(?<![\\w-])(?:argument\\ list)(?![\\w-])|(?<![\\w-])(?:individuate)(?![\\w-])|(?<![\\w-])(?:eventually)(?![\\w-])|(?<![\\w-])(?:assist\\ to)(?![\\w-])|(?<![\\w-])(?:eventual)(?![\\w-])|(?<![\\w-])(?:actually)(?![\\w-])|(?<![\\w-])(?:sensible)(?![\\w-])|(?<![\\w-])(?:exigency)(?![\\w-])|(?<![\\w-])(?:pretend)(?![\\w-])|(?<![\\w-])(?:realize)(?![\\w-])|(?<![\\w-])(?:actual)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.latin-abbreviation",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:et\\ al\\.)(?![\\w-])|(?<![\\w-])(?:ibid\\.)(?![\\w-])|(?<![\\w-])(?:e\\.g\\.)(?![\\w-])|(?<![\\w-])(?:i\\.e\\.)(?![\\w-])|(?<![\\w-])(?:etc\\.)(?![\\w-])|(?<![\\w-])(?:viz\\.)(?![\\w-])|(?<![\\w-])(?:N\\.B\\.)(?![\\w-])|(?<![\\w-])(?:cf\\.)(?![\\w-])|(?<![\\w-])(?:vs\\.)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.gendered-or-exclusionary-language",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:master\\ branch)(?![\\w-])|(?<![\\w-])(?:sanity\\ check)(?![\\w-])|(?<![\\w-])(?:dummy\\ value)(?![\\w-])|(?<![\\w-])(?:man\\-hours)(?![\\w-])|(?<![\\w-])(?:whitelist)(?![\\w-])|(?<![\\w-])(?:blacklist)(?![\\w-])|(?<![\\w-])(?:manpower)(?![\\w-])|(?<![\\w-])(?:chairman)(?![\\w-])|(?<![\\w-])(?:manned)(?![\\w-])|(?<![\\w-])(?:hers)(?![\\w-])|(?<![\\w-])(?:she)(?![\\w-])|(?<![\\w-])(?:his)(?![\\w-])|(?<![\\w-])(?:him)(?![\\w-])|(?<![\\w-])(?:he)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-practices.possessive-form-unclear",
+"source_kind": "pattern",
+"pattern": "\\b\\w+s['’](?=\\s+\\w)|\\b\\w+['’]s\\s+\\w+['’]s\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-procedural.multiple-instructions-per-sentence",
+"source_kind": "pattern",
+"pattern": "^\\s*(?:[A-Z][a-z]+)\\b[^.:!?]*?,?\\s+(?:and\\s+then|then|and\\s+(?:also\\s+)?(?:restart|delete|remove|run|set|open|close|apply|commit|push|deploy|verify|check|update|install|configure|enable|disable|rotate|revoke|copy|move|rename|start|stop))\\b",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-procedural.instruction-not-imperative",
+"source_kind": "pattern",
+"pattern": "^\\s*(?:(?:The|This|That|A|An)\\s+\\w+(?:\\s+\\w+)?\\s+(?:must|should|shall|needs?\\s+to|has\\s+to|is\\s+required\\s+to|will\\s+need\\s+to)\\b|(?:You|The\\s+user|The\\s+operator|The\\s+reader)\\s+(?:must|should|shall|will|can|may)\\s+\\w+|It\\s+is\\s+(?:necessary|recommended|required|advisable)\\s+to\\b)",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-procedural.condition-after-command",
+"source_kind": "pattern",
+"pattern": "^\\s*(?!(?:The|A|An|This|That|These|Those|Their|Its|Our|Your|His|Her|My|It|They|We|You|He|She|There|Each|Every|Any|Some|All|Both|No|Many|Most|Such|Other|One)\\b)(?![A-Z][a-z]*[^e]ed\\b)(?![A-Z][a-z]*[^su]s\\b)(?!(?!Bring\\b)[A-Z][a-z]+ing\\b)[A-Z][a-z]+\\b(?!-)[^.!?]*?\\s+(if|when|once|unless|after|before|while(?!\\s+[a-z]+ing\\b))\\s+[^.!?]*[.!?]?\\s*$",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-procedural.note-gives-instruction",
+"source_kind": "pattern",
+"pattern": "^\\s*(?:>\\s*)?(?:\\*\\*)?(?:NOTE|Note)(?:\\*\\*)?\\s*[:.]?\\s*(?:Do\\s+not\\b|Always\\b|Never\\b|Make\\s+sure\\b|Be\\s+sure\\b|Remember\\s+to\\b|You\\s+must\\b|Ensure\\b|Set\\b|Run\\b|Restart\\b|Delete\\b|Install\\b|Configure\\b|Verify\\b|Check\\b)",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-punctuation.semicolon-used",
+"source_kind": "pattern",
+"pattern": ";",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-punctuation.hyphen-missing-in-compound-modifier",
+"source_kind": "pattern",
+"pattern": "\\b(?:read|write|command|line|end|user|client|server|side|open|closed|long|short|high|low|first|second|third|multi|single|cross|zero|non|self|pre|post|re|semi|well|fully|partially)\\s+(?:only|line|side|term|level|latency|throughput|source|party|region|account|tenant|downtime|running|facing|driven|based|aware|safe|ready|bound|scoped|hosted|managed|generated|defined)\\s+(?=[a-z]+\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-punctuation.hyphen-group-too-long",
+"source_kind": "pattern",
+"pattern": "\\b[A-Za-z]+(?:-[A-Za-z]+){3,}\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-safety.safety-block-does-not-start-with-command",
+"source_kind": "pattern",
+"pattern": "^\\s*(?:>\\s*)?(?:\\*\\*)?(?:WARNING|CAUTION|DANGER|Warning|Caution|Danger)(?:\\*\\*)?\\s*[:.]?\\s*(?:(?:This|That|The|A|An|It|There)\\b|(?:[A-Z][a-z]+\\s+)?(?:is|are|was|were|can|could|may|might)\\b)",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-sentences.omitted-subject",
+"source_kind": "pattern",
+"pattern": "^\\s*(?:If|When|Once)\\s+(?:installed|configured|enabled|disabled|set|present|missing|deleted|done|complete|completed|ready|needed|required|applicable)\\s*,",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-sentences.missing-article-or-determiner",
+"source_kind": "pattern",
+"pattern": "^\\s*(?:[A-Z][a-z]+)\\s+(?:config|manifest|worker|queue|token|endpoint|repository|branch|cache|index|schema|dashboard|runner|scheduler|cluster|node|pod|container|service|database)\\b(?!\\s+(?:is|are|can|will|has|have|must|does|do))",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-verbs.complex-tense",
+"source_kind": "pattern",
+"pattern": "\\b(?:ha(?:ve|s|d)|having)\\s+(?:been\\s+)?\\w+(?:ed|en|ne|wn|un|de|lt|pt|ft)\\b|\\b(?:am|is|are|was|were|be|been|being)\\s+\\w+ing\\b|\\b(?:will|would|shall)\\s+have\\s+\\w+",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-verbs.auxiliary-stacking",
+"source_kind": "pattern",
+"pattern": "\\b(?:can|could|may|might|must|shall|should|will|would)\\s+(?:have\\s+been|be\\s+being|have\\s+had)\\s+(?:\\w+(?:ed|en)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\\b|\\b(?:is|are|was|were)\\s+to\\s+be\\s+(?:\\w+(?:ed|en)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\\b|\\bha(?:s|ve|d)\\s+to\\s+be\\s+(?:\\w+(?:ed|en)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-verbs.passive-voice",
+"source_kind": "pattern",
+"pattern": "\\b(?:am|is|are|was|were|be|been|being)\\s+(?:(?:\\w+ly|often|also|always|never|still|then|now|already)\\s+)?(?:(?:\\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\\s+by\\b|(?!(?:unlimited|unbounded|unordered|unchanged|undefined|untracked|tired|dedicated|detailed|complicated|interested|involved|related|advanced|limited|fixed|mixed|varied|skilled|aged|red|used|decorrelated|deprecated|often|open|even|seven|eleven|then|when|between|golden|wooden|sudden|kitchen|garden|token|oxygen|linen)\\b)(\\w{3,}(?:ed|en|wn)|set|put|cut|run|read|sent|built|rebuilt|made|remade|held|kept|left|lost|told|shut|split|spread|hit|let|found|bound|meant|dealt|felt)\\b)",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-verbs.nominalized-action",
+"source_kind": "pattern",
+"pattern": "\\b(?:do|does|did|perform[s]?|make[s]?|carry\\s+out|conduct[s]?|provide[s]?|give[s]?|take[s]?)\\s+(?:a|an|the)?\\s*\\w+(?:tion|sion|ment|ance|ence|al|ing)\\b",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-words.approved-word-substitution",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:at\\ this\\ point\\ in\\ time)(?![\\w-])|(?<![\\w-])(?:due\\ to\\ the\\ fact\\ that)(?![\\w-])|(?<![\\w-])(?:subsequent\\ to)(?![\\w-])|(?<![\\w-])(?:in\\ order\\ to)(?![\\w-])|(?<![\\w-])(?:a\\ number\\ of)(?![\\w-])|(?<![\\w-])(?:facilitate)(?![\\w-])|(?<![\\w-])(?:terminate)(?![\\w-])|(?<![\\w-])(?:commence)(?![\\w-])|(?<![\\w-])(?:initiate)(?![\\w-])|(?<![\\w-])(?:leverage)(?![\\w-])|(?<![\\w-])(?:prior\\ to)(?![\\w-])|(?<![\\w-])(?:utilize)(?![\\w-])|(?<![\\w-])(?:utilise)(?![\\w-])|(?<![\\w-])(?:perform)(?![\\w-])|(?<![\\w-])(?:require)(?![\\w-])|(?<![\\w-])(?:ensure)(?![\\w-])|(?<![\\w-])(?:obtain)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-words.obligation-word-substitution",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:should)(?![\\w-])|(?<![\\w-])(?:shall)(?![\\w-])",
+"flags": 8224,
+"ignore_case": false
+},
+{
+"rule_id": "ste-words.noun-used-as-verb",
+"source_kind": "substitution",
+"pattern": "(?<![\\w-])(?:screenshotted)(?![\\w-])|(?<![\\w-])(?:whiteboarded)(?![\\w-])|(?<![\\w-])(?:architecting)(?![\\w-])|(?<![\\w-])(?:architected)(?![\\w-])|(?<![\\w-])(?:impacting)(?![\\w-])|(?<![\\w-])(?:emailing)(?![\\w-])|(?<![\\w-])(?:impacted)(?![\\w-])|(?<![\\w-])(?:emailed)(?![\\w-])|(?<![\\w-])(?:diffing)(?![\\w-])|(?<![\\w-])(?:diffed)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-words.slang-or-jargon-term",
+"source_kind": "tokens",
+"pattern": "(?<![\\w-])(?:bikeshedding|secret\\ sauce|yak\\ shaving|magic\\ sauce|dogfooding|happy\\ path|blow\\ away|flaky\\-ish|bikeshed|footgun|dogfood|gotcha|kludge|hacky|janky|wonky|jank|nuke|yeet)(?![\\w-])",
+"flags": 8226,
+"ignore_case": true
+},
+{
+"rule_id": "ste-words.verb-used-as-noun",
+"source_kind": "pattern",
+"pattern": "\\b(?:a|an|the)\\s+(?:install|uninstall|deploy|rerun|resend|reboot|ask|spend|solve)\\b",
+"flags": 8226,
+"ignore_case": true
+}
+]

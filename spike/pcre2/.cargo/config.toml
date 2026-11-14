@@ -1,0 +1,4 @@
+# Force pcre2-sys to build its vendored PCRE2 even when pkg-config finds a system libpcre2-8.
+# [env] does not override a variable already set in the environment (no force = true).
+[env]
+PCRE2_SYS_STATIC = "1"

@@ -1,0 +1,134 @@
+name: spike-pcre2-matrix
+
+# Throwaway spike (bead slopvac-8l4.3.20). Runs only on the spike branch.
+on:
+  push:
+    branches: [spike/pcre2-matrix]
+
+permissions:
+  contents: read
+
+jobs:
+  differential:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64-gnu, os: ubuntu-24.04, target: x86_64-unknown-linux-gnu }
+          - { name: linux-arm64-gnu, os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+          - { name: linux-x64-musl, os: ubuntu-24.04, target: x86_64-unknown-linux-musl, musl: true }
+          - { name: linux-arm64-musl, os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, musl: true }
+          # pcre2-sys disables JIT on aarch64-musl ("does not build", 2020); try it with the guard removed.
+          - { name: linux-arm64-musl-jitpatched, os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, musl: true, jitpatch: true }
+          - { name: macos-arm64, os: macos-15, target: aarch64-apple-darwin }
+          - { name: macos-x64, os: macos-15-intel, target: x86_64-apple-darwin }
+          - { name: windows-x64, os: windows-2025, target: x86_64-pc-windows-msvc }
+          - { name: windows-arm64, os: windows-11-arm, target: aarch64-pc-windows-msvc }
+    defaults:
+      run:
+        shell: bash
+        working-directory: spike/pcre2
+    env:
+      PCRE2_SYS_STATIC: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Python regex (pinned to uv.lock)
+        run: python -m pip install regex==2026.9.10
+      - name: Rust toolchain
+        run: |
+          if ! command -v rustup >/dev/null; then
+            if [[ "$RUNNER_OS" == Windows ]]; then
+              curl -sSfL -o rustup-init.exe "https://static.rust-lang.org/rustup/dist/${{ matrix.target }}/rustup-init.exe"
+              ./rustup-init.exe -y --profile minimal
+            else
+              curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+            fi
+            echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+            export PATH="$HOME/.cargo/bin:$PATH"
+          fi
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add ${{ matrix.target }}
+          rustc -Vv
+      - name: musl toolchain
+        if: matrix.musl
+        run: |
+          sudo apt-get update -q && sudo apt-get install -yq musl-tools
+          t=$(echo "${{ matrix.target }}" | tr - _)
+          echo "CC_${t}=musl-gcc" >> "$GITHUB_ENV"
+      - name: Patch pcre2-sys to enable JIT on aarch64-musl
+        if: matrix.jitpatch
+        run: |
+          cargo fetch --locked
+          src=$(ls -d "$HOME"/.cargo/registry/src/*/pcre2-sys-0.2.10 | head -1)
+          cp -r "$src" pcre2-sys-jit
+          sed -i 's/if target == "aarch64-unknown-linux-musl" {/if false {/' pcre2-sys-jit/build.rs
+          grep -n 'if false' pcre2-sys-jit/build.rs
+          printf '\n[patch.crates-io]\npcre2-sys = { path = "pcre2-sys-jit" }\n' >> Cargo.toml
+          cargo update -p pcre2-sys
+      - name: Build (vendored PCRE2)
+        run: cargo build --release ${{ matrix.jitpatch && ' ' || '--locked' }} --target ${{ matrix.target }}
+      - name: Info
+        run: |
+          BIN=target/${{ matrix.target }}/release/pcre2-matrix-spike
+          $BIN info
+          if [[ "$RUNNER_OS" == Linux ]]; then file $BIN; ldd $BIN || true; fi
+          if [[ "$RUNNER_OS" == macOS ]]; then otool -L $BIN; fi
+      - name: Differential
+        run: python matrix.py target/${{ matrix.target }}/release/pcre2-matrix-spike
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: out-${{ matrix.name }}
+          path: spike/pcre2/out/
+
+  system-lib-hazard:
+    name: hazard-${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: ubuntu-system-pcre2, os: ubuntu-24.04 }
+          - { name: macos-homebrew-pcre2, os: macos-15 }
+    defaults:
+      run:
+        shell: bash
+        working-directory: spike/pcre2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install system PCRE2
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then sudo apt-get update -q && sudo apt-get install -yq libpcre2-dev pkg-config; fi
+          if [[ "$RUNNER_OS" == macOS ]]; then brew install pcre2 pkg-config || true; fi
+          pkg-config --modversion libpcre2-8
+      - name: Build with defaults (PCRE2_SYS_STATIC unset, no .cargo/config.toml)
+        run: |
+          python3 prep.py
+          mv .cargo/config.toml /tmp/config.toml.off
+          cargo build --release --locked
+          BIN=target/release/pcre2-matrix-spike
+          $BIN info
+          if [[ "$RUNNER_OS" == Linux ]]; then ldd $BIN; else otool -L $BIN; fi
+          $BIN dump patterns_pcre.json corpus.json /tmp/hazard.json jit
+          python3 -c "import json; d=json.load(open('/tmp/hazard.json')); print('compile errors:', d['compile_errors'])"
+      - name: Build with .cargo/config.toml [env] PCRE2_SYS_STATIC=1
+        run: |
+          mv /tmp/config.toml.off .cargo/config.toml
+          cargo build --release --locked
+          BIN=target/release/pcre2-matrix-spike
+          $BIN info
+          if [[ "$RUNNER_OS" == Linux ]]; then ldd $BIN; else otool -L $BIN; fi
