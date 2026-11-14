@@ -15,10 +15,11 @@ struct Corpus {
     texts: Vec<String>,
 }
 
-/// Limits policy under test. Override with LIMITS="match,depth,heap_kib,jit_stack_bytes" (0 = unset).
+/// Limits policy under test. Override with
+/// LIMITS="match,depth,heap_kib,jit_stack_bytes,jit_match" (0 = unset).
 fn policy() -> Limits {
     let v: Vec<u64> = std::env::var("LIMITS")
-        .unwrap_or("10000000,10000000,262144,8388608".into())
+        .unwrap_or("10000000,10000000,262144,8388608,100000".into())
         .split(',')
         .map(|s| s.parse().unwrap())
         .collect();
@@ -28,6 +29,7 @@ fn policy() -> Limits {
         depth_limit: o(v[1]).map(|x| x as u32),
         heap_limit_kib: o(v[2]).map(|x| x as u32),
         jit_stack: o(v[3]).map(|x| x as usize),
+        jit_match_limit: v.get(4).copied().and_then(o).map(|x| x as u32),
     }
 }
 
@@ -227,57 +229,60 @@ fn limits_demo(out: &str) {
             r"^(a|b)*$",
             format!("{}c", "ab".repeat(500_000)),
         ),
+        // Real slopvac rule (rhetorical-question-transition) on a 1 MB run of spaces: JIT only
+        // checks for the required '?' within 500 KB (REQ_CU_MAX*100), then backtracks quadratically.
+        (
+            "rhetorical-question-1MB-spaces",
+            r"(?im)^\s*(?:#{1,6}\s*)?(?:So|But|Now|And)?\s*(?:why|what|how|who)\b[^.!?\n]{0,60}\?\s*$",
+            " ".repeat(1_000_000),
+        ),
         (
             "lookbehind-scan",
             r"(?<=\b(?:which|where)(?:\s{1,3}[\w-]{1,40}){0,2}\s{1,3})will",
             "which ".repeat(1_000_000),
         ),
     ];
+    let none = Limits {
+        match_limit: None,
+        depth_limit: None,
+        heap_limit_kib: None,
+        jit_match_limit: None,
+        jit_stack: None,
+    };
+    let big = Some(8usize << 20);
     let configs: Vec<(&str, Limits)> = vec![
-        (
-            "pcre2-defaults",
-            Limits {
-                match_limit: None,
-                depth_limit: None,
-                heap_limit_kib: None,
-                jit_stack: None,
-            },
-        ),
+        ("pcre2-defaults", none),
         ("policy", policy()),
         (
             "match=100k",
             Limits {
                 match_limit: Some(100_000),
-                depth_limit: None,
-                heap_limit_kib: None,
-                jit_stack: Some(8 << 20),
+                jit_match_limit: Some(100_000),
+                jit_stack: big,
+                ..none
             },
         ),
         (
             "depth=10k",
             Limits {
-                match_limit: None,
                 depth_limit: Some(10_000),
-                heap_limit_kib: None,
-                jit_stack: Some(8 << 20),
+                jit_stack: big,
+                ..none
             },
         ),
         (
             "heap=1MiB",
             Limits {
-                match_limit: None,
-                depth_limit: None,
                 heap_limit_kib: Some(1024),
-                jit_stack: Some(8 << 20),
+                jit_stack: big,
+                ..none
             },
         ),
         (
             "jitstack=64KiB",
             Limits {
-                match_limit: None,
-                depth_limit: None,
-                heap_limit_kib: None,
                 jit_stack: Some(64 << 10),
+                ..none
             },
         ),
     ];
@@ -286,6 +291,10 @@ fn limits_demo(out: &str) {
         for jit in [true, false] {
             let re = Regex::new(pat, false, jit).unwrap();
             for (cname, l) in &configs {
+                if jit && re.jit && name.starts_with("rhetorical") && l.jit_match_limit.is_none() {
+                    // JIT at the default 10M budget takes ~10 min here (measured 597 s on M-series).
+                    continue;
+                }
                 let ctx = MatchCtx::new(*l);
                 let t = Instant::now();
                 let fb0 = pcre::JIT_FALLBACKS.load(std::sync::atomic::Ordering::Relaxed);
@@ -297,7 +306,7 @@ fn limits_demo(out: &str) {
                     Err(e) => pcre::error_message(e),
                 };
                 if fb > 0 {
-                    outcome = format!("JIT stack exhausted -> interpreter: {outcome}");
+                    outcome = format!("JIT limit/stack hit -> interpreter: {outcome}");
                 }
                 eprintln!(
                     "{name:22} {:6} {cname:15} {ms:9.1}ms  {outcome}",

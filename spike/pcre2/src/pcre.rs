@@ -74,16 +74,24 @@ impl Regex {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Limits {
+    /// Interpreter match() call budget per pcre2_match call.
     pub match_limit: Option<u32>,
+    /// Interpreter backtracking depth.
     pub depth_limit: Option<u32>,
     /// KiB, interpreter only.
     pub heap_limit_kib: Option<u32>,
+    /// JIT budget (JIT counts differently and its cost per unit is not bounded,
+    /// see RESULTS); on hitting it the call is redone on the interpreter.
+    pub jit_match_limit: Option<u32>,
     /// bytes; JIT only. None = PCRE2's 32 KiB machine-stack default.
     pub jit_stack: Option<usize>,
 }
 
+/// Two match contexts: JIT (jit_match_limit + JIT stack) and interpreter
+/// (match/depth/heap limits). The interpreter context is also the fallback.
 pub struct MatchCtx {
-    ctx: *mut pcre2_match_context_8,
+    jit: *mut pcre2_match_context_8,
+    interp: *mut pcre2_match_context_8,
     stack: *mut pcre2_jit_stack_8,
 }
 impl Drop for MatchCtx {
@@ -92,31 +100,37 @@ impl Drop for MatchCtx {
             if !self.stack.is_null() {
                 pcre2_jit_stack_free_8(self.stack);
             }
-            pcre2_match_context_free_8(self.ctx);
+            pcre2_match_context_free_8(self.jit);
+            pcre2_match_context_free_8(self.interp);
         }
     }
 }
 impl MatchCtx {
     pub fn new(l: Limits) -> MatchCtx {
         unsafe {
-            let ctx = pcre2_match_context_create_8(ptr::null_mut());
-            assert!(!ctx.is_null());
+            let interp = pcre2_match_context_create_8(ptr::null_mut());
+            let jit = pcre2_match_context_create_8(ptr::null_mut());
+            assert!(!interp.is_null() && !jit.is_null());
             if let Some(v) = l.match_limit {
-                pcre2_set_match_limit_8(ctx, v);
+                pcre2_set_match_limit_8(interp, v);
             }
             if let Some(v) = l.depth_limit {
-                pcre2_set_depth_limit_8(ctx, v);
+                pcre2_set_depth_limit_8(interp, v);
             }
             if let Some(v) = l.heap_limit_kib {
-                pcre2_set_heap_limit_8(ctx, v);
+                pcre2_set_heap_limit_8(interp, v);
+            }
+            if let Some(v) = l.jit_match_limit {
+                pcre2_set_match_limit_8(jit, v);
             }
             let mut stack = ptr::null_mut();
-            if let Some(max) = l.jit_stack {
+            // pcre2_jit_stack_create returns NULL on builds without JIT support.
+            if let (Some(max), true) = (l.jit_stack, config_u32(PCRE2_CONFIG_JIT) == 1) {
                 stack = pcre2_jit_stack_create_8(32 * 1024, max, ptr::null_mut());
                 assert!(!stack.is_null());
-                pcre2_jit_stack_assign_8(ctx, None, stack as *mut libc::c_void);
+                pcre2_jit_stack_assign_8(jit, None, stack as *mut libc::c_void);
             }
-            MatchCtx { ctx, stack }
+            MatchCtx { jit, interp, stack }
         }
     }
 }
@@ -157,14 +171,23 @@ pub fn find_all(
             break;
         }
         let opts = base | if notempty { PCRE2_NOTEMPTY_ATSTART } else { 0 };
-        let mut rc = unsafe { pcre2_match_8(re.code, subj, len, pos, opts, md.0, ctx.ctx) };
-        if rc == PCRE2_ERROR_JIT_STACKLIMIT {
-            // JIT stack exhausted: redo this call on the interpreter, which is
-            // bounded by the heap/depth limits instead. Keeps results identical
-            // to non-JIT targets (aarch64-musl) except where a limit fires.
+        let mctx = if use_jit { ctx.jit } else { ctx.interp };
+        let mut rc = unsafe { pcre2_match_8(re.code, subj, len, pos, opts, md.0, mctx) };
+        if use_jit && (rc == PCRE2_ERROR_JIT_STACKLIMIT || rc == PCRE2_ERROR_MATCHLIMIT) {
+            // JIT budget or stack exhausted: redo this call on the interpreter,
+            // bounded by its match/depth/heap limits. Results then equal the
+            // non-JIT targets (aarch64-musl); only interpreter limits can fail.
             JIT_FALLBACKS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             rc = unsafe {
-                pcre2_match_8(re.code, subj, len, pos, opts | PCRE2_NO_JIT, md.0, ctx.ctx)
+                pcre2_match_8(
+                    re.code,
+                    subj,
+                    len,
+                    pos,
+                    opts | PCRE2_NO_JIT,
+                    md.0,
+                    ctx.interp,
+                )
             };
         }
         if rc == PCRE2_ERROR_NOMATCH {

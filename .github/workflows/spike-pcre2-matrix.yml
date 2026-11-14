@@ -75,6 +75,8 @@ jobs:
           grep -n 'if false' pcre2-sys-jit/build.rs
           printf '\n[patch.crates-io]\npcre2-sys = { path = "pcre2-sys-jit" }\n' >> Cargo.toml
           cargo update -p pcre2-sys
+          # sljit calls __clear_cache, which Rust's self-contained musl link lacks; take it from libgcc.
+          echo "RUSTFLAGS=-C link-arg=-lgcc" >> "$GITHUB_ENV"
       - name: Build (vendored PCRE2)
         run: cargo build --release ${{ matrix.jitpatch && ' ' || '--locked' }} --target ${{ matrix.target }}
       - name: Info

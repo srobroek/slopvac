@@ -30,7 +30,8 @@ for cname, cf in corpora.items():
     to = ["30"] if cname == "big" else []
     for pset in ("patterns", "patterns_bounded"):
         o = f"out/py_{pset}_{cname}.json"
-        sh(py, "ref.py", "spans", f"{pset}.json", cf, o, *to)
+        if not (os.environ.get("REUSE_PY") and os.path.exists(o)):
+            sh(py, "ref.py", "spans", f"{pset}.json", cf, o, *to)
     for mode in ("jit", "interp") + (("crate",) if cname == "corpus" else ()):
         sh(BIN, "dump", "patterns_pcre.json", cf, f"out/rs_{mode}_{cname}.json", mode)
 
@@ -39,7 +40,7 @@ fut = str(next(i for i, p in enumerate(P) if "future" in p["rule_id"]))
 for cname in corpora:
     pyo, pyp = (
         load(f"out/py_patterns_{cname}.json"),
-        load(f"out/py_patterns_pcre_{cname}.json"),
+        load(f"out/py_patterns_bounded_{cname}.json"),
     )
     S["regex"] = pyo["regex"]
     S["timings"][f"python_{cname}_ms"] = round(pyp["run_ms"])
@@ -71,6 +72,14 @@ for cname in corpora:
             n_runtime_errors=len(rs["runtime_errors"]),
             n_matches=rs["n_matches"],
             limits=rs["limits"],
+            jit_fallbacks=rs.get("jit_stack_fallbacks"),
+            slowest=sorted(
+                (
+                    (round(v), P[int(k)]["rule_id"])
+                    for k, v in rs["per_pattern_ms"].items()
+                ),
+                reverse=True,
+            )[:5],
         )
         S["diffs"][f"{mode}_vs_py_bounded_{cname}"] = diff(pyp, rs)
         S["diffs"][f"{mode}_vs_py_original_{cname}"] = {
