@@ -143,15 +143,6 @@ class Rule(BaseModel):
         description="Named, closed exception list. A suppression annotation must "
         "cite one of these by name; 'reads better' is deliberately never here.",
     )
-    skip_when_sentence_matches: str | None = Field(
-        default=None,
-        description="Regex tested against the sentence that holds a match "
-        "(bounded by `.`/`!`/`?` before whitespace, or by a line break). A match "
-        "inside a sentence where this pattern is found never fires. Use it for an "
-        "automatic exception that needs context a match-local pattern cannot see, "
-        "such as a requirement marker elsewhere in the sentence. Matched "
-        "case-insensitively when `ignore_case` is true.",
-    )
     allowlist: list[str] = Field(
         default_factory=list,
         description="Literal strings that never fire, even when the pattern "
@@ -179,10 +170,6 @@ class Rule(BaseModel):
 
     @model_validator(mode="after")
     def _check_payload(self) -> Rule:
-        if self.skip_when_sentence_matches is not None and self.kind is RuleKind.JUDGEMENT:
-            raise ValueError(
-                f"{self.id}: `skip_when_sentence_matches` is not valid for kind=judgement"
-            )
         required = {
             RuleKind.TOKENS: "tokens",
             RuleKind.PATTERN: "pattern",

@@ -155,12 +155,12 @@ def _verify_examples(rules: Iterable[Rule], origin: str) -> list[str]:
             continue
 
         for index, example in enumerate(rule.examples):
-            if not _fires(rule, pattern, example.bad):
+            if not pattern.search(example.bad):
                 problems.append(
                     f"{origin}: {rule.qualified_id} example {index} 'bad' text does "
                     f"not match its own pattern: {example.bad!r}"
                 )
-            if example.good is not None and _fires(rule, pattern, example.good):
+            if example.good is not None and pattern.search(example.good):
                 problems.append(
                     f"{origin}: {rule.qualified_id} example {index} 'good' text "
                     f"matches the pattern, so the rule fires on its own fix: "
@@ -351,13 +351,3 @@ def load_ruleset(
     ruleset = _assemble(_parse(sources, documents), verify=True)
     ruleset_cache.write(path, key, documents)
     return ruleset
-
-
-def _fires(rule: Rule, pattern: "re.Pattern[str]", text: str) -> bool:
-    """Does the rule raise a finding in `text`, honouring its sentence skip?"""
-    from .engine import _in_skipped_sentence
-
-    return any(
-        not _in_skipped_sentence(rule, text, match.start(), match.end())
-        for match in pattern.finditer(text)
-    )

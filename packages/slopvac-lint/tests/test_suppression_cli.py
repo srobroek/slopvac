@@ -550,3 +550,61 @@ def test_comment_mode_reports_a_bad_directive_and_lints_no_directive_text(commen
             if finding["line"] in lines and finding["rule_id"] != META
         ]
         assert not stray, (name, stray)
+
+
+# --- negative-inventory-core: the Vale-backed path matches the native engine ---------------
+
+NEG_INV = "ai-tells-structure.negative-inventory-core"
+
+
+def _neg_inv_blocks():
+    from test_engine import (
+        NEGATIVE_INVENTORY_KEEPS,
+        NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT,
+        NEGATIVE_INVENTORY_TELLS,
+    )
+
+    cases = [(text, False) for text in NEGATIVE_INVENTORY_KEEPS]
+    cases += [(text, True) for text in NEGATIVE_INVENTORY_TELLS]
+    cases.append((NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT, True))
+    blocks = []
+    for index, (text, _) in enumerate(cases):
+        if text.startswith("|"):
+            text = "| Check | Status |\n|---|---|\n" + text
+        blocks.append((str(index), text))
+    return cases, blocks
+
+
+# The CLI routes this rule to Vale (`--no-vale` leaves it unchecked), so the CLI run
+# is the Vale path. `test_engine.py` runs the same cases through the native engine.
+@pytest.fixture(scope="module")
+def neg_inv(tmp_path_factory) -> tuple[list[dict], dict[str, range]]:
+    _, blocks = _neg_inv_blocks()
+    text, spans = _document(*blocks)
+    doc = tmp_path_factory.mktemp("neginv") / "doc.md"
+    doc.write_text(text, encoding="utf-8")
+    code, findings = _lint(doc)
+    assert code != 2, "the Vale run is incomplete"
+    return findings["doc.md"], spans
+
+
+@needs_vale
+def test_negative_inventory_core_matches_the_native_cases_under_vale(neg_inv):
+    findings, spans = neg_inv
+    cases, _ = _neg_inv_blocks()
+    fired = {
+        text: any(_lines(findings, NEG_INV)[line] for line in spans[str(index)])
+        for index, (text, _) in enumerate(cases)
+    }
+    assert fired == {text: expected for text, expected in cases}
+
+
+
+@needs_vale
+def test_negative_inventory_core_judges_each_match_in_its_own_sentence_under_vale(neg_inv):
+    from test_engine import NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT as text
+
+    findings, spans = neg_inv
+    cases, _ = _neg_inv_blocks()
+    index = [case for case, _ in cases].index(text)
+    assert sum(_lines(findings, NEG_INV)[line] for line in spans[str(index)]) == 1

@@ -2003,13 +2003,14 @@ NEGATIVE_INVENTORY_KEEPS = [
     "The `not pinned` state is reported by `doctor`.",
     "Excluded: clients MUST NOT access telemetry.",
     "- Out of scope: agents must never edit the lockfile.",
-    "| Not included | Clients shall not read the cache |",
+    "> Not included: clients shall not read the cache.",
     "Excluded from this release: nothing must be pinned to a branch.",
     "Run the formatter, then do not pin it to a floating tag.",
     "If the build is flaky, never pin the formatter.",
     "Please do not pin the formatter.",
     "do not pin the formatter to a floating tag.",
     "Never pin the formatter to a floating tag.",
+    "Packages not included must be audited.",
 ]
 
 NEGATIVE_INVENTORY_TELLS = [
@@ -2027,6 +2028,12 @@ NEGATIVE_INVENTORY_TELLS = [
     "Excluded: accessibility checks. The formatter does not pin versions.",
 ]
 
+# Requirement text in an earlier sentence is out of scope for 2.x; the 3.0
+# requirement context handles it. These fire in both engines.
+NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT = (
+    "Packages not included must be audited. Browser checks are not included."
+)
+
 
 @pytest.mark.parametrize("text", NEGATIVE_INVENTORY_KEEPS)
 def test_negative_inventory_core_ignores_constraints_and_requirements(text):
@@ -2036,3 +2043,9 @@ def test_negative_inventory_core_ignores_constraints_and_requirements(text):
 @pytest.mark.parametrize("text", NEGATIVE_INVENTORY_TELLS)
 def test_negative_inventory_core_fires_on_inventory_form(text):
     assert _negative_inventory(text)
+
+
+def test_negative_inventory_core_judges_each_match_in_its_own_sentence():
+    findings = _negative_inventory(NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT)
+    assert [f.matched_text for f in findings] == ["not included"]
+    assert findings[0].column == NEGATIVE_INVENTORY_TELL_AFTER_REQUIREMENT.rindex("not included") + 1
