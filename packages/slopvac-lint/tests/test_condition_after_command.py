@@ -18,7 +18,9 @@ from slopvac.cli import main
 
 RULE = "ste-procedural.condition-after-command"
 
-pytestmark = pytest.mark.skipif(
+# The CLI tests run Vale, which owns this rule. The `Engine.run` tests further down
+# need no Vale and must never skip with it.
+needs_vale = pytest.mark.skipif(
     shutil.which("vale") is None, reason="vale is not on PATH"
 )
 
@@ -40,6 +42,7 @@ def _fired_lines(tmp_path, text: str) -> list[int]:
     ]
 
 
+@needs_vale
 @pytest.mark.parametrize(
     "sentence",
     [
@@ -59,12 +62,18 @@ def _fired_lines(tmp_path, text: str) -> list[int]:
         "Note warnings before deployment.",
         # `before`/`after` followed by a noun is still a condition.
         "Back up the database before installation.",
+        # Negative and emphatic imperatives, with and without a lead-in.
+        "Do not run migrations before deployment.",
+        "Don't run migrations before deployment.",
+        "Never run migrations before deployment.",
+        "For production, do not run migrations before deployment.",
     ],
 )
 def test_instruction_with_trailing_condition_is_reported(tmp_path, sentence):
     assert _fired_lines(tmp_path, f"{sentence}\n") == [1]
 
 
+@needs_vale
 @pytest.mark.parametrize(
     "sentence",
     [
@@ -98,6 +107,7 @@ def test_prose_without_a_trailing_condition_on_a_command_is_left_alone(
     assert _fired_lines(tmp_path, f"{sentence}\n") == []
 
 
+@needs_vale
 def test_issue_254_sample_reports_only_the_real_instruction(tmp_path):
     sample = (
         "## Change the mode after launch\n"  # 1: heading
@@ -118,6 +128,7 @@ def test_issue_254_sample_reports_only_the_real_instruction(tmp_path):
     assert _fired_lines(tmp_path, sample) == [13]
 
 
+@needs_vale
 @pytest.mark.parametrize(
     "cell",
     ["Restart the worker if the queue is full.", "Clear the cache when it fills."],
@@ -129,6 +140,7 @@ def test_table_cells_and_headings_are_not_checked(tmp_path, cell):
     assert _fired_lines(tmp_path, heading) == []
 
 
+@needs_vale
 def test_list_items_are_still_checked(tmp_path):
     assert _fired_lines(tmp_path, "- Use `yolo` if the agent runs unattended.\n") == [1]
 
@@ -189,7 +201,11 @@ _AGREEMENT = [
     ("Quarantine the build when the scan fails.", True),
     ("Note warnings before deployment.", True),
     ("For production, restart the worker if the queue is full.", True),
+    ("Do not run migrations before deployment.", True),
+    ("Don't run migrations before deployment.", True),
+    ("For production, do not run migrations before deployment.", True),
     ("Release builds run before deployment.", False),
+    ("Always runs before deployment when the queue is empty.", False),
     ("For production, release builds run before deployment.", False),
     ("Action reviews offer **Run once** or **Cancel**.", False),
     (_QUIET_CONDITION_FIRST, False),
@@ -201,7 +217,7 @@ def test_native_classifies_sentences(sentence, fires):
     assert bool(_native_lines(f"{sentence}\n")) is fires
 
 
-@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+@needs_vale
 @pytest.mark.parametrize("block", ["paragraph", "list", "heading", "table"])
 def test_vale_and_native_agree(tmp_path, block):
     for sentence, _ in _AGREEMENT:
