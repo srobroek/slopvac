@@ -54,7 +54,7 @@ jobs:
           persist-credentials: false
       - name: Scan pull request diff
         if: github.event_name == 'pull_request'
-        uses: trufflesecurity/trufflehog@e63326d6545de8f425d93ce24078c6e68d83f70e # v3.99.3
+        uses: trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb # v3.99.8
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha }}
@@ -66,14 +66,14 @@ jobs:
           github.event_name != 'pull_request' &&
           github.event_name != 'schedule' &&
           github.event_name != 'workflow_dispatch'
-        uses: trufflesecurity/trufflehog@e63326d6545de8f425d93ce24078c6e68d83f70e # v3.99.3
+        uses: trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb # v3.99.8
         with:
           path: ./
           version: 3.99.3
           extra_args: --results=verified
       - name: Scan full tree
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        uses: trufflesecurity/trufflehog@e63326d6545de8f425d93ce24078c6e68d83f70e # v3.99.3
+        uses: trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb # v3.99.8
         with:
           path: ./
           version: 3.99.3
@@ -92,11 +92,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: python
       - name: Analyze
-        uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
 
   osv:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.dependencies }}
@@ -111,7 +111,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Scan uv.lock
-        uses: google/osv-scanner-action/osv-scanner-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+        uses: google/osv-scanner-action/osv-scanner-action@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
         continue-on-error: true
         with:
           scan-args: |-
@@ -120,7 +120,7 @@ jobs:
             --lockfile=uv.lock
       - name: Create SARIF report
         if: always()
-        uses: google/osv-scanner-action/osv-reporter-action@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+        uses: google/osv-scanner-action/osv-reporter-action@32d3cd482bdadfb38b186c0ad1b031902d55d932 # v2.7.1
         with:
           scan-args: |-
             --output=osv-results.sarif
@@ -129,7 +129,7 @@ jobs:
             --fail-on-vuln=true
       - name: Upload OSV SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: osv-results.sarif
 
@@ -158,7 +158,7 @@ jobs:
           exit-code: "1"
       - name: Upload Trivy SARIF
         if: always()
-        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        uses: github/codeql-action/upload-sarif@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           sarif_file: trivy-results.sarif
 
