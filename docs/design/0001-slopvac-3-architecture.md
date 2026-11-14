@@ -9,11 +9,11 @@
 
 Slopvac 2.x is a Python package. It generates Vale configuration, runs Vale, and scores the output. That design has three limits:
 
-- Vale owns matching, so every new match type, provenance field, or context tag needs work in a second tool.
-- Every run starts a Python process and a Vale subprocess. The regex spike measured Python at 7.7 to 9.1 seconds for 143 patterns over 8,496 texts on one thread.
+- Matching is split. 2.x has native rule types in Python, and Vale runs the rest. Slopvac supplies metadata, suppression, severity, replacements, and provenance by filtering Vale findings. Every new match type, provenance field, or context tag must work across both engines.
+- An ordinary Vale-enabled lint run starts a Python process and a Vale subprocess. `prime` does not call Vale, and `--no-vale` or a disabled config skips it. The regex spike measured matcher throughput only: Python at 7.7 to 9.1 seconds for 143 patterns over 8,496 texts on one thread. It does not measure whole-run time.
 - Users install two tools, and the Vale version affects results.
 
-A documentation trial (GitHub issues #252 to #257) also found rule defects that need fixes. No 2.x release ships, so those fixes and a public data and plugin API land together in 3.0.0. This record covers the architecture decisions. The plan holds the order of work.
+A documentation trial (GitHub issues #252 to #257) also found rule defects that need fixes. No 2.x release ships, so those fixes and a public data and plugin API land together in 3.0.0. This record covers the architecture decisions. The plan holds the order of work and the full detail for each decision.
 
 Labels in the experiments below come from one annotator, and several samples are small. Treat the figures as estimates for those corpora.
 
@@ -152,6 +152,48 @@ No 2.18.x or 2.19 release ships. Rule-data fixes land on `main` in the Python re
 
 Confirmed 2026-11-14. An adversarial review proposed a smaller 3.0.0 with new platforms in 3.1. The decision keeps every programme bead outside the backlog in 3.0.0, under the `release:3.0.0` label. A release-readiness gate bead covers the whole scope.
 
+### 19. Public data contracts
+
+Rust types generate versioned JSON Schemas, published per API major version. IDs are namespaced as `<pack>:<id>`, with built-ins in `core`. Rules use a typed `match:` block, and `tiers` is removed. Profiles set gate thresholds and a severity shift only. Styles are ordered presets with `extends` and declared `conflicts`. Genres are data files with detection signals. Lint JSON v3 adds `schema_version`, `notices`, per-document `genre` and config sources, and per-finding `pack`, `contexts`, and `end_line`.
+
+- Evidence: none from a spike. This follows the 2.x pydantic schema and the trial feedback.
+- Detail: plan section "Data and API schema".
+
+### 20. Config precedence, nearest config, and front matter
+
+Layer order, lowest to highest: core defaults, styles, the genre chain, `extends`, project config, matching `[[genres]]` and `[[overrides]]`, front matter, inline directives, CLI flags. The nearest config to each file applies. Front matter is an allowed-fields layer under a `slopvac:` key. `--explain-config` prints the layer, file, and line of each value.
+
+- Evidence: the layer-stack spike in decision 6.
+- Detail: plan sections "Data and API schema" and "Layer order".
+
+### 21. Context tags
+
+Adopt `requirement`, `enforced-invariant`, and `change-note` contexts. Security context is declared, not inferred.
+
+- Evidence (`slopvac-8l4.2.14`): the `requirement` tagger touched 9% of sentences and lost no observed true positive. The sentence-level `enforced-invariant` tagger touched 9% and lost none. Extended change-note detection cleared all 150 release-note false positives of history-narration. A lexical security tagger marked 40% of security-doc sentences, which is too broad to infer.
+- Rejected: inferring security context lexically.
+
+### 22. Extractors
+
+`pulldown-cmark` for Markdown, `markdown-rs` for MDX, `html5ever` for HTML, and `tree-sitter` for code comments. RST stays in core through a bundled docutils-to-HTML adapter. AsciiDoc is an experimental first-party extractor plugin through asciidoctor.
+
+- Evidence: none from a spike. RST stays in core to preserve 2.x behavior. AsciiDoc is new, so it ships as experimental.
+- Detail: plan section "Language and runtime" table.
+
+### 23. Agent review
+
+Review types are `mechanical`, `update`, and `rewrite`. Fact checking covers changed claims only, and its scope scales with the change. Fact preservation uses lexical alignment and a literal diff (decision 5). The reviewer must use a different model from the author.
+
+- Evidence: decision 5 for alignment. No bead measures the same-model restriction.
+- Detail: plan section "Agents".
+
+### 24. Release and quality gates
+
+Release candidates follow the platevault model: an `rc/vX.Y.Z-rc.N` tag cut on demand and a provenance gate before stable. The accuracy gate measures recall on seeded and adjudicated positives, false-positive rates on clean controls, and a held-out set, as well as precision. A precision ratchet blocks rule changes that lower precision beyond the noise. A position contract fixes byte spans, line and column bases, and per-format conversions, including LSP UTF-16. The golden suite runs in three modes: reference parity pinned to a Python commit, Vale 3.24, and corpus hashes; 3.0 default-policy tests with reviewed deltas; and migration-preservation tests.
+
+- Evidence: none from a spike. These gates came from the adversarial plan review.
+- Detail: plan sections "Distribution and release", "Evals", and "Release gate and risks".
+
 ## Consequences
 
 Good:
@@ -166,7 +208,7 @@ Bad or risky:
 - PCRE2 is a C dependency. Its build must work on Windows, macOS, glibc, and musl.
 - `harper-brill` must match Vale's POS tags well enough per rule. That spike is a go or no-go gate. No result is recorded yet.
 - The plugin host and OCI client carry security risk. The threat model and independent review gate them.
-- Several decisions (10 to 13, 15) have no spike numbers. They rest on convention and the plan.
+- Several decisions (10 to 13, 15, 19, 22 to 24) have no spike numbers. They rest on convention and the plan.
 - Users on 2.x must migrate. `slopvac migrate` and a one-minor compatibility mode cover this.
 
 ## Evidence
