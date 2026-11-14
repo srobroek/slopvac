@@ -274,7 +274,7 @@ Bad or risky:
 - The hand-rolled OCI client adds 42 dependencies and 1.67 MB stripped. No bead measures the size of the full binary.
 - The rewrite is large, and the full scope raises the release risk. The golden suite, a compatibility matrix, and the readiness gate exist to manage it.
 - PCRE2 is a C dependency. Its build must work on Windows, macOS, glibc, and musl.
-- The POS tagger is a port of the model Vale uses. Its model licence (CC BY-SA 4.0) is undecided (`slopvac-8l4.3.23`). If the model cannot ship, the vocabulary check must fail loudly with exit 2 and never go silent.
+- The POS tagger is a port of the model Vale uses. Its model licence (CC BY-SA 4.0) is undecided (`slopvac-8l4.3.23`). If the model cannot ship, the vocabulary check must stop with exit 2 and an error, and never skip the check without a message.
 - The plan's "Part-of-speech tags" row still names `harper-brill`. Decision 25 replaces it.
 - The plugin host and OCI client carry security risk. The threat model and independent review gate them.
 - No spike numbers back decisions 7, 10 to 13, 15, 16, 19, and 22 to 24. Decisions 8 and 9 have spikes for the transport and the registry, but none for the protocol or the trust model. These decisions rest on convention and the plan.
