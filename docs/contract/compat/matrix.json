@@ -1,0 +1,1680 @@
+{
+  "schema": "slopvac-compat-matrix/1",
+  "rows": [
+    {
+      "id": "action:input:annotate",
+      "source": "action.yml",
+      "summary": "annotate",
+      "detail": {
+        "default": "true"
+      },
+      "disposition": "preserve",
+      "note": "Stays; reviewdog is the new default.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:changed-files-only",
+      "source": "action.yml",
+      "summary": "changed-files-only",
+      "detail": {
+        "default": "false"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:config",
+      "source": "action.yml",
+      "summary": "config",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:fail-on-findings",
+      "source": "action.yml",
+      "summary": "fail-on-findings",
+      "detail": {
+        "default": "true"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:max-per-100-words",
+      "source": "action.yml",
+      "summary": "max-per-100-words",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:min-score",
+      "source": "action.yml",
+      "summary": "min-score",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:paths",
+      "source": "action.yml",
+      "summary": "paths",
+      "detail": {
+        "default": "."
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:profile",
+      "source": "action.yml",
+      "summary": "profile",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "migrate",
+      "note": "Maps onto the style preset.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "n/a"
+    },
+    {
+      "id": "action:input:rules-dir",
+      "source": "action.yml",
+      "summary": "rules-dir",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "migrate",
+      "note": "Becomes a local pack.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "n/a"
+    },
+    {
+      "id": "action:input:sarif",
+      "source": "action.yml",
+      "summary": "sarif",
+      "detail": {
+        "default": "false"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:sarif-file",
+      "source": "action.yml",
+      "summary": "sarif-file",
+      "detail": {
+        "default": "slopvac.sarif"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:source",
+      "source": "action.yml",
+      "summary": "source",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "migrate",
+      "note": "Installs from a path or URL with the binary installer.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "n/a"
+    },
+    {
+      "id": "action:input:upload-sarif",
+      "source": "action.yml",
+      "summary": "upload-sarif",
+      "detail": {
+        "default": "true"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:input:vale",
+      "source": "action.yml",
+      "summary": "vale",
+      "detail": {
+        "default": "true"
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Ignored with a deprecation notice.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "n/a"
+    },
+    {
+      "id": "action:input:vale-version",
+      "source": "action.yml",
+      "summary": "vale-version",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Ignored with a deprecation notice.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "n/a"
+    },
+    {
+      "id": "action:input:version",
+      "source": "action.yml",
+      "summary": "version",
+      "detail": {
+        "default": ""
+      },
+      "disposition": "preserve",
+      "note": "Pins the binary version.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:documents",
+      "source": "action.yml",
+      "summary": "documents",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:errors",
+      "source": "action.yml",
+      "summary": "errors",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:findings",
+      "source": "action.yml",
+      "summary": "findings",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:json",
+      "source": "action.yml",
+      "summary": "json",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Path to the report; the JSON uses schema version 3.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:passed",
+      "source": "action.yml",
+      "summary": "passed",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:per-100-words",
+      "source": "action.yml",
+      "summary": "per-100-words",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:sarif",
+      "source": "action.yml",
+      "summary": "sarif",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:score",
+      "source": "action.yml",
+      "summary": "score",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:suggestions",
+      "source": "action.yml",
+      "summary": "suggestions",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:warnings",
+      "source": "action.yml",
+      "summary": "warnings",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "action:output:words",
+      "source": "action.yml",
+      "summary": "words",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.13.6",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:bare-path-lint",
+      "source": "behavior",
+      "summary": "Bare paths run lint.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "`slopvac README.md` lints without a subcommand.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:category-disable-filters",
+      "source": "behavior",
+      "summary": "--category and --disable.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "--category and --disable select rules for a run.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:code-comments-mode",
+      "source": "behavior",
+      "summary": "code comments.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "Comment extraction for source files.",
+      "owner": "slopvac-8l4.3.14",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:colour-verbosity",
+      "source": "behavior",
+      "summary": "colour and verbosity.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "NO_COLOR, --no-color and --verbose behaviour.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:compile-cache",
+      "source": "behavior",
+      "summary": "compile cache.",
+      "detail": {},
+      "disposition": "remove-with-deprecation",
+      "note": "The compiled-styles cache is gone.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:config-discovery",
+      "source": "behavior",
+      "summary": "config discovery.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "slopvac.toml, .slopvac.toml and pyproject.toml tables stay readable in compatibility mode.",
+      "owner": "slopvac-8l4.4.2",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:diff-base-changed-lines",
+      "source": "behavior",
+      "summary": "--diff-base scope.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "--diff-base lints only changed lines.",
+      "owner": "slopvac-8l4.3.15",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:diff-working-tree-staged",
+      "source": "behavior",
+      "summary": "--diff-working-tree staged.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Staged changes are in scope.",
+      "owner": "slopvac-8l4.3.19",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:diff-working-tree-unstaged",
+      "source": "behavior",
+      "summary": "--diff-working-tree unstaged.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Unstaged changes are in scope.",
+      "owner": "slopvac-8l4.3.19",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:diff-working-tree-untracked",
+      "source": "behavior",
+      "summary": "--diff-working-tree untracked.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Untracked files are in scope.",
+      "owner": "slopvac-8l4.3.19",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:fix-safe-substitutions",
+      "source": "behavior",
+      "summary": "--fix.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "--fix rewrites only safe substitutions and reports the rest.",
+      "owner": "slopvac-8l4.3.17",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:init-flags",
+      "source": "behavior",
+      "summary": "init flags.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "init flags select profile, path, harnesses and skills.",
+      "owner": "slopvac-8l4.12.8",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:init-idempotence",
+      "source": "behavior",
+      "summary": "init idempotence.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "A second init leaves files unchanged unless --force.",
+      "owner": "slopvac-8l4.12.8",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:inspection-filters",
+      "source": "behavior",
+      "summary": "rules/explain filters.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "rules filters by category, kind, genre and profile.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:inspection-formats",
+      "source": "behavior",
+      "summary": "rules/explain formats.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "rules and explain emit text, json and md.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:lint-json-schema",
+      "source": "behavior",
+      "summary": "lint JSON.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "The JSON report moves from schema version 1 to 3.",
+      "owner": "slopvac-8l4.2.2",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:locale-overrides",
+      "source": "behavior",
+      "summary": "locale overrides.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "Locale from the flag, config and front matter.",
+      "owner": "slopvac-8l4.3.12",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:onboard-output",
+      "source": "behavior",
+      "summary": "onboard.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "onboard prints the agent onboarding text.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:prime-topics",
+      "source": "behavior",
+      "summary": "prime topics.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "prime write, review and report keep their text contract; new topics join.",
+      "owner": "slopvac-8l4.11.1",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:reference-check",
+      "source": "behavior",
+      "summary": "reference --check.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "reference --check exits non-zero when the file is stale.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:reference-write",
+      "source": "behavior",
+      "summary": "reference --write.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "reference --write regenerates the rules reference.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:report-out-open",
+      "source": "behavior",
+      "summary": "--out and --open.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "--out writes the report; --open shows it.",
+      "owner": "slopvac-8l4.12.2",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:rst-linting",
+      "source": "behavior",
+      "summary": "RST.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "reStructuredText lints through a bundled docutils adapter.",
+      "owner": "slopvac-8l4.3.21",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:setup-list-remove-check",
+      "source": "behavior",
+      "summary": "setup actions.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "setup --list, --remove and --check; remove deletes only what setup wrote.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:setup-root",
+      "source": "behavior",
+      "summary": "setup --root.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "setup --root targets another directory.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:stdin-invalid-utf8",
+      "source": "behavior",
+      "summary": "stdin with invalid UTF-8.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Invalid UTF-8 on stdin fails with a clear error and exit code.",
+      "owner": "slopvac-8l4.12.9",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:stdin-language",
+      "source": "behavior",
+      "summary": "stdin language.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "--language picks the parser for stdin.",
+      "owner": "slopvac-8l4.12.9",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:stdin-name-redaction",
+      "source": "behavior",
+      "summary": "<stdin> redaction.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "The path shows as <stdin> in every output.",
+      "owner": "slopvac-8l4.12.9",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:stdin-text",
+      "source": "behavior",
+      "summary": "Lint stdin.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "One document from stdin with --stdin.",
+      "owner": "slopvac-8l4.12.9",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:suppression-directives",
+      "source": "behavior",
+      "summary": "suppression directives.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "2.x directive IDs migrate with `slopvac migrate`.",
+      "owner": "slopvac-8l4.16.1",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:thresholds-exit-codes",
+      "source": "behavior",
+      "summary": "thresholds and exit codes.",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Exit 0 pass, 1 threshold fail, 2 incomplete; thresholds from flags, config and profile.",
+      "owner": "slopvac-8l4.3.8",
+      "test": "pending"
+    },
+    {
+      "id": "behavior:uvx-install",
+      "source": "behavior",
+      "summary": "uvx install.",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "`uvx slopvac` keeps working through maturin wheels.",
+      "owner": "slopvac-8l4.13.2",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:vale-binary-install",
+      "source": "behavior",
+      "summary": "Vale install.",
+      "detail": {},
+      "disposition": "remove-with-deprecation",
+      "note": "scripts/install_vale.py and the pinned Vale go away.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "behavior:vale-subgate",
+      "source": "behavior",
+      "summary": "Vale sub-gate.",
+      "detail": {},
+      "disposition": "remove-with-deprecation",
+      "note": "The Vale sub-gate and UNCHECKED reporting go away.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "cmd:cache",
+      "source": "click",
+      "summary": "slopvac cache",
+      "detail": {},
+      "disposition": "remove-with-deprecation",
+      "note": "Pruned the Vale cache; removed.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "cmd:compile",
+      "source": "click",
+      "summary": "slopvac compile",
+      "detail": {},
+      "disposition": "remove-with-deprecation",
+      "note": "Compiled Vale styles; removed with Vale.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "cmd:doctor",
+      "source": "click",
+      "summary": "slopvac doctor",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "Reports Rust binary, config and pack health instead of Python and Vale.",
+      "owner": "slopvac-8l4.12.5",
+      "test": "n/a"
+    },
+    {
+      "id": "cmd:explain",
+      "source": "click",
+      "summary": "slopvac explain",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Rule explanation; no bead owns the inspection commands.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "cmd:init",
+      "source": "click",
+      "summary": "slopvac init",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "Writes 3.0 config templates.",
+      "owner": "slopvac-8l4.12.8",
+      "test": "n/a"
+    },
+    {
+      "id": "cmd:lint",
+      "source": "click",
+      "summary": "slopvac lint",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Core command; bare paths keep linting.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "cmd:onboard",
+      "source": "click",
+      "summary": "slopvac onboard",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "cmd:prime",
+      "source": "click",
+      "summary": "slopvac prime",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "Progressive disclosure; same entry point.",
+      "owner": "slopvac-8l4.11.1",
+      "test": "n/a"
+    },
+    {
+      "id": "cmd:reference",
+      "source": "click",
+      "summary": "slopvac reference",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "cmd:root",
+      "source": "click",
+      "summary": "slopvac",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "`slopvac` stays the entry point; `slopvac <paths>` keeps working as `lint`.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "cmd:rules",
+      "source": "click",
+      "summary": "slopvac rules",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Rule listing; no bead owns the inspection commands.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "cmd:setup",
+      "source": "click",
+      "summary": "slopvac setup",
+      "detail": {},
+      "disposition": "migrate",
+      "note": "Covers all harnesses including OpenCode.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "n/a"
+    },
+    {
+      "id": "hook:slopvac",
+      "source": ".pre-commit-hooks.yaml",
+      "summary": "slopvac lint",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Hook ID stays; entry runs the 3.0 binary.",
+      "owner": "slopvac-8l4.13.8",
+      "test": "pending"
+    },
+    {
+      "id": "hook:slopvac-no-vale",
+      "source": ".pre-commit-hooks.yaml",
+      "summary": "slopvac lint --no-vale",
+      "detail": {},
+      "disposition": "remove-with-deprecation",
+      "note": "Vale is gone; the ID stays as an alias of slopvac for one minor release.",
+      "owner": "slopvac-8l4.13.8",
+      "test": "n/a"
+    },
+    {
+      "id": "hook:slopvac-strict",
+      "source": ".pre-commit-hooks.yaml",
+      "summary": "slopvac lint --profile strict",
+      "detail": {},
+      "disposition": "preserve",
+      "note": "Hook ID stays.",
+      "owner": "slopvac-8l4.13.8",
+      "test": "pending"
+    },
+    {
+      "id": "opt:cache:--all",
+      "source": "click",
+      "summary": "--all",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale cache option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:cache:--prune",
+      "source": "click",
+      "summary": "--prune",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale cache option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:compile:--config",
+      "source": "click",
+      "summary": "--config",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale compile option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:compile:--format",
+      "source": "click",
+      "summary": "--format",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "text",
+          "json"
+        ]
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale compile option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:compile:--no-validate",
+      "source": "click",
+      "summary": "--no-validate",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale compile option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:compile:--outdir",
+      "source": "click",
+      "summary": "--outdir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale output directory.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:compile:--profile",
+      "source": "click",
+      "summary": "--profile",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "strict",
+          "normal",
+          "relaxed"
+        ]
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale compile option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:compile:--rules-dir",
+      "source": "click",
+      "summary": "--rules-dir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale compile option.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:doctor:--binary",
+      "source": "click",
+      "summary": "--binary",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Names a Vale binary; Vale is gone.",
+      "owner": "slopvac-8l4.12.5",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:doctor:--config",
+      "source": "click",
+      "summary": "--config",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Same meaning.",
+      "owner": "slopvac-8l4.12.5",
+      "test": "pending"
+    },
+    {
+      "id": "opt:doctor:--format",
+      "source": "click",
+      "summary": "--format",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "text",
+          "json"
+        ]
+      },
+      "disposition": "preserve",
+      "note": "text and json stay.",
+      "owner": "slopvac-8l4.12.5",
+      "test": "pending"
+    },
+    {
+      "id": "opt:explain:--config",
+      "source": "click",
+      "summary": "--config",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Same meaning.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:explain:--format",
+      "source": "click",
+      "summary": "--format",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "text",
+          "json",
+          "md"
+        ]
+      },
+      "disposition": "preserve",
+      "note": "text, json and md stay.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:explain:--profile",
+      "source": "click",
+      "summary": "--profile",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "strict",
+          "normal",
+          "relaxed"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "Follows the profile mapping.",
+      "owner": "TBD",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:explain:--rules-dir",
+      "source": "click",
+      "summary": "--rules-dir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "migrate",
+      "note": "Becomes a local pack.",
+      "owner": "slopvac-8l4.9.1",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:explain:rule_id",
+      "source": "click",
+      "summary": "rule_id",
+      "detail": {
+        "kind": "argument"
+      },
+      "disposition": "migrate",
+      "note": "IDs gain the pack namespace; bare 2.x IDs resolve with a notice.",
+      "owner": "slopvac-8l4.2.3",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:init:--force",
+      "source": "click",
+      "summary": "--force",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Overwrites an existing file.",
+      "owner": "slopvac-8l4.12.8",
+      "test": "pending"
+    },
+    {
+      "id": "opt:init:--harness",
+      "source": "click",
+      "summary": "--harness",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "agents",
+          "codex",
+          "omp",
+          "kiro",
+          "claude"
+        ]
+      },
+      "disposition": "preserve",
+      "note": "Harness list gains OpenCode and others.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:init:--no-skills",
+      "source": "click",
+      "summary": "--no-skills",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:init:--path",
+      "source": "click",
+      "summary": "--path",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Output path.",
+      "owner": "slopvac-8l4.12.8",
+      "test": "pending"
+    },
+    {
+      "id": "opt:init:--profile",
+      "source": "click",
+      "summary": "--profile",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "strict",
+          "normal",
+          "relaxed"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "Selects the mapped style preset.",
+      "owner": "slopvac-8l4.2.10",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:init:--skip-agents",
+      "source": "click",
+      "summary": "--skip-agents",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Skips harness setup.",
+      "owner": "slopvac-8l4.12.8",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--category",
+      "source": "click",
+      "summary": "--category",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Category filter stays.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--comments",
+      "source": "click",
+      "summary": "--comments",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "migrate",
+      "note": "Replaced by --mode code-comments; the flag is kept as an alias.",
+      "owner": "slopvac-8l4.3.14",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--config",
+      "source": "click",
+      "summary": "--config",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Same flag; reads 3.0 config and 2.x config in compatibility mode.",
+      "owner": "slopvac-8l4.4.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--diff-base",
+      "source": "click",
+      "summary": "--diff-base",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Changed-lines scope.",
+      "owner": "slopvac-8l4.3.15",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--diff-working-tree",
+      "source": "click",
+      "summary": "--diff-working-tree",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Staged, unstaged and untracked scope.",
+      "owner": "slopvac-8l4.3.19",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--disable",
+      "source": "click",
+      "summary": "--disable",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Rule disable stays; IDs gain the pack namespace.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--explain-config",
+      "source": "click",
+      "summary": "--explain-config",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "migrate",
+      "note": "Shows layered provenance for each setting.",
+      "owner": "slopvac-8l4.4.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--fix",
+      "source": "click",
+      "summary": "--fix",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Safe substitutions only.",
+      "owner": "slopvac-8l4.3.17",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--format",
+      "source": "click",
+      "summary": "--format",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "text",
+          "json",
+          "github",
+          "sarif",
+          "html"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "text, json, github, sarif and html continue; json is schema version 3; rdjsonl, codeclimate, junit, checkstyle and markdown are new.",
+      "owner": "slopvac-8l4.12.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--language",
+      "source": "click",
+      "summary": "--language",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Names the stdin format.",
+      "owner": "slopvac-8l4.12.9",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--locale",
+      "source": "click",
+      "summary": "--locale",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "migrate",
+      "note": "Locale comes from spellbook and SCOWL/VarCon; the flag stays.",
+      "owner": "slopvac-8l4.3.12",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--max-per-100-words",
+      "source": "click",
+      "summary": "--max-per-100-words",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Density threshold stays.",
+      "owner": "slopvac-8l4.3.8",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--min-score",
+      "source": "click",
+      "summary": "--min-score",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Score threshold stays.",
+      "owner": "slopvac-8l4.3.8",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--mode",
+      "source": "click",
+      "summary": "--mode",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "prose",
+          "code-comments"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "code-comments moves to the tree-sitter mode; prose stays the default.",
+      "owner": "slopvac-8l4.3.14",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--no-color",
+      "source": "click",
+      "summary": "--no-color",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Also honours NO_COLOR.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--no-vale",
+      "source": "click",
+      "summary": "--no-vale",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "remove-with-deprecation",
+      "note": "Vale is removed; the flag is accepted and ignored with a deprecation notice for one minor release.",
+      "owner": "slopvac-8l4.16.2",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--open",
+      "source": "click",
+      "summary": "--open",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Opens the HTML report; no bead covers it.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--out",
+      "source": "click",
+      "summary": "--out",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Writes the report to a file.",
+      "owner": "slopvac-8l4.12.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--profile",
+      "source": "click",
+      "summary": "--profile",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "strict",
+          "normal",
+          "relaxed"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "Profiles map onto the 3.0 style model; the flag stays as an alias.",
+      "owner": "slopvac-8l4.2.10",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--rules-dir",
+      "source": "click",
+      "summary": "--rules-dir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "migrate",
+      "note": "Project rules load as a local pack.",
+      "owner": "slopvac-8l4.9.1",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:lint:--stdin",
+      "source": "click",
+      "summary": "--stdin",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Reads one document from stdin.",
+      "owner": "slopvac-8l4.12.9",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:--verbose",
+      "source": "click",
+      "summary": "--verbose",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Verbosity stays.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:lint:targets",
+      "source": "click",
+      "summary": "targets",
+      "detail": {
+        "kind": "argument"
+      },
+      "disposition": "preserve",
+      "note": "Paths and directories, discovered with ignore rules (3.0 file discovery).",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:prime:--config",
+      "source": "click",
+      "summary": "--config",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Same meaning.",
+      "owner": "slopvac-8l4.11.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:prime:--rules-dir",
+      "source": "click",
+      "summary": "--rules-dir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "migrate",
+      "note": "Becomes a local pack.",
+      "owner": "slopvac-8l4.9.1",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:prime:topic",
+      "source": "click",
+      "summary": "topic",
+      "detail": {
+        "kind": "argument",
+        "choices": [
+          "write",
+          "review",
+          "report"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "write, review and report stay; migrate and configure are new.",
+      "owner": "slopvac-8l4.11.1",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:reference:--check",
+      "source": "click",
+      "summary": "--check",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "opt:reference:--rules-dir",
+      "source": "click",
+      "summary": "--rules-dir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "migrate",
+      "note": "Becomes a local pack.",
+      "owner": "slopvac-8l4.9.1",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:reference:--write",
+      "source": "click",
+      "summary": "--write",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.12.10",
+      "test": "pending"
+    },
+    {
+      "id": "opt:root:--version",
+      "source": "click",
+      "summary": "--version",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Prints the version.",
+      "owner": "slopvac-8l4.12.1",
+      "test": "pending"
+    },
+    {
+      "id": "opt:rules:--category",
+      "source": "click",
+      "summary": "--category",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Filter stays.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:rules:--config",
+      "source": "click",
+      "summary": "--config",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Same meaning.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:rules:--format",
+      "source": "click",
+      "summary": "--format",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "text",
+          "json",
+          "md"
+        ]
+      },
+      "disposition": "preserve",
+      "note": "text, json and md stay.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:rules:--genre",
+      "source": "click",
+      "summary": "--genre",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "consumer",
+          "reference",
+          "change-comms",
+          "internal",
+          "informal"
+        ]
+      },
+      "disposition": "preserve",
+      "note": "Filter stays; genres become data.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:rules:--include-excluded",
+      "source": "click",
+      "summary": "--include-excluded",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "TBD",
+      "test": "pending"
+    },
+    {
+      "id": "opt:rules:--kind",
+      "source": "click",
+      "summary": "--kind",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "tokens",
+          "pattern",
+          "substitution",
+          "vocabulary",
+          "metric",
+          "structure",
+          "judgement"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "Kinds change with the typed match block.",
+      "owner": "TBD",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:rules:--profile",
+      "source": "click",
+      "summary": "--profile",
+      "detail": {
+        "kind": "option",
+        "choices": [
+          "strict",
+          "normal",
+          "relaxed"
+        ]
+      },
+      "disposition": "migrate",
+      "note": "Follows the profile mapping.",
+      "owner": "TBD",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:rules:--rules-dir",
+      "source": "click",
+      "summary": "--rules-dir",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "migrate",
+      "note": "Becomes a local pack.",
+      "owner": "slopvac-8l4.9.1",
+      "test": "n/a"
+    },
+    {
+      "id": "opt:setup:--check",
+      "source": "click",
+      "summary": "--check",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:setup:--list",
+      "source": "click",
+      "summary": "--list",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:setup:--remove",
+      "source": "click",
+      "summary": "--remove",
+      "detail": {
+        "kind": "option",
+        "flag": true
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:setup:--root",
+      "source": "click",
+      "summary": "--root",
+      "detail": {
+        "kind": "option"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    },
+    {
+      "id": "opt:setup:harness",
+      "source": "click",
+      "summary": "harness",
+      "detail": {
+        "kind": "argument"
+      },
+      "disposition": "preserve",
+      "note": "Stays.",
+      "owner": "slopvac-8l4.11.2",
+      "test": "pending"
+    }
+  ]
+}
