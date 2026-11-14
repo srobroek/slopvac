@@ -15,9 +15,8 @@ from urllib.request import urlopen
 
 RELEASE_BASE = "https://github.com/vale-cli/vale/releases/download"
 
-# The one Vale pin for CI and the GitHub Action. Renovate updates it through the
-# custom manager in renovate.json, which matches the comment below.
-# renovate: datasource=github-releases depName=vale-cli/vale
+# The one Vale pin for CI and the GitHub Action. Dependabot cannot update it; the
+# weekly pin-check workflow opens an issue when a newer Vale release exists.
 VALE_VERSION = "3.24.0"
 
 
@@ -144,7 +143,9 @@ def main() -> int:
     )
     args = parser.parse_args()
     try:
-        binary, version = install(args.version or VALE_VERSION, args.prefix.expanduser())
+        binary, version = install(
+            args.version or VALE_VERSION, args.prefix.expanduser()
+        )
     except InstallError as exc:
         parser.error(str(exc))
     print(f"installed {binary}")

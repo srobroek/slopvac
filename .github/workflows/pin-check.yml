@@ -1,0 +1,71 @@
+name: Tool pin check
+
+# Weekly: reports newer versions of the mise.toml tool pins and the Vale pin in
+# scripts/install_vale.py. Keeps one open issue up to date; it never opens a PR.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  pin-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_TITLE: Tool pins have newer versions
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        with:
+          install: false
+          cache: false
+
+      - name: Collect outdated pins
+        run: |
+          mise outdated --bump --no-header > mise-outdated.txt 2>&1 || true
+          pinned=$(sed -n 's/^VALE_VERSION = "\(.*\)"/\1/p' scripts/install_vale.py)
+          latest=$(gh api repos/vale-cli/vale/releases/latest --jq '.tag_name | ltrimstr("v")')
+          outdated=false
+          [ -s mise-outdated.txt ] && outdated=true
+          [ "$pinned" != "$latest" ] && outdated=true
+          {
+            echo "Weekly check of pinned tool versions. Bump each pin by hand and confirm CI."
+            echo
+            echo "### mise.toml"
+            echo
+            echo '```'
+            cat mise-outdated.txt
+            echo '```'
+            echo
+            echo "### Vale (scripts/install_vale.py)"
+            echo
+            echo "Pinned $pinned, latest $latest."
+          } > report.md
+          echo "OUTDATED=$outdated" >> "$GITHUB_ENV"
+
+      - name: Open, update or close the issue
+        run: |
+          number=$(gh issue list --state open --search "\"$ISSUE_TITLE\" in:title" \
+            --json number,title --jq 'map(select(.title == env.ISSUE_TITLE))[0].number // empty')
+          if [ "$OUTDATED" = "true" ]; then
+            if [ -n "$number" ]; then
+              gh issue edit "$number" --body-file report.md
+            else
+              gh issue create --title "$ISSUE_TITLE" --body-file report.md
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "All pins are current."
+          fi
