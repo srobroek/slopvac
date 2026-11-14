@@ -233,6 +233,29 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           find . -name '*.sh' -not -path './.git/*' -exec shellcheck --severity=warning {} +
+      # Findings for reviewdog; the step above keeps deciding pass or fail.
+      - name: Export shellcheck findings
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          mkdir -p reviewdog-out
+          printf '%s\n' "$PR_NUMBER" > reviewdog-out/pr-number
+          status=0
+          find . -name '*.sh' -not -path './.git/*' -exec shellcheck --severity=warning \
+            --format=checkstyle {} + > reviewdog-out/findings.checkstyle || status=$?
+          echo "shellcheck exited $status while exporting findings"
+      - name: Upload shellcheck findings
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reviewdog-shellcheck
+          path: |
+            reviewdog-out/pr-number
+            reviewdog-out/findings.checkstyle
+          retention-days: 7
+          if-no-files-found: ignore
   python-lint:
     if: ${{ inputs.code }}
     runs-on: ubuntu-latest
@@ -328,6 +351,33 @@ jobs:
           uvx --from ./packages/slopvac-lint slopvac lint \
             README.md packages/slopvac-lint/README.md \
             packages/slopvac-lint/docs
+      # Findings for reviewdog. The gate above keeps deciding pass or fail; this step
+      # only records what it found, so a status above 1 is left to the gate. Comments
+      # are posted by .github/workflows/reviewdog.yml, never from this read-only job.
+      - name: Export prose findings
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          mkdir -p reviewdog-out
+          printf '%s\n' "$PR_NUMBER" > reviewdog-out/pr-number
+          status=0
+          uvx --from ./packages/slopvac-lint slopvac lint \
+            README.md packages/slopvac-lint/README.md \
+            packages/slopvac-lint/docs \
+            --format sarif --out reviewdog-out/findings.sarif || status=$?
+          echo "slopvac exited $status while exporting findings"
+      - name: Upload prose findings
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reviewdog-prose
+          path: |
+            reviewdog-out/pr-number
+            reviewdog-out/findings.sarif
+          retention-days: 7
+          if-no-files-found: ignore
   # Internal consistency gate for the reusable lint suite. A skipped job is
   # accepted only when the caller explicitly classified it as irrelevant.
   gate:
