@@ -51,8 +51,12 @@ def _fired_lines(tmp_path, text: str) -> list[int]:
         "For headless servers and one-shot jobs, configure the permissions required by "
         "the workload before it starts.",
         "To save time, rerun the check after the import completes.",
-        # A verb outside the closed list, found by its object.
-        "Reconcile the ledger when the import completes.",
+        # Verbs outside the closed list, found by their object: a determiner or a
+        # code span follows (Vale drops code spans, so only determiners are testable
+        # there). "Quarantine" and "Mute" are in no verb list.
+        "Quarantine the build when the scan fails.",
+        "Mute the alerts if the pager is down.",
+        "Note warnings before deployment.",
         # `before`/`after` followed by a noun is still a condition.
         "Back up the database before installation.",
     ],
@@ -74,6 +78,9 @@ def test_instruction_with_trailing_condition_is_reported(tmp_path, sentence):
         "Action reviews offer **Run once** or **Cancel**.",
         "Result reviews offer **Release once** or **Cancel** before the client replies.",
         "Derivation consumes one remaining delegation hop before allocating the child.",
+        # A noun-phrase subject with a finite verb, with and without a lead-in.
+        "Release builds run before deployment.",
+        "For production, release builds run before deployment.",
         "Mecatl rejects a tool call whose arguments repeat a key before any rule runs.",
         "Only `yolo` also serves external paths when the root is trusted.",
         "What happens when the cycle lands on a mode depends on the server ceiling.",
@@ -124,3 +131,79 @@ def test_table_cells_and_headings_are_not_checked(tmp_path, cell):
 
 def test_list_items_are_still_checked(tmp_path):
     assert _fired_lines(tmp_path, "- Use `yolo` if the agent runs unattended.\n") == [1]
+
+
+# --- the native engine -------------------------------------------------------
+#
+# The CLI tests above run Vale, which owns this rule. The native engine runs the
+# same rule when Vale is absent (`--no-vale`) and must agree with it, so these
+# tests drive `Engine.run` directly and need no Vale.
+
+_BLOCKS = {
+    "paragraph": "{s}\n",
+    "list": "- {s}\n",
+    "numbered": "1. {s}\n",
+    "quote": "> {s}\n",
+    "heading": "## {s}\n",
+    "table": "|Mode|Behavior|\n|-|-|\n|`block`|{s}|\n",
+}
+_BODY_BLOCKS = ["paragraph", "list", "numbered", "quote"]
+
+
+def _native_lines(text: str) -> list[int]:
+    from pathlib import Path
+
+    from slopvac.analyze import parse
+    from slopvac.config import Config, resolve_for
+    from slopvac.engine import Engine
+    from slopvac.rules import load_ruleset
+
+    engine = Engine(
+        load_ruleset().rules, resolve_for(Config(), Path("doc.md")), only={RULE}
+    )
+    return [f.line for f in engine.run(parse("doc.md", text)) if f.rule_id == RULE]
+
+
+_FIRES = "Restart the worker if the queue depth is above one thousand."
+_QUIET_CONDITION_FIRST = "If the queue is full, restart the worker."
+
+
+@pytest.mark.parametrize("block", _BODY_BLOCKS)
+def test_native_reports_instructions_in_body_blocks(block):
+    assert _native_lines(_BLOCKS[block].format(s=_FIRES)) == [1]
+
+
+@pytest.mark.parametrize("block", ["heading", "table"])
+def test_native_skips_headings_and_table_cells(block):
+    assert _native_lines(_BLOCKS[block].format(s=_FIRES)) == []
+
+
+@pytest.mark.parametrize("block", _BODY_BLOCKS)
+def test_native_leaves_condition_first_sentences_alone(block):
+    assert _native_lines(_BLOCKS[block].format(s=_QUIET_CONDITION_FIRST)) == []
+
+
+# One table of sentences for both engines, so a divergence names the sentence.
+_AGREEMENT = [
+    (_FIRES, True),
+    ("Quarantine the build when the scan fails.", True),
+    ("Note warnings before deployment.", True),
+    ("For production, restart the worker if the queue is full.", True),
+    ("Release builds run before deployment.", False),
+    ("For production, release builds run before deployment.", False),
+    ("Action reviews offer **Run once** or **Cancel**.", False),
+    (_QUIET_CONDITION_FIRST, False),
+]
+
+
+@pytest.mark.parametrize("sentence,fires", _AGREEMENT)
+def test_native_classifies_sentences(sentence, fires):
+    assert bool(_native_lines(f"{sentence}\n")) is fires
+
+
+@pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
+@pytest.mark.parametrize("block", ["paragraph", "list", "heading", "table"])
+def test_vale_and_native_agree(tmp_path, block):
+    for sentence, _ in _AGREEMENT:
+        text = _BLOCKS[block].format(s=sentence)
+        assert _fired_lines(tmp_path, text) == _native_lines(text), sentence
