@@ -25,3 +25,6 @@ dist/
 
 # Local profiling and benchmark output.
 perf-results/
+
+# Cargo build output.
+/target/

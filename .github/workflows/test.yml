@@ -25,6 +25,7 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
       package: ${{ steps.filter.outputs.package }}
+      rust: ${{ steps.filter.outputs.rust }}
       action: ${{ steps.filter.outputs.action }}
       docs: ${{ steps.filter.outputs.docs }}
       ci: ${{ steps.filter.outputs.ci }}
@@ -119,6 +120,47 @@ jobs:
         run: |
           uv run --project packages/slopvac-lint --extra dev python -m pytest -q \
             packages/slopvac-lint/tests/test_steering.py -k "$INVARIANTS"
+
+  # Rust workspace checks. nextest does not run doctests, and the skeleton has
+  # none yet; the baseline Rust CI bead adds `cargo test --doc` and rustdoc.
+  rust:
+    name: Rust (${{ matrix.os }})
+    needs: changes
+    if: >-
+      needs.changes.outputs.force_all == 'true' ||
+      needs.changes.outputs.rust == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # rust-toolchain.toml pins the toolchain; rustup installs it on first use.
+      - name: Install the pinned toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - name: Cache cargo artifacts
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@4a76afe23f9e08d2d9550fb56e556444e8611d21 # v2.90.4
+        with:
+          tool: nextest@0.9.152
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo nextest run --workspace --locked --profile ci --no-tests=pass
 
   # Full repository test discovery on the newest supported Python. The root
   # pytest configuration includes both package tests and any repository-level
@@ -331,6 +373,7 @@ jobs:
       - changes
       - quick-lint
       - test
+      - rust
       - lint-package
       - cli-e2e
       - action-contract
@@ -345,6 +388,7 @@ jobs:
           FORCE_ALL: ${{ needs.changes.outputs.force_all }}
           CODE: ${{ needs.changes.outputs.code }}
           PACKAGE: ${{ needs.changes.outputs.package }}
+          RUST: ${{ needs.changes.outputs.rust }}
           ACTION: ${{ needs.changes.outputs.action }}
           LINT: ${{ needs.changes.outputs.lint }}
           DOCS: ${{ needs.changes.outputs.docs }}
@@ -369,6 +413,7 @@ jobs:
           force_all = os.environ["FORCE_ALL"] == "true"
           code = os.environ["CODE"] == "true"
           package = os.environ["PACKAGE"] == "true"
+          rust = os.environ["RUST"] == "true"
           action = os.environ["ACTION"] == "true"
           lint = os.environ["LINT"] == "true"
           docs = os.environ["DOCS"] == "true"
@@ -379,6 +424,7 @@ jobs:
           expected = {
               "quick-lint": True,
               "test": force_all or code,
+              "rust": force_all or rust,
               "lint-package": force_all or package,
               "cli-e2e": force_all or package or docs,
               "action-contract": force_all or action,

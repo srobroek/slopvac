@@ -19,6 +19,16 @@ uv run pytest
 
 The root `pyproject.toml` configures pytest to discover `packages/slopvac-lint/tests` and `tests`. CI runs the full suite with `python -m pytest` from the repository root. For documentation changes, CI runs the Slopvac prose gate and Markdown checks.
 
+## Rust workspace
+
+The 3.0 engine is a Cargo workspace under `crates/`. It sits beside the Python package, which stays the reference implementation. `rust-toolchain.toml` pins the toolchain, and `mise install` adds cargo-nextest. Run these from the repository root:
+
+```sh
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo nextest run --workspace --no-tests=pass
+```
+
 ## Prose checks
 
 Run Slopvac's repository prose gate on the files you changed:
