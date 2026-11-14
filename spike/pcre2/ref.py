@@ -62,7 +62,7 @@ def classes(caseprobe, out):
     res["caseless"] = {
         str(c): sorted(
             ord(m.group())
-            for m in regex.finditer("\\x{%x}" % c, hay, F | regex.IGNORECASE)
+            for m in regex.finditer(regex.escape(chr(c)), hay, F | regex.IGNORECASE)
         )
         for c in probe
     }
