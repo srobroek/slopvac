@@ -251,7 +251,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: reviewdog-shellcheck
-          path: reviewdog-out/
+          path: |
+            reviewdog-out/pr-number
+            reviewdog-out/findings.checkstyle
           retention-days: 7
           if-no-files-found: ignore
   python-lint:
@@ -371,7 +373,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: reviewdog-prose
-          path: reviewdog-out/
+          path: |
+            reviewdog-out/pr-number
+            reviewdog-out/findings.sarif
           retention-days: 7
           if-no-files-found: ignore
   # Internal consistency gate for the reusable lint suite. A skipped job is

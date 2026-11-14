@@ -3,7 +3,8 @@ name: Reviewdog
 # with read-only permissions and upload their findings as artifacts. This workflow
 # runs from the default branch, holds the write token, and never checks out the pull
 # request. That is what makes it safe for fork pull requests, where the pull_request
-# token is read-only. Artifact contents are untrusted input.
+# token is read-only. Artifact contents are untrusted input: names, sizes, archive
+# entries and the PR number are all checked before use.
 on:
   workflow_run: # zizmor: ignore[dangerous-triggers] reads artifacts only; no PR code is checked out or run
     workflows: [CI]
@@ -15,26 +16,108 @@ concurrency:
   group: reviewdog-${{ github.event.workflow_run.head_sha }}
   cancel-in-progress: true
 
+env:
+  # Pinned release and the sha256 published in its checksums.txt. The hash is copied
+  # here so a replaced release asset cannot vouch for itself.
+  REVIEWDOG_VERSION: "0.21.3"
+  REVIEWDOG_SHA256: "7029c2faf54e1237454cae8f1adf876c965b3d13d054f1a392206459091af4a1"
+
 jobs:
   comment:
     if: ${{ github.event.workflow_run.event == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      actions: read # download artifacts from the triggering run
+      actions: read # list and download artifacts of the triggering run
       pull-requests: write # review comments
     steps:
-      - name: Download findings
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: reviewdog-*
-          path: findings
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
       - name: Install reviewdog
-        uses: reviewdog/action-setup@38a8d76742a75eeb6c6ffc616bde64179fd09ebf # v1.5.0
-        with:
-          reviewdog_version: v0.21.3
+        run: |
+          set -euo pipefail
+          name="reviewdog_${REVIEWDOG_VERSION}_Linux_x86_64.tar.gz"
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -sSfL --max-time 120 -o "$RUNNER_TEMP/$name" \
+            "https://github.com/reviewdog/reviewdog/releases/download/v${REVIEWDOG_VERSION}/${name}"
+          echo "${REVIEWDOG_SHA256}  $RUNNER_TEMP/$name" | sha256sum --check --strict -
+          tar -xzf "$RUNNER_TEMP/$name" -C "$RUNNER_TEMP/bin" reviewdog
+      - name: Fetch findings
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          MAX_ARCHIVE_BYTES: "2000000"
+        run: |
+          set -euo pipefail
+          # List first and judge by metadata, so nothing oversized or unexpected is
+          # downloaded. Only these two artifact names are accepted.
+          gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts?per_page=100" \
+            --jq '{total: .total_count, artifacts: [.artifacts[] | {id, name, size: .size_in_bytes, expired}]}' \
+            > "$RUNNER_TEMP/artifacts.json"
+          mkdir -p findings
+          python3 - <<'PY'
+          import json, os, stat, subprocess, sys, zipfile
+          from pathlib import Path
+
+          allowed = {
+              "reviewdog-prose": {"pr-number", "findings.sarif"},
+              "reviewdog-shellcheck": {"pr-number", "findings.checkstyle"},
+          }
+          limit = int(os.environ["MAX_ARCHIVE_BYTES"])
+          temp = Path(os.environ["RUNNER_TEMP"])
+          listing = json.loads((temp / "artifacts.json").read_text())
+
+          def reject(message):
+              print(f"::error::{message}")
+              sys.exit(1)
+
+          if listing["total"] != len(listing["artifacts"]) or listing["total"] > 20:
+              reject("unexpected artifact count on the triggering run")
+          seen = set()
+          for art in listing["artifacts"]:
+              name = art["name"]
+              if name not in allowed or name in seen:
+                  reject(f"unexpected or duplicate artifact: {name!r}")
+              seen.add(name)
+              if art["expired"]:
+                  continue
+              if not 0 < art["size"] <= limit:
+                  reject(f"artifact {name} has size {art['size']}, limit {limit}")
+              if not isinstance(art["id"], int):
+                  reject("artifact id is not an integer")
+              archive = temp / f"{name}.zip"
+              with archive.open("wb") as out:
+                  # The cap also bounds the read if the API lied about the size.
+                  proc = subprocess.run(
+                      ["gh", "api", f"repos/{os.environ['REPO']}/actions/artifacts/{art['id']}/zip"],
+                      stdout=subprocess.PIPE, check=True, timeout=120,
+                  )
+                  if len(proc.stdout) > limit:
+                      reject(f"artifact {name} download exceeds {limit} bytes")
+                  out.write(proc.stdout)
+              destination = Path("findings") / name
+              destination.mkdir()
+              total = 0
+              with zipfile.ZipFile(archive) as zf:
+                  infos = zf.infolist()
+                  names = [i.filename for i in infos]
+                  if len(set(names)) != len(names) or not set(names) <= allowed[name]:
+                      reject(f"artifact {name} has unexpected entries: {names!r}")
+                  if "pr-number" not in names:
+                      reject(f"artifact {name} has no pr-number")
+                  for info in infos:
+                      mode = info.external_attr >> 16
+                      if info.is_dir() or stat.S_IFMT(mode) not in (0, stat.S_IFREG):
+                          reject(f"artifact {name} entry {info.filename!r} is not a regular file")
+                      total += info.file_size
+                  if total > limit:
+                      reject(f"artifact {name} expands to {total} bytes, limit {limit}")
+                  for info in infos:
+                      # Fixed destination names; the archive's own paths are never used.
+                      data = zf.open(info).read(info.file_size + 1)
+                      if len(data) != info.file_size:
+                          reject(f"artifact {name} entry {info.filename!r} size mismatch")
+                      (destination / info.filename).write_bytes(data)
+          PY
       - name: Validate the pull request
         id: pr
         env:
@@ -67,15 +150,20 @@ jobs:
             exit 0
           fi
           echo "number=$number" >> "$GITHUB_OUTPUT"
+          echo "sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
       - name: Post review comments
         if: ${{ steps.pr.outputs.number != '' }}
         env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
           REVIEWDOG_GITHUB_API_TOKEN: ${{ github.token }}
           CI_REPO_OWNER: ${{ github.repository_owner }}
           CI_REPO_NAME: ${{ github.event.repository.name }}
-          CI_COMMIT: ${{ github.event.workflow_run.head_sha }}
+          # The validated head, not the artifact's claim. reviewdog sends comments with
+          # this commit id to the PR in CI_PULL_REQUEST (cienv.go GetBuildInfo, then
+          # NewGitHubPullRequest in cmd/reviewdog/main.go at v0.21.3).
+          CI_COMMIT: ${{ steps.pr.outputs.sha }}
           CI_PULL_REQUEST: ${{ steps.pr.outputs.number }}
-          MAX_BYTES: "5000000"
         run: |
           set -euo pipefail
           # reviewdog reads the event payload when it sees GITHUB_ACTIONS, and a
@@ -86,17 +174,22 @@ jobs:
           root="$PWD/findings"
           cd "$RUNNER_TEMP/rd"
           run_reviewdog() {
-            env -u GITHUB_ACTIONS reviewdog "$@" -reporter=github-pr-review \
+            # Re-check the head right before posting. A push between this check and
+            # reviewdog's API call is a residual window of about a second: the comment
+            # then lands on a commit that is no longer the PR head, and GitHub marks
+            # it outdated. The PR number and the commit cannot be swapped, because
+            # both come from the checks above and not from the artifact.
+            head="$(gh api "repos/$REPO/pulls/$CI_PULL_REQUEST" --jq '.head.sha')"
+            [[ "$head" == "$CI_COMMIT" ]] || { echo "PR head moved to $head; skipping."; return 0; }
+            env -u GITHUB_ACTIONS "$RUNNER_TEMP/bin/reviewdog" "$@" -reporter=github-pr-review \
               -filter-mode=added -fail-level=none
           }
           if [[ -f "$root/reviewdog-prose/findings.sarif" ]]; then
             f="$root/reviewdog-prose/findings.sarif"
-            (( $(stat -c %s "$f") <= MAX_BYTES )) || { echo "::error::SARIF too large"; exit 1; }
             python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$f"
             run_reviewdog -f=sarif -name=slopvac < "$f"
           fi
           if [[ -f "$root/reviewdog-shellcheck/findings.checkstyle" ]]; then
             f="$root/reviewdog-shellcheck/findings.checkstyle"
-            (( $(stat -c %s "$f") <= MAX_BYTES )) || { echo "::error::checkstyle too large"; exit 1; }
             run_reviewdog -f=checkstyle -name=shellcheck < "$f"
           fi
