@@ -1,0 +1,85 @@
+name: Dependabot auto-merge
+
+# Enables auto-merge on Dependabot PRs that are semver-patch updates or fix a
+# GitHub security advisory. Minor and major updates stay open for review. Auto-merge
+# waits for the required checks in branch protection.
+#
+# SECURITY: pull_request_target runs with base-branch code and secrets. This workflow
+# never checks out or runs PR code; it reads only Dependabot metadata.
+#
+# TOKEN: the merge uses the release GitHub App token (same App as release-please.yml)
+# so the squash commit on main triggers push workflows. GITHUB_TOKEN merges do not.
+# Dependabot-triggered runs read Dependabot secrets, not Actions secrets, so
+# RELEASE_APP_PRIVATE_KEY must also exist under Settings > Secrets > Dependabot.
+# There is no GITHUB_TOKEN fallback: it cannot enable auto-merge here and its merges
+# would not trigger downstream workflows (release-please), so the job fails loudly
+# when the App credentials are missing.
+
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] no PR code is checked out or run
+    types: [opened, reopened, synchronize]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  auto-merge:
+    # yamllint disable-line rule:line-length
+    if: ${{ github.actor == 'dependabot[bot]' && github.actor_id == 49699333 && github.event.pull_request.user.id == 49699333 }} # zizmor: ignore[bot-conditions] actor id is checked too
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      HAS_APP_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY != '' }}
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          alert-lookup: true
+
+      - name: Decide
+        id: decide
+        env:
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          GHSA_ID: ${{ steps.metadata.outputs.ghsa-id }}
+        run: |
+          if [ "$UPDATE_TYPE" = "version-update:semver-patch" ] || [ -n "$GHSA_ID" ]; then
+            echo "merge=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "merge=false" >> "$GITHUB_OUTPUT"
+            echo "Not auto-merging: update-type=${UPDATE_TYPE:-unknown}, no GHSA link."
+          fi
+
+      - name: Require release-app credentials
+        if: >-
+          ${{ steps.decide.outputs.merge == 'true'
+          && (vars.RELEASE_APP_CLIENT_ID == '' || env.HAS_APP_KEY != 'true') }}
+        run: |
+          echo "::error::RELEASE_APP_CLIENT_ID (Actions variable) and" \
+            "RELEASE_APP_PRIVATE_KEY (Dependabot secret, not an Actions secret)" \
+            "must both be available to Dependabot runs to enable auto-merge."
+          exit 1
+
+      - name: Mint release-app token
+        id: app-token
+        if: ${{ steps.decide.outputs.merge == 'true' }}
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Enable auto-merge
+        if: ${{ steps.decide.outputs.merge == 'true' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"

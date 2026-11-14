@@ -1,12 +1,15 @@
 version: 2
 updates:
-  - package-ecosystem: pip
-    directory: /packages/slopvac-lint
+  # One `uv` entry covers the root uv.lock and the slopvac-lint workspace member,
+  # so a dependency bump lands in a single PR instead of one per ecosystem.
+  - package-ecosystem: uv
+    directory: /
     schedule:
       interval: weekly
     groups:
       python-dependencies:
         patterns: ["*"]
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -14,3 +17,4 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+        update-types: [minor, patch]
