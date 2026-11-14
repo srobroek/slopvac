@@ -29,6 +29,9 @@ struc = "struc"
 utiliz = "utiliz"
 retrie = "retrie"
 
+# Crate name `flate2` (gzip/deflate) cited in the v3 design doc.
+flate = "flate"
+
 # A real word with two accepted spellings, and this one is the spelling used
 # throughout. Not a typo to correct.
 unparseable = "unparseable"
