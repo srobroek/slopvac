@@ -6,6 +6,11 @@ description:
   Control approvals, project trust, guardrails, and autonomous Mecatl operation.
 ---
 
+<!-- NOTICE: This file is a MODIFIED copy of user-docs/features/security-and-execution/permissions-and-posture.md
+from https://github.com/stacklok/mecatl at commit eec00143fff9ab331bb49845acebf95b7b1a5751,
+licensed under the Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+The body text was changed from the upstream file; see ../NOTICE. -->
+
 # Permissions and posture
 
 Mecatl applies three independent safety controls:

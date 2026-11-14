@@ -61,6 +61,10 @@ def _counts(entry: dict) -> dict[str, int]:
 @pytest.mark.skipif(shutil.which("vale") is None, reason="vale is not on PATH")
 @pytest.mark.parametrize("entry", _ENTRIES, ids=[entry["id"] for entry in _ENTRIES])
 def test_regression_fixture_per_rule_counts(entry: dict) -> None:
+    if UPDATE and (os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS")):
+        pytest.fail(
+            "SLOPVAC_UPDATE_REGRESSION=1 must not run in CI; it rewrites the expectations"
+        )
     actual = _counts(entry)
     if UPDATE:
         entry["expected"] = actual
