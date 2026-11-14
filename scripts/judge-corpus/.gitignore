@@ -1,0 +1,14 @@
+.cache/
+.venv/
+__pycache__/
+*.egg-info/
+briefs/input*.jsonl
+briefs/raw-output.jsonl
+briefs/retry-input.jsonl
+generated/inputs/
+generated/raw/
+items/*
+!items/export-index.json
+!items/bank-manifest.json
+!items/review-guide.json
+!items/semantic-questions.yml
