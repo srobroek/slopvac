@@ -381,6 +381,71 @@ def test_locale_flag(runner, tmp_path, locale, text, should_find):
     assert not spelling, "Vale-owned locale spelling stays unchecked without Vale"
 
 
+requires_vale = pytest.mark.skipif(
+    shutil.which("vale") is None, reason="title-case-heading runs in Vale"
+)
+
+
+def _title_case_headings(runner, tmp_path, headings, allow=()):
+    """Return the headings title-case-heading flags, through the public CLI."""
+    body = "# Deploy the service\n\n" + "".join(f"## {h}\n\n" for h in headings)
+    path = _write(tmp_path, "a.md", body)
+    config = tmp_path / "slopvac.toml"
+    allowed = ", ".join(f'"{w}"' for w in allow)
+    config.write_text(
+        f'profile = "normal"\n[locale]\ndefault = "en-US"\nallow = [{allowed}]\n',
+        encoding="utf-8",
+    )
+    result = runner.invoke(
+        main,
+        ["lint", str(path), "--config", str(config), "--format", "json"],
+    )
+    findings = json.loads(result.output)["documents"][0]["findings"]
+    return [
+        f["matched_text"]
+        for f in findings
+        if f["rule_id"] == "ai-tells-formatting.title-case-heading"
+    ]
+
+
+@requires_vale
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "Use the TypeScript SDK",
+        "Implement EventLog",
+        "Call the REST APIs",
+        "Connect over gRPC",
+        "Install on macOS",
+        "Upgrade to Python3",
+        "Run `Foo Bar` safely",
+    ],
+)
+def test_title_case_heading_skips_acronyms_camelcase_and_code(
+    runner, tmp_path, heading
+):
+    assert _title_case_headings(runner, tmp_path, [heading]) == []
+
+
+@requires_vale
+@pytest.mark.parametrize(
+    "heading",
+    ["Configure The Server", "Getting Started", "Table of Contents"],
+)
+def test_title_case_heading_still_flags_title_case(runner, tmp_path, heading):
+    assert _title_case_headings(runner, tmp_path, [heading]) == [heading]
+
+
+@requires_vale
+def test_title_case_heading_honours_locale_allow(runner, tmp_path):
+    headings = ["Install with Helm", "Configure Brave Search", "Configure The Server"]
+    assert _title_case_headings(runner, tmp_path, headings) == headings
+    flagged = _title_case_headings(
+        runner, tmp_path, headings, allow=["helm", "Brave", "Search"]
+    )
+    assert flagged == ["Configure The Server"]
+
+
 def test_unknown_locale_reports_unchecked_and_still_lints(runner, tmp_path):
     """A typo in the locale must not stop the other rules running."""
     path = _write(tmp_path, "a.md", LONG_SENTENCES)
