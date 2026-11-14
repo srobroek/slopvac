@@ -11,7 +11,9 @@ name: Dependabot auto-merge
 # so the squash commit on main triggers push workflows. GITHUB_TOKEN merges do not.
 # Dependabot-triggered runs read Dependabot secrets, not Actions secrets, so
 # RELEASE_APP_PRIVATE_KEY must also exist under Settings > Secrets > Dependabot.
-# Falls back to GITHUB_TOKEN when the App is not configured.
+# There is no GITHUB_TOKEN fallback: it cannot enable auto-merge here and its merges
+# would not trigger downstream workflows (release-please), so the job fails loudly
+# when the App credentials are missing.
 
 on:
   pull_request_target: # zizmor: ignore[dangerous-triggers] no PR code is checked out or run
@@ -54,9 +56,15 @@ jobs:
             echo "Not auto-merging: update-type=${UPDATE_TYPE:-unknown}, no GHSA link."
           fi
 
+      - name: Require release-app credentials
+        if: ${{ steps.decide.outputs.merge == 'true' && (vars.RELEASE_APP_CLIENT_ID == '' || env.HAS_APP_KEY != 'true') }}
+        run: |
+          echo "::error::RELEASE_APP_CLIENT_ID (Actions variable) and RELEASE_APP_PRIVATE_KEY (Dependabot secret, not an Actions secret) must both be available to Dependabot runs to enable auto-merge."
+          exit 1
+
       - name: Mint release-app token
         id: app-token
-        if: ${{ steps.decide.outputs.merge == 'true' && vars.RELEASE_APP_CLIENT_ID != '' && env.HAS_APP_KEY == 'true' }}
+        if: ${{ steps.decide.outputs.merge == 'true' }}
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
@@ -67,6 +75,6 @@ jobs:
       - name: Enable auto-merge
         if: ${{ steps.decide.outputs.merge == 'true' }}
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --squash "$PR_URL"

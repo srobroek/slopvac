@@ -2,6 +2,7 @@ name: Tool pin check
 
 # Weekly: reports newer versions of the mise.toml tool pins and the Vale pin in
 # scripts/install_vale.py. Keeps one open issue up to date; it never opens a PR.
+# A failed version query fails the job and leaves the issue untouched.
 
 on:
   schedule:
@@ -23,6 +24,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE_TITLE: Tool pins have newer versions
+      ISSUE_MARKER: "<!-- slopvac-pin-check -->"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,20 +37,26 @@ jobs:
 
       - name: Collect outdated pins
         run: |
-          mise outdated --bump --no-header > mise-outdated.txt 2>&1 || true
+          # GitHub runs this under `bash -e -o pipefail`, so any query failure fails the
+          # job here, before the issue is touched.
+          mise outdated --bump --json > mise-outdated.json
           pinned=$(sed -n 's/^VALE_VERSION = "\(.*\)"/\1/p' scripts/install_vale.py)
+          [ -n "$pinned" ] || { echo "::error::VALE_VERSION not found"; exit 1; }
           latest=$(gh api repos/vale-cli/vale/releases/latest --jq '.tag_name | ltrimstr("v")')
+          [ -n "$latest" ] || { echo "::error::Vale latest release not found"; exit 1; }
+          # One row per tool whose bump differs from the current version.
+          jq -r 'to_entries[] | select(.value.bump != null and .value.bump != .value.current)
+            | "- \(.key): \(.value.current) -> \(.value.bump)"' mise-outdated.json > mise-rows.txt
           outdated=false
-          [ -s mise-outdated.txt ] && outdated=true
+          [ -s mise-rows.txt ] && outdated=true
           [ "$pinned" != "$latest" ] && outdated=true
           {
+            echo "$ISSUE_MARKER"
             echo "Weekly check of pinned tool versions. Bump each pin by hand and confirm CI."
             echo
             echo "### mise.toml"
             echo
-            echo '```'
-            cat mise-outdated.txt
-            echo '```'
+            if [ -s mise-rows.txt ]; then cat mise-rows.txt; else echo "All current."; fi
             echo
             echo "### Vale (scripts/install_vale.py)"
             echo
@@ -58,8 +66,11 @@ jobs:
 
       - name: Open, update or close the issue
         run: |
-          number=$(gh issue list --state open --search "\"$ISSUE_TITLE\" in:title" \
-            --json number,title --jq 'map(select(.title == env.ISSUE_TITLE))[0].number // empty')
+          # Only open issues authored by the github-actions app and carrying the hidden
+          # marker count; the lowest number wins if several exist.
+          number=$(gh issue list --state open --app github-actions --limit 200 \
+            --search "$ISSUE_MARKER in:body" --json number,body \
+            --jq 'map(select(.body | contains(env.ISSUE_MARKER))) | sort_by(.number)[0].number // empty')
           if [ "$OUTDATED" = "true" ]; then
             if [ -n "$number" ]; then
               gh issue edit "$number" --body-file report.md
