@@ -14,8 +14,10 @@ uv sync --extra dev
 Run the test suite from the repository root:
 
 ```sh
-uv run pytest
+mise exec -- uv run pytest
 ```
+
+Run it through `mise exec --` so `vale` resolves to the version pinned in `mise.toml`. The root `conftest.py` stops the session when a different `vale` (for example a Homebrew install) is first on `PATH`. CI installs the same pin.
 
 The root `pyproject.toml` configures pytest to discover `packages/slopvac-lint/tests` and `tests`. CI runs the full suite with `python -m pytest` from the repository root. For documentation changes, CI runs the Slopvac prose gate and Markdown checks.
 
@@ -42,7 +44,7 @@ Rule definitions live in [`packages/slopvac-lint/src/slopvac/rules/`](packages/s
 Run the ruleset tests after changing examples:
 
 ```sh
-uv run pytest packages/slopvac-lint/tests/test_ruleset.py
+mise exec -- uv run pytest packages/slopvac-lint/tests/test_ruleset.py
 ```
 
 These tests check that each lexical rule's `bad` example matches its pattern. A `good` example must not match. The tests check that each lexical rule has an example. For substitutions, the tests check that each example resolves to a replacement.

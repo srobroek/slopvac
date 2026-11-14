@@ -18,6 +18,8 @@ code:
   - 'packages/slopvac-lint/vale/styles-verified/**'
   - 'tests/**'
   - 'scripts/**/*.py'
+  - 'scripts/install_vale.py'
+  - 'mise.toml'
 
 package:
   - '.github/workflows/**'
