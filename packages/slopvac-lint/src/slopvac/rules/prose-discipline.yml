@@ -747,7 +747,7 @@ rules:
     kind: judgement
     severity: suggestion
     message: '"no longer" may narrate a change: state what the artifact does now'
-    scope: prose
+    scope: paragraph
     tiers:
       strict: enforced
       normal: advisory

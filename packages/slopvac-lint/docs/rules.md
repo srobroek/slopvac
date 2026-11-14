@@ -3250,7 +3250,7 @@ Judge whether "no longer" narrates a change
 - **Kind.** judgement — not mechanizable; a reader or a reviewing agent settles it
 - **Ships as.** suggestion
 - **strict / normal / relaxed.** enforced / advisory / excluded
-- **Scope.** prose
+- **Scope.** paragraph
 - **Fix.** State the current behaviour; move the delta to a changelog or release note.
 - **Question.** Does this "no longer" tell the reader what the artifact used to do, or does it describe runtime state (a run that is no longer live, a node that is no longer healthy)? Runtime state is legitimate; preserve it. In change communications (a changelog, release note, migration guide, or a labelled, versioned change note) the delta is the content; preserve it. Flag only a change claim in a consumer or reference doc body that the checked rule's change-verb list does not name.
 - **AI register signal.** `none` (unmeasured)
