@@ -1,4 +1,5 @@
 {
+  "vale": "3.24.0",
   "fixtures": [
     {
       "id": "stacklok-permissions-and-posture-before",
@@ -19,13 +20,12 @@
         "prose-craft.directional-ref": 1,
         "prose-craft.future-tense": 1,
         "prose-craft.sentence-length": 4,
-        "prose-craft.versions": 1,
         "ste-descriptive.paragraph-too-many-sentences": 1,
         "ste-descriptive.sentence-too-long-descriptive": 16,
         "ste-nouns.multiword-noun-too-long": 7,
         "ste-practices.omitted-conjunction-that": 2,
         "ste-practices.phrasal-verb": 1,
-        "ste-procedural.condition-after-command": 16,
+        "ste-procedural.condition-after-command": 15,
         "ste-procedural.instruction-not-imperative": 1,
         "ste-procedural.multiple-instructions-per-sentence": 3,
         "ste-punctuation.colon-terminates-sentence-for-count": 1,
@@ -55,7 +55,6 @@
         "ai-tells-structure.negative-guarantee-core": 4,
         "prose-agency.anthropomorphism": 2,
         "prose-craft.future-tense": 1,
-        "prose-craft.versions": 1,
         "ste-descriptive.paragraph-too-many-sentences": 1,
         "ste-descriptive.sentence-too-long-descriptive": 3,
         "ste-nouns.multiword-noun-too-long": 3,
