@@ -36,7 +36,7 @@ from slopvac.engine import (
 )
 from slopvac.metrics import NATIVE_METRICS, paragraph_words_stdev
 from slopvac.model import Finding, Provenance, Rule, RuleKind, Scope, TextType, Tier
-from slopvac.rules import load_ruleset
+from slopvac.rules import inject_locale_rule, load_ruleset
 from slopvac.score import MIN_WORDS_FOR_DENSITY, score_document
 
 
@@ -1953,3 +1953,31 @@ def test_engines_for_later_files_reuse_the_compiled_patterns():
     Engine(ruleset.rules, resolved).run(parse("b.md", text))
     assert compiled > 0
     assert compile_pattern.cache_info().misses == compiled
+
+
+@pytest.mark.parametrize(
+    "tag,note_fragment",
+    [("en-XX", "is not known"), ("und", None)],
+)
+def test_heading_allow_words_apply_when_spelling_is_unchecked(tag, note_fragment):
+    """`[locale] allow` must exempt heading proper nouns even when the locale
+    yields no spelling rule, and the spelling outcome must stay as before."""
+    ruleset = load_ruleset()
+    note = inject_locale_rule(ruleset, tag, ["Helm"])
+    if note_fragment is None:
+        assert note is None
+    else:
+        assert note_fragment in note
+    spelling = [r for r in ruleset.categories["ste-words"].rules if r.id == "spelling"]
+    assert spelling == []
+
+    rule = next(
+        r
+        for c in ruleset.categories.values()
+        for r in c.rules
+        if r.id == "title-case-heading"
+    )
+    engine = Engine([rule], resolve_for(_config(), Path("/repo/a.md")))
+    text = "# Deploy\n\n## Install with Helm\n\n## Configure The Server\n"
+    findings = engine.run(parse("a.md", text))
+    assert [f.matched_text for f in findings] == ["Configure The Server"]
