@@ -431,10 +431,13 @@ pub(crate) fn tag(
     let max_tags = tag_budget(source.len());
     let mut tags = registry.collect_tags(&view, max_tags)?;
     if let Some(declared) = declared {
-        // One tag for each declared context, so the budget cannot be crossed by more than
-        // the length of the genre's list.
+        // One tag for each declared context, so this holds at most the genre's list past
+        // the ceiling for a moment. The ceiling counts them all the same.
         tags.extend(declared.tag(&view)?);
         slopvac_context::normalize_tags(&mut tags);
+        if tags.len() > max_tags {
+            return Err(TagError::Budget { limit: max_tags });
+        }
     }
     if view.unmapped.get() {
         return Err(TagError::Unmapped);
