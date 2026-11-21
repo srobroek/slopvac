@@ -3,6 +3,8 @@ use std::fmt;
 
 use semver::Version;
 
+use crate::messages::sync as messages;
+
 use super::model::{Digest, Lockfile, PackId, Source};
 
 /// One pack as the sync code resolved it, before comparing to the lock.
@@ -69,27 +71,26 @@ impl fmt::Display for LockDiff {
     /// One line per difference, for the CI message (exit 2).
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for pack in &self.added {
-            writeln!(f, "added: {} {} is not in the lock", pack.id, pack.version)?;
+            writeln!(f, "{}", messages::diff_added(&pack.id, &pack.version))?;
         }
         for id in &self.removed {
-            writeln!(f, "removed: {id} is locked but was not resolved")?;
+            writeln!(f, "{}", messages::diff_removed(id))?;
         }
         for change in &self.changed {
-            write!(f, "changed: {}", change.id)?;
+            write!(f, "{}", messages::diff_changed(&change.id))?;
             if let Some(d) = &change.version {
-                write!(f, " version {} -> {}", d.locked, d.resolved)?;
+                write!(f, "{}", messages::diff_version(&d.locked, &d.resolved))?;
             }
             if let Some(d) = &change.source {
                 // A source is free text; ids, versions and digests are validated.
                 write!(
                     f,
-                    " source {} -> {}",
-                    slopvac_sanitize::line(&d.locked.to_string()),
-                    slopvac_sanitize::line(&d.resolved.to_string())
+                    "{}",
+                    messages::diff_source(&d.locked.to_string(), &d.resolved.to_string())
                 )?;
             }
             if let Some(d) = &change.digest {
-                write!(f, " digest {} -> {}", d.locked, d.resolved)?;
+                write!(f, "{}", messages::diff_digest(&d.locked, &d.resolved))?;
             }
             writeln!(f)?;
         }

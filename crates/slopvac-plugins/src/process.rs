@@ -61,6 +61,8 @@ use std::process::{Child, ExitStatus};
 use std::sync::{Arc, Condvar, Mutex, MutexGuard, PoisonError, TryLockError};
 use std::time::{Duration, Instant};
 
+use crate::messages::host::HostText;
+
 static LIVE: Mutex<Vec<Arc<Group>>> = Mutex::new(Vec::new());
 
 /// How long one teardown may spend reading the process table.
@@ -298,7 +300,7 @@ impl Group {
     pub(crate) fn status(&self) -> Option<String> {
         lock(&self.state).reaped.as_ref().map(|r| match r {
             Ok(s) => s.to_string(),
-            Err(e) => format!("wait failed: {e}"),
+            Err(e) => HostText::WaitFailed { error: e.clone() }.to_string(),
         })
     }
 

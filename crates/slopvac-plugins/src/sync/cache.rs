@@ -10,6 +10,7 @@ use crate::extract::{
     Evicted, ExtractError, TreeHash, ensure_private_child, ensure_private_dir, evict, verify_tree,
 };
 use crate::lock::Digest as LockDigest;
+use crate::messages::sync as messages;
 use crate::oci::Digest;
 
 /// What the store holds for one locked digest.
@@ -98,19 +99,16 @@ impl Store {
         self.prepare()?;
         let path = self.root.join(".lock");
         if fs::symlink_metadata(&path).is_ok_and(|m| !m.is_file()) {
-            return Err(SyncError::Store(format!(
-                "{} is not a plain file",
-                path.display()
-            )));
+            return Err(SyncError::Store(messages::not_plain_file(&path)));
         }
         let file = fs::OpenOptions::new()
             .create(true)
             .truncate(false)
             .write(true)
             .open(&path)
-            .map_err(|e| SyncError::Store(format!("opening the store lock: {e}")))?;
+            .map_err(|e| SyncError::Store(messages::store_lock_open(&e)))?;
         file.lock()
-            .map_err(|e| SyncError::Store(format!("taking the store lock: {e}")))?;
+            .map_err(|e| SyncError::Store(messages::store_lock_take(&e)))?;
         Ok(StoreLock { _file: file })
     }
 
@@ -138,7 +136,7 @@ impl Store {
 
     pub(super) fn blob_tempfile(&self) -> Result<NamedTempFile, SyncError> {
         NamedTempFile::new_in(self.blobs().join(".tmp"))
-            .map_err(|e| SyncError::Store(format!("creating a download file: {e}")))
+            .map_err(|e| SyncError::Store(messages::download_file(&e)))
     }
 
     /// A private scratch directory for work that must not outlive the sync
@@ -147,7 +145,7 @@ impl Store {
         tempfile::Builder::new()
             .prefix("work-")
             .tempdir_in(self.blobs().join(".tmp"))
-            .map_err(|e| SyncError::Store(format!("creating a scratch directory: {e}")))
+            .map_err(|e| SyncError::Store(messages::scratch_dir(&e)))
     }
 
     /// Move a finished download into place, after hashing it once more.
@@ -161,31 +159,29 @@ impl Store {
     ) -> Result<PathBuf, SyncError> {
         let actual = hash_file(tmp.path()).map_err(|e| SyncError::Store(e.to_string()))?;
         if actual != *digest {
-            return Err(SyncError::Store(format!(
-                "a download hashed to {actual}, not {digest}"
-            )));
+            return Err(SyncError::Store(messages::download_hash(&actual, digest)));
         }
         let path = self.blobs().join(digest.hex());
         tmp.persist(&path)
-            .map_err(|e| SyncError::Store(format!("storing a download: {}", e.error)))?;
+            .map_err(|e| SyncError::Store(messages::download_store(&e.error)))?;
         Ok(path)
     }
 
     pub(super) fn put_blob(&self, digest: &Digest, bytes: &[u8]) -> Result<PathBuf, SyncError> {
         let mut tmp = self.blob_tempfile()?;
         tmp.write_all(bytes)
-            .map_err(|e| SyncError::Store(format!("writing a download: {e}")))?;
+            .map_err(|e| SyncError::Store(messages::download_write(&e)))?;
         self.commit_blob(tmp, digest)
     }
 
     pub(super) fn record(&self, locked: &LockDigest, tree: &TreeHash) -> Result<(), SyncError> {
         let path = self.refs().join(&locked.as_str()[7..]);
         let mut tmp = NamedTempFile::new_in(self.refs())
-            .map_err(|e| SyncError::Store(format!("recording an install: {e}")))?;
+            .map_err(|e| SyncError::Store(messages::record_install(&e)))?;
         tmp.write_all(tree.hex().as_bytes())
-            .map_err(|e| SyncError::Store(format!("recording an install: {e}")))?;
+            .map_err(|e| SyncError::Store(messages::record_install(&e)))?;
         tmp.persist(path)
-            .map_err(|e| SyncError::Store(format!("recording an install: {}", e.error)))?;
+            .map_err(|e| SyncError::Store(messages::record_install(&e.error)))?;
         Ok(())
     }
 

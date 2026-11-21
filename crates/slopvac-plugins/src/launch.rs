@@ -50,6 +50,8 @@ use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
+use crate::messages::host::{self as messages, HostPhrase, HostText};
+
 /// The first argument that selects launcher mode.
 pub const FLAG: &str = "--slopvac-plugin-launcher";
 /// Prefix of the variables that carry the plugin's environment.
@@ -64,10 +66,10 @@ static INSTALLED: AtomicBool = AtomicBool::new(false);
 pub(crate) enum LaunchError {
     /// The running program never called [`intercept`], so a child started
     /// through it would be the program itself, not the launcher.
-    #[error("the running program did not install the slopvac plugin launcher")]
+    #[error("{}", HostPhrase::NotInstalled.as_static())]
     NotInstalled,
     /// The OS cannot name the running executable.
-    #[error("cannot find the running executable: {0}")]
+    #[error("{}", messages::current_exe_failed(.0))]
     CurrentExe(#[source] std::io::Error),
 }
 
@@ -182,8 +184,23 @@ pub fn intercept() {
     }
 }
 
+/// The usage line of the launcher program, which the plugin host alone starts.
+#[doc(hidden)]
+#[must_use]
+pub fn usage() -> String {
+    HostText::LaunchUsage {
+        flag: FLAG.to_owned(),
+    }
+    .to_string()
+}
+
 fn fail(msg: &str) -> ! {
-    eprintln!("slopvac plugin launcher: {msg}");
+    eprintln!(
+        "{}",
+        HostText::LaunchFailure {
+            message: msg.to_owned()
+        }
+    );
     std::process::exit(127)
 }
 
@@ -191,7 +208,7 @@ fn fail(msg: &str) -> ! {
 /// nothing.
 fn parse(args: &[OsString]) -> Result<Plan, String> {
     let [cpu, nofile, fsize, data, sweep, sep, program, rest @ ..] = args else {
-        return Err("malformed arguments".into());
+        return Err(HostPhrase::MalformedArgs.as_static().into());
     };
     let num = |a: &OsString, key: &str| {
         a.to_str()
@@ -199,7 +216,12 @@ fn parse(args: &[OsString]) -> Result<Plan, String> {
             .and_then(|s| s.strip_prefix('='))
             .filter(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
             .and_then(|s| s.parse::<u64>().ok())
-            .ok_or_else(|| format!("malformed `{key}` argument"))
+            .ok_or_else(|| {
+                HostText::MalformedArg {
+                    key: key.to_owned(),
+                }
+                .to_string()
+            })
     };
     let limits = Limits {
         cpu_secs: num(cpu, "cpu")?,
@@ -209,12 +231,12 @@ fn parse(args: &[OsString]) -> Result<Plan, String> {
     };
     let sweep = Duration::from_millis(num(sweep, "sweep")?);
     if sep != "--" {
-        return Err("malformed arguments".into());
+        return Err(HostPhrase::MalformedArgs.as_static().into());
     }
     let program = PathBuf::from(program);
     // An absolute path is never looked up through `PATH`.
     if !program.is_absolute() {
-        return Err("the plugin program is not an absolute path".into());
+        return Err(HostPhrase::ProgramNotAbsolute.as_static().into());
     }
     Ok(Plan {
         limits,
@@ -226,7 +248,7 @@ fn parse(args: &[OsString]) -> Result<Plan, String> {
 
 #[cfg(not(unix))]
 fn run(_plan: &Plan) -> ! {
-    fail("the launcher runs on Unix only")
+    fail(HostPhrase::UnixOnly.as_static())
 }
 
 #[cfg(unix)]
@@ -255,19 +277,40 @@ fn apply(l: &Limits) -> Result<(), String> {
             current: Some(soft),
             maximum: Some(hard),
         };
-        setrlimit(resource, new).map_err(|e| format!("cannot set the {name} limit: {e}"))
+        setrlimit(resource, new).map_err(|e| {
+            HostText::SetLimit {
+                name: name.to_owned(),
+                error: e.to_string(),
+            }
+            .to_string()
+        })
     };
-    set(Resource::Core, "core size", 0, 0)?;
+    set(Resource::Core, HostPhrase::LimitCore.as_static(), 0, 0)?;
     set(
         Resource::Cpu,
-        "CPU time",
+        HostPhrase::LimitCpu.as_static(),
         l.cpu_secs,
         l.cpu_secs.saturating_add(1),
     )?;
-    set(Resource::Nofile, "open file", l.open_files, l.open_files)?;
-    set(Resource::Fsize, "file size", l.file_size, l.file_size)?;
+    set(
+        Resource::Nofile,
+        HostPhrase::LimitOpenFile.as_static(),
+        l.open_files,
+        l.open_files,
+    )?;
+    set(
+        Resource::Fsize,
+        HostPhrase::LimitFileSize.as_static(),
+        l.file_size,
+        l.file_size,
+    )?;
     #[cfg(target_os = "linux")]
-    set(Resource::Data, "memory", l.memory, l.memory)?;
+    set(
+        Resource::Data,
+        HostPhrase::LimitMemory.as_static(),
+        l.memory,
+        l.memory,
+    )?;
     Ok(())
 }
 
@@ -284,7 +327,12 @@ fn capped(soft: u64, hard: u64, ceiling: Option<u64>) -> (u64, u64) {
 fn start(mut cmd: Command, _sweep: Duration) -> ! {
     use std::os::unix::process::CommandExt;
     let err = cmd.exec();
-    fail(&format!("cannot run the plugin: {err}"))
+    fail(
+        &HostText::RunFailed {
+            error: err.to_string(),
+        }
+        .to_string(),
+    )
 }
 
 /// Start the plugin as a child, reap until it exits, clear what is left
@@ -293,16 +341,31 @@ fn start(mut cmd: Command, _sweep: Duration) -> ! {
 fn start(mut cmd: Command, sweep: Duration) -> ! {
     use rustix::process::{DumpableBehavior, getpid, set_child_subreaper, set_dumpable_behavior};
     if let Err(e) = set_child_subreaper(Some(getpid())) {
-        fail(&format!("cannot become a child subreaper: {e}"));
+        fail(
+            &HostText::Subreaper {
+                error: e.to_string(),
+            }
+            .to_string(),
+        );
     }
     // No process of the same user may attach to the launcher and fake its
     // exit; the plugin regains the default with its own `exec`.
     if let Err(e) = set_dumpable_behavior(DumpableBehavior::NotDumpable) {
-        fail(&format!("cannot refuse tracing: {e}"));
+        fail(
+            &HostText::RefuseTracing {
+                error: e.to_string(),
+            }
+            .to_string(),
+        );
     }
     let child = match cmd.spawn() {
         Ok(c) => c,
-        Err(e) => fail(&format!("cannot run the plugin: {e}")),
+        Err(e) => fail(
+            &HostText::RunFailed {
+                error: e.to_string(),
+            }
+            .to_string(),
+        ),
     };
     let plugin = rustix::process::Pid::from_child(&child);
     // The launcher reaps through `wait`; dropping the handle neither waits nor kills.
@@ -331,6 +394,8 @@ mod linux {
     use std::time::{Duration, Instant};
 
     use rustix::io::Errno;
+
+    use crate::messages::host::HostText;
     use rustix::process::{Pid, Signal, WaitOptions, WaitStatus, getpid, kill_process, wait};
 
     use super::fail;
@@ -357,7 +422,12 @@ mod linux {
             match wait(WaitOptions::empty()) {
                 Ok(Some((pid, status))) if pid == plugin => return status,
                 Ok(_) | Err(Errno::INTR) => {}
-                Err(e) => fail(&format!("lost the plugin: {e}")),
+                Err(e) => fail(
+                    &HostText::LostPlugin {
+                        error: e.to_string(),
+                    }
+                    .to_string(),
+                ),
             }
         }
     }

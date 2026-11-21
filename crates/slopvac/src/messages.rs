@@ -27,6 +27,7 @@ pub static ALL: &[Registered] = &[
     ("report", slopvac_report::message_entries),
     ("slopvac-lsp", slopvac_lsp::message_entries),
     ("slopvac-parse", slopvac_parse::message_entries),
+    ("slopvac-plugins", slopvac_plugins::message_entries),
     ("slopvac-pos", slopvac_pos::message_entries),
     ("slopvac-terms", slopvac_terms::message_entries),
     ("slopvac-terms-text", slopvac_terms::text_entries),

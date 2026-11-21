@@ -63,14 +63,20 @@ pub(crate) fn short_name_alias(seg: &str) -> bool {
 /// they can reach a denied directory under another name.
 pub(crate) fn locate(root: &Path, rel: &str, windows: bool) -> Result<Located, ApplyError> {
     if rel.split('/').any(windows_unsafe) {
-        return Err(ApplyError::PathRefused(format!(
-            "`{rel}`: stream or reserved character"
-        )));
+        return Err(ApplyError::PathRefused(
+            crate::messages::transport::TransportText::ApplyReservedCharacter {
+                path: rel.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     if windows && rel.split('/').any(short_name_alias) {
-        return Err(ApplyError::PathRefused(format!(
-            "`{rel}`: looks like a Windows 8.3 short name"
-        )));
+        return Err(ApplyError::PathRefused(
+            crate::messages::transport::TransportText::ApplyShortName {
+                path: rel.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     resolve_in_root(root, rel).map_err(ApplyError::PathRefused)?;
     let canon = root
@@ -84,7 +90,14 @@ pub(crate) fn locate(root: &Path, rel: &str, windows: bool) -> Result<Located, A
     };
     let parent_rel = parent_abs
         .strip_prefix(&canon)
-        .map_err(|_| ApplyError::PathRefused(format!("`{rel}` leaves the project root")))?
+        .map_err(|_| {
+            ApplyError::PathRefused(
+                crate::messages::transport::TransportText::ApplyOutsideRoot {
+                    path: rel.to_owned(),
+                }
+                .to_string(),
+            )
+        })?
         .to_owned();
     let comps: Vec<OsString> = parent_rel
         .components()
@@ -103,10 +116,14 @@ pub(crate) fn locate(root: &Path, rel: &str, windows: bool) -> Result<Located, A
             Ok(d) => anchor = d,
             Err(e) if e.kind() == ErrorKind::NotFound => break,
             Err(e) => {
-                return Err(ApplyError::PathRefused(format!(
-                    "`{rel}`: `{}` is not a plain directory ({e})",
-                    c.to_string_lossy()
-                )));
+                return Err(ApplyError::PathRefused(
+                    crate::messages::transport::TransportText::ApplyParentType {
+                        path: rel.to_owned(),
+                        component: c.to_string_lossy().into_owned(),
+                        detail: e.to_string(),
+                    }
+                    .to_string(),
+                ));
             }
         }
         depth += 1;
@@ -144,8 +161,14 @@ impl Located {
 
     /// The parent directory, which must exist.
     pub(crate) fn open_parent(&self) -> Result<Dir, ApplyError> {
-        self.parent(false)?
-            .ok_or_else(|| ApplyError::Io(format!("{}: directory is missing", self.resolved)))
+        self.parent(false)?.ok_or_else(|| {
+            ApplyError::Io(
+                crate::messages::transport::TransportText::ApplyDirectoryMissing {
+                    path: self.resolved.clone(),
+                }
+                .to_string(),
+            )
+        })
     }
 }
 
@@ -191,8 +214,13 @@ pub(crate) fn read_current_limited(
 #[cfg(unix)]
 pub(crate) fn nonblocking(opts: &mut OpenOptions) -> Result<(), ApplyError> {
     use cap_std::fs::OpenOptionsExt;
-    let flag = i32::try_from(rustix::fs::OFlags::NONBLOCK.bits())
-        .map_err(|_| ApplyError::Io("O_NONBLOCK does not fit".into()))?;
+    let flag = i32::try_from(rustix::fs::OFlags::NONBLOCK.bits()).map_err(|_| {
+        ApplyError::Io(
+            crate::messages::transport::TransportPhrase::ApplyNonblock
+                .as_static()
+                .into(),
+        )
+    })?;
     opts.custom_flags(flag);
     Ok(())
 }
@@ -313,7 +341,12 @@ fn create_temp(parent: &Dir, shown: &str) -> Result<(OsString, cap_std::fs::File
             Err(e) => return Err(ApplyError::io(shown, &e)),
         }
     }
-    Err(ApplyError::Io(format!("{shown}: no free temporary name")))
+    Err(ApplyError::Io(
+        crate::messages::transport::TransportText::ApplyTemporaryName {
+            path: shown.to_owned(),
+        }
+        .to_string(),
+    ))
 }
 
 /// Replace or create the target with `new`, atomically.

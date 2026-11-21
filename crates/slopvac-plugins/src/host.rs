@@ -36,6 +36,7 @@ use crate::error::{PluginError, StartError};
 use crate::frame::{FrameError, encode_frame, read_frame_with};
 use crate::hooks::parse_error_object;
 use crate::launch::Launcher;
+use crate::messages::host::{self as messages, HostPhrase, HostText};
 use crate::process::{Group, Leader, TableSource, Teardown};
 use crate::protocol::{
     FEATURE_DOCUMENT_PATH, HookDecl, HookKind, InitializeResult, MIN_PROTOCOL_VERSION, NameVersion,
@@ -396,7 +397,7 @@ impl Shared {
         if text.is_empty() {
             String::new()
         } else {
-            format!("\nstderr:\n{text}")
+            messages::stderr_tail(text)
         }
     }
 
@@ -407,7 +408,7 @@ impl Shared {
         for p in drained {
             let _ = p.reply.try_send((
                 Instant::now(),
-                Err(PluginError::Usage("the plugin has shut down".into())),
+                Err(PluginError::Usage(HostPhrase::ShutDown.as_static().into())),
             ));
         }
     }
@@ -418,14 +419,13 @@ impl Shared {
         let mut status = self
             .group
             .status()
-            .unwrap_or_else(|| "status unknown".into());
+            .unwrap_or_else(|| HostPhrase::StatusUnknown.as_static().into());
         if let Some(limit) = self
             .group
             .exit_status()
             .and_then(|s| limit_hit(s, &self.caps))
         {
-            status.push_str(": ");
-            status.push_str(&limit);
+            status = messages::status_with_limit(&status, &limit);
         }
         self.fail(PluginError::Exited {
             plugin: self.name.clone(),
@@ -473,28 +473,27 @@ impl Shared {
     }
 
     fn violation(&self, msg: impl Into<String>) {
-        self.fail(PluginError::ProtocolViolation(format!(
-            "{}: {}",
-            self.name,
-            msg.into()
+        self.fail(PluginError::ProtocolViolation(messages::named(
+            &self.name,
+            &msg.into(),
         )));
     }
 
     /// Route one message. `Ok(true)` means a pending request got its reply.
     fn dispatch(&self, msg: &Value, unsolicited: &mut u32) -> Result<bool, String> {
-        let obj = msg.as_object().ok_or("message is not a JSON object")?;
+        let obj = msg.as_object().ok_or(HostPhrase::NotObject.as_static())?;
         if obj.get("jsonrpc").and_then(Value::as_str) != Some("2.0") {
-            return Err("`jsonrpc` is not \"2.0\"".into());
+            return Err(HostPhrase::BadJsonrpc.as_static().into());
         }
         let unmatched = |n: &mut u32| {
             *n += 1;
             // Counts even when the message also crosses the plugin's own cap.
             let charged = self.budget.charge_unsolicited();
             if *n > self.caps.unsolicited_messages {
-                Err(format!(
-                    "more than {} unsolicited messages",
-                    self.caps.unsolicited_messages
-                ))
+                Err(HostText::UnsolicitedCap {
+                    limit: self.caps.unsolicited_messages,
+                }
+                .to_string())
             } else {
                 charged.map(|()| false)
             }
@@ -508,8 +507,8 @@ impl Shared {
             Some(v) => v
                 .as_u64()
                 .filter(|&i| (1..=MAX_REQUEST_ID).contains(&i))
-                .ok_or("response id is not an integer from 1 to 2^53-1")?,
-            None => return Err("message has neither `method` nor `id`".into()),
+                .ok_or(HostPhrase::BadId.as_static())?,
+            None => return Err(HostPhrase::NoMethodOrId.as_static().into()),
         };
         let reply = match (obj.get("result"), obj.get("error")) {
             (Some(r), None) => Ok(r.clone()),
@@ -517,7 +516,7 @@ impl Shared {
                 Ok(rpc) => PluginError::Rpc(rpc),
                 Err(e) => e,
             }),
-            _ => return Err("response needs exactly one of `result` and `error`".into()),
+            _ => return Err(HostPhrase::ResultOrError.as_static().into()),
         };
         match lock(&self.pending).remove(&id) {
             Some(p) => {
@@ -555,7 +554,7 @@ impl<R: Read> Read for Counted<'_, R> {
         // failed streams count too.
         if let Err(m) = self.budget.charge_stdout(n as u64) {
             self.breach = Some(m);
-            return Err(io::Error::other("whole-run budget exceeded"));
+            return Err(io::Error::other(HostPhrase::BudgetExceeded.as_static()));
         }
         Ok(n)
     }
@@ -592,7 +591,7 @@ fn reader_loop(shared: &Shared, stdout: impl Read, limits_ready: &Receiver<()>) 
                 let total = r.get_ref().read - r.buffer().len() as u64;
                 shared.stream.framed.store(total, Ordering::SeqCst);
                 if total > shared.caps.stdout_bytes {
-                    return shared.violation("standard output volume cap reached");
+                    return shared.violation(HostPhrase::StdoutCap.as_static());
                 }
                 let msg = match strict::parse(&body) {
                     Ok(v) => v,
@@ -672,10 +671,7 @@ fn stderr_loop(shared: &Shared, mut stderr: impl Read, done: Sender<()>) {
                     break;
                 }
                 if total > shared.caps.stderr_bytes {
-                    shared.fail(PluginError::ProtocolViolation(format!(
-                        "{}: standard error volume cap reached",
-                        shared.name
-                    )));
+                    shared.violation(HostPhrase::StderrCap.as_static());
                     break;
                 }
             }
@@ -743,28 +739,37 @@ impl Conn {
     }
 
     fn send_frame(&self, body: &Value, deadline: Instant) -> Result<(), PluginError> {
-        let bytes = serde_json::to_vec(body)
-            .map_err(|e| PluginError::Usage(format!("cannot encode message: {e}")))?;
+        let bytes = serde_json::to_vec(body).map_err(|e| {
+            PluginError::Usage(
+                HostText::EncodeMessage {
+                    error: e.to_string(),
+                }
+                .to_string(),
+            )
+        })?;
         let max = self.shared.max_body.load(Ordering::SeqCst);
         if bytes.len() > max {
-            return Err(PluginError::MessageTooLarge(format!(
-                "{} bytes exceed the limit of {max}",
-                bytes.len()
-            )));
+            return Err(PluginError::MessageTooLarge(
+                HostText::BytesExceed {
+                    bytes: bytes.len(),
+                    max,
+                }
+                .to_string(),
+            ));
         }
         let Some(tx) = lock(&self.shared.frames).clone() else {
             return Err(self
                 .dead()
-                .unwrap_or_else(|| PluginError::Usage("plugin is closed".into())));
+                .unwrap_or_else(|| PluginError::Usage(HostPhrase::Closed.as_static().into())));
         };
         match tx.send_deadline(encode_frame(&bytes), deadline) {
             Ok(()) => Ok(()),
             Err(crossbeam_channel::SendTimeoutError::Timeout(_)) => Err(self
                 .shared
-                .fail(self.timeout("the write to the plugin blocked"))),
+                .fail(self.timeout(HostPhrase::WriteBlocked.as_static()))),
             Err(crossbeam_channel::SendTimeoutError::Disconnected(_)) => Err(self
                 .dead()
-                .unwrap_or_else(|| PluginError::Usage("plugin is closed".into()))),
+                .unwrap_or_else(|| PluginError::Usage(HostPhrase::Closed.as_static().into()))),
         }
     }
 
@@ -837,7 +842,12 @@ impl Conn {
             Wake::Deadline if escalate => self.cancel_and_wait(id, &reply_rx, true, method),
             Wake::Deadline => {
                 lock(&self.shared.pending).remove(&id);
-                Err(self.timeout(&format!("`{method}` got no reply")))
+                Err(self.timeout(
+                    &HostText::MethodNoReply {
+                        method: method.to_owned(),
+                    }
+                    .to_string(),
+                ))
             }
         }
     }
@@ -857,7 +867,12 @@ impl Conn {
         );
         let Ok((_, answer)) = rx.recv_timeout(self.cancel_grace) else {
             lock(&self.shared.pending).remove(&id);
-            let err = self.timeout(&format!("`{method}` ignored its cancel"));
+            let err = self.timeout(
+                &HostText::MethodIgnoredCancel {
+                    method: method.to_owned(),
+                }
+                .to_string(),
+            );
             return Err(self.shared.fail(err));
         };
         Err(self.settle(answer, deadline_passed, method))
@@ -867,7 +882,12 @@ impl Conn {
     fn settle(&self, answer: Reply, deadline_passed: bool, method: &str) -> PluginError {
         match answer {
             Err(e) if !matches!(e, PluginError::Rpc(_)) => e,
-            _ if deadline_passed => self.timeout(&format!("`{method}` passed its deadline")),
+            _ if deadline_passed => self.timeout(
+                &HostText::MethodPassedDeadline {
+                    method: method.to_owned(),
+                }
+                .to_string(),
+            ),
             _ => PluginError::Cancelled,
         }
     }
@@ -884,7 +904,7 @@ impl Drop for Conn {
         // The drop guard of plugin-protocol.md section 3: nothing outlives the host.
         if !self.shared.shutting_down.load(Ordering::SeqCst) {
             self.shared
-                .fail(PluginError::Usage("plugin dropped".into()));
+                .fail(PluginError::Usage(HostPhrase::Dropped.as_static().into()));
         }
         // Blocks while another kill is in flight; does nothing once reaped.
         self.shared.group.kill();
@@ -946,7 +966,7 @@ fn check_reply(
     cfg: &HostConfig,
     reply: &InitializeResult,
 ) -> Result<Negotiated, PluginError> {
-    let mismatch = |m: String| PluginError::DeclarationMismatch(format!("{}: {m}", spec.name));
+    let mismatch = |m: String| PluginError::DeclarationMismatch(messages::named(&spec.name, &m));
     let decl = &spec.declaration;
     if !(MIN_PROTOCOL_VERSION..=PROTOCOL_VERSION).contains(&reply.protocol_version) {
         return Err(PluginError::ProtocolVersionUnsupported {
@@ -956,26 +976,29 @@ fn check_reply(
     }
     let caps = &reply.capabilities;
     if caps.requires_network != decl.network {
-        return Err(mismatch(format!(
-            "reply says requiresNetwork={}, manifest says network={}",
-            caps.requires_network, decl.network
-        )));
+        return Err(mismatch(
+            HostText::NetworkDiffers {
+                reply: caps.requires_network.to_string(),
+                manifest: decl.network.to_string(),
+            }
+            .to_string(),
+        ));
     }
     for f in &caps.features.required {
         if !cfg.features.contains(f) {
             return Err(PluginError::RequiredFeatureMissing(f.clone()));
         }
         if !decl.features.required.contains(f) {
-            return Err(mismatch(format!(
-                "feature `{f}` is not required in the manifest"
-            )));
+            return Err(mismatch(
+                HostText::FeatureNotRequired { feature: f.clone() }.to_string(),
+            ));
         }
     }
     for f in &caps.features.optional {
         if !decl.features.optional.contains(f) {
-            return Err(mismatch(format!(
-                "feature `{f}` is not optional in the manifest"
-            )));
+            return Err(mismatch(
+                HostText::FeatureNotOptional { feature: f.clone() }.to_string(),
+            ));
         }
     }
     let mut hooks = Vec::new();
@@ -987,41 +1010,47 @@ fn check_reply(
             continue;
         }
         if !decl.hooks.contains(h) {
-            return Err(mismatch(format!(
-                "hook {}/{} is not in the manifest",
-                h.kind, h.id
-            )));
+            return Err(mismatch(
+                HostText::HookNotInManifest {
+                    kind: h.kind.clone(),
+                    id: h.id.clone(),
+                }
+                .to_string(),
+            ));
         }
         hooks.push(h.clone());
     }
-    let out = |m: String| PluginError::OutputInvalid(format!("{}: {m}", spec.name));
+    let out = |m: String| PluginError::OutputInvalid(messages::named(&spec.name, &m));
     let l = reply.limits;
     let max_msg = usize::try_from(l.max_message_bytes)
         .ok()
         .filter(|&m| m as u64 >= MIN_MESSAGE_BYTES && m <= cfg.max_message_bytes)
         .ok_or_else(|| {
-            out(format!(
-                "maxMessageBytes {} is outside the allowed range",
-                l.max_message_bytes
-            ))
+            out(HostText::LimitOutOfRange {
+                field: "maxMessageBytes".to_owned(),
+                value: l.max_message_bytes,
+            }
+            .to_string())
         })?;
     let max_batch = usize::try_from(l.max_batch_documents)
         .ok()
         .filter(|&m| (1..=cfg.max_batch_documents).contains(&m))
         .ok_or_else(|| {
-            out(format!(
-                "maxBatchDocuments {} is outside the allowed range",
-                l.max_batch_documents
-            ))
+            out(HostText::LimitOutOfRange {
+                field: "maxBatchDocuments".to_owned(),
+                value: l.max_batch_documents,
+            }
+            .to_string())
         })?;
     let max_flight = usize::try_from(l.max_in_flight)
         .ok()
         .filter(|&m| (1..=cfg.max_in_flight).contains(&m))
         .ok_or_else(|| {
-            out(format!(
-                "maxInFlight {} is outside the allowed range",
-                l.max_in_flight
-            ))
+            out(HostText::LimitOutOfRange {
+                field: "maxInFlight".to_owned(),
+                value: l.max_in_flight,
+            }
+            .to_string())
         })?;
     let wants_path = |s: &[String]| s.iter().any(|f| f == FEATURE_DOCUMENT_PATH);
     let document_path = cfg.features.iter().any(|f| f == FEATURE_DOCUMENT_PATH)
@@ -1050,7 +1079,7 @@ impl Plugin {
     ) -> Result<Self, StartError> {
         if let Some(m) = cfg.budget.breach() {
             return Err(StartError {
-                error: PluginError::ProtocolViolation(format!("{}: {m}", spec.name)),
+                error: PluginError::ProtocolViolation(messages::named(&spec.name, &m)),
                 teardown: Teardown::default(),
             });
         }
@@ -1064,7 +1093,7 @@ impl Plugin {
             .budget
             .admit(|| spawn(spec, cfg))
             .map_err(|m| StartError {
-                error: PluginError::ProtocolViolation(format!("{}: {m}", spec.name)),
+                error: PluginError::ProtocolViolation(messages::named(&spec.name, &m)),
                 teardown: Teardown::default(),
             })??;
         let group = Arc::clone(&conn.shared.group);
@@ -1100,13 +1129,19 @@ impl Plugin {
                     plugin: e
                         .data
                         .get("supported")
-                        .map_or_else(|| "unknown".into(), Value::to_string),
+                        .map_or_else(|| HostPhrase::Unknown.as_static().into(), Value::to_string),
                 });
             }
             Err(e) => return Err(e),
         };
         let reply: InitializeResult = serde_json::from_value(result).map_err(|e| {
-            PluginError::OutputInvalid(format!("{}: initialize result: {e}", spec.name))
+            PluginError::OutputInvalid(messages::named(
+                &spec.name,
+                &HostText::InitializeResult {
+                    error: e.to_string(),
+                }
+                .to_string(),
+            ))
         })?;
         let negotiated = check_reply(spec, cfg, &reply)?;
         conn.shared
@@ -1160,11 +1195,14 @@ impl Plugin {
     /// Any [`PluginError`]. A timeout or protocol failure kills the plugin.
     pub fn call(&self, kind: HookKind, id: &str, params: Value) -> Result<Value, PluginError> {
         if !self.offers(kind, id) {
-            return Err(PluginError::Usage(format!(
-                "{}: hook {}/{id} was not offered",
-                self.name(),
-                kind.as_str()
-            )));
+            return Err(PluginError::Usage(
+                HostText::HookNotOffered {
+                    name: self.name().to_owned(),
+                    kind: kind.as_str().to_owned(),
+                    id: id.to_owned(),
+                }
+                .to_string(),
+            ));
         }
         let timeout = if kind == HookKind::Provider {
             self.timeouts.provider
@@ -1174,7 +1212,7 @@ impl Plugin {
         let start = Instant::now();
         match self.inflight_tx.send_timeout((), timeout) {
             Ok(()) => {}
-            Err(_) => return Err(self.conn.timeout("no request slot became free")),
+            Err(_) => return Err(self.conn.timeout(HostPhrase::NoSlot.as_static())),
         }
         let _slot = Slot(&self.inflight_rx);
         self.conn.request(
@@ -1324,7 +1362,7 @@ fn spawn_watchdog(shared: &Arc<Shared>, stop: Receiver<()>, cap: Duration, stall
             if left.is_zero() {
                 shared.fail(PluginError::Timeout {
                     plugin: shared.name.clone(),
-                    what: format!("the wall-clock cap of {cap:?} expired"),
+                    what: messages::wall_clock_cap(cap),
                 });
                 return;
             }
@@ -1337,8 +1375,7 @@ fn spawn_watchdog(shared: &Arc<Shared>, stop: Receiver<()>, cap: Duration, stall
                 return;
             }
             if shared.stalled(stall) {
-                return shared
-                    .violation(format!("a frame stalled for {stall:?} outside any request"));
+                return shared.violation(messages::frame_stalled(stall));
             }
         }
     });
@@ -1359,15 +1396,9 @@ fn limit_hit(status: ExitStatus, caps: &RunCaps) -> Option<String> {
     };
     let sig = status.signal().or_else(relayed)?;
     if sig == rustix::process::Signal::XCPU.as_raw() {
-        Some(format!(
-            "the CPU time limit of {:?} was reached",
-            caps.cpu_time
-        ))
+        Some(messages::cpu_limit(caps.cpu_time))
     } else if sig == rustix::process::Signal::XFSZ.as_raw() {
-        Some(format!(
-            "the file size limit of {} bytes was reached",
-            caps.file_size
-        ))
+        Some(messages::file_limit(caps.file_size))
     } else {
         None
     }
@@ -1403,7 +1434,7 @@ fn plugin_command(spec: &PluginSpec, cfg: &HostConfig) -> Result<Command, Plugin
         let launcher = cfg.launcher.path().map_err(|e| match e {
             crate::launch::LaunchError::NotInstalled => PluginError::LauncherNotInstalled,
             e @ crate::launch::LaunchError::CurrentExe(_) => {
-                PluginError::SpawnFailed(format!("{}: {e}", spec.name))
+                PluginError::SpawnFailed(messages::named(&spec.name, &e.to_string()))
             }
         })?;
         Ok(crate::launch::command(
@@ -1424,9 +1455,13 @@ fn plugin_command(spec: &PluginSpec, cfg: &HostConfig) -> Result<Command, Plugin
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "the catalog calls take more lines than the former literals; the body is unchanged"
+)]
 fn spawn(spec: &PluginSpec, cfg: &HostConfig) -> Result<Conn, StartError> {
     let spawn_failed = |e: io::Error| StartError {
-        error: PluginError::SpawnFailed(format!("{}: {e}", spec.name)),
+        error: PluginError::SpawnFailed(messages::named(&spec.name, &e.to_string())),
         teardown: Teardown::default(),
     };
     let mut cmd = plugin_command(spec, cfg).map_err(|error| StartError {
@@ -1448,7 +1483,10 @@ fn spawn(spec: &PluginSpec, cfg: &HostConfig) -> Result<Conn, StartError> {
     let (Some(stdin), Some(stdout), Some(stderr)) = leader.take_pipes() else {
         group.finish(leader);
         return Err(StartError {
-            error: PluginError::SpawnFailed(format!("{}: missing pipes", spec.name)),
+            error: PluginError::SpawnFailed(messages::named(
+                &spec.name,
+                HostPhrase::MissingPipes.as_static(),
+            )),
             teardown: group.teardown(),
         });
     };

@@ -3,9 +3,6 @@
 
 fn main() {
     slopvac_plugins::launch::intercept();
-    eprintln!(
-        "usage: slopvac-plugin-launcher {} ... (started by the plugin host only)",
-        slopvac_plugins::launch::FLAG
-    );
+    eprintln!("{}", slopvac_plugins::launch::usage());
     std::process::exit(2);
 }

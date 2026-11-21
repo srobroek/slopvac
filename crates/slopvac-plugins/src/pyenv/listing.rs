@@ -16,6 +16,7 @@ use sha2::{Digest as _, Sha256};
 
 use super::PyEnvError;
 use super::lock::hex;
+use crate::messages::pyenv::{self as messages, PyenvPhrase, PyenvText};
 
 /// Bounds on one environment (threat model section 5.5, Y7).
 pub(super) const MAX_NODES: usize = 20_000;
@@ -121,10 +122,10 @@ fn is_exec(_: &fs::Metadata) -> bool {
 
 /// The sha256 of a file and the bytes read, reading at most `max + 1` bytes.
 pub(super) fn sha256_upto(path: &Path, max: u64) -> Result<(String, u64), PyEnvError> {
-    let mut f = File::open(path).map_err(PyEnvError::io(format!("reading {}", path.display())))?;
+    let mut f = File::open(path).map_err(PyEnvError::io(messages::reading(path)))?;
     let mut h = Sha256::new();
     let n = io::copy(&mut io::Read::take(&mut f, max.saturating_add(1)), &mut h)
-        .map_err(PyEnvError::io(format!("reading {}", path.display())))?;
+        .map_err(PyEnvError::io(messages::reading(path)))?;
     Ok((hex(&h.finalize()), n))
 }
 
@@ -138,49 +139,52 @@ pub(super) fn sha256_file(path: &Path) -> Result<String, PyEnvError> {
 /// Refuses special files, names that are not UTF-8 and trees past `bounds`:
 /// more entries, more directory levels, or more file bytes in total.
 pub(super) fn scan(root: &Path, hash: bool, bounds: WalkBounds) -> Result<Vec<Entry>, PyEnvError> {
-    let meta = fs::symlink_metadata(root)
-        .map_err(PyEnvError::io(format!("inspecting {}", root.display())))?;
+    let meta = fs::symlink_metadata(root).map_err(PyEnvError::io(messages::inspecting(root)))?;
     if !meta.is_dir() {
-        return Err(PyEnvError::Refused(format!(
-            "{} is a link or not a directory",
-            root.display()
-        )));
+        return Err(PyEnvError::Refused(
+            PyenvText::NotDirectory {
+                path: root.display().to_string(),
+            }
+            .to_string(),
+        ));
     }
     let mut out = Vec::new();
     let mut total = 0u64;
     let mut stack = vec![(root.to_owned(), String::new(), 0usize)];
     while let Some((dir, prefix, depth)) = stack.pop() {
-        let rd =
-            fs::read_dir(&dir).map_err(PyEnvError::io(format!("reading {}", dir.display())))?;
+        let rd = fs::read_dir(&dir).map_err(PyEnvError::io(messages::reading(&dir)))?;
         for e in rd {
-            let e = e.map_err(PyEnvError::io(format!("reading {}", dir.display())))?;
+            let e = e.map_err(PyEnvError::io(messages::reading(&dir)))?;
             if out.len() >= bounds.nodes {
-                return Err(PyEnvError::Refused(format!(
-                    "the environment has more than {} entries",
-                    bounds.nodes
-                )));
+                return Err(PyEnvError::Refused(
+                    PyenvText::TooManyEntries {
+                        nodes: bounds.nodes,
+                    }
+                    .to_string(),
+                ));
             }
-            let name = e
-                .file_name()
-                .into_string()
-                .map_err(|_| PyEnvError::Refused("a file name is not UTF-8".into()))?;
+            let name = e.file_name().into_string().map_err(|_| {
+                PyEnvError::Refused(PyenvPhrase::FileNameNotUtf8.as_static().into())
+            })?;
             let rel = if prefix.is_empty() {
                 name
             } else {
                 format!("{prefix}/{name}")
             };
             let path = e.path();
-            let m = fs::symlink_metadata(&path)
-                .map_err(PyEnvError::io(format!("inspecting {}", path.display())))?;
+            let m =
+                fs::symlink_metadata(&path).map_err(PyEnvError::io(messages::inspecting(&path)))?;
             let ft = m.file_type();
             let entry = if ft.is_symlink() {
                 link_entry(&path, rel)?
             } else if ft.is_dir() {
                 if depth + 1 >= bounds.depth {
-                    return Err(PyEnvError::Refused(format!(
-                        "the environment is deeper than {} levels",
-                        bounds.depth
-                    )));
+                    return Err(PyEnvError::Refused(
+                        PyenvText::TooDeep {
+                            depth: bounds.depth,
+                        }
+                        .to_string(),
+                    ));
                 }
                 stack.push((path, rel.clone(), depth + 1));
                 Entry {
@@ -195,14 +199,18 @@ pub(super) fn scan(root: &Path, hash: bool, bounds: WalkBounds) -> Result<Vec<En
             } else if ft.is_file() {
                 total = total.saturating_add(m.len());
                 if total > bounds.bytes {
-                    return Err(PyEnvError::Refused(format!(
-                        "the environment holds more than {} bytes",
-                        bounds.bytes
-                    )));
+                    return Err(PyEnvError::Refused(
+                        PyenvText::TooManyBytes {
+                            bytes: bounds.bytes,
+                        }
+                        .to_string(),
+                    ));
                 }
                 file_entry(&path, rel, &m, hash)?
             } else {
-                return Err(PyEnvError::Refused(format!("`{rel}` is a special file")));
+                return Err(PyEnvError::Refused(
+                    PyenvText::SpecialFile { rel }.to_string(),
+                ));
             };
             out.push(entry);
         }
@@ -212,12 +220,10 @@ pub(super) fn scan(root: &Path, hash: bool, bounds: WalkBounds) -> Result<Vec<En
 }
 
 fn link_entry(path: &Path, rel: String) -> Result<Entry, PyEnvError> {
-    let t =
-        fs::read_link(path).map_err(PyEnvError::io(format!("reading link {}", path.display())))?;
-    let t = t
-        .into_os_string()
-        .into_string()
-        .map_err(|_| PyEnvError::Refused(format!("`{rel}` has a link target that is not UTF-8")))?;
+    let t = fs::read_link(path).map_err(PyEnvError::io(messages::reading_link(path)))?;
+    let t = t.into_os_string().into_string().map_err(|_| {
+        PyEnvError::Refused(PyenvText::LinkTargetNotUtf8 { rel: rel.clone() }.to_string())
+    })?;
     Ok(Entry {
         path: rel,
         kind: Kind::Link,
@@ -235,7 +241,7 @@ fn file_entry(path: &Path, rel: String, m: &fs::Metadata, hash: bool) -> Result<
         if n != m.len() {
             return Err(PyEnvError::Changed {
                 path: rel,
-                why: "changed while it was read".into(),
+                why: PyenvPhrase::ChangedWhileRead.as_static().into(),
             });
         }
         Some(sha)
@@ -244,7 +250,7 @@ fn file_entry(path: &Path, rel: String, m: &fs::Metadata, hash: bool) -> Result<
     };
     Ok(Entry {
         size: m.len(),
-        mtime: Some(mtime_of(m).map_err(PyEnvError::io(format!("inspecting {}", path.display())))?),
+        mtime: Some(mtime_of(m).map_err(PyEnvError::io(messages::inspecting(path)))?),
         exec: is_exec(m),
         sha256: sha,
         target: None,
@@ -261,26 +267,26 @@ pub(super) fn compare(recorded: &[Entry], now: &[Entry], full: bool) -> Result<(
         let Some(o) = old.get(p) else {
             return Err(PyEnvError::Changed {
                 path: (*p).to_owned(),
-                why: "added after the build".into(),
+                why: PyenvPhrase::AddedAfterBuild.as_static().into(),
             });
         };
         if o.quick() != n.quick() {
             return Err(PyEnvError::Changed {
                 path: (*p).to_owned(),
-                why: "its type, size, modification time, mode or target changed".into(),
+                why: PyenvPhrase::EntryChanged.as_static().into(),
             });
         }
         if full && o.sha256 != n.sha256 {
             return Err(PyEnvError::Changed {
                 path: (*p).to_owned(),
-                why: "its content changed".into(),
+                why: PyenvPhrase::ContentChanged.as_static().into(),
             });
         }
     }
     if let Some(p) = old.keys().find(|p| !new.contains_key(*p)) {
         return Err(PyEnvError::Changed {
             path: (*p).to_owned(),
-            why: "removed after the build".into(),
+            why: PyenvPhrase::RemovedAfterBuild.as_static().into(),
         });
     }
     Ok(())
@@ -313,14 +319,15 @@ pub(super) fn make_read_only(root: &Path, entries: &[Entry]) -> Result<(), PyEnv
 #[cfg(unix)]
 pub(super) fn set_read_only(path: &Path, dir: bool) -> Result<(), PyEnvError> {
     use std::os::unix::fs::PermissionsExt;
-    let meta = fs::symlink_metadata(path).map_err(PyEnvError::io("inspecting an entry"))?;
+    let meta = fs::symlink_metadata(path)
+        .map_err(PyEnvError::io(PyenvPhrase::InspectingEntry.as_static()))?;
     let mode = if dir || meta.permissions().mode() & 0o100 != 0 {
         0o555
     } else {
         0o444
     };
     fs::set_permissions(path, fs::Permissions::from_mode(mode))
-        .map_err(PyEnvError::io(format!("protecting {}", path.display())))
+        .map_err(PyEnvError::io(messages::protecting(path)))
 }
 
 #[cfg(not(unix))]
@@ -329,8 +336,8 @@ pub(super) fn set_read_only(path: &Path, dir: bool) -> Result<(), PyEnvError> {
         return Ok(());
     }
     let mut p = fs::metadata(path)
-        .map_err(PyEnvError::io("inspecting an entry"))?
+        .map_err(PyEnvError::io(PyenvPhrase::InspectingEntry.as_static()))?
         .permissions();
     p.set_readonly(true);
-    fs::set_permissions(path, p).map_err(PyEnvError::io(format!("protecting {}", path.display())))
+    fs::set_permissions(path, p).map_err(PyEnvError::io(messages::protecting(path)))
 }

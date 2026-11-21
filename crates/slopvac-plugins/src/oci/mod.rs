@@ -34,8 +34,10 @@ pub use types::{
     MEDIA_MANIFEST, Manifest,
 };
 
-use slopvac_sanitize::line as esc;
+use slopvac_messages::Catalog;
 use thiserror::Error;
+
+use crate::messages::transport::{self as messages, TransportMessage};
 
 /// Redirects followed per request.
 pub const MAX_REDIRECTS: usize = 5;
@@ -45,10 +47,10 @@ pub const MAX_REDIRECTS: usize = 5;
 #[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum OciError {
     /// A reference, digest or descriptor is malformed.
-    #[error("invalid OCI input: {}", esc(.0))]
+    #[error("{}", messages::oci_invalid(.0))]
     Invalid(String),
     /// The transport failed.
-    #[error("network error for {}: {}", esc(.url), esc(.message))]
+    #[error("{}", messages::oci_network(.url, .message))]
     Network {
         /// Redacted URL.
         url: String,
@@ -56,10 +58,10 @@ pub enum OciError {
         message: String,
     },
     /// The URL would send data over plain HTTP or to a host the rules forbid.
-    #[error("refused URL {}: HTTPS is required", esc(.0))]
+    #[error("{}", messages::oci_insecure_url(.0))]
     InsecureUrl(String),
     /// A redirect broke a rule.
-    #[error("bad redirect from {}: {}", esc(.url), esc(.why))]
+    #[error("{}", messages::oci_bad_redirect(.url, .why))]
     BadRedirect {
         /// Redacted URL.
         url: String,
@@ -70,20 +72,13 @@ pub enum OciError {
         wire_bytes: u64,
     },
     /// The token realm is not on the registry's origin or a listed token service.
-    #[error("token realm {} is not on the registry origin; credentials were not sent", esc(.0))]
+    #[error("{}", messages::oci_realm_rejected(.0))]
     RealmRejected(String),
     /// Credentials could not be read.
-    #[error("credential error: {}", esc(.0))]
+    #[error("{}", messages::oci_credential(.0))]
     Credential(String),
     /// A credential helper exists only in a directory that is not trusted.
-    #[error(
-        "credential helper `{}` was not found in a trusted directory; it exists only in {}. \
-         Tighten the permissions of that directory so that only you or root can write it, \
-         or sign in with a static `auths` login in the Docker config, with SLOPVAC_OCI_USER \
-         and SLOPVAC_OCI_TOKEN, or with GITHUB_TOKEN for ghcr.io",
-        esc(.program),
-        esc(.dir)
-    )]
+    #[error("{}", messages::helper_untrusted(.program, .dir))]
     HelperUntrusted {
         /// The helper program name.
         program: String,
@@ -93,16 +88,16 @@ pub enum OciError {
     },
     /// A credential helper was not run because the project directory is unknown,
     /// so slopvac cannot tell whether the helper lies inside it.
-    #[error("credential helper `{}` was not run: the project directory is unknown", esc(.0))]
+    #[error("{}", messages::helper_project_unknown(.0))]
     HelperProjectUnknown(String),
     /// The registry answered 401 or 403. A private or missing package looks like this on GHCR.
-    #[error("access denied or not found at {}", esc(.0))]
+    #[error("{}", messages::oci_denied(.0))]
     Denied(String),
     /// The registry has no such object.
-    #[error("not found: {}", esc(.0))]
+    #[error("{}", messages::oci_not_found(.0))]
     NotFound(String),
     /// Another status than expected.
-    #[error("unexpected status {status} from {}", esc(.url))]
+    #[error("{}", messages::oci_status(*.status, .url))]
     Status {
         /// HTTP status.
         status: u16,
@@ -110,7 +105,7 @@ pub enum OciError {
         url: String,
     },
     /// A body is larger than the limit.
-    #[error("{} exceeds the limit of {limit} bytes", esc(.what))]
+    #[error("{}", messages::oci_too_large(.what, *.limit))]
     TooLarge {
         /// What was read.
         what: String,
@@ -118,7 +113,7 @@ pub enum OciError {
         limit: u64,
     },
     /// A blob or manifest does not hash to its digest.
-    #[error("digest mismatch: expected {}, got {}", esc(.expected), esc(.actual))]
+    #[error("{}", messages::oci_digest_mismatch(.expected, .actual))]
     DigestMismatch {
         /// From the descriptor or reference.
         expected: String,
@@ -126,7 +121,7 @@ pub enum OciError {
         actual: String,
     },
     /// A blob has another length than its descriptor says.
-    #[error("size mismatch: descriptor says {expected} bytes, received {actual}")]
+    #[error("{}", messages::oci_size_mismatch(*.expected, *.actual))]
     SizeMismatch {
         /// From the descriptor.
         expected: u64,
@@ -134,7 +129,7 @@ pub enum OciError {
         actual: u64,
     },
     /// A manifest media type the client does not accept.
-    #[error("unsupported media type `{}`", esc(.0))]
+    #[error("{}", messages::oci_media_type(.0))]
     UnsupportedMediaType(String),
 }
 
@@ -159,8 +154,19 @@ impl OciError {
     #[must_use]
     pub fn code(&self) -> Option<&'static str> {
         match self {
-            Self::HelperUntrusted { .. } => Some("credential-helper-untrusted"),
-            Self::HelperProjectUnknown(_) => Some("credential-helper-project-unknown"),
+            Self::HelperUntrusted { .. } => Some(
+                TransportMessage::HelperUntrusted {
+                    program: String::new(),
+                    dir: String::new(),
+                }
+                .code(),
+            ),
+            Self::HelperProjectUnknown(_) => Some(
+                TransportMessage::HelperProjectUnknown {
+                    program: String::new(),
+                }
+                .code(),
+            ),
             _ => None,
         }
     }

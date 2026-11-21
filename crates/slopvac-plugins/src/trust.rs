@@ -43,12 +43,12 @@ use std::path::{Component, Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use slopvac_sanitize::line as esc;
 use thiserror::Error;
 
 use crate::error::PluginError;
 use crate::extract::{ExtractError, TreeHash, tree_hash, verify_tree};
 use crate::host::{PluginSpec, SpawnGate};
+use crate::messages::trust::{self as messages, TrustPhrase, codes};
 use crate::oci::Digest;
 use crate::protocol::PluginDeclaration;
 use crate::pyenv::{EnvStore, ManagedEnv, PYTHON_FLAGS, PyEnvError, PythonRuntime};
@@ -69,7 +69,7 @@ const MAX_STORE_BYTES: u64 = 8 << 20;
 #[derive(Debug, Error)]
 pub enum TrustError {
     /// The store file is unreadable or invalid. The run exits 2; it is never treated as empty.
-    #[error("the trust store {} is damaged: {}", esc(&.path.to_string_lossy()), esc(.why))]
+    #[error("{}", messages::store_damaged(.path, .why))]
     Corrupt {
         /// The file.
         path: PathBuf,
@@ -77,7 +77,7 @@ pub enum TrustError {
         why: String,
     },
     /// A file system operation failed.
-    #[error("{}: {}", esc(.what), esc(&.source.to_string()))]
+    #[error("{}", messages::trust_io(.what, &.source.to_string()))]
     Io {
         /// The operation.
         what: String,
@@ -86,17 +86,10 @@ pub enum TrustError {
         source: io::Error,
     },
     /// `SLOPVAC_TRUST` named something other than a content hash.
-    #[error(
-        "`{}` in SLOPVAC_TRUST is not a sha256 content hash; it names hashes only, never a name or a tag",
-        esc(.0)
-    )]
+    #[error("{}", messages::not_a_hash(.0))]
     NotAHash(String),
     /// A namespace already has a different pinned key.
-    #[error(
-        "namespace `{}` is already bound to key {}; a new key needs a rotation statement signed by the old key",
-        esc(.namespace),
-        esc(.existing)
-    )]
+    #[error("{}", messages::namespace_bound(.namespace, .existing))]
     NamespaceBound {
         /// The namespace.
         namespace: String,
@@ -104,7 +97,7 @@ pub enum TrustError {
         existing: String,
     },
     /// The namespace is reserved or first-party, so no key can be pinned for it.
-    #[error("namespace `{}` is reserved; no key can be pinned for it", esc(.namespace))]
+    #[error("{}", messages::namespace_reserved(.namespace))]
     ReservedNamespace {
         /// The namespace.
         namespace: String,
@@ -113,52 +106,43 @@ pub enum TrustError {
     #[error(transparent)]
     Tree(#[from] ExtractError),
     /// The program cannot be tied to the verified tree or the allowlist.
-    #[error("program refused: {}", esc(.0))]
+    #[error("{}", messages::program_refused(.0))]
     Program(String),
     /// The environment or `PATH` handed to the plugin is not allowed.
-    #[error("environment refused: {}", esc(.0))]
+    #[error("{}", messages::environment_refused(.0))]
     Environment(String),
     /// The managed Python environment failed its full check.
     #[error(transparent)]
     PythonEnv(#[from] PyEnvError),
     /// A rotation statement failed verification.
-    #[error("rotation refused: {0}")]
+    #[error("{}", messages::rotation_refused(&.0.to_string()))]
     Rotation(SignError),
     /// A rotation names a namespace that has no pinned key to rotate from.
-    #[error("namespace `{0}` has no pinned key to rotate; pin one first")]
+    #[error("{}", messages::not_pinned(.0))]
     NotPinned(String),
     /// The revocation cache could not be read or verified. Spawns are refused.
     #[error(transparent)]
     Revocation(RevocationError),
     /// The revocation list names a key the operation needs.
-    #[error("{0} is on the revocation list")]
+    #[error("{}", messages::revoked(.0))]
     Revoked(String),
     /// A write would push the store past the size the reader accepts.
-    #[error("the trust store would reach {bytes} bytes; the reader accepts at most 8 MiB")]
+    #[error("{}", messages::store_too_large(*.bytes))]
     TooLarge {
         /// Size the write would have.
         bytes: usize,
     },
     /// Trust records exist but the key they were made under is gone.
-    #[error(
-        "the trust key {} is missing while trust records exist, so they cannot be checked; run `slopvac plugins trust` for each plugin to trust it again",
-        esc(.file)
-    )]
+    #[error("{}", messages::key_missing(.file))]
     KeyMissing {
         /// The key file as policies section 1.7 shows a path outside the project.
         file: String,
     },
     /// A trust record was made under another key than the one in the store.
-    #[error(
-        "the trust key changed since the trust records were made, so they cannot be checked; run `slopvac plugins trust` for each plugin to trust it again"
-    )]
+    #[error("{}", messages::key_mismatch())]
     KeyMismatch,
     /// The key file is not private to the user or does not hold a key.
-    #[error(
-        "the trust key {} cannot be used: {}; fix it, or delete it and run `slopvac plugins trust` for each plugin",
-        esc(.file),
-        esc(.why)
-    )]
+    #[error("{}", messages::key_unusable(.file, .why))]
     KeyUnusable {
         /// The key file, redacted like [`Self::KeyMissing`]'s.
         file: String,
@@ -172,7 +156,7 @@ impl TrustError {
     #[must_use]
     pub fn code(&self) -> Option<&'static str> {
         match self {
-            Self::ReservedNamespace { .. } => Some("namespace-reserved"),
+            Self::ReservedNamespace { .. } => Some(codes::NAMESPACE_RESERVED),
             _ => None,
         }
     }
@@ -287,24 +271,24 @@ impl DeclSummary {
     pub fn diff(&self, new: &Self) -> Vec<String> {
         let mut out = Vec::new();
         if self.network != new.network {
-            out.push(format!("network: {} -> {}", self.network, new.network));
+            out.push(messages::diff_network(self.network, new.network));
         }
         let mut set_diff = |label: &str, old: &[String], new: &[String]| {
             for added in new.iter().filter(|x| !old.contains(x)) {
-                out.push(format!("{label} added: {}", esc(added)));
+                out.push(messages::diff_added(label, added));
             }
             for removed in old.iter().filter(|x| !new.contains(x)) {
-                out.push(format!("{label} removed: {}", esc(removed)));
+                out.push(messages::diff_removed(label, removed));
             }
         };
-        set_diff("hook", &self.hooks, &new.hooks);
+        set_diff(TrustPhrase::LabelHook.as_static(), &self.hooks, &new.hooks);
         set_diff(
-            "required feature",
+            TrustPhrase::LabelRequiredFeature.as_static(),
             &self.required_features,
             &new.required_features,
         );
         set_diff(
-            "optional feature",
+            TrustPhrase::LabelOptionalFeature.as_static(),
             &self.optional_features,
             &new.optional_features,
         );
@@ -388,14 +372,14 @@ fn parse_store_file(raw: &[u8], path: &Path) -> Result<StoreFile, TrustError> {
         why,
     };
     if raw.len() as u64 > MAX_STORE_BYTES {
-        return Err(corrupt("larger than 8 MiB".into()));
+        return Err(corrupt(TrustPhrase::StoreOverCap.as_static().into()));
     }
     let mut value: serde_json::Value =
         serde_json::from_slice(raw).map_err(|e| corrupt(e.to_string()))?;
     strip_extension_keys(&mut value);
     let parsed: StoreFile = serde_json::from_value(value).map_err(|e| corrupt(e.to_string()))?;
     if parsed.schema_version != 1 {
-        return Err(corrupt("unsupported schema_version".into()));
+        return Err(corrupt(TrustPhrase::StoreSchema.as_static().into()));
     }
     Ok(parsed)
 }
@@ -455,16 +439,16 @@ impl TrustStore {
                     ..StoreFile::default()
                 });
             }
-            Err(e) => return Err(io_err(format!("opening {}", path.display()))(e)),
+            Err(e) => return Err(io_err(messages::opening(&path.display().to_string()))(e)),
         };
         let mut raw = Vec::new();
         file.take(MAX_STORE_BYTES + 1)
             .read_to_end(&mut raw)
-            .map_err(io_err(format!("reading {}", path.display())))?;
+            .map_err(io_err(messages::reading(&path.display().to_string())))?;
         if raw.len() as u64 > MAX_STORE_BYTES {
             return Err(TrustError::Corrupt {
                 path,
-                why: "larger than 8 MiB".into(),
+                why: TrustPhrase::StoreOverCap.as_static().into(),
             });
         }
         parse_store_file(&raw, &path)
@@ -478,8 +462,9 @@ impl TrustStore {
             .truncate(false)
             .write(true)
             .open(self.dir.join(LOCK_NAME))
-            .map_err(io_err("opening the trust lock"))?;
-        lock.lock().map_err(io_err("locking the trust store"))?;
+            .map_err(io_err(TrustPhrase::OpenLock.as_static()))?;
+        lock.lock()
+            .map_err(io_err(TrustPhrase::LockStore.as_static()))?;
         Ok(lock)
     }
 
@@ -501,15 +486,15 @@ impl TrustStore {
         let mut tmp = tempfile::Builder::new()
             .prefix(".trust-")
             .tempfile_in(&self.dir)
-            .map_err(io_err("creating a temporary store file"))?;
+            .map_err(io_err(TrustPhrase::TempStore.as_static()))?;
         set_private_file(tmp.path())?;
         tmp.write_all(&bytes)
-            .map_err(io_err("writing the trust store"))?;
+            .map_err(io_err(TrustPhrase::WriteStore.as_static()))?;
         tmp.as_file()
             .sync_all()
-            .map_err(io_err("syncing the trust store"))?;
+            .map_err(io_err(TrustPhrase::SyncStore.as_static()))?;
         tmp.persist(self.path()).map_err(|e| TrustError::Io {
-            what: "replacing the trust store".into(),
+            what: TrustPhrase::ReplaceStore.as_static().into(),
             source: e.error,
         })?;
         drop(lock);
@@ -629,7 +614,7 @@ impl TrustStore {
                 .map_err(TrustError::Rotation)?;
             for id in [&st.old_key_id, &st.new_key_id] {
                 if revoked.revokes_key(id) {
-                    return Err(TrustError::Revoked(format!("key {id}")));
+                    return Err(TrustError::Revoked(messages::revoked_key(id)));
                 }
             }
             *slot = KeyPin {
@@ -673,21 +658,21 @@ fn create_private_dir(dir: &Path) -> Result<(), TrustError> {
         .recursive(true)
         .mode(0o700)
         .create(dir)
-        .map_err(io_err(format!("creating {}", dir.display())))?;
+        .map_err(io_err(messages::creating(&dir.display().to_string())))?;
     fs::set_permissions(dir, fs::Permissions::from_mode(0o700))
-        .map_err(io_err("securing the trust directory"))
+        .map_err(io_err(TrustPhrase::SecureDir.as_static()))
 }
 
 #[cfg(not(unix))]
 fn create_private_dir(dir: &Path) -> Result<(), TrustError> {
-    fs::create_dir_all(dir).map_err(io_err(format!("creating {}", dir.display())))
+    fs::create_dir_all(dir).map_err(io_err(messages::creating(&dir.display().to_string())))
 }
 
 #[cfg(unix)]
 fn set_private_file(path: &Path) -> Result<(), TrustError> {
     use std::os::unix::fs::PermissionsExt;
     fs::set_permissions(path, fs::Permissions::from_mode(0o600))
-        .map_err(io_err("securing the trust file"))
+        .map_err(io_err(TrustPhrase::SecureFile.as_static()))
 }
 
 #[cfg(not(unix))]
@@ -767,24 +752,21 @@ fn check_environment(spec: &PluginSpec) -> Result<(), TrustError> {
     let mut seen = HashSet::new();
     for (k, _) in &spec.env {
         if k.is_empty() || k.contains('=') || k.contains('\0') {
-            return refuse(format!("`{k}` is not a variable name"));
+            return refuse(messages::env_bad_name(k));
         }
         if is_forbidden_env_name(k) {
-            return refuse(format!("`{k}` can load code into the plugin"));
+            return refuse(messages::env_forbidden(k));
         }
         if !seen.insert(k.to_ascii_uppercase()) {
-            return refuse(format!("`{k}` is set twice"));
+            return refuse(messages::env_duplicate(k));
         }
     }
     if spec.path_env.is_empty() {
-        return refuse("PATH is empty".into());
+        return refuse(TrustPhrase::PathEmpty.as_static().into());
     }
     for dir in std::env::split_paths(&spec.path_env) {
         if !dir.is_absolute() {
-            return refuse(format!(
-                "PATH entry `{}` is not an absolute directory",
-                dir.display()
-            ));
+            return refuse(messages::env_path_relative(&dir));
         }
     }
     Ok(())
@@ -798,42 +780,36 @@ fn program_id(
 ) -> Result<String, TrustError> {
     let refuse = |why: String| Err(TrustError::Program(why));
     if !program.is_absolute() {
-        return refuse(format!(
-            "`{}` is not an absolute path; a bare name would be found through PATH",
-            program.display()
-        ));
+        return refuse(messages::program_not_absolute(program));
     }
     if program
         .components()
         .any(|c| matches!(c, Component::ParentDir | Component::CurDir))
     {
-        return refuse(format!("`{}` contains `.` or `..`", program.display()));
+        return refuse(messages::program_dots(program));
     }
     let Ok(rel) = program.strip_prefix(root) else {
         if external.contains(program) {
             return Ok(format!("external:{}", program.display()));
         }
-        return refuse(format!(
-            "`{}` lies outside the verified tree and is not on the external allowlist",
-            program.display()
-        ));
+        return refuse(messages::program_outside(program));
     };
     let mut cur = root.to_path_buf();
     let mut parts = Vec::new();
     for c in rel.components() {
         let Component::Normal(name) = c else {
-            return refuse(format!("`{}` is not a plain path", program.display()));
+            return refuse(messages::program_not_plain(program));
         };
         cur.push(name);
         let meta = fs::symlink_metadata(&cur)
-            .map_err(|e| TrustError::Program(format!("`{}`: {e}", cur.display())))?;
+            .map_err(|e| TrustError::Program(messages::program_unreadable(&cur, &e.to_string())))?;
         if meta.file_type().is_symlink() {
-            return refuse(format!("`{}` is a symlink", cur.display()));
+            return refuse(messages::program_symlink(&cur));
         }
         parts.push(name.to_string_lossy().into_owned());
     }
     if parts.is_empty() || !cur.is_file() {
-        return refuse(format!("`{}` is not a file in the tree", program.display()));
+        return refuse(messages::program_not_file(program));
     }
     Ok(format!("tree:{}", parts.join("/")))
 }
@@ -850,15 +826,14 @@ fn hash_for(
         None => (program_id(&vp.root, &spec.program, external)?, None, None),
         Some(env) => {
             if spec.program != env.python() {
-                return Err(TrustError::Program(format!(
-                    "`{}` is not the managed interpreter `{}`",
-                    spec.program.display(),
-                    env.python().display()
+                return Err(TrustError::Program(messages::program_not_managed(
+                    &spec.program,
+                    &env.python(),
                 )));
             }
             if !spec.args.starts_with(&PYTHON_FLAGS.map(String::from)) {
                 return Err(TrustError::Program(
-                    "a managed interpreter must run with `-I -B` first".into(),
+                    TrustPhrase::PythonFlags.as_static().into(),
                 ));
             }
             (
@@ -1154,24 +1129,23 @@ impl SpawnGate for TrustGate {
             .get(name)
             .ok_or_else(|| PluginError::Untrusted(name.clone()))?;
         if spec.cwd != vp.root {
-            return Err(PluginError::HashMismatch(format!(
-                "{name} (it does not run from its verified tree)"
-            )));
+            return Err(PluginError::HashMismatch(messages::mismatch_cwd(name)));
         }
         // Spawning recomputes the tree hash: a cached tree is untrusted input (E8, P10).
         // Same comparison as `verify_tree`, kept inline so the error can name the new hash.
         match tree_hash(&vp.root) {
             Ok(actual) if actual == vp.tree => {}
             Ok(actual) => {
-                return Err(PluginError::HashMismatch(format!(
-                    "{name} (tree now {actual}, verified {})",
-                    vp.tree
+                return Err(PluginError::HashMismatch(messages::mismatch_tree_changed(
+                    name,
+                    &actual.to_string(),
+                    &vp.tree.to_string(),
                 )));
             }
             Err(e) => {
-                return Err(PluginError::HashMismatch(format!(
-                    "{name} (tree refused: {})",
-                    e.unescaped()
+                return Err(PluginError::HashMismatch(messages::mismatch_tree_refused(
+                    name,
+                    &e.unescaped(),
                 )));
             }
         }
@@ -1179,20 +1153,22 @@ impl SpawnGate for TrustGate {
         if let Some(env) = self.python.get(name)
             && let Err(e) = env.check_quick()
         {
-            return Err(PluginError::HashMismatch(format!(
-                "{name} ({})",
-                e.unescaped()
+            return Err(PluginError::HashMismatch(messages::name_with(
+                name,
+                &e.unescaped(),
             )));
         }
         let (hash, state) = match self.state(vp, spec) {
             Ok(x) => x,
             // Raw payloads: `PluginError`'s `Display` escapes the whole message once.
             Err(TrustError::Program(m)) => {
-                return Err(PluginError::Usage(format!("{name}: program refused: {m}")));
+                return Err(PluginError::Usage(messages::spawn_program_refused(
+                    name, &m,
+                )));
             }
             Err(TrustError::Environment(m)) => {
-                return Err(PluginError::Usage(format!(
-                    "{name}: environment refused: {m}"
+                return Err(PluginError::Usage(messages::spawn_environment_refused(
+                    name, &m,
                 )));
             }
             Err(TrustError::KeyMissing { .. }) => {
@@ -1202,17 +1178,17 @@ impl SpawnGate for TrustGate {
                 return Err(PluginError::TrustKeyMismatch(name.clone()));
             }
             Err(TrustError::KeyUnusable { file, why }) => {
-                return Err(PluginError::TrustKeyUnusable(format!(
-                    "{name}: {file} ({why})"
+                return Err(PluginError::TrustKeyUnusable(messages::spawn_key_unusable(
+                    name, &file, &why,
                 )));
             }
             Err(_) => return Err(PluginError::Untrusted(name.clone())),
         };
         match state {
             TrustState::Trusted | TrustState::TrustedByEnv => Ok(()),
-            TrustState::Revoked | TrustState::Untrusted { .. } => {
-                Err(PluginError::Untrusted(format!("{name} ({hash})")))
-            }
+            TrustState::Revoked | TrustState::Untrusted { .. } => Err(PluginError::Untrusted(
+                messages::name_with(name, &hash.to_string()),
+            )),
         }
     }
 }

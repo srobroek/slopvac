@@ -18,6 +18,7 @@ files:
   - crates/slopvac-lsp/src/**
   - crates/slopvac-update/src/**
   - crates/slopvac-parse/src/**
+  - crates/slopvac-plugins/src/**
   - crates/slopvac-pos/src/**
   - crates/slopvac-sanitize/src/**
   - crates/slopvac-terms/src/**

@@ -56,9 +56,9 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
-use slopvac_sanitize::line as esc;
 use thiserror::Error;
 
+use crate::messages::trust::{self as messages, RevokePhrase, codes};
 use crate::oci::{Client, Digest, OciError, Reference};
 use crate::sign::{
     MEDIA_MINISIG, PublicKey, RELEASE_KEY_FILE, SignError, is_key_id, parse_canonical,
@@ -91,42 +91,35 @@ const MAX_CACHE_BYTES: u64 = 3 << 20;
 #[derive(Debug, Error)]
 pub enum RevocationError {
     /// No root key is configured, so no list can verify. Fails closed.
-    #[error("no first-party root key is configured to verify the revocation list")]
+    #[error("{}", messages::revoke_no_root_key())]
     NoRootKey,
     /// The compiled root key does not parse. Fails closed like [`Self::NoRootKey`].
-    #[error("the compiled first-party root key is unusable: {0}")]
+    #[error("{}", messages::revoke_root_key_unusable(.0))]
     RootKey(String),
     /// The list is larger than [`MAX_LIST_BYTES`].
-    #[error("the revocation list is larger than {MAX_LIST_BYTES} bytes")]
+    #[error("{}", messages::revoke_too_large(MAX_LIST_BYTES))]
     TooLarge,
     /// The list is not a valid version 1 list.
-    #[error("the revocation list is invalid: {}", esc(.0))]
+    #[error("{}", messages::revoke_invalid(.0))]
     Invalid(String),
     /// No root key signed these bytes.
-    #[error("the revocation list is not signed by the first-party root key")]
+    #[error("{}", messages::revoke_bad_signature())]
     BadSignature,
     /// The registry or the network failed, or withheld the list.
-    #[error("the revocation list could not be fetched: {0}")]
+    #[error("{}", messages::revoke_unavailable(&.0.to_string()))]
     Fetch(#[from] OciError),
     /// The fetched list is past its signed `expires`: the source serves an
     /// old list. Treated like a withheld list.
-    #[error(
-        "the revocation list served online expired at {}; the source is replaying an old list",
-        esc(.expires)
-    )]
+    #[error("{}", messages::revoke_expired(.expires))]
     Expired {
         /// The list's `expires`.
         expires: String,
     },
     /// The artifact does not have the shape of a list artifact.
-    #[error("the revocation list artifact is malformed: {}", esc(.0))]
+    #[error("{}", messages::revoke_layout(.0))]
     Layout(String),
     /// The fetched list is older than the cached one.
-    #[error(
-        "the fetched revocation list (issued {}) is older than the cached one (issued {})",
-        esc(.fetched),
-        esc(.cached)
-    )]
+    #[error("{}", messages::revoke_rollback(.cached, .fetched))]
     Rollback {
         /// `issued` of the cached list.
         cached: String,
@@ -135,16 +128,13 @@ pub enum RevocationError {
     },
     /// The fetched list has the cached list's `issued` time but other
     /// content: two signed lists claim one moment, and the cache is kept.
-    #[error(
-        "the fetched revocation list differs from the cached one with the same issued time ({})",
-        esc(.issued)
-    )]
+    #[error("{}", messages::revoke_equivocation(.issued))]
     Equivocation {
         /// The shared `issued` time.
         issued: String,
     },
     /// The cache file does not hold a list the root signed.
-    #[error("the revocation cache {} is damaged: {}; run an online sync to replace it", esc(&.path.to_string_lossy()), esc(.why))]
+    #[error("{}", messages::revoke_cache_damaged(.path, .why))]
     CacheInvalid {
         /// The cache file.
         path: PathBuf,
@@ -152,7 +142,7 @@ pub enum RevocationError {
         why: String,
     },
     /// A file operation on the cache failed.
-    #[error("revocation cache: {}: {}", esc(.what), esc(&.source.to_string()))]
+    #[error("{}", messages::revoke_cache_io(.what, &.source.to_string()))]
     Io {
         /// The operation.
         what: String,
@@ -161,7 +151,7 @@ pub enum RevocationError {
         source: io::Error,
     },
     /// The caller's clock is not a `YYYY-MM-DDTHH:MM:SSZ` time.
-    #[error("the current time `{}` is not YYYY-MM-DDTHH:MM:SSZ", esc(.0))]
+    #[error("{}", messages::revoke_clock(.0))]
     Clock(String),
 }
 
@@ -175,15 +165,15 @@ impl RevocationError {
             | Self::TooLarge
             | Self::Invalid(_)
             | Self::BadSignature
-            | Self::Layout(_) => "revocation-list-invalid",
+            | Self::Layout(_) => codes::LIST_INVALID,
             // A refused credential helper is a login problem, not an
             // unavailable list.
-            Self::Fetch(e) => e.code().unwrap_or("revocation-list-unavailable"),
-            Self::Expired { .. } => "revocation-list-expired",
-            Self::Rollback { .. } => "revocation-list-rollback",
-            Self::Equivocation { .. } => "revocation-list-equivocation",
-            Self::CacheInvalid { .. } | Self::Io { .. } => "revocation-cache-invalid",
-            Self::Clock(_) => "revocation-clock-invalid",
+            Self::Fetch(e) => e.code().unwrap_or(codes::LIST_UNAVAILABLE),
+            Self::Expired { .. } => codes::LIST_EXPIRED,
+            Self::Rollback { .. } => codes::LIST_ROLLBACK,
+            Self::Equivocation { .. } => codes::LIST_EQUIVOCATION,
+            Self::CacheInvalid { .. } | Self::Io { .. } => codes::CACHE_INVALID,
+            Self::Clock(_) => codes::CLOCK_INVALID,
         }
     }
 }
@@ -194,11 +184,9 @@ impl From<SignError> for RevocationError {
             SignError::BadSignature => Self::BadSignature,
             SignError::StatementTooLarge => Self::TooLarge,
             // The raw reason: `Invalid` escapes it once, on display.
-            SignError::NotCanonical(m) => {
-                Self::Invalid(format!("the signed statement is not canonical JSON: {m}"))
-            }
+            SignError::NotCanonical(m) => Self::Invalid(messages::sign_not_canonical_raw(&m)),
             SignError::InvalidStatement(m) => {
-                Self::Invalid(format!("the signed statement is invalid: {m}"))
+                Self::Invalid(messages::sign_invalid_statement_raw(&m))
             }
             other => Self::Invalid(other.to_string()),
         }
@@ -208,8 +196,8 @@ impl From<SignError> for RevocationError {
 /// The reason in `e` before escaping, for a variant that escapes it once.
 fn raw_reason(e: RevocationError) -> String {
     match e {
-        RevocationError::Invalid(m) => format!("the revocation list is invalid: {m}"),
-        RevocationError::Layout(m) => format!("the revocation list artifact is malformed: {m}"),
+        RevocationError::Invalid(m) => messages::revoke_invalid_raw(&m),
+        RevocationError::Layout(m) => messages::revoke_layout_raw(&m),
         other => other.to_string(),
     }
 }
@@ -233,8 +221,8 @@ pub enum Revoked {
 impl std::fmt::Display for Revoked {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Key(id) => write!(f, "revoked: publisher key {}", esc(id)),
-            Self::Digest(d) => write!(f, "revoked: artifact {}", esc(d)),
+            Self::Key(id) => f.write_str(&messages::revoke_flag_key(id)),
+            Self::Digest(d) => f.write_str(&messages::revoke_flag_artifact(d)),
         }
     }
 }
@@ -294,23 +282,23 @@ impl RevocationList {
         let doc: ListDoc = parse_canonical(statement, MAX_LIST_BYTES)?;
         let invalid = |why: &str| Err(RevocationError::Invalid(why.to_owned()));
         if doc.schema_version != 1 || doc.kind != LIST_TYPE {
-            return invalid("not a version 1 revocation list");
+            return invalid(RevokePhrase::NotVersionOne.as_static());
         }
         let (Some(issued), Some(expires)) = (utc_seconds(&doc.issued), utc_seconds(&doc.expires))
         else {
-            return invalid("issued or expires is not a valid UTC time");
+            return invalid(RevokePhrase::Time.as_static());
         };
         if expires <= issued || expires - issued > STALE_AFTER_DAYS * DAY {
-            return invalid("expires must be after issued by at most 30 days");
+            return invalid(RevokePhrase::Window.as_static());
         }
         if !doc.keys.iter().all(|k| is_key_id(k)) {
-            return invalid("a key id is not 16 uppercase hex digits");
+            return invalid(RevokePhrase::KeyId.as_static());
         }
         if doc.digests.iter().any(|d| Digest::parse(d).is_err()) {
-            return invalid("a digest is not sha256 with 64 lowercase hex digits");
+            return invalid(RevokePhrase::Digest.as_static());
         }
         if !strictly_sorted(&doc.keys) || !strictly_sorted(&doc.digests) {
-            return invalid("keys and digests must be sorted and unique");
+            return invalid(RevokePhrase::Unsorted.as_static());
         }
         Ok(Self {
             issued: Some(doc.issued),
@@ -404,8 +392,8 @@ impl RevocationNotice {
     #[must_use]
     pub fn code(&self) -> &'static str {
         match self {
-            Self::Missing => "revocation-list-missing",
-            Self::Stale { .. } => "revocation-list-stale",
+            Self::Missing => codes::LIST_MISSING,
+            Self::Stale { .. } => codes::LIST_STALE,
         }
     }
 }
@@ -413,15 +401,10 @@ impl RevocationNotice {
 impl std::fmt::Display for RevocationNotice {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Missing => f.write_str(
-                "no revocation list has been fetched; run `slopvac plugins sync` online",
-            ),
-            Self::Stale { issued, expires } => write!(
-                f,
-                "the cached revocation list (issued {}) expired at {}; run `slopvac plugins sync` online",
-                esc(issued),
-                esc(expires)
-            ),
+            Self::Missing => f.write_str(&messages::revoke_notice_missing()),
+            Self::Stale { issued, expires } => {
+                f.write_str(&messages::revoke_notice_stale(issued, expires))
+            }
         }
     }
 }
@@ -530,14 +513,15 @@ impl Revocations {
     /// # Errors
     /// [`RevocationError::Io`] when the lock file cannot be created or locked.
     pub fn lock(&self) -> Result<CacheLock, RevocationError> {
-        create_private_dir(&self.dir).map_err(io_err("creating the state directory"))?;
+        create_private_dir(&self.dir).map_err(io_err(RevokePhrase::CreateDir.as_static()))?;
         let file = OpenOptions::new()
             .create(true)
             .truncate(false)
             .write(true)
             .open(self.dir.join(LOCK_FILE))
-            .map_err(io_err("opening the cache lock"))?;
-        file.lock().map_err(io_err("locking the cache"))?;
+            .map_err(io_err(RevokePhrase::OpenLock.as_static()))?;
+        file.lock()
+            .map_err(io_err(RevokePhrase::LockCache.as_static()))?;
         Ok(CacheLock { _file: file })
     }
 
@@ -588,7 +572,7 @@ impl Revocations {
             });
         }
         let statement = String::from_utf8(statement)
-            .map_err(|_| RevocationError::Invalid("the list is not UTF-8".into()))?;
+            .map_err(|_| RevocationError::Invalid(RevokePhrase::NotUtf8.as_static().into()))?;
 
         // Re-read, compare and replace as one step under the lock.
         let _lock = self.lock()?;
@@ -626,15 +610,15 @@ impl Revocations {
         let layout = |why: &str| RevocationError::Layout(why.to_owned());
         let manifest = client.fetch_manifest(&self.source)?.manifest()?;
         if manifest.artifact_type.as_deref() != Some(ARTIFACT_TYPE_REVOCATIONS) {
-            return Err(layout("the artifact type is not a revocation list"));
+            return Err(layout(RevokePhrase::ArtifactType.as_static()));
         }
         let [a, b] = manifest.layers.as_slice() else {
-            return Err(layout("a list artifact has exactly two layers"));
+            return Err(layout(RevokePhrase::LayerCount.as_static()));
         };
         let (list, sig) = match (a.media_type.as_str(), b.media_type.as_str()) {
             (MEDIA_REVOCATIONS, MEDIA_MINISIG) => (a, b),
             (MEDIA_MINISIG, MEDIA_REVOCATIONS) => (b, a),
-            _ => return Err(layout("the layers are not a list and its signature")),
+            _ => return Err(layout(RevokePhrase::LayerTypes.as_static())),
         };
         if list.size > MAX_LIST_BYTES as u64 {
             return Err(RevocationError::TooLarge);
@@ -661,11 +645,11 @@ impl Revocations {
             .read_to_end(&mut raw)
             .map_err(|e| invalid(e.to_string()))?;
         if raw.len() as u64 > MAX_CACHE_BYTES {
-            return Err(invalid("too large".into()));
+            return Err(invalid(RevokePhrase::CacheTooLarge.as_static().into()));
         }
         let doc: CacheDoc = serde_json::from_slice(&raw).map_err(|e| invalid(e.to_string()))?;
         if doc.schema_version != 1 || utc_seconds(&doc.fetched_at).is_none() {
-            return Err(invalid("unsupported schema_version or fetch time".into()));
+            return Err(invalid(RevokePhrase::CacheSchema.as_static().into()));
         }
         let list = RevocationList::verify(doc.statement.as_bytes(), &doc.minisig, &self.roots)
             .map_err(|e| invalid(raw_reason(e)))?;
@@ -673,23 +657,24 @@ impl Revocations {
     }
 
     fn write_cache(&self, doc: &CacheDoc) -> Result<(), RevocationError> {
-        create_private_dir(&self.dir).map_err(io_err("creating the state directory"))?;
+        create_private_dir(&self.dir).map_err(io_err(RevokePhrase::CreateDir.as_static()))?;
         let bytes = serde_json::to_vec(doc).map_err(|e| RevocationError::Io {
-            what: "encoding the cache".into(),
+            what: RevokePhrase::EncodeCache.as_static().into(),
             source: io::Error::other(e),
         })?;
         let mut tmp = tempfile::Builder::new()
             .prefix(".revocations-")
             .tempfile_in(&self.dir)
-            .map_err(io_err("creating a temporary cache file"))?;
-        set_private_file(tmp.path()).map_err(io_err("securing the cache file"))?;
-        tmp.write_all(&bytes).map_err(io_err("writing the cache"))?;
+            .map_err(io_err(RevokePhrase::TempCache.as_static()))?;
+        set_private_file(tmp.path()).map_err(io_err(RevokePhrase::SecureCache.as_static()))?;
+        tmp.write_all(&bytes)
+            .map_err(io_err(RevokePhrase::WriteCache.as_static()))?;
         tmp.as_file()
             .sync_all()
-            .map_err(io_err("syncing the cache"))?;
+            .map_err(io_err(RevokePhrase::SyncCache.as_static()))?;
         tmp.persist(self.cache_file())
             .map_err(|e| RevocationError::Io {
-                what: "replacing the cache".into(),
+                what: RevokePhrase::ReplaceCache.as_static().into(),
                 source: e.error,
             })?;
         Ok(())

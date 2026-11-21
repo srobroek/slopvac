@@ -11,6 +11,8 @@ use std::fmt;
 use serde::de::{self, DeserializeSeed, MapAccess, SeqAccess, Visitor};
 use serde_json::{Map, Number, Value};
 
+use crate::messages::trust::{self as messages, StrictPhrase};
+
 /// Largest integer that every JSON reader keeps exact.
 pub const MAX_SAFE_INTEGER: u64 = (1 << 53) - 1;
 /// Deepest container nesting a reader accepts.
@@ -65,7 +67,7 @@ fn check_integer_literals(bytes: &[u8]) -> Result<(), String> {
                         .is_some_and(|v| v <= MAX_SAFE_INTEGER);
                 if !safe {
                     let text = String::from_utf8_lossy(token);
-                    return Err(format!("integer {text} outside ±(2^53-1)"));
+                    return Err(messages::strict_integer_range(&text));
                 }
             }
             _ => i += 1,
@@ -94,7 +96,7 @@ impl StrictVisitor {
     fn enter<E: de::Error>(&self) -> Result<usize, E> {
         let depth = self.depth + 1;
         if depth > MAX_DEPTH {
-            return Err(E::custom(format!("nesting deeper than {MAX_DEPTH}")));
+            return Err(E::custom(messages::strict_nesting(MAX_DEPTH)));
         }
         Ok(depth)
     }
@@ -104,7 +106,7 @@ impl<'de> Visitor<'de> for StrictVisitor {
     type Value = Value;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("a JSON value")
+        f.write_str(StrictPhrase::Expecting.as_static())
     }
 
     fn visit_bool<E>(self, v: bool) -> Result<Value, E> {
@@ -113,14 +115,14 @@ impl<'de> Visitor<'de> for StrictVisitor {
 
     fn visit_i64<E: de::Error>(self, v: i64) -> Result<Value, E> {
         if v.unsigned_abs() > MAX_SAFE_INTEGER {
-            return Err(E::custom(format!("integer {v} outside ±(2^53-1)")));
+            return Err(E::custom(messages::strict_integer_range(&v.to_string())));
         }
         Ok(Value::Number(v.into()))
     }
 
     fn visit_u64<E: de::Error>(self, v: u64) -> Result<Value, E> {
         if v > MAX_SAFE_INTEGER {
-            return Err(E::custom(format!("integer {v} outside ±(2^53-1)")));
+            return Err(E::custom(messages::strict_integer_range(&v.to_string())));
         }
         Ok(Value::Number(v.into()))
     }
@@ -128,7 +130,7 @@ impl<'de> Visitor<'de> for StrictVisitor {
     fn visit_f64<E: de::Error>(self, v: f64) -> Result<Value, E> {
         Number::from_f64(v)
             .map(Value::Number)
-            .ok_or_else(|| E::custom("non-finite number"))
+            .ok_or_else(|| E::custom(StrictPhrase::NonFinite.as_static()))
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Value, E> {
@@ -158,7 +160,7 @@ impl<'de> Visitor<'de> for StrictVisitor {
         let mut out = Map::new();
         while let Some(key) = map.next_key::<String>()? {
             if !seen.insert(key.clone()) {
-                return Err(de::Error::custom(format!("duplicate key `{key}`")));
+                return Err(de::Error::custom(messages::strict_duplicate_key(&key)));
             }
             out.insert(key, map.next_value_seed(Strict { depth })?);
         }

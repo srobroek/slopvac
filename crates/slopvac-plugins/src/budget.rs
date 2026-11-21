@@ -9,6 +9,8 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 
+use crate::messages::host::{self as messages, HostPhrase};
+
 /// The aggregate caps for one run.
 #[derive(Debug, Clone, Copy)]
 pub struct BudgetCaps {
@@ -74,7 +76,7 @@ impl RunBudget {
             &self.stdout,
             n,
             self.caps.stdout_bytes,
-            "standard output bytes",
+            HostPhrase::BudgetStdoutBytes.as_static(),
         )
     }
 
@@ -87,7 +89,7 @@ impl RunBudget {
             &self.stderr,
             n,
             self.caps.stderr_bytes,
-            "standard error bytes",
+            HostPhrase::BudgetStderrBytes.as_static(),
         )
     }
 
@@ -100,7 +102,7 @@ impl RunBudget {
             &self.unsolicited,
             1,
             self.caps.unsolicited_messages,
-            "unsolicited messages",
+            HostPhrase::BudgetUnsolicited.as_static(),
         )
     }
 
@@ -132,7 +134,7 @@ impl RunBudget {
         let total = counter.fetch_add(n, Ordering::SeqCst).saturating_add(n);
         let mut breach = self.breach.lock().unwrap_or_else(PoisonError::into_inner);
         if total > cap {
-            breach.get_or_insert_with(|| format!("whole-run budget of {cap} {what} exceeded"));
+            breach.get_or_insert_with(|| messages::budget_exceeded(cap, what));
         }
         breach.clone().map_or(Ok(()), Err)
     }

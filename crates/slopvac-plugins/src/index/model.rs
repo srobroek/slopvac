@@ -9,6 +9,8 @@ use std::fmt;
 use semver::Version;
 use serde::Serialize;
 
+use crate::messages::pyenv::{self as messages, PyenvPhrase, PyenvText};
+
 /// Largest index document the reader accepts, in bytes. Checked before parsing
 /// (threat model N11).
 pub const MAX_INDEX_BYTES: usize = 32 * 1024 * 1024;
@@ -30,7 +32,7 @@ pub const MAX_VERSION_NUMBER: u64 = 999_999_999;
 /// A rejected index document or entry. `pointer` is a JSON Pointer into the
 /// document (for example `/plugins/0/source`); it is empty for the whole document.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("{}: {message}", if pointer.is_empty() { "/" } else { pointer })]
+#[error("{}", messages::index_error(.pointer, .message))]
 pub struct IndexError {
     /// JSON Pointer to the offending value.
     pub pointer: String,
@@ -83,6 +85,7 @@ pub struct PublisherKey {
 
 impl fmt::Display for PublisherKey {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // ast-grep-ignore: user-text-literal
         write!(f, "{} (fingerprint {})", self.key_id, self.fingerprint)
     }
 }
@@ -166,7 +169,13 @@ fn check_len(value: &str, min: usize, max: usize, at: &str, what: &str) -> Resul
     } else {
         Err(IndexError::new(
             at,
-            format!("{what} must have {min} to {max} characters, not {n}"),
+            PyenvText::LengthBetween {
+                what: what.to_owned(),
+                min,
+                max,
+                n,
+            }
+            .to_string(),
         ))
     }
 }
@@ -179,15 +188,20 @@ impl IndexEntry {
             if !is_id(value) {
                 return Err(IndexError::new(
                     p(key),
-                    format!(
-                        "`{value}` is not a valid {key} (lowercase letters, digits and `-`, starting with a letter)"
-                    ),
+                    PyenvText::IdInvalid {
+                        value: value.clone(),
+                        key: key.to_owned(),
+                    }
+                    .to_string(),
                 ));
             }
             if value == crate::sign::RESERVED_ID {
                 return Err(IndexError::new(
                     p(key),
-                    format!("`{value}` is reserved for the built-in plugin and is never listed"),
+                    PyenvText::IdReserved {
+                        value: value.clone(),
+                    }
+                    .to_string(),
                 ));
             }
         }
@@ -202,7 +216,7 @@ impl IndexEntry {
         if !self.version.build.is_empty() {
             return Err(IndexError::new(
                 p("version"),
-                "a version must not carry build metadata",
+                PyenvPhrase::BuildMetadata.as_static(),
             ));
         }
         let v = &self.version;
@@ -212,13 +226,16 @@ impl IndexEntry {
         {
             return Err(IndexError::new(
                 p("version"),
-                format!("major, minor and patch must be at most {MAX_VERSION_NUMBER}"),
+                PyenvText::VersionNumberTooLarge {
+                    max: MAX_VERSION_NUMBER,
+                }
+                .to_string(),
             ));
         }
         if !(1..=MAX_API).contains(&self.slopvac_api) {
             return Err(IndexError::new(
                 p("slopvac_api"),
-                format!("slopvac_api must be 1 to {MAX_API}"),
+                PyenvText::ApiOutOfRange { max: MAX_API }.to_string(),
             ));
         }
         check_len(&self.source, 1, MAX_SOURCE_CHARS, &p("source"), "source")?;
@@ -226,19 +243,19 @@ impl IndexEntry {
         if !is_source(&self.source) {
             return Err(IndexError::new(
                 p("source"),
-                "not an oci://, https:// or pinned git+https:// source without user-info",
+                PyenvPhrase::SourceInvalid.as_static(),
             ));
         }
         if !is_hex(&self.publisher_key.key_id, 16, true) {
             return Err(IndexError::new(
                 p("publisher_key/key_id"),
-                "a key id is 16 uppercase hex digits",
+                PyenvPhrase::KeyIdInvalid.as_static(),
             ));
         }
         if !is_hex(&self.publisher_key.fingerprint, 64, false) {
             return Err(IndexError::new(
                 p("publisher_key/fingerprint"),
-                "a fingerprint is 64 lowercase hex digits",
+                PyenvPhrase::FingerprintInvalid.as_static(),
             ));
         }
         Ok(())
@@ -253,7 +270,7 @@ impl Index {
         if packs.len() > MAX_ENTRIES {
             return Err(IndexError::new(
                 "/plugins",
-                format!("more than {MAX_ENTRIES} entries"),
+                PyenvText::TooManyIndexEntries { max: MAX_ENTRIES }.to_string(),
             ));
         }
         let mut seen = HashSet::with_capacity(packs.len());
@@ -262,7 +279,11 @@ impl Index {
             if !seen.insert((&entry.namespace, &entry.id)) {
                 return Err(IndexError::new(
                     format!("/plugins/{i}/id"),
-                    format!("plugin `{}/{}` is listed twice", entry.namespace, entry.id),
+                    PyenvText::ListedTwice {
+                        namespace: entry.namespace.clone(),
+                        id: entry.id.clone(),
+                    }
+                    .to_string(),
                 ));
             }
         }

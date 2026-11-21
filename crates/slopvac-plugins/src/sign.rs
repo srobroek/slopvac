@@ -25,9 +25,9 @@ use std::fmt::Write as _;
 use base64::Engine as _;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use slopvac_sanitize::line as esc;
 use thiserror::Error;
 
+use crate::messages::trust::{self as messages, SignPhrase};
 use crate::oci::{Client, Descriptor, Digest, Manifest, OciError, Reference};
 use crate::strict;
 
@@ -47,26 +47,22 @@ const MAX_MINISIG_BYTES: usize = 4 * 1024;
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum SignError {
     /// The artifact has no signature layers.
-    #[error("the artifact has no signature")]
+    #[error("{}", SignPhrase::Missing.as_static())]
     MissingSignature,
     /// More than one statement layer or signature layer.
-    #[error("the artifact has more than one signature layer")]
+    #[error("{}", SignPhrase::Duplicate.as_static())]
     DuplicateSignature,
     /// The statement is over 64 KiB.
-    #[error("the signed statement is larger than {MAX_STATEMENT_BYTES} bytes")]
+    #[error("{}", messages::statement_too_large(MAX_STATEMENT_BYTES))]
     StatementTooLarge,
     /// The statement is not the canonical encoding of its own content.
-    #[error("the signed statement is not canonical JSON: {}", esc(.0))]
+    #[error("{}", messages::sign_not_canonical(.0))]
     NotCanonical(String),
     /// The statement does not parse or has unknown fields.
-    #[error("the signed statement is invalid: {}", esc(.0))]
+    #[error("{}", messages::sign_invalid_statement(.0))]
     InvalidStatement(String),
     /// No pinned key has the statement's key id.
-    #[error(
-        "key {} is not pinned for namespace `{}`; pin it with `slopvac plugins trust --key <fingerprint>`",
-        esc(.key_id),
-        esc(.namespace)
-    )]
+    #[error("{}", messages::key_not_pinned(.key_id, .namespace))]
     KeyNotPinned {
         /// Key id named by the statement.
         key_id: String,
@@ -74,19 +70,19 @@ pub enum SignError {
         namespace: String,
     },
     /// The signature does not verify.
-    #[error("the signature does not verify")]
+    #[error("{}", SignPhrase::BadSignature.as_static())]
     BadSignature,
     /// The statement and the manifest disagree.
-    #[error("the signed statement does not match the manifest: {}", esc(.0))]
+    #[error("{}", messages::sign_mismatch(.0))]
     Mismatch(String),
     /// An older version or an older `notBefore` than the lockfile holds.
-    #[error("rollback refused: {}", esc(.0))]
+    #[error("{}", messages::sign_rollback(.0))]
     Rollback(String),
     /// Fetching a signature blob failed.
     #[error(transparent)]
     Fetch(#[from] OciError),
     /// A public key does not parse.
-    #[error("invalid public key: {}", esc(.0))]
+    #[error("{}", messages::invalid_key(.0))]
     InvalidKey(String),
 }
 
@@ -118,7 +114,7 @@ impl PublicKey {
             .map_err(|e| SignError::InvalidKey(e.to_string()))?;
         let id: [u8; 8] = raw[2..10]
             .try_into()
-            .map_err(|_| SignError::InvalidKey("short key".into()))?;
+            .map_err(|_| SignError::InvalidKey(SignPhrase::ShortKey.as_static().into()))?;
         Ok(Self { inner, id, raw })
     }
 
@@ -131,7 +127,7 @@ impl PublicKey {
             .lines()
             .map(str::trim)
             .find(|l| !l.is_empty() && !l.starts_with("untrusted comment:"))
-            .ok_or_else(|| SignError::InvalidKey("no key line".into()))?;
+            .ok_or_else(|| SignError::InvalidKey(SignPhrase::NoKeyLine.as_static().into()))?;
         Self::from_base64(line)
     }
 
@@ -459,7 +455,9 @@ pub(crate) fn parse_canonical<T: serde::de::DeserializeOwned>(
     }
     let value = strict::parse(bytes).map_err(SignError::InvalidStatement)?;
     if canonical_json(&value) != bytes {
-        return Err(SignError::NotCanonical("re-encoding differs".into()));
+        return Err(SignError::NotCanonical(
+            SignPhrase::Reencoding.as_static().into(),
+        ));
     }
     serde_json::from_value(value).map_err(|e| SignError::InvalidStatement(e.to_string()))
 }
@@ -544,7 +542,7 @@ pub fn verify(
     let namespace = statement.namespace.clone();
     if !is_name(&namespace) || !is_name(&statement.id) {
         return Err(SignError::InvalidStatement(
-            "id or namespace is not a lowercase name".into(),
+            SignPhrase::NotAName.as_static().into(),
         ));
     }
 
@@ -574,7 +572,7 @@ fn check_binding(
 ) -> Result<(), SignError> {
     signature_layers(manifest)?;
     if st.schema_version != 1 {
-        return Err(mismatch("unsupported statement schema_version"));
+        return Err(mismatch(SignPhrase::Schema.as_static()));
     }
     let signed: Vec<LayerEntry> = manifest
         .layers
@@ -583,32 +581,28 @@ fn check_binding(
         .map(entry_of)
         .collect();
     if signed != st.layers {
-        return Err(mismatch("the layers differ from the signed list"));
+        return Err(mismatch(SignPhrase::Layers.as_static()));
     }
     if manifest.config.digest != st.config {
-        return Err(mismatch("the config digest differs"));
+        return Err(mismatch(SignPhrase::Config.as_static()));
     }
     if manifest.artifact_type.as_deref() != Some(st.artifact_type.as_str())
         || st.artifact_type != expect.artifact_type
     {
-        return Err(mismatch("the artifact type differs"));
+        return Err(mismatch(SignPhrase::ArtifactType.as_static()));
     }
     if st.id != expect.id || st.namespace != expect.namespace || st.version != expect.version {
-        return Err(mismatch(
-            "the id, namespace or version is not the one requested",
-        ));
+        return Err(mismatch(SignPhrase::Identity.as_static()));
     }
     let ann = |k: &str| manifest.annotations.get(k).map(String::as_str);
     if ann(ANNOTATION_ID) != Some(st.id.as_str())
         || ann(ANNOTATION_VERSION) != Some(st.version.as_str())
     {
-        return Err(mismatch(
-            "the manifest annotations differ from the statement",
-        ));
+        return Err(mismatch(SignPhrase::Annotations.as_static()));
     }
     if parse_time(&st.not_before).is_none() {
         return Err(SignError::InvalidStatement(
-            "notBefore is not YYYY-MM-DDTHH:MM:SSZ".into(),
+            SignPhrase::NotBeforeForm.as_static().into(),
         ));
     }
     Ok(())
@@ -616,10 +610,10 @@ fn check_binding(
 
 fn check_rollback(st: &Statement, expect: &Expectation<'_>) -> Result<(), SignError> {
     let new = semver::Version::parse(&st.version)
-        .map_err(|e| SignError::InvalidStatement(format!("version: {e}")))?;
+        .map_err(|e| SignError::InvalidStatement(messages::sign_version(&e.to_string())))?;
     if !new.build.is_empty() {
         return Err(SignError::InvalidStatement(
-            "version carries build metadata".into(),
+            SignPhrase::BuildMetadata.as_static().into(),
         ));
     }
     let Some((floor_version, floor_time)) = expect.floor else {
@@ -628,20 +622,23 @@ fn check_rollback(st: &Statement, expect: &Expectation<'_>) -> Result<(), SignEr
     if expect.allow_downgrade {
         return Ok(());
     }
-    let floor = semver::Version::parse(floor_version)
-        .map_err(|e| SignError::InvalidStatement(format!("lockfile version: {e}")))?;
-    if new < floor {
-        return Err(SignError::Rollback(format!("{new} is older than {floor}")));
-    }
-    let floor_at = parse_time(floor_time).ok_or_else(|| {
-        SignError::InvalidStatement("lockfile notBefore is not a valid UTC time".into())
+    let floor = semver::Version::parse(floor_version).map_err(|e| {
+        SignError::InvalidStatement(messages::sign_lockfile_version(&e.to_string()))
     })?;
+    if new < floor {
+        return Err(SignError::Rollback(messages::older_version(
+            &new.to_string(),
+            &floor.to_string(),
+        )));
+    }
+    let floor_at = parse_time(floor_time)
+        .ok_or_else(|| SignError::InvalidStatement(SignPhrase::LockfileTime.as_static().into()))?;
     let new_at = parse_time(&st.not_before)
-        .ok_or_else(|| SignError::InvalidStatement("notBefore is not a valid UTC time".into()))?;
+        .ok_or_else(|| SignError::InvalidStatement(SignPhrase::Time.as_static().into()))?;
     if new_at < floor_at {
-        return Err(SignError::Rollback(format!(
-            "notBefore {} is older than {floor_time}",
-            st.not_before
+        return Err(SignError::Rollback(messages::older_not_before(
+            &st.not_before,
+            floor_time,
         )));
     }
     Ok(())
@@ -738,16 +735,16 @@ pub fn verify_rotation(
     let st: RotationStatement = parse_canonical(proof.statement, MAX_ROTATION_BYTES)?;
     if st.schema_version != 1 || st.kind != ROTATION_TYPE {
         return Err(SignError::InvalidStatement(
-            "not a version 1 rotation statement".into(),
+            SignPhrase::NotRotation.as_static().into(),
         ));
     }
     if !is_name(&st.namespace) || !is_key_id(&st.old_key_id) || !is_key_id(&st.new_key_id) {
         return Err(SignError::InvalidStatement(
-            "the namespace or a key id is malformed".into(),
+            SignPhrase::RotationIds.as_static().into(),
         ));
     }
     if st.namespace != namespace {
-        return Err(mismatch("the rotation is for another namespace"));
+        return Err(mismatch(SignPhrase::RotationNamespace.as_static()));
     }
     if st.old_key_id != pinned.key_id() {
         return Err(SignError::KeyNotPinned {
@@ -756,29 +753,24 @@ pub fn verify_rotation(
         });
     }
     if st.new_key_id != proof.new_key.key_id() || st.new_key_id == st.old_key_id {
-        return Err(mismatch(
-            "the new key is not the one the rotation names, or equals the old key",
-        ));
+        return Err(mismatch(SignPhrase::RotationNewKey.as_static()));
     }
     let bound = PublicKey::from_base64(&st.new_key)
-        .map_err(|_| SignError::InvalidStatement("newKey is not a minisign public key".into()))?;
+        .map_err(|_| SignError::InvalidStatement(SignPhrase::RotationKeyForm.as_static().into()))?;
     if bound.raw != proof.new_key.raw || bound.key_id() != st.new_key_id {
-        return Err(mismatch(
-            "the new key differs from the key the rotation binds",
-        ));
+        return Err(mismatch(SignPhrase::RotationBound.as_static()));
     }
     verify_bytes(pinned, proof.statement, proof.old_signature)?;
     verify_bytes(proof.new_key, proof.statement, proof.new_signature)?;
     let at = utc_seconds(&st.not_before)
-        .ok_or_else(|| SignError::InvalidStatement("notBefore is not a valid UTC time".into()))?;
+        .ok_or_else(|| SignError::InvalidStatement(SignPhrase::Time.as_static().into()))?;
     if let Some(floor) = floor {
-        let floor_at = utc_seconds(floor).ok_or_else(|| {
-            SignError::InvalidStatement("the pin's notBefore is not a valid UTC time".into())
-        })?;
+        let floor_at = utc_seconds(floor)
+            .ok_or_else(|| SignError::InvalidStatement(SignPhrase::PinTime.as_static().into()))?;
         if at <= floor_at {
-            return Err(SignError::Rollback(format!(
-                "rotation notBefore {} is not later than the pin's {floor}",
-                st.not_before
+            return Err(SignError::Rollback(messages::rotation_not_later(
+                &st.not_before,
+                floor,
             )));
         }
     }

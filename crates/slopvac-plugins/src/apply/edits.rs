@@ -3,6 +3,7 @@
 use std::path::Path;
 
 use crate::hooks::{FixEdit, MAX_EDITS_PER_DOCUMENT, MAX_INSERTED_BYTES};
+use crate::messages::transport::{TransportPhrase, TransportText};
 
 use super::fs::{Expect, locate, replace};
 use super::{ApplyError, WriteOutcome};
@@ -35,20 +36,24 @@ fn bad(msg: impl Into<String>) -> ApplyError {
 /// applied then.
 pub fn edited_bytes(source: &[u8], edits: &[FixEdit]) -> Result<Vec<u8>, ApplyError> {
     if edits.len() > MAX_EDITS_PER_DOCUMENT {
-        return Err(bad(format!(
-            "{} edits exceed the limit of {MAX_EDITS_PER_DOCUMENT}",
-            edits.len()
-        )));
+        return Err(bad(TransportText::ApplyEditCount {
+            count: edits.len(),
+            limit: MAX_EDITS_PER_DOCUMENT,
+        }
+        .to_string()));
     }
     let inserted: usize = edits.iter().map(|e| e.text.len()).sum();
     if inserted > MAX_INSERTED_BYTES {
-        return Err(bad(format!(
-            "{inserted} inserted bytes exceed the cap of {MAX_INSERTED_BYTES}"
-        )));
+        return Err(bad(TransportText::ApplyInsertedSize {
+            count: inserted,
+            limit: MAX_INSERTED_BYTES,
+        }
+        .to_string()));
     }
-    let text = std::str::from_utf8(source).map_err(|_| bad("source is not UTF-8"))?;
+    let text = std::str::from_utf8(source)
+        .map_err(|_| bad(TransportPhrase::ApplySourceUtf8.as_static()))?;
     if edits.iter().any(|e| !e.span.fits(text)) {
-        return Err(bad("a span is outside the text or inside a character"));
+        return Err(bad(TransportPhrase::ApplySpanCharacter.as_static()));
     }
     let splits_crlf = |at: u64| {
         usize::try_from(at)
@@ -60,13 +65,13 @@ pub fn edited_bytes(source: &[u8], edits: &[FixEdit]) -> Result<Vec<u8>, ApplyEr
         .iter()
         .any(|e| splits_crlf(e.span.start) || splits_crlf(e.span.end))
     {
-        return Err(bad("a span splits a CRLF pair"));
+        return Err(bad(TransportPhrase::ApplySpanCrlf.as_static()));
     }
     let mut order: Vec<&FixEdit> = edits.iter().collect();
     order.sort_by_key(|e| (e.span.start, e.span.end));
     for pair in order.windows(2) {
         if pair[0].span.end > pair[1].span.start {
-            return Err(bad("edits overlap"));
+            return Err(bad(TransportPhrase::ApplyOverlap.as_static()));
         }
     }
     let mut out = Vec::with_capacity(source.len() + inserted);
@@ -75,7 +80,7 @@ pub fn edited_bytes(source: &[u8], edits: &[FixEdit]) -> Result<Vec<u8>, ApplyEr
         // `fits` proved both offsets are in range for this text.
         let (Ok(start), Ok(end)) = (usize::try_from(e.span.start), usize::try_from(e.span.end))
         else {
-            return Err(bad("a span is outside the text"));
+            return Err(bad(TransportPhrase::ApplySpanRange.as_static()));
         };
         out.extend_from_slice(&source[at..start]);
         out.extend_from_slice(e.text.as_bytes());

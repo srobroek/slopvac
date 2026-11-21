@@ -2,8 +2,8 @@
 
 use thiserror::Error;
 
+use crate::messages::host as messages;
 use crate::process::Teardown;
-use slopvac_sanitize::{line as esc, terminal};
 
 /// A JSON-RPC error object sent by a plugin.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,34 +50,22 @@ impl RpcError {
 #[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum PluginError {
     /// The content hash has no recorded trust.
-    #[error("plugin {} is not trusted; run `slopvac plugins trust` for it", esc(.0))]
+    #[error("{}", messages::untrusted(.0))]
     Untrusted(String),
     /// Trust records exist but the key they were made under is gone. The run exits 2.
-    #[error(
-        "the trust key is missing while trust records exist, so plugin {} cannot be checked; run `slopvac plugins trust` for it to trust it again",
-        esc(.0)
-    )]
+    #[error("{}", messages::trust_key_missing(.0))]
     TrustKeyMissing(String),
     /// The trust records were made under another key than the store's. The run exits 2.
-    #[error(
-        "the trust key changed after plugin {} was trusted, so it cannot be checked; run `slopvac plugins trust` for it to trust it again",
-        esc(.0)
-    )]
+    #[error("{}", messages::trust_key_mismatch(.0))]
     TrustKeyMismatch(String),
     /// The trust key file is not private to the user or does not hold a key. The run exits 2.
-    #[error(
-        "the trust key cannot be used for plugin {}; fix the file, or delete it and run `slopvac plugins trust` for each plugin",
-        esc(.0)
-    )]
+    #[error("{}", messages::trust_key_unusable(.0))]
     TrustKeyUnusable(String),
     /// The installed bytes differ from the hash that trust recorded.
-    #[error(
-        "plugin {} changed after it was trusted; run `slopvac plugins sync` to restore the verified files, and `slopvac plugins trust` to approve new content",
-        esc(.0)
-    )]
+    #[error("{}", messages::hash_mismatch(.0))]
     HashMismatch(String),
     /// A timer in section 6.3 expired.
-    #[error("plugin {} timed out: {}", esc(.plugin), esc(.what))]
+    #[error("{}", messages::timeout(.plugin, .what))]
     Timeout {
         /// Plugin name.
         plugin: String,
@@ -85,7 +73,7 @@ pub enum PluginError {
         what: String,
     },
     /// The process ended with requests pending.
-    #[error("plugin {} exited ({}){}", esc(.plugin), esc(.status), terminal(.stderr))]
+    #[error("{}", messages::exited(.plugin, .status, .stderr))]
     Exited {
         /// Plugin name.
         plugin: String,
@@ -95,29 +83,27 @@ pub enum PluginError {
         stderr: String,
     },
     /// A framing error, a limit breach or a duplicate key.
-    #[error("plugin protocol violation: {}", esc(.0))]
+    #[error("{}", messages::protocol_violation(.0))]
     ProtocolViolation(String),
     /// A result does not match its schema or breaks a rule such as span bounds.
-    #[error("plugin output invalid: {}", esc(.0))]
+    #[error("{}", messages::output_invalid(.0))]
     OutputInvalid(String),
     /// The program did not start.
-    #[error("plugin failed to start: {}", esc(.0))]
+    #[error("{}", messages::spawn_failed(.0))]
     SpawnFailed(String),
     /// The running program never called
     /// [`launch::intercept`](crate::launch::intercept), so the host cannot
     /// start the launcher. Nothing was spawned.
-    #[error(
-        "the running program did not install the slopvac plugin launcher, so plugins and git plugin sources cannot start"
-    )]
+    #[error("{}", messages::launcher_not_installed())]
     LauncherNotInstalled,
     /// The reply disagrees with the hashed manifest.
-    #[error("plugin declaration mismatch: {}", esc(.0))]
+    #[error("{}", messages::declaration_mismatch(.0))]
     DeclarationMismatch(String),
     /// The request counter reached 2^53-1.
-    #[error("request ids exhausted")]
+    #[error("{}", messages::request_id_exhausted())]
     RequestIdExhausted,
     /// No common protocol version.
-    #[error("no common protocol version: host speaks {}, plugin speaks {}", esc(.host), esc(.plugin))]
+    #[error("{}", messages::protocol_version_unsupported(.host, .plugin))]
     ProtocolVersionUnsupported {
         /// Host range, for example `1..=1`.
         host: String,
@@ -125,22 +111,22 @@ pub enum PluginError {
         plugin: String,
     },
     /// The host lacks a feature the plugin requires.
-    #[error("plugin requires feature `{}`, which the host does not offer", esc(.0))]
+    #[error("{}", messages::required_feature_missing(.0))]
     RequiredFeatureMissing(String),
     /// The plugin needs the network and offline mode is on.
-    #[error("offline: {} needs the network", esc(.0))]
+    #[error("{}", messages::offline(.0))]
     Offline(String),
     /// The plugin answered a request with an error object.
-    #[error("plugin error {}: {} ({})", .0.code, esc(&.0.message), .0.code_name())]
+    #[error("{}", messages::rpc(.0))]
     Rpc(RpcError),
     /// The host cancelled the request and discarded the answer.
-    #[error("request cancelled")]
+    #[error("{}", messages::request_cancelled())]
     Cancelled,
     /// The hook or document does not fit a message and cannot be split.
-    #[error("message too large: {}", esc(.0))]
+    #[error("{}", messages::message_too_large(.0))]
     MessageTooLarge(String),
     /// The caller used the plugin wrongly, for example an undeclared hook.
-    #[error("invalid use of plugin: {}", esc(.0))]
+    #[error("{}", messages::plugin_usage(.0))]
     Usage(String),
 }
 

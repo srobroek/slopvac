@@ -23,6 +23,7 @@ use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
 use super::{TrustError, TrustRecord, TrustStore, io_err, set_private_file};
+use crate::messages::trust::{self as messages, TrustPhrase};
 
 /// The key file in the store directory.
 const KEY_FILE: &str = "trust.key";
@@ -79,7 +80,7 @@ impl TrustKey {
     fn generate() -> Result<Self, TrustError> {
         let mut bytes = [0_u8; KEY_BYTES];
         getrandom::fill(&mut bytes).map_err(|e| TrustError::Io {
-            what: "drawing a trust key from the system".into(),
+            what: TrustPhrase::DrawKey.as_static().into(),
             source: io::Error::other(e),
         })?;
         Ok(Self::from_bytes(bytes))
@@ -125,10 +126,10 @@ fn hex(bytes: &[u8]) -> String {
 /// `euid` is the user running the process.
 fn mode_problem(mode: u32, uid: u32, euid: u32) -> Option<String> {
     if uid != euid {
-        return Some(format!("it belongs to user {uid}, not to you ({euid})"));
+        return Some(messages::key_other_user(uid, euid));
     }
     let bits = mode & 0o777;
-    (bits != 0o600).then(|| format!("its mode is {bits:03o}, not 600"))
+    (bits != 0o600).then(|| messages::key_mode(bits))
 }
 
 #[cfg(unix)]
@@ -189,15 +190,15 @@ fn read_key_file(path: &Path, dir: &Path) -> Result<Option<TrustKey>, TrustError
         Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
         // ELOOP: a symlink in the way. The error text names no path.
         Err(e) if e.raw_os_error() == Some(rustix::io::Errno::LOOP.raw_os_error()) => {
-            return Err(unusable("it is a symbolic link"));
+            return Err(unusable(TrustPhrase::KeySymlink.as_static()));
         }
-        Err(e) => return Err(io_err(format!("opening {name}"))(e)),
+        Err(e) => return Err(io_err(messages::opening(&name))(e)),
     };
     let meta = file
         .metadata()
-        .map_err(io_err(format!("inspecting {name}")))?;
+        .map_err(io_err(messages::inspecting(&name)))?;
     if !meta.file_type().is_file() {
-        return Err(unusable("it is not a regular file"));
+        return Err(unusable(TrustPhrase::KeyNotRegular.as_static()));
     }
     if let Some(why) = check_owner_and_mode(&meta) {
         return Err(unusable(&why));
@@ -205,12 +206,12 @@ fn read_key_file(path: &Path, dir: &Path) -> Result<Option<TrustKey>, TrustError
     let mut raw = Vec::new();
     file.take(KEY_FILE_MAX + 1)
         .read_to_end(&mut raw)
-        .map_err(io_err(format!("reading {name}")))?;
+        .map_err(io_err(messages::reading(&name)))?;
     String::from_utf8(raw)
         .ok()
         .and_then(|text| TrustKey::parse(&text))
         .map(Some)
-        .ok_or_else(|| unusable("it does not hold a 32-byte key in hex"))
+        .ok_or_else(|| unusable(TrustPhrase::KeyNotHex.as_static()))
 }
 
 /// Write a new key beside the file, then link it into place without replacing
@@ -219,16 +220,16 @@ fn create_key_file(dir: &Path, key: &TrustKey) -> Result<(), TrustError> {
     let mut tmp = tempfile::Builder::new()
         .prefix(".trust-key-")
         .tempfile_in(dir)
-        .map_err(io_err("creating a temporary trust key file"))?;
+        .map_err(io_err(TrustPhrase::TempKey.as_static()))?;
     set_private_file(tmp.path())?;
     tmp.write_all(key.to_file_text().as_bytes())
-        .map_err(io_err("writing the trust key"))?;
+        .map_err(io_err(TrustPhrase::WriteKey.as_static()))?;
     tmp.as_file()
         .sync_all()
-        .map_err(io_err("syncing the trust key"))?;
+        .map_err(io_err(TrustPhrase::SyncKey.as_static()))?;
     tmp.persist_noclobber(dir.join(KEY_FILE))
         .map_err(|e| TrustError::Io {
-            what: "installing the trust key".into(),
+            what: TrustPhrase::InstallKey.as_static().into(),
             source: e.error,
         })?;
     Ok(())

@@ -4,6 +4,7 @@ use std::fmt;
 
 use super::OciError;
 use super::types::Digest;
+use crate::messages::transport::{TransportPhrase, TransportText};
 
 /// A tag or a digest.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -78,27 +79,37 @@ impl Reference {
     /// # Errors
     /// [`OciError::Invalid`] for any malformed part.
     pub fn parse(s: &str) -> Result<Self, OciError> {
-        let bad = |why: &str| OciError::Invalid(format!("reference `{s}`: {why}"));
+        let bad = |why: &str| {
+            OciError::Invalid(
+                TransportText::OciReference {
+                    reference: s.to_owned(),
+                    reason: why.to_owned(),
+                }
+                .to_string(),
+            )
+        };
         let (rest, digest) = match s.split_once('@') {
             Some((r, d)) => (r, Some(Digest::parse(d)?)),
             None => (s, None),
         };
-        let (registry, path) = rest.split_once('/').ok_or_else(|| bad("no repository"))?;
+        let (registry, path) = rest
+            .split_once('/')
+            .ok_or_else(|| bad(TransportPhrase::OciNoRepository.as_static()))?;
         if !valid_registry(registry) {
-            return Err(bad("bad registry host"));
+            return Err(bad(TransportPhrase::OciBadHost.as_static()));
         }
         let (repository, tag) = match path.rsplit_once(':') {
             Some((r, t)) if !t.contains('/') => (r, Some(t)),
             _ => (path, None),
         };
         if !valid_repository(repository) {
-            return Err(bad("bad repository name"));
+            return Err(bad(TransportPhrase::OciBadRepository.as_static()));
         }
         let target = match (digest, tag) {
             (Some(d), _) => Target::Digest(d),
             (None, Some(t)) if valid_tag(t) => Target::Tag(t.to_owned()),
-            (None, Some(_)) => return Err(bad("bad tag")),
-            (None, None) => return Err(bad("needs a tag or a digest")),
+            (None, Some(_)) => return Err(bad(TransportPhrase::OciBadTag.as_static())),
+            (None, None) => return Err(bad(TransportPhrase::OciTargetRequired.as_static())),
         };
         Ok(Self {
             registry: registry.to_owned(),

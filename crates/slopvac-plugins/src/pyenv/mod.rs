@@ -86,6 +86,7 @@ pub use runtime::{
 };
 
 use crate::extract::{Evicted, ExtractError, TreeHash, evict, verify_tree};
+use crate::messages::pyenv::{self as messages, PyenvPhrase, PyenvText};
 use crate::oci::Digest;
 use crate::sign::canonical_json;
 use listing::{
@@ -199,47 +200,70 @@ impl PyEnvError {
     #[must_use]
     pub fn unescaped(&self) -> String {
         match self {
-            Self::Lock(m) => format!("the Python lock is refused: {m}"),
+            Self::Lock(m) => PyenvText::LockRefused { detail: m.clone() }.to_string(),
             Self::SourceOnly {
                 package,
                 source_kind,
-            } => format!(
-                "package `{package}` is not a vendored wheel ({source_kind}); slopvac builds environments from locked wheels only and runs no build backend"
-            ),
-            Self::Manifest { path, source } => format!(
-                "the manifest {} cannot select a Python environment: {}",
-                slopvac_fs::display_under_root(path, Path::new(".")),
-                source.unescaped()
-            ),
-            Self::EnvMissing { plugin, python } => format!(
-                "no Python environment is built for plugin `{plugin}` ({python}); run `slopvac plugins sync`"
-            ),
-            Self::Wheel { package, why } => format!("wheel of `{package}` refused: {why}"),
-            Self::Installer(m) => format!("the Python installer is refused: {m}"),
-            Self::OfflinePythonMissing(r) => format!(
-                "offline: no uv-managed Python matches `{r}`; run once online, or install it with `uv python install`"
-            ),
+            } => PyenvText::SourceOnly {
+                package: package.clone(),
+                source_kind: source_kind.clone(),
+            }
+            .to_string(),
+            Self::Manifest { path, source } => PyenvText::ManifestUnusable {
+                path: slopvac_fs::display_under_root(path, Path::new(".")),
+                reason: source.unescaped(),
+            }
+            .to_string(),
+            Self::EnvMissing { plugin, python } => PyenvText::EnvMissing {
+                plugin: plugin.clone(),
+                python: python.clone(),
+            }
+            .to_string(),
+            Self::Wheel { package, why } => PyenvText::WheelRefused {
+                package: package.clone(),
+                why: why.clone(),
+            }
+            .to_string(),
+            Self::Installer(m) => PyenvText::InstallerRefused { detail: m.clone() }.to_string(),
+            Self::OfflinePythonMissing(r) => {
+                PyenvText::OfflinePythonMissing { request: r.clone() }.to_string()
+            }
             Self::Step {
                 step,
                 status,
                 output,
-            } => format!("{} {output}", Self::step_head(step, status)),
-            Self::Changed { path, why } => format!(
-                "the Python environment changed: `{path}` {why}; rebuild it and run `slopvac plugins trust`"
-            ),
-            Self::Refused(m) => format!("the Python environment is refused: {m}"),
-            Self::UnsupportedPlatform => "managed Python environments are not supported on Windows yet; slopvac refuses to build or run them".into(),
-            Self::Record { path, why } => format!(
-                "the environment record {} is damaged: {why}",
-                path.to_string_lossy()
-            ),
+            } => PyenvText::StepOutput {
+                head: Self::step_head(step, status),
+                output: output.clone(),
+            }
+            .to_string(),
+            Self::Changed { path, why } => PyenvText::EnvChanged {
+                path: path.clone(),
+                why: why.clone(),
+            }
+            .to_string(),
+            Self::Refused(m) => PyenvText::EnvRefused { detail: m.clone() }.to_string(),
+            Self::UnsupportedPlatform => PyenvPhrase::UnsupportedPlatform.as_static().into(),
+            Self::Record { path, why } => PyenvText::RecordDamaged {
+                path: path.to_string_lossy().into_owned(),
+                why: why.clone(),
+            }
+            .to_string(),
             Self::Tree(e) => e.unescaped(),
-            Self::Io { what, source } => format!("{what}: {source}"),
+            Self::Io { what, source } => PyenvText::IoFailed {
+                what: what.clone(),
+                cause: source.to_string(),
+            }
+            .to_string(),
         }
     }
 
     fn step_head(step: &str, status: &str) -> String {
-        format!("{step} failed ({status}):")
+        PyenvText::StepHead {
+            step: step.to_owned(),
+            status: status.to_owned(),
+        }
+        .to_string()
     }
 }
 
@@ -251,11 +275,12 @@ impl std::fmt::Display for PyEnvError {
                 step,
                 status,
                 output,
-            } => write!(
-                f,
-                "{} {}",
-                esc(&Self::step_head(step, status)),
-                terminal(output)
+            } => f.write_str(
+                &PyenvText::StepOutput {
+                    head: esc(&Self::step_head(step, status)),
+                    output: terminal(output),
+                }
+                .to_string(),
             ),
             _ => f.write_str(&esc(&self.unescaped())),
         }
@@ -284,6 +309,14 @@ impl PyEnvError {
         let what = what.into();
         move |source| Self::Io { what, source }
     }
+}
+
+/// `NotAbsolute` for an installer path.
+fn not_absolute(path: &Path) -> String {
+    PyenvText::NotAbsolute {
+        path: path.display().to_string(),
+    }
+    .to_string()
 }
 
 /// Refuse on Windows: the `Scripts` layout, launcher and read-only handling
@@ -348,16 +381,18 @@ impl Installer {
     fn check(&self) -> Result<(), PyEnvError> {
         let refuse = |why: String| Err(PyEnvError::Installer(why));
         if !self.uv.is_absolute() {
-            return refuse(format!("`{}` is not an absolute path", self.uv.display()));
+            return refuse(not_absolute(&self.uv));
         }
         if !self.python_install_dir.is_absolute() {
-            return refuse(format!(
-                "`{}` is not an absolute path",
-                self.python_install_dir.display()
-            ));
+            return refuse(not_absolute(&self.python_install_dir));
         }
         if !is_python_request(&self.python) {
-            return refuse(format!("`{}` is not a Python version request", self.python));
+            return refuse(
+                PyenvText::NotARequest {
+                    request: self.python.clone(),
+                }
+                .to_string(),
+            );
         }
         Ok(())
     }
@@ -537,12 +572,13 @@ impl ManagedEnv {
 
     fn check_interpreter(&self, full: bool) -> Result<(), PyEnvError> {
         let files = &self.record.interpreter.files;
-        let resolved = fs::canonicalize(self.python())
-            .map_err(PyEnvError::io("resolving the environment's interpreter"))?;
+        let resolved = fs::canonicalize(self.python()).map_err(PyEnvError::io(
+            PyenvPhrase::ResolvingEnvInterpreter.as_static(),
+        ))?;
         if files.first().map(|f| Path::new(&f.path)) != Some(resolved.as_path()) {
             return Err(PyEnvError::Changed {
                 path: resolved.display().to_string(),
-                why: "is not the interpreter the build recorded".into(),
+                why: PyenvPhrase::NotRecordedInterpreter.as_static().into(),
             });
         }
         for f in files {
@@ -550,15 +586,17 @@ impl ManagedEnv {
                 path: f.path.clone(),
                 why: why.to_owned(),
             };
-            let meta = fs::metadata(&f.path).map_err(|_| changed("is missing"))?;
-            let mtime = mtime_of(&meta).map_err(|_| changed("has no modification time"))?;
+            let meta =
+                fs::metadata(&f.path).map_err(|_| changed(PyenvPhrase::IsMissing.as_static()))?;
+            let mtime = mtime_of(&meta)
+                .map_err(|_| changed(PyenvPhrase::NoModificationTime.as_static()))?;
             if meta.len() != f.size || mtime != f.mtime {
-                return Err(changed("changed size or modification time"));
+                return Err(changed(PyenvPhrase::ChangedSizeOrTime.as_static()));
             }
             if full {
                 let sha = sha256_file(Path::new(&f.path))?;
                 if sha != f.sha256 {
-                    return Err(changed("changed content"));
+                    return Err(changed(PyenvPhrase::ChangedContent.as_static()));
                 }
             }
         }
@@ -667,7 +705,7 @@ impl EnvStore {
         if record.tree != tree.as_str() || record.python != python {
             return Err(PyEnvError::Record {
                 path,
-                why: "it names another tree or interpreter".into(),
+                why: PyenvPhrase::NamesAnotherTree.as_static().into(),
             });
         }
         Ok(Some(ManagedEnv {
@@ -721,17 +759,17 @@ impl EnvStore {
             .truncate(false)
             .write(true)
             .open(self.root.join(format!("{key}.lock")))
-            .map_err(PyEnvError::io("opening the environment lock"))?;
+            .map_err(PyEnvError::io(PyenvPhrase::OpeningEnvLock.as_static()))?;
         guard
             .lock()
-            .map_err(PyEnvError::io("locking the environment"))?;
+            .map_err(PyEnvError::io(PyenvPhrase::LockingEnv.as_static()))?;
         let staging_parent = self.root.join(".staging");
         create_private_dir(&staging_parent)?;
         let staging = Staging(
             tempfile::Builder::new()
                 .prefix(&format!("{}-", &key[..16]))
                 .tempdir_in(&staging_parent)
-                .map_err(PyEnvError::io("creating a staging directory"))?
+                .map_err(PyEnvError::io(PyenvPhrase::CreatingStaging.as_static()))?
                 .keep(),
             true,
         );
@@ -758,7 +796,7 @@ impl EnvStore {
             evict(&final_root)?;
         }
         fs::rename(&env, &final_root)
-            .map_err(PyEnvError::io("moving the environment into place"))?;
+            .map_err(PyEnvError::io(PyenvPhrase::MovingEnv.as_static()))?;
         // Until the record exists, nothing can load the environment: remove it on failure.
         let mut placed = Staging(final_root.clone(), true);
         listing::set_read_only(&final_root, true)?;
@@ -773,7 +811,7 @@ impl EnvStore {
         };
         if self.fail_record_writes {
             return Err(PyEnvError::Io {
-                what: "writing the environment record".into(),
+                what: PyenvPhrase::WritingRecord.as_static().into(),
                 source: io::Error::other("injected failure"),
             });
         }
@@ -796,10 +834,10 @@ impl EnvStore {
         let rd = match fs::read_dir(&self.root) {
             Ok(rd) => rd,
             Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(out),
-            Err(e) => return Err(PyEnvError::io("reading the environment store")(e)),
+            Err(e) => return Err(PyEnvError::io(PyenvPhrase::ReadingStore.as_static())(e)),
         };
         for e in rd {
-            let e = e.map_err(PyEnvError::io("reading the environment store"))?;
+            let e = e.map_err(PyEnvError::io(PyenvPhrase::ReadingStore.as_static()))?;
             let name = e.file_name().to_string_lossy().into_owned();
             let Some(key) = name.strip_suffix(".json") else {
                 continue;
@@ -825,7 +863,12 @@ impl EnvStore {
     /// Removal failures.
     pub fn remove(&self, key: &str) -> Result<Evicted, PyEnvError> {
         if key.len() != 64 || !key.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
-            return Err(PyEnvError::Refused(format!("`{key}` is not a store key")));
+            return Err(PyEnvError::Refused(
+                PyenvText::NotStoreKey {
+                    key: key.to_owned(),
+                }
+                .to_string(),
+            ));
         }
         remove_file_if_exists(&self.record_path(key))?;
         Ok(evict(&self.root.join(key))?)
@@ -857,7 +900,7 @@ fn install(
         ])
         .args(["--offline", "--no-python-downloads", "--quiet"])
         .arg(&installer.python);
-        if run(find, scratch, "uv python find", step).is_err() {
+        if run(find, scratch, PyenvPhrase::StepFind.as_static(), step).is_err() {
             return Err(PyEnvError::OfflinePythonMissing(installer.python.clone()));
         }
     }
@@ -869,7 +912,7 @@ fn install(
         venv.args(["--offline", "--no-python-downloads"]);
     }
     venv.arg(env);
-    run(venv, scratch, "uv venv", step)?;
+    run(venv, scratch, PyenvPhrase::StepVenv.as_static(), step)?;
     // Taken before any wheel is installed: a wheel must not replace what the build runs.
     let pin = Pin::take(env)?;
 
@@ -877,7 +920,7 @@ fn install(
     if !lock.packages.is_empty() {
         let req = scratch.join("requirements.txt");
         fs::write(&req, lock.requirements())
-            .map_err(PyEnvError::io("writing the requirements file"))?;
+            .map_err(PyEnvError::io(PyenvPhrase::WritingRequirements.as_static()))?;
         let mut pip = installer.uv(scratch);
         pip.args(["pip", "install", "--no-config", "--offline", "--no-index"])
             .args(["--no-cache", "--managed-python", "--no-python-downloads"])
@@ -889,7 +932,7 @@ fn install(
             pip.arg("--find-links").arg(dir);
         }
         pip.arg("-r").arg(&req);
-        run(pip, scratch, "uv pip install", step)?;
+        run(pip, scratch, PyenvPhrase::StepPipInstall.as_static(), step)?;
     }
 
     // Bound the tree uv wrote before anything walks it again.
@@ -906,7 +949,7 @@ fn install(
         .arg(env);
     windows_env(&mut compile);
     pin.verify(env)?;
-    run(compile, scratch, "bytecode compilation", step)?;
+    run(compile, scratch, PyenvPhrase::StepCompile.as_static(), step)?;
     Ok((python, pin))
 }
 
@@ -921,7 +964,7 @@ struct Pin {
 impl Pin {
     fn take(env: &Path) -> Result<Self, PyEnvError> {
         let interpreter = fs::canonicalize(env_python(env)).map_err(PyEnvError::io(
-            "resolving the new environment's interpreter",
+            PyenvPhrase::ResolvingNewInterpreter.as_static(),
         ))?;
         let interpreter_sha256 = sha256_file(&interpreter)?;
         let config_sha256 = sha256_file(&env.join("pyvenv.cfg"))?;
@@ -936,14 +979,23 @@ impl Pin {
         let now = Self::take(env)?;
         let changed = |path: &Path, why: &str| PyEnvError::Changed {
             path: path.display().to_string(),
-            why: format!("{why} during the build, before trust"),
+            why: PyenvText::DuringBuild {
+                why: why.to_owned(),
+            }
+            .to_string(),
         };
         if now.interpreter != self.interpreter || now.interpreter_sha256 != self.interpreter_sha256
         {
-            return Err(changed(&env_python(env), "was replaced"));
+            return Err(changed(
+                &env_python(env),
+                PyenvPhrase::WasReplaced.as_static(),
+            ));
         }
         if now.config_sha256 != self.config_sha256 {
-            return Err(changed(&env.join("pyvenv.cfg"), "was rewritten"));
+            return Err(changed(
+                &env.join("pyvenv.cfg"),
+                PyenvPhrase::WasRewritten.as_static(),
+            ));
         }
         Ok(())
     }
@@ -973,8 +1025,10 @@ fn run(
         .collect();
     let out_path = scratch.join(format!("{tag}.out"));
     let err_path = scratch.join(format!("{tag}.err"));
-    let out = File::create(&out_path).map_err(PyEnvError::io("creating an output file"))?;
-    let err = File::create(&err_path).map_err(PyEnvError::io("creating an output file"))?;
+    let out = File::create(&out_path)
+        .map_err(PyEnvError::io(PyenvPhrase::CreatingOutputFile.as_static()))?;
+    let err = File::create(&err_path)
+        .map_err(PyEnvError::io(PyenvPhrase::CreatingOutputFile.as_static()))?;
     let mut child = cmd
         .stdin(Stdio::null())
         .stdout(out)
@@ -982,7 +1036,7 @@ fn run(
         .spawn()
         .map_err(|e| PyEnvError::Step {
             step: step.to_owned(),
-            status: "did not start".into(),
+            status: PyenvPhrase::DidNotStart.as_static().into(),
             output: e.to_string(),
         })?;
     let deadline = Instant::now() + limit;
@@ -998,7 +1052,7 @@ fn run(
         let _ = child.wait();
         return Err(PyEnvError::Step {
             step: step.to_owned(),
-            status: "timed out".into(),
+            status: PyenvPhrase::TimedOut.as_static().into(),
             output: String::new(),
         });
     };
@@ -1027,23 +1081,24 @@ fn probe(python: &Path, scratch: &Path, limit: Duration) -> Result<Probe, PyEnvE
         .current_dir(scratch)
         .args(["-I", "-S", "-B", "-c", PROBE]);
     windows_env(&mut cmd);
-    let out = run(cmd, scratch, "interpreter probe", limit)?;
+    let out = run(cmd, scratch, PyenvPhrase::StepProbe.as_static(), limit)?;
     let mut raw = Vec::new();
     File::open(&out)
         .and_then(|f| f.take(MAX_PROBE_BYTES).read_to_end(&mut raw))
-        .map_err(PyEnvError::io("reading the interpreter probe"))?;
+        .map_err(PyEnvError::io(PyenvPhrase::ReadingProbe.as_static()))?;
     serde_json::from_slice(&raw).map_err(|e| PyEnvError::Step {
-        step: "interpreter probe".into(),
-        status: "unreadable output".into(),
+        step: PyenvPhrase::StepProbe.as_static().into(),
+        status: PyenvPhrase::UnreadableOutput.as_static().into(),
         output: e.to_string(),
     })
 }
 
 fn interpreter(python: &Path, p: Probe) -> Result<Interpreter, PyEnvError> {
-    let mut paths =
-        vec![fs::canonicalize(python).map_err(PyEnvError::io("resolving the interpreter"))?];
+    let mut paths = vec![fs::canonicalize(python).map_err(PyEnvError::io(
+        PyenvPhrase::ResolvingInterpreter.as_static(),
+    ))?];
     let base = fs::canonicalize(&p.base_executable)
-        .map_err(PyEnvError::io("resolving the base interpreter"))?;
+        .map_err(PyEnvError::io(PyenvPhrase::ResolvingBase.as_static()))?;
     if !paths.contains(&base) {
         paths.push(base);
     }
@@ -1051,14 +1106,20 @@ fn interpreter(python: &Path, p: Probe) -> Result<Interpreter, PyEnvError> {
     for path in paths {
         let text = path
             .to_str()
-            .ok_or_else(|| PyEnvError::Refused("the interpreter path is not UTF-8".into()))?
+            .ok_or_else(|| {
+                PyEnvError::Refused(PyenvPhrase::InterpreterPathNotUtf8.as_static().into())
+            })?
             .to_owned();
-        let meta = fs::metadata(&path).map_err(PyEnvError::io("inspecting the interpreter"))?;
+        let meta = fs::metadata(&path).map_err(PyEnvError::io(
+            PyenvPhrase::InspectingInterpreter.as_static(),
+        ))?;
         let sha256 = sha256_file(&path)?;
         files.push(InterpFile {
             path: text,
             size: meta.len(),
-            mtime: mtime_of(&meta).map_err(PyEnvError::io("inspecting the interpreter"))?,
+            mtime: mtime_of(&meta).map_err(PyEnvError::io(
+                PyenvPhrase::InspectingInterpreter.as_static(),
+            ))?,
             sha256,
         });
     }
@@ -1088,11 +1149,11 @@ fn read_record(path: &Path) -> Result<Option<EnvRecord>, PyEnvError> {
         .read_to_end(&mut raw)
         .map_err(|e| damaged(e.to_string()))?;
     if raw.len() as u64 > MAX_RECORD_BYTES {
-        return Err(damaged("larger than 64 MiB".into()));
+        return Err(damaged(PyenvPhrase::RecordTooLarge.as_static().into()));
     }
     let r: EnvRecord = serde_json::from_slice(&raw).map_err(|e| damaged(e.to_string()))?;
     if r.schema_version != RECORD_SCHEMA {
-        return Err(damaged("unsupported schema_version".into()));
+        return Err(damaged(PyenvPhrase::RecordSchema.as_static().into()));
     }
     Ok(Some(r))
 }
@@ -1105,12 +1166,12 @@ fn write_record(dir: &Path, path: &Path, r: &EnvRecord) -> Result<(), PyEnvError
     let mut tmp = tempfile::Builder::new()
         .prefix(".record-")
         .tempfile_in(dir)
-        .map_err(PyEnvError::io("creating a record file"))?;
+        .map_err(PyEnvError::io(PyenvPhrase::CreatingRecordFile.as_static()))?;
     tmp.write_all(&bytes)
         .and_then(|()| tmp.as_file().sync_all())
-        .map_err(PyEnvError::io("writing the environment record"))?;
+        .map_err(PyEnvError::io(PyenvPhrase::WritingRecord.as_static()))?;
     tmp.persist(path).map_err(|e| PyEnvError::Io {
-        what: "replacing the environment record".into(),
+        what: PyenvPhrase::ReplacingRecord.as_static().into(),
         source: e.error,
     })?;
     Ok(())
@@ -1119,7 +1180,7 @@ fn write_record(dir: &Path, path: &Path, r: &EnvRecord) -> Result<(), PyEnvError
 fn remove_file_if_exists(path: &Path) -> Result<(), PyEnvError> {
     match fs::remove_file(path) {
         Err(e) if e.kind() != io::ErrorKind::NotFound => {
-            Err(PyEnvError::io(format!("removing {}", path.display()))(e))
+            Err(PyEnvError::io(messages::removing(path))(e))
         }
         _ => Ok(()),
     }
@@ -1132,14 +1193,14 @@ fn create_private_dir(dir: &Path) -> Result<(), PyEnvError> {
         .recursive(true)
         .mode(0o700)
         .create(dir)
-        .map_err(PyEnvError::io(format!("creating {}", dir.display())))?;
+        .map_err(PyEnvError::io(messages::creating(dir)))?;
     fs::set_permissions(dir, fs::Permissions::from_mode(0o700))
-        .map_err(PyEnvError::io(format!("securing {}", dir.display())))
+        .map_err(PyEnvError::io(messages::securing(dir)))
 }
 
 #[cfg(not(unix))]
 fn create_private_dir(dir: &Path) -> Result<(), PyEnvError> {
-    fs::create_dir_all(dir).map_err(PyEnvError::io(format!("creating {}", dir.display())))
+    fs::create_dir_all(dir).map_err(PyEnvError::io(messages::creating(dir)))
 }
 
 #[cfg(test)]

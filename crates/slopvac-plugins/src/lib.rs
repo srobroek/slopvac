@@ -25,6 +25,7 @@ pub mod host;
 pub mod index;
 pub mod launch;
 pub mod lock;
+mod messages;
 pub mod oci;
 pub mod process;
 pub mod protocol;
@@ -43,5 +44,6 @@ pub use error::{PluginError, RpcError, StartError};
 pub use host::{
     DrainHook, HostConfig, Plugin, PluginSpec, ReadHook, RunCaps, Shutdown, SpawnGate, Timeouts,
 };
+pub use messages::message_entries;
 pub use process::{Teardown, kill_all_live};
 pub use protocol::{HookKind, PluginDeclaration};

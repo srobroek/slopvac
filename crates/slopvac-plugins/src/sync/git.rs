@@ -74,6 +74,7 @@ use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
 use crate::extract::{ExtractError, Limits, StagedTree};
+use crate::messages::sync as messages;
 use crate::oci::Contained;
 use crate::trusted_path::find_trusted;
 
@@ -126,7 +127,7 @@ fn limit(msg: impl Into<String>) -> GitError {
 }
 
 fn download_limit(max: u64) -> GitError {
-    limit(format!("the repository download exceeds {max} bytes"))
+    limit(messages::git_download_limit(max))
 }
 
 /// What to fetch and how far to trust the transport.
@@ -232,10 +233,10 @@ pub(super) fn export_commit(
             .iter()
             .any(|p| request.url.starts_with(p));
     if !(https || local) || request.url.starts_with('-') {
-        return Err(failed("only https:// repositories are fetched"));
+        return Err(failed(messages::SyncPhrase::GitHttpsOnly.as_static()));
     }
     if request.commit.len() != 40 || !request.commit.bytes().all(|b| b.is_ascii_hexdigit()) {
-        return Err(failed("the commit is not a full 40-digit hash"));
+        return Err(failed(messages::SyncPhrase::GitCommitShort.as_static()));
     }
     let git = Git::prepare(request, scratch)?;
     git.fetch()?;
@@ -255,8 +256,7 @@ impl<'a> Git<'a> {
     fn prepare(request: &'a Request<'a>, scratch: &Path) -> Result<Self, GitError> {
         let work = scratch.to_path_buf();
         for dir in ["home", "nohooks"] {
-            std::fs::create_dir(work.join(dir))
-                .map_err(|e| failed(format!("creating a scratch directory: {e}")))?;
+            std::fs::create_dir(work.join(dir)).map_err(|e| failed(messages::scratch_dir(&e)))?;
         }
         let git = Self {
             request,
@@ -353,12 +353,10 @@ impl<'a> Git<'a> {
             stdout
                 .take(stdout_cap as u64 + 1)
                 .read_to_end(&mut out)
-                .map_err(|e| failed(format!("reading `git {what}`: {e}")))?;
+                .map_err(|e| failed(messages::git_reading(what, &e)))?;
         }
         if out.len() > stdout_cap {
-            return Err(failed(format!(
-                "`git {what}` printed more than {stdout_cap} bytes"
-            )));
+            return Err(failed(messages::git_output_cap(what, stdout_cap)));
         }
         job.finish(what)?;
         Ok(out)
@@ -395,7 +393,7 @@ impl<'a> Git<'a> {
             .arg(format!("{}^{{commit}}", self.request.commit));
         let out = self.run(cmd, "rev-parse", None, 256)?;
         if String::from_utf8_lossy(&out).trim() != self.request.commit {
-            return Err(failed("the fetched commit is not the pinned commit"));
+            return Err(failed(messages::SyncPhrase::GitCommitDiffers.as_static()));
         }
         Ok(())
     }
@@ -435,7 +433,7 @@ impl<'a> Git<'a> {
         let stdout = job
             .stdout
             .take()
-            .ok_or_else(|| failed("no output from `git cat-file`"))?;
+            .ok_or_else(|| failed(messages::SyncPhrase::GitNoOutput.as_static()))?;
         let mut reader = BufReader::new(stdout);
         let mut remaining = self.request.limits.expanded_bytes;
         let mut result = Ok(());
@@ -468,18 +466,16 @@ fn parse_tree(out: &[u8], limits: Limits) -> Result<Vec<Entry>, GitError> {
     let mut entries = Vec::new();
     for record in out.split(|&b| b == 0).filter(|r| !r.is_empty()) {
         if entries.len() >= max_entries {
-            return Err(limit(format!(
-                "the commit has more than {max_entries} files"
-            )));
+            return Err(limit(messages::git_too_many_files(max_entries)));
         }
         let tab = record
             .iter()
             .position(|&b| b == b'\t')
-            .ok_or_else(|| failed("`git ls-tree` printed an unexpected line"))?;
+            .ok_or_else(|| failed(messages::SyncPhrase::GitLsTreeLine.as_static()))?;
         let path = String::from_utf8(record[tab + 1..].to_vec())
-            .map_err(|_| failed("a path in the commit is not UTF-8"))?;
+            .map_err(|_| failed(messages::SyncPhrase::GitPathNotUtf8.as_static()))?;
         let meta = std::str::from_utf8(&record[..tab])
-            .map_err(|_| failed("`git ls-tree` printed an unexpected line"))?;
+            .map_err(|_| failed(messages::SyncPhrase::GitLsTreeLine.as_static()))?;
         // The size column is padded with spaces; a submodule shows `-`.
         let mut fields = meta.split_whitespace();
         let (Some(mode), Some(kind), Some(oid), Some(size), None) = (
@@ -489,28 +485,25 @@ fn parse_tree(out: &[u8], limits: Limits) -> Result<Vec<Entry>, GitError> {
             fields.next(),
             fields.next(),
         ) else {
-            return Err(failed("`git ls-tree` printed an unexpected line"));
+            return Err(failed(messages::SyncPhrase::GitLsTreeLine.as_static()));
         };
         let shown = &path;
         let executable = match (mode, kind) {
             ("100644", "blob") => false,
             ("100755", "blob") => true,
-            ("120000", _) => return Err(failed(format!("`{shown}` is a symbolic link"))),
-            ("160000", _) => return Err(failed(format!("`{shown}` is a submodule"))),
-            _ => return Err(failed(format!("`{shown}` has the unsupported mode {mode}"))),
+            ("120000", _) => return Err(failed(messages::git_symlink(shown))),
+            ("160000", _) => return Err(failed(messages::git_submodule(shown))),
+            _ => return Err(failed(messages::git_mode(shown, mode))),
         };
         if oid.len() != 40 || !oid.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
-            return Err(failed("`git ls-tree` printed an unexpected object id"));
+            return Err(failed(messages::SyncPhrase::GitLsTreeOid.as_static()));
         }
         let size: u64 = size
             .parse()
-            .map_err(|_| failed("`git ls-tree` printed an unexpected size"))?;
+            .map_err(|_| failed(messages::SyncPhrase::GitLsTreeSize.as_static()))?;
         total = total.saturating_add(size);
         if total > limits.expanded_bytes {
-            return Err(limit(format!(
-                "the commit expands past the size limit of {} bytes",
-                limits.expanded_bytes
-            )));
+            return Err(limit(messages::git_expands(limits.expanded_bytes)));
         }
         entries.push(Entry {
             path,
@@ -534,37 +527,32 @@ fn copy_blob(
         .by_ref()
         .take(MAX_HEADER_BYTES)
         .read_until(b'\n', &mut header)
-        .map_err(|e| failed(format!("reading `git cat-file`: {e}")))?;
+        .map_err(|e| failed(messages::git_cat_file_read(&e)))?;
     let header = header
         .strip_suffix(b"\n")
         .and_then(|h| std::str::from_utf8(h).ok())
-        .ok_or_else(|| failed("`git cat-file` printed an unexpected header"))?;
+        .ok_or_else(|| failed(messages::SyncPhrase::GitCatFileHeader.as_static()))?;
     let mut fields = header.split(' ');
     let (Some(oid), Some("blob"), Some(size), None) =
         (fields.next(), fields.next(), fields.next(), fields.next())
     else {
-        return Err(failed(format!(
-            "object {} is missing or is not a file",
-            entry.oid
-        )));
+        return Err(failed(messages::git_object_missing(&entry.oid)));
     };
     let size: u64 = size
         .parse()
-        .map_err(|_| failed("`git cat-file` printed an unexpected size"))?;
+        .map_err(|_| failed(messages::SyncPhrase::GitCatFileSize.as_static()))?;
     if oid != entry.oid {
-        return Err(failed("`git cat-file` answered for another object"));
+        return Err(failed(messages::SyncPhrase::GitCatFileObject.as_static()));
     }
     if size != entry.size || size > *remaining {
-        return Err(failed(
-            "`git cat-file` printed another size than `git ls-tree`",
-        ));
+        return Err(failed(messages::SyncPhrase::GitSizeDiffers.as_static()));
     }
     *remaining -= size;
     let mut body = reader.by_ref().take(size);
     staged.write_file(&entry.path, &mut body, entry.executable)?;
     let mut newline = [0u8; 1];
     if body.limit() != 0 || reader.read_exact(&mut newline).is_err() || newline != *b"\n" {
-        return Err(failed("`git cat-file` ended early"));
+        return Err(failed(messages::SyncPhrase::GitEndedEarly.as_static()));
     }
     Ok(())
 }
@@ -623,8 +611,7 @@ impl Supervised {
         cmd.stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
-        let mut child =
-            Contained::spawn(&mut cmd).map_err(|e| failed(format!("cannot start git: {e}")))?;
+        let mut child = Contained::spawn(&mut cmd).map_err(|e| failed(messages::git_spawn(&e)))?;
         let watched_max = watch.as_ref().map_or(0, |w| w.max);
         let stdin = child.child_mut().stdin.take();
         let stdout = child.child_mut().stdout.take();
@@ -689,29 +676,29 @@ impl Supervised {
         drop(self.stdout.take());
         let child = self.stop_watchdog();
         let why = match self.killed.load(Ordering::SeqCst) {
-            KILLED_TIME => Some(format!("`git {what}` timed out")),
+            KILLED_TIME => Some(messages::git_timed_out(what)),
             KILLED_SIZE => return Err(download_limit(self.watched_max)),
             _ => None,
         };
         if let Some(why) = why {
             return Err(failed(why));
         }
-        let mut child = child.ok_or_else(|| failed(format!("`git {what}` was stopped")))?;
+        let mut child = child.ok_or_else(|| failed(messages::git_stopped(what)))?;
         let status = loop {
             match child.has_exited() {
                 Ok(true) => {
                     break child
                         .reap()
-                        .map_err(|e| failed(format!("waiting for `git {what}`: {e}")))?;
+                        .map_err(|e| failed(messages::git_waiting(what, &e)))?;
                 }
                 Ok(false) if Instant::now() < self.deadline => thread::sleep(POLL),
                 Ok(false) => {
                     child.kill_tree();
-                    return Err(failed(format!("`git {what}` timed out")));
+                    return Err(failed(messages::git_timed_out(what)));
                 }
                 Err(e) => {
                     child.kill_tree();
-                    return Err(failed(format!("waiting for `git {what}`: {e}")));
+                    return Err(failed(messages::git_waiting(what, &e)));
                 }
             }
         };
@@ -739,12 +726,7 @@ fn check_status(what: &str, status: ExitStatus, stderr: &[u8]) -> Result<(), Git
         return Ok(());
     }
     let text = String::from_utf8_lossy(stderr).trim().to_owned();
-    let detail = if text.is_empty() {
-        String::new()
-    } else {
-        format!(": {text}")
-    };
-    Err(failed(format!("`git {what}` failed ({status}){detail}")))
+    Err(failed(messages::git_exit(what, &status, &text)))
 }
 
 #[cfg(test)]

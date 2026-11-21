@@ -56,7 +56,6 @@ use std::time::{Duration, Instant};
 use cap_fs_ext::{DirExt, FollowSymlinks, OpenOptionsFollowExt};
 use cap_std::ambient_authority;
 use cap_std::fs::{Dir, OpenOptions};
-use slopvac_sanitize::line as esc;
 use thiserror::Error;
 
 use crate::apply::ApplyError;
@@ -66,6 +65,7 @@ use crate::lock::{
     LockError, LockedPack, Lockfile, MAX_LOCK_BYTES, PackId, Signature, Source, SourceKind,
     Version, VersionReq, outdated,
 };
+use crate::messages::sync::{self as messages, SyncPhrase};
 use crate::oci::{Client, MEDIA_MANIFEST, Reference, Target, valid_tag};
 use crate::revoke::{RevocationError, RevocationList, RevocationNotice, Revocations};
 use crate::sign::{Expectation, KeyPolicy, MEDIA_MINISIG, MEDIA_STATEMENT, fetch_and_verify};
@@ -87,10 +87,10 @@ const GUARD_NAME: &str = "plugins.lock.guard";
 #[derive(Debug, Error)]
 pub enum UpdateError {
     /// Offline mode. Update has no cache to resolve from.
-    #[error("offline: plugins update needs the network")]
+    #[error("{}", crate::messages::offline_network_needed("plugins update"))]
     Offline,
     /// Another update holds the guard lock and did not release it in time.
-    #[error("another `plugins update` holds the lock on {}; gave up after {} s", esc(path), timeout.as_secs_f32())]
+    #[error("{}", messages::update_busy(path, timeout.as_secs_f32()))]
     Busy {
         /// The guard file.
         path: String,
@@ -99,16 +99,13 @@ pub enum UpdateError {
     },
     /// Windows: the replacement primitive resolves paths in a way a junction
     /// swap can redirect, so lock writes are refused (as in [`crate::apply`]).
-    #[error(
-        "`{}`: writes are not supported on Windows yet; the lock was not changed",
-        esc(.0)
-    )]
+    #[error("{}", messages::unsupported_on_windows(.0))]
     UnsupportedOnWindows(String),
-    /// A named pack is not in the lock.
-    #[error("plugin `{0}` is not in the lock")]
-    UnknownPack(PackId),
+    /// A named plugin is not in the lock.
+    #[error("{}", messages::update_unknown_plugin(.0))]
+    UnknownPlugin(PackId),
     /// The lock file is unreadable, too large or invalid.
-    #[error("lock file {}: {message}", esc(path))]
+    #[error("{}", messages::update_lock_file(path, message))]
     Lock {
         /// The file.
         path: String,
@@ -119,7 +116,7 @@ pub enum UpdateError {
     #[error(transparent)]
     Revocation(#[from] RevocationError),
     /// The new lock could not be written.
-    #[error("writing {}: {source}", esc(path))]
+    #[error("{}", messages::update_write(path, source))]
     Write {
         /// The file.
         path: String,
@@ -142,6 +139,7 @@ impl UpdateError {
     pub fn code(&self) -> &'static str {
         match self {
             Self::Offline => "offline-network-needed",
+            Self::UnknownPlugin(_) => "update-plugin-unknown",
             Self::Busy { .. } => "update-lock-busy",
             Self::UnsupportedOnWindows(_) => "unsupported-on-windows",
             Self::Revocation(e) => e.code(),
@@ -323,7 +321,7 @@ impl<'a> Updater<'a> {
         let text = read_lock(&dir, &shown).map_err(|e| lock_error(e.to_string()))?;
         let lock = Lockfile::parse(&text).map_err(|e: LockError| lock_error(e.to_string()))?;
         if let Some(missing) = only.iter().find(|id| lock.get(id).is_none()) {
-            return Err(UpdateError::UnknownPack(missing.clone()));
+            return Err(UpdateError::UnknownPlugin(missing.clone()));
         }
         let current = self.revocations.refresh(client)?;
 
@@ -453,7 +451,7 @@ fn list_candidates(
             },
             SyncErrorKind::Budget => SyncError::Source {
                 id: pack.id.clone(),
-                why: format!("registry tag lists exceed the {budget}-byte budget for one update"),
+                why: messages::update_budget(budget),
             },
         };
         let tags = client
@@ -510,9 +508,8 @@ enum SyncErrorKind {
 fn open_lock_dir(project_root: &Path) -> Result<Dir, ApplyError> {
     let root = Dir::open_ambient_dir(project_root, ambient_authority())
         .map_err(|e| ApplyError::io(project_root.display(), &e))?;
-    root.open_dir_nofollow(LOCK_DIR).map_err(|e| {
-        ApplyError::PathRefused(format!("`{LOCK_DIR}` is not a plain directory ({e})"))
-    })
+    root.open_dir_nofollow(LOCK_DIR)
+        .map_err(|e| ApplyError::PathRefused(messages::update_lock_dir(LOCK_DIR, &e)))
 }
 
 enum GuardError {
@@ -567,10 +564,7 @@ fn take_guard(
         use cap_std::fs::MetadataExt;
         let me = rustix::process::getuid().as_raw();
         if meta.uid() != me || meta.mode() & 0o077 != 0 {
-            return Err(ApplyError::PathRefused(format!(
-                "`{GUARD_PATH}` must be owned by you and private (mode 0600)"
-            ))
-            .into());
+            return Err(ApplyError::PathRefused(messages::update_guard_private(GUARD_PATH)).into());
         }
     }
     let file = file.into_std();
@@ -598,9 +592,9 @@ fn read_lock(dir: &Dir, shown: &str) -> Result<String, ApplyError> {
     let max = MAX_LOCK_BYTES as u64;
     let bytes = match fs::read_current_limited(dir, OsStr::new(LOCK_NAME), shown, max)? {
         Current::File(bytes) => bytes,
-        Current::Absent => return Err(ApplyError::Io(format!("{LOCK_PATH}: no such file"))),
+        Current::Absent => return Err(ApplyError::Io(messages::update_lock_missing(LOCK_PATH))),
     };
-    String::from_utf8(bytes).map_err(|_| ApplyError::Io(format!("{LOCK_PATH}: not UTF-8")))
+    String::from_utf8(bytes).map_err(|_| ApplyError::Io(messages::update_lock_not_utf8(LOCK_PATH)))
 }
 
 fn reference_of(pack: &LockedPack, text: &str) -> Result<Reference, SyncError> {
@@ -635,26 +629,26 @@ fn resolve(
         .fetch_manifest(&repository.with_target(Target::Tag(tag.clone())))
         .map_err(fetch)?;
     if fetched.media_type != MEDIA_MANIFEST {
-        return Err(layout("the manifest is not an image manifest"));
+        return Err(layout(SyncPhrase::ManifestNotImage.as_static()));
     }
     if revoked.revokes_digest(fetched.digest.as_str()) {
         return Err(SyncError::Revoked {
             id: id.clone(),
-            what: format!("artifact {}", fetched.digest),
+            what: messages::revoked_artifact(&fetched.digest),
         });
     }
     let manifest = fetched
         .manifest()
-        .map_err(|e| layout(&format!("the manifest does not parse: {e}")))?;
+        .map_err(|e| layout(&messages::manifest_parse(&e)))?;
     let mut payload = manifest
         .layers
         .iter()
         .filter(|l| l.media_type != MEDIA_STATEMENT && l.media_type != MEDIA_MINISIG);
     let (Some(layer), None) = (payload.next(), payload.next()) else {
-        return Err(layout("a plugin has exactly one content layer"));
+        return Err(layout(SyncPhrase::OneLayer.as_static()));
     };
     if layer.media_type != MEDIA_PACK_LAYER {
-        return Err(layout("the content layer is not a plugin archive"));
+        return Err(layout(SyncPhrase::LayerNotArchive.as_static()));
     }
 
     let namespace = repository.repository.split('/').next().unwrap_or_default();
@@ -682,7 +676,7 @@ fn resolve(
     if revoked.revokes_key(&key_id) {
         return Err(SyncError::Revoked {
             id: id.clone(),
-            what: format!("publisher key {key_id}"),
+            what: messages::revoked_key(&key_id),
         });
     }
 

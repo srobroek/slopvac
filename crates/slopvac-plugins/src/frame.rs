@@ -5,6 +5,8 @@ use std::io::{self, BufRead, Read, Write};
 use slopvac_sanitize::line as esc;
 use thiserror::Error;
 
+use crate::messages::host::{self as messages, HostPhrase, HostText};
+
 /// Longest header line, without its line ending.
 pub const MAX_HEADER_LINE: usize = 1024;
 /// Most header lines in one block.
@@ -17,7 +19,7 @@ pub enum FrameError {
     #[error("{}", esc(.0))]
     Framing(String),
     /// The stream failed.
-    #[error("read failed: {0}")]
+    #[error("{}", messages::frame_read_failed(.0))]
     Io(#[from] io::Error),
 }
 
@@ -34,7 +36,7 @@ fn read_line<R: BufRead>(r: &mut R) -> Result<Option<Vec<u8>>, FrameError> {
             if line.is_empty() {
                 return Ok(None);
             }
-            return Err(framing("stream ended inside a header line"));
+            return Err(framing(HostPhrase::EndInHeaderLine.as_static()));
         }
         let (take, found) = match buf.iter().position(|&b| b == b'\n') {
             Some(i) => (i + 1, true),
@@ -42,9 +44,12 @@ fn read_line<R: BufRead>(r: &mut R) -> Result<Option<Vec<u8>>, FrameError> {
         };
         // The line ending adds two bytes beyond the content limit.
         if line.len() + take > MAX_HEADER_LINE + 2 {
-            return Err(framing(format!(
-                "header line longer than {MAX_HEADER_LINE} bytes"
-            )));
+            return Err(framing(
+                HostText::HeaderTooLong {
+                    max: MAX_HEADER_LINE,
+                }
+                .to_string(),
+            ));
         }
         line.extend_from_slice(&buf[..take]);
         r.consume(take);
@@ -53,11 +58,11 @@ fn read_line<R: BufRead>(r: &mut R) -> Result<Option<Vec<u8>>, FrameError> {
         }
     }
     if !line.ends_with(b"\r\n") {
-        return Err(framing("header line does not end in CRLF"));
+        return Err(framing(HostPhrase::NoCrlf.as_static()));
     }
     line.truncate(line.len() - 2);
     if line.contains(&b'\r') || line.contains(&b'\n') {
-        return Err(framing("stray CR or LF in header line"));
+        return Err(framing(HostPhrase::StrayCrLf.as_static()));
     }
     Ok(Some(line))
 }
@@ -65,19 +70,19 @@ fn read_line<R: BufRead>(r: &mut R) -> Result<Option<Vec<u8>>, FrameError> {
 /// Parse a `Content-Length` value with checked arithmetic.
 fn parse_length(value: &[u8]) -> Result<usize, FrameError> {
     if value.is_empty() || !value.iter().all(u8::is_ascii_digit) {
-        return Err(framing("Content-Length is not a plain decimal number"));
+        return Err(framing(HostPhrase::LengthNotDecimal.as_static()));
     }
     if value.len() > 1 && value[0] == b'0' {
-        return Err(framing("Content-Length has leading zeros"));
+        return Err(framing(HostPhrase::LengthLeadingZeros.as_static()));
     }
     let mut n: u64 = 0;
     for &d in value {
         n = n
             .checked_mul(10)
             .and_then(|n| n.checked_add(u64::from(d - b'0')))
-            .ok_or_else(|| framing("Content-Length overflows 64 bits"))?;
+            .ok_or_else(|| framing(HostPhrase::LengthOverflow64.as_static()))?;
     }
-    usize::try_from(n).map_err(|_| framing("Content-Length overflows the platform size"))
+    usize::try_from(n).map_err(|_| framing(HostPhrase::LengthOverflowSize.as_static()))
 }
 
 /// Read one frame body, or `None` at a clean end of stream.
@@ -109,7 +114,7 @@ pub fn read_frame_with<R: BufRead>(
             return if first {
                 Ok(None)
             } else {
-                Err(framing("stream ended inside a header block"))
+                Err(framing(HostPhrase::EndInHeaderBlock.as_static()))
             };
         };
         first = false;
@@ -118,32 +123,35 @@ pub fn read_frame_with<R: BufRead>(
         }
         lines += 1;
         if lines > MAX_HEADER_LINES {
-            return Err(framing(format!(
-                "more than {MAX_HEADER_LINES} header lines"
-            )));
+            return Err(framing(
+                HostText::TooManyHeaders {
+                    max: MAX_HEADER_LINES,
+                }
+                .to_string(),
+            ));
         }
         let Some(colon) = line.iter().position(|&b| b == b':') else {
-            return Err(framing("header line has no colon"));
+            return Err(framing(HostPhrase::NoColon.as_static()));
         };
         let (name, value) = (&line[..colon], &line[colon + 1..]);
         if name.eq_ignore_ascii_case(b"content-length") {
             if length.is_some() {
-                return Err(framing("duplicate Content-Length"));
+                return Err(framing(HostPhrase::DuplicateLength.as_static()));
             }
             length = Some(parse_length(value.trim_ascii())?);
         }
     }
-    let len = length.ok_or_else(|| framing("missing Content-Length"))?;
+    let len = length.ok_or_else(|| framing(HostPhrase::MissingLength.as_static()))?;
     let max_body = max_body();
     if len > max_body {
-        return Err(framing(format!(
-            "body of {len} bytes exceeds the limit of {max_body}"
-        )));
+        return Err(framing(
+            HostText::BodyTooLong { len, max: max_body }.to_string(),
+        ));
     }
     let mut body = Vec::new();
     let got = r.take(len as u64).read_to_end(&mut body)?;
     if got < len {
-        return Err(framing("stream ended inside a body"));
+        return Err(framing(HostPhrase::EndInBody.as_static()));
     }
     Ok(Some(body))
 }
@@ -151,6 +159,7 @@ pub fn read_frame_with<R: BufRead>(
 /// Encode one frame.
 #[must_use]
 pub fn encode_frame(body: &[u8]) -> Vec<u8> {
+    // ast-grep-ignore: user-text-literal
     let mut out = format!("Content-Length: {}\r\n\r\n", body.len()).into_bytes();
     out.extend_from_slice(body);
     out

@@ -14,6 +14,7 @@ use slopvac_fs::read_capped;
 use slopvac_sanitize::line as esc;
 
 use super::{ManagedEnv, PyEnvError};
+use crate::messages::pyenv::{self as messages, PyenvPhrase, PyenvText};
 
 /// File name of the manifest at the root of a pack.
 pub const MANIFEST_FILE: &str = "slopvac-plugin.toml";
@@ -66,7 +67,7 @@ pub enum RuntimeError {
 /// terminal controls. The cause keeps only the position, the same scrub as the
 /// `slopvac-fs` errors (docs/engineering.md, approved departures).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
-#[error("TOML syntax error at line {line}, column {column}")]
+#[error("{}", messages::toml_syntax(*.line, *.column))]
 pub struct TomlCause {
     /// One-based line.
     pub line: usize,
@@ -92,29 +93,31 @@ impl RuntimeError {
     #[must_use]
     pub fn unescaped(&self) -> String {
         match self {
-            Self::NotRegular => "it is not a regular file".into(),
+            Self::NotRegular => PyenvPhrase::ManifestNotRegular.as_static().into(),
             Self::Io(e) => e.to_string(),
             Self::Read(e) if matches!(**e, slopvac_fs::Error::CapExceeded { .. }) => {
-                "it is larger than 1 MiB".into()
+                PyenvPhrase::ManifestTooLarge.as_static().into()
             }
             Self::Read(e) => e.to_string(),
             Self::NotUtf8(e) => e.to_string(),
-            Self::Toml(c) => format!(
-                "it is not valid TOML (line {}, column {})",
-                c.line, c.column
-            ),
-            Self::PythonWithoutRuntime => "`python` needs `runtime = \"python\"`".into(),
-            Self::RuntimeNeedsCodeKind => "`runtime` belongs to a `kind = \"code\"` pack".into(),
-            Self::MissingField(f) => format!("`runtime = \"python\"` needs `{f}`"),
-            Self::NotARequest => "`python` is not a Python version request".into(),
-            Self::NotAScript => "`command` is not a relative script path inside the pack".into(),
-            Self::UnknownRuntime => "`runtime` is not a runtime; use `native` or `python`".into(),
-            Self::PreRelease => "the `python` request has a pre-release suffix, which a Python version request cannot express".into(),
-            Self::BadVersion => {
-                "the `python` request has a part that is not a version of one to three numbers".into()
+            Self::Toml(c) => PyenvText::TomlAt {
+                line: c.line,
+                column: c.column,
             }
-            Self::NumberTooLarge => "the `python` request has a number that is too large".into(),
-            Self::TooLong => "the `python` request translates to more than 64 bytes".into(),
+            .to_string(),
+            Self::PythonWithoutRuntime => PyenvPhrase::PythonWithoutRuntime.as_static().into(),
+            Self::RuntimeNeedsCodeKind => PyenvPhrase::RuntimeNeedsCodeKind.as_static().into(),
+            Self::MissingField(f) => PyenvText::MissingField {
+                field: (*f).to_owned(),
+            }
+            .to_string(),
+            Self::NotARequest => PyenvPhrase::PythonNotARequest.as_static().into(),
+            Self::NotAScript => PyenvPhrase::CommandNotAScript.as_static().into(),
+            Self::UnknownRuntime => PyenvPhrase::UnknownRuntime.as_static().into(),
+            Self::PreRelease => PyenvPhrase::PreRelease.as_static().into(),
+            Self::BadVersion => PyenvPhrase::BadVersion.as_static().into(),
+            Self::NumberTooLarge => PyenvPhrase::NumberTooLarge.as_static().into(),
+            Self::TooLong => PyenvPhrase::RequestTooLong.as_static().into(),
         }
     }
 }

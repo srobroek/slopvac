@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use slopvac_sanitize::line as esc;
 use thiserror::Error;
 
 use crate::error::PluginError;
 use crate::extract::ExtractError;
 use crate::lock::{LockDiff, PackId};
+use crate::messages::sync as messages;
 use crate::oci::OciError;
 use crate::pyenv::PyEnvError;
 use crate::revoke::RevocationError;
@@ -17,7 +17,7 @@ use crate::sign::SignError;
 #[derive(Debug, Error)]
 pub enum SyncError {
     /// Offline mode and the cache lacks content the lock needs.
-    #[error("offline: plugin `{id}` ({}) is not in the cache: {}", esc(.digest), esc(.what))]
+    #[error("{}", messages::offline_missing(id, digest, what))]
     OfflinePackMissing {
         /// Pack id.
         id: PackId,
@@ -27,7 +27,7 @@ pub enum SyncError {
         what: String,
     },
     /// The lock entry cannot be resolved as written.
-    #[error("plugin `{id}`: {}", esc(.why))]
+    #[error("{}", messages::source_failed(id, why))]
     Source {
         /// Pack id.
         id: PackId,
@@ -36,7 +36,7 @@ pub enum SyncError {
     },
     /// Fetching or exporting a pinned git commit failed, or the commit holds
     /// something a pack may not (a link or a submodule).
-    #[error("plugin `{id}`: git source: {}", esc(.why))]
+    #[error("{}", messages::git_source(id, why))]
     Git {
         /// Pack id.
         id: PackId,
@@ -46,7 +46,7 @@ pub enum SyncError {
     /// A git source needs the plugin launcher and the running program did not
     /// install it ([`PluginError::LauncherNotInstalled`], code
     /// `launcher-not-installed`). No git process ran and nothing was installed.
-    #[error("plugin `{id}`: {source}")]
+    #[error("{}", messages::plugin_cause(id, source))]
     Launcher {
         /// Pack id.
         id: PackId,
@@ -56,7 +56,7 @@ pub enum SyncError {
     },
     /// A git source passed a limit: the download size, the number of files or
     /// the expanded size.
-    #[error("plugin `{id}`: git source passes a limit: {}", esc(.why))]
+    #[error("{}", messages::git_source_limit(id, why))]
     GitLimit {
         /// Pack id.
         id: PackId,
@@ -64,7 +64,7 @@ pub enum SyncError {
         why: String,
     },
     /// The registry or the network failed.
-    #[error("plugin `{id}`: {source}")]
+    #[error("{}", messages::fetch_cause(id, source))]
     Fetch {
         /// Pack id.
         id: PackId,
@@ -73,7 +73,7 @@ pub enum SyncError {
         source: OciError,
     },
     /// The signature gate refused the artifact.
-    #[error("plugin `{id}`: signature check failed: {source}")]
+    #[error("{}", messages::sign_failed(id, source))]
     Sign {
         /// Pack id.
         id: PackId,
@@ -82,13 +82,13 @@ pub enum SyncError {
         source: SignError,
     },
     /// An OCI entry has no `[plugins.signature]` table. Data packs must be signed.
-    #[error("plugin `{id}`: the lock has no signature for an OCI plugin; pin its key, then update")]
+    #[error("{}", messages::unsigned(id))]
     Unsigned {
         /// Pack id.
         id: PackId,
     },
     /// The signed statement is valid but is not the one the lock records.
-    #[error("plugin `{id}`: the signature differs from the lock: {}", esc(.why))]
+    #[error("{}", messages::sign_differs(id, why))]
     SignatureDiffersFromLock {
         /// Pack id.
         id: PackId,
@@ -96,7 +96,7 @@ pub enum SyncError {
         why: String,
     },
     /// Fetched or read content does not hash to the locked digest.
-    #[error("plugin `{id}`: digest mismatch: the lock pins {}, the content is {}", esc(.expected), esc(.actual))]
+    #[error("{}", messages::digest_mismatch(id, expected, actual))]
     DigestMismatch {
         /// Pack id.
         id: PackId,
@@ -106,7 +106,7 @@ pub enum SyncError {
         actual: String,
     },
     /// The manifest does not have the shape of a pack artifact.
-    #[error("plugin `{id}`: unexpected artifact layout: {}", esc(.why))]
+    #[error("{}", messages::layout(id, why))]
     Layout {
         /// Pack id.
         id: PackId,
@@ -115,7 +115,7 @@ pub enum SyncError {
     },
     /// An installed tree changed and sync is offline, so it cannot be fetched
     /// again. The tree was removed.
-    #[error("plugin `{id}`: the cached tree {path} was modified and was removed; offline sync cannot restore it", path = esc(&path.to_string_lossy()))]
+    #[error("{}", messages::cache_tampered(id, path))]
     CacheTampered {
         /// Pack id.
         id: PackId,
@@ -123,7 +123,7 @@ pub enum SyncError {
         path: PathBuf,
     },
     /// Safe extraction refused the archive, or a file operation failed.
-    #[error("plugin `{id}`: {source}")]
+    #[error("{}", messages::plugin_cause(id, source))]
     Extract {
         /// Pack id.
         id: PackId,
@@ -132,7 +132,7 @@ pub enum SyncError {
         source: ExtractError,
     },
     /// The managed Python environment of a plugin pack could not be built.
-    #[error("pack `{id}`: {source}")]
+    #[error("{}", messages::pack_env(id, source))]
     PythonEnv {
         /// Pack id.
         id: PackId,
@@ -141,11 +141,11 @@ pub enum SyncError {
         source: PyEnvError,
     },
     /// The data directory could not be prepared or written.
-    #[error("data directory: {}", esc(.0))]
+    #[error("{}", messages::data_dir(.0))]
     Store(String),
     /// The revocation list names the pack's artifact or its signing key
     /// (threat model K5).
-    #[error("plugin `{id}`: {what} is on the revocation list")]
+    #[error("{}", messages::revoked(id, what))]
     Revoked {
         /// Pack id.
         id: PackId,
@@ -156,7 +156,7 @@ pub enum SyncError {
     #[error(transparent)]
     Revocation(#[from] RevocationError),
     /// The resolved packs differ from the lock.
-    #[error("the lock does not match the resolved plugins:\n{0}")]
+    #[error("{}", messages::lock_mismatch(.0))]
     LockMismatch(LockDiff),
 }
 
@@ -182,12 +182,11 @@ impl SyncError {
                 source: SignError::Fetch(e),
                 ..
             } if e.code().is_some() => e.code().unwrap_or("signature-invalid"),
-            Self::Sign { .. } | Self::Unsigned { .. } | Self::SignatureDiffersFromLock { .. } => {
-                "signature-invalid"
-            }
+            Self::Unsigned { .. } => "sync-unsigned",
+            Self::Sign { .. } | Self::SignatureDiffersFromLock { .. } => "signature-invalid",
             Self::Revoked { .. } => "plugin-revoked",
             Self::Revocation(e) => e.code(),
-            Self::Fetch { source, .. } => source.code().unwrap_or("sync-failed"),
+            Self::Fetch { source, .. } => source.code().unwrap_or("sync-fetch"),
             Self::Launcher { .. } => "launcher-not-installed",
             _ => "sync-failed",
         }

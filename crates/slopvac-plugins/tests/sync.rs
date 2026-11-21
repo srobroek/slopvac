@@ -123,6 +123,18 @@ fn publish(key: &Key, namespace: &str, files: &[(&str, &[u8])]) -> Published {
     }
 }
 
+/// The artifact of [`publish`] with its statement and signature layers removed.
+fn publish_without_signature(key: &Key, namespace: &str, files: &[(&str, &[u8])]) -> Published {
+    let mut p = publish(key, namespace, files);
+    let mut manifest: Manifest = serde_json::from_slice(&p.manifest).unwrap();
+    manifest
+        .layers
+        .retain(|l| l.media_type != MEDIA_STATEMENT && l.media_type != MEDIA_MINISIG);
+    p.manifest = serde_json::to_vec(&manifest).unwrap();
+    p.digest = Digest::of(&p.manifest).to_string();
+    p
+}
+
 /// A registry that serves `artifacts` by digest (and any manifest tag as the first one).
 fn registry(artifacts: &[&Published]) -> Server {
     let mut manifests: HashMap<String, Vec<u8>> = HashMap::new();
@@ -342,6 +354,26 @@ fn a_registry_serving_other_content_for_the_locked_digest_installs_nothing() {
 }
 
 #[test]
+fn a_fetch_failure_with_no_code_of_its_own_reports_sync_fetch() {
+    let key = Key::new();
+    let good = publish(&key, "acme", FILES);
+    let server = registry(&[&good]);
+    let env = Env::new();
+    let c = client();
+    let missing = format!("sha256:{}", "ab".repeat(32));
+    let lock = lock_text(&[oci_entry(
+        "style",
+        &server.registry(),
+        &missing,
+        &good.key_id,
+    )]);
+    let err = run(&env, Network::Online(&c), &policy("acme", &[&key]), &lock).unwrap_err();
+    assert!(matches!(err, SyncError::Fetch { .. }), "{err:?}");
+    assert_eq!(err.code(), "sync-fetch");
+    assert_eq!(err.exit_code(), 2);
+}
+
+#[test]
 fn a_key_that_is_not_pinned_is_refused_and_nothing_is_extracted() {
     // TM-22: the artifact verifies against a key the user did not pin.
     let signer = Key::new();
@@ -418,6 +450,78 @@ fn a_lock_entry_without_a_signature_is_refused() {
     .unwrap_err();
     assert!(matches!(err, SyncError::Unsigned { .. }), "{err:?}");
     assert_eq!(server.requests().len(), 0, "nothing is fetched first");
+}
+
+#[test]
+fn a_lock_entry_without_a_signature_reports_sync_unsigned() {
+    let key = Key::new();
+    let p = publish(&key, "acme", FILES);
+    let server = registry(&[&p]);
+    let mut entry = oci_entry("style", &server.registry(), &p.digest, &p.key_id);
+    entry.truncate(entry.find("\n[plugins.signature]").unwrap());
+    let env = Env::new();
+    let c = client();
+    let err = run(
+        &env,
+        Network::Online(&c),
+        &policy("acme", &[&key]),
+        &lock_text(&[entry]),
+    )
+    .unwrap_err();
+    assert_eq!(err.code(), "sync-unsigned");
+    assert_eq!(err.exit_code(), 2);
+}
+
+#[test]
+fn an_artifact_without_the_signature_its_lock_entry_records_reports_signature_invalid() {
+    let key = Key::new();
+    let stripped = publish_without_signature(&key, "acme", FILES);
+    let server = registry(&[&stripped]);
+    let env = Env::new();
+    let c = client();
+    // The lock entry records a signature; the registry serves the artifact without one.
+    let lock = oci_lock(&server.registry(), &stripped);
+    let err = run(&env, Network::Online(&c), &policy("acme", &[&key]), &lock).unwrap_err();
+    assert!(
+        matches!(
+            err,
+            SyncError::Sign {
+                source: SignError::MissingSignature,
+                ..
+            }
+        ),
+        "{err:?}"
+    );
+    assert_eq!(err.code(), "signature-invalid");
+    env.assert_no_trees();
+}
+
+#[test]
+fn a_signature_that_differs_from_the_lock_still_reports_signature_invalid() {
+    let locked_key = Key::new();
+    let other = Key::new();
+    let p = publish(&other, "acme", FILES);
+    let server = registry(&[&p]);
+    let env = Env::new();
+    let c = client();
+    let lock = lock_text(&[oci_entry(
+        "style",
+        &server.registry(),
+        &p.digest,
+        &locked_key.public().key_id(),
+    )]);
+    let err = run(
+        &env,
+        Network::Online(&c),
+        &policy("acme", &[&locked_key, &other]),
+        &lock,
+    )
+    .unwrap_err();
+    assert!(
+        matches!(err, SyncError::SignatureDiffersFromLock { .. }),
+        "{err:?}"
+    );
+    assert_eq!(err.code(), "signature-invalid");
 }
 
 #[test]

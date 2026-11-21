@@ -4,6 +4,8 @@ use std::str::FromStr;
 
 use semver::Version;
 
+use crate::messages::sync::{self as messages, SyncPhrase};
+
 /// Largest lock file the reader accepts, in bytes. Checked before parsing.
 pub const MAX_LOCK_BYTES: usize = 1024 * 1024;
 /// Most packs in one lock file.
@@ -48,7 +50,7 @@ fn bad<T>(message: impl AsRef<str>) -> Result<T, ValueError> {
 /// A lock file error. `pointer` is a JSON Pointer into the file
 /// (for example `/plugins/0/digest`); it is empty for a whole-file error.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[error("{}: {message}", if pointer.is_empty() { "/" } else { pointer })]
+#[error("{}", messages::lock_error(pointer, message))]
 pub struct LockError {
     /// JSON Pointer to the offending value.
     pub pointer: String,
@@ -110,9 +112,7 @@ impl FromStr for PackId {
 
     fn from_str(s: &str) -> Result<Self, ValueError> {
         if s.len() > MAX_STRING_BYTES {
-            return bad(format!(
-                "a plugin id is longer than {MAX_STRING_BYTES} bytes"
-            ));
+            return bad(messages::id_too_long(MAX_STRING_BYTES));
         }
         let mut chars = s.chars();
         let ok = chars.next().is_some_and(|c| c.is_ascii_lowercase())
@@ -120,9 +120,7 @@ impl FromStr for PackId {
         if ok {
             Ok(Self(s.to_owned()))
         } else {
-            bad(format!(
-                "`{s}` is not a plugin id (lowercase letters, digits and `-`, starting with a letter)"
-            ))
+            bad(messages::id_invalid(s))
         }
     }
 }
@@ -137,9 +135,7 @@ impl FromStr for Digest {
         if ok {
             Ok(Self(s.to_owned()))
         } else {
-            bad(format!(
-                "`{s}` is not a digest (`sha256:` and 64 lowercase hex digits)"
-            ))
+            bad(messages::digest_invalid(s))
         }
     }
 }
@@ -151,7 +147,7 @@ impl FromStr for KeyId {
         if s.len() == 16 && s.bytes().all(|b| matches!(b, b'0'..=b'9' | b'A'..=b'F')) {
             Ok(Self(s.to_owned()))
         } else {
-            bad(format!("`{s}` is not a key id (16 uppercase hex digits)"))
+            bad(messages::key_id_invalid(s))
         }
     }
 }
@@ -160,11 +156,7 @@ impl FromStr for NotBefore {
     type Err = ValueError;
 
     fn from_str(s: &str) -> Result<Self, ValueError> {
-        let format_error = || {
-            ValueError(format!(
-                "`{s}` is not a UTC time (`YYYY-MM-DDTHH:MM:SSZ`, calendar-valid)"
-            ))
-        };
+        let format_error = || ValueError(messages::time_invalid(s));
         let b = s.as_bytes();
         if b.len() != 20 {
             return Err(format_error());
@@ -231,7 +223,7 @@ impl FromStr for PackKind {
         match s {
             "data" => Ok(Self::Data),
             "code" => Ok(Self::Code),
-            _ => bad(format!("`{s}` is not a plugin kind (`data` or `code`)")),
+            _ => bad(messages::kind_invalid(s)),
         }
     }
 }
@@ -306,23 +298,23 @@ impl FromStr for Source {
 
 fn parse_kind(s: &str) -> Result<SourceKind, ValueError> {
     if s.len() > MAX_STRING_BYTES {
-        return bad(format!("a source is longer than {MAX_STRING_BYTES} bytes"));
+        return bad(messages::source_too_long(MAX_STRING_BYTES));
     }
     if s.chars().any(slopvac_sanitize::is_unsafe) {
-        return bad("a source must not contain control, bidirectional or zero-width characters");
+        return bad(SyncPhrase::SourceUnsafe.as_static());
     }
     let no_space = |rest: &str| !rest.is_empty() && !rest.chars().any(char::is_whitespace);
-    let no_credentials = || bad("a source URL must not carry user-info (credentials)");
+    let no_credentials = || bad(SyncPhrase::SourceCredentials.as_static());
     if let Some(rest) = s.strip_prefix("oci://") {
         return match (no_space(rest), has_user_info(rest)) {
-            (false, _) => bad("an oci:// source needs a reference without whitespace"),
+            (false, _) => bad(SyncPhrase::OciWhitespace.as_static()),
             (_, true) => no_credentials(),
             _ => Ok(SourceKind::Oci(s.to_owned())),
         };
     }
     if let Some(rest) = s.strip_prefix("https://") {
         return match (no_space(rest), has_user_info(rest)) {
-            (false, _) => bad("an https:// source needs a URL without whitespace"),
+            (false, _) => bad(SyncPhrase::HttpsWhitespace.as_static()),
             (_, true) => no_credentials(),
             _ => Ok(SourceKind::Archive(s.to_owned())),
         };
@@ -336,9 +328,7 @@ fn parse_kind(s: &str) -> Result<SourceKind, ValueError> {
                     .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
         });
         return match pinned {
-            None => bad(
-                "a git+https:// source must end in `@` and a full 40-digit lowercase commit hash",
-            ),
+            None => bad(SyncPhrase::GitPin.as_static()),
             Some((url, _)) if has_user_info(url) => no_credentials(),
             Some((url, commit)) => Ok(SourceKind::Git {
                 url: format!("https://{url}"),
@@ -347,23 +337,23 @@ fn parse_kind(s: &str) -> Result<SourceKind, ValueError> {
         };
     }
     if s.starts_with("http://") {
-        return bad("http:// sources are not allowed; use https://");
+        return bad(SyncPhrase::HttpRefused.as_static());
     }
     if has_scheme_prefix(s) {
-        return bad("the source scheme is not oci, https or git+https");
+        return bad(SyncPhrase::SchemeUnknown.as_static());
     }
     if s.starts_with('/') || s.contains('\\') {
-        return bad("a path source must be relative and use forward slashes");
+        return bad(SyncPhrase::PathAbsolute.as_static());
     }
     if s.contains(':') {
         // `Path::push` treats `C:x` as a drive on Windows, and `a:b` names a stream.
-        return bad("a path source must not contain `:`");
+        return bad(SyncPhrase::PathColon.as_static());
     }
     if s.split('/').any(|segment| segment == "..") {
-        return bad("a path source must not contain a `..` segment");
+        return bad(SyncPhrase::PathDotDot.as_static());
     }
     if s.chars().next().is_none_or(char::is_whitespace) || s.contains(['\n', '\r']) {
-        return bad("a path source must start with a non-space character and fit on one line");
+        return bad(SyncPhrase::PathStart.as_static());
     }
     Ok(SourceKind::Path(s.to_owned()))
 }
@@ -420,56 +410,47 @@ impl Lockfile {
         if packs.len() > MAX_PACKS {
             return Err(LockError::new(
                 "/plugins",
-                format!("more than {MAX_PACKS} plugins"),
+                messages::too_many_plugins(MAX_PACKS),
             ));
         }
         let mut seen = HashSet::with_capacity(packs.len());
         for (i, pack) in packs.iter().enumerate() {
             let at = |key: &str| format!("/plugins/{i}/{key}");
             if pack.id.as_str() == crate::sign::RESERVED_ID {
-                return Err(LockError::new(
-                    at("id"),
-                    format!(
-                        "`{}` is reserved for the built-in plugin and is never locked",
-                        pack.id
-                    ),
-                ));
+                return Err(LockError::new(at("id"), messages::reserved(&pack.id)));
             }
             if !seen.insert(&pack.id) {
-                return Err(LockError::new(
-                    at("id"),
-                    format!("plugin id `{}` is locked twice", pack.id),
-                ));
+                return Err(LockError::new(at("id"), messages::locked_twice(&pack.id)));
             }
             if !pack.version.build.is_empty() {
                 return Err(LockError::new(
                     at("version"),
-                    format!("`{}` has build metadata", pack.version),
+                    messages::build_metadata(&pack.version),
                 ));
             }
             if pack.version.to_string().len() > MAX_STRING_BYTES {
                 return Err(LockError::new(
                     at("version"),
-                    format!("longer than {MAX_STRING_BYTES} bytes"),
+                    messages::version_too_long(MAX_STRING_BYTES),
                 ));
             }
             if !(1..=MAX_API_VERSION).contains(&pack.slopvac_api) {
                 return Err(LockError::new(
                     at("slopvac_api"),
-                    format!("must be between 1 and {MAX_API_VERSION}"),
+                    messages::api_range(MAX_API_VERSION),
                 ));
             }
             if pack.requires.len() > MAX_REQUIRES {
                 return Err(LockError::new(
                     at("requires"),
-                    format!("more than {MAX_REQUIRES} entries"),
+                    messages::too_many_requires(MAX_REQUIRES),
                 ));
             }
             let mut ids = HashSet::with_capacity(pack.requires.len());
             if let Some(j) = pack.requires.iter().position(|r| !ids.insert(r)) {
                 return Err(LockError::new(
                     format!("{}/{j}", at("requires")),
-                    format!("`{}` is listed twice", pack.requires[j]),
+                    messages::listed_twice(&pack.requires[j]),
                 ));
             }
         }
@@ -482,7 +463,7 @@ impl Lockfile {
         if lock.to_toml().len() > MAX_LOCK_BYTES {
             return Err(LockError::new(
                 "",
-                format!("the canonical text is larger than {MAX_LOCK_BYTES} bytes"),
+                messages::canonical_too_large(MAX_LOCK_BYTES),
             ));
         }
         Ok(lock)

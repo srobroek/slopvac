@@ -21,6 +21,7 @@ use slopvac_sanitize::line as esc;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::hooks::check_relative_path;
+use crate::messages::transport::{TransportPhrase, TransportText};
 
 /// Limits from the threat model, section 5.5.
 #[derive(Debug, Clone, Copy)]
@@ -87,10 +88,9 @@ impl NodeBudget {
     fn charge(&mut self, n: usize) -> Result<(), ExtractError> {
         self.used = self.used.saturating_add(n);
         if self.used > self.limit {
-            return Err(refused(format!(
-                "tree has more than {} files and directories",
-                self.limit
-            )));
+            return Err(refused(
+                TransportText::ExtractNodes { limit: self.limit }.to_string(),
+            ));
         }
         Ok(())
     }
@@ -135,13 +135,17 @@ impl ExtractError {
     #[must_use]
     pub fn unescaped(&self) -> String {
         match self {
-            Self::Refused(m) => format!("archive refused: {m}"),
-            Self::Malformed(m) => format!("archive is malformed: {m}"),
-            Self::Tampered { path } => format!(
-                "cached tree {} does not match its hash",
-                path.to_string_lossy()
-            ),
-            Self::Io { what, source } => format!("{what}: {source}"),
+            Self::Refused(m) => TransportText::ExtractRefused { detail: m.clone() }.to_string(),
+            Self::Malformed(m) => TransportText::ExtractMalformed { detail: m.clone() }.to_string(),
+            Self::Tampered { path } => TransportText::ExtractTampered {
+                path: path.to_string_lossy().into_owned(),
+            }
+            .to_string(),
+            Self::Io { what, source } => TransportText::ExtractIo {
+                what: what.clone(),
+                detail: source.to_string(),
+            }
+            .to_string(),
         }
     }
 }
@@ -186,7 +190,9 @@ impl TreeHash {
         if ok {
             Ok(Self(s.to_owned()))
         } else {
-            Err(refused(format!("`{s}` is not a sha256 tree hash")))
+            Err(refused(
+                TransportText::ExtractTreeHash { hash: s.to_owned() }.to_string(),
+            ))
         }
     }
 
@@ -294,10 +300,9 @@ impl<R: Read> Read for Counting<R> {
         let n = self.inner.read(buf)?;
         let total = self.seen.fetch_add(n as u64, Ordering::SeqCst) + n as u64;
         if total > self.limit {
-            return Err(io::Error::other(format!(
-                "compressed size exceeds {} bytes",
-                self.limit
-            )));
+            return Err(io::Error::other(
+                TransportText::ExtractCompressedSize { limit: self.limit }.to_string(),
+            ));
         }
         Ok(n)
     }
@@ -316,27 +321,40 @@ impl<R: Read> Read for Guarded<R> {
         let n = self.inner.read(buf)?;
         self.expanded += n as u64;
         if self.expanded > self.limits.expanded_bytes {
-            return Err(io::Error::other(format!(
-                "expanded size exceeds {} bytes",
-                self.limits.expanded_bytes
-            )));
+            return Err(io::Error::other(
+                TransportText::ExtractExpandedSize {
+                    limit: self.limits.expanded_bytes,
+                }
+                .to_string(),
+            ));
         }
         let comp = self.compressed.load(Ordering::SeqCst).max(1);
         if self.expanded > (1 << 20) && self.expanded / comp > self.limits.max_ratio {
-            return Err(io::Error::other(format!(
-                "compression ratio exceeds {} to 1",
-                self.limits.max_ratio
-            )));
+            return Err(io::Error::other(
+                TransportText::ExtractRatio {
+                    limit: self.limits.max_ratio,
+                }
+                .to_string(),
+            ));
         }
         Ok(n)
     }
 }
 
 fn normalise_entry_path(raw: &[u8]) -> Result<String, ExtractError> {
-    let s = std::str::from_utf8(raw).map_err(|_| refused("entry path is not UTF-8"))?;
+    let s = std::str::from_utf8(raw)
+        .map_err(|_| refused(TransportPhrase::ExtractPathUtf8.as_static()))?;
     let s = s.strip_prefix("./").unwrap_or(s);
     let s = s.strip_suffix('/').unwrap_or(s);
-    check_name(s).map_err(|e| refused(format!("entry path `{s}`: {e}")))?;
+    check_name(s).map_err(|e| {
+        refused(
+            TransportText::ExtractEntryPath {
+                path: s.to_owned(),
+                detail: e,
+            }
+            .to_string(),
+        )
+    })?;
     Ok(s.to_owned())
 }
 
@@ -353,7 +371,7 @@ fn normalised(dir: &Path) -> PathBuf {
 fn check_name(s: &str) -> Result<(), String> {
     check_relative_path(s)?;
     if s.contains(':') {
-        return Err("colon in path".into());
+        return Err(TransportPhrase::ExtractPathColon.as_static().into());
     }
     Ok(())
 }
@@ -370,7 +388,15 @@ fn claim(
         match names.get(key) {
             None => {}
             Some((orig, true)) if is_dir && orig == path => {}
-            Some((orig, _)) => return Err(refused(format!("`{path}` collides with `{orig}`"))),
+            Some((orig, _)) => {
+                return Err(refused(
+                    TransportText::ExtractCollision {
+                        path: path.to_owned(),
+                        existing: orig.clone(),
+                    }
+                    .to_string(),
+                ));
+            }
         }
     }
     for key in keys {
@@ -468,8 +494,18 @@ fn set_mode(path: &Path, mode: u32) -> io::Result<()> {
 /// its parent, and the store must live under a per-user location such as
 /// `%LOCALAPPDATA%`. This is a documented residual risk (CWE-732).
 pub(crate) fn ensure_private_dir(path: &Path) -> Result<(), ExtractError> {
-    fs::create_dir_all(path).map_err(io_err(format!("creating {}", path.display())))?;
-    set_mode(path, 0o700).map_err(io_err(format!("securing {}", path.display())))
+    fs::create_dir_all(path).map_err(io_err(
+        TransportText::ExtractCreating {
+            path: path.display().to_string(),
+        }
+        .to_string(),
+    ))?;
+    set_mode(path, 0o700).map_err(io_err(
+        TransportText::ExtractSecuring {
+            path: path.display().to_string(),
+        }
+        .to_string(),
+    ))
 }
 
 /// Create or reuse a directory the store owns (`.staging`) and restrict it to the
@@ -480,10 +516,23 @@ pub(crate) fn ensure_private_child(path: &Path) -> Result<(), ExtractError> {
     match fs::create_dir(path) {
         Ok(()) => {}
         Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {}
-        Err(e) => return Err(io_err(format!("creating {}", path.display()))(e)),
+        Err(e) => {
+            return Err(io_err(
+                TransportText::ExtractCreating {
+                    path: path.display().to_string(),
+                }
+                .to_string(),
+            )(e));
+        }
     }
-    let meta = inspect_private_child(path)?
-        .ok_or_else(|| refused(format!("{} vanished while securing it", path.display())))?;
+    let meta = inspect_private_child(path)?.ok_or_else(|| {
+        refused(
+            TransportText::ExtractVanished {
+                path: path.display().to_string(),
+            }
+            .to_string(),
+        )
+    })?;
     secure_checked(path, &meta)
 }
 
@@ -491,10 +540,12 @@ pub(crate) fn ensure_private_child(path: &Path) -> Result<(), ExtractError> {
 fn check_owner(path: &Path, meta: &fs::Metadata) -> Result<(), ExtractError> {
     use std::os::unix::fs::MetadataExt;
     if meta.uid() != rustix::process::getuid().as_raw() {
-        return Err(refused(format!(
-            "{} is owned by another user",
-            path.display()
-        )));
+        return Err(refused(
+            TransportText::ExtractOwner {
+                path: path.display().to_string(),
+            }
+            .to_string(),
+        ));
     }
     Ok(())
 }
@@ -512,13 +563,22 @@ fn inspect_private_child(path: &Path) -> Result<Option<fs::Metadata>, ExtractErr
     let meta = match fs::symlink_metadata(path) {
         Ok(m) => m,
         Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
-        Err(e) => return Err(io_err(format!("inspecting {}", path.display()))(e)),
+        Err(e) => {
+            return Err(io_err(
+                TransportText::ExtractInspecting {
+                    path: path.display().to_string(),
+                }
+                .to_string(),
+            )(e));
+        }
     };
     if !meta.is_dir() {
-        return Err(refused(format!(
-            "{} is a link or not a directory",
-            path.display()
-        )));
+        return Err(refused(
+            TransportText::ExtractDirectory {
+                path: path.display().to_string(),
+            }
+            .to_string(),
+        ));
     }
     check_owner(path, &meta)?;
     Ok(Some(meta))
@@ -530,20 +590,43 @@ fn secure_checked(path: &Path, meta: &fs::Metadata) -> Result<(), ExtractError> 
     check_owner(path, meta)?;
     // chmod through a handle, and make sure the handle is the directory that was
     // inspected, so a swap between the check and the open changes nothing.
-    let dir = File::open(path).map_err(io_err(format!("opening {}", path.display())))?;
-    let opened = dir
-        .metadata()
-        .map_err(io_err(format!("inspecting {}", path.display())))?;
+    let dir = File::open(path).map_err(io_err(
+        TransportText::ExtractOpening {
+            path: path.display().to_string(),
+        }
+        .to_string(),
+    ))?;
+    let opened = dir.metadata().map_err(io_err(
+        TransportText::ExtractInspecting {
+            path: path.display().to_string(),
+        }
+        .to_string(),
+    ))?;
     if (opened.dev(), opened.ino()) != (meta.dev(), meta.ino()) {
-        return Err(refused(format!("{} changed while opening", path.display())));
+        return Err(refused(
+            TransportText::ExtractChanged {
+                path: path.display().to_string(),
+            }
+            .to_string(),
+        ));
     }
     dir.set_permissions(fs::Permissions::from_mode(0o700))
-        .map_err(io_err(format!("securing {}", path.display())))
+        .map_err(io_err(
+            TransportText::ExtractSecuring {
+                path: path.display().to_string(),
+            }
+            .to_string(),
+        ))
 }
 
 #[cfg(not(unix))]
 fn secure_checked(path: &Path, _: &fs::Metadata) -> Result<(), ExtractError> {
-    set_mode(path, 0o700).map_err(io_err(format!("securing {}", path.display())))
+    set_mode(path, 0o700).map_err(io_err(
+        TransportText::ExtractSecuring {
+            path: path.display().to_string(),
+        }
+        .to_string(),
+    ))
 }
 
 /// Extract a `.tar.gz` stream into `store` and return the final tree.
@@ -569,9 +652,9 @@ pub fn extract_targz<S: std::hash::BuildHasher>(
     let staging = tempfile::Builder::new()
         .prefix("x-")
         .tempdir_in(&staging_parent)
-        .map_err(io_err("creating the staging directory"))?;
+        .map_err(io_err(TransportPhrase::ExtractCreateStaging.as_static()))?;
     let root = staging.path().join("tree");
-    fs::create_dir(&root).map_err(io_err("creating the tree directory"))?;
+    fs::create_dir(&root).map_err(io_err(TransportPhrase::ExtractCreateTree.as_static()))?;
 
     let result = unpack(archive, &root, store, executable, limits);
     // Discarded copies (a duplicate of a stored tree, or a failed install) can be
@@ -583,7 +666,7 @@ pub fn extract_targz<S: std::hash::BuildHasher>(
     };
     let closed = staging
         .close()
-        .map_err(io_err("removing the staging directory"));
+        .map_err(io_err(TransportPhrase::ExtractRemoveStaging.as_static()));
     let out = result?;
     leftover?;
     closed?;
@@ -627,9 +710,9 @@ impl StagedTree {
         let staging = tempfile::Builder::new()
             .prefix("x-")
             .tempdir_in(&staging_parent)
-            .map_err(io_err("creating the staging directory"))?;
+            .map_err(io_err(TransportPhrase::ExtractCreateStaging.as_static()))?;
         let root = staging.path().join("tree");
-        fs::create_dir(&root).map_err(io_err("creating the tree directory"))?;
+        fs::create_dir(&root).map_err(io_err(TransportPhrase::ExtractCreateTree.as_static()))?;
         Ok(Self {
             staging,
             root,
@@ -664,10 +747,12 @@ impl StagedTree {
         self.dirs.extend(parents);
         let target = self.root.join(&rel);
         if let Some(dir) = target.parent() {
-            fs::create_dir_all(dir).map_err(io_err("creating a directory"))?;
+            fs::create_dir_all(dir)
+                .map_err(io_err(TransportPhrase::ExtractCreateDirectory.as_static()))?;
         }
-        let mut out =
-            create_file(&target, executable).map_err(io_err(format!("creating `{rel}`")))?;
+        let mut out = create_file(&target, executable).map_err(io_err(
+            TransportText::ExtractCreatingFile { path: rel.clone() }.to_string(),
+        ))?;
         let (_, len) = hash_stream(content, Some(&mut out), &rel, None)?;
         self.bytes += len;
         self.files += 1;
@@ -708,7 +793,7 @@ impl StagedTree {
         let closed = self
             .staging
             .close()
-            .map_err(io_err("removing the staging directory"));
+            .map_err(io_err(TransportPhrase::ExtractRemoveStaging.as_static()));
         let (root, quarantined) = result?;
         leftover?;
         closed?;
@@ -722,6 +807,10 @@ impl StagedTree {
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "the catalog calls take more lines than the former literals; the body is unchanged"
+)]
 fn unpack<S: std::hash::BuildHasher>(
     archive: impl Read,
     root: &Path,
@@ -762,11 +851,16 @@ fn unpack<S: std::hash::BuildHasher>(
         let mut entry = entry.map_err(malformed)?;
         count += 1;
         if count > limits.entries {
-            return Err(refused(format!("more than {} entries", limits.entries)));
+            return Err(refused(
+                TransportText::ExtractEntries {
+                    limit: limits.entries,
+                }
+                .to_string(),
+            ));
         }
         let kind = entry.header().entry_type();
         if kind.is_gnu_sparse() {
-            return Err(refused("sparse entries are not accepted"));
+            return Err(refused(TransportPhrase::ExtractSparse.as_static()));
         }
         if kind.is_gnu_longname() {
             let mut name = read_meta(&mut entry)?;
@@ -784,9 +878,12 @@ fn unpack<S: std::hash::BuildHasher>(
         }
         let is_dir = kind.is_dir();
         if !(kind.is_file() || is_dir) {
-            return Err(refused(format!(
-                "entry type {kind:?} is not a regular file or directory"
-            )));
+            return Err(refused(
+                TransportText::ExtractEntryType {
+                    kind: format!("{kind:?}"),
+                }
+                .to_string(),
+            ));
         }
         let raw_name = pending_name
             .take()
@@ -809,7 +906,7 @@ fn unpack<S: std::hash::BuildHasher>(
     }
     if pending_name.is_some() {
         return Err(ExtractError::Malformed(
-            "a long name describes no entry".into(),
+            TransportPhrase::ExtractLongName.as_static().into(),
         ));
     }
     // Drain what follows the tar end marker so trailing data counts against the limits.
@@ -846,10 +943,12 @@ fn write_sidecar(
     }
     exec_paths.sort();
     let sidecar = sidecar_bytes(exec_paths);
-    let mut out = create_file(&root.join(EXEC_SIDECAR), false)
-        .map_err(io_err("creating the executable list"))?;
-    out.write_all(&sidecar)
-        .map_err(io_err("writing the executable list"))?;
+    let mut out = create_file(&root.join(EXEC_SIDECAR), false).map_err(io_err(
+        TransportPhrase::ExtractCreateExecutableList.as_static(),
+    ))?;
+    out.write_all(&sidecar).map_err(io_err(
+        TransportPhrase::ExtractWriteExecutableList.as_static(),
+    ))?;
     Ok(Some(FileRecord {
         path: EXEC_SIDECAR.to_owned(),
         executable: false,
@@ -864,11 +963,18 @@ fn pax_paths(block: &[u8]) -> Result<Vec<Vec<u8>>, ExtractError> {
     let mut paths = Vec::new();
     for ext in tar::PaxExtensions::new(block) {
         let ext = ext.map_err(|e| ExtractError::Malformed(e.to_string()))?;
-        let key = ext.key().map_err(|_| refused("PAX key is not UTF-8"))?;
+        let key = ext
+            .key()
+            .map_err(|_| refused(TransportPhrase::ExtractPaxUtf8.as_static()))?;
         if key == "path" {
             paths.push(ext.value_bytes().to_vec());
         } else if key == "size" || key.starts_with("GNU.sparse") {
-            return Err(refused(format!("PAX record `{key}` is not accepted")));
+            return Err(refused(
+                TransportText::ExtractPaxRecord {
+                    key: key.to_owned(),
+                }
+                .to_string(),
+            ));
         }
     }
     Ok(paths)
@@ -883,18 +989,21 @@ fn write_entry(
 ) -> Result<FileRecord, ExtractError> {
     let target = root.join(&rel);
     if let Some(dir) = target.parent() {
-        fs::create_dir_all(dir).map_err(io_err("creating a directory"))?;
+        fs::create_dir_all(dir)
+            .map_err(io_err(TransportPhrase::ExtractCreateDirectory.as_static()))?;
     }
-    let mut out = create_file(&target, exec).map_err(io_err(format!("creating `{rel}`")))?;
+    let mut out = create_file(&target, exec).map_err(io_err(
+        TransportText::ExtractCreatingFile { path: rel.clone() }.to_string(),
+    ))?;
     let declared = entry
         .header()
         .size()
         .map_err(|e| ExtractError::Malformed(e.to_string()))?;
     let (sha, len) = hash_stream(entry, Some(&mut out), &rel, None)?;
     if len != declared {
-        return Err(ExtractError::Malformed(format!(
-            "`{rel}` is shorter than its header says"
-        )));
+        return Err(ExtractError::Malformed(
+            TransportText::ExtractShortEntry { path: rel.clone() }.to_string(),
+        ));
     }
     Ok(FileRecord {
         path: rel,
@@ -915,7 +1024,7 @@ fn sidecar_bytes(sorted: &[String]) -> Vec<u8> {
 
 fn set_pending(slot: &mut Option<Vec<u8>>, name: Vec<u8>) -> Result<(), ExtractError> {
     if slot.replace(name).is_some() {
-        return Err(refused("two names describe the same entry"));
+        return Err(refused(TransportPhrase::ExtractTwoNames.as_static()));
     }
     Ok(())
 }
@@ -928,9 +1037,12 @@ fn read_meta(entry: &mut impl Read) -> Result<Vec<u8>, ExtractError> {
         .read_to_end(&mut buf)
         .map_err(|e| ExtractError::Malformed(e.to_string()))?;
     if buf.len() as u64 > MAX_META_BYTES {
-        return Err(refused(format!(
-            "extension header larger than {MAX_META_BYTES} bytes"
-        )));
+        return Err(refused(
+            TransportText::ExtractExtensionSize {
+                limit: MAX_META_BYTES,
+            }
+            .to_string(),
+        ));
     }
     Ok(buf)
 }
@@ -954,18 +1066,19 @@ fn install(
                 if let Evicted::Quarantined(aside) = evict(&final_dir)? {
                     quarantined = Some(aside);
                 }
-                fs::rename(root, &final_dir).map_err(io_err("storing the tree"))?;
+                fs::rename(root, &final_dir)
+                    .map_err(io_err(TransportPhrase::ExtractStoreTree.as_static()))?;
             }
         }
         Err(e) => {
             return Err(ExtractError::Io {
-                what: "storing the tree".into(),
+                what: TransportPhrase::ExtractStoreTree.as_static().into(),
                 source: e,
             });
         }
     }
     // Renaming a directory needs write access to it, so the root is sealed last.
-    set_mode(&final_dir, 0o555).map_err(io_err("sealing the tree"))?;
+    set_mode(&final_dir, 0o555).map_err(io_err(TransportPhrase::ExtractSealTree.as_static()))?;
     Ok((final_dir, quarantined))
 }
 
@@ -980,20 +1093,35 @@ fn hash_stream(
     let mut buf = vec![0u8; 64 * 1024];
     let mut len = 0u64;
     loop {
-        let n = src
-            .read(&mut buf)
-            .map_err(|e| ExtractError::Malformed(format!("`{what}`: {e}")))?;
+        let n = src.read(&mut buf).map_err(|e| {
+            ExtractError::Malformed(
+                TransportText::ExtractEntryRead {
+                    what: what.to_owned(),
+                    detail: e.to_string(),
+                }
+                .to_string(),
+            )
+        })?;
         if n == 0 {
             break;
         }
         hasher.update(&buf[..n]);
         if let Some(out) = sink.as_deref_mut() {
-            out.write_all(&buf[..n])
-                .map_err(io_err(format!("writing `{what}`")))?;
+            out.write_all(&buf[..n]).map_err(io_err(
+                TransportText::ExtractEntryWrite {
+                    what: what.to_owned(),
+                }
+                .to_string(),
+            ))?;
         }
         len += n as u64;
         if cap.is_some_and(|c| len > c) {
-            return Err(refused(format!("`{what}` is larger than allowed")));
+            return Err(refused(
+                TransportText::ExtractEntrySize {
+                    what: what.to_owned(),
+                }
+                .to_string(),
+            ));
         }
     }
     Ok((hasher.finalize().into(), len))
@@ -1002,13 +1130,18 @@ fn hash_stream(
 /// Make files read-only and directories non-writable, bottom-up. The base
 /// directory itself is left for the caller, which seals it last.
 fn seal(base: &Path, dir: &Path, exec: &HashSet<&str>) -> Result<(), ExtractError> {
-    for entry in fs::read_dir(dir).map_err(io_err("reading a directory"))? {
-        let entry = entry.map_err(io_err("reading a directory"))?;
+    for entry in
+        fs::read_dir(dir).map_err(io_err(TransportPhrase::ExtractReadDirectory.as_static()))?
+    {
+        let entry = entry.map_err(io_err(TransportPhrase::ExtractReadDirectory.as_static()))?;
         let path = entry.path();
-        let ty = entry.file_type().map_err(io_err("inspecting an entry"))?;
+        let ty = entry
+            .file_type()
+            .map_err(io_err(TransportPhrase::ExtractInspectEntry.as_static()))?;
         if ty.is_dir() {
             seal(base, &path, exec)?;
-            set_mode(&path, 0o555).map_err(io_err("sealing a directory"))?;
+            set_mode(&path, 0o555)
+                .map_err(io_err(TransportPhrase::ExtractSealDirectory.as_static()))?;
         } else {
             let rel = path
                 .strip_prefix(base)
@@ -1021,7 +1154,7 @@ fn seal(base: &Path, dir: &Path, exec: &HashSet<&str>) -> Result<(), ExtractErro
             } else {
                 0o444
             };
-            set_mode(&path, mode).map_err(io_err("sealing a file"))?;
+            set_mode(&path, mode).map_err(io_err(TransportPhrase::ExtractSealFile.as_static()))?;
         }
     }
     Ok(())
@@ -1069,7 +1202,7 @@ pub(crate) fn open_regular(path: &Path) -> io::Result<File> {
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            "not a regular file",
+            TransportPhrase::ExtractNotRegular.as_static(),
         ))
     }
 }
@@ -1108,15 +1241,20 @@ pub fn tree_hash(dir: &Path) -> Result<TreeHash, ExtractError> {
 ///
 /// The callback is the test seam for the single-read guarantee: a test rewrites the sidecar from
 /// it, and the result must still come from the bytes that were hashed.
+#[expect(
+    clippy::too_many_lines,
+    reason = "the catalog calls take more lines than the former literals; the body is unchanged"
+)]
 fn tree_hash_observed(
     dir: &Path,
     after_hash: &mut dyn FnMut(&str, &Path),
 ) -> Result<TreeHash, ExtractError> {
     let dir = normalised(dir);
     let dir = dir.as_path();
-    let root_meta = fs::symlink_metadata(dir).map_err(io_err("inspecting the tree root"))?;
+    let root_meta = fs::symlink_metadata(dir)
+        .map_err(io_err(TransportPhrase::ExtractInspectRoot.as_static()))?;
     if !root_meta.is_dir() {
-        return Err(refused("the tree root is a link or not a directory"));
+        return Err(refused(TransportPhrase::ExtractRootType.as_static()));
     }
     let mut files = Vec::new();
     let mut names: HashMap<String, (String, bool)> = HashMap::new();
@@ -1126,37 +1264,52 @@ fn tree_hash_observed(
     let mut sidecar: Option<Vec<u8>> = None;
     let mut on_disk_exec: HashSet<String> = HashSet::new();
     while let Some((path, prefix)) = stack.pop() {
-        for entry in fs::read_dir(&path).map_err(io_err("reading a directory"))? {
-            let entry = entry.map_err(io_err("reading a directory"))?;
+        for entry in fs::read_dir(&path)
+            .map_err(io_err(TransportPhrase::ExtractReadDirectory.as_static()))?
+        {
+            let entry = entry.map_err(io_err(TransportPhrase::ExtractReadDirectory.as_static()))?;
             nodes.charge(1)?;
             let name = entry
                 .file_name()
                 .into_string()
-                .map_err(|_| refused("a file name is not UTF-8"))?;
+                .map_err(|_| refused(TransportPhrase::ExtractNameUtf8.as_static()))?;
             let rel = if prefix.is_empty() {
                 name
             } else {
                 format!("{prefix}/{name}")
             };
-            check_name(&rel).map_err(|e| refused(format!("`{rel}`: {e}")))?;
+            check_name(&rel).map_err(|e| {
+                refused(
+                    TransportText::ExtractPath {
+                        path: rel.clone(),
+                        detail: e,
+                    }
+                    .to_string(),
+                )
+            })?;
             let child = entry.path();
-            let meta = fs::symlink_metadata(&child).map_err(io_err("inspecting an entry"))?;
+            let meta = fs::symlink_metadata(&child)
+                .map_err(io_err(TransportPhrase::ExtractInspectEntry.as_static()))?;
             if meta.is_dir() {
                 claim(&mut names, &rel, true)?;
                 stack.push((child, rel));
             } else if meta.is_file() {
                 claim(&mut names, &rel, false)?;
                 if meta.len() > budget {
-                    return Err(refused(format!("`{rel}` exceeds the tree size bound")));
+                    return Err(refused(
+                        TransportText::ExtractTreeSize { path: rel.clone() }.to_string(),
+                    ));
                 }
                 if is_executable(&child) {
                     on_disk_exec.insert(rel.clone());
                 }
                 let mut f = open_regular(&child).map_err(|e| {
                     if e.kind() == io::ErrorKind::InvalidInput {
-                        refused(format!("`{rel}` is not a regular file"))
+                        refused(TransportText::ExtractFileType { path: rel.clone() }.to_string())
                     } else {
-                        io_err(format!("reading `{rel}`"))(e)
+                        io_err(TransportText::ExtractReadingFile { path: rel.clone() }.to_string())(
+                            e,
+                        )
                     }
                 })?;
                 let (sha, len) = if rel == EXEC_SIDECAR {
@@ -1179,7 +1332,9 @@ fn tree_hash_observed(
                     len,
                 });
             } else {
-                return Err(refused(format!("`{rel}` is a link or special file")));
+                return Err(refused(
+                    TransportText::ExtractSpecialFile { path: rel.clone() }.to_string(),
+                ));
             }
         }
     }
@@ -1191,10 +1346,12 @@ fn tree_hash_observed(
         for f in &files {
             let on_disk = on_disk_exec.contains(f.path.as_str());
             if on_disk && !f.executable {
-                return Err(refused("a file has the executable bit but is not listed"));
+                return Err(refused(
+                    TransportPhrase::ExtractExecutableUnlisted.as_static(),
+                ));
             }
             if !on_disk && f.executable {
-                return Err(refused("a listed file lost its executable bit"));
+                return Err(refused(TransportPhrase::ExtractExecutableBit.as_static()));
             }
         }
     }
@@ -1217,21 +1374,23 @@ fn mark_executables(bytes: &[u8], files: &mut [FileRecord]) -> Result<(), Extrac
         let n = (&mut reader)
             .take(MAX_SIDECAR_LINE)
             .read_until(b'\n', &mut line)
-            .map_err(io_err("reading the executable list"))?;
+            .map_err(io_err(
+                TransportPhrase::ExtractReadExecutableList.as_static(),
+            ))?;
         if n == 0 {
             return Ok(());
         }
         if line.pop() != Some(b'\n') {
-            return Err(refused("the executable list has a bad line"));
+            return Err(refused(TransportPhrase::ExtractExecutableLine.as_static()));
         }
         if !previous.is_empty() && line <= previous {
-            return Err(refused("the executable list is not sorted and unique"));
+            return Err(refused(TransportPhrase::ExtractExecutableOrder.as_static()));
         }
         let idx = files
             .binary_search_by(|r| r.path.as_bytes().cmp(line.as_slice()))
-            .map_err(|_| refused("the executable list names a missing file"))?;
+            .map_err(|_| refused(TransportPhrase::ExtractExecutableMissing.as_static()))?;
         if files[idx].path == EXEC_SIDECAR {
-            return Err(refused("the executable list names itself"));
+            return Err(refused(TransportPhrase::ExtractExecutableSelf.as_static()));
         }
         files[idx].executable = true;
         std::mem::swap(&mut previous, &mut line);
@@ -1309,7 +1468,10 @@ fn remove_tree(dir: &Path) -> Result<(), ExtractError> {
         Ok(()) => Ok(()),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(()),
         Err(e) => Err(ExtractError::Io {
-            what: format!("removing {}", dir.display()),
+            what: TransportText::ExtractRemoving {
+                path: dir.display().to_string(),
+            }
+            .to_string(),
             source: e,
         }),
     }
@@ -1329,10 +1491,12 @@ fn quarantine(dir: &Path) -> Result<PathBuf, ExtractError> {
         std::process::id(),
         SERIAL.fetch_add(1, Ordering::Relaxed)
     ));
-    fs::rename(dir, &aside).map_err(io_err(format!(
-        "quarantining {} (too many entries to remove)",
-        dir.display()
-    )))?;
+    fs::rename(dir, &aside).map_err(io_err(
+        TransportText::ExtractQuarantining {
+            path: dir.display().to_string(),
+        }
+        .to_string(),
+    ))?;
     Ok(aside)
 }
 

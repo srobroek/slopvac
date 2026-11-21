@@ -12,6 +12,7 @@ use crate::hooks::{
     parse_rendered, parse_score, parse_segments, parse_tags,
 };
 use crate::host::Plugin;
+use crate::messages::host::HostText;
 use crate::protocol::HookKind;
 
 /// The outcome for one document of a batch.
@@ -114,7 +115,14 @@ impl Plugin {
             .iter()
             .map(|d| serde_json::to_vec(d).map(|v| v.len()))
             .collect::<Result<_, _>>()
-            .map_err(|e| PluginError::Usage(format!("cannot encode a document: {e}")))?;
+            .map_err(|e| {
+                PluginError::Usage(
+                    HostText::EncodeDocument {
+                        error: e.to_string(),
+                    }
+                    .to_string(),
+                )
+            })?;
         let empty = json!({"jsonrpc": "2.0", "id": 9_007_199_254_740_991u64, "method": kind.method(),
             "params": {key: hook_id, "documents": []}});
         let overhead = serde_json::to_vec(&empty).map_or(0, |v| v.len());
@@ -128,10 +136,12 @@ impl Plugin {
         for &i in &oversize {
             out[i] = Some(DocOutcome {
                 id: docs[i].document().id.clone(),
-                outcome: Err(PluginError::MessageTooLarge(format!(
-                    "document `{}` exceeds the message limit",
-                    docs[i].document().id
-                ))),
+                outcome: Err(PluginError::MessageTooLarge(
+                    HostText::DocumentTooLarge {
+                        id: docs[i].document().id.clone(),
+                    }
+                    .to_string(),
+                )),
             });
         }
         for range in batches {

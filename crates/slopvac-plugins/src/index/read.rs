@@ -14,6 +14,40 @@ use serde::Deserialize;
 use serde::de::{self, DeserializeSeed, Deserializer, IgnoredAny, MapAccess, SeqAccess, Visitor};
 
 use super::model::{IndexEntry, IndexError, MAX_ENTRIES, MAX_INDEX_BYTES, PackKind, PublisherKey};
+use crate::messages::pyenv::{PyenvPhrase, PyenvText};
+
+/// `RepeatedKey` for `key`.
+fn repeated(key: &str) -> String {
+    PyenvText::RepeatedKey {
+        key: key.to_owned(),
+    }
+    .to_string()
+}
+
+/// `UnknownKey` for `key`.
+fn unknown(key: &str) -> String {
+    PyenvText::UnknownKey {
+        key: key.to_owned(),
+    }
+    .to_string()
+}
+
+/// `MissingKey` for `key`.
+fn missing_key(key: &str) -> String {
+    PyenvText::MissingKey {
+        key: key.to_owned(),
+    }
+    .to_string()
+}
+
+/// `KeyMustBe` for `key` and the type it must have.
+fn key_must_be(key: &str, what: &str) -> String {
+    PyenvText::KeyMustBe {
+        key: key.to_owned(),
+        what: what.to_owned(),
+    }
+    .to_string()
+}
 
 #[derive(Default)]
 struct Ctx {
@@ -44,10 +78,11 @@ pub(super) fn read(bytes: &[u8]) -> Result<Vec<IndexEntry>, IndexError> {
     if bytes.len() > MAX_INDEX_BYTES {
         return Err(IndexError::new(
             "",
-            format!(
-                "the index is {} bytes; the limit is {MAX_INDEX_BYTES}",
-                bytes.len()
-            ),
+            PyenvText::IndexTooBig {
+                size: bytes.len(),
+                limit: MAX_INDEX_BYTES,
+            }
+            .to_string(),
         ));
     }
     let ctx = Ctx::default();
@@ -57,7 +92,15 @@ pub(super) fn read(bytes: &[u8]) -> Result<Vec<IndexEntry>, IndexError> {
         .and_then(|packs| de.end().map(|()| packs));
     result.map_err(|e| {
         let recorded = ctx.error.borrow_mut().take();
-        recorded.unwrap_or_else(|| IndexError::new("", format!("not valid JSON: {e}")))
+        recorded.unwrap_or_else(|| {
+            IndexError::new(
+                "",
+                PyenvText::NotJson {
+                    reason: e.to_string(),
+                }
+                .to_string(),
+            )
+        })
     })
 }
 
@@ -72,7 +115,7 @@ impl<'de> Deserialize<'de> for Whole {
             type Value = Whole;
 
             fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                f.write_str("a non-negative whole number")
+                f.write_str(PyenvPhrase::ExpectWhole.as_static())
             }
 
             fn visit_u64<E: de::Error>(self, v: u64) -> Result<Whole, E> {
@@ -82,7 +125,7 @@ impl<'de> Deserialize<'de> for Whole {
             fn visit_i64<E: de::Error>(self, v: i64) -> Result<Whole, E> {
                 u64::try_from(v)
                     .map(Whole)
-                    .map_err(|_| E::custom("negative number"))
+                    .map_err(|_| E::custom(PyenvPhrase::NegativeNumber.as_static()))
             }
 
             #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -91,7 +134,7 @@ impl<'de> Deserialize<'de> for Whole {
                 if v.fract() == 0.0 && (0.0..=9_007_199_254_740_992.0).contains(&v) {
                     Ok(Whole(v as u64))
                 } else {
-                    Err(E::custom("not a whole number"))
+                    Err(E::custom(PyenvPhrase::NotWholeNumber.as_static()))
                 }
             }
         }
@@ -115,7 +158,7 @@ impl<'de> Visitor<'de> for RootSeed<'_> {
     type Value = Vec<IndexEntry>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("an index document (a JSON object)")
+        f.write_str(PyenvPhrase::ExpectIndexDocument.as_static())
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Self::Value, A::Error> {
@@ -126,35 +169,44 @@ impl<'de> Visitor<'de> for RootSeed<'_> {
             match key.as_str() {
                 "schema_version" => {
                     if schema_version {
-                        return Err(ctx.fail("", "repeated key `schema_version`"));
+                        return Err(ctx.fail("", repeated("schema_version")));
                     }
-                    let n = map
-                        .next_value::<Whole>()
-                        .map_err(|e| ctx.typed(e, "/schema_version", "schema_version must be 3"))?;
+                    let n = map.next_value::<Whole>().map_err(|e| {
+                        ctx.typed(
+                            e,
+                            "/schema_version",
+                            PyenvPhrase::SchemaVersionMustBe3.as_static(),
+                        )
+                    })?;
                     if n.0 != 3 {
-                        return Err(ctx.fail("/schema_version", "schema_version must be 3"));
+                        return Err(ctx.fail(
+                            "/schema_version",
+                            PyenvPhrase::SchemaVersionMustBe3.as_static(),
+                        ));
                     }
                     schema_version = true;
                 }
                 "plugins" => {
                     if packs.is_some() {
-                        return Err(ctx.fail("", "repeated key `plugins`"));
+                        return Err(ctx.fail("", repeated("plugins")));
                     }
-                    packs = Some(
-                        map.next_value_seed(PacksSeed { ctx })
-                            .map_err(|e| ctx.typed(e, "/plugins", "plugins must be an array"))?,
-                    );
+                    packs = Some(map.next_value_seed(PacksSeed { ctx }).map_err(|e| {
+                        ctx.typed(e, "/plugins", PyenvPhrase::PluginsMustBeArray.as_static())
+                    })?);
                 }
                 k if k.starts_with("x-") => {
                     map.next_value::<IgnoredAny>()?;
                 }
-                _ => return Err(ctx.fail("", format!("unknown key `{key}`"))),
+                _ => return Err(ctx.fail("", unknown(&key))),
             }
         }
         if !schema_version {
-            return Err(ctx.fail("/schema_version", "schema_version is required"));
+            return Err(ctx.fail(
+                "/schema_version",
+                PyenvPhrase::SchemaVersionRequired.as_static(),
+            ));
         }
-        packs.ok_or_else(|| ctx.fail("/plugins", "plugins is required"))
+        packs.ok_or_else(|| ctx.fail("/plugins", PyenvPhrase::PluginsRequired.as_static()))
     }
 }
 
@@ -174,7 +226,7 @@ impl<'de> Visitor<'de> for PacksSeed<'_> {
     type Value = Vec<IndexEntry>;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("an array of entries")
+        f.write_str(PyenvPhrase::ExpectEntries.as_static())
     }
 
     fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
@@ -184,14 +236,17 @@ impl<'de> Visitor<'de> for PacksSeed<'_> {
             if packs.len() == MAX_ENTRIES {
                 // One more element, skipped without allocating, proves an excess.
                 if seq.next_element::<IgnoredAny>()?.is_some() {
-                    return Err(ctx.fail("/plugins", format!("more than {MAX_ENTRIES} entries")));
+                    return Err(ctx.fail(
+                        "/plugins",
+                        PyenvText::TooManyIndexEntries { max: MAX_ENTRIES }.to_string(),
+                    ));
                 }
                 break;
             }
             let at = format!("/plugins/{}", packs.len());
             let next = seq
                 .next_element_seed(EntrySeed { ctx, at: &at })
-                .map_err(|e| ctx.typed(e, &at, "an entry must be an object"))?;
+                .map_err(|e| ctx.typed(e, &at, PyenvPhrase::EntryMustBeObject.as_static()))?;
             match next {
                 Some(entry) => packs.push(entry),
                 None => break,
@@ -210,11 +265,11 @@ fn read_value<'de, A: MapAccess<'de>, T: Deserialize<'de>>(
     what: &str,
 ) -> Result<(), A::Error> {
     if slot.is_some() {
-        return Err(ctx.fail(at, format!("repeated key `{key}`")));
+        return Err(ctx.fail(at, repeated(key)));
     }
     let value = map
         .next_value::<T>()
-        .map_err(|e| ctx.typed(e, &format!("{at}/{key}"), format!("`{key}` must be {what}")))?;
+        .map_err(|e| ctx.typed(e, &format!("{at}/{key}"), key_must_be(key, what)))?;
     *slot = Some(value);
     Ok(())
 }
@@ -236,7 +291,7 @@ impl<'de> Visitor<'de> for EntrySeed<'_> {
     type Value = IndexEntry;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("an entry (a JSON object)")
+        f.write_str(PyenvPhrase::ExpectEntry.as_static())
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<IndexEntry, A::Error> {
@@ -250,7 +305,7 @@ impl<'de> Visitor<'de> for EntrySeed<'_> {
         let (mut version, mut kind, mut source) = (None::<String>, None::<String>, None::<String>);
         let (mut api, mut publisher_key) = (None::<Whole>, None);
         while let Some(key) = map.next_key::<String>()? {
-            let string = "a string";
+            let string = PyenvPhrase::AString.as_static();
             match key.as_str() {
                 "id" => read_value(ctx, &mut map, &mut id, at, "id", string)?,
                 "namespace" => read_value(ctx, &mut map, &mut namespace, at, "namespace", string)?,
@@ -267,27 +322,31 @@ impl<'de> Visitor<'de> for EntrySeed<'_> {
                     &mut api,
                     at,
                     "slopvac_api",
-                    "a positive whole number",
+                    PyenvPhrase::APositiveWhole.as_static(),
                 )?,
                 "publisher_key" => {
                     if publisher_key.is_some() {
-                        return Err(ctx.fail(at, "repeated key `publisher_key`"));
+                        return Err(ctx.fail(at, repeated("publisher_key")));
                     }
                     let key_at = format!("{at}/publisher_key");
                     publisher_key = Some(
                         map.next_value_seed(KeySeed { ctx, at: &key_at })
                             .map_err(|e| {
-                                ctx.typed(e, &key_at, "publisher_key must be an object")
+                                ctx.typed(
+                                    e,
+                                    &key_at,
+                                    PyenvPhrase::PublisherKeyMustBeObject.as_static(),
+                                )
                             })?,
                     );
                 }
                 k if k.starts_with("x-") => {
                     map.next_value::<IgnoredAny>()?;
                 }
-                _ => return Err(ctx.fail(at, format!("unknown key `{key}`"))),
+                _ => return Err(ctx.fail(at, unknown(&key))),
             }
         }
-        let missing = |key: &str| ctx.fail(at, format!("missing key `{key}`"));
+        let missing = |key: &str| ctx.fail(at, missing_key(key));
         let version_text = version.ok_or_else(|| missing("version"))?;
         let kind_text = kind.ok_or_else(|| missing("kind"))?;
         let entry = IndexEntry {
@@ -296,7 +355,14 @@ impl<'de> Visitor<'de> for EntrySeed<'_> {
             name: name.ok_or_else(|| missing("name"))?,
             description: description.ok_or_else(|| missing("description"))?,
             version: Version::parse(&version_text).map_err(|e| {
-                ctx.fail(&format!("{at}/version"), format!("`{version_text}`: {e}"))
+                ctx.fail(
+                    &format!("{at}/version"),
+                    PyenvText::VersionInvalid {
+                        version: version_text.clone(),
+                        reason: e.to_string(),
+                    }
+                    .to_string(),
+                )
             })?,
             kind: match kind_text.as_str() {
                 "data" => PackKind::Data,
@@ -304,7 +370,10 @@ impl<'de> Visitor<'de> for EntrySeed<'_> {
                 other => {
                     return Err(ctx.fail(
                         &format!("{at}/kind"),
-                        format!("`{other}` is not a plugin kind (`data` or `code`)"),
+                        PyenvText::KindInvalid {
+                            kind: other.to_owned(),
+                        }
+                        .to_string(),
                     ));
                 }
             },
@@ -333,7 +402,7 @@ impl<'de> Visitor<'de> for KeySeed<'_> {
     type Value = PublisherKey;
 
     fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("a publisher key (a JSON object)")
+        f.write_str(PyenvPhrase::ExpectPublisherKey.as_static())
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<PublisherKey, A::Error> {
@@ -341,7 +410,14 @@ impl<'de> Visitor<'de> for KeySeed<'_> {
         let (mut key_id, mut fingerprint) = (None::<String>, None::<String>);
         while let Some(key) = map.next_key::<String>()? {
             match key.as_str() {
-                "key_id" => read_value(ctx, &mut map, &mut key_id, at, "key_id", "a string")?,
+                "key_id" => read_value(
+                    ctx,
+                    &mut map,
+                    &mut key_id,
+                    at,
+                    "key_id",
+                    PyenvPhrase::AString.as_static(),
+                )?,
                 "fingerprint" => {
                     read_value(
                         ctx,
@@ -349,16 +425,16 @@ impl<'de> Visitor<'de> for KeySeed<'_> {
                         &mut fingerprint,
                         at,
                         "fingerprint",
-                        "a string",
+                        PyenvPhrase::AString.as_static(),
                     )?;
                 }
                 k if k.starts_with("x-") => {
                     map.next_value::<IgnoredAny>()?;
                 }
-                _ => return Err(ctx.fail(at, format!("unknown key `{key}`"))),
+                _ => return Err(ctx.fail(at, unknown(&key))),
             }
         }
-        let missing = |key: &str| ctx.fail(at, format!("missing key `{key}`"));
+        let missing = |key: &str| ctx.fail(at, missing_key(key));
         Ok(PublisherKey {
             key_id: key_id.ok_or_else(|| missing("key_id"))?,
             fingerprint: fingerprint.ok_or_else(|| missing("fingerprint"))?,

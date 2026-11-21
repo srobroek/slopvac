@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::{PluginError, RpcError};
+use crate::messages::host::{HostPhrase, HostText};
 
 /// Most edits a fixer may return for one document (threat model section 5.5).
 pub const MAX_EDITS_PER_DOCUMENT: usize = 1000;
@@ -209,16 +210,16 @@ pub fn parse_error_object(v: &Value) -> Result<RpcError, PluginError> {
     let code = v
         .get("code")
         .and_then(Value::as_i64)
-        .ok_or_else(|| invalid("error.code is missing or not an integer"))?;
+        .ok_or_else(|| invalid(HostPhrase::ErrorCodeMissing.as_static()))?;
     let message = v
         .get("message")
         .and_then(Value::as_str)
-        .ok_or_else(|| invalid("error.message is missing"))?;
+        .ok_or_else(|| invalid(HostPhrase::ErrorMessageMissing.as_static()))?;
     let slopvac_code = v
         .pointer("/data/slopvac_code")
         .and_then(Value::as_str)
         .filter(|s| is_slopvac_code(s))
-        .ok_or_else(|| invalid("error.data.slopvac_code is missing or not kebab-case"))?;
+        .ok_or_else(|| invalid(HostPhrase::ErrorPluginCode.as_static()))?;
     Ok(RpcError {
         code,
         message: message.to_owned(),
@@ -255,28 +256,38 @@ pub fn match_entries<'a>(
     let entries = result
         .get("results")
         .and_then(Value::as_array)
-        .ok_or_else(|| invalid("`results` is missing or not an array"))?;
+        .ok_or_else(|| invalid(HostPhrase::ResultsMissing.as_static()))?;
     let mut by_id: HashMap<&str, &Value> = HashMap::new();
     for e in entries {
-        let id = e
-            .get(key)
-            .and_then(Value::as_str)
-            .ok_or_else(|| invalid(format!("a result entry has no string `{key}`")))?;
+        let id = e.get(key).and_then(Value::as_str).ok_or_else(|| {
+            invalid(
+                HostText::EntryKeyMissing {
+                    key: key.to_owned(),
+                }
+                .to_string(),
+            )
+        })?;
         if !sent.contains(&id) {
-            return Err(invalid(format!(
-                "result for `{id}`, which was not requested"
-            )));
+            return Err(invalid(
+                HostText::ResultNotRequested { id: id.to_owned() }.to_string(),
+            ));
         }
         if by_id.insert(id, e).is_some() {
-            return Err(invalid(format!("duplicate result for `{id}`")));
+            return Err(invalid(
+                HostText::ResultDuplicate { id: id.to_owned() }.to_string(),
+            ));
         }
     }
     sent.iter()
         .map(|id| {
-            by_id
-                .get(id)
-                .copied()
-                .ok_or_else(|| invalid(format!("no result for `{id}`")))
+            by_id.get(id).copied().ok_or_else(|| {
+                invalid(
+                    HostText::ResultMissing {
+                        id: (*id).to_owned(),
+                    }
+                    .to_string(),
+                )
+            })
         })
         .collect()
 }
@@ -285,12 +296,25 @@ fn array_of<'a>(entry: &'a Value, field: &str) -> Result<&'a [Value], PluginErro
     match entry.get(field) {
         None => Ok(&[]),
         Some(Value::Array(a)) => Ok(a),
-        Some(_) => Err(invalid(format!("`{field}` is not an array"))),
+        Some(_) => Err(invalid(
+            HostText::FieldNotArray {
+                field: field.to_owned(),
+            }
+            .to_string(),
+        )),
     }
 }
 
 fn from<T: for<'de> Deserialize<'de>>(v: &Value, what: &str) -> Result<T, PluginError> {
-    T::deserialize(v).map_err(|e| invalid(format!("{what}: {e}")))
+    T::deserialize(v).map_err(|e| {
+        invalid(
+            HostText::ParseFailed {
+                what: what.to_owned(),
+                error: e.to_string(),
+            }
+            .to_string(),
+        )
+    })
 }
 
 /// Parse and check the tags of one document entry.
@@ -303,18 +327,18 @@ pub fn parse_tags(entry: &Value, text: &str) -> Result<Vec<Tag>, PluginError> {
         .map(|v| {
             let tag: Tag = from(v, "tag")?;
             if !is_kebab(&tag.kind) {
-                return Err(invalid(format!(
-                    "tag kind `{}` is not kebab-case",
-                    tag.kind
-                )));
-            }
-            if !tag.span.fits(text) {
                 return Err(invalid(
-                    "tag span is outside the text or inside a character",
+                    HostText::TagKind {
+                        kind: tag.kind.clone(),
+                    }
+                    .to_string(),
                 ));
             }
+            if !tag.span.fits(text) {
+                return Err(invalid(HostPhrase::TagSpan.as_static()));
+            }
             if !(0.0..=1.0).contains(&tag.confidence) {
-                return Err(invalid("tag confidence is outside 0..=1"));
+                return Err(invalid(HostPhrase::TagConfidence.as_static()));
             }
             Ok(tag)
         })
@@ -331,12 +355,10 @@ pub fn parse_segments(entry: &Value, text: &str) -> Result<Vec<Segment>, PluginE
         .map(|v| {
             let seg: Segment = from(v, "segment")?;
             if !is_kebab(&seg.context) {
-                return Err(invalid("segment context is not kebab-case"));
+                return Err(invalid(HostPhrase::SegmentContext.as_static()));
             }
             if !seg.span.fits(text) {
-                return Err(invalid(
-                    "segment span is outside the text or inside a character",
-                ));
+                return Err(invalid(HostPhrase::SegmentSpan.as_static()));
             }
             Ok(seg)
         })
@@ -351,11 +373,13 @@ pub fn parse_score(entry: &Value) -> Result<Option<f64>, PluginError> {
     match entry.get("score") {
         None => Ok(None),
         Some(v) => {
-            let s = v.as_f64().ok_or_else(|| invalid("score is not a number"))?;
+            let s = v
+                .as_f64()
+                .ok_or_else(|| invalid(HostPhrase::ScoreNotNumber.as_static()))?;
             if s.is_finite() && s >= 0.0 {
                 Ok(Some(s))
             } else {
-                Err(invalid("score is negative"))
+                Err(invalid(HostPhrase::ScoreNegative.as_static()))
             }
         }
     }
@@ -377,10 +401,13 @@ pub fn parse_edits(
 ) -> Result<Vec<FixEdit>, PluginError> {
     let raw = array_of(entry, "edits")?;
     if raw.len() > MAX_EDITS_PER_DOCUMENT {
-        return Err(invalid(format!(
-            "{} edits exceed the limit of {MAX_EDITS_PER_DOCUMENT}",
-            raw.len()
-        )));
+        return Err(invalid(
+            HostText::EditsExceed {
+                count: raw.len(),
+                max: MAX_EDITS_PER_DOCUMENT,
+            }
+            .to_string(),
+        ));
     }
     let edits: Vec<FixEdit> = raw
         .iter()
@@ -391,15 +418,17 @@ pub fn parse_edits(
             .ok()
             .filter(|&i| i < findings.len());
         let Some(idx) = idx else {
-            return Err(invalid(format!("edit names missing finding {}", e.finding)));
+            return Err(invalid(
+                HostText::EditMissingFinding { finding: e.finding }.to_string(),
+            ));
         };
         if !e.span.fits(text) {
-            return Err(invalid(
-                "edit span is outside the text or inside a character",
-            ));
+            return Err(invalid(HostPhrase::EditSpan.as_static()));
         }
         if !findings[idx].span.contains(&e.span) {
-            return Err(invalid(format!("edit lies outside finding {idx}")));
+            return Err(invalid(
+                HostText::EditOutsideFinding { index: idx }.to_string(),
+            ));
         }
     }
     let mut order: Vec<&FixEdit> = edits.iter().collect();
@@ -407,7 +436,7 @@ pub fn parse_edits(
     for pair in order.windows(2) {
         let (a, b) = (pair[0].span, pair[1].span);
         if a.end > b.start {
-            return Err(invalid("edits overlap"));
+            return Err(invalid(HostPhrase::EditsOverlap.as_static()));
         }
     }
     let span_bytes: u64 = findings
@@ -421,9 +450,9 @@ pub fn parse_edits(
         .min(MAX_INSERTED_BYTES);
     let inserted: usize = edits.iter().map(|e| e.text.len()).sum();
     if inserted > cap {
-        return Err(invalid(format!(
-            "{inserted} inserted bytes exceed the cap of {cap}"
-        )));
+        return Err(invalid(
+            HostText::InsertedExceed { inserted, cap }.to_string(),
+        ));
     }
     Ok(edits)
 }
@@ -457,9 +486,7 @@ pub fn parse_completions(
                 .and_then(Value::as_str)
                 .filter(|m| !m.is_empty());
             let (Some(text), Some(model)) = (text, model) else {
-                return Err(invalid(
-                    "a provider entry without `error` needs `text` and `model`",
-                ));
+                return Err(invalid(HostPhrase::ProviderEntry.as_static()));
             };
             let item = e.get("item").and_then(Value::as_str).unwrap_or_default();
             Ok(Ok(Completion {
@@ -509,41 +536,50 @@ const WINDOWS_RESERVED: [&str; 28] = [
 /// The reason the path is refused.
 pub fn check_relative_path(p: &str) -> Result<(), String> {
     if p.is_empty() {
-        return Err("empty path".into());
+        return Err(HostPhrase::PathEmpty.as_static().into());
     }
     if p.len() > 1024 {
-        return Err("path longer than 1024 bytes".into());
+        return Err(HostPhrase::PathTooLong.as_static().into());
     }
     if p.starts_with('/') || p.contains('\\') {
-        return Err("absolute path or backslash".into());
+        return Err(HostPhrase::PathAbsolute.as_static().into());
     }
     if p.chars().any(char::is_control) {
-        return Err("control character in path".into());
+        return Err(HostPhrase::PathControl.as_static().into());
     }
     let bytes = p.as_bytes();
     if bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' {
-        return Err("drive letter".into());
+        return Err(HostPhrase::PathDrive.as_static().into());
     }
     if let Some(c) = p
         .chars()
         .find(|c| matches!(c, ':' | '<' | '>' | '"' | '|' | '?' | '*'))
     {
-        return Err(format!("character `{c}` is reserved on Windows"));
+        return Err(HostText::PathReservedChar {
+            character: c.to_string(),
+        }
+        .to_string());
     }
     let segments: Vec<&str> = p.split('/').collect();
     if segments.len() > 32 {
-        return Err("more than 32 path segments".into());
+        return Err(HostPhrase::PathSegments.as_static().into());
     }
     for seg in segments {
         if seg.is_empty() || seg == "." || seg == ".." {
-            return Err(format!("segment `{seg}` is not a normal name"));
+            return Err(HostText::SegmentNotNormal {
+                segment: seg.to_owned(),
+            }
+            .to_string());
         }
         if seg.ends_with('.') || seg.ends_with(' ') {
-            return Err("segment ends in a dot or space".into());
+            return Err(HostPhrase::SegmentDotSpace.as_static().into());
         }
         let stem = seg.split('.').next().unwrap_or(seg).to_ascii_lowercase();
         if WINDOWS_RESERVED.contains(&stem.as_str()) {
-            return Err(format!("reserved name `{seg}`"));
+            return Err(HostText::ReservedName {
+                segment: seg.to_owned(),
+            }
+            .to_string());
         }
     }
     Ok(())
@@ -557,20 +593,37 @@ pub fn parse_recipe(result: &Value) -> Result<Vec<RecipeFile>, PluginError> {
     let files = result
         .get("files")
         .and_then(Value::as_array)
-        .ok_or_else(|| invalid("`files` is missing or not an array"))?;
+        .ok_or_else(|| invalid(HostPhrase::FilesMissing.as_static()))?;
     let mut seen = HashSet::new();
     files
         .iter()
         .map(|v| {
             let f: RecipeFile = from(v, "recipe file")?;
-            check_relative_path(&f.path)
-                .map_err(|e| invalid(format!("recipe path `{}`: {e}", f.path)))?;
+            check_relative_path(&f.path).map_err(|e| {
+                invalid(
+                    HostText::RecipePath {
+                        path: f.path.clone(),
+                        reason: e,
+                    }
+                    .to_string(),
+                )
+            })?;
             if matches!(f.action, RecipeAction::Write | RecipeAction::Merge) && f.content.is_none()
             {
-                return Err(invalid(format!("recipe file `{}` has no content", f.path)));
+                return Err(invalid(
+                    HostText::RecipeNoContent {
+                        path: f.path.clone(),
+                    }
+                    .to_string(),
+                ));
             }
             if !seen.insert(f.path.to_lowercase()) {
-                return Err(invalid(format!("recipe path `{}` appears twice", f.path)));
+                return Err(invalid(
+                    HostText::RecipePathTwice {
+                        path: f.path.clone(),
+                    }
+                    .to_string(),
+                ));
             }
             Ok(f)
         })
@@ -587,20 +640,30 @@ pub fn parse_recipe(result: &Value) -> Result<Vec<RecipeFile>, PluginError> {
 /// The reason the target is refused.
 pub fn resolve_in_root(root: &Path, rel: &str) -> Result<PathBuf, String> {
     check_relative_path(rel)?;
-    let root = root
-        .canonicalize()
-        .map_err(|e| format!("project root: {e}"))?;
+    let root = root.canonicalize().map_err(|e| {
+        HostText::ProjectRoot {
+            error: e.to_string(),
+        }
+        .to_string()
+    })?;
     let mut cur = root.clone();
     let mut rest = rel.split('/');
     for seg in rest.by_ref() {
         cur.push(seg);
         match std::fs::symlink_metadata(&cur) {
             Ok(m) if m.file_type().is_symlink() => {
-                let resolved = cur
-                    .canonicalize()
-                    .map_err(|e| format!("symlink `{}`: {e}", cur.display()))?;
+                let resolved = cur.canonicalize().map_err(|e| {
+                    HostText::Symlink {
+                        path: cur.display().to_string(),
+                        error: e.to_string(),
+                    }
+                    .to_string()
+                })?;
                 if !resolved.starts_with(&root) {
-                    return Err(format!("`{rel}` leaves the project root through a symlink"));
+                    return Err(HostText::LeavesRoot {
+                        path: rel.to_owned(),
+                    }
+                    .to_string());
                 }
                 cur = resolved;
             }
@@ -609,7 +672,13 @@ pub fn resolve_in_root(root: &Path, rel: &str) -> Result<PathBuf, String> {
                 cur.extend(rest);
                 break;
             }
-            Err(e) => return Err(format!("`{}`: {e}", cur.display())),
+            Err(e) => {
+                return Err(HostText::PathError {
+                    path: cur.display().to_string(),
+                    error: e.to_string(),
+                }
+                .to_string());
+            }
         }
     }
     Ok(cur)

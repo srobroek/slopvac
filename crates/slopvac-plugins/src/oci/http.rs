@@ -116,7 +116,10 @@ struct WireLimit {
 
 impl fmt::Display for WireLimit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "response exceeds {} bytes on the wire", self.limit)
+        f.write_str(
+            &crate::messages::transport::TransportText::OciWireLimit { limit: self.limit }
+                .to_string(),
+        )
     }
 }
 
@@ -127,7 +130,9 @@ impl std::error::Error for WireLimit {}
 pub(crate) fn read_error(url: &str, e: &io::Error) -> OciError {
     if let Some(WireLimit { limit }) = e.get_ref().and_then(|i| i.downcast_ref::<WireLimit>()) {
         return OciError::TooLarge {
-            what: "response".into(),
+            what: crate::messages::transport::TransportPhrase::OciResponse
+                .as_static()
+                .into(),
             limit: *limit,
         };
     }
@@ -425,11 +430,12 @@ impl Transport {
     /// redirect target passes before the next request, so production transports
     /// stop here at any `http://` target, loopback included.
     fn redirect_target(&self, url: &str, location: &str) -> Result<String, &'static str> {
-        let next = resolve(url, location).ok_or("unusable Location")?;
+        let next = resolve(url, location)
+            .ok_or(crate::messages::transport::TransportPhrase::OciLocationUnusable.as_static())?;
         if url_allowed(&next, self.allow_loopback_http) {
             Ok(next)
         } else {
-            Err("target is not HTTPS")
+            Err(crate::messages::transport::TransportPhrase::OciTargetInsecure.as_static())
         }
     }
 
@@ -466,7 +472,15 @@ impl Transport {
             }
             let request = b
                 .body(req.body.map(<[u8]>::to_vec).unwrap_or_default())
-                .map_err(|e| OciError::Invalid(format!("request for {}: {e}", redact_url(&url))))?;
+                .map_err(|e| {
+                    OciError::Invalid(
+                        crate::messages::transport::TransportText::OciRequest {
+                            url: redact_url(&url),
+                            detail: e.to_string(),
+                        }
+                        .to_string(),
+                    )
+                })?;
             let mut resp = agent.run(request).map_err(|e| match e {
                 ureq::Error::Io(e) => read_error(&redact_url(&url), &e),
                 e => OciError::Network {
@@ -485,18 +499,24 @@ impl Transport {
                 wire_bytes: meter.used(),
             };
             if !matches!(req.method, "GET" | "HEAD") {
-                return Err(bad("redirect on a request that is not GET or HEAD"));
+                return Err(bad(
+                    crate::messages::transport::TransportPhrase::OciRedirectMethod.as_static(),
+                ));
             }
             hops += 1;
             meter.allow_hop();
             if hops > MAX_REDIRECTS {
-                return Err(bad("more than 5 redirects"));
+                return Err(bad(
+                    crate::messages::transport::TransportPhrase::OciRedirectCount.as_static(),
+                ));
             }
             let loc = resp
                 .headers()
                 .get("location")
                 .and_then(|v| v.to_str().ok())
-                .ok_or_else(|| bad("no Location header"))?;
+                .ok_or_else(|| {
+                    bad(crate::messages::transport::TransportPhrase::OciLocationMissing.as_static())
+                })?;
             let next = self.redirect_target(&url, loc).map_err(bad)?;
             if host_of(&next).map(|h| h.1) != host_of(&url).map(|h| h.1) {
                 auth = None;

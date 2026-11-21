@@ -2,6 +2,8 @@
 
 use semver::Version;
 
+use crate::messages::pyenv::PyenvText;
+
 use super::model::{Index, IndexEntry, IndexError, MAX_INDEX_BYTES, PackKind, PublisherKey};
 
 /// What the scheduled job learned about one pack: fields of its manifest plus
@@ -56,7 +58,11 @@ pub fn build_index(listings: impl IntoIterator<Item = Listing>) -> Result<Index,
     if size > MAX_INDEX_BYTES {
         return Err(IndexError::new(
             "",
-            format!("the index would be {size} bytes; the limit is {MAX_INDEX_BYTES}"),
+            PyenvText::IndexTooBigToBuild {
+                size,
+                limit: MAX_INDEX_BYTES,
+            }
+            .to_string(),
         ));
     }
     Ok(index)

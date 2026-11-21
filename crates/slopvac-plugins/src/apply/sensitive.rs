@@ -5,6 +5,8 @@
 
 use unicode_normalization::UnicodeNormalization;
 
+use crate::messages::transport::TransportPhrase;
+
 /// The path components under the canonical caseless match of Unicode 3.13
 /// (D145), `NFD(toCasefold(NFD(x)))`, the same fold `extract.rs` uses for
 /// collisions. It maps `ſ` (U+017F) to `s`, which `str::to_lowercase` does not.
@@ -59,22 +61,22 @@ pub fn deny_reason(path: &str) -> Option<&'static str> {
 fn classify(p: &[String]) -> Option<&'static str> {
     let name = p.last().map_or("", String::as_str);
     if p.iter().any(|c| c == ".git") {
-        Some("git directory")
+        Some(TransportPhrase::ApplyGitDirectory.as_static())
     } else if p.iter().any(|c| c == ".slopvac") {
-        Some("slopvac state")
+        Some(TransportPhrase::ApplyState.as_static())
     } else if p.len() > 2 && p[0] == ".github" && p[1] == "workflows" {
-        Some("CI workflow")
+        Some(TransportPhrase::ApplyCiWorkflow.as_static())
     } else if p.iter().any(|c| c.starts_with(".env")) {
-        Some("environment file")
+        Some(TransportPhrase::ApplyEnvironment.as_static())
     } else if matches!(name, ".gitmodules" | ".gitattributes") {
-        Some("git configuration")
+        Some(TransportPhrase::ApplyGitConfig.as_static())
     } else if matches!(
         name,
         "slopvac.toml" | ".slopvac.toml" | ".mise.toml" | "mise.toml"
     ) {
-        Some("tool configuration")
+        Some(TransportPhrase::ApplyToolConfig.as_static())
     } else if p.len() >= 2 && p[p.len() - 2] == ".vscode" && name == "tasks.json" {
-        Some("editor task file")
+        Some(TransportPhrase::ApplyEditorTask.as_static())
     } else {
         None
     }

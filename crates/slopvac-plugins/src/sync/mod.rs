@@ -74,6 +74,7 @@ use crate::launch::Launcher;
 use crate::lock::{
     LockedPack, Lockfile, PackId, ResolvedPack, SourceKind, diff, outdated as lock_outdated,
 };
+use crate::messages::sync::{self as messages, SyncPhrase};
 use crate::oci::{
     Client, Descriptor, Digest, MAX_MANIFEST_BYTES, MEDIA_MANIFEST, Manifest, OciError, Reference,
     Target,
@@ -303,7 +304,7 @@ impl<'a> Syncer<'a> {
             if revoked.revokes_digest(pack.digest.as_str()) {
                 return Err(SyncError::Revoked {
                     id: pack.id.clone(),
-                    what: format!("artifact {}", pack.digest),
+                    what: messages::revoked_artifact(&pack.digest),
                 });
             }
         }
@@ -413,7 +414,7 @@ impl<'a> Syncer<'a> {
         };
         let file = File::open(&blob).map_err(|e| {
             extract(ExtractError::Io {
-                what: format!("opening {}", blob.display()),
+                what: messages::opening(&blob),
                 source: e,
             })
         })?;
@@ -495,21 +496,21 @@ impl<'a> Syncer<'a> {
             .to_owned();
 
         let body = self.manifest_bytes(pack, &reference, &locked)?;
-        let manifest: Manifest = serde_json::from_slice(&body)
-            .map_err(|e| layout(&format!("the manifest does not parse: {e}")))?;
+        let manifest: Manifest =
+            serde_json::from_slice(&body).map_err(|e| layout(&messages::manifest_parse(&e)))?;
         if manifest
             .media_type
             .as_deref()
             .is_some_and(|m| m != MEDIA_MANIFEST)
         {
-            return Err(layout("the manifest is not an image manifest"));
+            return Err(layout(SyncPhrase::ManifestNotImage.as_static()));
         }
 
         let key_id = self.verify_signature(pack, &reference, &manifest, &namespace)?;
         if revoked.revokes_key(&key_id) {
             return Err(SyncError::Revoked {
                 id: id.clone(),
-                what: format!("publisher key {key_id}"),
+                what: messages::revoked_key(&key_id),
             });
         }
 
@@ -518,18 +519,18 @@ impl<'a> Syncer<'a> {
             .iter()
             .filter(|l| l.media_type != MEDIA_STATEMENT && l.media_type != MEDIA_MINISIG);
         let (Some(layer), None) = (payload.next(), payload.next()) else {
-            return Err(layout("a plugin has exactly one content layer"));
+            return Err(layout(SyncPhrase::OneLayer.as_static()));
         };
         if layer.media_type != MEDIA_PACK_LAYER {
-            return Err(layout("the content layer is not a plugin archive"));
+            return Err(layout(SyncPhrase::LayerNotArchive.as_static()));
         }
         if layer.size > self.limits.compressed_bytes {
-            return Err(layout("the content layer exceeds the archive size limit"));
+            return Err(layout(SyncPhrase::LayerTooLarge.as_static()));
         }
         if let Some(path) = self.store.blob(&layer.digest, layer.size) {
             return Ok(Acquired::Archive(path));
         }
-        let client = self.client(pack, "plugin archive")?;
+        let client = self.client(pack, SyncPhrase::WhatArchive.as_static())?;
         let mut tmp = self.store.blob_tempfile()?;
         client
             .pull_blob(&reference, layer, tmp.as_file_mut())
@@ -567,12 +568,17 @@ impl<'a> Syncer<'a> {
             reference,
             statement,
             MAX_STATEMENT_BYTES as u64,
-            "signed statement",
+            SyncPhrase::WhatStatement.as_static(),
         )?;
-        let minisig_bytes =
-            self.small_blob(pack, reference, minisig, MAX_MINISIG_BYTES, "signature")?;
-        let minisig_text =
-            String::from_utf8(minisig_bytes).map_err(|_| layout("the signature is not text"))?;
+        let minisig_bytes = self.small_blob(
+            pack,
+            reference,
+            minisig,
+            MAX_MINISIG_BYTES,
+            SyncPhrase::WhatSignature.as_static(),
+        )?;
+        let minisig_text = String::from_utf8(minisig_bytes)
+            .map_err(|_| layout(SyncPhrase::SignatureNotText.as_static()))?;
         let version = pack.version.to_string();
         let expect = Expectation {
             id: id.as_str(),
@@ -598,17 +604,15 @@ impl<'a> Syncer<'a> {
             why,
         };
         if verified.key().key_id() != lock_signature.key_id.as_str() {
-            return Err(differs(format!(
-                "signed by key {}, the lock records {}",
-                verified.key().key_id(),
-                lock_signature.key_id
+            return Err(differs(messages::signed_key(
+                &verified.key().key_id(),
+                &lock_signature.key_id,
             )));
         }
         if verified.statement().not_before != lock_signature.not_before.as_str() {
-            return Err(differs(format!(
-                "notBefore is {}, the lock records {}",
-                verified.statement().not_before,
-                lock_signature.not_before
+            return Err(differs(messages::signed_not_before(
+                &verified.statement().not_before,
+                &lock_signature.not_before,
             )));
         }
 
@@ -626,7 +630,7 @@ impl<'a> Syncer<'a> {
         {
             return Ok(bytes);
         }
-        let client = self.client(pack, "manifest")?;
+        let client = self.client(pack, SyncPhrase::WhatManifest.as_static())?;
         let fetched = client
             .fetch_manifest(reference)
             .map_err(|source| SyncError::Fetch {
@@ -677,7 +681,7 @@ impl<'a> Syncer<'a> {
             },
             e @ crate::launch::LaunchError::CurrentExe(_) => SyncError::Git {
                 id: id.clone(),
-                why: format!("cannot find the launcher: {e}"),
+                why: messages::launcher_missing(&e),
             },
         })
     }
@@ -728,7 +732,7 @@ impl<'a> Syncer<'a> {
                 Err(source) => return Err(extract(source)),
             }
         }
-        self.client(pack, "git tree")?;
+        self.client(pack, SyncPhrase::WhatGitTree.as_static())?;
 
         let (url, allow_local) = match &self.git.rewrite {
             Some((from, to)) if url.starts_with(from.as_str()) => {
@@ -742,7 +746,7 @@ impl<'a> Syncer<'a> {
         };
         let launcher = self.launcher_for(id)?;
         let program = git::find_git(self.project_root)
-            .ok_or_else(|| git_failed("git was not found in a trusted PATH directory".into()))?;
+            .ok_or_else(|| git_failed(SyncPhrase::GitNotFound.as_static().into()))?;
         let scratch = self.store.scratch_dir()?;
         let mut staged = StagedTree::new(&self.store.trees(), self.limits).map_err(extract)?;
         let request = git::Request {
@@ -781,7 +785,7 @@ impl<'a> Syncer<'a> {
         if let Some(path) = self.store.blob(&locked, self.limits.compressed_bytes) {
             return Ok(Acquired::Archive(path));
         }
-        let client = self.client(pack, "release archive")?;
+        let client = self.client(pack, SyncPhrase::WhatRelease.as_static())?;
         let mut tmp = self.store.blob_tempfile()?;
         client
             .download(url, self.limits.compressed_bytes, tmp.as_file_mut())
@@ -789,8 +793,7 @@ impl<'a> Syncer<'a> {
                 id: pack.id.clone(),
                 source,
             })?;
-        let actual =
-            cache_hash(tmp.path()).map_err(|e| SyncError::Store(format!("hashing: {e}")))?;
+        let actual = cache_hash(tmp.path()).map_err(|e| SyncError::Store(messages::hashing(&e)))?;
         if actual != locked {
             return Err(SyncError::DigestMismatch {
                 id: pack.id.clone(),
@@ -810,19 +813,19 @@ impl<'a> Syncer<'a> {
         let mut path = self.project_root.to_path_buf();
         for part in rel.split('/') {
             path.push(part);
-            let meta = fs::symlink_metadata(&path)
-                .map_err(|e| source(format!("path source `{rel}`: {e}")))?;
+            let meta =
+                fs::symlink_metadata(&path).map_err(|e| source(messages::path_io(rel, &e)))?;
             if meta.file_type().is_symlink() {
-                return Err(source(format!("path source `{rel}` goes through a link")));
+                return Err(source(messages::path_link(rel)));
             }
         }
         // Defence in depth after the segment walk: the resolved path must stay inside
         // the project root, whatever the platform makes of the segments.
         let inside = fs::canonicalize(self.project_root)
             .and_then(|root| fs::canonicalize(&path).map(|p| p.starts_with(root)))
-            .map_err(|e| source(format!("path source `{rel}`: {e}")))?;
+            .map_err(|e| source(messages::path_io(rel, &e)))?;
         if !inside {
-            return Err(source(format!("path source `{rel}` leaves the project")));
+            return Err(source(messages::path_outside(rel)));
         }
         let mismatch = |actual: &str| SyncError::DigestMismatch {
             id: id.clone(),
@@ -842,22 +845,21 @@ impl<'a> Syncer<'a> {
         let locked = Self::locked_digest(pack)?;
         if let Some(cached) = self.store.blob(&locked, self.limits.compressed_bytes) {
             // Still check the file in the project: it is what the lock names.
-            let actual = cache_hash(&path).map_err(|e| source(format!("reading `{rel}`: {e}")))?;
+            let actual = cache_hash(&path).map_err(|e| source(messages::path_reading(rel, &e)))?;
             if actual != locked {
                 return Err(mismatch(actual.as_str()));
             }
             return Ok(Acquired::Archive(cached));
         }
         let mut tmp = self.store.blob_tempfile()?;
-        let mut file = File::open(&path).map_err(|e| source(format!("reading `{rel}`: {e}")))?;
+        let mut file = File::open(&path).map_err(|e| source(messages::path_reading(rel, &e)))?;
         let mut limited = (&mut file).take(self.limits.compressed_bytes + 1);
         let copied = io::copy(&mut limited, tmp.as_file_mut())
-            .map_err(|e| source(format!("reading `{rel}`: {e}")))?;
+            .map_err(|e| source(messages::path_reading(rel, &e)))?;
         if copied > self.limits.compressed_bytes {
-            return Err(source(format!("`{rel}` exceeds the archive size limit")));
+            return Err(source(messages::path_too_large(rel)));
         }
-        let actual =
-            cache_hash(tmp.path()).map_err(|e| SyncError::Store(format!("hashing: {e}")))?;
+        let actual = cache_hash(tmp.path()).map_err(|e| SyncError::Store(messages::hashing(&e)))?;
         if actual != locked {
             return Err(mismatch(actual.as_str()));
         }
@@ -1047,16 +1049,10 @@ pub fn update_notices(
         .flat_map(|o| {
             let mut lines = Vec::new();
             if let Some(v) = &o.update {
-                lines.push(format!(
-                    "plugin {}: {} is available (locked {}); run `slopvac plugins update`",
-                    o.id, v, o.locked
-                ));
+                lines.push(messages::notice_update(&o.id, v, &o.locked));
             }
             if let Some(v) = o.newest.as_ref().filter(|v| Some(*v) != o.update.as_ref()) {
-                lines.push(format!(
-                    "plugin {}: {} is available but outside the configured range; change the range to use it",
-                    o.id, v
-                ));
+                lines.push(messages::notice_outside(&o.id, v));
             }
             lines
         })

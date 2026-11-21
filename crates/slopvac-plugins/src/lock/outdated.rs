@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use semver::{Version, VersionReq};
 
+use crate::messages::sync as messages;
+
 use super::model::{LockError, Lockfile, PackId};
 
 /// A locked pack with a newer version available.
@@ -41,12 +43,10 @@ pub fn parse_version_req(text: &str) -> Result<VersionReq, LockError> {
                     .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'-'))
         });
         if op_len > 2 || !(1..=3).contains(&parts.len()) || !parts.iter().all(numeric) || !pre_ok {
-            return Err(fail(format!(
-                "`{comparator}` is not a version comparator in `{text}`"
-            )));
+            return Err(fail(messages::comparator_invalid(comparator, text)));
         }
     }
-    VersionReq::parse(text).map_err(|e| fail(format!("`{text}` is not a version requirement: {e}")))
+    VersionReq::parse(text).map_err(|e| fail(messages::req_invalid(text, &e)))
 }
 
 /// Finds locked packs that have a newer version available.

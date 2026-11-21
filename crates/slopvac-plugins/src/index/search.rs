@@ -16,10 +16,9 @@
 //! 50. Hits sort by score, highest first, then by namespace and id. A query
 //! with no tokens matches nothing.
 
-use std::fmt::Write as _;
-
 use super::Index;
 use super::model::IndexEntry;
+use crate::messages::pyenv::{PyenvPhrase, PyenvText};
 use crate::sign::is_reserved_namespace;
 
 /// An entry that matched, with its score.
@@ -100,35 +99,52 @@ impl SearchHit<'_> {
         let e = self.entry;
         let s = slopvac_sanitize::line;
         let mut out = String::new();
-        let _ = writeln!(
-            out,
-            "{}/{} {} ({}, needs slopvac API {})",
-            s(&e.namespace),
-            s(&e.id),
-            e.version,
-            e.kind.as_str(),
-            e.slopvac_api
+        let mut line = |text: String| {
+            out.push_str(&text);
+            out.push('\n');
+        };
+        let indent = |text: String| format!("  {text}");
+        line(
+            PyenvText::SearchHead {
+                namespace: s(&e.namespace),
+                id: s(&e.id),
+                version: e.version.to_string(),
+                kind: e.kind.as_str().to_owned(),
+                api: e.slopvac_api,
+            }
+            .to_string(),
         );
-        let _ = writeln!(out, "  {}", s(&e.name));
-        let _ = writeln!(out, "  {}", s(&e.description));
-        let _ = writeln!(out, "  source: {}", s(&e.source));
-        let _ = writeln!(
-            out,
-            "  publisher key: {} (fingerprint {})",
-            s(&e.publisher_key.key_id),
-            s(&e.publisher_key.fingerprint)
-        );
+        line(indent(
+            PyenvText::SearchIndented { text: s(&e.name) }.to_string(),
+        ));
+        line(indent(
+            PyenvText::SearchIndented {
+                text: s(&e.description),
+            }
+            .to_string(),
+        ));
+        line(indent(
+            PyenvText::SearchSource {
+                origin: s(&e.source),
+            }
+            .to_string(),
+        ));
+        line(indent(
+            PyenvText::SearchKey {
+                key_id: s(&e.publisher_key.key_id),
+                fingerprint: s(&e.publisher_key.fingerprint),
+            }
+            .to_string(),
+        ));
         if is_reserved_namespace(&e.namespace) {
-            let _ = writeln!(
-                out,
-                "  warning: claims first-party namespace `{}`; not verified",
-                s(&e.namespace)
-            );
+            line(indent(
+                PyenvText::SearchReserved {
+                    namespace: s(&e.namespace),
+                }
+                .to_string(),
+            ));
         }
-        let _ = writeln!(
-            out,
-            "  unverified: the namespace, source and key come from the index; pin a key with `slopvac plugins trust --key <fingerprint>`"
-        );
+        line(indent(PyenvPhrase::SearchUnverified.as_static().to_owned()));
         out
     }
 }

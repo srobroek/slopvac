@@ -718,6 +718,49 @@ fn a_refused_pack_does_not_block_the_others() {
 }
 
 #[test]
+fn a_plugin_not_in_the_lock_reports_update_plugin_unknown() {
+    let key = Key::new();
+    let v120 = release(&key, "style", "1.2.0", FLOOR);
+    let server = registry(&[("style", &[&v120])]);
+    let env = Env::new();
+    env.write_lock(&[entry("style", &server.registry(), &v120, true)]);
+    let c = client();
+
+    let err = env
+        .update(
+            Network::Online(&c),
+            &policy(&[&key]),
+            &ranges(&[("style", "^1.2")]),
+            &[pack_id("ghost")],
+        )
+        .unwrap_err();
+
+    assert_eq!(err.code(), "update-plugin-unknown");
+    assert_eq!(err.exit_code(), 2);
+}
+
+#[test]
+fn an_invalid_lock_still_reports_update_failed() {
+    let key = Key::new();
+    let env = Env::new();
+    fs::create_dir_all(env.dir.path().join(".slopvac")).unwrap();
+    fs::write(env.lock_path(), "this is not a lock\n").unwrap();
+    let c = client();
+
+    let err = env
+        .update(
+            Network::Online(&c),
+            &policy(&[&key]),
+            &ranges(&[("style", "^1.2")]),
+            &[],
+        )
+        .unwrap_err();
+
+    assert!(matches!(err, UpdateError::Lock { .. }), "{err:?}");
+    assert_eq!(err.code(), "update-failed");
+}
+
+#[test]
 fn a_pack_not_in_the_lock_is_an_error() {
     let key = Key::new();
     let v120 = release(&key, "style", "1.2.0", FLOOR);
@@ -735,7 +778,7 @@ fn a_pack_not_in_the_lock_is_an_error() {
         )
         .unwrap_err();
 
-    assert!(matches!(err, UpdateError::UnknownPack(ref id) if id.as_str() == "ghost"));
+    assert!(matches!(err, UpdateError::UnknownPlugin(ref id) if id.as_str() == "ghost"));
 }
 
 #[test]

@@ -74,7 +74,14 @@ impl Fetched {
         if self.media_type != MEDIA_MANIFEST {
             return Err(OciError::UnsupportedMediaType(self.media_type.clone()));
         }
-        serde_json::from_slice(&self.body).map_err(|e| OciError::Invalid(format!("manifest: {e}")))
+        serde_json::from_slice(&self.body).map_err(|e| {
+            OciError::Invalid(
+                crate::messages::transport::TransportText::OciManifest {
+                    detail: e.to_string(),
+                }
+                .to_string(),
+            )
+        })
     }
 
     /// Parse as an image index.
@@ -85,7 +92,14 @@ impl Fetched {
         if self.media_type != MEDIA_INDEX {
             return Err(OciError::UnsupportedMediaType(self.media_type.clone()));
         }
-        serde_json::from_slice(&self.body).map_err(|e| OciError::Invalid(format!("index: {e}")))
+        serde_json::from_slice(&self.body).map_err(|e| {
+            OciError::Invalid(
+                crate::messages::transport::TransportText::OciIndex {
+                    detail: e.to_string(),
+                }
+                .to_string(),
+            )
+        })
     }
 }
 
@@ -118,7 +132,11 @@ fn manifest_media_type(header_type: Option<&str>, body: &[u8]) -> Result<String,
                     Ok(t.to_owned())
                 }
                 _ => Err(OciError::UnsupportedMediaType(
-                    other.unwrap_or("none").to_owned(),
+                    other
+                        .unwrap_or(
+                            crate::messages::transport::TransportPhrase::OciMediaNone.as_static(),
+                        )
+                        .to_owned(),
                 )),
             }
         }
@@ -288,9 +306,13 @@ impl Client {
         scope: &str,
         refused: &mut Option<OciError>,
     ) -> Result<String, OciError> {
-        let realm = ch
-            .param("realm")
-            .ok_or_else(|| OciError::Invalid("bearer challenge without realm".into()))?;
+        let realm = ch.param("realm").ok_or_else(|| {
+            OciError::Invalid(
+                crate::messages::transport::TransportPhrase::OciRealmMissing
+                    .as_static()
+                    .into(),
+            )
+        })?;
         if !self.realm_allowed(r, realm) {
             return Err(OciError::RealmRejected(redact_url(realm)));
         }
@@ -322,9 +344,18 @@ impl Client {
                 }
             });
         }
-        let body = read_limited(resp.body_mut(), MAX_TOKEN_BYTES, "token response")?;
-        let t: Tok = serde_json::from_slice(&body)
-            .map_err(|_| OciError::Invalid("token response is not JSON".into()))?;
+        let body = read_limited(
+            resp.body_mut(),
+            MAX_TOKEN_BYTES,
+            crate::messages::transport::TransportPhrase::OciTokenResponse.as_static(),
+        )?;
+        let t: Tok = serde_json::from_slice(&body).map_err(|_| {
+            OciError::Invalid(
+                crate::messages::transport::TransportPhrase::OciTokenJson
+                    .as_static()
+                    .into(),
+            )
+        })?;
         let value = t
             .token
             .or(t.access_token)
@@ -387,6 +418,7 @@ impl Client {
             ..template.clone()
         };
         let (first, mut refused) = match self.cached(&self.token_key(r, &scope)) {
+            // ast-grep-ignore: user-text-literal
             Some((token, refused)) => (Some(format!("Bearer {token}")), refused),
             None => (None, None),
         };
@@ -410,6 +442,7 @@ impl Client {
             return Ok(resp);
         };
         let auth = match challenge.scheme.as_str() {
+            // ast-grep-ignore: user-text-literal
             "bearer" => format!(
                 "Bearer {}",
                 self.fetch_token(r, &challenge, &scope, &mut refused)?
@@ -463,8 +496,16 @@ impl Client {
             return Err(Self::deny_or_status(&url, status));
         }
         let header_type = content_type(&resp);
-        check_declared_length(&resp, MAX_MANIFEST_BYTES as u64, "manifest")?;
-        let body = read_limited(resp.body_mut(), MAX_MANIFEST_BYTES, "manifest")?;
+        check_declared_length(
+            &resp,
+            MAX_MANIFEST_BYTES as u64,
+            crate::messages::transport::TransportPhrase::OciManifest.as_static(),
+        )?;
+        let body = read_limited(
+            resp.body_mut(),
+            MAX_MANIFEST_BYTES,
+            crate::messages::transport::TransportPhrase::OciManifest.as_static(),
+        )?;
         let digest = Digest::of(&body);
         if let Target::Digest(want) = &r.target
             && *want != digest
@@ -525,7 +566,9 @@ impl Client {
         let copied = std::io::copy(&mut reader, out).map_err(|e| read_error(&shown, &e))?;
         if copied > max {
             return Err(OciError::TooLarge {
-                what: "archive".into(),
+                what: crate::messages::transport::TransportPhrase::OciArchive
+                    .as_static()
+                    .into(),
                 limit: max,
             });
         }
@@ -548,7 +591,9 @@ impl Client {
     ) -> Result<(), OciError> {
         if desc.size > MAX_BLOB_BYTES {
             return Err(OciError::TooLarge {
-                what: "blob".into(),
+                what: crate::messages::transport::TransportPhrase::OciBlob
+                    .as_static()
+                    .into(),
                 limit: MAX_BLOB_BYTES,
             });
         }
@@ -570,7 +615,11 @@ impl Client {
         if status != 200 {
             return Err(Self::deny_or_status(&url, status));
         }
-        check_declared_length(&resp, desc.size, "blob")?;
+        check_declared_length(
+            &resp,
+            desc.size,
+            crate::messages::transport::TransportPhrase::OciBlob.as_static(),
+        )?;
         let mut reader = resp.body_mut().with_config().limit(desc.size + 1).reader();
         let mut hasher = Sha256::new();
         let mut buf = vec![0u8; 64 * 1024];
@@ -592,7 +641,10 @@ impl Client {
             hasher.update(&buf[..n]);
             out.write_all(&buf[..n]).map_err(|e| OciError::Network {
                 url: redact_url(&url),
-                message: format!("write: {e}"),
+                message: crate::messages::transport::TransportText::OciWrite {
+                    detail: e.to_string(),
+                }
+                .to_string(),
             })?;
         }
         if total != desc.size {
@@ -623,7 +675,9 @@ impl Client {
     ) -> Result<Vec<u8>, OciError> {
         if desc.size > max {
             return Err(OciError::TooLarge {
-                what: "blob".into(),
+                what: crate::messages::transport::TransportPhrase::OciBlob
+                    .as_static()
+                    .into(),
                 limit: max,
             });
         }
@@ -671,7 +725,11 @@ impl Client {
             }
             let next = next_link(&resp, &url);
             let header_type = content_type(&resp);
-            let body = read_limited(resp.body_mut(), MAX_MANIFEST_BYTES, "referrers index")?;
+            let body = read_limited(
+                resp.body_mut(),
+                MAX_MANIFEST_BYTES,
+                crate::messages::transport::TransportPhrase::OciReferrersIndex.as_static(),
+            )?;
             let media_type = manifest_media_type(header_type.as_deref(), &body)?;
             let index = Fetched {
                 digest: Digest::of(&body),
@@ -694,7 +752,9 @@ impl Client {
     fn check_referrers_count(count: usize) -> Result<(), OciError> {
         if count > MAX_TAGS {
             return Err(OciError::TooLarge {
-                what: "referrers list".into(),
+                what: crate::messages::transport::TransportPhrase::OciReferrersList
+                    .as_static()
+                    .into(),
                 limit: MAX_TAGS as u64,
             });
         }
@@ -734,7 +794,9 @@ impl Client {
         for _ in 0..MAX_TAG_PAGES {
             if allowance.load(Ordering::Relaxed) == 0 {
                 return Err(OciError::TooLarge {
-                    what: "tag list".into(),
+                    what: crate::messages::transport::TransportPhrase::OciTagList
+                        .as_static()
+                        .into(),
                     limit: 0,
                 });
             }
@@ -766,15 +828,27 @@ impl Client {
             }
             let next = next_link(&resp, &url);
             let limit = usize::try_from(page_max).unwrap_or(MAX_MANIFEST_BYTES);
-            let read = read_limited(resp.body_mut(), limit, "tag list");
+            let read = read_limited(
+                resp.body_mut(),
+                limit,
+                crate::messages::transport::TransportPhrase::OciTagList.as_static(),
+            );
             charge(allowance, wire_bytes_used(&resp));
             let body = read?;
-            let page: Tags = serde_json::from_slice(&body)
-                .map_err(|e| OciError::Invalid(format!("tag list: {e}")))?;
+            let page: Tags = serde_json::from_slice(&body).map_err(|e| {
+                OciError::Invalid(
+                    crate::messages::transport::TransportText::OciTagList {
+                        detail: e.to_string(),
+                    }
+                    .to_string(),
+                )
+            })?;
             all.extend(page.tags.unwrap_or_default());
             if all.len() > MAX_TAGS {
                 return Err(OciError::TooLarge {
-                    what: "tag list".into(),
+                    what: crate::messages::transport::TransportPhrase::OciTagList
+                        .as_static()
+                        .into(),
                     limit: MAX_TAGS as u64,
                 });
             }
@@ -796,7 +870,9 @@ impl Client {
     ) -> Result<Descriptor, OciError> {
         if bytes.len() as u64 > MAX_BLOB_BYTES {
             return Err(OciError::TooLarge {
-                what: "blob".into(),
+                what: crate::messages::transport::TransportPhrase::OciBlob
+                    .as_static()
+                    .into(),
                 limit: MAX_BLOB_BYTES,
             });
         }
@@ -825,11 +901,19 @@ impl Client {
             .get("location")
             .and_then(|v| v.to_str().ok())
             .and_then(|l| resolve(&start, l))
-            .ok_or_else(|| OciError::Invalid("upload response without Location".into()))?;
+            .ok_or_else(|| {
+                OciError::Invalid(
+                    crate::messages::transport::TransportPhrase::OciUploadLocation
+                        .as_static()
+                        .into(),
+                )
+            })?;
         if host_of(&location) != host_of(&start) {
             return Err(OciError::BadRedirect {
                 url: redact_url(&start),
-                why: "upload target is on another host".into(),
+                why: crate::messages::transport::TransportPhrase::OciUploadHost
+                    .as_static()
+                    .into(),
                 wire_bytes: 0,
             });
         }
@@ -865,7 +949,9 @@ impl Client {
     ) -> Result<Digest, OciError> {
         if body.len() > MAX_MANIFEST_BYTES {
             return Err(OciError::TooLarge {
-                what: "manifest".into(),
+                what: crate::messages::transport::TransportPhrase::OciManifest
+                    .as_static()
+                    .into(),
                 limit: MAX_MANIFEST_BYTES as u64,
             });
         }

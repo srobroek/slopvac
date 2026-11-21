@@ -155,10 +155,12 @@ fn check(
     }
     let needs_content = matches!(file.action, RecipeAction::Write | RecipeAction::Merge);
     if needs_content && file.content.is_none() {
-        return Err(ApplyError::InvalidPlan(format!(
-            "`{}` has no content",
-            file.path
-        )));
+        return Err(ApplyError::InvalidPlan(
+            crate::messages::transport::TransportText::ApplyContentMissing {
+                path: file.path.clone(),
+            }
+            .to_string(),
+        ));
     }
     let current = match at.parent(false)? {
         None => Current::Absent,
@@ -201,9 +203,14 @@ fn apply_one(
             None => Ok(WriteOutcome::Absent),
         },
         RecipeAction::Write | RecipeAction::Merge => {
-            let parent = at
-                .parent(true)?
-                .ok_or_else(|| ApplyError::Io(format!("{}: no directory", at.resolved)))?;
+            let parent = at.parent(true)?.ok_or_else(|| {
+                ApplyError::Io(
+                    crate::messages::transport::TransportText::ApplyNoDirectory {
+                        path: at.resolved.clone(),
+                    }
+                    .to_string(),
+                )
+            })?;
             let content = file.content.as_deref().unwrap_or_default();
             replace(
                 &parent,

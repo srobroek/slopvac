@@ -60,6 +60,7 @@ impl fmt::Debug for Credential {
 impl Credential {
     pub(crate) fn basic_header(&self) -> String {
         let raw = format!("{}:{}", self.username, self.secret);
+        // ast-grep-ignore: user-text-literal
         format!(
             "Basic {}",
             base64::engine::general_purpose::STANDARD.encode(raw)
@@ -227,9 +228,13 @@ fn unique_match<'a, T: PartialEq>(
     if let Some(a) = first
         && matches.any(|b| a != b)
     {
-        return Err(OciError::Credential(format!(
-            "the Docker config has conflicting `{section}` entries for `{registry}`"
-        )));
+        return Err(OciError::Credential(
+            crate::messages::transport::TransportText::OciConfigConflict {
+                section: section.to_owned(),
+                registry: registry.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     Ok(first)
 }
@@ -335,12 +340,19 @@ fn resolve_helper(
                 dir: slopvac_fs::display_under_root(dir, &project),
             })
         }
-        None => Err(OciError::Credential(format!(
-            "credential helper `{program}` was not found"
-        ))),
+        None => Err(OciError::Credential(
+            crate::messages::transport::TransportText::OciHelperMissing {
+                program: program.to_owned(),
+            }
+            .to_string(),
+        )),
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "the catalog calls take more lines than the former literals; the body is unchanged"
+)]
 fn run_helper(
     name: &str,
     registry: &str,
@@ -350,13 +362,18 @@ fn run_helper(
 ) -> Result<Option<Credential>, OciError> {
     let cred = |m: String| OciError::Credential(m);
     if !safe_helper_name(name) {
-        return Err(cred(format!(
-            "credential helper name `{name}` is not allowed"
-        )));
+        return Err(cred(
+            crate::messages::transport::TransportText::OciHelperName {
+                name: name.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     if !safe_registry_name(registry) {
         return Err(cred(
-            "registry name is not safe to pass to a credential helper".into(),
+            crate::messages::transport::TransportPhrase::OciRegistryUnsafe
+                .as_static()
+                .into(),
         ));
     }
     let program = format!("docker-credential-{name}");
@@ -369,8 +386,15 @@ fn run_helper(
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null());
-    let mut helper = Contained::spawn(&mut command)
-        .map_err(|e| cred(format!("cannot start `{program}`: {e}")))?;
+    let mut helper = Contained::spawn(&mut command).map_err(|e| {
+        cred(
+            crate::messages::transport::TransportText::OciHelperStart {
+                program: program.clone(),
+                detail: e.to_string(),
+            }
+            .to_string(),
+        )
+    })?;
     if let Some(mut stdin) = helper.child_mut().stdin.take() {
         // A helper that never reads is caught by the deadline below.
         let reg = registry.to_owned();
@@ -380,7 +404,11 @@ fn run_helper(
     }
     let Some(mut stdout) = helper.child_mut().stdout.take() else {
         helper.kill_tree();
-        return Err(cred("no helper stdout".into()));
+        return Err(cred(
+            crate::messages::transport::TransportPhrase::OciHelperStdout
+                .as_static()
+                .into(),
+        ));
     };
     let (tx, rx) = std::sync::mpsc::channel();
     // The reader ends at end-of-file or after one byte past the cap. Killing the
@@ -400,7 +428,13 @@ fn run_helper(
                 Ok(done) => done,
                 Err(e) => {
                     helper.kill_tree();
-                    return Err(cred(format!("waiting for `{program}`: {e}")));
+                    return Err(cred(
+                        crate::messages::transport::TransportText::OciHelperWait {
+                            program: program.clone(),
+                            detail: e.to_string(),
+                        }
+                        .to_string(),
+                    ));
                 }
             };
         }
@@ -408,15 +442,23 @@ fn run_helper(
             match rx.try_recv() {
                 Ok(buf) if buf.len() > HELPER_MAX_OUTPUT => {
                     helper.kill_tree();
-                    return Err(cred(format!(
-                        "`{program}` printed more than {HELPER_MAX_OUTPUT} bytes"
-                    )));
+                    return Err(cred(
+                        crate::messages::transport::TransportText::OciHelperOutput {
+                            program: program.clone(),
+                            limit: HELPER_MAX_OUTPUT,
+                        }
+                        .to_string(),
+                    ));
                 }
                 Ok(buf) => output = Some(buf),
                 Err(std::sync::mpsc::TryRecvError::Empty) => {}
                 Err(std::sync::mpsc::TryRecvError::Disconnected) => {
                     helper.kill_tree();
-                    return Err(cred("helper reader failed".into()));
+                    return Err(cred(
+                        crate::messages::transport::TransportPhrase::OciHelperReader
+                            .as_static()
+                            .into(),
+                    ));
                 }
             }
         }
@@ -425,25 +467,48 @@ fn run_helper(
         }
         if Instant::now() >= deadline {
             helper.kill_tree();
-            return Err(cred(format!("`{program}` timed out")));
+            return Err(cred(
+                crate::messages::transport::TransportText::OciHelperTimeout {
+                    program: program.clone(),
+                }
+                .to_string(),
+            ));
         }
         std::thread::sleep(Duration::from_millis(10));
     }
     let Some(out) = output else {
-        return Err(cred("helper did not finish".into()));
+        return Err(cred(
+            crate::messages::transport::TransportPhrase::OciHelperUnfinished
+                .as_static()
+                .into(),
+        ));
     };
-    let status = helper
-        .reap()
-        .map_err(|e| cred(format!("waiting for `{program}`: {e}")))?;
+    let status = helper.reap().map_err(|e| {
+        cred(
+            crate::messages::transport::TransportText::OciHelperWait {
+                program: program.clone(),
+                detail: e.to_string(),
+            }
+            .to_string(),
+        )
+    })?;
     if !status.success() {
         // "credentials not found in native keychain" is a normal miss.
         return Ok(None);
     }
-    let reply: HelperReply = serde_json::from_slice(&out)
-        .map_err(|_| cred(format!("`{program}` printed invalid JSON")))?;
+    let reply: HelperReply = serde_json::from_slice(&out).map_err(|_| {
+        cred(
+            crate::messages::transport::TransportText::OciHelperJson {
+                program: program.clone(),
+            }
+            .to_string(),
+        )
+    })?;
     if reply.username == "<token>" {
         return Err(cred(
-            "identity tokens from credential helpers are not supported".into(),
+            crate::messages::transport::TransportPhrase::OciHelperIdentityToken
+                .as_static()
+                .into(),
         ));
     }
     Ok(Some(Credential {
@@ -460,15 +525,31 @@ fn read_config(file: &Path, what: &str) -> Result<Option<DockerConfig>, OciError
     let mut raw = Vec::new();
     f.take(MAX_CONFIG_BYTES + 1)
         .read_to_end(&mut raw)
-        .map_err(|e| OciError::Credential(format!("reading the {what}: {e}")))?;
+        .map_err(|e| {
+            OciError::Credential(
+                crate::messages::transport::TransportText::OciConfigRead {
+                    what: what.to_owned(),
+                    detail: e.to_string(),
+                }
+                .to_string(),
+            )
+        })?;
     if raw.len() as u64 > MAX_CONFIG_BYTES {
-        return Err(OciError::Credential(format!(
-            "the {what} is larger than 1 MiB"
-        )));
+        return Err(OciError::Credential(
+            crate::messages::transport::TransportText::OciConfigSize {
+                what: what.to_owned(),
+            }
+            .to_string(),
+        ));
     }
-    serde_json::from_slice(&raw)
-        .map(Some)
-        .map_err(|_| OciError::Credential(format!("the {what} is not valid JSON")))
+    serde_json::from_slice(&raw).map(Some).map_err(|_| {
+        OciError::Credential(
+            crate::messages::transport::TransportText::OciConfigJson {
+                what: what.to_owned(),
+            }
+            .to_string(),
+        )
+    })
 }
 
 /// The static login `cfg` holds for `registry`, if any.
@@ -489,10 +570,20 @@ fn static_login(cfg: &DockerConfig, registry: &str) -> Result<Option<Credential>
             .decode(auth.trim())
             .ok()
             .and_then(|b| String::from_utf8(b).ok())
-            .ok_or_else(|| OciError::Credential("an `auth` entry is not base64 text".into()))?;
-        let (u, p) = decoded
-            .split_once(':')
-            .ok_or_else(|| OciError::Credential("an `auth` entry has no colon".into()))?;
+            .ok_or_else(|| {
+                OciError::Credential(
+                    crate::messages::transport::TransportPhrase::OciAuthBase64
+                        .as_static()
+                        .into(),
+                )
+            })?;
+        let (u, p) = decoded.split_once(':').ok_or_else(|| {
+            OciError::Credential(
+                crate::messages::transport::TransportPhrase::OciAuthColon
+                    .as_static()
+                    .into(),
+            )
+        })?;
         return Ok(Some(Credential {
             username: u.to_owned(),
             secret: p.to_owned(),
@@ -510,7 +601,10 @@ fn static_login(cfg: &DockerConfig, registry: &str) -> Result<Option<Credential>
 impl DefaultCredentials {
     fn docker_config(&self) -> Result<Option<DockerConfig>, OciError> {
         match &self.docker_config_dir {
-            Some(dir) => read_config(&dir.join("config.json"), "Docker config"),
+            Some(dir) => read_config(
+                &dir.join("config.json"),
+                crate::messages::transport::TransportPhrase::OciDockerConfig.as_static(),
+            ),
             None => Ok(None),
         }
     }
@@ -520,7 +614,10 @@ impl DefaultCredentials {
         let Some(file) = self.auth_files.iter().find(|f| f.is_file()) else {
             return Ok(None);
         };
-        match read_config(file, "registry auth file")? {
+        match read_config(
+            file,
+            crate::messages::transport::TransportPhrase::OciRegistryAuthFile.as_static(),
+        )? {
             Some(cfg) => static_login(&cfg, registry),
             None => Ok(None),
         }

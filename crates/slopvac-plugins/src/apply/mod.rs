@@ -51,8 +51,9 @@ pub mod sensitive;
 
 use std::fmt;
 
-use slopvac_sanitize::line as esc;
 use thiserror::Error;
+
+use crate::messages::transport::{self as messages, TransportText};
 
 #[doc(hidden)]
 pub use edits::apply_edits_seam;
@@ -66,31 +67,31 @@ pub use sensitive::HarnessWarning;
 #[derive(Debug, Clone, Error, PartialEq, Eq)]
 pub enum ApplyError {
     /// The edit set breaks the position rules or a size cap.
-    #[error("edits refused: {}", esc(.0))]
+    #[error("{}", messages::apply_invalid_edits(.0))]
     InvalidEdits(String),
     /// The plan entry is incomplete.
-    #[error("plan refused: {}", esc(.0))]
+    #[error("{}", messages::apply_invalid_plan(.0))]
     InvalidPlan(String),
     /// The path is not a safe relative path under the root.
-    #[error("path refused: {}", esc(.0))]
+    #[error("{}", messages::apply_path_refused(.0))]
     PathRefused(String),
     /// The target is a symbolic link or reparse point.
-    #[error("`{}` is a symbolic link", esc(.0))]
+    #[error("{}", messages::apply_symlink(.0))]
     Symlink(String),
     /// The target exists and is not a regular file.
-    #[error("`{}` is not a regular file", esc(.0))]
+    #[error("{}", messages::apply_not_regular(.0))]
     NotRegularFile(String),
     /// The target has more than one hard link.
-    #[error("`{}` has more than one hard link", esc(.0))]
+    #[error("{}", messages::apply_hardlinked(.0))]
     Hardlinked(String),
     /// The file no longer holds the bytes the edits were computed against.
-    #[error("`{}` changed since it was read", esc(.0))]
+    #[error("{}", messages::apply_source_changed(.0))]
     SourceChanged(String),
     /// The file is longer than the bound set for the read, so it was not read.
-    #[error("`{}` is larger than the size limit", esc(.0))]
+    #[error("{}", messages::apply_too_large(.0))]
     TooLarge(String),
     /// A denied path was not approved. `needs` lists the paths to approve.
-    #[error("`{}` is a sensitive path; approve {} to write it", esc(.path), quoted(.needs))]
+    #[error("{}", messages::apply_sensitive(.path, .needs))]
     Sensitive {
         /// Path as the plan names it.
         path: String,
@@ -98,7 +99,7 @@ pub enum ApplyError {
         needs: Vec<String>,
     },
     /// The directory holds an entry that differs from the path only in case.
-    #[error("`{}` collides with existing `{}` when case is ignored", esc(.path), esc(.existing))]
+    #[error("{}", messages::apply_case_collision(.path, .existing))]
     CaseCollision {
         /// Path as the plan names it.
         path: String,
@@ -106,33 +107,28 @@ pub enum ApplyError {
         existing: String,
     },
     /// Two plan entries name the same file.
-    #[error("`{}` appears twice in the plan", esc(.0))]
+    #[error("{}", messages::apply_duplicate(.0))]
     DuplicatePath(String),
     /// A merge into an existing file needs a block-marker contract.
-    #[error("merge into existing `{}` is not supported yet", esc(.0))]
+    #[error("{}", messages::apply_merge(.0))]
     MergeUnsupported(String),
     /// Writing is not available on Windows yet.
-    #[error(
-        "`{}`: writes are not supported on Windows yet; the file-system layer \
-         resolves rename, delete and create-directory through absolute paths that a \
-         junction swap can redirect",
-        esc(.0)
-    )]
+    #[error("{}", messages::apply_windows(.0))]
     UnsupportedOnWindows(String),
     /// An operating-system error.
-    #[error("{}", esc(.0))]
+    #[error("{}", messages::apply_io(.0))]
     Io(String),
-}
-
-/// ``a`, `b`` with every item escaped: untrusted paths never go through `Debug`.
-fn quoted(items: &[String]) -> String {
-    let items: Vec<String> = items.iter().map(|s| format!("`{}`", esc(s))).collect();
-    items.join(", ")
 }
 
 impl ApplyError {
     pub(crate) fn io(path: impl fmt::Display, e: &std::io::Error) -> Self {
-        Self::Io(format!("{path}: {e}"))
+        Self::Io(
+            TransportText::ApplyPathIo {
+                path: path.to_string(),
+                detail: e.to_string(),
+            }
+            .to_string(),
+        )
     }
 }
 

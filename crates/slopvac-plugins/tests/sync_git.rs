@@ -667,6 +667,8 @@ fn a_repository_larger_than_the_download_limit_is_refused() {
     // The watcher and the check after the fetch report the same kind.
     assert!(matches!(err, SyncError::GitLimit { .. }), "{err:?}");
     assert!(err.to_string().contains("download exceeds 1024"), "{err}");
+    // A git source over its limits keeps the catch-all code.
+    assert_eq!(err.code(), "sync-failed");
     env.assert_no_trees();
 }
 #[test]

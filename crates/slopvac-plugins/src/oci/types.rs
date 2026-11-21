@@ -6,6 +6,7 @@ use std::fmt;
 use serde::{Deserialize, Deserializer, Serialize};
 
 use super::OciError;
+use crate::messages::transport::TransportText;
 
 /// OCI image manifest media type.
 pub const MEDIA_MANIFEST: &str = "application/vnd.oci.image.manifest.v1+json";
@@ -35,11 +36,17 @@ impl Digest {
     /// Like [`Digest::parse`], with the reason as raw text for a caller that
     /// builds a larger message and escapes it once.
     pub(crate) fn parse_raw(s: &str) -> Result<Self, String> {
-        let hex = s
-            .strip_prefix("sha256:")
-            .ok_or_else(|| format!("digest `{s}` is not sha256"))?;
+        let hex = s.strip_prefix("sha256:").ok_or_else(|| {
+            TransportText::OciDigestAlgorithm {
+                digest: s.to_owned(),
+            }
+            .to_string()
+        })?;
         if hex.len() != 64 || !hex.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
-            return Err(format!("digest `{s}` is not 64 lowercase hex digits"));
+            return Err(TransportText::OciDigestHex {
+                digest: s.to_owned(),
+            }
+            .to_string());
         }
         Ok(Self(s.to_owned()))
     }

@@ -11,6 +11,7 @@ use sha2::{Digest as _, Sha256};
 use super::PyEnvError;
 use super::listing::{MAX_BYTES, MAX_NODES};
 use crate::hooks::check_relative_path;
+use crate::messages::pyenv::{self as messages, PyenvPhrase, PyenvText};
 use crate::oci::Digest;
 
 /// Largest lock file read.
@@ -61,11 +62,14 @@ impl PyLock {
         let mut raw = Vec::new();
         File::open(path)
             .and_then(|f| f.take(MAX_LOCK_BYTES + 1).read_to_end(&mut raw))
-            .map_err(PyEnvError::io(format!("reading {}", path.display())))?;
+            .map_err(PyEnvError::io(messages::reading(path)))?;
         if raw.len() as u64 > MAX_LOCK_BYTES {
-            return Err(PyEnvError::Lock("larger than 4 MiB".into()));
+            return Err(PyEnvError::Lock(
+                PyenvPhrase::LockTooLarge.as_static().into(),
+            ));
         }
-        let text = String::from_utf8(raw).map_err(|_| PyEnvError::Lock("not UTF-8".into()))?;
+        let text = String::from_utf8(raw)
+            .map_err(|_| PyEnvError::Lock(PyenvPhrase::LockNotUtf8.as_static().into()))?;
         Self::parse(&text)
     }
 
@@ -86,21 +90,24 @@ impl PyLock {
         let version = doc
             .get("lock-version")
             .and_then(toml::Value::as_str)
-            .ok_or_else(|| bad("`lock-version` is missing"))?;
+            .ok_or_else(|| bad(PyenvPhrase::LockVersionMissing.as_static()))?;
         if version.split('.').next() != Some("1") {
-            return Err(PyEnvError::Lock(format!(
-                "lock-version {version} is not supported; 1.x is"
-            )));
+            return Err(PyEnvError::Lock(
+                PyenvText::LockVersionUnsupported {
+                    version: version.to_owned(),
+                }
+                .to_string(),
+            ));
         }
         let packages = match doc.get("packages") {
             None => &[][..],
             Some(v) => v
                 .as_array()
-                .ok_or_else(|| bad("`packages` is not an array"))?
+                .ok_or_else(|| bad(PyenvPhrase::PackagesNotArray.as_static()))?
                 .as_slice(),
         };
         if packages.len() > MAX_PACKAGES {
-            return Err(bad("more than 2000 packages"));
+            return Err(bad(PyenvPhrase::TooManyPackages.as_static()));
         }
         let packages = packages
             .iter()
@@ -141,26 +148,42 @@ impl PyLock {
                     why,
                 };
                 let meta = std::fs::symlink_metadata(&file)
-                    .map_err(|e| wrong(format!("`{}`: {e}", w.path)))?;
+                    .map_err(|e| wrong(path_problem(&w.path, &e)))?;
                 if !meta.is_file() {
-                    return Err(wrong(format!("`{}` is not a regular file", w.path)));
+                    return Err(wrong(
+                        PyenvText::WheelNotRegular {
+                            path: w.path.clone(),
+                        }
+                        .to_string(),
+                    ));
                 }
                 let mut h = Sha256::new();
-                let mut f = File::open(&file).map_err(|e| wrong(format!("`{}`: {e}", w.path)))?;
-                std::io::copy(&mut f, &mut h).map_err(|e| wrong(format!("`{}`: {e}", w.path)))?;
+                let mut f = File::open(&file).map_err(|e| wrong(path_problem(&w.path, &e)))?;
+                std::io::copy(&mut f, &mut h).map_err(|e| wrong(path_problem(&w.path, &e)))?;
                 let actual = hex(&h.finalize());
                 if actual != w.sha256 {
-                    return Err(wrong(format!(
-                        "`{}` has sha256 {actual}; the lock pins {}",
-                        w.path, w.sha256
-                    )));
+                    return Err(wrong(
+                        PyenvText::WheelHashMismatch {
+                            path: w.path.clone(),
+                            actual,
+                            pinned: w.sha256.clone(),
+                        }
+                        .to_string(),
+                    ));
                 }
                 let (n, size, names) =
-                    zip_listing(&file).map_err(|why| wrong(format!("`{}`: {why}", w.path)))?;
+                    zip_listing(&file).map_err(|why| wrong(path_problem(&w.path, &why)))?;
                 if let Some((name, why)) =
                     names.iter().find_map(|n| refused_entry(n).map(|w| (n, w)))
                 {
-                    return Err(wrong(format!("`{}` holds `{}`, {why}", w.path, name)));
+                    return Err(wrong(
+                        PyenvText::WheelHolds {
+                            path: w.path.clone(),
+                            name: name.clone(),
+                            why: why.to_owned(),
+                        }
+                        .to_string(),
+                    ));
                 }
                 pkg_entries = pkg_entries.max(n);
                 pkg_bytes = pkg_bytes.max(size);
@@ -169,9 +192,14 @@ impl PyLock {
             bytes += pkg_bytes;
         }
         if entries > MAX_NODES as u64 || bytes > MAX_BYTES {
-            return Err(PyEnvError::Refused(format!(
-                "the wheels declare {entries} entries and {bytes} bytes; an environment holds at most {MAX_NODES} entries and 1 GiB"
-            )));
+            return Err(PyEnvError::Refused(
+                PyenvText::WheelsTooBig {
+                    entries,
+                    bytes,
+                    max_entries: MAX_NODES,
+                }
+                .to_string(),
+            ));
         }
         Ok(())
     }
@@ -214,23 +242,35 @@ impl PyLock {
     }
 }
 
+/// `PathProblem` for a wheel path and what is wrong with it.
+fn path_problem(path: &str, reason: &dyn std::fmt::Display) -> String {
+    PyenvText::PathProblem {
+        path: path.to_owned(),
+        reason: reason.to_string(),
+    }
+    .to_string()
+}
+
 fn package(v: &toml::Value) -> Result<LockedPackage, PyEnvError> {
     let t = v
         .as_table()
-        .ok_or_else(|| PyEnvError::Lock("a package is not a table".into()))?;
+        .ok_or_else(|| PyEnvError::Lock(PyenvPhrase::PackageNotTable.as_static().into()))?;
     let name = t
         .get("name")
         .and_then(toml::Value::as_str)
-        .ok_or_else(|| PyEnvError::Lock("a package has no name".into()))?;
+        .ok_or_else(|| PyEnvError::Lock(PyenvPhrase::PackageNoName.as_static().into()))?;
     if name.is_empty()
         || name.len() > 200
         || !name
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
     {
-        return Err(PyEnvError::Lock(format!(
-            "package name `{name}` is not a distribution name"
-        )));
+        return Err(PyEnvError::Lock(
+            PyenvText::BadPackageName {
+                name: name.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     let wrong = |why: String| PyEnvError::Wheel {
         package: name.to_owned(),
@@ -245,23 +285,34 @@ fn package(v: &toml::Value) -> Result<LockedPackage, PyEnvError> {
     let version = t
         .get("version")
         .and_then(toml::Value::as_str)
-        .ok_or_else(|| wrong("no exact version".into()))?;
+        .ok_or_else(|| wrong(PyenvPhrase::NoExactVersion.as_static().into()))?;
     if version.is_empty()
         || version.len() > 100
         || !version
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-' | b'+' | b'!'))
     {
-        return Err(wrong(format!("version `{version}` is not exact")));
+        return Err(wrong(
+            PyenvText::VersionNotExact {
+                version: version.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     let marker = match t.get("marker") {
         None => None,
         Some(m) => {
             let m = m
                 .as_str()
-                .ok_or_else(|| wrong("marker is not a string".into()))?;
+                .ok_or_else(|| wrong(PyenvPhrase::MarkerNotString.as_static().into()))?;
             if let Err(why) = check_marker(m) {
-                return Err(wrong(format!("marker `{m}` is refused: {why}")));
+                return Err(wrong(
+                    PyenvText::MarkerRefused {
+                        marker: m.to_owned(),
+                        why: why.to_owned(),
+                    }
+                    .to_string(),
+                ));
             }
             Some(m.to_owned())
         }
@@ -272,7 +323,7 @@ fn package(v: &toml::Value) -> Result<LockedPackage, PyEnvError> {
         .filter(|w| !w.is_empty())
         .ok_or_else(|| PyEnvError::SourceOnly {
             package: name.to_owned(),
-            source_kind: "no wheels".into(),
+            source_kind: PyenvPhrase::NoWheels.as_static().into(),
         })?
         .iter()
         .map(|w| wheel(name, version, w))
@@ -292,14 +343,20 @@ fn wheel(package: &str, version: &str, v: &toml::Value) -> Result<LockedWheel, P
     };
     let t = v
         .as_table()
-        .ok_or_else(|| wrong("a wheel is not a table".into()))?;
-    let path = t.get("path").and_then(toml::Value::as_str).ok_or_else(|| {
-        wrong("a wheel has no `path` inside the artifact; a `url` would need a download".into())
-    })?;
-    check_relative_path(path).map_err(|e| wrong(format!("`{path}`: {e}")))?;
+        .ok_or_else(|| wrong(PyenvPhrase::WheelNotTable.as_static().into()))?;
+    let path = t
+        .get("path")
+        .and_then(toml::Value::as_str)
+        .ok_or_else(|| wrong(PyenvPhrase::WheelNoPath.as_static().into()))?;
+    check_relative_path(path).map_err(|e| wrong(path_problem(path, &e)))?;
     let file = path.rsplit('/').next().unwrap_or(path);
     let Some(stem) = file.strip_suffix(".whl") else {
-        return Err(wrong(format!("`{path}` is not a wheel")));
+        return Err(wrong(
+            PyenvText::NotAWheel {
+                path: path.to_owned(),
+            }
+            .to_string(),
+        ));
     };
     // {distribution}-{version}(-{build})?-{python}-{abi}-{platform}.whl
     let parts: Vec<&str> = stem.split('-').collect();
@@ -307,18 +364,35 @@ fn wheel(package: &str, version: &str, v: &toml::Value) -> Result<LockedWheel, P
         || normalise(parts[0]) != normalise(package)
         || parts[1] != version.replace('-', "_")
     {
-        return Err(wrong(format!(
-            "`{path}` is not a wheel of {package} {version}"
-        )));
+        return Err(wrong(
+            PyenvText::NotWheelOfPackage {
+                path: path.to_owned(),
+                package: package.to_owned(),
+                version: version.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     let sha = t
         .get("hashes")
         .and_then(toml::Value::as_table)
         .and_then(|h| h.get("sha256"))
         .and_then(toml::Value::as_str)
-        .ok_or_else(|| wrong(format!("`{path}` has no sha256")))?;
+        .ok_or_else(|| {
+            wrong(
+                PyenvText::NoSha256 {
+                    path: path.to_owned(),
+                }
+                .to_string(),
+            )
+        })?;
     if sha.len() != 64 || !sha.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')) {
-        return Err(wrong(format!("`{path}` has a malformed sha256")));
+        return Err(wrong(
+            PyenvText::BadSha256 {
+                path: path.to_owned(),
+            }
+            .to_string(),
+        ));
     }
     Ok(LockedWheel {
         path: path.to_owned(),
@@ -353,19 +427,19 @@ fn normalise(name: &str) -> String {
 /// `-`), a comment or a new line, and every quote must close.
 fn check_marker(m: &str) -> Result<(), &'static str> {
     if m.is_empty() || m.len() > 1_000 {
-        return Err("empty or longer than 1000 bytes");
+        return Err(PyenvPhrase::MarkerEmptyOrLong.as_static());
     }
     let mut quote: Option<u8> = None;
     let mut prev = b' ';
     for b in m.bytes() {
         if !(b == b' ' || b.is_ascii_graphic()) {
-            return Err("a control or non-ASCII character");
+            return Err(PyenvPhrase::MarkerControl.as_static());
         }
         if matches!(b, b'#' | b'\\') {
-            return Err("a comment or escape character");
+            return Err(PyenvPhrase::MarkerComment.as_static());
         }
         if b == b'-' && prev == b' ' {
-            return Err("a word that starts with `-`");
+            return Err(PyenvPhrase::MarkerOption.as_static());
         }
         match quote {
             Some(q) if b == q => quote = None,
@@ -376,12 +450,12 @@ fn check_marker(m: &str) -> Result<(), &'static str> {
                     b,
                     b' ' | b'_' | b'.' | b'<' | b'>' | b'=' | b'!' | b'~' | b'(' | b')'
                 ) => {}
-            None => return Err("a character outside the marker grammar"),
+            None => return Err(PyenvPhrase::MarkerGrammar.as_static()),
         }
         prev = b;
     }
     if quote.is_some() {
-        return Err("an unclosed quote");
+        return Err(PyenvPhrase::MarkerQuote.as_static());
     }
     Ok(())
 }
@@ -405,7 +479,7 @@ fn refused_entry(name: &str) -> Option<&'static str> {
         || name.contains('\\')
         || name.split('/').any(|seg| seg == ".." || seg == ".")
     {
-        return Some("a path outside the install scheme");
+        return Some(PyenvPhrase::EntryOutsideScheme.as_static());
     }
     let mut parts = name.splitn(3, '/');
     let first = parts.next().unwrap_or("");
@@ -426,20 +500,20 @@ fn refused_entry(name: &str) -> Option<&'static str> {
                 .iter()
                 .any(|p| base.starts_with(p))
                 || base == "pyvenv.cfg";
-            interp.then_some("which would replace the interpreter or its activation")
+            interp.then_some(PyenvPhrase::EntryReplacesInterpreter.as_static())
         }
         "data" => (["bin", "scripts", "lib", "lib64", "include", "pyvenv.cfg"]
             .contains(&top.as_str()))
-        .then_some("which would write into the interpreter's own directories"),
+        .then_some(PyenvPhrase::EntryWritesInterpreterDirs.as_static()),
         "purelib" | "platlib" => {
             let stem = top.split('.').next().unwrap_or("").to_ascii_lowercase();
             (Path::new(&base).extension().is_some_and(|e| e == "pth")
                 || stem == "sitecustomize"
                 || stem == "usercustomize")
-                .then_some("a startup hook that would run before trust")
+                .then_some(PyenvPhrase::EntryStartupHook.as_static())
         }
         "headers" => None,
-        _ => Some("an unknown install scheme"),
+        _ => Some(PyenvPhrase::EntryUnknownScheme.as_static()),
     }
 }
 
@@ -463,17 +537,17 @@ fn zip_listing(path: &Path) -> Result<(u64, u64, Vec<String>), String> {
     let at = (0..tail.len().saturating_sub(21))
         .rev()
         .find(|&i| tail[i..i + 4] == EOCD)
-        .ok_or("not a ZIP archive")?;
+        .ok_or(PyenvPhrase::NotZip.as_static())?;
     let e = &tail[at..];
     if at >= 20 && tail[at - 20..at - 16] == LOC64 {
-        return Err("a ZIP64 archive".into());
+        return Err(PyenvPhrase::Zip64.as_static().into());
     }
     let (count, cd_size, cd_off) = (u16_at(e, 10), u32_at(e, 12), u32_at(e, 16));
     if count == 0xffff || cd_size == 0xffff_ffff || cd_off == 0xffff_ffff {
-        return Err("a ZIP64 archive".into());
+        return Err(PyenvPhrase::Zip64.as_static().into());
     }
     if cd_off + cd_size > len {
-        return Err("a central directory outside the file".into());
+        return Err(PyenvPhrase::ZipDirectoryOutside.as_static().into());
     }
     f.seek(SeekFrom::Start(cd_off)).map_err(|e| e.to_string())?;
     let mut cd = vec![0; usize::try_from(cd_size).map_err(|e| e.to_string())?];
@@ -482,20 +556,22 @@ fn zip_listing(path: &Path) -> Result<(u64, u64, Vec<String>), String> {
     let mut names = Vec::new();
     while n < count {
         if i + 46 > cd.len() || cd[i..i + 4] != CDH {
-            return Err("a damaged central directory".into());
+            return Err(PyenvPhrase::ZipDirectoryDamaged.as_static().into());
         }
         let size = u32_at(&cd, i + 24);
         if size == 0xffff_ffff {
-            return Err("a ZIP64 entry".into());
+            return Err(PyenvPhrase::Zip64Entry.as_static().into());
         }
         bytes += size;
         n += 1;
         let name_len = usize::try_from(u16_at(&cd, i + 28)).map_err(|e| e.to_string())?;
         let name = cd
             .get(i + 46..i + 46 + name_len)
-            .ok_or("a damaged central directory")?;
-        names
-            .push(String::from_utf8(name.to_vec()).map_err(|_| "an entry name that is not UTF-8")?);
+            .ok_or(PyenvPhrase::ZipDirectoryDamaged.as_static())?;
+        names.push(
+            String::from_utf8(name.to_vec())
+                .map_err(|_| PyenvPhrase::ZipNameNotUtf8.as_static())?,
+        );
         let skip = 46 + u16_at(&cd, i + 28) + u16_at(&cd, i + 30) + u16_at(&cd, i + 32);
         i += usize::try_from(skip).map_err(|e| e.to_string())?;
     }
