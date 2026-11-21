@@ -6,6 +6,9 @@
 
 use std::ops::Range;
 
+use slopvac_config::frontmatter::{self, Policy, extract, parse_block};
+use slopvac_config::tree::Value;
+
 /// Block kinds a tagger can see.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -58,6 +61,12 @@ pub trait DocumentView {
     fn title(&self) -> Option<&str>;
     /// Value of a top-level front matter key, as text.
     fn front_matter(&self, key: &str) -> Option<&str>;
+    /// Value of a field in the document's versioned `slopvac:` front matter block
+    /// (`docs/contract/config.md`, section 3), as text. A document with no valid block, and
+    /// a host that does not read one, answer `None`.
+    fn slopvac_block(&self, _key: &str) -> Option<&str> {
+        None
+    }
     /// Length in bytes of the original file, BOM and front matter included.
     fn source_len(&self) -> usize;
     /// Blocks in document order.
@@ -125,6 +134,8 @@ pub struct PlainDocument {
     pub title: Option<String>,
     /// Front matter pairs.
     pub front_matter: Vec<(String, String)>,
+    /// String fields of the valid `slopvac:` block.
+    pub block: Vec<(String, String)>,
     /// Length in bytes of the source text.
     pub source_len: usize,
     /// Owned blocks.
@@ -149,6 +160,48 @@ pub struct OwnedBlock {
 }
 
 impl PlainDocument {
+    /// Read the front matter of `src` with the config crate's reader, so every format and
+    /// boundary it supports works here: YAML, TOML and JSON, a byte order mark, CRLF and a
+    /// `...` closer. Fills the top-level scalar fields and the string fields of the
+    /// `slopvac:` block as that reader validates them; a block that fails validation
+    /// contributes nothing. Returns the byte offset where the front matter ends.
+    fn read_front_matter(&mut self, src: &str) -> usize {
+        let Some(block) = extract(src) else {
+            return 0;
+        };
+        if let Ok(root) = parse_block(src, &block)
+            && let Value::Table(entries) = root.value
+        {
+            self.front_matter = entries
+                .into_iter()
+                .filter_map(|e| scalar_text(e.node.value).map(|text| (e.key, text)))
+                .collect();
+        }
+        let read = frontmatter::read(src, &self.path, &Policy::core());
+        self.block = read
+            .settings
+            .into_iter()
+            .filter_map(|s| match (s.path.as_slice(), s.value.as_str()) {
+                ([key], Some(value)) => Some((key.clone(), value.to_owned())),
+                _ => None,
+            })
+            .collect();
+        block.outer.end
+    }
+}
+
+/// A front matter scalar as text. A table, an array and `null` have none.
+fn scalar_text(value: Value) -> Option<String> {
+    match value {
+        Value::Str(s) | Value::Datetime(s) => Some(s),
+        Value::Bool(b) => Some(b.to_string()),
+        Value::Int(i) => Some(i.to_string()),
+        Value::Float(f) => Some(f.to_string()),
+        Value::Null | Value::Array(_) | Value::Table(_) => None,
+    }
+}
+
+impl PlainDocument {
     /// Build a document from Markdown-ish text: ATX headings and blank-line
     /// separated paragraphs, `- ` list items. Enough for tests and `genre`.
     #[must_use]
@@ -162,18 +215,7 @@ impl PlainDocument {
         let mut para: Option<(usize, usize, BlockKind)> = None;
         let mut offset = 0;
         let mut fence = false;
-        let mut front_end = 0;
-        if let Some(rest) = src.strip_prefix("---\n")
-            && let Some(end) = rest.find("\n---")
-        {
-            for line in rest[..end].lines() {
-                if let Some((k, v)) = line.split_once(':') {
-                    doc.front_matter
-                        .push((k.trim().to_string(), v.trim().trim_matches('"').to_string()));
-                }
-            }
-            front_end = 4 + end + 4;
-        }
+        let front_end = doc.read_front_matter(src);
         let flush = |doc: &mut PlainDocument,
                      para: &mut Option<(usize, usize, BlockKind)>,
                      heads: &[(usize, String)]| {
@@ -264,6 +306,12 @@ impl DocumentView for PlainDocument {
     }
     fn front_matter(&self, key: &str) -> Option<&str> {
         self.front_matter
+            .iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v.as_str())
+    }
+    fn slopvac_block(&self, key: &str) -> Option<&str> {
+        self.block
             .iter()
             .find(|(k, _)| k == key)
             .map(|(_, v)| v.as_str())

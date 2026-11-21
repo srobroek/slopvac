@@ -97,6 +97,109 @@ fn genre_prints_the_genre_and_its_scores() {
         .stdout(predicate::str::starts_with("a.md: consumer (default)\n"));
 }
 
+const TUTORIAL_BLOCK: &str = "---\nslopvac:\n  v: 3\n  genre: tutorial\n---\n# Title\n";
+
+/// `genre` reads the declared genre under the project's front matter policy, as `lint` does.
+#[rstest::rstest]
+#[case::default_policy(None, "a.md: tutorial (explicit)\n")]
+#[case::explicitly_allowed(
+    Some("[frontmatter]\nallow = [\"genre\"]\n"),
+    "a.md: tutorial (explicit)\n"
+)]
+#[case::front_matter_disabled(
+    Some("[frontmatter]\nenabled = false\n"),
+    "a.md: consumer (default)\n"
+)]
+fn genre_reads_the_block_under_the_project_policy(
+    #[case] policy: Option<&str>,
+    #[case] first_line: &str,
+) {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("a.md"), TUTORIAL_BLOCK).unwrap();
+    if let Some(policy) = policy {
+        fs::write(
+            dir.path().join("slopvac.toml"),
+            format!("schema_version = 3\n\n{policy}"),
+        )
+        .unwrap();
+    }
+    slopvac(dir.path())
+        .args(["genre", "a.md"])
+        .assert()
+        .code(0)
+        .stdout(predicate::str::starts_with(first_line));
+}
+
+#[test]
+fn genre_reports_block_errors_with_a_code_and_exit_2() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("a.md"),
+        "---\nslopvac:\n  v: 3\n  genre: tutorial\n  locale: PRIVATE_SENTINEL\n---\n# Title\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join("slopvac.toml"),
+        "schema_version = 3\n\n[frontmatter]\nallow = [\"locale\"]\n",
+    )
+    .unwrap();
+    slopvac(dir.path())
+        .args(["genre", "a.md"])
+        .assert()
+        .code(2)
+        .stdout(predicate::str::starts_with("a.md: consumer (default)\n"))
+        .stderr(predicate::str::contains(
+            "error[config-frontmatter-field-denied]",
+        ))
+        .stderr(
+            predicate::str::contains("a.md:")
+                .and(predicate::str::contains("PRIVATE_SENTINEL").not()),
+        );
+}
+
+/// A link resolves to the file that the config search starts from, as `lint` resolves it.
+#[rstest::rstest]
+#[case::nested_target("sub/real.md", "sub")]
+#[case::external_target("../outside/real.md", "../outside")]
+fn genre_finds_the_config_of_the_resolved_file(#[case] target: &str, #[case] config_dir: &str) {
+    let root = tempfile::tempdir().unwrap();
+    let project = root.path().join("project");
+    for dir in ["project/sub", "outside"] {
+        fs::create_dir_all(root.path().join(dir)).unwrap();
+    }
+    let real = project.join(target);
+    fs::write(&real, TUTORIAL_BLOCK).unwrap();
+    // The config next to the real file turns front matter off. The link's own directory has none.
+    fs::write(
+        project.join(config_dir).join("slopvac.toml"),
+        "schema_version = 3\n\n[frontmatter]\nenabled = false\n",
+    )
+    .unwrap();
+    std::os::unix::fs::symlink(&real, project.join("link.md")).unwrap();
+    slopvac(&project)
+        .args(["genre", "link.md"])
+        .assert()
+        .code(0)
+        .stdout(predicate::str::starts_with("link.md: consumer (default)\n"));
+}
+
+#[test]
+fn genre_refuses_an_unreadable_project_config() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(dir.path().join("a.md"), TUTORIAL_BLOCK).unwrap();
+    fs::write(
+        dir.path().join("slopvac.toml"),
+        "schema_version = 3\nnonsense = 1\n",
+    )
+    .unwrap();
+    slopvac(dir.path())
+        .args(["genre", "a.md"])
+        .assert()
+        .code(2)
+        .stdout("")
+        .stderr(predicate::str::contains("error[config-unknown-key]"));
+}
+
 #[test]
 fn genre_assign_makes_the_choice_explicit() {
     let dir = tempfile::tempdir().unwrap();

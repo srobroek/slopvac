@@ -182,3 +182,163 @@ fn an_allowed_slopvac_block_genre_wins_over_the_assignment() {
     );
     assert_eq!(history_levels(doc), ["warning"], "{doc}");
 }
+
+/// The notices of a report whose code is `code`.
+fn notices<'a>(report: &'a Value, code: &str) -> Vec<&'a Value> {
+    report["notices"].as_array().map_or_else(Vec::new, |all| {
+        all.iter().filter(|n| n["code"] == code).collect()
+    })
+}
+
+#[test]
+fn a_denied_genre_keeps_the_assignment_and_is_reported() {
+    let config = format!("{ASSIGNED}\n[frontmatter]\nallow = [\"locale\"]\n");
+    let text = format!("---\nslopvac:\n  v: 3\n  genre: reference\n---\n{HISTORY}");
+    let (code, report) = lint_note(&config, &text);
+    let doc = document(&report, "n.md");
+    assert_eq!(doc["genre"]["id"], "internal", "{doc}");
+    assert_eq!(doc["genre"]["reasons"][0]["signal"], "path-glob", "{doc}");
+    assert_eq!(history_levels(doc), ["suggestion"], "{doc}");
+    // The denied field is an error every time, and an error leaves the run incomplete.
+    assert_eq!(code, Some(2), "{report}");
+    let found = notices(&report, "config-frontmatter-field-denied");
+    assert_eq!(found.len(), 1, "{report}");
+    assert!(
+        found[0]["path"]
+            .as_str()
+            .is_some_and(|p| p.ends_with("n.md"))
+    );
+    assert!(
+        found[0]["message"]
+            .as_str()
+            .is_some_and(|m| m.contains("genre"))
+    );
+}
+
+#[rstest::rstest]
+#[case::missing_version("slopvac:\n  genre: reference\n", "config-missing-key")]
+#[case::wrong_version("slopvac:\n  v: 2\n  genre: reference\n", "config-invalid-value")]
+fn a_block_without_a_valid_version_keeps_the_assignment_and_is_reported(
+    #[case] block: &str,
+    #[case] error: &str,
+) {
+    let text = format!("---\n{block}---\n{HISTORY}");
+    let (code, report) = lint_note(ASSIGNED, &text);
+    assert_eq!(
+        document(&report, "n.md")["genre"]["id"],
+        "internal",
+        "{report}"
+    );
+    assert_eq!(code, Some(2), "{report}");
+    assert_eq!(notices(&report, error).len(), 1, "{report}");
+}
+
+#[test]
+fn a_front_matter_genre_records_the_assignment_it_displaced() {
+    let text = format!("---\nslopvac:\n  v: 3\n  genre: reference\n---\n{HISTORY}");
+    let (_, report) = lint_note(ASSIGNED, &text);
+    let reasons = &document(&report, "n.md")["genre"]["reasons"];
+    assert_eq!(reasons[0]["signal"], "front-matter", "{reasons}");
+    assert_eq!(reasons[1]["signal"], "path-glob", "{reasons}");
+    assert_eq!(
+        reasons[1]["detail"], "`[[genres]]` block 0 matches `notes/n.md`",
+        "{reasons}"
+    );
+}
+
+/// Lint a project with `config` and the document `notes/<name>` and return the raw output of
+/// the run with `format`.
+fn run_named_note(config: &str, name: &str, text: &str, format: &str) -> std::process::Output {
+    let dir = tempfile::tempdir().expect("tempdir");
+    fs::write(dir.path().join("slopvac.toml"), config).expect("write config");
+    let path = dir.path().join("notes").join(name);
+    fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    fs::write(path, text).expect("write document");
+    slopvac()
+        .args(["lint", "--format", format])
+        .arg(dir.path())
+        .output()
+        .expect("run")
+}
+
+#[rstest::rstest]
+#[case::plain_value("PRIVATE_SENTINEL")]
+#[case::absolute_path("/Users/private-user/secret-project/notes")]
+fn block_errors_never_echo_a_document_value(#[case] value: &str) {
+    let config = format!("{ASSIGNED}\n[frontmatter]\nallow = [\"locale\"]\n");
+    let text = format!("---\nslopvac:\n  v: 3\n  locale: {value}\n---\n{HISTORY}");
+    for format in ["text", "json"] {
+        let out = run_named_note(&config, "n.md", &text, format);
+        assert_eq!(out.status.code(), Some(2), "{format}");
+        let all = format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert!(
+            all.contains("config-"),
+            "{format}: a code is reported: {all}"
+        );
+        assert!(!all.contains(value), "{format}: {all}");
+        assert!(!all.contains("private-user"), "{format}: {all}");
+    }
+}
+
+#[test]
+fn a_hostile_file_name_is_escaped_in_the_block_error() {
+    let config = format!("{ASSIGNED}\n[frontmatter]\nallow = [\"locale\"]\n");
+    let text = format!("---\nslopvac:\n  v: 3\n  genre: reference\n---\n{HISTORY}");
+    let out = run_named_note(&config, "bad\u{1b}[2Jname.md", &text, "json");
+    assert_eq!(out.status.code(), Some(2));
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("config-frontmatter-field-denied"),
+        "{stderr}"
+    );
+    assert!(!stderr.contains('\u{1b}'), "{stderr:?}");
+}
+
+/// A key, map key or array index that the document wrote is its own data: the error shows the
+/// schema-owned part of the key path and stops there.
+#[rstest::rstest]
+#[case::unknown_top_level_key("  PRIVATE_SENTINEL: true\n", "/slopvac")]
+#[case::unknown_key_under_a_table(
+    "  thresholds:\n    PRIVATE_SENTINEL: 1\n",
+    "/slopvac/thresholds"
+)]
+#[case::map_key("  rules:\n    PRIVATE_SENTINEL: not-a-level\n", "/slopvac/rules")]
+#[case::array_index(
+    "  terms:\n    allow:\n      - fine\n      - PRIVATE_SENTINEL: 1\n",
+    "/slopvac/terms/allow"
+)]
+#[case::key_the_schema_does_not_own_under_terms("  terms:\n    files: true\n", "/slopvac/terms")]
+fn block_errors_show_only_the_schema_owned_key_path(#[case] body: &str, #[case] pointer: &str) {
+    let config = format!(
+        "{ASSIGNED}\n[frontmatter]\nallow = [\"genre\", \"locale\", \"thresholds\", \"rules\", \"terms\"]\n"
+    );
+    let text = format!("---\nslopvac:\n  v: 3\n{body}---\n{HISTORY}");
+    for format in ["text", "json"] {
+        let out = run_named_note(&config, "n.md", &text, format);
+        assert_eq!(out.status.code(), Some(2), "{format}");
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        let all = format!("{}{stderr}", String::from_utf8_lossy(&out.stdout));
+        assert!(!all.contains("PRIVATE_SENTINEL"), "{format}: {all}");
+        assert!(
+            stderr.lines().any(|l| l.ends_with(&format!(": {pointer}"))),
+            "{format}: want a line ending in {pointer}: {stderr}"
+        );
+        assert!(
+            !stderr.lines().any(|l| l.contains("files")),
+            "{format}: the key `files` leaked: {stderr}"
+        );
+        if format == "json" {
+            let report: Value = serde_json::from_slice(&out.stdout).expect("json report");
+            let messages = report.to_string();
+            assert!(!messages.contains("files"), "json: {messages}");
+            assert!(
+                messages.contains(&format!("{pointer}\"")),
+                "json: want a message ending in {pointer}: {messages}"
+            );
+        }
+    }
+}

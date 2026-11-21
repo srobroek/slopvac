@@ -5,7 +5,7 @@
 fn main() {
     let matches = slopvac_context::command()
         .get_matches_from(std::iter::once("genre".to_string()).chain(std::env::args().skip(1)));
-    match slopvac_context::run(&matches) {
+    match slopvac_context::run(&matches, &mut |_, _| None) {
         Ok(text) => print!("{text}"),
         Err(e) => {
             eprintln!("error: {e}");

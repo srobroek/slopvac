@@ -123,8 +123,41 @@ pub fn terms(m: &ArgMatches, out: &mut dyn Write) -> Result<u8, CliError> {
 }
 
 /// `slopvac genre`.
-pub fn genre(m: &ArgMatches, out: &mut dyn Write) -> Result<u8, CliError> {
-    let text = slopvac_context::run(m).map_err(|e| {
+pub fn genre(m: &ArgMatches, out: &mut dyn Write, err_out: &mut dyn Write) -> Result<u8, CliError> {
+    let root = cwd();
+    let presets = StylePresets(BuiltinSource);
+    let discovery = Discovery::new(&presets);
+    // The front matter policy is the project's: the nearest config of the directory of the
+    // resolved file, as `lint` finds it. A config that cannot be read stops the command.
+    let config_failure = std::cell::RefCell::new(None);
+    let block_failures = std::cell::RefCell::new(Vec::new());
+    let mut declared = |path: &str, text: &str| {
+        if config_failure.borrow().is_some() {
+            return None;
+        }
+        let absolute = root.join(path);
+        let resolved = std::fs::canonicalize(&absolute).unwrap_or(absolute);
+        let dir = resolved.parent().unwrap_or(&root);
+        match discovery.nearest(dir) {
+            Ok(config) => {
+                let shown = shown(path);
+                let read = engine::read_block_under(text, &shown, config.as_deref());
+                block_failures
+                    .borrow_mut()
+                    .extend(engine::block_errors(&shown, text, &read));
+                engine::declared_genre(&read)
+            }
+            Err(err) => {
+                *config_failure.borrow_mut() = Some(engine::config_error(&err, &root));
+                None
+            }
+        }
+    };
+    let result = slopvac_context::run(m, &mut declared);
+    if let Some(failure) = config_failure.into_inner() {
+        return Err(failure);
+    }
+    let text = result.map_err(|e| {
         // The owner words a read failure as `<path as typed>: <reason>`. Replace each file
         // argument, exactly as typed, with its shown form.
         let mut message = e.to_string();
@@ -149,7 +182,16 @@ pub fn genre(m: &ArgMatches, out: &mut dyn Write) -> Result<u8, CliError> {
         }
     })?;
     write(out, &text)?;
-    Ok(exit::PASS)
+    // A block that fails validation is an error every time, as in `lint`.
+    let failures = block_failures.into_inner();
+    for failure in &failures {
+        let _ = writeln!(err_out, "{}", CliError::new(failure.code, &failure.escaped));
+    }
+    Ok(if failures.is_empty() {
+        exit::PASS
+    } else {
+        exit::INCOMPLETE
+    })
 }
 
 /// `slopvac validate`.

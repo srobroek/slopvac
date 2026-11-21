@@ -9,21 +9,31 @@ use crate::{DocumentView, Error, GenreRegistry, GenreResult, Tag, Tagger};
 
 /// Tags the whole document with the contexts its genre declares.
 pub struct DeclaredContextTagger {
-    genre: String,
-    contexts: Vec<String>,
+    /// Each context with the genre that declares it.
+    contexts: Vec<(String, String)>,
 }
 
 impl DeclaredContextTagger {
     /// Build the tagger for a resolved genre. `None` when the genre declares no context.
     pub fn for_genre(registry: &GenreRegistry, genre: &GenreResult) -> Result<Option<Self>, Error> {
-        let contexts = registry.contexts(&genre.id)?;
+        let mut contexts: Vec<(String, String)> = registry
+            .contexts(&genre.id)?
+            .into_iter()
+            .map(|c| (c, genre.id.clone()))
+            .collect();
+        // Contexts from a path or config assignment are additive: a front matter genre
+        // changes the genre but never removes them.
+        if let Some(assigned) = &genre.assigned {
+            for c in registry.contexts(assigned)? {
+                if !contexts.iter().any(|(known, _)| *known == c) {
+                    contexts.push((c, assigned.clone()));
+                }
+            }
+        }
         if contexts.is_empty() {
             return Ok(None);
         }
-        Ok(Some(Self {
-            genre: genre.id.clone(),
-            contexts,
-        }))
+        Ok(Some(Self { contexts }))
     }
 }
 
@@ -36,11 +46,11 @@ impl Tagger for DeclaredContextTagger {
         Ok(self
             .contexts
             .iter()
-            .map(|kind| Tag {
+            .map(|(kind, genre)| Tag {
                 kind: kind.clone(),
                 span: 0..doc.source_len(),
                 confidence: 1.0,
-                evidence: format!("declared by genre `{}`", self.genre),
+                evidence: format!("declared by genre `{genre}`"),
             })
             .collect())
     }

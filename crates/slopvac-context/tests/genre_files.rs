@@ -104,7 +104,7 @@ fn run_args(args: &[&str]) -> Result<String, slopvac_context::Error> {
     let m = command()
         .try_get_matches_from(std::iter::once("genre").chain(args.iter().copied()))
         .unwrap();
-    run(&m)
+    run(&m, &mut |_, _| None)
 }
 
 #[test]

@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use slopvac_config::frontmatter::{Policy, read as read_front_matter};
+use slopvac_config::frontmatter::{Policy, Read, read as read_front_matter};
 use slopvac_config::{ConfigError, Discovery, LoadedConfig};
 use slopvac_engine::discover::{DiscoverError, FileKind, Options, Selection, discover};
 use slopvac_engine::{EngineError, Input, Kind};
@@ -137,6 +137,23 @@ impl Run {
             data: serde_json::Map::new(),
         });
         self.incomplete.push(error);
+    }
+
+    /// Record what is wrong with a document's `slopvac:` block: an exit-2 error and a report
+    /// notice for each diagnostic. The block then contributes nothing and the document is
+    /// still linted. The error text is escaped for a terminal; the notice keeps the raw
+    /// text, which each report format escapes for itself.
+    fn front_matter_errors(&mut self, item: &Item, read: &Read) {
+        for e in block_errors(&item.shown, &item.text, read) {
+            self.notices.push(Notice {
+                code: KebabName::new(e.code).expect("diagnostic codes are kebab-case"),
+                level: NoticeLevel::Warning,
+                message: NonEmptyString::new(e.raw).expect("messages are not empty"),
+                path: Some(item.shown.clone()),
+                data: serde_json::Map::new(),
+            });
+            self.incomplete.push(CliError::new(e.code, e.escaped));
+        }
     }
 
     /// Record a file the engine could not lint: not checked, so the run exits 2.
@@ -685,17 +702,102 @@ fn config_for(
     }))
 }
 
-/// The genre the `slopvac:` block of the item's front matter sets, when the project's
-/// front matter policy allows it and the block is valid. A top-level `genre` key is ordinary
-/// data and never counts.
-fn declared_genre(item: &Item) -> Option<String> {
-    let policy = item
-        .config
-        .as_ref()
-        .map_or_else(Policy::core, |(config, _)| Policy::from_config(config));
-    read_front_matter(&item.text, &item.shown, &policy)
-        .settings
-        .into_iter()
+/// One problem in a document's `slopvac:` block, worded without the document's values.
+pub(crate) struct BlockError {
+    /// The diagnostic's stable code.
+    pub(crate) code: &'static str,
+    /// `<shown>:<line>:<column>: <key pointer>`, as the document gave the names.
+    pub(crate) raw: String,
+    /// The same with the file name and the key names escaped for a terminal.
+    pub(crate) escaped: String,
+}
+
+/// Key paths of the `slopvac:` block that the schema itself names. A key under a map
+/// (`rules`, `categories`), an unknown key and an array index come from the document, so a
+/// path is shown only up to the last prefix listed here.
+const SCHEMA_PATHS: &[&[&str]] = &[
+    &["slopvac"],
+    &["slopvac", "v"],
+    &["slopvac", "genre"],
+    &["slopvac", "profile"],
+    &["slopvac", "profile", "name"],
+    &["slopvac", "profile", "severity_shift"],
+    &["slopvac", "locale"],
+    &["slopvac", "thresholds"],
+    &["slopvac", "thresholds", "max_total_per_100_words"],
+    &["slopvac", "thresholds", "max_errors"],
+    &["slopvac", "thresholds", "max_warnings"],
+    &["slopvac", "thresholds", "min_score"],
+    &["slopvac", "thresholds", "max_unicode_dashes"],
+    &["slopvac", "categories"],
+    &["slopvac", "rules"],
+    &["slopvac", "terms"],
+    &["slopvac", "terms", "allow"],
+];
+
+/// The JSON pointer of `path` cut at the first segment the schema does not own, `/` when no
+/// segment is owned.
+fn schema_pointer(path: &[String]) -> String {
+    let owned = (1..=path.len())
+        .take_while(|&n| {
+            SCHEMA_PATHS.iter().any(|known| {
+                known
+                    .iter()
+                    .copied()
+                    .eq(path[..n].iter().map(String::as_str))
+            })
+        })
+        .count();
+    if owned == 0 {
+        return "/".to_owned();
+    }
+    path[..owned].iter().fold(String::new(), |mut acc, seg| {
+        acc.push('/');
+        acc.push_str(seg);
+        acc
+    })
+}
+
+/// The problems that `read` found in the block of the document `text`, shown as `shown`. Only
+/// the code, the position and the key path are reported: a diagnostic's own message quotes
+/// the offending value, and front matter values stay out of error output (policies 1.7).
+pub(crate) fn block_errors(shown: &str, text: &str, read: &Read) -> Vec<BlockError> {
+    read.diagnostics
+        .iter()
+        .map(|d| {
+            let (line, column) = d.location(text);
+            let pointer = schema_pointer(&d.path);
+            BlockError {
+                code: d.code.as_str(),
+                raw: format!("{shown}:{line}:{column}: {pointer}"),
+                escaped: format!(
+                    "{}:{line}:{column}: {}",
+                    slopvac_sanitize::line(shown),
+                    slopvac_sanitize::line(&pointer)
+                ),
+            }
+        })
+        .collect()
+}
+
+/// The `slopvac:` block of the item's front matter, read under the project's front matter
+/// policy. A top-level `genre` key is ordinary data and never counts.
+fn read_block(item: &Item) -> Read {
+    let config = item.config.as_ref().map(|(config, _)| &**config);
+    read_block_under(&item.text, &item.shown, config)
+}
+
+/// Read the `slopvac:` block of `text` under the policy of `config`, or the core defaults
+/// when no config applies.
+pub(crate) fn read_block_under(text: &str, shown: &str, config: Option<&LoadedConfig>) -> Read {
+    let policy = config.map_or_else(Policy::core, Policy::from_config);
+    read_front_matter(text, shown, &policy)
+}
+
+/// The genre that a read block sets, when the policy allows it and the block is valid.
+pub(crate) fn declared_genre(read: &Read) -> Option<String> {
+    read.settings
+        .iter()
         .rfind(|s| s.path == ["genre"])
         .and_then(|s| s.value.as_str().map(str::to_owned))
 }
@@ -791,8 +893,11 @@ fn lint_items(request: &LintRequest, items: Vec<Item>, rules: Catalog, mut run: 
             .iter()
             .map(|&i| items[i].config.as_ref().map(|(_, rel)| rel_text(rel)))
             .collect();
-        let declared: Vec<Option<String>> =
-            indexes.iter().map(|&i| declared_genre(&items[i])).collect();
+        let reads: Vec<Read> = indexes.iter().map(|&i| read_block(&items[i])).collect();
+        for (&i, read) in indexes.iter().zip(&reads) {
+            run.front_matter_errors(&items[i], read);
+        }
+        let declared: Vec<Option<String>> = reads.iter().map(declared_genre).collect();
         let inputs: Vec<Input<'_>> = indexes
             .iter()
             .zip(relatives.iter().zip(&declared))

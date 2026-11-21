@@ -22,7 +22,7 @@ pub use builtin::{
 pub use checklist::{
     ChecklistEntry, ChecklistRule, checklist, checklist_rules, effective_gates, rule_allows,
 };
-pub use cli::{command, render, run};
+pub use cli::{DeclaredGenres, command, render, run};
 pub use declarative::{DeclarativeTagger, Matcher, TaggerSpec, Unit};
 pub use declared::{DeclaredContextTagger, context_hint};
 pub use genre::{

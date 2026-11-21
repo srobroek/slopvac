@@ -9,8 +9,8 @@ use clap::{Arg, ArgAction, ArgMatches, Command};
 use slopvac_sanitize::line;
 
 use crate::{
-    DocumentView, Error, GenreAssignment, GenreRegistry, GenreResult, GenreSource, PlainDocument,
-    ResolveOptions, builtin_genres,
+    DeclaredGenre, DocumentView, Error, GenreAssignment, GenreRegistry, GenreResult, GenreSource,
+    PlainDocument, ResolveOptions, builtin_genres,
 };
 
 /// The `genre` subcommand.
@@ -55,13 +55,19 @@ pub fn render(path: &str, r: &GenreResult) -> String {
     out
 }
 
-/// Resolve the genre of `path` against the built-in genres and print the result.
-pub fn run(matches: &ArgMatches) -> Result<String, Error> {
+/// The genre a document declares for itself, as the host checked it against the project's
+/// front matter policy: called with the path as typed and the document text.
+pub type DeclaredGenres<'a> = dyn FnMut(&str, &str) -> Option<String> + 'a;
+
+/// Resolve the genre of each file against the built-in genres and print the results.
+/// `declared` supplies the genre that a document's front matter sets, after the host has
+/// applied the project's policy; the document's own front matter is not consulted.
+pub fn run(matches: &ArgMatches, declared: &mut DeclaredGenres<'_>) -> Result<String, Error> {
     let registry = builtin_genres()?;
     let assignments = parse_assignments(matches)?;
     let mut out = String::new();
     for path in matches.get_many::<String>("files").into_iter().flatten() {
-        out.push_str(&explain(&registry, path, &assignments)?);
+        out.push_str(&explain(&registry, path, &assignments, declared)?);
     }
     Ok(out)
 }
@@ -104,16 +110,18 @@ fn explain(
     registry: &GenreRegistry,
     path: &str,
     assignments: &[GenreAssignment],
+    declared: &mut DeclaredGenres<'_>,
 ) -> Result<String, Error> {
     // STUB(slopvac-8l4.5.11): PlainDocument stands in for the real Markdown parser.
     let src = read_document(path)?;
     let doc = PlainDocument::from_markdown(path, &src);
+    let declared = declared(path, &src);
     let result = registry.resolve(
         &doc as &dyn DocumentView,
         &ResolveOptions {
             assignments,
             relative_path: Some(&relative_to_cwd(path)),
-            ..Default::default()
+            declared: DeclaredGenre::Given(declared.as_deref()),
         },
     )?;
     Ok(render(path, &result))

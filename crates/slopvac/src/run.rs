@@ -306,7 +306,7 @@ fn dispatch(
             inspect::explain(m, out)
         }
         Some(("terms", m)) => owners::terms(m, out),
-        Some(("genre", m)) => owners::genre(m, out),
+        Some(("genre", m)) => owners::genre(m, out, err_out),
         Some(("validate", m)) => owners::validate(m, out),
         Some(("setup", m)) => owners::setup(m, out),
         Some(("prime", m)) => owners::prime(m, out),

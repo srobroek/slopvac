@@ -489,6 +489,9 @@ pub struct GenreResult {
     pub reasons: Vec<Reason>,
     /// Detection score for every concrete genre, best first.
     pub scores: Vec<(String, f64)>,
+    /// The genre a `[[genres]]` block assigns, when front matter chose another one. Its
+    /// contexts still apply: contexts from a path or the config are additive.
+    pub assigned: Option<String>,
 }
 
 /// A `[[genres]]` block reduced to what assignment needs.
@@ -515,7 +518,9 @@ pub struct ResolveOptions<'a> {
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum DeclaredGenre<'a> {
-    /// The top-level `genre` key of the document's front matter.
+    /// The `genre` field of the document's versioned `slopvac:` block
+    /// ([`DocumentView::slopvac_block`]). A top-level `genre` key is ordinary data. This reads
+    /// no project policy; a host that has one passes the checked genre as `Given`.
     #[default]
     FromFrontMatter,
     /// A genre the host has already read, validated and checked against the project policy,
@@ -709,20 +714,31 @@ impl GenreRegistry {
                     detail,
                 }],
                 scores: scores.clone(),
+                assigned: None,
             })
         };
         let declared = match opts.declared {
-            DeclaredGenre::FromFrontMatter => doc.front_matter("genre"),
+            DeclaredGenre::FromFrontMatter => doc.slopvac_block("genre"),
             DeclaredGenre::Given(id) => id,
         };
-        if let Some(id) = declared {
-            return explicit(id, "front-matter", format!("`genre: {id}`"));
-        }
         let mut assigned = None;
         for (i, a) in opts.assignments.iter().enumerate() {
             if files_match(&a.files, native)? {
                 assigned = Some((i, a));
             }
+        }
+        if let Some(id) = declared {
+            // Front matter picks the genre, but a path or config assignment keeps its
+            // contexts and stays on record as a reason.
+            let mut result = explicit(id, "front-matter", format!("`genre: {id}`"))?;
+            if let Some((i, a)) = assigned.filter(|(_, a)| a.genre != id) {
+                result.reasons.push(Reason {
+                    signal: "path-glob".to_string(),
+                    detail: format!("`[[genres]]` block {i} matches `{rel}`"),
+                });
+                result.assigned = Some(a.genre.clone());
+            }
+            return Ok(result);
         }
         if let Some((i, a)) = assigned {
             return explicit(
@@ -749,6 +765,7 @@ impl GenreRegistry {
                 source: GenreSource::Detected,
                 reasons: reasons.clone(),
                 scores,
+                assigned: None,
             });
         }
         Ok(GenreResult {
@@ -759,6 +776,7 @@ impl GenreRegistry {
                 detail: format!("no genre reached its threshold; using `{}`", self.default),
             }],
             scores,
+            assigned: None,
         })
     }
 

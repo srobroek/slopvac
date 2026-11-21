@@ -79,7 +79,10 @@ fn adr_path_detects_internal() {
 
 #[test]
 fn front_matter_beats_detection() {
-    let r = resolve("CHANGELOG.md", "---\ngenre: reference\n---\n# T\n\nBody.\n");
+    let r = resolve(
+        "CHANGELOG.md",
+        "---\nslopvac:\n  v: 3\n  genre: reference\n---\n# T\n\nBody.\n",
+    );
     assert_eq!(
         (r.id.as_str(), r.source),
         ("reference", GenreSource::Explicit)
@@ -150,7 +153,10 @@ fn assignments_use_the_relative_path() {
 #[test]
 fn unknown_genre_is_an_error() {
     let reg = builtin_genres().unwrap();
-    let doc = PlainDocument::from_markdown("a.md", "---\ngenre: nope\n---\n# T\n\nBody.\n");
+    let doc = PlainDocument::from_markdown(
+        "a.md",
+        "---\nslopvac:\n  v: 3\n  genre: nope\n---\n# T\n\nBody.\n",
+    );
     assert!(matches!(
         reg.resolve(&doc, &ResolveOptions::default()),
         Err(Error::UnknownGenre(id)) if id == "nope"
@@ -516,6 +522,7 @@ fn render_escapes_control_and_bidi_characters() {
             detail: format!("heading `{HOSTILE}`"),
         }],
         scores: vec![(HOSTILE.to_string(), 1.0)],
+        assigned: None,
     };
     let text = slopvac_context::render(HOSTILE, &r);
     assert_eq!(
@@ -531,7 +538,9 @@ fn a_read_error_escapes_the_path() {
     let m = slopvac_context::command()
         .try_get_matches_from(["genre", "no\u{1b}]8;;\u{202e}/such.md"])
         .unwrap();
-    let msg = slopvac_context::run(&m).unwrap_err().to_string();
+    let msg = slopvac_context::run(&m, &mut |_, _| None)
+        .unwrap_err()
+        .to_string();
     assert!(msg.starts_with("no\\u{1b}]8;;\\u{202e}/such.md: "), "{msg}");
     assert!(!msg.contains(['\u{1b}', '\u{202e}']), "{msg:?}");
 }
@@ -541,7 +550,9 @@ fn an_assign_error_escapes_the_argument() {
     let m = slopvac_context::command()
         .try_get_matches_from(["genre", "a.md", "--assign", "x\u{1b}\u{202e}"])
         .unwrap();
-    let msg = slopvac_context::run(&m).unwrap_err().to_string();
+    let msg = slopvac_context::run(&m, &mut |_, _| None)
+        .unwrap_err()
+        .to_string();
     assert!(!msg.contains(['\u{1b}', '\u{202e}']), "{msg:?}");
 }
 
@@ -627,7 +638,7 @@ mod error_sources {
         let m = slopvac_context::command()
             .try_get_matches_from(["genre", "no-such-file.md"])
             .unwrap();
-        let err = slopvac_context::run(&m).unwrap_err();
+        let err = slopvac_context::run(&m, &mut |_, _| None).unwrap_err();
         assert!(has_source(&err), "{err:?}");
         assert!(err.to_string().starts_with("no-such-file.md: "), "{err}");
     }

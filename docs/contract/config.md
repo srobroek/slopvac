@@ -124,7 +124,9 @@ The block is the mapping under the `slopvac:` key of a document's front matter. 
 
 - `v` is required and equals 3, the same number as `schema_version`. A larger value is an error that names the versions supported and the upgrade command.
 - The fields are `genre`, `profile`, `locale`, `thresholds`, `categories`, `rules` and `terms.allow`. No other key is allowed, and a misspelling is an error at its line and column.
-- `[frontmatter] allow` in the project config sets which fields take effect. The default is `genre`, `locale` and `terms`, so a document can weaken its own gate only after the project opts in. A field outside the list is an error: `config-frontmatter-field-denied`. Slopvac reports it every time.
+- `[frontmatter] allow` in the project config sets which fields take effect. The default is `genre`, `locale` and `terms`. A field outside the list is an error: `config-frontmatter-field-denied`. Slopvac reports it every time.
+- The default list lets a document weaken its own gate without a project opt-in, the same way an inline `slopvac-allow` comment does. A document that picks a lenient genre, or lists `terms.allow` words, changes what it is held to. A stricter project removes `genre` from the list. For example, `allow = ["locale", "terms"]` makes a `genre` field in any document an error, and the genre comes from the `[[genres]]` blocks or from detection.
+- The `genre` field changes the genre only. Contexts that a `[[genres]]` block or the config assigns to a file are additive, so a document cannot remove them by naming another genre. The report lists both the front matter reason and the path reason.
 - `[frontmatter] enabled = false` makes `slopvac:` ordinary data. Slopvac neither reads nor validates it.
 - Keys outside `slopvac:` are the document's own and are never checked.
 - Keys that start with `x-` are ignored inside the block.
