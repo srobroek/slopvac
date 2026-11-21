@@ -793,7 +793,7 @@ dependencies = [
 
 [[package]]
 name = "frontmatter-spans"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "proptest",
  "saphyr",
@@ -2412,7 +2412,7 @@ checksum = "33f4fe9184a62d842c9ef383018f3306d8ba224fd9d836f56d7288308847c256"
 
 [[package]]
 name = "slopvac"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -2458,7 +2458,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-agents"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "cap-std",
  "clap",
@@ -2484,7 +2484,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-comments"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "rstest",
  "thiserror",
@@ -2498,7 +2498,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-config"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "annotate-snippets",
  "clap",
@@ -2522,7 +2522,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-context"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "clap",
  "globset",
@@ -2546,7 +2546,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-diagrams"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "base64",
  "flate2",
@@ -2558,7 +2558,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-engine"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "cap-fs-ext",
  "cap-std",
@@ -2596,7 +2596,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-fs"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "cap-fs-ext",
  "cap-std",
@@ -2610,7 +2610,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-lsp"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "clap",
  "crossbeam-channel",
@@ -2631,7 +2631,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-messages"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "rstest",
  "slopvac-messages-derive",
@@ -2640,7 +2640,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-messages-derive"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2649,7 +2649,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-migrate"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "cap-fs-ext",
  "cap-std",
@@ -2679,7 +2679,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-model"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "jsonschema",
  "proptest",
@@ -2695,7 +2695,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-packs"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "cap-std",
  "proptest",
@@ -2718,7 +2718,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-parse"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "html5ever",
  "html5gum",
@@ -2735,7 +2735,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-pcre2"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "pcre2-sys",
  "proptest",
@@ -2745,7 +2745,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-plugins"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "base64",
  "cap-fs-ext",
@@ -2778,7 +2778,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-pos"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "rstest",
  "serde",
@@ -2789,7 +2789,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-report"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "insta",
  "jsonschema",
@@ -2804,7 +2804,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-rules"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "jsonschema",
  "rstest",
@@ -2822,14 +2822,14 @@ dependencies = [
 
 [[package]]
 name = "slopvac-sanitize"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "slopvac-schemas"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "clap",
  "jsonschema",
@@ -2846,7 +2846,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-styles"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "rustix",
  "serde",
@@ -2859,7 +2859,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-terms"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "clap",
  "rstest",
@@ -2876,7 +2876,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-text"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "proptest",
  "rstest",
@@ -2889,7 +2889,7 @@ dependencies = [
 
 [[package]]
 name = "slopvac-update"
-version = "0.0.0"
+version = "3.0.0"
 dependencies = [
  "cap-std",
  "clap",
