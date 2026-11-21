@@ -8,6 +8,7 @@
 use crate::{DocumentView, Error, GenreRegistry, GenreResult, Tag, Tagger};
 
 /// Tags the whole document with the contexts its genre declares.
+#[derive(Debug, Clone)]
 pub struct DeclaredContextTagger {
     genre: String,
     contexts: Vec<String>,
@@ -16,12 +17,17 @@ pub struct DeclaredContextTagger {
 impl DeclaredContextTagger {
     /// Build the tagger for a resolved genre. `None` when the genre declares no context.
     pub fn for_genre(registry: &GenreRegistry, genre: &GenreResult) -> Result<Option<Self>, Error> {
-        let contexts = registry.contexts(&genre.id)?;
+        Self::for_genre_id(registry, &genre.id)
+    }
+
+    /// Like [`Self::for_genre`], for a caller that holds only the genre id.
+    pub fn for_genre_id(registry: &GenreRegistry, id: &str) -> Result<Option<Self>, Error> {
+        let contexts = registry.contexts(id)?;
         if contexts.is_empty() {
             return Ok(None);
         }
         Ok(Some(Self {
-            genre: genre.id.clone(),
+            genre: id.to_owned(),
             contexts,
         }))
     }
