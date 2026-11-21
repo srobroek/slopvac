@@ -212,7 +212,7 @@ checklist. The agent's own model runs the review.
 ```yaml
 repos:
   - repo: https://github.com/slopvac/slopvac
-    rev: v2.18.1 # x-release-please-version
+    rev: v3.0.0 # x-release-please-version
     hooks:
       - id: slopvac
 ```
@@ -225,7 +225,7 @@ Add these steps to a workflow job:
 
 ```yaml
 - uses: actions/checkout@v7
-- uses: slopvac/slopvac@v2.18.1 # x-release-please-version
+- uses: slopvac/slopvac@v3.0.0 # x-release-please-version
   with:
     paths: README.md docs/
     profile: normal
