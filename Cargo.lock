@@ -2813,6 +2813,7 @@ dependencies = [
  "serde-saphyr",
  "serde_json",
  "slopvac-fs",
+ "slopvac-messages",
  "slopvac-model",
  "slopvac-text",
  "tempfile",

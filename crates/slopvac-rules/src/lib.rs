@@ -12,6 +12,7 @@
 mod error;
 mod ext;
 mod matcher;
+mod messages;
 mod model;
 mod ruleset;
 mod schema;
@@ -19,6 +20,7 @@ mod schema;
 pub use error::{LoadError, LoadErrorKind, LoadErrors, PackBudget};
 pub use ext::{UniqueVec, ValueError};
 pub use matcher::{CompileError, CompileOptions, LexicalMatcher};
+pub use messages::message_entries;
 pub use model::*;
 pub use ruleset::{
     LoadedCategory, LoadedRule, MAX_AUTHORED_PATTERN_BYTES, MAX_PACK_BYTES, MAX_PACK_ENTRIES,

@@ -3,6 +3,8 @@
 use std::fmt;
 use std::path::PathBuf;
 
+use crate::messages::RulesMessage;
+
 /// Which pack budget a load passed. The list can grow.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
@@ -42,18 +44,25 @@ impl PackBudget {
 }
 
 /// What went wrong with one file or rule.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
 pub enum LoadErrorKind {
     /// The file or directory could not be read.
+    #[error("{}", RulesMessage::ReadFailed { reason: .0.clone() })]
     Read(String),
     /// The file is larger than [`MAX_RULE_FILE_BYTES`](crate::MAX_RULE_FILE_BYTES), the given
     /// number of bytes. Its stable code is `rules-file-too-large`.
+    #[error("{}", RulesMessage::FileTooLarge { cap: *.0 })]
     TooLarge(u64),
     /// The pack directory holds more files, or more bytes in total, than
     /// [`MAX_PACK_FILES`](crate::MAX_PACK_FILES) or [`MAX_PACK_BYTES`](crate::MAX_PACK_BYTES)
     /// allow, or one rule lists more than [`MAX_RULE_ENTRIES`](crate::MAX_RULE_ENTRIES) tokens or
     /// substitutions. Its stable code is `rules-budget-exceeded`.
+    #[error("{}", RulesMessage::BudgetExceeded {
+        limit: *.limit,
+        unit: .budget.unit().to_owned(),
+        budget: .budget.as_str().to_owned(),
+    })]
     BudgetExceeded {
         /// The budget that was passed.
         budget: PackBudget,
@@ -68,6 +77,7 @@ pub enum LoadErrorKind {
     /// whole load, as for [`LoadErrorKind::TooLarge`]. Its stable code is
     /// `rules-pattern-too-long`. The error never holds the pattern text. Its line is the line where
     /// the rule starts, because the loader keeps no position for a value inside a rule.
+    #[error("{}", RulesMessage::PatternTooLong { len: *.len, limit: *.limit })]
     PatternTooLong {
         /// The pattern length as written, in UTF-8 bytes.
         len: usize,
@@ -75,16 +85,22 @@ pub enum LoadErrorKind {
         limit: usize,
     },
     /// The file does not parse as a rule or category file.
+    #[error("{}", RulesMessage::ParseFailed { reason: .0.clone() })]
     Parse(String),
     /// The extension names no supported format (`json`, `yaml`, `yml`, `toml`).
+    #[error("{}", RulesMessage::UnsupportedFormat)]
     UnsupportedFormat,
     /// Two files define the same category.
+    #[error("{}", RulesMessage::DuplicateCategory { id: .0.clone() })]
     DuplicateCategory(String),
     /// Two rules of one category share an id.
+    #[error("{}", RulesMessage::DuplicateRule { id: .0.clone() })]
     DuplicateRule(String),
     /// A lexical rule's pattern does not compile.
+    #[error("{}", RulesMessage::PatternInvalid { reason: .0.clone() })]
     Compile(String),
     /// An example's `bad` text does not match its rule.
+    #[error("{}", RulesMessage::BadExampleNoMatch { index: *.index, text: format!("{:?}", .text) })]
     BadExampleDoesNotMatch {
         /// Zero-based example index.
         index: usize,
@@ -92,6 +108,7 @@ pub enum LoadErrorKind {
         text: String,
     },
     /// An example's `good` text matches its rule.
+    #[error("{}", RulesMessage::GoodExampleMatches { index: *.index, text: format!("{:?}", .text) })]
     GoodExampleMatches {
         /// Zero-based example index.
         index: usize,
@@ -99,44 +116,8 @@ pub enum LoadErrorKind {
         text: String,
     },
     /// Matching an example hit a limit.
+    #[error("{}", RulesMessage::MatchFailed { reason: .0.clone() })]
     Match(String),
-}
-
-impl fmt::Display for LoadErrorKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Read(e) => write!(f, "cannot read: {e}"),
-            Self::TooLarge(cap) => {
-                write!(f, "[rules-file-too-large] file is larger than {cap} bytes")
-            }
-            Self::BudgetExceeded { budget, limit, .. } => write!(
-                f,
-                "[rules-budget-exceeded] the input passes the limit of {limit} {} ({})",
-                budget.unit(),
-                budget.as_str()
-            ),
-            Self::PatternTooLong { len, limit } => write!(
-                f,
-                "[rules-pattern-too-long] a pattern is {len} bytes, over the {limit}-byte limit"
-            ),
-            Self::Parse(e) => f.write_str(e),
-            Self::UnsupportedFormat => {
-                f.write_str("unsupported file type (expected json, yaml, yml or toml)")
-            }
-            Self::DuplicateCategory(id) => write!(f, "duplicate category `{id}`"),
-            Self::DuplicateRule(id) => write!(f, "duplicate rule id `{id}` in its category"),
-            Self::Compile(e) => write!(f, "pattern does not compile: {e}"),
-            Self::BadExampleDoesNotMatch { index, text } => write!(
-                f,
-                "example {index} 'bad' text does not match its own pattern: {text:?}"
-            ),
-            Self::GoodExampleMatches { index, text } => write!(
-                f,
-                "example {index} 'good' text matches the pattern, so the rule fires on its own fix: {text:?}"
-            ),
-            Self::Match(e) => write!(f, "matching failed: {e}"),
-        }
-    }
 }
 
 /// One problem, with where it is.
