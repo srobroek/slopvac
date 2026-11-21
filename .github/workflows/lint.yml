@@ -157,12 +157,18 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      # mise reads the taplo pin from mise.toml, the same pin the local prek hook uses.
+      - name: Install taplo
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
         with:
-          enable-cache: true
+          version: 2026.11.9
+          sha256: f13f3e5ec88807e0161669b3aa07a91d84478cdf1e95b5b92b63f85a25d42395
+          install_args: taplo
+          cache: false
+          env: false
+          add_shims_to_path: false
       - name: taplo
-        run: uvx taplo@0.9.3 fmt --check
+        run: PATH="$(mise bin-paths taplo):$PATH" taplo fmt --check
 
   pinact:
     if: ${{ inputs.ci || inputs.action }}
@@ -206,7 +212,7 @@ jobs:
         with:
           version: 2026.11.9
           sha256: f13f3e5ec88807e0161669b3aa07a91d84478cdf1e95b5b92b63f85a25d42395
-          install_args: ast-grep
+          install_args: ast-grep taplo
           cache: false
           env: false
           add_shims_to_path: false
@@ -225,6 +231,8 @@ jobs:
           mkdir -p "$bin"
           ln -s "$dirs/ast-grep" "$bin/ast-grep"
           echo "$bin" >> "$GITHUB_PATH"
+      - name: Put taplo on PATH
+        run: echo "$(mise bin-paths taplo)" >> "$GITHUB_PATH"
       - name: Run configured hooks
         run: uvx prek@0.5.2 run --all-files
 

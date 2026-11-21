@@ -36,6 +36,11 @@ repos:
         entry: scripts/rust-hook.sh typos --force-exclude
         language: system
         files: \.(rs|toml|md)$
+      - id: taplo
+        name: taplo fmt
+        entry: scripts/rust-hook.sh taplo fmt --check
+        language: system
+        files: \.toml$
       - id: ast-grep
         name: ast-grep message checks
         entry: scripts/rust-hook.sh ast-grep test
